@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/解决方案项/">
+    <File Path="项目目标.md" />
+    <File Path="项目阶段.md" />
+  </Folder>
+  <Project Path="A_Pair.Application.Tests/A_Pair.Application.Tests.csproj" />
+  <Project Path="A_Pair.Application/A_Pair.Application.csproj" />
+  <Project Path="A_Pair.Contracts/A_Pair.Contracts.csproj" />
+  <Project Path="A_Pair.Core.Tests/A_Pair.Core.Tests.csproj" />
+  <Project Path="A_Pair.Core/A_Pair.Core.csproj" />
+  <Project Path="A_Pair.Infrastructure.Tests/A_Pair.Infrastructure.Tests.csproj" />
+  <Project Path="A_Pair.Infrastructure/A_Pair.Infrastructure.csproj" />
+  <Project Path="A_Pair.Plugins.Sdk/A_Pair.Plugins.Sdk.csproj" />
+  <Project Path="A_Pair.Presentation.Avalonia/A_Pair.Presentation.Avalonia.csproj" />
+</Solution>
