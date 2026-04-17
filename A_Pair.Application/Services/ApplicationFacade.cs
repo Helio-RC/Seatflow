@@ -16,6 +16,8 @@ namespace A_Pair.Application.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly SeatingSnapshotRepository _snapshotRepository;
+        private readonly CommandHistory _history = new();
+        private SeatingWorkspace? _currentWorkspace;
 
         public ApplicationFacade(IServiceProvider serviceProvider, SeatingSnapshotRepository snapshotRepository)
         {
@@ -59,6 +61,9 @@ namespace A_Pair.Application.Services
 
             var workspace = new SeatingWorkspace(students, seats);
 
+            // persist as the current workspace for subsequent commands/undo-redo
+            _currentWorkspace = workspace;
+
             // resolve strategies
             var strategies = _serviceProvider.GetService<IEnumerable<Core.Strategies.ISeatingStrategy>>() ?? Enumerable.Empty<Core.Strategies.ISeatingStrategy>();
             var pipeline = new StrategyExecutionPipeline(strategies);
@@ -69,6 +74,36 @@ namespace A_Pair.Application.Services
             await _snapshotRepository.SaveAsync(snapshot);
 
             return workspace;
+        }
+
+        public async Task<bool> ExecuteCommandAsync(A_Pair.Application.Commands.IUndoableCommand command, CancellationToken cancellationToken = default)
+        {
+            // Ensure we have a current workspace; generate a default one if needed
+            if (_currentWorkspace == null)
+            {
+                await GenerateSeatingAsync(new SeatingRequest(), null, cancellationToken);
+            }
+
+            if (_currentWorkspace == null) return false;
+
+            return await _history.ExecuteAsync(command, _currentWorkspace, cancellationToken);
+        }
+
+        public Task<bool> UndoAsync(CancellationToken cancellationToken = default)
+        {
+            if (_currentWorkspace == null) return Task.FromResult(false);
+            return _history.UndoAsync(_currentWorkspace, cancellationToken);
+        }
+
+        public Task<bool> RedoAsync(CancellationToken cancellationToken = default)
+        {
+            if (_currentWorkspace == null) return Task.FromResult(false);
+            return _history.RedoAsync(_currentWorkspace, cancellationToken);
+        }
+
+        public Task<SeatingWorkspace?> GetCurrentWorkspaceAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(_currentWorkspace);
         }
 
         public async Task ExportSeatingPlanAsync(SeatingWorkspace plan, string path, CancellationToken cancellationToken = default)

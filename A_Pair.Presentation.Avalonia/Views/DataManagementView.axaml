@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             x:Class="A_Pair.Presentation.Avalonia.Views.DataManagementView"
+             x:DataType="vm:DataManagementViewModel">
+
+  <Grid Margin="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <Button Content="导入" Command="{Binding ImportCommand}" />
+      <Button Content="导出" Command="{Binding ExportCommand}" />
+      <Button Content="验证数据" Command="{Binding ValidateCommand}" />
+      <Button Content="清空" Command="{Binding ClearCommand}" />
+    </StackPanel>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,8" Spacing="12">
+      <TextBlock Text="数据源:" VerticalAlignment="Center"/>
+      <TextBlock Text="{Binding SourcePath}" VerticalAlignment="Center"/>
+      <Button Content="浏览" Command="{Binding BrowseSourceCommand}" />
+      <TextBlock Text="  统计:" VerticalAlignment="Center" Margin="12,0,0,0"/>
+      <TextBlock Text="{Binding SummaryText}" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <DataGrid Grid.Row="2"
+              Items="{Binding Students}"
+              SelectedItem="{Binding SelectedStudent}"
+              AutoGenerateColumns="False"
+              CanUserResizeColumns="True">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="学号" Binding="{Binding Id}" />
+        <DataGridTextColumn Header="姓名" Binding="{Binding Name}" />
+        <DataGridComboBoxColumn Header="性别"
+                                ItemsSource="{Binding GenderOptions}"
+                                SelectedItemBinding="{Binding Gender}" />
+        <DataGridTextColumn Header="身高" Binding="{Binding Height}" />
+        <DataGridCheckBoxColumn Header="需前排？" Binding="{Binding NeedsFrontRow}" />
+        <DataGridTextColumn Header="同桌组ID" Binding="{Binding DeskGroupId}" />
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+
+</UserControl>

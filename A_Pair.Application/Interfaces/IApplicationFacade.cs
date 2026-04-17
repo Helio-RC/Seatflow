@@ -12,6 +12,10 @@ namespace A_Pair.Application.Interfaces
         Task<List<Student>> LoadStudentsAsync(string source, CancellationToken cancellationToken = default);
         Task<SeatingWorkspace> GenerateSeatingAsync(SeatingRequest request, IProgress<SeatingProgress>? progress = null, CancellationToken cancellationToken = default);
         Task ExportSeatingPlanAsync(SeatingWorkspace plan, string path, CancellationToken cancellationToken = default);
+        Task<bool> ExecuteCommandAsync(A_Pair.Application.Commands.IUndoableCommand command, CancellationToken cancellationToken = default);
+        Task<bool> UndoAsync(CancellationToken cancellationToken = default);
+        Task<bool> RedoAsync(CancellationToken cancellationToken = default);
+        Task<SeatingWorkspace?> GetCurrentWorkspaceAsync(CancellationToken cancellationToken = default);
     }
     public class AppConfiguration { }
     public class SeatingRequest { }

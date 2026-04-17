@@ -19,15 +19,25 @@ namespace A_Pair.Presentation.Avalonia
             if (param is null)
                 return null;
 
-            var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-            var type = Type.GetType(name);
+            var name = param.GetType().FullName!;
+            // first try the simple replacement (same namespace as ViewModel)
+            var tryName = name.Replace("ViewModel", "View", StringComparison.Ordinal);
+            var type = Type.GetType(tryName);
+
+            if (type == null)
+            {
+                // common convention: views live in a .Views namespace instead of .ViewModels
+                var alt = tryName.Replace(".ViewModels.", ".Views.", StringComparison.Ordinal);
+                type = Type.GetType(alt);
+                tryName = alt;
+            }
 
             if (type != null)
             {
                 return (Control)Activator.CreateInstance(type)!;
             }
 
-            return new TextBlock { Text = "Not Found: " + name };
+            return new TextBlock { Text = "Not Found: " + tryName };
         }
 
         public bool Match(object? data)

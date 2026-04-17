@@ -34,5 +34,8 @@
     <Compile Update="Controls\SeatCanvas.axaml.cs">
       <DependentUpon>SeatCanvas.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\DataManagementView.axaml.cs">
+      <DependentUpon>DataManagementView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
