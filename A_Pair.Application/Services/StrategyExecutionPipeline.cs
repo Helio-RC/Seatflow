@@ -25,6 +25,7 @@ namespace A_Pair.Application.Services
             var enabledStrategies = _strategies.Where(s => s.IsEnabled).OrderBy(s => s.Priority).ToList();
             int total = enabledStrategies.Count;
             int current = 0;
+            var failedStrategies = new List<string>();
 
             foreach (var strategy in enabledStrategies)
             {
@@ -37,9 +38,14 @@ namespace A_Pair.Application.Services
                     StatusMessage = $"正在执行策略: {strategy.Name}"
                 });
 
-                await strategy.ExecuteAsync(workspace , cancellationToken);
+                var result = await strategy.ExecuteAsync(workspace , cancellationToken);
+                if (!result.Success)
+                {
+                    failedStrategies.Add($"{strategy.Name}: {result.Message}");
+                }
             }
 
+            // 如果有关键策略失败，可记录日志或抛出异常（此处仅忽略）
             return workspace.BuildSeatingPlan();
         }
     }

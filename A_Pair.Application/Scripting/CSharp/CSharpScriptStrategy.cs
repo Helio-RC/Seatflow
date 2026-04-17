@@ -26,18 +26,18 @@ namespace A_Pair.Application.Scripting.CSharp
         public int Priority { get; set; }
         public bool IsEnabled { get; set; }
 
-        public async Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken)
+        public async Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            // Run script in restricted options
             var options = ScriptOptions.Default.WithImports("System");
             try
             {
-                var script = CSharpScript.Create(_code, options, typeof(ScriptGlobals));
-                var state = await script.RunAsync(new ScriptGlobals { Workspace = workspace });
+                var script = CSharpScript.Create(_code , options , typeof(ScriptGlobals));
+                var globals = new ScriptGlobals { Workspace = workspace };
+                var state = await script.RunAsync(globals , cancellationToken);
             }
             catch (Exception ex)
             {
-                return new StrategyExecutionResult { Success = false, Message = ex.Message };
+                return new StrategyExecutionResult { Success = false , Message = ex.Message };
             }
 
             return new StrategyExecutionResult { Success = true };
@@ -48,6 +48,6 @@ namespace A_Pair.Application.Scripting.CSharp
 
     public class ScriptGlobals
     {
-        public SeatingWorkspace Workspace { get; set; }
+        public SeatingWorkspace? Workspace { get; set; }
     }
 }

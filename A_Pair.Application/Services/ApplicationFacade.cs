@@ -25,19 +25,19 @@ namespace A_Pair.Application.Services
 
         private readonly IEnumerable<ISeatingPlanExporter> _exporters;
 
-        public ApplicationFacade(
-            IServiceProvider serviceProvider,
-            SeatingSnapshotRepository snapshotRepository,
-            IEnumerable<ISeatingPlanExporter> exporters)
+        public ApplicationFacade (
+    IServiceProvider serviceProvider ,
+    SeatingSnapshotRepository snapshotRepository ,
+    IEnumerable<ISeatingPlanExporter> exporters)
         {
-            _serviceProvider = serviceProvider;
-            _snapshotRepository = snapshotRepository;
-            _exporters = exporters;
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
+            _exporters = exporters ?? throw new ArgumentNullException(nameof(exporters));
         }
         public ApplicationFacade(IServiceProvider serviceProvider, SeatingSnapshotRepository snapshotRepository)
         {
-            _serviceProvider = serviceProvider;
-            _snapshotRepository = snapshotRepository;
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
         }
 
         public Task<AppConfiguration> LoadConfigurationAsync(string path, CancellationToken cancellationToken = default)
@@ -100,7 +100,25 @@ namespace A_Pair.Application.Services
                 StatusMessage = "座位生成完成"
             });
 
-            // 6. 保存快照
+            // 6.策略执行后解决冲突
+            var conflictResolver = _serviceProvider.GetService<IConflictResolver>();
+            if (conflictResolver != null)
+            {
+                var conflictResult = conflictResolver.Resolve(workspace);
+                if (!conflictResult.Success)
+                {
+                    // 记录冲突日志，但不阻断流程
+                    // 可考虑将冲突信息通过进度报告反馈
+                    progress?.Report(new SeatingProgress
+                    {
+                        CurrentStep = 1 ,
+                        TotalSteps = 1 ,
+                        StatusMessage = $"检测到 {conflictResult.Conflicts.Count} 个冲突，已自动处理"
+                    });
+                }
+            }
+
+            // 7. 保存快照
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now}" ,

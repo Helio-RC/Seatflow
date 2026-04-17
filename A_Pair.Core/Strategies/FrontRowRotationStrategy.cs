@@ -10,8 +10,13 @@ namespace A_Pair.Core.Strategies
 {
     public class FrontRowRotationStrategy : ISeatingStrategy
     {
-        public FrontRowRotationStrategy()
+        private readonly FrontRowRotationConfiguration _config;
+
+        public FrontRowRotationStrategy () : this(new FrontRowRotationConfiguration()) { }
+
+        public FrontRowRotationStrategy (FrontRowRotationConfiguration config)
         {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             Id = "FrontRowRotation";
             Name = "FrontRowRotation";
             Priority = 30;
@@ -53,9 +58,9 @@ namespace A_Pair.Core.Strategies
                         return histSeat is GridSeat gs && gs.Row == frontRow;
                     });
 
-                int score = (s.NeedsFrontRow ? 1000 : 0)
-                            + s.FrontRowPreferenceScore
-                            - (frontRowHistoryCount * 10);
+                int score = (s.NeedsFrontRow ? _config.NeedsFrontRowBonus : 0)
+            + s.FrontRowPreferenceScore
+            - (frontRowHistoryCount * _config.HistoryWeight);
                 return new { Student = s, Score = score };
             }).OrderByDescending(x => x.Score).ToList();
 
@@ -68,10 +73,25 @@ namespace A_Pair.Core.Strategies
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 
-        public ValidationResult ValidateConfiguration()
+        public ValidationResult ValidateConfiguration ()
         {
-            // 该策略无特殊配置，默认有效
+            if (_config.HistoryWeight < 0)
+            {
+                return new ValidationResult { IsValid = false , Error = "HistoryWeight must be non-negative." };
+            }
             return new ValidationResult { IsValid = true };
+        }
+        public class FrontRowRotationConfiguration
+        {
+            /// <summary>
+            /// 历史座位权重系数（每次前排扣除分数 = HistoryWeight）
+            /// </summary>
+            public int HistoryWeight { get; set; } = 10;
+
+            /// <summary>
+            /// 特殊需求（如视力需求）的固定加分
+            /// </summary>
+            public int NeedsFrontRowBonus { get; set; } = 1000;
         }
     }
 }

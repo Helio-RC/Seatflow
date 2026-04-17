@@ -16,6 +16,7 @@ namespace A_Pair.Application.Services
             services.AddSingleton<ISeatingPlanExporter, ExcelSeatingExporter>();
             services.AddSingleton<ISeatingPlanExporter, CsvSeatingExporter>();
             services.AddSingleton<ISeatingPlanExporter, PdfSeatingExporter>();
+            services.AddSingleton<IConflictResolver , DefaultConflictResolver>();
             return services;
         }
     }
