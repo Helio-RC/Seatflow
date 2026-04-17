@@ -15,7 +15,7 @@ namespace A_Pair.Infrastructure.Providers
             var list = new List<Student>();
             if (string.IsNullOrEmpty(source) || !File.Exists(source)) return list;
 
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialPersonal("A_Pair");
             using var stream = File.OpenRead(source);
             using var package = new ExcelPackage(stream);
             var ws = package.Workbook.Worksheets[0];

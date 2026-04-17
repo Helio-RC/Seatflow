@@ -12,29 +12,11 @@ namespace A_Pair.Infrastructure.Exporters
         public async Task ExportAsync(SeatingPlan plan, string path, CancellationToken cancellationToken = default)
         {
             // Set license via reflection to support multiple EPPlus versions without compile-time dependency on property name.
+            // Prefer the modern explicit API to set a personal non-commercial license.
+            // This avoids reflecting on EPPlus internals and the deprecated LicenseContext enum.
             try
             {
-                var t = typeof(ExcelPackage);
-                var prop = t.GetProperty("License");
-                if (prop != null && prop.CanWrite)
-                {
-                    prop.SetValue(null, LicenseContext.NonCommercial);
-                }
-                else
-                {
-                    var field = t.GetField("License", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
-                    if (field != null)
-                    {
-                        field.SetValue(null, LicenseContext.NonCommercial);
-                    }
-                    else
-                    {
-                        // fallback to LicenseContext property if available
-                        var ctxProp = t.GetProperty("LicenseContext");
-                        if (ctxProp != null && ctxProp.CanWrite)
-                            ctxProp.SetValue(null, LicenseContext.NonCommercial);
-                    }
-                }
+                ExcelPackage.License.SetNonCommercialPersonal("FullName");
             }
             catch
             {
