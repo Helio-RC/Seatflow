@@ -6,10 +6,22 @@ using System.Collections.Generic;
 
 namespace A_Pair.Core.Strategies
 {
+    public class DeskMateConfiguration
+    {
+        public List<DeskMateGroup> Groups { get; set; } = new();
+    }
+
+    public class DeskMateGroup
+    {
+        public List<string> StudentIds { get; set; } = new();
+    }
     public class DeskMateStrategy : ISeatingStrategy
     {
-        public DeskMateStrategy()
+        private readonly DeskMateConfiguration _config;
+        public DeskMateStrategy() : this(new DeskMateConfiguration()) { }
+        public DeskMateStrategy(DeskMateConfiguration config)
         {
+            _config = config;
             Id = "DeskMate";
             Name = "DeskMate";
             Priority = 50;

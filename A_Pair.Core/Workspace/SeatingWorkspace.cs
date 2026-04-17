@@ -11,7 +11,28 @@ namespace A_Pair.Core.Workspace
         private readonly List<Seat> _seats = new();
 
         public IReadOnlyList<Student> Students => _students;
-        public SeatingContext Context { get; init; } = new();
+        public class SeatingContext
+        {
+            /// <summary>
+            /// 当前使用的教室布局定义
+            /// </summary>
+            public ClassroomLayoutDefinition? Layout { get; set; }
+
+            /// <summary>
+            /// 当前轮换周期（如“第3周”）
+            /// </summary>
+            public string? RotationCycle { get; set; }
+
+            /// <summary>
+            /// 座位安排生效日期
+            /// </summary>
+            public DateTime EffectiveDate { get; set; } = DateTime.UtcNow;
+
+            /// <summary>
+            /// 用于策略的共享元数据
+            /// </summary>
+            public Dictionary<string, object> Metadata { get; set; } = new();
+        }
 
         public SeatingWorkspace(IEnumerable<Student> students, IEnumerable<Seat> seats)
         {
