@@ -1,9 +1,11 @@
-using System;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Services;
+using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Exporters;
 using A_Pair.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace A_Pair.Application.Services
 {
@@ -11,15 +13,9 @@ namespace A_Pair.Application.Services
     {
         public static IServiceCollection AddA_PairApplication(this IServiceCollection services, string snapshotBasePath)
         {
-            services.AddSingleton<SeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
-            services.AddSingleton<IApplicationFacade, ApplicationFacade>();
-            // register default strategies for convenience
-            services.AddSingleton<A_Pair.Core.Strategies.ISeatingStrategy, A_Pair.Core.Strategies.FixedSeatStrategy>();
-            services.AddSingleton<A_Pair.Core.Strategies.ISeatingStrategy, A_Pair.Core.Strategies.RandomFillStrategy>();
-            services.AddSingleton<A_Pair.Core.Strategies.ISeatingStrategy, A_Pair.Core.Strategies.FrontRowRotationStrategy>();
-            services.AddSingleton<A_Pair.Core.Strategies.ISeatingStrategy, A_Pair.Core.Strategies.DeskMateStrategy>();
-            // exporters
-            services.AddSingleton<A_Pair.Core.Exporters.ISeatingPlanExporter, A_Pair.Infrastructure.Exporters.ExcelSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter, ExcelSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter, CsvSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter, PdfSeatingExporter>();
             return services;
         }
     }
