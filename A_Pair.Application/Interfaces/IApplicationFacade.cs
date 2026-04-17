@@ -23,12 +23,14 @@ namespace A_Pair.Application.Interfaces
     public class SeatingRequest
     {
         public string? LayoutId { get; set; }
+
         public LayoutType LayoutType { get; set; }
+
         public Dictionary<string , object> LayoutParameters { get; set; } = new();
         public List<string> StrategyIds { get; set; } = new();
         public bool UseDefaultStrategies { get; set; } = true;
-        public string? StudentDataSource { get; set; }          // 新增：学生数据源路径
-        public string? Description { get; set; }                // 新增：本次生成的描述
+        public string? StudentDataSource { get; set; }
+        public string? Description { get; set; }
     }
 
     public class SeatingProgress
