@@ -29,4 +29,10 @@
     <ProjectReference Include="..\A_Pair.Application\A_Pair.Application.csproj" />
     <ProjectReference Include="..\A_Pair.Core\A_Pair.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controls\SeatCanvas.axaml.cs">
+      <DependentUpon>SeatCanvas.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
 </Project>
