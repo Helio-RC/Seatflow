@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
+using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
 
 namespace A_Pair.Application.Plugins
@@ -12,52 +12,118 @@ namespace A_Pair.Application.Plugins
     {
         private readonly string _pluginsPath;
         private readonly List<PluginLoadContext> _contexts = new();
+        private readonly Dictionary<string , PluginManifest> _loadedManifests = new();
 
-        public PluginManager(string pluginsPath)
+        public PluginManager (string pluginsPath)
         {
             _pluginsPath = pluginsPath;
             Directory.CreateDirectory(_pluginsPath);
         }
 
-        public IEnumerable<IPluginSeatingStrategy> LoadPlugins()
+        public IEnumerable<LoadedPluginInfo> LoadPlugins ()
         {
-            var list = new List<IPluginSeatingStrategy>();
-            foreach (var d in Directory.EnumerateDirectories(_pluginsPath))
+            var loadedPlugins = new List<LoadedPluginInfo>();
+
+            foreach (var pluginDir in Directory.EnumerateDirectories(_pluginsPath))
             {
-                var dll = Directory.GetFiles(d, "*.dll").FirstOrDefault();
-                if (dll == null) continue;
-                var plc = new PluginLoadContext(dll);
-                _contexts.Add(plc);
+                var manifestPath = Path.Combine(pluginDir , "plugin.manifest.json");
+                if (!File.Exists(manifestPath))
+                    continue;
+
                 try
                 {
-                    var asm = plc.LoadFromAssemblyPath(dll);
-                    var types = asm.GetTypes().Where(t => typeof(IPluginSeatingStrategy).IsAssignableFrom(t) && !t.IsAbstract);
-                    foreach (var t in types)
+                    var manifestJson = File.ReadAllText(manifestPath);
+                    var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson , new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (manifest == null)
+                        continue;
+
+                    // 验证清单
+                    if (string.IsNullOrEmpty(manifest.Id) || string.IsNullOrEmpty(manifest.Type))
+                        continue;
+
+                    _loadedManifests[manifest.Id] = manifest;
+
+                    // 根据插件类型加载
+                    IPluginSeatingStrategy? strategy = null;
+
+                    if (!string.IsNullOrEmpty(manifest.ScriptFile))
                     {
-                        if (Activator.CreateInstance(t) is IPluginSeatingStrategy strat)
+                        strategy = LoadScriptPlugin(manifest , pluginDir);
+                    }
+                    else if (!string.IsNullOrEmpty(manifest.Assembly))
+                    {
+                        strategy = LoadAssemblyPlugin(manifest , pluginDir);
+                    }
+
+                    if (strategy != null)
+                    {
+                        strategy.Priority = manifest.Priority;
+                        strategy.IsEnabled = manifest.Enabled;
+                        loadedPlugins.Add(new LoadedPluginInfo
                         {
-                            list.Add(strat);
-                        }
+                            Manifest = manifest ,
+                            Strategy = strategy ,
+                            PluginPath = pluginDir
+                        });
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore plugin load errors
+                    // 记录日志：加载插件失败
+                    System.Diagnostics.Debug.WriteLine($"Failed to load plugin from {pluginDir}: {ex.Message}");
                 }
             }
 
-            return list;
+            return loadedPlugins;
         }
 
-        public void UnloadAll()
+        private IPluginSeatingStrategy? LoadAssemblyPlugin (PluginManifest manifest , string pluginDir)
+        {
+            var assemblyPath = Path.Combine(pluginDir , manifest.Assembly);
+            if (!File.Exists(assemblyPath))
+                return null;
+
+            var loadContext = new PluginLoadContext(assemblyPath);
+            _contexts.Add(loadContext);
+
+            var assembly = loadContext.LoadFromAssemblyPath(assemblyPath);
+            var type = assembly.GetType(manifest.Type);
+            if (type == null || !typeof(IPluginSeatingStrategy).IsAssignableFrom(type))
+                return null;
+
+            return Activator.CreateInstance(type) as IPluginSeatingStrategy;
+        }
+
+        private IPluginSeatingStrategy? LoadScriptPlugin (PluginManifest manifest , string pluginDir)
+        {
+            // 脚本插件将在 Phase 5 中完整实现，此处预留接口
+            // 可在此处创建 LuaScriptStrategy 或 CSharpScriptStrategy 实例
+            return null;
+        }
+
+        public void UnloadAll ()
         {
             foreach (var c in _contexts)
             {
                 c.Unload();
             }
             _contexts.Clear();
+            _loadedManifests.Clear();
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
+
+        public PluginManifest? GetManifest (string pluginId)
+        {
+            _loadedManifests.TryGetValue(pluginId , out var manifest);
+            return manifest;
+        }
+    }
+
+    public class LoadedPluginInfo
+    {
+        public PluginManifest Manifest { get; set; } = new();
+        public IPluginSeatingStrategy Strategy { get; set; } = default!;
+        public string PluginPath { get; set; } = string.Empty;
     }
 }
