@@ -11,7 +11,7 @@ namespace A_Pair.Contracts.Interfaces
         int Priority { get; set; }
         bool IsEnabled { get; set; }
 
-        Task<PluginStrategyResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken);
+        Task<PluginStrategyResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken);
     }
 
     public class PluginStrategyResult

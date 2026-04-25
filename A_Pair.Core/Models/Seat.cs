@@ -15,6 +15,8 @@ namespace A_Pair.Core.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public abstract SeatType Type { get; }
         public string LogicalGroup { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonIgnore]
         public abstract ISeatGeometry GeometryData { get; }
 
         public bool IsAvailable { get; set; } = true;

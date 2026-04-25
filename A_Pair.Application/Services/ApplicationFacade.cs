@@ -14,6 +14,7 @@ using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Exporters;
 using A_Pair.Infrastructure.Layouts;
+using A_Pair.Infrastructure.Providers;
 using A_Pair.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,6 +28,8 @@ namespace A_Pair.Application.Services
         private readonly PluginManager _pluginManager;
         private readonly IPluginConfigurationService _pluginConfigService;
         private readonly CommandHistory _history = new();
+        private readonly IAppSettingsRepository _appSettingsRepo;
+        private readonly IVenueRepository _venueRepo;
         private SeatingWorkspace? _currentWorkspace;
 
         public ApplicationFacade (
@@ -34,13 +37,17 @@ namespace A_Pair.Application.Services
             SeatingSnapshotRepository snapshotRepository ,
             IEnumerable<ISeatingPlanExporter> exporters ,
             PluginManager pluginManager ,
-            IPluginConfigurationService pluginConfigService)
+            IPluginConfigurationService pluginConfigService ,
+            IAppSettingsRepository appSettingsRepo,
+            IVenueRepository venueRepo)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
             _exporters = exporters ?? throw new ArgumentNullException(nameof(exporters));
             _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
             _pluginConfigService = pluginConfigService ?? throw new ArgumentNullException(nameof(pluginConfigService));
+            _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
+            _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
         }
 
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -48,6 +55,23 @@ namespace A_Pair.Application.Services
             // Minimal placeholder: read json if exists
             return Task.FromResult(new AppConfiguration());
         }
+        public Task<AppSettings> LoadAppSettingsAsync (CancellationToken cancellationToken = default)
+        {
+            return _appSettingsRepo.LoadAsync(cancellationToken);
+        }
+
+        public Task SaveAppSettingsAsync (AppSettings settings , CancellationToken cancellationToken = default)
+        {
+            return _appSettingsRepo.SaveAsync(settings , cancellationToken);
+        }
+        public Task SaveVenueAsync (string venueId , ClassroomLayoutDefinition layout , CancellationToken cancellationToken = default)
+    => _venueRepo.SaveAsync(venueId , layout , cancellationToken);
+
+        public Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default)
+            => _venueRepo.LoadAsync(venueId , cancellationToken);
+
+        public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
+            => _venueRepo.ListVenueIdsAsync(cancellationToken);
 
         public async Task<List<Student>> LoadStudentsAsync (string source , CancellationToken cancellationToken = default)
         {
@@ -56,6 +80,21 @@ namespace A_Pair.Application.Services
                 return new List<Student>();
 
             return await provider.LoadAsync(source , cancellationToken);
+        }
+        public async Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default)
+        {
+            var writers = _serviceProvider.GetServices<IStudentWriter>();
+            IStudentWriter writer = format switch
+            {
+                ExportFormat.Excel => writers.OfType<XlsxStudentWriter>().FirstOrDefault()
+                    ?? throw new InvalidOperationException("未注册 XlsxStudentWriter"),
+                ExportFormat.Csv => writers.OfType<CsvStudentWriter>().FirstOrDefault()
+                    ?? throw new InvalidOperationException("未注册 CsvStudentWriter"),
+                ExportFormat.Json => writers.OfType<JsonStudentWriter>().FirstOrDefault()
+                    ?? throw new InvalidOperationException("未注册 JsonStudentWriter"),
+                _ => throw new NotSupportedException($"不支持的导出格式: {format}")
+            };
+            await writer.WriteAsync(path , students , cancellationToken);
         }
 
         public async Task<SeatingWorkspace> GenerateSeatingAsync (
@@ -206,6 +245,7 @@ namespace A_Pair.Application.Services
             // TODO: 实现回滚逻辑
             return Task.CompletedTask;
         }
+
 
         #region Private Helpers
 

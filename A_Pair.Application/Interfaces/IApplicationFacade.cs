@@ -12,10 +12,16 @@ namespace A_Pair.Application.Interfaces
         Task<List<Student>> LoadStudentsAsync(string source, CancellationToken cancellationToken = default);
         Task<SeatingWorkspace> GenerateSeatingAsync (SeatingRequest request , IProgress<SeatingProgress>? progress = null , CancellationToken cancellationToken = default);
         Task ExportSeatingPlanAsync(SeatingWorkspace workspace, string path, ExportOptions options, CancellationToken cancellationToken = default);
+        Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default);
         Task<bool> ExecuteCommandAsync(A_Pair.Application.Commands.IUndoableCommand command, CancellationToken cancellationToken = default);
         Task<bool> UndoAsync(CancellationToken cancellationToken = default);
         Task<bool> RedoAsync(CancellationToken cancellationToken = default);
         Task<SeatingWorkspace?> GetCurrentWorkspaceAsync(CancellationToken cancellationToken = default);
+        Task<AppSettings> LoadAppSettingsAsync (CancellationToken cancellationToken = default);
+        Task SaveAppSettingsAsync (AppSettings settings , CancellationToken cancellationToken = default);
+        Task SaveVenueAsync (string venueId , ClassroomLayoutDefinition layout , CancellationToken cancellationToken = default);
+        Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default);
+        Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default);
     }
 
     public class AppConfiguration { }
@@ -52,6 +58,7 @@ namespace A_Pair.Application.Interfaces
     {
         Excel,
         Csv,
-        Pdf
+        Pdf,
+        Json
     }
 }

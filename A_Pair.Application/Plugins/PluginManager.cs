@@ -96,9 +96,24 @@ namespace A_Pair.Application.Plugins
 
         private IPluginSeatingStrategy? LoadScriptPlugin (PluginManifest manifest , string pluginDir)
         {
-            // 脚本插件将在 Phase 5 中完整实现，此处预留接口
-            // 可在此处创建 LuaScriptStrategy 或 CSharpScriptStrategy 实例
-            return null;
+            if (string.IsNullOrEmpty(manifest.ScriptFile))
+                return null;
+
+            var scriptPath = Path.Combine(pluginDir , manifest.ScriptFile);
+            if (!File.Exists(scriptPath))
+                return null;
+
+            var scriptCode = File.ReadAllText(scriptPath);
+
+            // 根据脚本类型创建对应策略
+            IPluginSeatingStrategy? strategy = manifest.ScriptType?.ToLowerInvariant() switch
+            {
+                "lua" => new LuaScriptPluginAdapter(scriptCode , manifest),
+                "csharp" => new CSharpScriptPluginAdapter(scriptCode , manifest),
+                _ => null
+            };
+
+            return strategy;
         }
 
         public void UnloadAll ()
