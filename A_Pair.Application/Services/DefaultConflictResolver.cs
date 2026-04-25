@@ -3,8 +3,19 @@ using A_Pair.Core.Workspace;
 
 namespace A_Pair.Application.Services
 {
+    /// <summary>
+    /// 默认的冲突解决器实现，检测并自动修复座位分配中的冲突。
+    /// </summary>
+    /// <remarks>
+    /// 当前支持以下冲突检测与修复：
+    /// <list type="bullet">
+    ///   <item><see cref="ConflictType.DuplicateAssignment"/> — 同一学生被分配到多个座位时，保留第一个分配并清除其余</item>
+    ///   <item><see cref="ConflictType.FixedSeatMismatch"/> — 固定座位未分配学生时记录警告</item>
+    /// </list>
+    /// </remarks>
     public class DefaultConflictResolver : IConflictResolver
     {
+        /// <inheritdoc />
         public ConflictResolutionResult Resolve (SeatingWorkspace workspace)
         {
             var result = new ConflictResolutionResult { Success = true };

@@ -1,14 +1,27 @@
-using A_Pair.Core.Models;  // 确保引用 LayoutType 枚举
+using A_Pair.Core.Models;
 
 namespace A_Pair.Infrastructure.Layouts
 {
+    /// <summary>
+    /// 网格布局构建器，创建基于行和列的矩形座位排列。
+    /// </summary>
+    /// <remarks>
+    /// 生成 <see cref="LayoutType.Grid"/> 类型的布局，每个座位使用 <see cref="GridSeat"/>
+    /// 表示，包含行号（Row）和列号（Column）属性。元数据记录总行数和总列数。
+    /// </remarks>
     public class GridLayoutBuilder
     {
+        /// <summary>
+        /// 构建指定行数和列数的网格布局。
+        /// </summary>
+        /// <param name="rows">行数。</param>
+        /// <param name="columns">列数。</param>
+        /// <returns>包含所有网格座位的布局定义。</returns>
         public static ClassroomLayoutDefinition BuildGrid (int rows , int columns)
         {
             var layout = new ClassroomLayoutDefinition
             {
-                LayoutType = LayoutType.Grid ,   // 改为枚举值
+                LayoutType = LayoutType.Grid ,
                 Metadata = new GridLayoutMetadata { Rows = rows , Columns = columns }
             };
 

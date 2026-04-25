@@ -6,11 +6,28 @@ using Microsoft.CodeAnalysis.Scripting;
 
 namespace A_Pair.Application.Scripting.CSharp
 {
+    /// <summary>
+    /// C# 脚本策略，使用 Roslyn 脚本引擎在运行时编译并执行 C# 代码作为座位分配策略。
+    /// </summary>
+    /// <remarks>
+    /// 安全措施：
+    /// <list type="bullet">
+    ///   <item><b>程序集白名单</b> — 仅允许引用 System.Private.CoreLib、System.Linq、A_Pair.Core 和 A_Pair.Application</item>
+    ///   <item><b>命名空间白名单</b> — 仅允许导入 System、System.Linq、System.Collections.Generic、A_Pair.Core.Workspace 和 A_Pair.Core.Models</item>
+    ///   <item><b>执行超时</b> — 通过 <see cref="CSharpScriptConfiguration.TimeoutMilliseconds"/> 控制，默认 5 秒</item>
+    /// </list>
+    /// 脚本通过 <see cref="ScriptGlobals.Workspace"/> 全局对象访问 <see cref="SeatingWorkspace"/> API。
+    /// </remarks>
     public class CSharpScriptStrategy : ISeatingStrategy
     {
         private readonly string _code;
         private readonly CSharpScriptConfiguration _config;
 
+        /// <summary>
+        /// 初始化 C# 脚本策略。
+        /// </summary>
+        /// <param name="code">C# 脚本源代码。</param>
+        /// <param name="config">脚本配置，包括策略名称、优先级、启用状态和超时时间。</param>
         public CSharpScriptStrategy (string code , CSharpScriptConfiguration? config = null)
         {
             _code = code ?? throw new ArgumentNullException(nameof(code));
@@ -21,11 +38,19 @@ namespace A_Pair.Application.Scripting.CSharp
             IsEnabled = _config.Enabled;
         }
 
+        /// <inheritdoc />
         public string Id { get; }
+
+        /// <inheritdoc />
         public string Name { get; }
+
+        /// <inheritdoc />
         public int Priority { get; set; }
+
+        /// <inheritdoc />
         public bool IsEnabled { get; set; }
 
+        /// <inheritdoc />
         public async Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
@@ -63,6 +88,7 @@ namespace A_Pair.Application.Scripting.CSharp
             }
         }
 
+        /// <inheritdoc />
         public ValidationResult ValidateConfiguration ()
         {
             if (string.IsNullOrWhiteSpace(_code))
@@ -71,8 +97,9 @@ namespace A_Pair.Application.Scripting.CSharp
         }
 
         /// <summary>
-        /// 获取允许引用的程序集白名单
+        /// 获取允许引用的程序集白名单，限制脚本可使用的 API 范围。
         /// </summary>
+        /// <returns>允许引用的程序集数组。</returns>
         private Assembly[] GetAllowedReferences ()
         {
             // 仅允许必要的程序集
@@ -89,8 +116,9 @@ namespace A_Pair.Application.Scripting.CSharp
         }
 
         /// <summary>
-        /// 获取允许导入的命名空间白名单
+        /// 获取允许导入的命名空间白名单。
         /// </summary>
+        /// <returns>允许导入的命名空间数组。</returns>
         private string[] GetAllowedImports () =>
             [
                 "System",
@@ -101,16 +129,40 @@ namespace A_Pair.Application.Scripting.CSharp
             ];
     }
 
+    /// <summary>
+    /// 传递给 C# 脚本的全局对象，脚本通过此对象访问 <see cref="SeatingWorkspace"/>。
+    /// </summary>
     public class ScriptGlobals
     {
+        /// <summary>
+        /// 获取或设置当前座位工作区实例。
+        /// </summary>
         public SeatingWorkspace? Workspace { get; set; }
     }
 
+    /// <summary>
+    /// C# 脚本策略的配置选项。
+    /// </summary>
     public class CSharpScriptConfiguration
     {
+        /// <summary>
+        /// 获取或设置策略显示名称。
+        /// </summary>
         public string? StrategyName { get; set; }
+
+        /// <summary>
+        /// 获取或设置策略在管道中的执行优先级。
+        /// </summary>
         public int Priority { get; set; } = 60;
+
+        /// <summary>
+        /// 获取或设置一个值，指示策略是否启用。
+        /// </summary>
         public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// 获取或设置脚本执行超时时间（毫秒）。默认 5000 毫秒。
+        /// </summary>
         public int TimeoutMilliseconds { get; set; } = 5000;
     }
 }

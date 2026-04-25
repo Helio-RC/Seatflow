@@ -5,16 +5,29 @@ using A_Pair.Infrastructure.Serialization;
 
 namespace A_Pair.Infrastructure.Providers
 {
+    /// <summary>
+    /// JSON 格式的会场（场地）仓储，将 <see cref="ClassroomLayoutDefinition"/> 以 JSON 格式持久化到本地文件。
+    /// </summary>
+    /// <remarks>
+    /// 每个会场保存为独立的 <c>*.venue.json</c> 文件，文件名格式为 <c><venueId>.venue.json</c>。
+    /// 使用 <see cref="SeatJsonConverter"/> 支持 <see cref="Seat"/> 派生类的多态序列化。
+    /// </remarks>
+    /// <param name="venuesFolder">会场文件存储目录。</param>
     public class JsonVenueRepository : IVenueRepository
     {
         private readonly string _venuesFolder;
 
+        /// <summary>
+        /// 初始化 JSON 会场仓储，确保存储目录存在。
+        /// </summary>
+        /// <param name="venuesFolder">会场文件存储目录。</param>
         public JsonVenueRepository (string venuesFolder)
         {
             _venuesFolder = venuesFolder ?? throw new ArgumentNullException(nameof(venuesFolder));
             Directory.CreateDirectory(_venuesFolder);
         }
 
+        /// <inheritdoc />
         public async Task SaveAsync (string venueId , ClassroomLayoutDefinition layout , CancellationToken cancellationToken = default)
         {
             var filePath = GetFilePath(venueId);
@@ -29,6 +42,7 @@ namespace A_Pair.Infrastructure.Providers
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<ClassroomLayoutDefinition?> LoadAsync (string venueId , CancellationToken cancellationToken = default)
         {
             var filePath = GetFilePath(venueId);
@@ -41,6 +55,7 @@ namespace A_Pair.Infrastructure.Providers
             return venueFile?.Layout;
         }
 
+        /// <inheritdoc />
         public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
         {
             var files = Directory.GetFiles(_venuesFolder , "*.venue.json");
@@ -48,11 +63,17 @@ namespace A_Pair.Infrastructure.Providers
             return Task.FromResult(ids);
         }
 
+        /// <summary>
+        /// 获取指定会场的文件路径。
+        /// </summary>
+        /// <param name="venueId">会场 ID。</param>
+        /// <returns>会场文件的完整路径。</returns>
         private string GetFilePath (string venueId) => Path.Combine(_venuesFolder , $"{venueId}.venue.json");
 
         /// <summary>
-        /// 获取包含多态类型支持的序列化选项
+        /// 获取包含多态类型支持的 JSON 序列化选项。
         /// </summary>
+        /// <returns>配置了 <see cref="SeatJsonConverter"/> 的序列化选项。</returns>
         private static JsonSerializerOptions GetSerializerOptions ()
         {
             var options = new JsonSerializerOptions
@@ -61,7 +82,6 @@ namespace A_Pair.Infrastructure.Providers
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
             options.Converters.Add(new SeatJsonConverter());
-            // 可在此添加其他自定义转换器
             return options;
         }
     }

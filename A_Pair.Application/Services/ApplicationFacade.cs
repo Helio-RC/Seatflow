@@ -15,6 +15,21 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace A_Pair.Application.Services
 {
+    /// <summary>
+    /// 应用程序外观（Facade）的默认实现，协调数据加载、布局生成、策略执行、
+    /// 冲突解决、快照管理等核心业务流程，为 UI/CLI 层提供统一的高层 API。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ApplicationFacade"/> 封装了完整的座位编排工作流：
+    /// <list type="number">
+    ///   <item>加载学生数据（通过 <see cref="IStudentProvider"/>）</item>
+    ///   <item>生成或加载座位布局（Grid / Polar / Freeform）</item>
+    ///   <item>创建 <see cref="SeatingWorkspace"/> 工作区</item>
+    ///   <item>获取内置策略与插件策略，按优先级排序后依次执行</item>
+    ///   <item>通过 <see cref="IConflictResolver"/> 检测并自动修复冲突</item>
+    ///   <item>保存 <see cref="SeatingSnapshot"/> 快照以支持回滚</item>
+    /// </list>
+    /// </remarks>
     public class ApplicationFacade (
         IServiceProvider serviceProvider ,
         SeatingSnapshotRepository snapshotRepository ,
@@ -34,24 +49,31 @@ namespace A_Pair.Application.Services
         private readonly IVenueRepository _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
         private SeatingWorkspace? _currentWorkspace;
 
+        /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
             => Task.FromResult(new AppConfiguration());
 
+        /// <inheritdoc />
         public Task<AppSettings> LoadAppSettingsAsync (CancellationToken cancellationToken = default)
             => _appSettingsRepo.LoadAsync(cancellationToken);
 
+        /// <inheritdoc />
         public Task SaveAppSettingsAsync (AppSettings settings , CancellationToken cancellationToken = default)
             => _appSettingsRepo.SaveAsync(settings , cancellationToken);
 
+        /// <inheritdoc />
         public Task SaveVenueAsync (string venueId , ClassroomLayoutDefinition layout , CancellationToken cancellationToken = default)
             => _venueRepo.SaveAsync(venueId , layout , cancellationToken);
 
+        /// <inheritdoc />
         public Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default)
             => _venueRepo.LoadAsync(venueId , cancellationToken);
 
+        /// <inheritdoc />
         public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
             => _venueRepo.ListVenueIdsAsync(cancellationToken);
 
+        /// <inheritdoc />
         public async Task<List<Student>> LoadStudentsAsync (string source , CancellationToken cancellationToken = default)
         {
             var provider = _serviceProvider.GetService<IStudentProvider>();
@@ -59,6 +81,7 @@ namespace A_Pair.Application.Services
             return await provider.LoadAsync(source , cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default)
         {
             var writers = _serviceProvider.GetServices<IStudentWriter>();
@@ -75,6 +98,7 @@ namespace A_Pair.Application.Services
             await writer.WriteAsync(path , students , cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<SeatingWorkspace> GenerateSeatingAsync (
             SeatingRequest request ,
             IProgress<SeatingProgress>? progress = null ,
@@ -169,6 +193,7 @@ namespace A_Pair.Application.Services
             return workspace;
         }
 
+        /// <inheritdoc />
         public async Task ExportSeatingPlanAsync (
             SeatingWorkspace workspace ,
             string path ,
@@ -192,6 +217,7 @@ namespace A_Pair.Application.Services
             await exporter.ExportAsync(plan , path , options , cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default)
         {
             if (_currentWorkspace == null)
@@ -200,27 +226,32 @@ namespace A_Pair.Application.Services
             return await _history.ExecuteAsync(command , _currentWorkspace , cancellationToken);
         }
 
+        /// <inheritdoc />
         public Task<bool> UndoAsync (CancellationToken cancellationToken = default)
         {
             if (_currentWorkspace == null) return Task.FromResult(false);
             return _history.UndoAsync(_currentWorkspace , cancellationToken);
         }
 
+        /// <inheritdoc />
         public Task<bool> RedoAsync (CancellationToken cancellationToken = default)
         {
             if (_currentWorkspace == null) return Task.FromResult(false);
             return _history.RedoAsync(_currentWorkspace , cancellationToken);
         }
 
+        /// <inheritdoc />
         public Task<SeatingWorkspace?> GetCurrentWorkspaceAsync (CancellationToken cancellationToken = default)
             => Task.FromResult(_currentWorkspace);
 
+        /// <inheritdoc />
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照
             return await _snapshotRepository.ListByVenueAsync(venueId);
         }
 
+        /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
             var snapshot = _snapshotRepository.Load(snapshotId) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
@@ -233,6 +264,11 @@ namespace A_Pair.Application.Services
 
         #region Private Helpers
 
+        /// <summary>
+        /// 根据 <see cref="SeatingRequest"/> 中的布局类型和参数构建座位列表。
+        /// </summary>
+        /// <param name="request">座位生成请求。</param>
+        /// <returns>生成的座位列表。</returns>
         private List<Seat> BuildSeatsFromRequest (SeatingRequest request)
         {
             ClassroomLayoutDefinition layout = request.LayoutType switch
@@ -247,6 +283,11 @@ namespace A_Pair.Application.Services
             return layout.Seats;
         }
 
+        /// <summary>
+        /// 从参数字典构建网格布局。
+        /// </summary>
+        /// <param name="parameters">布局参数字典，支持 "Rows" 和 "Columns" 键。</param>
+        /// <returns>网格布局定义。</returns>
         private ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
         {
             int rows = GetParameter(parameters , "Rows" , 3);
@@ -254,6 +295,11 @@ namespace A_Pair.Application.Services
             return GridLayoutBuilder.BuildGrid(rows , columns);
         }
 
+        /// <summary>
+        /// 从参数字典构建极坐标（环形）布局。
+        /// </summary>
+        /// <param name="parameters">布局参数字典，支持 "RadiusStep"、"Rings" 和 "SeatsPerRing" 键。</param>
+        /// <returns>极坐标布局定义。</returns>
         private ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
         {
             double radiusStep = GetParameter(parameters , "RadiusStep" , 1.0);
@@ -262,6 +308,11 @@ namespace A_Pair.Application.Services
             return PolarLayoutBuilder.BuildPolar(radiusStep , rings , seatsPerRing);
         }
 
+        /// <summary>
+        /// 从参数字典构建自由形式布局。
+        /// </summary>
+        /// <param name="parameters">布局参数字典，支持 "Points" 键（坐标点列表）。</param>
+        /// <returns>自由形式布局定义。</returns>
         private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
             var points = new List<(double X , double Y)>();
@@ -280,6 +331,14 @@ namespace A_Pair.Application.Services
             return FreeformLayoutBuilder.BuildFreeform(points);
         }
 
+        /// <summary>
+        /// 从字典中安全地获取指定键的值，若不存在或类型转换失败则返回默认值。
+        /// </summary>
+        /// <typeparam name="T">期望的值类型。</typeparam>
+        /// <param name="parameters">参数字典。</param>
+        /// <param name="key">键名。</param>
+        /// <param name="defaultValue">默认值。</param>
+        /// <returns>转换后的值或默认值。</returns>
         private T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
         {
             if (parameters.TryGetValue(key , out var value))

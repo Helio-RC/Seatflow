@@ -4,8 +4,16 @@ using OfficeOpenXml;
 
 namespace A_Pair.Infrastructure.Providers
 {
+    /// <summary>
+    /// XLSX 格式的学生数据提供器，使用 EPPlus 库从 Excel 文件读取学生列表。
+    /// </summary>
+    /// <remarks>
+    /// 读取 Excel 文件的第一个工作表，从第二行开始逐行读取。
+    /// 第一列（A）为学生姓名，第二列（B）为学生 ID（可选，为空时自动生成 GUID）。
+    /// </remarks>
     public class XlsxStudentProvider : IStudentProvider
     {
+        /// <inheritdoc />
         public async Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
         {
             var list = new List<Student>();

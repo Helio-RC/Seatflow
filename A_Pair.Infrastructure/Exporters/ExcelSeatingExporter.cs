@@ -5,13 +5,24 @@ using OfficeOpenXml;
 
 namespace A_Pair.Infrastructure.Exporters
 {
+    /// <summary>
+    /// Excel 格式的座位安排导出器，使用 EPPlus 库生成 .xlsx 文件。
+    /// </summary>
+    /// <remarks>
+    /// 生成包含 "Seating" 工作表的 Excel 文件，列出座位 ID 和学生 ID 的对应关系。
+    /// 当 <see cref="ExportOptions.IncludeMetadata"/> 为 true 时，额外生成 "Metadata" 工作表
+    /// 包含导出时间和座位总数等元数据。
+    /// 如果 EPPlus 写入失败（例如缺少许可证），会自动降级为 CSV 格式输出。
+    /// </remarks>
     public class ExcelSeatingExporter : ISeatingPlanExporter
     {
+        /// <inheritdoc />
         public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
         {
             await ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Excel } , cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
             try { ExcelPackage.License.SetNonCommercialPersonal("FullName"); } catch { }
@@ -46,6 +57,7 @@ namespace A_Pair.Infrastructure.Exporters
             }
             catch
             {
+                // EPPlus 写入失败时降级为 CSV 格式
                 var lines = new System.Collections.Generic.List<string> { "SeatId,StudentId" };
                 foreach (var kv in plan.Assignments)
                     lines.Add($"{kv.Key},{(options.Anonymize ? "***" : kv.Value)}");

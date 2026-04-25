@@ -4,8 +4,16 @@ using OfficeOpenXml;
 
 namespace A_Pair.Infrastructure.Providers
 {
+    /// <summary>
+    /// XLSX 格式的学生数据写入器，使用 EPPlus 库将学生列表导出为 Excel 文件。
+    /// </summary>
+    /// <remarks>
+    /// 生成包含表头（学号、姓名、性别、身高、需前排）的 "Students" 工作表，
+    /// 逐行写入每个学生的完整信息。
+    /// </remarks>
     public class XlsxStudentWriter : IStudentWriter
     {
+        /// <inheritdoc />
         public async Task WriteAsync (string path , IEnumerable<Student> students , CancellationToken cancellationToken = default)
         {
             ExcelPackage.License.SetNonCommercialPersonal("A_Pair");

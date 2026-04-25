@@ -2,41 +2,61 @@ using A_Pair.Core.Models;
 
 namespace A_Pair.Core.Workspace
 {
+    /// <summary>
+    /// 座位安排工作区，是策略执行的核心数据容器。
+    /// 包含学生列表和座位列表，提供座位分配、查询和快照恢复功能。
+    /// 策略通过 <see cref="TryAssignSeat"/> 方法修改工作区状态。
+    /// </summary>
     public class SeatingWorkspace
     {
         private readonly List<Student> _students = [];
         private readonly List<Seat> _seats = [];
 
+        /// <summary>学生列表（只读）。</summary>
         public IReadOnlyList<Student> Students => _students;
+
+        /// <summary>
+        /// 工作区上下文信息，包含布局定义、轮换周期等元数据。
+        /// </summary>
         public class SeatingContext
         {
-            /// <summary>
-            /// 当前使用的教室布局定义
-            /// </summary>
+            /// <summary>当前使用的教室布局定义。</summary>
             public ClassroomLayoutDefinition? Layout { get; set; }
 
-            /// <summary>
-            /// 当前轮换周期（如“第3周”）
-            /// </summary>
+            /// <summary>当前轮换周期（如"第3周"）。</summary>
             public string? RotationCycle { get; set; }
 
-            /// <summary>
-            /// 座位安排生效日期
-            /// </summary>
+            /// <summary>座位安排生效日期。</summary>
             public DateTime EffectiveDate { get; set; } = DateTime.UtcNow;
 
-            /// <summary>
-            /// 用于策略的共享元数据
-            /// </summary>
+            /// <summary>用于策略间共享的元数据字典。</summary>
             public Dictionary<string , object> Metadata { get; set; } = [];
         }
 
+        /// <summary>
+        /// 创建工作区，使用指定的学生和座位数据。
+        /// </summary>
+        /// <param name="students">学生列表。</param>
+        /// <param name="seats">座位列表。</param>
         public SeatingWorkspace (IEnumerable<Student> students , IEnumerable<Seat> seats)
         {
             _students.AddRange(students ?? Enumerable.Empty<Student>());
             _seats.AddRange(seats ?? Enumerable.Empty<Seat>());
         }
 
+        /// <summary>
+        /// 尝试将学生分配到指定座位。
+        /// 执行以下验证：
+        /// - 座位和学生必须存在。
+        /// - 座位必须可用。
+        /// - 固定座位只能分配给指定的学生。
+        /// - 同一学生不能分配到多个座位。
+        /// 分配成功后，自动更新学生的座位历史记录。
+        /// </summary>
+        /// <param name="seatId">座位 ID。</param>
+        /// <param name="studentId">学生 ID。</param>
+        /// <param name="error">分配失败时的错误描述。</param>
+        /// <returns>是否分配成功。</returns>
         public bool TryAssignSeat (string seatId , string studentId , out string error)
         {
             error = string.Empty;
@@ -47,7 +67,7 @@ namespace A_Pair.Core.Workspace
             if (!seat.IsAvailable) { error = "Seat not available"; return false; }
             if (seat.IsFixed && seat.OccupantId != studentId) { error = "Seat is fixed by another student"; return false; }
 
-            // Prevent assigning the same student to multiple seats
+            // 防止同一学生分配到多个座位
             var alreadyAssignedSeat = _seats.FirstOrDefault(s => s.OccupantId == studentId && s.Id != seatId);
             if (alreadyAssignedSeat != null)
             {
@@ -61,10 +81,19 @@ namespace A_Pair.Core.Workspace
             return true;
         }
 
+        /// <summary>
+        /// 获取所有空座位（可用且非固定）。
+        /// </summary>
         public IEnumerable<Seat> GetEmptySeats () => _seats.Where(s => s.IsAvailable && !s.IsFixed);
 
+        /// <summary>
+        /// 根据条件查找座位。
+        /// </summary>
         public IEnumerable<Seat> FindSeats (Func<Seat , bool> predicate) => _seats.Where(predicate);
 
+        /// <summary>
+        /// 从当前工作区构建座位安排计划（只读快照）。
+        /// </summary>
         public SeatingPlan BuildSeatingPlan ()
         {
             var plan = new SeatingPlan();
@@ -76,6 +105,11 @@ namespace A_Pair.Core.Workspace
             return plan;
         }
 
+        /// <summary>
+        /// 应用快照中的座位分配，恢复历史状态。
+        /// 先清空所有当前分配，再按快照数据重新分配。
+        /// </summary>
+        /// <param name="seatAssignments">快照中的座位分配字典（座位 ID → 学生 ID）。</param>
         public void ApplySnapshotAssignments (Dictionary<string , string> seatAssignments)
         {
             // 清空所有当前分配
@@ -97,8 +131,14 @@ namespace A_Pair.Core.Workspace
             }
         }
     }
+
+    /// <summary>
+    /// 座位安排计划，包含座位到学生的分配映射。
+    /// 由 <see cref="SeatingWorkspace.BuildSeatingPlan"/> 生成，用于导出和快照。
+    /// </summary>
     public class SeatingPlan
     {
+        /// <summary>座位分配字典，Key 为座位 ID，Value 为学生 ID。</summary>
         public Dictionary<string , string> Assignments { get; set; } = [];
     }
 }
