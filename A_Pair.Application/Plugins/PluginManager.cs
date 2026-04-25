@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
 
@@ -11,8 +6,8 @@ namespace A_Pair.Application.Plugins
     public class PluginManager
     {
         private readonly string _pluginsPath;
-        private readonly List<PluginLoadContext> _contexts = new();
-        private readonly Dictionary<string , PluginManifest> _loadedManifests = new();
+        private readonly List<PluginLoadContext> _contexts = [];
+        private readonly Dictionary<string , PluginManifest> _loadedManifests = [];
 
         public PluginManager (string pluginsPath)
         {

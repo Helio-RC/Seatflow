@@ -4,10 +4,6 @@ using A_Pair.Core.Workspace;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace A_Pair.Infrastructure.Exporters
 {

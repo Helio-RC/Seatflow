@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using A_Pair.Core.Workspace;
+﻿using A_Pair.Core.Workspace;
 
 namespace A_Pair.Application.Interfaces
 {
@@ -19,8 +18,8 @@ namespace A_Pair.Application.Interfaces
     public class ConflictResolutionResult
     {
         public bool Success { get; set; }
-        public List<ConflictInfo> Conflicts { get; set; } = new();
-        public List<string> ActionsTaken { get; set; } = new();
+        public List<ConflictInfo> Conflicts { get; set; } = [];
+        public List<string> ActionsTaken { get; set; } = [];
     }
 
     public class ConflictInfo

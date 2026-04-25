@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Core.Workspace;
 using A_Pair.Core.Models;
+using A_Pair.Core.Workspace;
 
 namespace A_Pair.Application.Interfaces
 {
@@ -34,8 +31,8 @@ namespace A_Pair.Application.Interfaces
 
         public LayoutType LayoutType { get; set; }
 
-        public Dictionary<string , object> LayoutParameters { get; set; } = new();
-        public List<string> StrategyIds { get; set; } = new();
+        public Dictionary<string , object> LayoutParameters { get; set; } = [];
+        public List<string> StrategyIds { get; set; } = [];
         public bool UseDefaultStrategies { get; set; } = true;
         public string? StudentDataSource { get; set; }
         public string? Description { get; set; }

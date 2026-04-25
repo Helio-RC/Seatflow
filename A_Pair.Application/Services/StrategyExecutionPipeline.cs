@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
@@ -10,9 +6,9 @@ namespace A_Pair.Application.Services
 {
     public class StrategyExecutionPipeline
     {
-        private readonly List<ISeatingStrategy> _strategies = new();
+        private readonly List<ISeatingStrategy> _strategies = [];
 
-        public StrategyExecutionPipeline(IEnumerable<ISeatingStrategy> strategies)
+        public StrategyExecutionPipeline (IEnumerable<ISeatingStrategy> strategies)
         {
             _strategies.AddRange(strategies.OrderBy(s => s.Priority));
         }

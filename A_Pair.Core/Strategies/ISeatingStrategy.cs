@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Core.Workspace;
 
 namespace A_Pair.Core.Strategies
@@ -11,8 +9,8 @@ namespace A_Pair.Core.Strategies
         int Priority { get; set; }
         bool IsEnabled { get; set; }
 
-        Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken);
-        ValidationResult ValidateConfiguration();
+        Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken);
+        ValidationResult ValidateConfiguration ();
     }
 
     public class StrategyExecutionResult

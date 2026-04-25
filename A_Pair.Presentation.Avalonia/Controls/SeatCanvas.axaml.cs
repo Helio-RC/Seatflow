@@ -1,15 +1,12 @@
-using Avalonia.Controls;
-using Avalonia.Input;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using A_Pair.Core.Models;
 using Avalonia;
-using Avalonia.Media;
-using System;
+using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
-using Avalonia.Collections;
-using Avalonia.VisualTree;
-using System.Collections.Concurrent;
+using Avalonia.Input;
+using Avalonia.Media;
 
 namespace A_Pair.Presentation.Avalonia.Controls
 {
@@ -23,13 +20,13 @@ namespace A_Pair.Presentation.Avalonia.Controls
         private ScaleTransform _scaler = new ScaleTransform();
 
         // quick lookup for rectangles by seat id
-        private readonly ConcurrentDictionary<string, Shape> _seatShapes = new();
+        private readonly ConcurrentDictionary<string , Shape> _seatShapes = new();
 
-        public event Action<string, string>? OnSeatAssigned;
+        public event Action<string , string>? OnSeatAssigned;
         public event Action<string>? OnSeatSelected;
         public event Action<string>? OnSeatRightClicked;
 
-        public SeatCanvas()
+        public SeatCanvas ()
         {
             this.InitializeComponent();
             _canvas = this.FindControl<Canvas>("PART_Canvas");
@@ -47,7 +44,7 @@ namespace A_Pair.Presentation.Avalonia.Controls
             this.PointerReleased += SeatCanvas_PointerReleasedGlobal;
         }
 
-        public void RenderSeats(IEnumerable<Seat> seats)
+        public void RenderSeats (IEnumerable<Seat> seats)
         {
             _canvas.Children.Clear();
             _seatShapes.Clear();
@@ -55,9 +52,9 @@ namespace A_Pair.Presentation.Avalonia.Controls
             {
                 var rect = new Rectangle()
                 {
-                    Width = 30,
-                    Height = 30,
-                    Fill = Brushes.LightGray,
+                    Width = 30 ,
+                    Height = 30 ,
+                    Fill = Brushes.LightGray ,
                     Stroke = Brushes.Black
                 };
 
@@ -76,8 +73,8 @@ namespace A_Pair.Presentation.Avalonia.Controls
                     y = 200 + rad * System.Math.Sin(ang);
                 }
 
-                Canvas.SetLeft(rect, x);
-                Canvas.SetTop(rect, y);
+                Canvas.SetLeft(rect , x);
+                Canvas.SetTop(rect , y);
                 // attach seat id to Tag for interaction
                 rect.Tag = seat.Id;
                 rect.PointerPressed += OnRectPointerPressed;
@@ -89,7 +86,7 @@ namespace A_Pair.Presentation.Avalonia.Controls
         }
 
         // render presentation seats (used by Venue preview)
-        public void RenderPresentationSeats(IEnumerable<PresentationSeat> seats)
+        public void RenderPresentationSeats (IEnumerable<PresentationSeat> seats)
         {
             _canvas.Children.Clear();
             _seatShapes.Clear();
@@ -97,9 +94,9 @@ namespace A_Pair.Presentation.Avalonia.Controls
             {
                 var rect = new Rectangle()
                 {
-                    Width = 30,
-                    Height = 30,
-                    Fill = Brushes.LightGray,
+                    Width = 30 ,
+                    Height = 30 ,
+                    Fill = Brushes.LightGray ,
                     Stroke = Brushes.Black
                 };
 
@@ -117,8 +114,8 @@ namespace A_Pair.Presentation.Avalonia.Controls
                     y = 200 + rad * Math.Sin(ang);
                 }
 
-                Canvas.SetLeft(rect, x);
-                Canvas.SetTop(rect, y);
+                Canvas.SetLeft(rect , x);
+                Canvas.SetTop(rect , y);
                 rect.Tag = seat.Id;
                 rect.PointerPressed += OnRectPointerPressed;
                 rect.PointerReleased += OnRectPointerReleased;
@@ -128,7 +125,7 @@ namespace A_Pair.Presentation.Avalonia.Controls
         }
 
         private string? _pressedSeatId;
-        private void OnRectPointerPressed(object? sender, PointerPressedEventArgs e)
+        private void OnRectPointerPressed (object? sender , PointerPressedEventArgs e)
         {
             if (sender is Shape s && s.Tag is string id)
             {
@@ -146,17 +143,17 @@ namespace A_Pair.Presentation.Avalonia.Controls
             }
         }
 
-        private void OnRectPointerReleased(object? sender, PointerReleasedEventArgs e)
+        private void OnRectPointerReleased (object? sender , PointerReleasedEventArgs e)
         {
             if (sender is Shape s && s.Tag is string releasedId && _pressedSeatId != null)
             {
                 // simple assign: notify with pressed->released as fromSeat->toSeat (UI can interpret as assign)
-                OnSeatAssigned?.Invoke(releasedId, _pressedSeatId);
+                OnSeatAssigned?.Invoke(releasedId , _pressedSeatId);
             }
             _pressedSeatId = null;
         }
 
-        private void SelectSeat(string id)
+        private void SelectSeat (string id)
         {
             // highlight selected and raise event
             foreach (var kv in _seatShapes)
@@ -167,7 +164,7 @@ namespace A_Pair.Presentation.Avalonia.Controls
                 }
             }
 
-            if (_seatShapes.TryGetValue(id, out var shape))
+            if (_seatShapes.TryGetValue(id , out var shape))
             {
                 shape.Fill = Brushes.LightBlue;
             }
@@ -175,23 +172,23 @@ namespace A_Pair.Presentation.Avalonia.Controls
             OnSeatSelected?.Invoke(id);
         }
 
-        private void SeatCanvas_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+        private void SeatCanvas_PointerWheelChanged (object? sender , PointerWheelEventArgs e)
         {
             var delta = e.Delta.Y > 0 ? 0.1 : -0.1;
             SetScale(_scale + delta);
         }
 
-        public void ZoomIn() => SetScale(_scale + 0.1);
-        public void ZoomOut() => SetScale(Math.Max(0.1, _scale - 0.1));
+        public void ZoomIn () => SetScale(_scale + 0.1);
+        public void ZoomOut () => SetScale(Math.Max(0.1 , _scale - 0.1));
 
-        private void SetScale(double scale)
+        private void SetScale (double scale)
         {
-            _scale = Math.Max(0.1, Math.Min(4.0, scale));
+            _scale = Math.Max(0.1 , Math.Min(4.0 , scale));
             _scaler.ScaleX = _scale;
             _scaler.ScaleY = _scale;
         }
 
-        private void SeatCanvas_PointerPressed(object? sender, PointerPressedEventArgs e)
+        private void SeatCanvas_PointerPressed (object? sender , PointerPressedEventArgs e)
         {
             var props = e.GetCurrentPoint(this).Properties;
             if (props.IsMiddleButtonPressed)
@@ -202,7 +199,7 @@ namespace A_Pair.Presentation.Avalonia.Controls
             }
         }
 
-        private void SeatCanvas_PointerMoved(object? sender, PointerEventArgs e)
+        private void SeatCanvas_PointerMoved (object? sender , PointerEventArgs e)
         {
             if (_isPanning)
             {
@@ -215,7 +212,7 @@ namespace A_Pair.Presentation.Avalonia.Controls
             }
         }
 
-        private void SeatCanvas_PointerReleasedGlobal(object? sender, PointerReleasedEventArgs e)
+        private void SeatCanvas_PointerReleasedGlobal (object? sender , PointerReleasedEventArgs e)
         {
             if (_isPanning)
             {

@@ -5,7 +5,7 @@ namespace A_Pair.Core.Tests
     public class SeatingWorkspaceTests
     {
         [Fact]
-        public void SeatingWorkspace_PreventsDuplicateAssignment()
+        public void SeatingWorkspace_PreventsDuplicateAssignment ()
         {
             var students = new System.Collections.Generic.List<A_Pair.Core.Models.Student>
             {
@@ -19,10 +19,10 @@ namespace A_Pair.Core.Tests
                 new A_Pair.Core.Models.GridSeat { Id = "seat2", Row = 1, Column = 2 }
             };
 
-            var workspace = new A_Pair.Core.Workspace.SeatingWorkspace(students, seats);
-            Assert.True(workspace.TryAssignSeat("seat1", "s1", out var err1));
-            Assert.False(workspace.TryAssignSeat("seat2", "s1", out var err2));
-            Assert.Equal("Student already assigned to another seat", err2);
+            var workspace = new A_Pair.Core.Workspace.SeatingWorkspace(students , seats);
+            Assert.True(workspace.TryAssignSeat("seat1" , "s1" , out var err1));
+            Assert.False(workspace.TryAssignSeat("seat2" , "s1" , out var err2));
+            Assert.Equal("Student already assigned to another seat" , err2);
         }
     }
 }

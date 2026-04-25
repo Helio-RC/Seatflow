@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace A_Pair.Application.Plugins
+﻿namespace A_Pair.Application.Plugins
 {
     public interface IPluginConfigurationService
     {

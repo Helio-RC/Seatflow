@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
-using A_Pair.Application.Services;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
@@ -21,35 +15,24 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace A_Pair.Application.Services
 {
-    public class ApplicationFacade : IApplicationFacade
+    public class ApplicationFacade (
+        IServiceProvider serviceProvider ,
+        SeatingSnapshotRepository snapshotRepository ,
+        IEnumerable<ISeatingPlanExporter> exporters ,
+        PluginManager pluginManager ,
+        IPluginConfigurationService pluginConfigService ,
+        IAppSettingsRepository appSettingsRepo ,
+        IVenueRepository venueRepo) : IApplicationFacade
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly SeatingSnapshotRepository _snapshotRepository;
-        private readonly IEnumerable<ISeatingPlanExporter> _exporters;
-        private readonly PluginManager _pluginManager;
-        private readonly IPluginConfigurationService _pluginConfigService;
+        private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        private readonly SeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
+        private readonly IEnumerable<ISeatingPlanExporter> _exporters = exporters ?? throw new ArgumentNullException(nameof(exporters));
+        private readonly PluginManager _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
+        private readonly IPluginConfigurationService _pluginConfigService = pluginConfigService ?? throw new ArgumentNullException(nameof(pluginConfigService));
         private readonly CommandHistory _history = new();
-        private readonly IAppSettingsRepository _appSettingsRepo;
-        private readonly IVenueRepository _venueRepo;
+        private readonly IAppSettingsRepository _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
+        private readonly IVenueRepository _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
         private SeatingWorkspace? _currentWorkspace;
-
-        public ApplicationFacade (
-            IServiceProvider serviceProvider ,
-            SeatingSnapshotRepository snapshotRepository ,
-            IEnumerable<ISeatingPlanExporter> exporters ,
-            PluginManager pluginManager ,
-            IPluginConfigurationService pluginConfigService ,
-            IAppSettingsRepository appSettingsRepo ,
-            IVenueRepository venueRepo)
-        {
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
-            _exporters = exporters ?? throw new ArgumentNullException(nameof(exporters));
-            _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
-            _pluginConfigService = pluginConfigService ?? throw new ArgumentNullException(nameof(pluginConfigService));
-            _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
-            _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
-        }
 
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
             => Task.FromResult(new AppConfiguration());
@@ -240,9 +223,7 @@ namespace A_Pair.Application.Services
 
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
-            var snapshot = _snapshotRepository.Load(snapshotId);
-            if (snapshot == null)
-                throw new InvalidOperationException($"快照 {snapshotId} 不存在");
+            var snapshot = _snapshotRepository.Load(snapshotId) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
             if (_currentWorkspace == null)
                 throw new InvalidOperationException("当前没有活动的工作区");
 

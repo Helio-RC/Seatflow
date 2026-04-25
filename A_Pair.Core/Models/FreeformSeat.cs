@@ -1,7 +1,4 @@
-﻿using System;
-using A_Pair.Core.Utilities;
-
-namespace A_Pair.Core.Models
+﻿namespace A_Pair.Core.Models
 {
     public class FreeformSeat : Seat
     {

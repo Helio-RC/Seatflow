@@ -1,35 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Core.Workspace;
 
 namespace A_Pair.Core.Strategies
 {
-    public class FixedSeatStrategy : ISeatingStrategy
+    public class FixedSeatStrategy (FixedSeatConfiguration config) : ISeatingStrategy
     {
-        private readonly FixedSeatConfiguration _config;
+        private readonly FixedSeatConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
 
-        public FixedSeatStrategy() : this(new FixedSeatConfiguration()) { }
+        public FixedSeatStrategy () : this(new FixedSeatConfiguration()) { }
 
-        public FixedSeatStrategy(FixedSeatConfiguration config)
+        public string Id { get; } = "FixedSeat";
+        public string Name { get; } = "FixedSeat";
+        public int Priority { get; set; } = 100;
+        public bool IsEnabled { get; set; } = true;
+
+        public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            Id = "FixedSeat";
-            Name = "FixedSeat";
-            Priority = 100;
-            IsEnabled = true;
-        }
-
-        public string Id { get; }
-        public string Name { get; }
-        public int Priority { get; set; }
-        public bool IsEnabled { get; set; }
-
-        public Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken)
-        {
-            if (workspace is null) throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             // 应用配置中的固定分配
             foreach (var kv in _config.FixedAssignments)
@@ -40,7 +26,7 @@ namespace A_Pair.Core.Strategies
                     seat.IsFixed = true;
                     if (!string.IsNullOrEmpty(kv.Value))
                     {
-                        workspace.TryAssignSeat(seat.Id, kv.Value, out _);
+                        workspace.TryAssignSeat(seat.Id , kv.Value , out _);
                     }
                 }
             }
@@ -57,11 +43,11 @@ namespace A_Pair.Core.Strategies
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 
-        public ValidationResult ValidateConfiguration()
+        public ValidationResult ValidateConfiguration ()
         {
             if (_config.FixedAssignments == null)
             {
-                return new ValidationResult { IsValid = false, Error = "FixedAssignments cannot be null." };
+                return new ValidationResult { IsValid = false , Error = "FixedAssignments cannot be null." };
             }
             return new ValidationResult { IsValid = true };
         }
@@ -69,6 +55,6 @@ namespace A_Pair.Core.Strategies
 
     public class FixedSeatConfiguration
     {
-        public Dictionary<string, string> FixedAssignments { get; set; } = new();
+        public Dictionary<string , string> FixedAssignments { get; set; } = [];
     }
 }

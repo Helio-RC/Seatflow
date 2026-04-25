@@ -1,21 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 
 namespace A_Pair.Infrastructure.Providers
 {
-    public class JsonAppSettingsRepository : IAppSettingsRepository
+    public class JsonAppSettingsRepository (string filePath) : IAppSettingsRepository
     {
-        private readonly string _filePath;
-
-        public JsonAppSettingsRepository (string filePath)
-        {
-            _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-        }
+        private readonly string _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
 
         public string SettingsFilePath => _filePath;
 

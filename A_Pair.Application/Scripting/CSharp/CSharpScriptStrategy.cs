@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -32,7 +28,7 @@ namespace A_Pair.Application.Scripting.CSharp
 
         public async Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            if (workspace == null) throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(_config.TimeoutMilliseconds);
@@ -95,17 +91,14 @@ namespace A_Pair.Application.Scripting.CSharp
         /// <summary>
         /// 获取允许导入的命名空间白名单
         /// </summary>
-        private string[] GetAllowedImports ()
-        {
-            return new[]
-            {
+        private string[] GetAllowedImports () =>
+            [
                 "System",
                 "System.Linq",
                 "System.Collections.Generic",
                 "A_Pair.Core.Workspace",
                 "A_Pair.Core.Models"
-            };
-        }
+            ];
     }
 
     public class ScriptGlobals

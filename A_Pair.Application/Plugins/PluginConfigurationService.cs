@@ -1,20 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 namespace A_Pair.Application.Plugins
 {
-    public class PluginConfigurationService : IPluginConfigurationService
+    public class PluginConfigurationService (string pluginsBasePath) : IPluginConfigurationService
     {
-        private readonly string _pluginsBasePath;
-        private readonly Dictionary<string , FileSystemWatcher> _watchers = new();
-
-        public PluginConfigurationService (string pluginsBasePath)
-        {
-            _pluginsBasePath = pluginsBasePath;
-        }
+        private readonly string _pluginsBasePath = pluginsBasePath;
+        private readonly Dictionary<string , FileSystemWatcher> _watchers = [];
 
         public async Task<T?> LoadConfigurationAsync<T> (string pluginId , CancellationToken cancellationToken = default) where T : class, new()
         {

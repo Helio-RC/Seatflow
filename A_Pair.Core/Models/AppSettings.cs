@@ -5,7 +5,7 @@
         public WindowStateSettings WindowState { get; set; } = new();
         public string? LastOpenedFilePath { get; set; }
         public string? LastVenueId { get; set; }
-        public List<string> RecentFiles { get; set; } = new();
+        public List<string> RecentFiles { get; set; } = [];
     }
 
     public class WindowStateSettings

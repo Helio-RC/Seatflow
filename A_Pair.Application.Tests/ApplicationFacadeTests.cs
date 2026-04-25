@@ -1,21 +1,19 @@
-using System.Threading.Tasks;
-using Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using A_Pair.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
 
 namespace A_Pair.Application.Tests
 {
     public class ApplicationFacadeTests
     {
         [Fact]
-        public async Task GenerateSeating_CreatesSnapshotAndAssignments()
+        public async Task GenerateSeating_CreatesSnapshotAndAssignments ()
         {
             var services = new ServiceCollection();
             // extension method is in A_Pair.Application.Services namespace
-            services.AddA_PairApplication(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "apair_tests"));
+            services.AddA_PairApplication(System.IO.Path.Combine(System.IO.Path.GetTempPath() , "apair_tests"));
             // register in-memory provider
-            services.AddSingleton<A_Pair.Core.Providers.IStudentProvider, A_Pair.Infrastructure.Providers.InMemoryStudentProvider>();
+            services.AddSingleton<A_Pair.Core.Providers.IStudentProvider , A_Pair.Infrastructure.Providers.InMemoryStudentProvider>();
             var sp = services.BuildServiceProvider();
 
             var facade = sp.GetRequiredService<A_Pair.Application.Interfaces.IApplicationFacade>();

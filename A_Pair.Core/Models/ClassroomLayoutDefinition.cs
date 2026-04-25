@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace A_Pair.Core.Models
 {
     public class ClassroomLayoutDefinition : IClassroomLayout
@@ -17,12 +13,12 @@ namespace A_Pair.Core.Models
         public string LayoutTypeString
         {
             get => LayoutType.ToString();
-            set => LayoutType = Enum.TryParse<LayoutType>(value, out var result) ? result : LayoutType.Grid;
+            set => LayoutType = Enum.TryParse<LayoutType>(value , out var result) ? result : LayoutType.Grid;
         }
 
         // 原有公共可变属性（保持对外的灵活性）
-        public List<Seat> Seats { get; set; } = new();
-        public List<Obstacle> Obstacles { get; set; } = new();
+        public List<Seat> Seats { get; set; } = [];
+        public List<Obstacle> Obstacles { get; set; } = [];
         public LayoutMetadata Metadata { get; set; } = new GridLayoutMetadata();
 
         // 显式实现 IClassroomLayout 接口的只读成员

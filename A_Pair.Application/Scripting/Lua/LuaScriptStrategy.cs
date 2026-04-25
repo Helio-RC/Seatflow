@@ -1,9 +1,5 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
-using NLua;
 using NLua.Exceptions;
 
 namespace A_Pair.Application.Scripting.Lua
@@ -91,14 +87,9 @@ namespace A_Pair.Application.Scripting.Lua
     /// <summary>
     /// 暴露给 Lua 的工作区 API
     /// </summary>
-    public class LuaWorkspaceAPI
+    public class LuaWorkspaceAPI (SeatingWorkspace workspace)
     {
-        private readonly SeatingWorkspace _workspace;
-
-        public LuaWorkspaceAPI (SeatingWorkspace workspace)
-        {
-            _workspace = workspace;
-        }
+        private readonly SeatingWorkspace _workspace = workspace;
 
         /// <summary>
         /// 获取所有未分配的学生 ID 列表

@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace A_Pair.Application.Plugins
+﻿namespace A_Pair.Application.Plugins
 {
     public class PluginConfigurationSchema
     {
-        public List<ConfigField> Fields { get; set; } = new();
+        public List<ConfigField> Fields { get; set; } = [];
     }
 
     public class ConfigField

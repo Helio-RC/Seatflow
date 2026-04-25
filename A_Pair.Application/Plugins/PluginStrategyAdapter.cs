@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Contracts.Interfaces;
+﻿using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 
@@ -9,14 +7,9 @@ namespace A_Pair.Application.Plugins
     /// <summary>
     /// 将 IPluginSeatingStrategy 适配为 ISeatingStrategy，以便加入策略执行管道
     /// </summary>
-    public class PluginStrategyAdapter : ISeatingStrategy
+    public class PluginStrategyAdapter (IPluginSeatingStrategy pluginStrategy) : ISeatingStrategy
     {
-        private readonly IPluginSeatingStrategy _pluginStrategy;
-
-        public PluginStrategyAdapter (IPluginSeatingStrategy pluginStrategy)
-        {
-            _pluginStrategy = pluginStrategy;
-        }
+        private readonly IPluginSeatingStrategy _pluginStrategy = pluginStrategy;
 
         public string Id => _pluginStrategy.Id;
         public string Name => _pluginStrategy.Name;

@@ -1,7 +1,5 @@
 using A_Pair.Core.Enums;
 using A_Pair.Core.Utilities;
-using System;
-using System.Collections.Generic;
 
 namespace A_Pair.Core.Models
 {

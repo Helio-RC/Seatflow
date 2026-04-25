@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace A_Pair.Application.Plugins
@@ -33,7 +32,7 @@ namespace A_Pair.Application.Plugins
         public bool Enabled { get; set; } = true;
 
         [JsonPropertyName("dependencies")]
-        public List<string> Dependencies { get; set; } = new();
+        public List<string> Dependencies { get; set; } = [];
 
         [JsonPropertyName("scriptFile")]
         public string? ScriptFile { get; set; }

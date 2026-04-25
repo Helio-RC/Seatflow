@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
+﻿using A_Pair.Application.Interfaces;
 using A_Pair.Core.Workspace;
 
 namespace A_Pair.Application.Services

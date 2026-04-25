@@ -1,19 +1,13 @@
-using System;
 using System.Reflection;
 using System.Runtime.Loader;
 
 namespace A_Pair.Application.Plugins
 {
-    public class PluginLoadContext : AssemblyLoadContext
+    public class PluginLoadContext (string pluginPath) : AssemblyLoadContext(isCollectible: true)
     {
-        private readonly AssemblyDependencyResolver _resolver;
+        private readonly AssemblyDependencyResolver _resolver = new(pluginPath);
 
-        public PluginLoadContext(string pluginPath) : base(isCollectible: true)
-        {
-            _resolver = new AssemblyDependencyResolver(pluginPath);
-        }
-
-        protected override Assembly? Load(AssemblyName assemblyName)
+        protected override Assembly? Load (AssemblyName assemblyName)
         {
             var assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)

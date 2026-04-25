@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-namespace A_Pair.Core.Models
+﻿namespace A_Pair.Core.Models
 {
     public class ExportOptions
     {
         public ExportFormat Format { get; set; } = ExportFormat.Excel;
         public bool Anonymize { get; set; }
         public bool IncludeMetadata { get; set; }
-        public Dictionary<string , object> AdditionalSettings { get; set; } = new();
+        public Dictionary<string , object> AdditionalSettings { get; set; } = [];
     }
 
     public enum ExportFormat

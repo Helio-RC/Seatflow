@@ -1,4 +1,3 @@
-using System;
 using A_Pair.Core.Utilities;
 
 namespace A_Pair.Core.Models
@@ -32,7 +31,7 @@ namespace A_Pair.Core.Models
         public int Column { get; set; }
 
         public override SeatType Type => SeatType.Grid;
-        public override ISeatGeometry GeometryData => new GridPosition { Row = Row, Column = Column };
+        public override ISeatGeometry GeometryData => new GridPosition { Row = Row , Column = Column };
     }
 
     public class PolarSeat : Seat
@@ -41,6 +40,6 @@ namespace A_Pair.Core.Models
         public double AngleDegrees { get; set; }
 
         public override SeatType Type => SeatType.Polar;
-        public override ISeatGeometry GeometryData => new PolarPosition { Radius = Radius, AngleDegrees = AngleDegrees };
+        public override ISeatGeometry GeometryData => new PolarPosition { Radius = Radius , AngleDegrees = AngleDegrees };
     }
 }

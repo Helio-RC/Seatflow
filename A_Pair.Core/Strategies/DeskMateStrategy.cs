@@ -1,36 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 
 namespace A_Pair.Core.Strategies
 {
-    public class DeskMateStrategy : ISeatingStrategy
+    public class DeskMateStrategy (DeskMateConfiguration config) : ISeatingStrategy
     {
-        private readonly DeskMateConfiguration _config;
+        private readonly DeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
 
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
 
-        public DeskMateStrategy (DeskMateConfiguration config)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            Id = "DeskMate";
-            Name = "DeskMate";
-            Priority = 50;
-            IsEnabled = true;
-        }
-
-        public string Id { get; }
-        public string Name { get; }
-        public int Priority { get; set; }
-        public bool IsEnabled { get; set; }
+        public string Id { get; } = "DeskMate";
+        public string Name { get; } = "DeskMate";
+        public int Priority { get; set; } = 50;
+        public bool IsEnabled { get; set; } = true;
 
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            if (workspace is null) throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             // 获取所有未分配的学生ID
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
@@ -72,12 +58,12 @@ namespace A_Pair.Core.Strategies
                 .OrderByDescending(g => g.StudentIds.Count)
                 .ToList();
 
-            if (!validGroups.Any())
+            if (validGroups.Count == 0)
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
 
             // 获取所有空座位
             var emptySeats = workspace.GetEmptySeats().ToList();
-            if (!emptySeats.Any())
+            if (emptySeats.Count == 0)
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
 
             // 将座位按布局类型分组处理
@@ -90,12 +76,12 @@ namespace A_Pair.Core.Strategies
 
                 bool assigned = false;
 
-                if (gridSeats.Any() && _config.PreferHorizontal)
+                if (gridSeats.Count > 0 && _config.PreferHorizontal)
                 {
                     assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: true);
                 }
 
-                if (!assigned && _config.AllowVertical && gridSeats.Any())
+                if (!assigned && _config.AllowVertical && gridSeats.Count != 0)
                 {
                     assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: false);
                 }
@@ -194,7 +180,7 @@ namespace A_Pair.Core.Strategies
 
     public class DeskMateConfiguration
     {
-        public List<DeskMateGroup> Groups { get; set; } = new();
+        public List<DeskMateGroup> Groups { get; set; } = [];
         public bool PreferHorizontal { get; set; } = true;
         public bool AllowVertical { get; set; } = false;
     }
@@ -202,6 +188,6 @@ namespace A_Pair.Core.Strategies
     public class DeskMateGroup
     {
         public string GroupId { get; set; } = System.Guid.NewGuid().ToString();
-        public List<string> StudentIds { get; set; } = new();
+        public List<string> StudentIds { get; set; } = [];
     }
 }

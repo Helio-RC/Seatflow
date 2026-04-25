@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace A_Pair.Core.Models
+﻿namespace A_Pair.Core.Models
 {
     public interface IClassroomLayout
     {

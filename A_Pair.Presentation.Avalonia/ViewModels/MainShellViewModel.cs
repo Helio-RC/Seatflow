@@ -1,5 +1,4 @@
 using System;
-using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +15,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
         public IRelayCommand NavigateSnapshotsCommand { get; }
         public IRelayCommand NavigatePluginsCommand { get; }
 
-        public MainShellViewModel(IServiceProvider serviceProvider)
+        public MainShellViewModel (IServiceProvider serviceProvider)
         {
             NavigateDataManagementCommand = new RelayCommand(() => CurrentView = serviceProvider.GetRequiredService<DataManagementViewModel>());
             NavigateVenueConfigCommand = new RelayCommand(() => CurrentView = serviceProvider.GetRequiredService<VenueConfigurationViewModel>());

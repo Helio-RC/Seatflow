@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using A_Pair.Core.Models;
 
 namespace A_Pair.Core.Workspace
@@ -31,16 +28,16 @@ namespace A_Pair.Core.Workspace
             /// <summary>
             /// 用于策略的共享元数据
             /// </summary>
-            public Dictionary<string, object> Metadata { get; set; } = [];
+            public Dictionary<string , object> Metadata { get; set; } = [];
         }
 
-        public SeatingWorkspace(IEnumerable<Student> students, IEnumerable<Seat> seats)
+        public SeatingWorkspace (IEnumerable<Student> students , IEnumerable<Seat> seats)
         {
             _students.AddRange(students ?? Enumerable.Empty<Student>());
             _seats.AddRange(seats ?? Enumerable.Empty<Seat>());
         }
 
-        public bool TryAssignSeat(string seatId, string studentId, out string error)
+        public bool TryAssignSeat (string seatId , string studentId , out string error)
         {
             error = string.Empty;
             var seat = _seats.FirstOrDefault(s => s.Id == seatId);
@@ -64,11 +61,11 @@ namespace A_Pair.Core.Workspace
             return true;
         }
 
-        public IEnumerable<Seat> GetEmptySeats() => _seats.Where(s => s.IsAvailable && !s.IsFixed);
+        public IEnumerable<Seat> GetEmptySeats () => _seats.Where(s => s.IsAvailable && !s.IsFixed);
 
-        public IEnumerable<Seat> FindSeats(Func<Seat, bool> predicate) => _seats.Where(predicate);
+        public IEnumerable<Seat> FindSeats (Func<Seat , bool> predicate) => _seats.Where(predicate);
 
-        public SeatingPlan BuildSeatingPlan()
+        public SeatingPlan BuildSeatingPlan ()
         {
             var plan = new SeatingPlan();
             foreach (var seat in _seats)
@@ -102,6 +99,6 @@ namespace A_Pair.Core.Workspace
     }
     public class SeatingPlan
     {
-        public Dictionary<string, string> Assignments { get; set; } = [];
+        public Dictionary<string , string> Assignments { get; set; } = [];
     }
 }

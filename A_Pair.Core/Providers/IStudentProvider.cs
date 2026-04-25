@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace A_Pair.Core.Providers
 {
     public interface IStudentProvider
@@ -9,6 +5,6 @@ namespace A_Pair.Core.Providers
         /// <summary>
         /// Load students from the given source (path or connection string depending on provider).
         /// </summary>
-        Task<List<Models.Student>> LoadAsync(string source, CancellationToken cancellationToken = default);
+        Task<List<Models.Student>> LoadAsync (string source , CancellationToken cancellationToken = default);
     }
 }

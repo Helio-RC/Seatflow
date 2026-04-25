@@ -1,9 +1,8 @@
-using System.Linq;
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.Windows.Input;
+using System.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels
 {
@@ -11,22 +10,22 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
     public class PresentationStudent : ObservableObject
     {
         private string _id = string.Empty;
-        public string Id { get => _id; set => SetProperty(ref _id, value); }
+        public string Id { get => _id; set => SetProperty(ref _id , value); }
 
         private string _name = string.Empty;
-        public string Name { get => _name; set => SetProperty(ref _name, value); }
+        public string Name { get => _name; set => SetProperty(ref _name , value); }
 
         private string? _gender;
-        public string? Gender { get => _gender; set => SetProperty(ref _gender, value); }
+        public string? Gender { get => _gender; set => SetProperty(ref _gender , value); }
 
         private float? _height;
-        public float? Height { get => _height; set => SetProperty(ref _height, value); }
+        public float? Height { get => _height; set => SetProperty(ref _height , value); }
 
         private bool _needsFrontRow;
-        public bool NeedsFrontRow { get => _needsFrontRow; set => SetProperty(ref _needsFrontRow, value); }
+        public bool NeedsFrontRow { get => _needsFrontRow; set => SetProperty(ref _needsFrontRow , value); }
 
         private string? _deskGroupId;
-        public string? DeskGroupId { get => _deskGroupId; set => SetProperty(ref _deskGroupId, value); }
+        public string? DeskGroupId { get => _deskGroupId; set => SetProperty(ref _deskGroupId , value); }
     }
 
     public class StrategyListItem : ObservableObject
@@ -63,7 +62,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
     {
         public ObservableCollection<PresentationStudent> Students { get; } = new();
         public PresentationStudent? SelectedStudent { get; set; }
-        public ObservableCollection<string> GenderOptions { get; } = new() { "男", "女", "其他" };
+        public ObservableCollection<string> GenderOptions { get; } = new() { "男" , "女" , "其他" };
 
         public string SourcePath { get; set; } = string.Empty;
         public string SummaryText => $"总人数 {Students.Count}";
@@ -74,7 +73,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
         public IRelayCommand ClearCommand { get; }
         public IRelayCommand BrowseSourceCommand { get; }
 
-        public DataManagementViewModel()
+        public DataManagementViewModel ()
         {
             ImportCommand = new RelayCommand(() => { /* placeholder */ });
             ExportCommand = new RelayCommand(() => { /* placeholder */ });
@@ -83,14 +82,14 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             BrowseSourceCommand = new RelayCommand(() => { /* placeholder */ });
 
             // sample data for designer/runtime
-            Students.Add(new PresentationStudent { Id = "S001", Name = "张三", Gender = "男", Height = 175 });
-            Students.Add(new PresentationStudent { Id = "S002", Name = "李四", Gender = "女", Height = 162, NeedsFrontRow = true });
+            Students.Add(new PresentationStudent { Id = "S001" , Name = "张三" , Gender = "男" , Height = 175 });
+            Students.Add(new PresentationStudent { Id = "S002" , Name = "李四" , Gender = "女" , Height = 162 , NeedsFrontRow = true });
         }
     }
 
     public class VenueConfigurationViewModel : ViewModelBase
     {
-        public ObservableCollection<string> LayoutTypes { get; } = new() { "Grid", "Polar", "Freeform" };
+        public ObservableCollection<string> LayoutTypes { get; } = new() { "Grid" , "Polar" , "Freeform" };
         public string SelectedLayoutType { get; set; } = "Grid";
         public int Rows { get; set; } = 6;
         public int Columns { get; set; } = 8;
@@ -101,12 +100,12 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
 
         // preview canvas attached by view
         private A_Pair.Presentation.Avalonia.Controls.SeatCanvas? _previewCanvas;
-        public void AttachPreviewCanvas(A_Pair.Presentation.Avalonia.Controls.SeatCanvas canvas)
+        public void AttachPreviewCanvas (A_Pair.Presentation.Avalonia.Controls.SeatCanvas canvas)
         {
             _previewCanvas = canvas;
         }
 
-        public VenueConfigurationViewModel()
+        public VenueConfigurationViewModel ()
         {
             SaveVenueCommand = new RelayCommand(() => { /* placeholder save */ });
             TestLayoutCommand = new RelayCommand(() =>
@@ -119,8 +118,8 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
                     {
                         seats.Add(new A_Pair.Presentation.Avalonia.Controls.PresentationSeat
                         {
-                            Id = $"R{r}C{c}",
-                            Row = r,
+                            Id = $"R{r}C{c}" ,
+                            Row = r ,
                             Column = c
                         });
                     }
@@ -141,7 +140,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
         public IRelayCommand ConfigureCommand { get; }
         public IRelayCommand RemoveCommand { get; }
 
-        public StrategyConfigurationViewModel()
+        public StrategyConfigurationViewModel ()
         {
             MoveUpCommand = new RelayCommand(() =>
             {
@@ -149,7 +148,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
                 var idx = Strategies.IndexOf(SelectedStrategy);
                 if (idx > 0)
                 {
-                    Strategies.Move(idx, idx - 1);
+                    Strategies.Move(idx , idx - 1);
                     RecalculatePriorities();
                 }
             });
@@ -159,7 +158,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
                 var idx = Strategies.IndexOf(SelectedStrategy);
                 if (idx >= 0 && idx < Strategies.Count - 1)
                 {
-                    Strategies.Move(idx, idx + 1);
+                    Strategies.Move(idx , idx + 1);
                     RecalculatePriorities();
                 }
             });
@@ -167,11 +166,11 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             RemoveCommand = new RelayCommand(() => { if (SelectedStrategy != null) Strategies.Remove(SelectedStrategy); RecalculatePriorities(); });
 
             // sample
-            Strategies.Add(new StrategyListItem { IsEnabled = true, Priority = 10, Name = "FixedSeatStrategy", Status = "已配置" });
-            Strategies.Add(new StrategyListItem { IsEnabled = true, Priority = 30, Name = "FrontRowRotationStrategy", Status = "已配置" });
+            Strategies.Add(new StrategyListItem { IsEnabled = true , Priority = 10 , Name = "FixedSeatStrategy" , Status = "已配置" });
+            Strategies.Add(new StrategyListItem { IsEnabled = true , Priority = 30 , Name = "FrontRowRotationStrategy" , Status = "已配置" });
         }
 
-        private void RecalculatePriorities()
+        private void RecalculatePriorities ()
         {
             for (int i = 0; i < Strategies.Count; i++)
             {
@@ -200,7 +199,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
         public IRelayCommand ZoomOutCommand { get; }
         public IRelayCommand ShowStudentHistoryCommand { get; }
 
-        public SeatingArrangementViewModel(A_Pair.Application.Interfaces.IApplicationFacade facade)
+        public SeatingArrangementViewModel (A_Pair.Application.Interfaces.IApplicationFacade facade)
         {
             _facade = facade;
 
@@ -213,11 +212,11 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             ShowStudentHistoryCommand = new RelayCommand(() => { /* placeholder */ });
 
             // sample unassigned
-            UnassignedStudents.Add(new PresentationStudent { Id = "S010", Name = "赵六" });
-            UnassignedStudents.Add(new PresentationStudent { Id = "S011", Name = "孙七" });
+            UnassignedStudents.Add(new PresentationStudent { Id = "S010" , Name = "赵六" });
+            UnassignedStudents.Add(new PresentationStudent { Id = "S011" , Name = "孙七" });
         }
 
-        private async Task GenerateSeatingAsync()
+        private async Task GenerateSeatingAsync ()
         {
             // use facade to generate seating if available
             try
@@ -234,7 +233,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             }
         }
 
-        public void AttachCanvas(A_Pair.Presentation.Avalonia.Controls.SeatCanvas canvas)
+        public void AttachCanvas (A_Pair.Presentation.Avalonia.Controls.SeatCanvas canvas)
         {
             _attachedCanvas = canvas;
             // hook zoom commands to attached canvas
@@ -242,7 +241,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             ZoomOutCommand = new RelayCommand(() => _attachedCanvas?.ZoomOut());
         }
 
-        public async System.Threading.Tasks.Task RefreshSeatsAsync(A_Pair.Presentation.Avalonia.Controls.SeatCanvas canvas)
+        public async System.Threading.Tasks.Task RefreshSeatsAsync (A_Pair.Presentation.Avalonia.Controls.SeatCanvas canvas)
         {
             if (canvas == null) return;
 
@@ -255,7 +254,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             if (!_canvasHooked)
             {
                 _canvasHooked = true;
-                canvas.OnSeatAssigned += async (targetSeatId, sourceSeatId) =>
+                canvas.OnSeatAssigned += async (targetSeatId , sourceSeatId) =>
                 {
                     if (string.IsNullOrEmpty(sourceSeatId) || string.IsNullOrEmpty(targetSeatId)) return;
                     var workspace = await _facade.GetCurrentWorkspaceAsync();
@@ -265,7 +264,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
                     var studentId = source?.OccupantId;
                     if (string.IsNullOrEmpty(studentId)) return;
 
-                    var cmd = new A_Pair.Application.Commands.AssignSeatCommand(targetSeatId, studentId);
+                    var cmd = new A_Pair.Application.Commands.AssignSeatCommand(targetSeatId , studentId);
                     var ok = await _facade.ExecuteCommandAsync(cmd);
                     if (ok)
                     {
@@ -288,13 +287,13 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
         public IRelayCommand CompareCommand { get; }
         public IRelayCommand ApplySnapshotCommand { get; }
 
-        public SnapshotHistoryViewModel()
+        public SnapshotHistoryViewModel ()
         {
             RefreshCommand = new RelayCommand(() => { /* placeholder refresh */ });
             CompareCommand = new RelayCommand(() => { /* placeholder compare */ });
             ApplySnapshotCommand = new RelayCommand(() => { /* placeholder apply */ });
 
-            Snapshots.Add(new SnapshotListItem { Id = "1", CreatedAt = "2026-04-15 10:23", Description = "月考座位表", AssignedCount = 42 });
+            Snapshots.Add(new SnapshotListItem { Id = "1" , CreatedAt = "2026-04-15 10:23" , Description = "月考座位表" , AssignedCount = 42 });
         }
     }
 
@@ -311,7 +310,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
         public IRelayCommand EditScriptCommand { get; }
         public IRelayCommand ReloadPluginCommand { get; }
 
-        public PluginManagementViewModel()
+        public PluginManagementViewModel ()
         {
             InstallPluginCommand = new RelayCommand(() => { /* placeholder */ });
             ScanCommand = new RelayCommand(() => { /* placeholder */ });
@@ -320,7 +319,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels
             EditScriptCommand = new RelayCommand(() => { /* placeholder */ });
             ReloadPluginCommand = new RelayCommand(() => { /* placeholder */ });
 
-            Plugins.Add(new PluginListItem { IsEnabled = true, Name = "视力优先策略", Version = "1.0.0", Type = "Lua脚本", Priority = 25, Description = "根据学生视力需求优先安排前排座位" });
+            Plugins.Add(new PluginListItem { IsEnabled = true , Name = "视力优先策略" , Version = "1.0.0" , Type = "Lua脚本" , Priority = 25 , Description = "根据学生视力需求优先安排前排座位" });
         }
     }
 }
