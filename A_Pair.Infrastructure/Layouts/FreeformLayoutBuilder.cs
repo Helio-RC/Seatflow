@@ -5,17 +5,18 @@ namespace A_Pair.Infrastructure.Layouts
 {
     public class FreeformLayoutBuilder
     {
-        public static ClassroomLayoutDefinition BuildFreeform (IEnumerable<GridPosition> points)
+        // 改用专门的 FreeformSeat
+        public static ClassroomLayoutDefinition BuildFreeform (IEnumerable<(double X , double Y)> points)
         {
             var layout = new ClassroomLayoutDefinition
             {
-                LayoutType = LayoutType.Freeform ,   // 改为枚举值
+                LayoutType = LayoutType.Freeform ,
                 Metadata = new FreeformLayoutMetadata()
             };
 
-            foreach (var p in points)
+            foreach (var (x , y) in points)
             {
-                var seat = new GridSeat { Row = p.Row , Column = p.Column };
+                var seat = new FreeformSeat { X = x , Y = y };
                 layout.Seats.Add(seat);
             }
 

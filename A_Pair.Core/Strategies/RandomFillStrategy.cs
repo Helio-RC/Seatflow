@@ -14,7 +14,7 @@ namespace A_Pair.Core.Strategies
         public RandomFillStrategy(Random random)
         {
             _random = random ?? throw new ArgumentNullException(nameof(random));
-            Id = Guid.NewGuid().ToString();
+            Id = "RandomFill";
             Name = "RandomFill";
             Priority = 10;
             IsEnabled = true;

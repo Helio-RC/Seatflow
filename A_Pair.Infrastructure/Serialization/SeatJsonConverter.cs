@@ -15,16 +15,16 @@ namespace A_Pair.Infrastructure.Serialization
             using var doc = JsonDocument.ParseValue(ref reader);
             var root = doc.RootElement;
 
-            // 根据 "Type" 属性判断具体类型
             if (!root.TryGetProperty("Type" , out var typeProp))
-                throw new JsonException("Seat 必须包含 'Type' 属性");
+                throw new JsonException("Seat must contain 'Type' property");
 
             var type = typeProp.GetString();
             return type switch
             {
                 "Grid" => Deserialize<GridSeat>(root , options),
                 "Polar" => Deserialize<PolarSeat>(root , options),
-                _ => throw new JsonException($"不支持的 Seat 类型: {type}")
+                "Freeform" => Deserialize<FreeformSeat>(root , options),
+                _ => throw new JsonException($"Unsupported Seat type: {type}")
             };
         }
 

@@ -79,9 +79,6 @@ namespace A_Pair.Core.Workspace
             return plan;
         }
     }
-
-    public class SeatingContext { }
-
     public class SeatingPlan
     {
         public Dictionary<string, string> Assignments { get; set; } = new();

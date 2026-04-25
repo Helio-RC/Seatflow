@@ -7,6 +7,7 @@ using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Application.Services;
+using A_Pair.Core.DomainServices;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
@@ -251,36 +252,52 @@ namespace A_Pair.Application.Services
 
         private List<Seat> BuildSeatsFromRequest (SeatingRequest request)
         {
-            return request.LayoutType switch
+            ClassroomLayoutDefinition layout = request.LayoutType switch
             {
-                LayoutType.Grid => BuildGridSeats(request.LayoutParameters),
-                LayoutType.Polar => BuildPolarSeats(request.LayoutParameters),
-                LayoutType.Freeform => BuildFreeformSeats(request.LayoutParameters),
-                _ => BuildGridSeats(new Dictionary<string , object> { ["Rows"] = 3 , ["Columns"] = 3 })
+                LayoutType.Grid => BuildGridLayout(request.LayoutParameters),
+                LayoutType.Polar => BuildPolarLayout(request.LayoutParameters),
+                LayoutType.Freeform => BuildFreeformLayout(request.LayoutParameters),
+                _ => BuildGridLayout(new Dictionary<string , object> { ["Rows"] = 3 , ["Columns"] = 3 })
             };
-        }
 
-        private List<Seat> BuildGridSeats (Dictionary<string , object> parameters)
-        {
-            int rows = GetParameter(parameters , "Rows" , 3);
-            int columns = GetParameter(parameters , "Columns" , 3);
-            var layout = GridLayoutBuilder.BuildGrid(rows , columns);
+            // 应用障碍物剔除
+            ObstacleProcessor.ApplyObstacles(layout);
+
             return layout.Seats;
         }
 
-        private List<Seat> BuildPolarSeats (Dictionary<string , object> parameters)
+        private ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
+        {
+            int rows = GetParameter(parameters , "Rows" , 3);
+            int columns = GetParameter(parameters , "Columns" , 3);
+            return GridLayoutBuilder.BuildGrid(rows , columns);
+        }
+
+        private ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
         {
             double radiusStep = GetParameter(parameters , "RadiusStep" , 1.0);
             int rings = GetParameter(parameters , "Rings" , 2);
             int seatsPerRing = GetParameter(parameters , "SeatsPerRing" , 8);
-            var layout = PolarLayoutBuilder.BuildPolar(radiusStep , rings , seatsPerRing);
-            return layout.Seats;
+            return PolarLayoutBuilder.BuildPolar(radiusStep , rings , seatsPerRing);
         }
 
-        private List<Seat> BuildFreeformSeats (Dictionary<string , object> parameters)
+        private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
-            // 自由点布局需传入点列表，此处简化返回空列表
-            return new List<Seat>();
+            // 提取点列表
+            var points = new List<(double X , double Y)>();
+            if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
+            {
+                foreach (var item in list)
+                {
+                    if (item is Dictionary<string , object> dict)
+                    {
+                        double x = GetParameter(dict , "X" , 0.0);
+                        double y = GetParameter(dict , "Y" , 0.0);
+                        points.Add((x , y));
+                    }
+                }
+            }
+            return FreeformLayoutBuilder.BuildFreeform(points);
         }
 
         private T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
