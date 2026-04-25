@@ -74,25 +74,16 @@ namespace A_Pair.Application.Scripting.Lua
         /// <summary>
         /// 创建受限的 Lua 状态，移除危险库
         /// </summary>
-        private Lua CreateRestrictedLuaState ()
+        private global::NLua.Lua CreateRestrictedLuaState ()
         {
-            var lua = new Lua();
-
-            // 移除危险库
+            var lua = new global::NLua.Lua();
             lua.DoString(@"
-                -- 禁用 io 库
-                io = nil
-                -- 禁用 os 库（但保留 os.clock 等安全函数可选）
-                os = nil
-                -- 禁用 package 库
-                package = nil
-                -- 禁用 debug 库
-                debug = nil
-            ");
-
-            // 限制内存使用（通过设置垃圾回收阈值，近似限制）
-            lua.State.SetGCLimit(_config.MemoryLimitBytes);
-
+        io = nil
+        os = nil
+        package = nil
+        debug = nil
+    ");
+            //TODO:GC还没有找到好的办法，暂时不限制内存，后续可以考虑通过监控 Lua 内存使用情况来实现
             return lua;
         }
     }
