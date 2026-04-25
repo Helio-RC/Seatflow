@@ -27,16 +27,16 @@ namespace A_Pair.Core.Strategies
 
         public Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken)
         {
-            if (workspace is null) throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             var emptySeats = workspace.GetEmptySeats().ToList();
-            var students = workspace.Students.Where(s => !workspace.BuildSeatingPlan().Assignments.Values.Contains(s.Id)).ToList();
+            var students = workspace.Students.Where(s => !workspace.BuildSeatingPlan().Assignments.ContainsValue(s.Id)).ToList();
 
             // Shuffle students
             for (int i = students.Count - 1; i > 0; i--)
             {
                 int j = _random.Next(i + 1);
-                var tmp = students[i]; students[i] = students[j]; students[j] = tmp;
+                (students[j] , students[i]) = (students[i] , students[j]);
             }
 
             int assignCount = Math.Min(emptySeats.Count, students.Count);

@@ -7,8 +7,8 @@ namespace A_Pair.Core.Workspace
 {
     public class SeatingWorkspace
     {
-        private readonly List<Student> _students = new();
-        private readonly List<Seat> _seats = new();
+        private readonly List<Student> _students = [];
+        private readonly List<Seat> _seats = [];
 
         public IReadOnlyList<Student> Students => _students;
         public class SeatingContext
@@ -31,7 +31,7 @@ namespace A_Pair.Core.Workspace
             /// <summary>
             /// 用于策略的共享元数据
             /// </summary>
-            public Dictionary<string, object> Metadata { get; set; } = new();
+            public Dictionary<string, object> Metadata { get; set; } = [];
         }
 
         public SeatingWorkspace(IEnumerable<Student> students, IEnumerable<Seat> seats)
@@ -78,9 +78,30 @@ namespace A_Pair.Core.Workspace
             }
             return plan;
         }
+
+        public void ApplySnapshotAssignments (Dictionary<string , string> seatAssignments)
+        {
+            // 清空所有当前分配
+            foreach (var seat in _seats)
+            {
+                seat.OccupantId = null;
+                seat.IsAvailable = true;
+            }
+
+            // 应用快照中的分配
+            foreach (var kv in seatAssignments)
+            {
+                var seat = _seats.FirstOrDefault(s => s.Id == kv.Key);
+                if (seat != null && _students.Any(st => st.Id == kv.Value))
+                {
+                    seat.OccupantId = kv.Value;
+                    seat.IsAvailable = false;
+                }
+            }
+        }
     }
     public class SeatingPlan
     {
-        public Dictionary<string, string> Assignments { get; set; } = new();
+        public Dictionary<string, string> Assignments { get; set; } = [];
     }
 }

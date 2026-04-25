@@ -39,7 +39,7 @@ namespace A_Pair.Application.Services
             IEnumerable<ISeatingPlanExporter> exporters ,
             PluginManager pluginManager ,
             IPluginConfigurationService pluginConfigService ,
-            IAppSettingsRepository appSettingsRepo,
+            IAppSettingsRepository appSettingsRepo ,
             IVenueRepository venueRepo)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -52,21 +52,16 @@ namespace A_Pair.Application.Services
         }
 
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
-        {
-            // Minimal placeholder: read json if exists
-            return Task.FromResult(new AppConfiguration());
-        }
+            => Task.FromResult(new AppConfiguration());
+
         public Task<AppSettings> LoadAppSettingsAsync (CancellationToken cancellationToken = default)
-        {
-            return _appSettingsRepo.LoadAsync(cancellationToken);
-        }
+            => _appSettingsRepo.LoadAsync(cancellationToken);
 
         public Task SaveAppSettingsAsync (AppSettings settings , CancellationToken cancellationToken = default)
-        {
-            return _appSettingsRepo.SaveAsync(settings , cancellationToken);
-        }
+            => _appSettingsRepo.SaveAsync(settings , cancellationToken);
+
         public Task SaveVenueAsync (string venueId , ClassroomLayoutDefinition layout , CancellationToken cancellationToken = default)
-    => _venueRepo.SaveAsync(venueId , layout , cancellationToken);
+            => _venueRepo.SaveAsync(venueId , layout , cancellationToken);
 
         public Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default)
             => _venueRepo.LoadAsync(venueId , cancellationToken);
@@ -77,11 +72,10 @@ namespace A_Pair.Application.Services
         public async Task<List<Student>> LoadStudentsAsync (string source , CancellationToken cancellationToken = default)
         {
             var provider = _serviceProvider.GetService<IStudentProvider>();
-            if (provider == null)
-                return new List<Student>();
-
+            if (provider == null) return new List<Student>();
             return await provider.LoadAsync(source , cancellationToken);
         }
+
         public async Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default)
         {
             var writers = _serviceProvider.GetServices<IStudentWriter>();
@@ -109,12 +103,22 @@ namespace A_Pair.Application.Services
                 ? new List<Student>()
                 : await studentProvider.LoadAsync(request.StudentDataSource ?? string.Empty , cancellationToken);
 
-            // 2. 根据请求生成座位布局
+            // 2. 生成座位布局
             List<Seat> seats;
             if (!string.IsNullOrEmpty(request.LayoutId))
             {
-                // TODO: 从存储中加载已保存的布局
-                seats = new List<Seat>();
+                // 从已保存的会场加载布局
+                var layout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
+                if (layout != null)
+                {
+                    seats = layout.Seats;
+                    // 应用障碍物 (已在保存时处理，但为确保安全再次处理)
+                    ObstacleProcessor.ApplyObstacles(layout);
+                }
+                else
+                {
+                    seats = new List<Seat>();
+                }
             }
             else
             {
@@ -140,10 +144,8 @@ namespace A_Pair.Application.Services
             }
 
             // 6. 按请求过滤策略
-            if (!request.UseDefaultStrategies && request.StrategyIds.Any())
-            {
+            if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
                 strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
-            }
 
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
@@ -169,6 +171,7 @@ namespace A_Pair.Application.Services
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
+                LayoutId = request.LayoutId ?? "unknown" ,
                 SeatAssignments = plan.Assignments
             };
             await _snapshotRepository.SaveAsync(snapshot);
@@ -202,19 +205,15 @@ namespace A_Pair.Application.Services
             if (exporter == null)
                 throw new InvalidOperationException($"No exporter found for format {options.Format}.");
 
-            // TODO: 实现 Anonymize 和 IncludeMetadata 逻辑
-            await exporter.ExportAsync(plan , path , cancellationToken);
+            // 传入导出选项，实现 Anonymize 和 IncludeMetadata
+            await exporter.ExportAsync(plan , path , options , cancellationToken);
         }
 
         public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default)
         {
             if (_currentWorkspace == null)
-            {
                 await GenerateSeatingAsync(new SeatingRequest() , null , cancellationToken);
-            }
-
             if (_currentWorkspace == null) return false;
-
             return await _history.ExecuteAsync(command , _currentWorkspace , cancellationToken);
         }
 
@@ -231,22 +230,25 @@ namespace A_Pair.Application.Services
         }
 
         public Task<SeatingWorkspace?> GetCurrentWorkspaceAsync (CancellationToken cancellationToken = default)
+            => Task.FromResult(_currentWorkspace);
+
+        public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(_currentWorkspace);
+            // 从存储库中按 venueId 过滤快照
+            return await _snapshotRepository.ListByVenueAsync(venueId);
         }
 
-        public Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
+        public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
-            // TODO: 实现快照查询
-            return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(new List<SeatingSnapshot>());
-        }
+            var snapshot = _snapshotRepository.Load(snapshotId);
+            if (snapshot == null)
+                throw new InvalidOperationException($"快照 {snapshotId} 不存在");
+            if (_currentWorkspace == null)
+                throw new InvalidOperationException("当前没有活动的工作区");
 
-        public Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
-        {
-            // TODO: 实现回滚逻辑
-            return Task.CompletedTask;
+            // 应用快照中的座位分配
+            _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
         }
-
 
         #region Private Helpers
 
@@ -260,9 +262,7 @@ namespace A_Pair.Application.Services
                 _ => BuildGridLayout(new Dictionary<string , object> { ["Rows"] = 3 , ["Columns"] = 3 })
             };
 
-            // 应用障碍物剔除
             ObstacleProcessor.ApplyObstacles(layout);
-
             return layout.Seats;
         }
 
@@ -283,7 +283,6 @@ namespace A_Pair.Application.Services
 
         private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
-            // 提取点列表
             var points = new List<(double X , double Y)>();
             if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
             {
@@ -306,14 +305,10 @@ namespace A_Pair.Application.Services
             {
                 try
                 {
-                    if (value is T typedValue)
-                        return typedValue;
+                    if (value is T typedValue) return typedValue;
                     return (T)Convert.ChangeType(value , typeof(T));
                 }
-                catch
-                {
-                    return defaultValue;
-                }
+                catch { return defaultValue; }
             }
             return defaultValue;
         }
