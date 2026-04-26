@@ -21,21 +21,6 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\A_Pair.Application\A_Pair.Application.csproj" />
-    <ProjectReference Include="..\A_Pair.Core\A_Pair.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Controls\SeatCanvas.axaml.cs">
-      <DependentUpon>SeatCanvas.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Views\DataManagementView.axaml.cs">
-      <DependentUpon>DataManagementView.axaml</DependentUpon>
-    </Compile>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
   </ItemGroup>
 </Project>

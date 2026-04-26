@@ -1,6 +1,0 @@
-
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="A_Pair.Presentation.Avalonia.Controls.SeatCanvas">
-  <Canvas x:Name="PART_Canvas" />
-</UserControl>

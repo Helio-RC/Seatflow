@@ -3,10 +3,9 @@
         xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:A_Pair.Presentation.Avalonia.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="A_Pair.Presentation.Avalonia.Views.MainWindow"
-        x:DataType="vm:MainShellViewModel"
+        x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="A_Pair.Presentation.Avalonia">
 
@@ -16,25 +15,6 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        <!-- Navigation Sidebar -->
-        <StackPanel Grid.Column="0" Background="#EEE">
-            <TextBlock Text="导航" FontWeight="Bold" Margin="0,0,0,8" />
-            <Button Content="数据管理" Command="{Binding NavigateDataManagementCommand}" Margin="8,4" />
-            <Button Content="会场配置" Command="{Binding NavigateVenueConfigCommand}" Margin="8,4" />
-            <Button Content="策略配置" Command="{Binding NavigateStrategyConfigCommand}" Margin="8,4" />
-            <Button Content="座位安排" Command="{Binding NavigateSeatingCommand}" Margin="8,4" />
-            <Button Content="历史快照" Command="{Binding NavigateSnapshotsCommand}" Margin="8,4" />
-            <Button Content="插件管理" Command="{Binding NavigatePluginsCommand}" Margin="8,4" />
-        </StackPanel>
-
-        <!-- Content Area -->
-        <ContentControl Grid.Column="1" Content="{Binding CurrentView}" Margin="0" />
-    </Grid>
+    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
 </Window>
