@@ -17,6 +17,7 @@ namespace A_Pair.Infrastructure.Exporters
     /// </remarks>
     public class PdfSeatingExporter : ISeatingPlanExporter
     {
+        public ExportFormat Format => ExportFormat.Pdf;
         /// <summary>
         /// 静态构造函数，设置 QuestPDF 为社区版许可证。
         /// </summary>

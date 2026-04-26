@@ -1,5 +1,6 @@
 using System.Text.Json;
 using A_Pair.Core.Models;
+using A_Pair.Core.Providers;
 
 namespace A_Pair.Infrastructure.Repositories
 {
@@ -12,7 +13,7 @@ namespace A_Pair.Infrastructure.Repositories
     /// 损坏的文件会被自动跳过。
     /// </remarks>
     /// <param name="basePath">快照存储的基目录路径。</param>
-    public class SeatingSnapshotRepository
+    public class SeatingSnapshotRepository : ISeatingSnapshotRepository
     {
         private readonly string _basePath;
 

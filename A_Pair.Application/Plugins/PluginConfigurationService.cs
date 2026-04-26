@@ -30,6 +30,10 @@ namespace A_Pair.Application.Plugins
         public async Task SaveConfigurationAsync<T> (string pluginId , T configuration , CancellationToken cancellationToken = default) where T : class
         {
             var configPath = GetConfigPath(pluginId);
+            var configDir = Path.GetDirectoryName(configPath);
+            if (!string.IsNullOrEmpty(configDir) && !Directory.Exists(configDir))
+                Directory.CreateDirectory(configDir);
+
             var json = JsonSerializer.Serialize(configuration , new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(configPath , json , cancellationToken);
         }

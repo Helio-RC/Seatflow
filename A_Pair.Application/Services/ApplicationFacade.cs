@@ -32,7 +32,7 @@ namespace A_Pair.Application.Services
     /// </remarks>
     public class ApplicationFacade (
         IServiceProvider serviceProvider ,
-        SeatingSnapshotRepository snapshotRepository ,
+        ISeatingSnapshotRepository snapshotRepository ,
         IEnumerable<ISeatingPlanExporter> exporters ,
         PluginManager pluginManager ,
         IPluginConfigurationService pluginConfigService ,
@@ -40,7 +40,7 @@ namespace A_Pair.Application.Services
         IVenueRepository venueRepo) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        private readonly SeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
+        private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
         private readonly IEnumerable<ISeatingPlanExporter> _exporters = exporters ?? throw new ArgumentNullException(nameof(exporters));
         private readonly PluginManager _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
         private readonly IPluginConfigurationService _pluginConfigService = pluginConfigService ?? throw new ArgumentNullException(nameof(pluginConfigService));
@@ -195,25 +195,15 @@ namespace A_Pair.Application.Services
 
         /// <inheritdoc />
         public async Task ExportSeatingPlanAsync (
-            SeatingWorkspace workspace ,
-            string path ,
-            ExportOptions options ,
-            CancellationToken cancellationToken = default)
+    SeatingWorkspace workspace ,
+    string path ,
+    ExportOptions options ,
+    CancellationToken cancellationToken = default)
         {
             var plan = workspace.BuildSeatingPlan();
-
-            ISeatingPlanExporter? exporter = options.Format switch
-            {
-                ExportFormat.Excel => _exporters.OfType<ExcelSeatingExporter>().FirstOrDefault(),
-                ExportFormat.Csv => _exporters.OfType<CsvSeatingExporter>().FirstOrDefault(),
-                ExportFormat.Pdf => _exporters.OfType<PdfSeatingExporter>().FirstOrDefault(),
-                _ => throw new NotSupportedException($"Unsupported export format: {options.Format}")
-            };
-
+            ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format);
             if (exporter == null)
-                throw new InvalidOperationException($"No exporter found for format {options.Format}.");
-
-            // 传入导出选项，实现 Anonymize 和 IncludeMetadata
+                throw new NotSupportedException($"No exporter registered for format {options.Format}.");
             await exporter.ExportAsync(plan , path , options , cancellationToken);
         }
 

@@ -15,6 +15,7 @@ namespace A_Pair.Infrastructure.Exporters
     /// </remarks>
     public class CsvSeatingExporter : ISeatingPlanExporter
     {
+        public ExportFormat Format => ExportFormat.Csv;
         /// <inheritdoc />
         public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
         {

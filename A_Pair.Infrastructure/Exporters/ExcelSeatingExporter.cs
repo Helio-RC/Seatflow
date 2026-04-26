@@ -16,6 +16,7 @@ namespace A_Pair.Infrastructure.Exporters
     /// </remarks>
     public class ExcelSeatingExporter : ISeatingPlanExporter
     {
+        public ExportFormat Format => ExportFormat.Excel;
         /// <inheritdoc />
         public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
         {

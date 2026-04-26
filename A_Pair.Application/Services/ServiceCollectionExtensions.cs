@@ -37,8 +37,9 @@ namespace A_Pair.Application.Services
         /// <returns>服务集合，支持链式调用。</returns>
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
-            services.AddSingleton<SeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
+            services.AddSingleton<ISeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
+
 
             // 注册内置策略
             services.AddSingleton<ISeatingStrategy , FixedSeatStrategy>();

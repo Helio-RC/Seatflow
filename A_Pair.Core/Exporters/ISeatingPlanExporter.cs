@@ -1,4 +1,7 @@
+using System.Threading;
+using System.Threading.Tasks;
 using A_Pair.Core.Workspace;
+using A_Pair.Core.Models;
 
 namespace A_Pair.Core.Exporters
 {
@@ -8,6 +11,7 @@ namespace A_Pair.Core.Exporters
     /// </summary>
     public interface ISeatingPlanExporter
     {
+        ExportFormat Format { get; }
         /// <summary>
         /// 使用默认选项导出座位安排计划（向后兼容）。
         /// </summary>
@@ -24,6 +28,6 @@ namespace A_Pair.Core.Exporters
         /// <param name="path">导出文件路径。</param>
         /// <param name="options">导出选项。</param>
         /// <param name="cancellationToken">取消令牌。</param>
-        Task ExportAsync (SeatingPlan plan , string path , A_Pair.Core.Models.ExportOptions options , CancellationToken cancellationToken = default);
+        Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default);
     }
 }
