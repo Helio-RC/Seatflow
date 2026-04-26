@@ -1,5 +1,6 @@
 using A_Pair.Core.Enums;
 using A_Pair.Core.Utilities;
+using System.Text.Json.Serialization;
 
 namespace A_Pair.Core.Models
 {
@@ -37,6 +38,7 @@ namespace A_Pair.Core.Models
         /// 最近 N 次座位历史记录（环形缓冲区），用于轮换算法避免重复。
         /// 默认容量为 3，记录最近坐过的座位 ID。
         /// </summary>
+        [JsonIgnore]
         public CircularHistory<string> RecentSeatHistory { get; set; } = new(3);
 
         /// <summary>
@@ -47,6 +49,7 @@ namespace A_Pair.Core.Models
         /// <summary>
         /// 扩展属性挂载点，供插件或自定义逻辑附加额外数据。
         /// </summary>
+        [JsonIgnore]
         public AttributeBag Extensions { get; set; } = new();
     }
 }

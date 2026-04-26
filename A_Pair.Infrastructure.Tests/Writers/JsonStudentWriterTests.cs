@@ -15,10 +15,10 @@ public class JsonStudentWriterTests
     public async Task WriteAsync_ShouldCreateRosterFile ()
     {
         var students = new List<Student>
-        {
-            new() { Id = "1", Name = "Alice" },
-            new() { Id = "2", Name = "Bob" }
-        };
+    {
+        new() { Id = "1", Name = "Alice" },
+        new() { Id = "2", Name = "Bob" }
+    };
         var path = Path.GetTempFileName() + ".json";
         try
         {
@@ -26,7 +26,8 @@ public class JsonStudentWriterTests
             await writer.WriteAsync(path , students , CancellationToken.None);
 
             var json = await File.ReadAllTextAsync(path);
-            json.Should().Contain("alice"); // camelCase 命名策略
+            // camelCase 命名策略，验证包含 "name": "Alice"
+            json.Should().Contain("\"name\": \"Alice\"");
             var roster = JsonSerializer.Deserialize<RosterFile>(json , new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             roster.Should().NotBeNull();
             roster!.Students.Should().HaveCount(2);

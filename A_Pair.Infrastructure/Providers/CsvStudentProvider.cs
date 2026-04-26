@@ -2,6 +2,7 @@ using System.Globalization;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace A_Pair.Infrastructure.Providers
 {
@@ -17,10 +18,17 @@ namespace A_Pair.Infrastructure.Providers
         /// <inheritdoc />
         public async Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(source)) return new List<Student>();
+            if (string.IsNullOrEmpty(source) || !File.Exists(source))
+                return new List<Student>();
 
             using var reader = new StreamReader(source);
-            using var csv = new CsvReader(reader , CultureInfo.InvariantCulture);
+            // 配置 CsvReader：忽略不完整的头部和缺失字段，避免异常
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HeaderValidated = null ,
+                MissingFieldFound = null
+            };
+            using var csv = new CsvReader(reader , config);
 
             var records = csv.GetRecordsAsync<Student>(cancellationToken);
             var list = new List<Student>();

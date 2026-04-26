@@ -51,6 +51,7 @@ public class SeatJsonConverterTests
     {
         const string json = "{\"Type\":\"Unknown\"}";
         Action act = () => JsonSerializer.Deserialize<Seat>(json , Options);
-        act.Should().Throw<JsonException>().Where(ex => ex.Message.Contains("Unsupported Seat type"));
+        act.Should().Throw<JsonException>()
+           .Where(ex => ex.Message.Contains("Unsupported Seat type"));
     }
 }

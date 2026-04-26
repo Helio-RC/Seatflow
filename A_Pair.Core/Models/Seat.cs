@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using A_Pair.Core.Utilities;
 
 namespace A_Pair.Core.Models
@@ -30,7 +31,7 @@ namespace A_Pair.Core.Models
         public string LogicalGroup { get; set; } = string.Empty;
 
         /// <summary>几何数据（如行列、极坐标等），用于渲染和碰撞检测。</summary>
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public abstract ISeatGeometry GeometryData { get; }
 
         /// <summary>座位是否可用（未被占用且未被障碍物阻挡）。</summary>
