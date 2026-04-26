@@ -1,0 +1,65 @@
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using A_Pair.Core.Models;
+
+namespace A_Pair.Infrastructure.Tests.Repositories;
+
+public class JsonAppSettingsRepositoryTests
+{
+    private string GetTempFilePath () => Path.GetTempFileName() + ".json";
+
+    [Fact]
+    public async Task LoadAsync_FileMissing_ShouldReturnDefault ()
+    {
+        var path = GetTempFilePath();
+        try
+        {
+            var repo = new JsonAppSettingsRepository(path);
+            var settings = await repo.LoadAsync(CancellationToken.None);
+            settings.WindowState.Width.Should().Be(1024);
+            settings.WindowState.Height.Should().Be(768);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task SaveAndLoad_ShouldRoundTrip ()
+    {
+        var path = GetTempFilePath();
+        try
+        {
+            var repo = new JsonAppSettingsRepository(path);
+            var original = new AppSettings
+            {
+                LastOpenedFilePath = "/test/file.txt" ,
+                WindowState = new WindowStateSettings
+                {
+                    Width = 800 ,
+                    Height = 600 ,
+                    IsMaximized = true
+                }
+            };
+            await repo.SaveAsync(original , CancellationToken.None);
+            var loaded = await repo.LoadAsync(CancellationToken.None);
+            loaded.LastOpenedFilePath.Should().Be("/test/file.txt");
+            loaded.WindowState.IsMaximized.Should().BeTrue();
+            loaded.WindowState.Width.Should().Be(800);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void SettingsFilePath_ShouldReturnCorrectPath ()
+    {
+        var repo = new JsonAppSettingsRepository("C:\\test.json");
+        repo.SettingsFilePath.Should().Be("C:\\test.json");
+    }
+}
