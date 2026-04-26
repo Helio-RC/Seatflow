@@ -1,6 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Application.Services
 {
@@ -15,14 +20,21 @@ namespace A_Pair.Application.Services
     public class StrategyExecutionPipeline
     {
         private readonly List<ISeatingStrategy> _strategies = [];
+        private readonly ILogger<StrategyExecutionPipeline>? _logger;
+        private readonly bool _throwOnFailure;
 
         /// <summary>
         /// 初始化策略执行管道，并按优先级排序策略列表。
         /// </summary>
         /// <param name="strategies">要执行的策略集合。</param>
-        public StrategyExecutionPipeline (IEnumerable<ISeatingStrategy> strategies)
+        public StrategyExecutionPipeline (
+            IEnumerable<ISeatingStrategy> strategies ,
+            ILogger<StrategyExecutionPipeline>? logger = null ,
+            bool throwOnFailure = false)
         {
             _strategies.AddRange(strategies.OrderBy(s => s.Priority));
+            _logger = logger;
+            _throwOnFailure = throwOnFailure;
         }
 
         /// <summary>
@@ -56,12 +68,22 @@ namespace A_Pair.Application.Services
                 var result = await strategy.ExecuteAsync(workspace , cancellationToken);
                 if (!result.Success)
                 {
-                    failedStrategies.Add($"{strategy.Name}: {result.Message}");
+                    failedStrategies.Add($"{strategy.Name}({strategy.Id}): {result.Message}");
+                    _logger?.LogWarning("策略执行失败: {StrategyName} ({StrategyId}) - {Message}" ,
+                        strategy.Name , strategy.Id , result.Message);
                 }
             }
 
-            // 如果有关键策略失败，可记录日志或抛出异常（此处仅忽略）
+            if (failedStrategies.Count != 0 && _throwOnFailure)
+            {
+                throw new StrategyExecutionException($"以下策略执行失败: {string.Join("; " , failedStrategies)}");
+            }
+
             return workspace.BuildSeatingPlan();
         }
+    }
+
+    public class StrategyExecutionException (string message) : System.Exception(message)
+    {
     }
 }
