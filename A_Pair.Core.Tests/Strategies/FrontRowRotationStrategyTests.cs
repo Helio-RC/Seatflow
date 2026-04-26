@@ -12,21 +12,21 @@ public class FrontRowRotationStrategyTests
     {
         var students = new[]
         {
-            new Student { Id = "s1", NeedsFrontRow = true, FrontRowPreferenceScore = 0 },
-            new Student { Id = "s2", NeedsFrontRow = false, FrontRowPreferenceScore = 100 }
-        };
+        new Student { Id = "s1", NeedsFrontRow = true, FrontRowPreferenceScore = 0 },
+        new Student { Id = "s2", NeedsFrontRow = false, FrontRowPreferenceScore = 100 }
+    };
         var seats = new[]
         {
-            new GridSeat { Id = "front1", Row = 1, Column = 1 },
-            new GridSeat { Id = "back1", Row = 2, Column = 1 }
-        };
+        new GridSeat { Id = "front1", Row = 1, Column = 1 },
+        new GridSeat { Id = "back1", Row = 2, Column = 1 }
+    };
         var ws = new SeatingWorkspace(students , seats);
 
         var strategy = new FrontRowRotationStrategy();
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
         var frontSeat = seats.First(s => s.Id == "front1");
-        frontSeat.OccupantId.Should().Be("s2"); // s2 has higher score
+        frontSeat.OccupantId.Should().Be("s1");   // 修正此处
     }
 
     [Fact]

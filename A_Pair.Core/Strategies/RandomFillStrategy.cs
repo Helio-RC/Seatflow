@@ -33,6 +33,7 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
+            cancellationToken.ThrowIfCancellationRequested();   // <-- 新增修复
 
             var emptySeats = workspace.GetEmptySeats().ToList();
             var students = workspace.Students.Where(s => !workspace.BuildSeatingPlan().Assignments.ContainsValue(s.Id)).ToList();

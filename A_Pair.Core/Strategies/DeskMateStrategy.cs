@@ -12,9 +12,7 @@ namespace A_Pair.Core.Strategies
     {
         private readonly DeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
 
-        /// <summary>
-        /// 使用默认配置创建实例。
-        /// </summary>
+        /// <summary>使用默认配置创建实例。</summary>
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
 
         /// <summary>策略 ID："DeskMate"。</summary>
@@ -45,13 +43,10 @@ namespace A_Pair.Core.Strategies
 
             // 合并配置中的组和 Extensions 中的组（向后兼容）
             var groups = new List<DeskMateGroup>(_config.Groups);
-
-            // 从 Extensions 中读取旧格式的同桌组配置
             foreach (var student in workspace.Students)
             {
                 if (student.Extensions.TryGet<List<string>>("DeskMates" , out var mates) && mates != null)
                 {
-                    // 查找是否已有包含该学生的组
                     var existingGroup = groups.FirstOrDefault(g => g.StudentIds.Contains(student.Id));
                     if (existingGroup == null)
                     {
@@ -87,7 +82,6 @@ namespace A_Pair.Core.Strategies
             if (emptySeats.Count == 0)
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
 
-            // 将座位按布局类型分组处理
             var gridSeats = emptySeats.OfType<GridSeat>().ToList();
 
             foreach (var group in validGroups)
@@ -104,7 +98,7 @@ namespace A_Pair.Core.Strategies
                 }
 
                 // 策略2：垂直相邻分配（同列相邻行）
-                if (!assigned && _config.AllowVertical && gridSeats.Count != 0)
+                if (!assigned && _config.AllowVertical && gridSeats.Count > 0)
                 {
                     assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: false);
                 }
@@ -115,11 +109,11 @@ namespace A_Pair.Core.Strategies
                     assigned = TryAssignGroupToAnyAdjacentSeats(workspace , group.StudentIds , emptySeats);
                 }
 
-                // 如果组分配成功，从空座位列表中移除已分配的座位
+                // 如果组分配成功，刷新空座位列表
                 if (assigned)
                 {
-                    var updatedEmptySeats = workspace.GetEmptySeats().ToList();
-                    gridSeats = updatedEmptySeats.OfType<GridSeat>().ToList();
+                    emptySeats = workspace.GetEmptySeats().ToList();
+                    gridSeats = emptySeats.OfType<GridSeat>().ToList();
                 }
             }
 
@@ -127,7 +121,7 @@ namespace A_Pair.Core.Strategies
         }
 
         /// <summary>
-        /// 尝试将一组学生分配到网格布局中相邻的座位（水平或垂直方向）。
+        /// 尝试将一组学生分配到网格布局中水平或垂直相邻的座位。
         /// </summary>
         /// <param name="workspace">工作区。</param>
         /// <param name="studentIds">学生 ID 列表。</param>
@@ -136,44 +130,64 @@ namespace A_Pair.Core.Strategies
         /// <returns>是否成功分配。</returns>
         private bool TryAssignGroupToAdjacentGridSeats (SeatingWorkspace workspace , List<string> studentIds , List<GridSeat> gridSeats , bool horizontal)
         {
-            // 按行分组
-            var rows = gridSeats.GroupBy(s => s.Row).OrderBy(g => g.Key).ToList();
-            foreach (var row in rows)
+            // 根据方向选择分组依据：水平时按行分组，垂直时按列分组
+            var seatGroups = horizontal
+                ? gridSeats.GroupBy(s => s.Row).OrderBy(g => g.Key)
+                : gridSeats.GroupBy(s => s.Column).OrderBy(g => g.Key);
+
+            foreach (var group in seatGroups)
             {
-                var seatsInRow = row.OrderBy(s => s.Column).ToList();
-                // 寻找连续的空座位段
-                var consecutiveSegments = new List<List<GridSeat>>();
+                // 在组内按次要坐标排序
+                var sorted = horizontal
+                    ? group.OrderBy(s => s.Column).ToList()
+                    : group.OrderBy(s => s.Row).ToList();
+
                 var currentSegment = new List<GridSeat>();
-                for (int i = 0; i < seatsInRow.Count; i++)
+                for (int i = 0; i < sorted.Count; i++)
                 {
-                    if (i == 0 || seatsInRow[i].Column == seatsInRow[i - 1].Column + 1)
+                    if (currentSegment.Count == 0)
                     {
-                        currentSegment.Add(seatsInRow[i]);
+                        currentSegment.Add(sorted[i]);
                     }
                     else
                     {
-                        if (currentSegment.Count >= studentIds.Count)
-                            consecutiveSegments.Add(new List<GridSeat>(currentSegment));
-                        currentSegment.Clear();
-                        currentSegment.Add(seatsInRow[i]);
+                        // 检查次要坐标是否连续（差1）
+                        int diff = horizontal
+                            ? sorted[i].Column - currentSegment[^1].Column
+                            : sorted[i].Row - currentSegment[^1].Row;
+
+                        if (diff == 1)
+                        {
+                            currentSegment.Add(sorted[i]);
+                        }
+                        else
+                        {
+                            if (currentSegment.Count >= studentIds.Count)
+                            {
+                                AssignSegment(workspace , currentSegment , studentIds);
+                                return true;
+                            }
+                            currentSegment.Clear();
+                            currentSegment.Add(sorted[i]);
+                        }
                     }
                 }
+                // 检查最后一个段
                 if (currentSegment.Count >= studentIds.Count)
-                    consecutiveSegments.Add(currentSegment);
-
-                foreach (var segment in consecutiveSegments)
                 {
-                    if (segment.Count >= studentIds.Count)
-                    {
-                        for (int i = 0; i < studentIds.Count; i++)
-                        {
-                            workspace.TryAssignSeat(segment[i].Id , studentIds[i] , out _);
-                        }
-                        return true;
-                    }
+                    AssignSegment(workspace , currentSegment , studentIds);
+                    return true;
                 }
             }
             return false;
+        }
+
+        private void AssignSegment (SeatingWorkspace workspace , List<GridSeat> segment , List<string> studentIds)
+        {
+            for (int i = 0; i < studentIds.Count; i++)
+            {
+                workspace.TryAssignSeat(segment[i].Id , studentIds[i] , out _);
+            }
         }
 
         /// <summary>
@@ -257,7 +271,6 @@ namespace A_Pair.Core.Strategies
         {
             if (a is GridSeat ga && b is GridSeat gb)
             {
-                // 网格座位：同行左右相邻 或 同列上下相邻
                 return (ga.Row == gb.Row && Math.Abs(ga.Column - gb.Column) == 1)
                     || (ga.Column == gb.Column && Math.Abs(ga.Row - gb.Row) == 1);
             }
@@ -268,13 +281,11 @@ namespace A_Pair.Core.Strategies
                 bool sameRing = Math.Abs(pa.Radius - pb.Radius) < 1e-6;
                 if (sameRing)
                 {
-                    // 同一环上，角度差小于 45 度视为相邻（后续可结合布局步长精确计算）
                     double angleDiff = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
                     if (angleDiff <= 45.0) return true;
                 }
                 else
                 {
-                    // 相邻环，角度必须几乎相同
                     if (Math.Abs(pa.AngleDegrees - pb.AngleDegrees) < angleTolerance)
                         return true;
                 }
@@ -286,11 +297,9 @@ namespace A_Pair.Core.Strategies
                 double dx = fa.X - fb.X;
                 double dy = fa.Y - fb.Y;
                 double distance = Math.Sqrt(dx * dx + dy * dy);
-                // 距离小于 1.5 个单位视为相邻（可根据实际布局调整）
                 return distance <= 1.5;
             }
 
-            // 混合类型的座位不视为相邻
             return false;
         }
 
@@ -337,7 +346,7 @@ namespace A_Pair.Core.Strategies
     public class DeskMateGroup
     {
         /// <summary>组唯一标识符。</summary>
-        public string GroupId { get; set; } = System.Guid.NewGuid().ToString();
+        public string GroupId { get; set; } = Guid.NewGuid().ToString();
 
         /// <summary>组内学生 ID 列表。</summary>
         public List<string> StudentIds { get; set; } = [];

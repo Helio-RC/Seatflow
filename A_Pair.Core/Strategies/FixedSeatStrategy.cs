@@ -35,19 +35,32 @@ namespace A_Pair.Core.Strategies
         /// </summary>
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(workspace);
+            if (workspace is null) throw new ArgumentNullException(nameof(workspace));
 
-            // 应用配置中的固定分配
             foreach (var kv in _config.FixedAssignments)
             {
                 var seat = workspace.FindSeats(s => s.Id == kv.Key).FirstOrDefault();
-                if (seat != null && !seat.IsFixed)
+                if (seat == null) continue;
+
+                // 先分配再固定，避免 IsFixed 导致分配失败
+                if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    seat.IsFixed = true;
-                    if (!string.IsNullOrEmpty(kv.Value))
+                    // 如果座位已被其他人占用则清除（但不覆盖非固定？这里为了固定座位强制）
+                    if (seat.OccupantId != null && seat.OccupantId != kv.Value)
                     {
-                        workspace.TryAssignSeat(seat.Id , kv.Value , out _);
+                        seat.OccupantId = null;
+                        seat.IsAvailable = true;
                     }
+                    bool success = workspace.TryAssignSeat(seat.Id , kv.Value , out _);
+                    if (success)
+                    {
+                        seat.IsFixed = true;
+                    }
+                }
+                else
+                {
+                    // 如果配置中只有座位ID没有学生ID，仅标记为固定但不清除当前占用
+                    seat.IsFixed = true;
                 }
             }
 

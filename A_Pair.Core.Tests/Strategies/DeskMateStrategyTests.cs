@@ -18,7 +18,7 @@ public class DeskMateStrategyTests
             Id = $"seat_{p.row}_{p.col}" ,
             Row = p.row ,
             Column = p.col
-        }).Cast<GridSeat>().ToList();
+        }).ToList();
     }
 
     [Fact]
@@ -30,16 +30,19 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = { new DeskMateGroup { StudentIds = { "s1" , "s2" } } } ,
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            } ,
             PreferHorizontal = true ,
             AllowVertical = false
         };
         var strategy = new DeskMateStrategy(config);
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
-        // s1 and s2 should occupy the two horizontally adjacent seats (1,1) and (1,2)
-        var assignedSeatIds = ws.BuildSeatingPlan().Assignments.Values;
-        var assignedSeats = seats.Where(s => assignedSeatIds.Contains(s.Id)).ToList();
+        var plan = ws.BuildSeatingPlan();
+        // 修正：使用 Keys（座位ID）查找被分配的座位
+        var assignedSeats = seats.Where(s => plan.Assignments.ContainsKey(s.Id)).ToList();
         assignedSeats.Should().HaveCount(2);
         assignedSeats.Select(s => s.Row).Should().AllBeEquivalentTo(1); // both on row 1
         assignedSeats.Select(s => s.Column).Should().BeEquivalentTo(new[] { 1 , 2 });
@@ -54,15 +57,18 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = { new DeskMateGroup { StudentIds = { "s1" , "s2" } } } ,
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            } ,
             PreferHorizontal = true ,
             AllowVertical = false
         };
         var strategy = new DeskMateStrategy(config);
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
-        // fallback: both students should still be assigned, though not adjacent
-        ws.BuildSeatingPlan().Assignments.Should().HaveCount(2);
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(2); // both students assigned
     }
 
     [Fact]
@@ -74,28 +80,20 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = { new DeskMateGroup { StudentIds = { "s1" , "s2" } } } ,
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            } ,
             PreferHorizontal = false ,
             AllowVertical = true
         };
         var strategy = new DeskMateStrategy(config);
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
-        var assignedColumns = seats.Where(s => ws.BuildSeatingPlan().Assignments.ContainsKey(s.Id))
-            .Select(s => s.Column).Distinct();
-        assignedColumns.Should().ContainSingle(); // same column, vertical adjacent
-    }
-
-    [Fact]
-    public void AreSeatsAdjacent_GridCorrect ()
-    {
-        var a = new GridSeat { Row = 1 , Column = 1 };
-        var b = new GridSeat { Row = 1 , Column = 2 };
-        var c = new GridSeat { Row = 2 , Column = 1 };
-        var d = new GridSeat { Row = 2 , Column = 2 };
-
-        // Use reflection or internal visible? Not good. We'll test via public behavior only.
-        // However, since AreSeatsAdjacent is private, we cannot test directly. We rely on integration via strategy.
-        // So we skip direct test.
+        var plan = ws.BuildSeatingPlan();
+        var assignedSeats = seats.Where(s => plan.Assignments.ContainsKey(s.Id)).ToList();
+        assignedSeats.Should().HaveCount(2);
+        // 垂直相邻意味着同列
+        assignedSeats.Select(s => s.Column).Distinct().Should().ContainSingle();
     }
 }
