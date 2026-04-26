@@ -1,6 +1,6 @@
+using System.Text.Json.Serialization;
 using A_Pair.Core.Enums;
 using A_Pair.Core.Utilities;
-using System.Text.Json.Serialization;
 
 namespace A_Pair.Core.Models
 {

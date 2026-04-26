@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace A_Pair.Infrastructure.Tests.Providers;
+﻿namespace A_Pair.Infrastructure.Tests.Providers;
 
 public class InMemoryStudentProviderTests
 {

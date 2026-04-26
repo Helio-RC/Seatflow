@@ -1,10 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Core.Models;
-
-namespace A_Pair.Infrastructure.Tests.Repositories;
+﻿namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonAppSettingsRepositoryTests
 {

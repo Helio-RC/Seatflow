@@ -1,10 +1,6 @@
-﻿using System.IO;
-using Microsoft.Extensions.DependencyInjection;
-using A_Pair.Application.Plugins;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Strategies;
+﻿using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
-using A_Pair.Core.Exporters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace A_Pair.Application.Tests.Services;
 

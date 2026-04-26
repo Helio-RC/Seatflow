@@ -1,11 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Core.Models;
-using CsvHelper;
+﻿using System.Text;
 
 namespace A_Pair.Infrastructure.Tests.Providers;
 

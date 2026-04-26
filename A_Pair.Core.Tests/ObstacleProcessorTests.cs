@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace A_Pair.Core.Tests;
+﻿namespace A_Pair.Core.Tests;
 
 public class ObstacleProcessorTests
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Core.Models;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 
 namespace A_Pair.Infrastructure.Tests.Providers;
 

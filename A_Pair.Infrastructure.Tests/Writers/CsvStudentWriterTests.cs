@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Core.Enums;
-using A_Pair.Core.Models;
+﻿using A_Pair.Core.Enums;
 
 namespace A_Pair.Infrastructure.Tests.Writers;
 

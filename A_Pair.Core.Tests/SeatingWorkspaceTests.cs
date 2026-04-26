@@ -1,9 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace A_Pair.Core.Tests;
+﻿namespace A_Pair.Core.Tests;
 
 public class SeatingWorkspaceTests
 {

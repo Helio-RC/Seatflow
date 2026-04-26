@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using A_Pair.Core.Models;
+﻿using System.Text.Json;
 
 namespace A_Pair.Infrastructure.Tests.Writers;
 
