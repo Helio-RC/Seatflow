@@ -1,9 +1,115 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:fic="using:FluentIcons.Avalonia"
+             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
              x:Class="A_Pair.Presentation.Avalonia.Views.DataManagementView"
              x:DataType="vm:DataManagementViewModel">
-    <TextBlock Text="{Binding Title}"
-               HorizontalAlignment="Center" VerticalAlignment="Center"
-               FontSize="18"/>
+
+    <Design.DataContext>
+        <vm:DataManagementViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+        <!-- 顶部工具栏 -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="数据管理" FontSize="20" FontWeight="Bold"
+                           VerticalAlignment="Center" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                    <Button Command="{Binding ImportCommand}" IsEnabled="{Binding !IsLoading}"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
+                            <TextBlock Text="导入" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding !IsEmpty}"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
+                            <TextBlock Text="清除" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Spacing="4" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="导出格式:" FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding !IsEmpty}"
+                            Padding="8,4" FontSize="12">CSV</Button>
+                    <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding !IsEmpty}"
+                            Padding="8,4" FontSize="12">Excel</Button>
+                    <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding !IsEmpty}"
+                            Padding="8,4" FontSize="12">JSON</Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 底部状态栏 -->
+        <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding StudentCount, StringFormat='共 {0} 名学生'}"
+                           FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </DockPanel>
+        </Border>
+
+        <!-- 文件路径 -->
+        <Border DockPanel.Dock="Bottom" Padding="0,4,0,8"
+                IsVisible="{Binding !IsEmpty}">
+            <TextBlock Text="{Binding FilePath, StringFormat='数据源: {0}'}" FontSize="11"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        </Border>
+
+        <!-- 中间内容区 -->
+        <Panel>
+            <!-- 空状态提示 -->
+            <Border IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="8">
+                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="48"
+                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                    HorizontalAlignment="Center" />
+                    <TextBlock Text="暂无数据" FontSize="16" FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <TextBlock Text="点击「导入」按钮从 CSV、Excel 或 JSON 文件加载学生数据"
+                               FontSize="12" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- DataGrid -->
+            <DataGrid ItemsSource="{Binding Students}" IsVisible="{Binding !IsEmpty}"
+                      AutoGenerateColumns="True" IsReadOnly="True"
+                      GridLinesVisibility="Horizontal"
+                      VerticalScrollBarVisibility="Auto">
+                <DataGrid.Styles>
+                    <Style Selector="DataGridRow">
+                        <Setter Property="FontSize" Value="14" />
+                    </Style>
+                    <Style Selector="DataGridColumnHeader">
+                        <Setter Property="FontSize" Value="14" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                    </Style>
+                </DataGrid.Styles>
+            </DataGrid>
+
+            <!-- 加载中遮罩 -->
+            <Border IsVisible="{Binding IsLoading}" Background="#40FFFFFF"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <ProgressBar IsIndeterminate="True" Width="200" />
+                    <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+        </Panel>
+    </DockPanel>
 </UserControl>

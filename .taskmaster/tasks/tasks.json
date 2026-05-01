@@ -29,7 +29,7 @@
         "id": "3",
         "title": "数据管理视图（DataManagementView）",
         "description": "实现学生数据导入、预览表格和导出功能的完整界面",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": ["2"],
         "details": "1. 创建 DataManagementView.axaml\n2. DataManagementViewModel：调用 IApplicationFacade.LoadStudentsAsync 导入、DataGrid 预览、ExportStudentsAsync 导出\n3. 集成 Avalonia 文件对话框\n4. 导入错误列表展示\n5. 进度条显示导入/导出进度",
@@ -162,7 +162,7 @@
       "version": "1.0.0",
       "lastModified": "2026-05-02T00:40:00.000Z",
       "taskCount": 14,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": ["ui-layer"]
     }
   }

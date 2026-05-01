@@ -7,6 +7,7 @@ using A_Pair.Infrastructure.Exporters;
 using A_Pair.Infrastructure.Providers;
 using A_Pair.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace A_Pair.Application.Services
 {
@@ -37,6 +38,7 @@ namespace A_Pair.Application.Services
         /// <returns>服务集合，支持链式调用。</returns>
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
+            services.TryAddSingleton<IStudentProvider, CompositeStudentProvider>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 

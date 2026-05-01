@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
 using Avalonia;
@@ -34,6 +35,8 @@ namespace A_Pair.Presentation.Avalonia
                 var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 mainWindow.DataContext = mainShell;
                 desktop.MainWindow = mainWindow;
+
+                _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(mainWindow);
             }
 
             base.OnFrameworkInitializationCompleted();
