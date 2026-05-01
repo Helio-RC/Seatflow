@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
         xmlns:fic="using:FluentIcons.Avalonia"
+        xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -26,7 +27,7 @@
                 <Button HorizontalAlignment="Right" Padding="6"
                         Command="{Binding ToggleSidebarCommand}"
                         ToolTip.Tip="折叠侧边栏">
-                    <fic:FluentIcon Icon="PanelLeftContract24Regular" FontSize="16"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="16"/>
                 </Button>
 
                 <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
@@ -34,42 +35,42 @@
                 <Button Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="DataUsage24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="18"/>
                         <TextBlock Text="数据管理" FontSize="14"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="Building24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="18"/>
                         <TextBlock Text="会场配置" FontSize="14"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="Options24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="18"/>
                         <TextBlock Text="策略配置" FontSize="14"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="Grid24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="18"/>
                         <TextBlock Text="座位安排" FontSize="14"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="History24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="18"/>
                         <TextBlock Text="历史快照" FontSize="14"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="PuzzlePiece24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="18"/>
                         <TextBlock Text="插件管理" FontSize="14"/>
                     </StackPanel>
                 </Button>
@@ -79,14 +80,14 @@
                 <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="Settings24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Settings}" FontSize="18"/>
                         <TextBlock Text="设置" FontSize="14"/>
                     </StackPanel>
                 </Button>
                 <Button Command="{Binding NavigateCommand}" CommandParameter="About"
                         HorizontalContentAlignment="Left">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <fic:FluentIcon Icon="Info24Regular" FontSize="18"/>
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Info}" FontSize="18"/>
                         <TextBlock Text="关于" FontSize="14"/>
                     </StackPanel>
                 </Button>
@@ -98,40 +99,40 @@
                 <Button Padding="6" HorizontalAlignment="Center"
                         Command="{Binding ToggleSidebarCommand}"
                         ToolTip.Tip="展开侧边栏" Margin="0,0,0,6">
-                    <fic:FluentIcon Icon="PanelLeftExpand24Regular" FontSize="18"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="18"/>
                 </Button>
 
                 <Button Padding="6" ToolTip.Tip="数据管理"
                         Command="{Binding NavigateCommand}" CommandParameter="DataManagement">
-                    <fic:FluentIcon Icon="DataUsage24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="会场配置"
                         Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration">
-                    <fic:FluentIcon Icon="Building24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="策略配置"
                         Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration">
-                    <fic:FluentIcon Icon="Options24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="座位安排"
                         Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement">
-                    <fic:FluentIcon Icon="Grid24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="历史快照"
                         Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory">
-                    <fic:FluentIcon Icon="History24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="插件管理"
                         Command="{Binding NavigateCommand}" CommandParameter="PluginManagement">
-                    <fic:FluentIcon Icon="PuzzlePiece24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="设置"
                         Command="{Binding NavigateCommand}" CommandParameter="Settings">
-                    <fic:FluentIcon Icon="Settings24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Settings}" FontSize="20"/>
                 </Button>
                 <Button Padding="6" ToolTip.Tip="关于"
                         Command="{Binding NavigateCommand}" CommandParameter="About">
-                    <fic:FluentIcon Icon="Info24Regular" FontSize="20"/>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Info}" FontSize="20"/>
                 </Button>
             </StackPanel>
             </Panel>
