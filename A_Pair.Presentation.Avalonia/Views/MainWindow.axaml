@@ -67,10 +67,10 @@
                 <Panel>
                     <!-- 展开状态 -->
                     <StackPanel Margin="10,0,10,4" Spacing="4" IsVisible="{Binding IsSidebarExpanded}">
-                        <Button HorizontalAlignment="Right" Padding="6"
-                                Command="{Binding ToggleSidebarCommand}"
+                        <Button Command="{Binding ToggleSidebarCommand}"
+                                HorizontalContentAlignment="Right"
                                 ToolTip.Tip="折叠侧边栏">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="16"/>
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="18"/>
                         </Button>
 
                         <Button Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
