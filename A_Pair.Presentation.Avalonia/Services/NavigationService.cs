@@ -1,0 +1,36 @@
+using System;
+using A_Pair.Presentation.Avalonia.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace A_Pair.Presentation.Avalonia.Services;
+
+public class NavigationService : INavigationService
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public ViewModelBase CurrentViewModel { get; private set; } = default!;
+    public PageKey CurrentPage { get; private set; }
+    public event Action? CurrentViewModelChanged;
+
+    public NavigationService(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+        NavigateTo(PageKey.DataManagement);
+    }
+
+    public void NavigateTo(PageKey page)
+    {
+        CurrentPage = page;
+        CurrentViewModel = page switch
+        {
+            PageKey.DataManagement => _serviceProvider.GetRequiredService<DataManagementViewModel>(),
+            PageKey.VenueConfiguration => _serviceProvider.GetRequiredService<VenueConfigurationViewModel>(),
+            PageKey.StrategyConfiguration => _serviceProvider.GetRequiredService<StrategyConfigurationViewModel>(),
+            PageKey.SeatingArrangement => _serviceProvider.GetRequiredService<SeatingArrangementViewModel>(),
+            PageKey.SnapshotHistory => _serviceProvider.GetRequiredService<SnapshotHistoryViewModel>(),
+            PageKey.PluginManagement => _serviceProvider.GetRequiredService<PluginManagementViewModel>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(page))
+        };
+        CurrentViewModelChanged?.Invoke();
+    }
+}

@@ -1,20 +1,41 @@
-﻿using System;
+using System;
 using Avalonia;
+using A_Pair.Application.Services;
+using A_Pair.Presentation.Avalonia.Services;
+using A_Pair.Presentation.Avalonia.ViewModels;
+using A_Pair.Presentation.Avalonia.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace A_Pair.Presentation.Avalonia
 {
     internal sealed class Program
     {
-        // Initialization code. Don't use any Avalonia, third-party APIs or any
-        // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-        // yet and stuff might break.
         [STAThread]
-        public static void Main (string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        public static void Main(string[] args)
+        {
+            var services = new ServiceCollection();
+            services.AddA_PairApplication("AppData", "Plugins");
 
-        // Avalonia configuration, don't remove; also used by visual designer.
-        public static AppBuilder BuildAvaloniaApp ()
-            => AppBuilder.Configure<App>()
+            // 注册导航服务
+            services.AddSingleton<INavigationService, NavigationService>();
+
+            // 注册 ViewModels
+            services.AddSingleton<MainWindow>();
+            services.AddSingleton<MainShellViewModel>();
+            services.AddTransient<DataManagementViewModel>();
+            services.AddTransient<VenueConfigurationViewModel>();
+            services.AddTransient<StrategyConfigurationViewModel>();
+            services.AddTransient<SeatingArrangementViewModel>();
+            services.AddTransient<SnapshotHistoryViewModel>();
+            services.AddTransient<PluginManagementViewModel>();
+
+            var serviceProvider = services.BuildServiceProvider();
+            BuildAvaloniaApp(serviceProvider)
+                .StartWithClassicDesktopLifetime(args);
+        }
+
+        public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider)
+            => AppBuilder.Configure(() => new App(serviceProvider))
                 .UsePlatformDetect()
 #if DEBUG
                 .WithDeveloperTools()

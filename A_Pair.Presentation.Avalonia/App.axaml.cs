@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
@@ -6,24 +7,33 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Microsoft.Extensions.DependencyInjection;
+using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia
 {
-    public partial class App : Application
+    public partial class App : AvaloniaApplication
     {
-        public override void Initialize ()
+        private readonly IServiceProvider _serviceProvider;
+
+        public App(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
-        public override void OnFrameworkInitializationCompleted ()
+        public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainWindowViewModel() ,
-                };
+                var mainShell = _serviceProvider.GetRequiredService<MainShellViewModel>();
+                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                mainWindow.DataContext = mainShell;
+                desktop.MainWindow = mainWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

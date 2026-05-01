@@ -3,18 +3,46 @@
         xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="A_Pair.Presentation.Avalonia.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainShellViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="A_Pair.Presentation.Avalonia">
+        Title="A_Pair — 座位安排系统" Width="1200" Height="800"
+        MinWidth="900" MinHeight="600">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
+        <vm:MainShellViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <DockPanel>
+        <!-- 侧边栏 -->
+        <Border DockPanel.Dock="Left" Width="200" Background="#F0F0F0">
+            <StackPanel Margin="10" Spacing="6">
+                <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
 
+                <Button Content="数据管理"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="DataManagement"/>
+                <Button Content="会场配置"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="VenueConfiguration"/>
+                <Button Content="策略配置"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="StrategyConfiguration"/>
+                <Button Content="座位安排"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="SeatingArrangement"/>
+                <Button Content="历史快照"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="SnapshotHistory"/>
+                <Button Content="插件管理"
+                        Command="{Binding NavigateCommand}"
+                        CommandParameter="PluginManagement"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 内容区域：ViewLocator 根据 CurrentViewModel 自动匹配视图 -->
+        <ContentControl Content="{Binding CurrentViewModel}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    </DockPanel>
 </Window>
