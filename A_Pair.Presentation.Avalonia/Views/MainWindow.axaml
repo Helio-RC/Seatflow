@@ -70,7 +70,10 @@
                         <Button Command="{Binding ToggleSidebarCommand}"
                                 HorizontalContentAlignment="Right"
                                 ToolTip.Tip="折叠侧边栏">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="18"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="18"/>
+                                <TextBlock Text="折叠边栏" FontSize="14"/>
+                            </StackPanel>
                         </Button>
 
                         <Button Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
