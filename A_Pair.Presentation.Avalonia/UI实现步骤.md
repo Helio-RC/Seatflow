@@ -76,6 +76,8 @@ public static void Main(string[] args)
     services.AddTransient<SeatingArrangementViewModel>();
     services.AddTransient<SnapshotHistoryViewModel>();
     services.AddTransient<PluginManagementViewModel>();
+    services.AddTransient<SettingsViewModel>();
+    services.AddTransient<AboutViewModel>();
     
     var provider = services.BuildServiceProvider();
     
@@ -134,7 +136,9 @@ public enum PageKey
     StrategyConfiguration,
     SeatingArrangement,
     SnapshotHistory,
-    PluginManagement
+    PluginManagement,
+    Settings,
+    About
 }
 
 public interface INavigationService
@@ -180,6 +184,8 @@ public class NavigationService : INavigationService
             PageKey.SeatingArrangement => _serviceProvider.GetRequiredService<SeatingArrangementViewModel>(),
             PageKey.SnapshotHistory => _serviceProvider.GetRequiredService<SnapshotHistoryViewModel>(),
             PageKey.PluginManagement => _serviceProvider.GetRequiredService<PluginManagementViewModel>(),
+            PageKey.Settings => _serviceProvider.GetRequiredService<SettingsViewModel>(),
+            PageKey.About => _serviceProvider.GetRequiredService<AboutViewModel>(),
             _ => throw new ArgumentOutOfRangeException(nameof(page))
         };
         CurrentViewModelChanged?.Invoke();
@@ -247,23 +253,29 @@ public partial class MainShellViewModel : ViewModelBase
     <DockPanel>
         <!-- 侧边栏 -->
         <Border DockPanel.Dock="Left" Width="200" Background="#F0F0F0">
-            <StackPanel Margin="10" Spacing="6">
-                <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
-                
-                <Button Content="数据管理" 
-                        Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
-                        Classes="{Binding CurrentPage, Converter={x:Static ...}}" />
-                <Button Content="会场配置"
-                        Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"/>
-                <Button Content="策略配置"
-                        Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"/>
-                <Button Content="座位安排"
-                        Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"/>
-                <Button Content="历史快照"
-                        Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"/>
-                <Button Content="插件管理"
-                        Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"/>
-            </StackPanel>
+            <DockPanel Margin="10">
+                <StackPanel DockPanel.Dock="Top" Spacing="6">
+                    <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <Button Content="数据管理"
+                            Command="{Binding NavigateCommand}" CommandParameter="DataManagement"/>
+                    <Button Content="会场配置"
+                            Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"/>
+                    <Button Content="策略配置"
+                            Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"/>
+                    <Button Content="座位安排"
+                            Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"/>
+                    <Button Content="历史快照"
+                            Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"/>
+                    <Button Content="插件管理"
+                            Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Bottom" Spacing="6">
+                    <Button Content="设置"
+                            Command="{Binding NavigateCommand}" CommandParameter="Settings"/>
+                    <Button Content="关于"
+                            Command="{Binding NavigateCommand}" CommandParameter="About"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <!-- 内容区域：使用 ViewLocator 根据 CurrentViewModel 自动匹配视图 -->
@@ -275,7 +287,17 @@ public partial class MainShellViewModel : ViewModelBase
 
 > 注：侧边栏高亮当前页可用 `Classes` 绑定配合样式实现，或直接在 ViewModel 中暴露 `IsXxxActive` 布尔属性。简单做法是先用无高亮的按钮，后续再优化。
 
-### 2.4 删除旧的 MainWindowViewModel
+### 2.4 侧边栏自适应折叠
+
+窗口宽度 < 800px 时侧边栏自动折叠为 50px 单字图标栏，>= 800px 时恢复。可手动切换，手动选择在宽窗口时保持记忆。MinWidth 从 900 降为 550。
+
+**修改 `MainShellViewModel`**：新增 `IsSidebarExpanded`、`SidebarWidth`、`OnWindowWidthChanged`、`ToggleSidebarCommand`。
+
+**修改 `MainWindow.axaml`**：侧边栏 `Border.Width` 绑定 `{Binding SidebarWidth}`，展开/折叠两个 `DockPanel` 通过 `IsVisible` 切换。
+
+**修改 `MainWindow.axaml.cs`**：重写 `OnPropertyChanged` 监听 `Bounds` 变化，调用 `vm.OnWindowWidthChanged(Bounds.Width)`。
+
+### 2.5 删除旧的 MainWindowViewModel
 
 保留但清空 `MainWindowViewModel.cs`（或删除，取决于是否保留引用），因为主窗口 DataContext 已改为 `MainShellViewModel`。
 
@@ -1295,10 +1317,161 @@ public partial class PluginManagementViewModel : ViewModelBase
 ```
 
 ---
+## 第七步半：设置页
+
+### 7.5 ViewModel
+
+**新建文件**: `A_Pair.Presentation.Avalonia/ViewModels/SettingsViewModel.cs`
+
+```csharp
+using A_Pair.Application.Interfaces;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace A_Pair.Presentation.Avalonia.ViewModels;
+
+public partial class SettingsViewModel : ViewModelBase
+{
+    private readonly IApplicationFacade _facade;
+
+    [ObservableProperty] private string _theme = "Default";
+    [ObservableProperty] private string _language = "zh-CN";
+    [ObservableProperty] private string _dataDirectory = string.Empty;
+    [ObservableProperty] private int _autoSaveInterval = 5;
+    [ObservableProperty] private string _statusMessage = "就绪";
+
+    public SettingsViewModel(IApplicationFacade facade)
+    {
+        _facade = facade;
+    }
+
+    [RelayCommand]
+    private async Task SaveSettings(CancellationToken ct)
+    {
+        // 保存到 AppSettings
+        StatusMessage = "设置已保存";
+    }
+
+    [RelayCommand]
+    private void ResetDefaults()
+    {
+        Theme = "Default";
+        Language = "zh-CN";
+        AutoSaveInterval = 5;
+        StatusMessage = "已重置为默认值";
+    }
+}
+```
+
+### 7.6 View
+
+```xml
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" Text="设置" FontSize="20" FontWeight="Bold" Margin="0,0,0,12"/>
+        <StackPanel Spacing="12" MaxWidth="400">
+            <TextBlock Text="主题"/>
+            <ComboBox SelectedItem="{Binding Theme}">
+                <ComboBoxItem Content="跟随系统"/>
+                <ComboBoxItem Content="亮色"/>
+                <ComboBoxItem Content="暗色"/>
+            </ComboBox>
+            <TextBlock Text="语言"/>
+            <ComboBox SelectedItem="{Binding Language}">
+                <ComboBoxItem Content="简体中文"/>
+                <ComboBoxItem Content="English"/>
+            </ComboBox>
+            <TextBlock Text="数据目录"/>
+            <TextBox Text="{Binding DataDirectory}"/>
+            <TextBlock Text="自动保存间隔（分钟）"/>
+            <NumericUpDown Value="{Binding AutoSaveInterval}" Minimum="1" Maximum="60"/>
+            <WrapPanel Spacing="6">
+                <Button Content="保存设置" Command="{Binding SaveSettingsCommand}"/>
+                <Button Content="重置默认" Command="{Binding ResetDefaultsCommand}"/>
+            </WrapPanel>
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Bottom" Text="{Binding StatusMessage}" FontStyle="Italic"/>
+    </DockPanel>
+</UserControl>
+```
+
+---
+
+## 第七步六：关于页
+
+### 7.7 ViewModel
+
+**新建文件**: `A_Pair.Presentation.Avalonia/ViewModels/AboutViewModel.cs`
+
+```csharp
+using System.Reflection;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace A_Pair.Presentation.Avalonia.ViewModels;
+
+public partial class AboutViewModel : ViewModelBase
+{
+    public string AppName { get; } = "A_Pair — 座位安排系统";
+    public string Version { get; }
+    public string ProjectUrl { get; } = "https://github.com/example/a-pair";
+    
+    public string[] Dependencies { get; } = 
+    [
+        "Avalonia UI 12.0",
+        ".NET 10.0",
+        "CommunityToolkit.Mvvm",
+        "EPPlus",
+        "QuestPDF",
+        "NLua"
+    ];
+
+    public AboutViewModel()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var version = assembly.GetName().Version;
+        Version = version != null 
+            ? $"{version.Major}.{version.Minor}.{version.Build}" 
+            : "1.0.0";
+    }
+}
+```
+
+### 7.8 View
+
+```xml
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             x:Class="A_Pair.Presentation.Avalonia.Views.AboutView"
+             x:DataType="vm:AboutViewModel">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top" Spacing="12" MaxWidth="400">
+            <TextBlock Text="{Binding AppName}" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="{Binding Version, StringFormat='版本: {0}'}" FontSize="14"/>
+            <TextBlock Text="依赖库:" FontWeight="Bold" Margin="0,12,0,0"/>
+            <ItemsControl ItemsSource="{Binding Dependencies}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" Margin="0,2"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="{Binding ProjectUrl}" FontSize="12" Foreground="Blue" 
+                       TextDecorations="Underline" Margin="0,12,0,0"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>
+```
+
+---
 
 ## 第九步：完成 View 的 .axaml 文件
 
-当前 Views 目录下 5 个视图仅有 `.axaml.cs` 没有 `.axaml`。需要创建 `.axaml` 并删除或清空原有的占位 `.axaml.cs`：
+当前 Views 目录下部分视图仅有 `.axaml.cs` 没有 `.axaml`。需要创建 `.axaml` 并填充基本的代码后置：
 
 | 文件 | 操作 |
 |------|------|
@@ -1308,6 +1481,8 @@ public partial class PluginManagementViewModel : ViewModelBase
 | `Views/SeatingArrangementView.axaml` | 新建（内容见第六步） |
 | `Views/SnapshotHistoryView.axaml` | 新建（内容见第七步） |
 | `Views/PluginManagementView.axaml` | 新建（内容见第八步） |
+| `Views/SettingsView.axaml` | 新建（内容见第七步半） |
+| `Views/AboutView.axaml` | 新建（内容见第七步六） |
 
 所有 `.axaml.cs` 代码后置只需 `InitializeComponent()`，无其他逻辑。
 

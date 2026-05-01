@@ -28,6 +28,8 @@ namespace A_Pair.Presentation.Avalonia
             services.AddTransient<SeatingArrangementViewModel>();
             services.AddTransient<SnapshotHistoryViewModel>();
             services.AddTransient<PluginManagementViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<AboutViewModel>();
 
             var serviceProvider = services.BuildServiceProvider();
             BuildAvaloniaApp(serviceProvider)

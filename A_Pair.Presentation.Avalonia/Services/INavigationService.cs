@@ -10,7 +10,9 @@ public enum PageKey
     StrategyConfiguration,
     SeatingArrangement,
     SnapshotHistory,
-    PluginManagement
+    PluginManagement,
+    Settings,
+    About
 }
 
 public interface INavigationService

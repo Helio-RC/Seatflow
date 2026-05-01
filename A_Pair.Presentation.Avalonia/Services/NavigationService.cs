@@ -29,6 +29,8 @@ public class NavigationService : INavigationService
             PageKey.SeatingArrangement => _serviceProvider.GetRequiredService<SeatingArrangementViewModel>(),
             PageKey.SnapshotHistory => _serviceProvider.GetRequiredService<SnapshotHistoryViewModel>(),
             PageKey.PluginManagement => _serviceProvider.GetRequiredService<PluginManagementViewModel>(),
+            PageKey.Settings => _serviceProvider.GetRequiredService<SettingsViewModel>(),
+            PageKey.About => _serviceProvider.GetRequiredService<AboutViewModel>(),
             _ => throw new ArgumentOutOfRangeException(nameof(page))
         };
         CurrentViewModelChanged?.Invoke();

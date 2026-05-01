@@ -8,40 +8,88 @@
         x:DataType="vm:MainShellViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="A_Pair — 座位安排系统" Width="1200" Height="800"
-        MinWidth="900" MinHeight="600">
+        MinWidth="550" MinHeight="600">
 
     <Design.DataContext>
         <vm:MainShellViewModel/>
     </Design.DataContext>
 
     <DockPanel>
-        <!-- 侧边栏 -->
-        <Border DockPanel.Dock="Left" Width="200" Background="#F0F0F0">
-            <StackPanel Margin="10" Spacing="6">
-                <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
+        <!-- 侧边栏：宽度根据 IsSidebarExpanded 动态变化 -->
+        <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="#F0F0F0">
+            <Grid>
+                <!-- 展开状态：完整文字按钮 -->
+                <DockPanel Margin="10" IsVisible="{Binding IsSidebarExpanded}">
+                <StackPanel DockPanel.Dock="Top" Spacing="6">
+                    <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
 
-                <Button Content="数据管理"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="DataManagement"/>
-                <Button Content="会场配置"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="VenueConfiguration"/>
-                <Button Content="策略配置"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="StrategyConfiguration"/>
-                <Button Content="座位安排"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="SeatingArrangement"/>
-                <Button Content="历史快照"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="SnapshotHistory"/>
-                <Button Content="插件管理"
-                        Command="{Binding NavigateCommand}"
-                        CommandParameter="PluginManagement"/>
-            </StackPanel>
+                    <Button Content="数据管理"
+                            Command="{Binding NavigateCommand}" CommandParameter="DataManagement"/>
+                    <Button Content="会场配置"
+                            Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"/>
+                    <Button Content="策略配置"
+                            Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"/>
+                    <Button Content="座位安排"
+                            Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"/>
+                    <Button Content="历史快照"
+                            Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"/>
+                    <Button Content="插件管理"
+                            Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"/>
+                </StackPanel>
+
+                <!-- 底部：设置、关于、折叠 -->
+                <StackPanel DockPanel.Dock="Bottom" Spacing="6">
+                    <Button Content="设置"
+                            Command="{Binding NavigateCommand}" CommandParameter="Settings"/>
+                    <Button Content="关于"
+                            Command="{Binding NavigateCommand}" CommandParameter="About"/>
+                    <Separator Margin="0,4"/>
+                    <Button Content="« 折叠"
+                            Command="{Binding ToggleSidebarCommand}"
+                            ToolTip.Tip="折叠侧边栏"/>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- 折叠状态：单字按钮 + ToolTip -->
+            <DockPanel Margin="4" IsVisible="{Binding !IsSidebarExpanded}">
+                <StackPanel DockPanel.Dock="Top" Spacing="4">
+                    <Button Content="☰" FontSize="14" Padding="4"
+                            Command="{Binding ToggleSidebarCommand}"
+                            ToolTip.Tip="展开侧边栏" Margin="0,0,0,8"/>
+
+                    <Button Content="数" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
+                            ToolTip.Tip="数据管理"/>
+                    <Button Content="场" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"
+                            ToolTip.Tip="会场配置"/>
+                    <Button Content="策" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"
+                            ToolTip.Tip="策略配置"/>
+                    <Button Content="座" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"
+                            ToolTip.Tip="座位安排"/>
+                    <Button Content="史" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"
+                            ToolTip.Tip="历史快照"/>
+                    <Button Content="插" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"
+                            ToolTip.Tip="插件管理"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Spacing="4">
+                    <Button Content="设" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                            ToolTip.Tip="设置"/>
+                    <Button Content="关" FontSize="14" Padding="4"
+                            Command="{Binding NavigateCommand}" CommandParameter="About"
+                            ToolTip.Tip="关于"/>
+                </StackPanel>
+            </DockPanel>
+            </Grid>
         </Border>
 
-        <!-- 内容区域：ViewLocator 根据 CurrentViewModel 自动匹配视图 -->
+        <!-- 内容区域 -->
         <ContentControl Content="{Binding CurrentViewModel}"
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     </DockPanel>

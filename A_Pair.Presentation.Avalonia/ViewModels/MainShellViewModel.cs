@@ -15,6 +15,14 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     private PageKey _currentPage;
 
+    [ObservableProperty]
+    private bool _isSidebarExpanded = true;
+
+    [ObservableProperty]
+    private double _sidebarWidth = 200;
+
+    private bool _userWantsExpanded = true;
+
     public MainShellViewModel(INavigationService navigation)
     {
         _navigation = navigation;
@@ -25,6 +33,24 @@ public partial class MainShellViewModel : ViewModelBase
         };
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
+    }
+
+    public void OnWindowWidthChanged(double windowWidth)
+    {
+        if (windowWidth < 800)
+            IsSidebarExpanded = false;
+        else
+            IsSidebarExpanded = _userWantsExpanded;
+    }
+
+    partial void OnIsSidebarExpandedChanged(bool value)
+        => SidebarWidth = value ? 200 : 50;
+
+    [RelayCommand]
+    private void ToggleSidebar()
+    {
+        _userWantsExpanded = !_userWantsExpanded;
+        IsSidebarExpanded = _userWantsExpanded;
     }
 
     [RelayCommand]
