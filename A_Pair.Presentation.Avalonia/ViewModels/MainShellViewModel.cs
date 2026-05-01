@@ -44,7 +44,7 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     partial void OnIsSidebarExpandedChanged(bool value)
-        => SidebarWidth = value ? 200 : 50;
+        => SidebarWidth = value ? 200 : 64;
 
     [RelayCommand]
     private void ToggleSidebar()
