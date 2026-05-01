@@ -19,9 +19,8 @@
         <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="#F0F0F0">
             <Grid>
                 <!-- 展开状态：完整文字按钮 -->
-                <DockPanel Margin="10" IsVisible="{Binding IsSidebarExpanded}">
-                <StackPanel DockPanel.Dock="Top" Spacing="6">
-                    <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <StackPanel Margin="10" Spacing="6" IsVisible="{Binding IsSidebarExpanded}">
+                    <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,8"/>
 
                     <Button Content="数据管理"
                             Command="{Binding NavigateCommand}" CommandParameter="DataManagement"/>
@@ -35,57 +34,52 @@
                             Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"/>
                     <Button Content="插件管理"
                             Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"/>
-                </StackPanel>
 
-                <!-- 底部：设置、关于、折叠 -->
-                <StackPanel DockPanel.Dock="Bottom" Spacing="6">
+                    <!-- 次要页面：紧邻功能导航下方 -->
+                    <Separator Margin="0,4"/>
                     <Button Content="设置"
                             Command="{Binding NavigateCommand}" CommandParameter="Settings"/>
                     <Button Content="关于"
                             Command="{Binding NavigateCommand}" CommandParameter="About"/>
+
+                    <!-- 折叠按钮在最底部 -->
                     <Separator Margin="0,4"/>
                     <Button Content="« 折叠"
                             Command="{Binding ToggleSidebarCommand}"
                             ToolTip.Tip="折叠侧边栏"/>
                 </StackPanel>
-            </DockPanel>
 
             <!-- 折叠状态：单字按钮 + ToolTip -->
-            <DockPanel Margin="4" IsVisible="{Binding !IsSidebarExpanded}">
-                <StackPanel DockPanel.Dock="Top" Spacing="4">
-                    <Button Content="☰" FontSize="14" Padding="4"
-                            Command="{Binding ToggleSidebarCommand}"
-                            ToolTip.Tip="展开侧边栏" Margin="0,0,0,8"/>
+            <StackPanel Margin="4" Spacing="4" IsVisible="{Binding !IsSidebarExpanded}">
+                <Button Content="☰" FontSize="14" Padding="4"
+                        Command="{Binding ToggleSidebarCommand}"
+                        ToolTip.Tip="展开侧边栏" Margin="0,0,0,6"/>
 
-                    <Button Content="数" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
-                            ToolTip.Tip="数据管理"/>
-                    <Button Content="场" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"
-                            ToolTip.Tip="会场配置"/>
-                    <Button Content="策" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"
-                            ToolTip.Tip="策略配置"/>
-                    <Button Content="座" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"
-                            ToolTip.Tip="座位安排"/>
-                    <Button Content="史" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"
-                            ToolTip.Tip="历史快照"/>
-                    <Button Content="插" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"
-                            ToolTip.Tip="插件管理"/>
-                </StackPanel>
-
-                <StackPanel DockPanel.Dock="Bottom" Spacing="4">
-                    <Button Content="设" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="Settings"
-                            ToolTip.Tip="设置"/>
-                    <Button Content="关" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="About"
-                            ToolTip.Tip="关于"/>
-                </StackPanel>
-            </DockPanel>
+                <Button Content="数" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
+                        ToolTip.Tip="数据管理"/>
+                <Button Content="场" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"
+                        ToolTip.Tip="会场配置"/>
+                <Button Content="策" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"
+                        ToolTip.Tip="策略配置"/>
+                <Button Content="座" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"
+                        ToolTip.Tip="座位安排"/>
+                <Button Content="史" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"
+                        ToolTip.Tip="历史快照"/>
+                <Button Content="插" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"
+                        ToolTip.Tip="插件管理"/>
+                <Button Content="设" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                        ToolTip.Tip="设置"/>
+                <Button Content="关" FontSize="14" Padding="4"
+                        Command="{Binding NavigateCommand}" CommandParameter="About"
+                        ToolTip.Tip="关于"/>
+            </StackPanel>
             </Grid>
         </Border>
 
