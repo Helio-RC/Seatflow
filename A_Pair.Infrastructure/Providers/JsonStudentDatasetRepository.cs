@@ -73,7 +73,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
 
                 var info = new StudentDatasetInfo
                 {
-                    Id = Path.GetFileNameWithoutExtension(file),
+                    Id = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(file)),
                     Name = roster.Description ?? "未命名",
                     StudentCount = roster.Students.Count,
                     CreatedAt = ExtractDate(roster, file)

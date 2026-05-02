@@ -317,7 +317,15 @@ public partial class DataManagementViewModel : ViewModelBase
                 StudentCount = Students.Count;
                 IsEmpty = StudentCount == 0;
                 FilePath = SelectedDataset.OriginalFileName ?? SelectedDataset.Name;
-                StatusMessage = $"已加载 {StudentCount} 名学生";
+                StatusMessage = StudentCount > 0
+                    ? $"已加载 {StudentCount} 名学生"
+                    : "数据集为空";
+            }
+            else
+            {
+                StatusMessage = "数据集文件不存在";
+                await _dialog.ShowErrorAsync("加载失败", $"找不到数据集「{SelectedDataset.Name}」的文件。");
+                await RefreshDatasetsAsync(ct);
             }
         }
         catch (Exception ex)

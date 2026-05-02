@@ -107,7 +107,7 @@
                     </StackPanel>
 
                     <ListBox ItemsSource="{Binding SavedDatasets}"
-                             SelectedItem="{Binding SelectedDataset}"
+                             SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                              BorderThickness="0">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="models:StudentDatasetInfo">
