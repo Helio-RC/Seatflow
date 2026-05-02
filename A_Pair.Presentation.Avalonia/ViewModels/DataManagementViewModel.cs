@@ -62,6 +62,9 @@ public partial class DataManagementViewModel : ViewModelBase
     [ObservableProperty]
     private string? _currentDatasetName;
 
+    [ObservableProperty]
+    private bool _isCompact;
+
     public bool HasSelectedDataset => SelectedDataset is not null;
 
     public DataManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
