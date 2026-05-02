@@ -1,8 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace A_Pair.Core.Models
 {
     /// <summary>
     /// 布局元数据基类，每种布局类型有其对应的派生元数据类。
     /// </summary>
+    [JsonDerivedType(typeof(GridLayoutMetadata), "Grid")]
+    [JsonDerivedType(typeof(PolarLayoutMetadata), "Polar")]
+    [JsonDerivedType(typeof(FreeformLayoutMetadata), "Freeform")]
     public class LayoutMetadata { }
 
     /// <summary>

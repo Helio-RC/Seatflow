@@ -72,9 +72,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         await SafeExecuteAsync(async () =>
         {
-            var ids = await _facade.ListVenueIdsAsync();
-            VenueIds = new ObservableCollection<string>(ids);
-            StatusMessage = $"已加载 {ids.Count()} 个会场";
+            var ids = (await _facade.ListVenueIdsAsync()).ToList();
+            VenueIds.Clear();
+            foreach (var id in ids) VenueIds.Add(id);
+            StatusMessage = $"已加载 {ids.Count} 个会场";
         });
     }
 
@@ -259,8 +260,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
     private async Task RefreshVenueList()
     {
-        var ids = await _facade.ListVenueIdsAsync();
-        VenueIds = new ObservableCollection<string>(ids);
+        var ids = (await _facade.ListVenueIdsAsync()).ToList();
+        VenueIds.Clear();
+        foreach (var id in ids) VenueIds.Add(id);
     }
 
     private void ResetParameters()
