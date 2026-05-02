@@ -140,7 +140,7 @@
                 </Panel>
 
                 <!-- === 导出按钮组 === -->
-                <Panel VerticalAlignment="Center"
+                <Panel VerticalAlignment="Center" HorizontalAlignment="Left"
                        Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
                        ClipToBounds="True">
                     <Panel.Transitions>
@@ -171,7 +171,6 @@
                     <!-- 紧凑模式 -->
                     <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                             IsHitTestVisible="{Binding IsCompact}"
-                            HorizontalAlignment="Right"
                             Padding="8,4" FontSize="14">
                         <Button.Transitions>
                             <Transitions>
