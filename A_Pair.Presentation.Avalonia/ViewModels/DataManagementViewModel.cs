@@ -32,7 +32,10 @@ public partial class DataManagementViewModel : ViewModelBase
     private bool _isLoading;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasData))]
     private bool _isEmpty = true;
+
+    public bool HasData => !IsEmpty;
 
     [ObservableProperty]
     private string _statusMessage = "就绪，请导入学生数据";

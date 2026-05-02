@@ -36,7 +36,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding !IsEmpty}"
+                    <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
                             HorizontalContentAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
@@ -48,11 +48,11 @@
                 <StackPanel Spacing="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
                     <TextBlock Text="导出格式:" FontSize="12" VerticalAlignment="Center"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                    <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding !IsEmpty}"
+                    <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
                             Padding="8,4" FontSize="12">CSV</Button>
-                    <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding !IsEmpty}"
+                    <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
                             Padding="8,4" FontSize="12">Excel</Button>
-                    <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding !IsEmpty}"
+                    <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
                             Padding="8,4" FontSize="12">JSON</Button>
                 </StackPanel>
             </DockPanel>
@@ -70,13 +70,13 @@
 
         <!-- 文件路径 -->
         <Border DockPanel.Dock="Bottom" Padding="0,4,0,8"
-                IsVisible="{Binding !IsEmpty}">
+                IsVisible="{Binding HasData}">
             <TextBlock Text="{Binding FilePath, StringFormat='数据源: {0}'}" FontSize="11"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         </Border>
 
         <!-- 中间内容区 -->
-        <Panel>
+        <Grid>
             <!-- 空状态提示 -->
             <Border IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center"
                     Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
@@ -95,10 +95,16 @@
             </Border>
 
             <!-- DataGrid -->
-            <DataGrid ItemsSource="{Binding Students}" IsVisible="{Binding !IsEmpty}"
-                      AutoGenerateColumns="True" IsReadOnly="True"
+            <DataGrid ItemsSource="{Binding Students}" IsVisible="{Binding HasData}"
+                      IsReadOnly="True"
                       GridLinesVisibility="Horizontal"
                       VerticalScrollBarVisibility="Auto">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="姓名" Binding="{Binding Name}" Width="120" />
+                    <DataGridTextColumn Header="身高 (cm)" Binding="{Binding Height}" Width="100" />
+                    <DataGridTextColumn Header="性别" Binding="{Binding Gender}" Width="80" />
+                    <DataGridCheckBoxColumn Header="需要前排" Binding="{Binding NeedsFrontRow}" Width="90" />
+                </DataGrid.Columns>
                 <DataGrid.Styles>
                     <Style Selector="DataGridRow">
                         <Setter Property="FontSize" Value="14" />
@@ -118,6 +124,6 @@
                     <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
                 </StackPanel>
             </Border>
-        </Panel>
+        </Grid>
     </DockPanel>
 </UserControl>
