@@ -22,5 +22,8 @@ namespace A_Pair.Core.Providers
 
         /// <summary>获取所有会场的 ID 列表。</summary>
         Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default);
+
+        /// <summary>删除指定会场。</summary>
+        Task DeleteAsync (string venueId , CancellationToken cancellationToken = default);
     }
 }

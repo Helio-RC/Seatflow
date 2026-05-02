@@ -59,6 +59,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>获取所有会场 ID 列表。</summary>
         Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default);
 
+        /// <summary>删除指定会场。</summary>
+        Task DeleteVenueAsync (string venueId , CancellationToken cancellationToken = default);
+
         /// <summary>获取指定会场的快照列表。</summary>
         Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default);
 

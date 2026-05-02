@@ -74,6 +74,10 @@ namespace A_Pair.Application.Services
             => _venueRepo.ListVenueIdsAsync(cancellationToken);
 
         /// <inheritdoc />
+        public Task DeleteVenueAsync (string venueId , CancellationToken cancellationToken = default)
+            => _venueRepo.DeleteAsync(venueId , cancellationToken);
+
+        /// <inheritdoc />
         public async Task<List<Student>> LoadStudentsAsync (string source , CancellationToken cancellationToken = default)
         {
             var provider = _serviceProvider.GetService<IStudentProvider>();

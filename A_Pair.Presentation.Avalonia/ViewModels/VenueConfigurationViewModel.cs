@@ -18,13 +18,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public string Title { get; } = "会场配置";
 
     [ObservableProperty]
-    private ObservableCollection<string> _venueIds = [];
+    private ObservableCollection<VenueItem> _venueItems = [];
 
     private bool _suppressAutoLoad;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
-    private string? _selectedVenueId;
+    [NotifyPropertyChangedFor(nameof(SelectedVenueId))]
+    private VenueItem? _selectedVenueItem;
+
+    public string? SelectedVenueId => SelectedVenueItem?.Id;
+    public bool HasSelectedVenue => SelectedVenueItem != null;
 
     [ObservableProperty]
     private string _layoutName = string.Empty;
@@ -34,8 +38,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsPolarSelected))]
     [NotifyPropertyChangedFor(nameof(IsFreeformSelected))]
     private LayoutType _selectedLayoutType = LayoutType.Grid;
-
-    public bool HasSelectedVenue => SelectedVenueId != null;
 
     public bool IsGridSelected => SelectedLayoutType == LayoutType.Grid;
     public bool IsPolarSelected => SelectedLayoutType == LayoutType.Polar;
@@ -64,7 +66,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public VenueConfigurationViewModel(IApplicationFacade facade, IDialogService dialog)
     {
         _facade = facade;
-        _ = LoadVenueList(); // 启动后自动加载会场列表
+        _ = LoadVenueList();
     }
 
     [RelayCommand]
@@ -73,9 +75,14 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var ids = (await _facade.ListVenueIdsAsync()).ToList();
-            VenueIds.Clear();
-            foreach (var id in ids) VenueIds.Add(id);
-            StatusMessage = $"已加载 {ids.Count} 个会场";
+            var items = new List<VenueItem>();
+            foreach (var id in ids)
+            {
+                var layout = await _facade.LoadVenueAsync(id);
+                items.Add(new VenueItem(id, layout?.Name ?? id));
+            }
+            VenueItems = new ObservableCollection<VenueItem>(items);
+            StatusMessage = $"已加载 {items.Count} 个会场";
         });
     }
 
@@ -84,28 +91,47 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         _suppressAutoLoad = true;
         var id = Guid.NewGuid().ToString("N")[..8];
-        LayoutName = $"新会场_{id}";
+        var item = new VenueItem(id, $"新会场_{id}");
+        LayoutName = item.Name;
         SelectedLayoutType = LayoutType.Grid;
         ResetParameters();
-        SelectedVenueId = id;
+        SelectedVenueItem = item;
         RegeneratePreview();
         StatusMessage = "已创建新会场，请编辑参数后保存";
         _suppressAutoLoad = false;
     }
 
     [RelayCommand]
-    private async Task SelectVenue(string venueId)
+    private async Task DeleteVenue()
+    {
+        if (SelectedVenueItem == null) return;
+
+        var item = SelectedVenueItem;
+        var confirmed = await Dialog.ShowConfirmAsync("确认删除", $"确定要删除会场「{item.Name}」吗？此操作不可恢复。");
+        if (!confirmed) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            await _facade.DeleteVenueAsync(item.Id);
+            SelectedVenueItem = null;
+            PreviewSeats.Clear();
+            LayoutName = string.Empty;
+            await LoadVenueList();
+            StatusMessage = $"会场「{item.Name}」已删除";
+        }, "删除会场失败");
+    }
+
+    private async Task SelectVenueAsync(VenueItem item)
     {
         await SafeExecuteAsync(async () =>
         {
-            var layout = await _facade.LoadVenueAsync(venueId);
+            var layout = await _facade.LoadVenueAsync(item.Id);
             if (layout == null)
             {
-                StatusMessage = $"加载会场 '{venueId}' 失败";
+                StatusMessage = $"加载会场「{item.Name}」失败";
                 return;
             }
 
-            SelectedVenueId = venueId;
             LayoutName = layout.Name;
             SelectedLayoutType = layout.LayoutType;
 
@@ -130,21 +156,25 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             }
 
             RegeneratePreview();
-            StatusMessage = $"已加载会场 '{layout.Name}'，共 {layout.Seats.Count} 个座位";
+            StatusMessage = $"已加载会场「{layout.Name}」，共 {layout.Seats.Count} 个座位";
         });
     }
 
     [RelayCommand]
     private async Task SaveVenue()
     {
-        if (string.IsNullOrWhiteSpace(SelectedVenueId)) return;
+        if (SelectedVenueItem == null) return;
 
         await SafeExecuteAsync(async () =>
         {
             var layout = BuildLayoutDefinition();
-            await _facade.SaveVenueAsync(SelectedVenueId, layout);
-            await RefreshVenueList();
-            StatusMessage = $"会场 '{layout.Name}' 已保存，共 {layout.Seats.Count} 个座位";
+            await _facade.SaveVenueAsync(SelectedVenueItem.Id, layout);
+            // 更新列表中的名称
+            var updated = SelectedVenueItem with { Name = layout.Name };
+            var idx = VenueItems.IndexOf(SelectedVenueItem);
+            if (idx >= 0) VenueItems[idx] = updated;
+            SelectedVenueItem = updated;
+            StatusMessage = $"会场「{layout.Name}」已保存，共 {layout.Seats.Count} 个座位";
         }, "保存会场失败");
     }
 
@@ -195,7 +225,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 break;
 
             case LayoutType.Freeform:
-                // Freeform 无预览生成
                 break;
         }
 
@@ -207,7 +236,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Id = SelectedVenueId ?? "",
+            Id = SelectedVenueItem?.Id ?? "",
             Name = LayoutName,
             LayoutType = SelectedLayoutType,
         };
@@ -258,13 +287,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         return layout;
     }
 
-    private async Task RefreshVenueList()
-    {
-        var ids = (await _facade.ListVenueIdsAsync()).ToList();
-        VenueIds.Clear();
-        foreach (var id in ids) VenueIds.Add(id);
-    }
-
     private void ResetParameters()
     {
         GridRows = 5; GridColumns = 6;
@@ -275,10 +297,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         PolarOriginX = 0; PolarOriginY = 0;
     }
 
-    partial void OnSelectedVenueIdChanged(string? value)
+    partial void OnSelectedVenueItemChanged(VenueItem? value)
     {
         if (!_suppressAutoLoad && value != null)
-            _ = SelectVenue(value);
+            _ = SelectVenueAsync(value);
     }
 
     partial void OnSelectedLayoutTypeChanged(LayoutType value) => RegeneratePreview();
@@ -296,9 +318,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     partial void OnPolarOriginYChanged(double value) { if (IsPolarSelected) RegeneratePreview(); }
 }
 
-/// <summary>
-/// 预览座位的简化模型，包含画布坐标和标签。
-/// </summary>
+public record VenueItem(string Id, string Name);
+
 public class SeatPreview
 {
     public double X { get; set; }
