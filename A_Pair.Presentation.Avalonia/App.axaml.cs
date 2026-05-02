@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using A_Pair.Application.Interfaces;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
@@ -22,6 +24,19 @@ namespace A_Pair.Presentation.Avalonia
             _serviceProvider = serviceProvider;
         }
 
+        private async Task EnsureDefaultSettingsAsync()
+        {
+            try
+            {
+                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+                await facade.SaveAppSettingsAsync(new Core.Models.AppSettings());
+            }
+            catch
+            {
+                // 首次保存失败可忽略
+            }
+        }
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -40,6 +55,9 @@ namespace A_Pair.Presentation.Avalonia
                 _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(mainWindow);
 
                 ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
+
+                // 首次启动时自动创建默认配置文件
+                _ = EnsureDefaultSettingsAsync();
             }
 
             base.OnFrameworkInitializationCompleted();
