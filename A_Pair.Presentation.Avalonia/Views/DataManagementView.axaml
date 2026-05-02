@@ -30,7 +30,7 @@
                                 IsHitTestVisible="{Binding !IsCompact}">
                         <StackPanel.Transitions>
                             <Transitions>
-                                <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                             </Transitions>
                         </StackPanel.Transitions>
                         <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center">
@@ -68,10 +68,11 @@
                     <!-- 紧凑模式 -->
                     <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                             IsHitTestVisible="{Binding IsCompact}"
+                            HorizontalAlignment="Right"
                             HorizontalContentAlignment="Center" Padding="8,4" FontSize="14">
                         <Button.Transitions>
                             <Transitions>
-                                <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                             </Transitions>
                         </Button.Transitions>
                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -81,10 +82,15 @@
                         <Button.Flyout>
                             <Flyout>
                                 <StackPanel Spacing="2" Width="160">
+                                    <StackPanel.RenderTransform>
+                                        <TranslateTransform />
+                                    </StackPanel.RenderTransform>
                                     <StackPanel.Transitions>
                                         <Transitions>
-                                            <DoubleTransition Property="Opacity" Duration="0:0:0.15"
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2"
                                                               Easing="CubicEaseOut" />
+                                            <TransformOperationsTransition Property="RenderTransform"
+                                                                           Duration="0:0:0.2" Easing="CubicEaseOut" />
                                         </Transitions>
                                     </StackPanel.Transitions>
                                     <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Left"
@@ -136,7 +142,7 @@
                                 IsHitTestVisible="{Binding !IsCompact}">
                         <StackPanel.Transitions>
                             <Transitions>
-                                <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                             </Transitions>
                         </StackPanel.Transitions>
                         <TextBlock Text="导出格式:" FontSize="12" VerticalAlignment="Center"
@@ -155,7 +161,7 @@
                             Padding="8,4" FontSize="14">
                         <Button.Transitions>
                             <Transitions>
-                                <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                             </Transitions>
                         </Button.Transitions>
                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -165,10 +171,15 @@
                         <Button.Flyout>
                             <Flyout>
                                 <StackPanel Spacing="2" Width="140">
+                                    <StackPanel.RenderTransform>
+                                        <TranslateTransform />
+                                    </StackPanel.RenderTransform>
                                     <StackPanel.Transitions>
                                         <Transitions>
-                                            <DoubleTransition Property="Opacity" Duration="0:0:0.15"
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2"
                                                               Easing="CubicEaseOut" />
+                                            <TransformOperationsTransition Property="RenderTransform"
+                                                                           Duration="0:0:0.2" Easing="CubicEaseOut" />
                                         </Transitions>
                                     </StackPanel.Transitions>
                                     <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"

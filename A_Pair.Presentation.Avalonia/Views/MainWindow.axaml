@@ -19,6 +19,12 @@
     <DockPanel>
         <!-- 侧边栏 -->
         <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="#F0F0F0">
+            <Border.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.25"
+                                      Easing="CubicEaseInOut" />
+                </Transitions>
+            </Border.Transitions>
             <DockPanel>
                 <!-- 标题：居中置顶，固定高度 -->
                 <Border DockPanel.Dock="Top" Height="44">
