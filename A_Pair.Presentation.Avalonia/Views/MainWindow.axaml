@@ -26,10 +26,10 @@
                 </Transitions>
             </Border.Transitions>
             <DockPanel>
-                <!-- 标题：居中置顶，固定高度 -->
-                <Border DockPanel.Dock="Top" Height="44">
+                <!-- 标题：居左，与导航按钮左对齐 -->
+                <Border DockPanel.Dock="Top" Height="44" Margin="10,0,0,0">
                     <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               HorizontalAlignment="Left" VerticalAlignment="Center"
                                IsVisible="{Binding IsSidebarExpanded}"/>
                 </Border>
 
@@ -127,7 +127,7 @@
                     </StackPanel>
 
                     <!-- 折叠状态 -->
-                    <StackPanel Margin="6,0,6,4" Spacing="8" IsVisible="{Binding !IsSidebarExpanded}"
+                    <StackPanel Spacing="8" IsVisible="{Binding !IsSidebarExpanded}"
                                 HorizontalAlignment="Center">
                         <Button Height="36" Width="36" Padding="4" HorizontalAlignment="Center"
                                 Command="{Binding ToggleSidebarCommand}"
