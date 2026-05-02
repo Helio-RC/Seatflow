@@ -94,11 +94,12 @@
                 </StackPanel>
             </Border>
 
-            <!-- DataGrid -->
+            <!-- DataGrid: x:CompileBindings=False 因为列绑定的是 Student 属性，而非 DataManagementViewModel -->
             <DataGrid ItemsSource="{Binding Students}" IsVisible="{Binding HasData}"
                       IsReadOnly="True"
                       GridLinesVisibility="Horizontal"
-                      VerticalScrollBarVisibility="Auto">
+                      VerticalScrollBarVisibility="Auto"
+                      x:CompileBindings="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="姓名" Binding="{Binding Name}" Width="120" />
                     <DataGridTextColumn Header="身高 (cm)" Binding="{Binding Height}" Width="100" />
