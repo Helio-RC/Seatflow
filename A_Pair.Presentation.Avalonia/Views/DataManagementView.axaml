@@ -16,8 +16,7 @@
 	</Design.DataContext>
 
 		<UserControl.Resources>
-			<conv:GenderConverter x:Key="GenderConverter" />
-			<conv:NeedsFrontRowConverter x:Key="NeedsFrontRowConverter" />
+			<conv:GenderIndexConverter x:Key="GenderConverter" />
 			<conv:HeightConverter x:Key="HeightConverter" />
 		</UserControl.Resources>
 
@@ -357,7 +356,7 @@
 													 Padding="4,2"
 													 Watermark="身高 cm"
 													 ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
-											<ComboBox Grid.Column="2" SelectedItem="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
+											<ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
 													  FontSize="14" VerticalAlignment="Center"
 													  BorderThickness="0" Background="Transparent"
 													  Padding="0,2"
