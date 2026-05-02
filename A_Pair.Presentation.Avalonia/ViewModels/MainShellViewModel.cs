@@ -16,7 +16,10 @@ public partial class MainShellViewModel : ViewModelBase
     private PageKey _currentPage;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
     private bool _isSidebarExpanded = true;
+
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
 
     [ObservableProperty]
     private double _sidebarWidth = 140;
