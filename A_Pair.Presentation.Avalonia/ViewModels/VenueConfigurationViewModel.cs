@@ -14,6 +14,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 public partial class VenueConfigurationViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
+    private readonly INavigationService _navigation;
 
     public string Title { get; } = "会场配置";
 
@@ -63,10 +64,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewSeats = [];
     [ObservableProperty] private string _statusMessage = string.Empty;
 
-    public VenueConfigurationViewModel(IApplicationFacade facade, IDialogService dialog)
+    public VenueConfigurationViewModel(IApplicationFacade facade, IDialogService dialog, INavigationService navigation)
     {
         _facade = facade;
+        _navigation = navigation;
         _ = LoadVenueList();
+    }
+
+    [RelayCommand]
+    private void NavigateToFreeform()
+    {
+        _navigation.NavigateTo(PageKey.FreeformManagement);
     }
 
     [RelayCommand]
@@ -95,6 +103,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         LayoutName = item.Name;
         SelectedLayoutType = LayoutType.Grid;
         ResetParameters();
+        VenueItems.Add(item);
         SelectedVenueItem = item;
         RegeneratePreview();
         StatusMessage = "已创建新会场，请编辑参数后保存";
@@ -165,15 +174,13 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         if (SelectedVenueItem == null) return;
 
+        var item = SelectedVenueItem;
         await SafeExecuteAsync(async () =>
         {
             var layout = BuildLayoutDefinition();
-            await _facade.SaveVenueAsync(SelectedVenueItem.Id, layout);
-            // 更新列表中的名称
-            var updated = SelectedVenueItem with { Name = layout.Name };
-            var idx = VenueItems.IndexOf(SelectedVenueItem);
-            if (idx >= 0) VenueItems[idx] = updated;
-            SelectedVenueItem = updated;
+            await _facade.SaveVenueAsync(item.Id, layout);
+            await LoadVenueList();
+            SelectedVenueItem = VenueItems.FirstOrDefault(v => v.Id == item.Id);
             StatusMessage = $"会场「{layout.Name}」已保存，共 {layout.Seats.Count} 个座位";
         }, "保存会场失败");
     }

@@ -25,6 +25,7 @@ public class NavigationService : INavigationService
         {
             PageKey.DataManagement => _serviceProvider.GetRequiredService<DataManagementViewModel>(),
             PageKey.VenueConfiguration => _serviceProvider.GetRequiredService<VenueConfigurationViewModel>(),
+            PageKey.FreeformManagement => _serviceProvider.GetRequiredService<FreeformManagementViewModel>(),
             PageKey.StrategyConfiguration => _serviceProvider.GetRequiredService<StrategyConfigurationViewModel>(),
             PageKey.SeatingArrangement => _serviceProvider.GetRequiredService<SeatingArrangementViewModel>(),
             PageKey.SnapshotHistory => _serviceProvider.GetRequiredService<SnapshotHistoryViewModel>(),

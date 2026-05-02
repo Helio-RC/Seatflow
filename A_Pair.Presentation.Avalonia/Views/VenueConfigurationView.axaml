@@ -200,8 +200,18 @@
                                 Padding="12" Margin="0,0,0,16"
                                 Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                                 CornerRadius="4">
-                            <TextBlock Text="自由点布局通过自定义坐标文件导入座位位置。请先在数据管理中导入坐标数据。"
-                                       FontSize="13" TextWrapping="Wrap"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="自由点布局通过导入 CSV/JSON 坐标文件来定义座位位置。"
+                                           FontSize="13" TextWrapping="Wrap"/>
+                                <Button Command="{Binding NavigateToFreeformCommand}"
+                                        HorizontalContentAlignment="Center" HorizontalAlignment="Left"
+                                        Padding="8,4" FontSize="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowMove}" FontSize="14"/>
+                                        <TextBlock Text="打开自由点管理" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Border>
 
                         <!-- 预览区域 -->

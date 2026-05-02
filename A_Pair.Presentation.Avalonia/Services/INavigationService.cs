@@ -7,6 +7,7 @@ public enum PageKey
 {
     DataManagement,
     VenueConfiguration,
+    FreeformManagement,
     StrategyConfiguration,
     SeatingArrangement,
     SnapshotHistory,

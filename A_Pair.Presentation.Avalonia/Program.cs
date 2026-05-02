@@ -26,6 +26,7 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<DataManagementViewModel>();
             services.AddSingleton<VenueConfigurationViewModel>();
+            services.AddSingleton<FreeformManagementViewModel>();
             services.AddSingleton<StrategyConfigurationViewModel>();
             services.AddSingleton<SeatingArrangementViewModel>();
             services.AddSingleton<SnapshotHistoryViewModel>();
