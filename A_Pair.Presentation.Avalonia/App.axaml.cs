@@ -37,6 +37,9 @@ namespace A_Pair.Presentation.Avalonia
                 desktop.MainWindow = mainWindow;
 
                 _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(mainWindow);
+                _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(mainWindow);
+
+                ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
             }
 
             base.OnFrameworkInitializationCompleted();

@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fic="using:FluentIcons.Avalonia"
+        xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+        x:Class="A_Pair.Presentation.Avalonia.Views.DialogWindow"
+        Width="420" SizeToContent="Height" MinHeight="160"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="Button.ActionButton">
+            <Setter Property="MinWidth" Value="80" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style Selector="Button.ActionCancel">
+            <Setter Property="MinWidth" Value="80" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+    </Window.Styles>
+
+    <DockPanel Margin="20,16">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
+                    x:Name="ButtonPanel">
+            <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True"
+                    x:CompileBindings="False">确定</Button>
+            <Button x:Name="CancelButton" Classes="ActionButton"
+                    IsVisible="False" x:CompileBindings="False">取消</Button>
+        </StackPanel>
+
+        <DockPanel>
+            <fic:FluentIcon x:Name="DialogIcon" DockPanel.Dock="Left"
+                            FontSize="28" Margin="0,0,16,0" VerticalAlignment="Top" />
+            <StackPanel Spacing="4">
+                <TextBlock x:Name="TitleBlock" FontSize="16" FontWeight="SemiBold"
+                           TextWrapping="Wrap" />
+                <TextBlock x:Name="MessageBlock" FontSize="14"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+        </DockPanel>
+    </DockPanel>
+</Window>
