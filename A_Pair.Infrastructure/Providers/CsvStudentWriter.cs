@@ -13,7 +13,7 @@ namespace A_Pair.Infrastructure.Providers
     {
         public async Task WriteAsync(string path, IEnumerable<Student> students, CancellationToken cancellationToken = default)
         {
-            await using var writer = new StreamWriter(path);
+            await using var writer = new StreamWriter(path, false, new System.Text.UTF8Encoding(true));
             await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
             // 第 1 行：列名

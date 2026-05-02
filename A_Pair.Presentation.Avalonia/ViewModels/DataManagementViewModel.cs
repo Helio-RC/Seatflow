@@ -78,6 +78,9 @@ public partial class DataManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportTemplateAsync(CancellationToken ct)
     {
+        string? errorTitle = null;
+        string? errorMsg = null;
+
         try
         {
             var (suffix, displayName) = await ResolveTemplateLocaleAsync(ct);
@@ -92,7 +95,8 @@ public partial class DataManagementViewModel : ViewModelBase
 
             if (!AssetLoader.Exists(uri))
             {
-                await _dialog.ShowErrorAsync("模板缺失", $"未找到内置模板文件 Sample_{suffix}.xlsx，请将模板放入 Assets/Files/ 目录。");
+                errorTitle = "模板缺失";
+                errorMsg = $"未找到内置模板文件 Sample_{suffix}.xlsx，请将模板放入 Assets/Files/ 目录。";
                 return;
             }
 
@@ -107,7 +111,13 @@ public partial class DataManagementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("保存模板失败", $"无法保存模板文件。\n{ex.Message}");
+            errorTitle = "保存模板失败";
+            errorMsg = $"无法保存模板文件。\n{ex.Message}";
+        }
+        finally
+        {
+            if (errorTitle != null)
+                await _dialog.ShowErrorAsync(errorTitle, errorMsg!);
         }
     }
 
@@ -136,6 +146,9 @@ public partial class DataManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportAsync(CancellationToken ct)
     {
+        string? errorTitle = null;
+        string? errorMsg = null;
+
         try
         {
             var file = await _fileService.OpenFileAsync("导入学生数据", StudentFileTypes);
@@ -151,46 +164,53 @@ public partial class DataManagementViewModel : ViewModelBase
             Students = new ObservableCollection<Student>(students);
             StudentCount = Students.Count;
             IsEmpty = StudentCount == 0;
-            IsLoading = false;
             StatusMessage = IsEmpty ? "未导入任何学生数据" : $"已导入 {StudentCount} 名学生";
 
             if (IsEmpty)
-                await _dialog.ShowWarningAsync("导入结果", "文件中没有读取到有效的学生数据，请检查文件格式是否正确。");
-        }
-        catch (FileNotFoundException)
-        {
-            await _dialog.ShowErrorAsync("文件不存在", $"找不到文件：{FilePath}");
-            IsLoading = false;
-            StatusMessage = "导入失败：文件不存在";
+            {
+                errorTitle = "导入结果";
+                errorMsg = "文件中没有读取到有效的学生数据，请检查文件格式是否正确。";
+            }
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("导入失败", $"无法导入学生数据。\n{ex.Message}");
-            IsLoading = false;
+            errorTitle = "导入失败";
+            errorMsg = ex is FileNotFoundException
+                ? $"找不到文件：{FilePath}"
+                : $"无法导入学生数据。\n{ex.Message}";
             StatusMessage = "导入失败";
+        }
+        finally
+        {
+            IsLoading = false;
+            if (errorTitle != null)
+                await _dialog.ShowErrorAsync(errorTitle, errorMsg!);
         }
     }
 
     [RelayCommand]
     private async Task ExportCsvAsync(CancellationToken ct)
     {
-        await ExportAsync(ExportFormat.Csv, "导出 CSV", [new("CSV 文件") { Patterns = ["*.csv"] }], ct);
+        await ExportAsync(ExportFormat.Csv, [new("CSV 文件") { Patterns = ["*.csv"] }], ct);
     }
 
     [RelayCommand]
     private async Task ExportExcelAsync(CancellationToken ct)
     {
-        await ExportAsync(ExportFormat.Excel, "导出 Excel", [new("Excel 文件") { Patterns = ["*.xlsx"] }], ct);
+        await ExportAsync(ExportFormat.Excel, [new("Excel 文件") { Patterns = ["*.xlsx"] }], ct);
     }
 
     [RelayCommand]
     private async Task ExportJsonAsync(CancellationToken ct)
     {
-        await ExportAsync(ExportFormat.Json, "导出 JSON", [new("JSON 文件") { Patterns = ["*.json"] }], ct);
+        await ExportAsync(ExportFormat.Json, [new("JSON 文件") { Patterns = ["*.json"] }], ct);
     }
 
-    private async Task ExportAsync(ExportFormat format, string title, FilePickerFileType[] types, CancellationToken ct)
+    private async Task ExportAsync(ExportFormat format, FilePickerFileType[] types, CancellationToken ct)
     {
+        string? errorTitle = null;
+        string? errorMsg = null;
+
         if (Students.Count == 0)
         {
             await _dialog.ShowWarningAsync("无数据", "当前没有可导出的学生数据。");
@@ -199,7 +219,7 @@ public partial class DataManagementViewModel : ViewModelBase
 
         try
         {
-            var file = await _fileService.SaveFileAsync(title, types);
+            var file = await _fileService.SaveFileAsync("导出", types);
             if (file is null) return;
 
             IsLoading = true;
@@ -208,14 +228,19 @@ public partial class DataManagementViewModel : ViewModelBase
 
             await _facade.ExportStudentsAsync(file.Path.LocalPath, Students, format, ct);
 
-            IsLoading = false;
             StatusMessage = "导出完成";
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("导出失败", $"无法导出学生数据。\n{ex.Message}");
-            IsLoading = false;
+            errorTitle = "导出失败";
+            errorMsg = $"无法导出学生数据。\n{ex.Message}";
             StatusMessage = "导出失败";
+        }
+        finally
+        {
+            IsLoading = false;
+            if (errorTitle != null)
+                await _dialog.ShowErrorAsync(errorTitle, errorMsg!);
         }
     }
 
