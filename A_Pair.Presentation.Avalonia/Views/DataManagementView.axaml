@@ -27,7 +27,13 @@
                 <!-- 紧凑模式 -->
                 <Button DockPanel.Dock="Right"
                         IsVisible="{Binding IsCompact}"
+                        Opacity="0"
                         HorizontalContentAlignment="Center" Padding="8,4" FontSize="14">
+                    <Button.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                        </Transitions>
+                    </Button.Transitions>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <fic:FluentIcon Icon="{x:Static ficEnum:Icon.MoreHorizontal}" FontSize="16" />
                         <TextBlock Text="操作" FontSize="14" />
@@ -124,8 +130,14 @@
                 <!-- === 导出按钮组 === -->
                 <Button DockPanel.Dock="Right"
                         IsVisible="{Binding IsCompact}"
+                        Opacity="0"
                         VerticalAlignment="Center"
                         Padding="8,4" FontSize="14">
+                        <Button.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                            </Transitions>
+                        </Button.Transitions>
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
                             <TextBlock Text="导出" FontSize="14" />
