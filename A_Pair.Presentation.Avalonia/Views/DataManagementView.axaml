@@ -37,6 +37,22 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+                            <TextBlock Text="保存" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding RenameSaveCommand}" IsEnabled="{Binding HasData}"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+                            <TextBlock Text="另存为" FontSize="14" />
+                        </StackPanel>
+                    </Button>
+
                     <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
                             HorizontalContentAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -93,6 +109,15 @@
                                         HorizontalAlignment="Center">
                                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
                                 <TextBlock Text="加载" FontSize="13" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding RenameSelectedDatasetCommand}"
+                                IsEnabled="{Binding HasSelectedDataset}"
+                                HorizontalContentAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                        HorizontalAlignment="Center">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Edit}" FontSize="14" />
+                                <TextBlock Text="重命名" FontSize="13" />
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding DeleteSelectedDatasetCommand}"
@@ -176,20 +201,25 @@
                         <ListBox ItemsSource="{Binding Students}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="models:Student">
-                                    <Border Padding="12,6" BorderThickness="0,0,0,1"
+                                    <Border Padding="6,3" BorderThickness="0,0,0,1"
                                             BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
                                         <Grid ColumnDefinitions="2*,*,*,*">
-                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="14"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="{Binding Height}" FontSize="14"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="2" Text="{Binding Gender}" FontSize="14"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="3" FontSize="14" VerticalAlignment="Center">
-                                                <TextBlock.Text>
-                                                    <Binding Path="NeedsFrontRow" />
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                            <TextBox Grid.Column="0" Text="{Binding Name, Mode=TwoWay}"
+                                                     FontSize="14" VerticalAlignment="Center"
+                                                     BorderThickness="0" Background="Transparent"
+                                                     Padding="4,2" />
+                                            <TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay}"
+                                                     FontSize="14" VerticalAlignment="Center"
+                                                     BorderThickness="0" Background="Transparent"
+                                                     Padding="4,2" />
+                                            <TextBox Grid.Column="2" Text="{Binding Gender, Mode=TwoWay}"
+                                                     FontSize="14" VerticalAlignment="Center"
+                                                     BorderThickness="0" Background="Transparent"
+                                                     Padding="4,2" />
+                                            <TextBox Grid.Column="3" Text="{Binding NeedsFrontRow, Mode=TwoWay}"
+                                                     FontSize="14" VerticalAlignment="Center"
+                                                     BorderThickness="0" Background="Transparent"
+                                                     Padding="4,2" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

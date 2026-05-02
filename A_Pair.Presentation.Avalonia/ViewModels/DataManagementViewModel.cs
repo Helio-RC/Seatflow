@@ -56,7 +56,11 @@ public partial class DataManagementViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoadingDatasets;
 
+    [ObservableProperty]
+    private string? _currentDatasetId;
+
     public bool HasSelectedDataset => SelectedDataset is not null;
+    public bool HasCurrentDataset => CurrentDatasetId is not null;
 
     public DataManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
     {
@@ -199,7 +203,7 @@ public partial class DataManagementViewModel : ViewModelBase
             if (!IsEmpty)
             {
                 var name = Path.GetFileNameWithoutExtension(FilePath);
-                await _facade.SaveStudentDatasetAsync(name, students, Path.GetFileName(FilePath), ct);
+                CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name, students, Path.GetFileName(FilePath), ct);
                 _ = RefreshDatasetsAsync(ct);
             }
 
@@ -294,6 +298,7 @@ public partial class DataManagementViewModel : ViewModelBase
         Students.Clear();
         StudentCount = 0;
         IsEmpty = true;
+        CurrentDatasetId = null;
         FilePath = string.Empty;
         ErrorMessage = string.Empty;
         StatusMessage = "就绪，请导入学生数据";
@@ -313,6 +318,7 @@ public partial class DataManagementViewModel : ViewModelBase
             var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
             if (students is not null)
             {
+                CurrentDatasetId = SelectedDataset.Id;
                 Students = new ObservableCollection<Student>(students);
                 StudentCount = Students.Count;
                 IsEmpty = StudentCount == 0;
@@ -358,6 +364,92 @@ public partial class DataManagementViewModel : ViewModelBase
         catch (Exception ex)
         {
             await _dialog.ShowErrorAsync("删除失败", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RenameSelectedDatasetAsync(CancellationToken ct)
+    {
+        if (SelectedDataset is null) return;
+
+        var (confirmed, newName) = await _dialog.ShowInputAsync("重命名数据集",
+            $"请输入「{SelectedDataset.Name}」的新名称：", SelectedDataset.Name);
+        if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
+
+        try
+        {
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
+            if (students is null) return;
+
+            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id, ct);
+            await _facade.SaveStudentDatasetAsync(newName.Trim(), students, SelectedDataset.OriginalFileName, ct);
+
+            if (CurrentDatasetId == SelectedDataset.Id)
+                CurrentDatasetId = null;
+
+            SelectedDataset = null;
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = "数据集已重命名";
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync("重命名失败", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveAsync(CancellationToken ct)
+    {
+        if (Students.Count == 0) return;
+
+        try
+        {
+            if (CurrentDatasetId is not null)
+            {
+                var existing = await _facade.LoadStudentDatasetAsync(CurrentDatasetId, ct);
+                var name = existing is not null
+                    ? (await _facade.ListStudentDatasetsAsync(ct))
+                        .FirstOrDefault(d => d.Id == CurrentDatasetId)?.Name ?? "已保存数据"
+                    : "已保存数据";
+
+                await _facade.DeleteStudentDatasetAsync(CurrentDatasetId, ct);
+                CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name, Students.ToList(), null, ct);
+            }
+            else
+            {
+                CurrentDatasetId = await _facade.SaveStudentDatasetAsync("手动保存", Students.ToList(), null, ct);
+            }
+
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = "保存完成";
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync("保存失败", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RenameSaveAsync(CancellationToken ct)
+    {
+        var (confirmed, newName) = await _dialog.ShowInputAsync("另存为",
+            "请输入新数据集名称：", "");
+        if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
+
+        try
+        {
+            if (CurrentDatasetId is not null)
+            {
+                try { await _facade.DeleteStudentDatasetAsync(CurrentDatasetId, ct); } catch { }
+            }
+
+            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(newName.Trim(), Students.ToList(), null, ct);
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = $"已保存为「{newName.Trim()}」";
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync("保存失败", ex.Message);
         }
     }
 }
