@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using CsvHelper;
@@ -6,19 +6,40 @@ using CsvHelper;
 namespace A_Pair.Infrastructure.Providers
 {
     /// <summary>
-    /// CSV 格式的学生数据写入器，使用 CsvHelper 库将学生列表写入 CSV 文件。
+    /// CSV 格式的学生数据写入器。
+    /// 第 1 行为列名，第 2 行为注释行，数据从第 3 行开始。
     /// </summary>
-    /// <remarks>
-    /// 自动根据 <see cref="Student"/> 类的属性名生成 CSV 列头，并将所有学生记录写入文件。
-    /// </remarks>
     public class CsvStudentWriter : IStudentWriter
     {
-        /// <inheritdoc />
-        public async Task WriteAsync (string path , IEnumerable<Student> students , CancellationToken cancellationToken = default)
+        public async Task WriteAsync(string path, IEnumerable<Student> students, CancellationToken cancellationToken = default)
         {
             await using var writer = new StreamWriter(path);
-            await using var csv = new CsvWriter(writer , CultureInfo.InvariantCulture);
-            await csv.WriteRecordsAsync(students , cancellationToken);
+            await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+            // 第 1 行：列名
+            csv.WriteField("Name");
+            csv.WriteField("Height");
+            csv.WriteField("Gender");
+            csv.WriteField("NeedsFrontRow");
+            await csv.NextRecordAsync();
+
+            // 第 2 行：注释
+            csv.WriteField("必填");
+            csv.WriteField("身高（厘米），如 170.5");
+            csv.WriteField("男 / 女 / 其他");
+            csv.WriteField("是 / 否（或 true/false）");
+            await csv.NextRecordAsync();
+
+            // 第 3 行起：数据（仅写 4 个匹配表头的字段）
+            foreach (var s in students)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                csv.WriteField(s.Name);
+                csv.WriteField(s.Height);
+                csv.WriteField(s.Gender?.ToString() ?? "");
+                csv.WriteField(s.NeedsFrontRow ? "true" : "false");
+                await csv.NextRecordAsync();
+            }
         }
     }
 }

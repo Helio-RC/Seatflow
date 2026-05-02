@@ -1,10 +1,10 @@
-﻿using OfficeOpenXml;
+using OfficeOpenXml;
 
 namespace A_Pair.Infrastructure.Tests.Providers;
 
 public class XlsxStudentProviderTests
 {
-    private string CreateTempXlsx (string[,] data)
+    private static string CreateTempXlsx(string[,] data)
     {
         var path = Path.GetTempFileName() + ".xlsx";
         ExcelPackage.License.SetNonCommercialPersonal("A_Pair.Test");
@@ -15,7 +15,7 @@ public class XlsxStudentProviderTests
             {
                 for (int c = 0; c <= data.GetUpperBound(1); c++)
                 {
-                    ws.Cells[r + 1 , c + 1].Value = data[r , c];
+                    ws.Cells[r + 1, c + 1].Value = data[r, c];
                 }
             }
             package.Save();
@@ -24,22 +24,23 @@ public class XlsxStudentProviderTests
     }
 
     [Fact]
-    public async Task LoadAsync_ValidXlsx_ShouldReturnStudents ()
+    public async Task LoadAsync_ValidXlsx_ShouldReturnStudents()
     {
         var data = new string[,]
         {
-            { "Name", "Id" },
-            { "Alice", "1" },
-            { "Bob", "2" }
+            { "姓名", "身高", "性别", "需要前排" },        // row 1: header
+            { "必填", "cm", "男/女", "是/否" },              // row 2: comment (skipped)
+            { "Alice", "165", "女", "否" },                   // row 3: data
+            { "Bob", "180", "男", "是" }                      // row 4: data
         };
         var path = CreateTempXlsx(data);
         try
         {
             var provider = new XlsxStudentProvider();
-            var students = await provider.LoadAsync(path , CancellationToken.None);
+            var students = await provider.LoadAsync(path, CancellationToken.None);
             students.Should().HaveCount(2);
             students[0].Name.Should().Be("Alice");
-            students[1].Id.Should().Be("2");
+            students[1].NeedsFrontRow.Should().BeTrue();
         }
         finally
         {
@@ -48,13 +49,39 @@ public class XlsxStudentProviderTests
     }
 
     [Fact]
-    public async Task LoadAsync_EmptySheet_ShouldReturnEmptyList ()
+    public async Task LoadAsync_EnglishHeaders_ShouldReturnStudents()
     {
-        var path = CreateTempXlsx(new string[,] { { "Name" , "Id" } });
+        var data = new string[,]
+        {
+            { "Name", "Height", "Gender", "NeedsFrontRow" }, // row 1: header
+            { "Required", "cm", "Male/Female", "true/false" }, // row 2: comment (skipped)
+            { "Alice", "165", "Female", "false" },            // row 3: data
+            { "Bob", "180", "Male", "true" }                  // row 4: data
+        };
+        var path = CreateTempXlsx(data);
         try
         {
             var provider = new XlsxStudentProvider();
-            var students = await provider.LoadAsync(path , CancellationToken.None);
+            var students = await provider.LoadAsync(path, CancellationToken.None);
+            students.Should().HaveCount(2);
+            students[0].Name.Should().Be("Alice");
+            students[1].NeedsFrontRow.Should().BeTrue();
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task LoadAsync_EmptySheet_ShouldReturnEmptyList()
+    {
+        var data = new string[,] { { "姓名", "身高" } };
+        var path = CreateTempXlsx(data);
+        try
+        {
+            var provider = new XlsxStudentProvider();
+            var students = await provider.LoadAsync(path, CancellationToken.None);
             students.Should().BeEmpty();
         }
         finally
