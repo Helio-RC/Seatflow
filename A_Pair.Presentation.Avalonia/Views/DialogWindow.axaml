@@ -24,9 +24,9 @@
 		<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
 					HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
 					x:Name="ButtonPanel">
-			<Button x:Name="OkButton" Classes="ActionButton" IsDefault="True"
+			<Button x:Name="OkButton" Classes="ActionButton" IsDefault="True" HorizontalContentAlignment="Center"
 					x:CompileBindings="False">确定</Button>
-			<Button x:Name="CancelButton" Classes="ActionButton"
+			<Button x:Name="CancelButton" Classes="ActionButton" HorizontalContentAlignment="Center"
 					IsVisible="False" x:CompileBindings="False">取消</Button>
 		</StackPanel>
 
