@@ -6,7 +6,7 @@ namespace A_Pair.Presentation.Avalonia.Views;
 
 public partial class DataManagementView : UserControl
 {
-    private const double CompactThreshold = 650;
+    private const double CompactThreshold = 800;
 
     public DataManagementView()
     {
