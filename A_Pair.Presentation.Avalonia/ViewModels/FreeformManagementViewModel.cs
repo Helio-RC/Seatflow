@@ -275,7 +275,18 @@ public partial class FreeformManagementViewModel : ViewModelBase
     }
 }
 
-public record FreeformPoint(double X, double Y, string Id = "")
+public class FreeformPoint
 {
-    public string Id { get; set; } = string.IsNullOrEmpty(Id) ? Guid.NewGuid().ToString() : Id;
+    public double X { get; set; }
+    public double Y { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    public FreeformPoint() { }
+
+    public FreeformPoint(double x, double y, string? id = null)
+    {
+        X = x;
+        Y = y;
+        Id = id ?? Guid.NewGuid().ToString();
+    }
 }

@@ -311,18 +311,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     partial void OnSelectedLayoutTypeChanged(LayoutType value) => RegeneratePreview();
-    partial void OnGridRowsChanged(int value) { if (IsGridSelected) RegeneratePreview(); }
-    partial void OnGridColumnsChanged(int value) { if (IsGridSelected) RegeneratePreview(); }
-    partial void OnGridHorizontalSpacingChanged(double value) { if (IsGridSelected) RegeneratePreview(); }
-    partial void OnGridVerticalSpacingChanged(double value) { if (IsGridSelected) RegeneratePreview(); }
-    partial void OnGridOriginXChanged(double value) { if (IsGridSelected) RegeneratePreview(); }
-    partial void OnGridOriginYChanged(double value) { if (IsGridSelected) RegeneratePreview(); }
-    partial void OnPolarRingsChanged(int value) { if (IsPolarSelected) RegeneratePreview(); }
-    partial void OnPolarSeatsPerRingChanged(int value) { if (IsPolarSelected) RegeneratePreview(); }
-    partial void OnPolarRadiusStepChanged(double value) { if (IsPolarSelected) RegeneratePreview(); }
-    partial void OnPolarStartAngleChanged(double value) { if (IsPolarSelected) RegeneratePreview(); }
-    partial void OnPolarOriginXChanged(double value) { if (IsPolarSelected) RegeneratePreview(); }
-    partial void OnPolarOriginYChanged(double value) { if (IsPolarSelected) RegeneratePreview(); }
 }
 
 public record VenueItem(string Id, string Name);
