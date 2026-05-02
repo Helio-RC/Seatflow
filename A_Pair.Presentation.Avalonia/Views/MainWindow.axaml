@@ -9,7 +9,7 @@
         x:Class="A_Pair.Presentation.Avalonia.Views.MainWindow"
         x:DataType="vm:MainShellViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="A_Pair — 座位安排系统" Width="1200" Height="800"
+        Title="A_Pair — 安排" Width="1200" Height="800"
         MinWidth="550" MinHeight="600">
 
     <Design.DataContext>
