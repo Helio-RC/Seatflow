@@ -9,5 +9,5 @@ public interface IFileService
 {
     void SetTopLevel(TopLevel topLevel);
     Task<IStorageFile?> OpenFileAsync(string title, IReadOnlyList<FilePickerFileType> types);
-    Task<IStorageFile?> SaveFileAsync(string title, IReadOnlyList<FilePickerFileType> types);
+    Task<IStorageFile?> SaveFileAsync(string title, IReadOnlyList<FilePickerFileType> types, string? suggestedFileName = null);
 }

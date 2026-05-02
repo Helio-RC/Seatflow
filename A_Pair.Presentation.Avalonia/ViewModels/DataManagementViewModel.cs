@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -63,18 +65,55 @@ public partial class DataManagementViewModel : ViewModelBase
         new("Excel 文件") { Patterns = ["*.xlsx"] }
     ];
 
+    private static readonly Dictionary<string, (string FileName, string DisplayName)> TemplateLocales = new()
+    {
+        ["zh_cn"] = ("Sample_zh_cn.xlsx", "学生导入模板.xlsx"),
+        ["zh_tw"] = ("Sample_zh_tw.xlsx", "學生匯入範本.xlsx"),
+        ["ja_jp"] = ("Sample_ja_jp.xlsx", "学生インポートテンプレート.xlsx"),
+        ["ko_kr"] = ("Sample_ko_kr.xlsx", "학생가져오기템플릿.xlsx"),
+    };
+
+    private const string DefaultTemplateSuffix = "en_us";
+    private const string DefaultTemplateDisplayName = "StudentImportTemplate.xlsx";
+
     [RelayCommand]
     private async Task ExportTemplateAsync(CancellationToken cancellationToken)
     {
-        var file = await _fileService.SaveFileAsync("保存导入模板", TemplateFileTypes);
+        var (suffix, displayName) = await ResolveTemplateLocaleAsync(cancellationToken);
+        var uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
+
+        // 如果语言对应的模板不存在，回退到 en_us
+        if (!AssetLoader.Exists(uri))
+        {
+            suffix = DefaultTemplateSuffix;
+            displayName = DefaultTemplateDisplayName;
+            uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
+        }
+
+        var file = await _fileService.SaveFileAsync("保存导入模板", TemplateFileTypes, displayName);
         if (file is null) return;
 
-        var uri = new Uri("avares://A_Pair.Presentation.Avalonia/Assets/Files/学生导入模板.xlsx");
         using var source = AssetLoader.Open(uri);
         await using var destination = File.Create(file.Path.LocalPath);
         await source.CopyToAsync(destination, cancellationToken);
 
         StatusMessage = "模板已保存";
+    }
+
+    private async Task<(string Suffix, string DisplayName)> ResolveTemplateLocaleAsync(CancellationToken ct)
+    {
+        var settings = await _facade.LoadAppSettingsAsync(ct);
+        var lang = !string.IsNullOrEmpty(settings.Language)
+            ? settings.Language
+            : CultureInfo.CurrentUICulture.Name.Replace('-', '_').ToLowerInvariant();
+
+        if (TemplateLocales.TryGetValue(lang, out var entry))
+            return entry;
+
+        // 尝试只匹配语言部分（如 zh 匹配 zh_cn）
+        var prefix = lang.Split('_')[0];
+        var fallback = TemplateLocales.FirstOrDefault(kv => kv.Key.StartsWith(prefix));
+        return fallback.Value is (var f, var d) ? (f, d) : (DefaultTemplateSuffix, DefaultTemplateDisplayName);
     }
 
     [RelayCommand]

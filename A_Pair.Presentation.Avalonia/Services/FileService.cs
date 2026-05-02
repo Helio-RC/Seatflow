@@ -23,13 +23,14 @@ public class FileService : IFileService
         return files.Count > 0 ? files[0] : null;
     }
 
-    public async Task<IStorageFile?> SaveFileAsync(string title, IReadOnlyList<FilePickerFileType> types)
+    public async Task<IStorageFile?> SaveFileAsync(string title, IReadOnlyList<FilePickerFileType> types, string? suggestedFileName = null)
     {
         if (_topLevel is null) return null;
         return await _topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title,
-            FileTypeChoices = types
+            FileTypeChoices = types,
+            SuggestedFileName = suggestedFileName
         });
     }
 }
