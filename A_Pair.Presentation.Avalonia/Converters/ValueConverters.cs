@@ -28,7 +28,13 @@ public class GenderConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var s = value as string;
+        var s = value switch
+        {
+            global::Avalonia.Controls.ComboBoxItem item => item.Content?.ToString(),
+            string str => str,
+            _ => null
+        };
+
         if (string.IsNullOrWhiteSpace(s))
             return null;
 

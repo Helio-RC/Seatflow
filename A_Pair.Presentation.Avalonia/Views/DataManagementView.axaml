@@ -357,18 +357,20 @@
 													 Padding="4,2"
 													 Watermark="身高 cm"
 													 ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
-											<TextBox Grid.Column="2" Text="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
-													 FontSize="14" VerticalAlignment="Center"
-													 BorderThickness="0" Background="Transparent"
-													 Padding="4,2"
-													 Watermark="男/女/其他"
-													 ToolTip.Tip="性别：男、女 或 其他。留空表示未知。" />
-											<TextBox Grid.Column="3" Text="{Binding NeedsFrontRow, Mode=TwoWay, Converter={StaticResource NeedsFrontRowConverter}}"
-													 FontSize="14" VerticalAlignment="Center"
-													 BorderThickness="0" Background="Transparent"
-													 Padding="4,2"
-													 Watermark="是/否"
-													 ToolTip.Tip="需要前排：是/否 或 true/false。留空表示否。" />
+											<ComboBox Grid.Column="2" SelectedItem="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
+													  FontSize="14" VerticalAlignment="Center"
+													  BorderThickness="0" Background="Transparent"
+													  Padding="0,2"
+													  ToolTip.Tip="性别：男、女 或 其他。留空表示未知。">
+												<ComboBoxItem Content=""/>
+												<ComboBoxItem Content="男"/>
+												<ComboBoxItem Content="女"/>
+												<ComboBoxItem Content="其他"/>
+											</ComboBox>
+											<CheckBox Grid.Column="3" IsChecked="{Binding NeedsFrontRow, Mode=TwoWay}"
+													  FontSize="14" VerticalAlignment="Center"
+													  HorizontalAlignment="Center"
+													  ToolTip.Tip="需要前排座位（如视力不佳等特殊需求）" />
 										</Grid>
 									</Border>
 								</DataTemplate>
