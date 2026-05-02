@@ -69,6 +69,12 @@
                     <Button.Flyout>
                         <Flyout>
                             <StackPanel Spacing="2" Width="160">
+                                <StackPanel.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.15"
+                                                          Easing="CubicEaseOut" />
+                                    </Transitions>
+                                </StackPanel.Transitions>
                                 <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Left"
                                         Padding="12,8" x:CompileBindings="False">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -135,6 +141,12 @@
                     <Button.Flyout>
                         <Flyout>
                             <StackPanel Spacing="2" Width="140">
+                                <StackPanel.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.15"
+                                                          Easing="CubicEaseOut" />
+                                    </Transitions>
+                                </StackPanel.Transitions>
                                 <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
                                         HorizontalContentAlignment="Left" Padding="12,8" x:CompileBindings="False">
                                     <TextBlock Text="导出 CSV" FontSize="14" />
