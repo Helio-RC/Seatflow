@@ -1,10 +1,13 @@
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -54,6 +57,25 @@ public partial class DataManagementViewModel : ViewModelBase
         new("JSON 文件") { Patterns = ["*.json"] },
         FilePickerFileTypes.All
     ];
+
+    private static readonly FilePickerFileType[] TemplateFileTypes =
+    [
+        new("Excel 文件") { Patterns = ["*.xlsx"] }
+    ];
+
+    [RelayCommand]
+    private async Task ExportTemplateAsync(CancellationToken cancellationToken)
+    {
+        var file = await _fileService.SaveFileAsync("保存导入模板", TemplateFileTypes);
+        if (file is null) return;
+
+        var uri = new Uri("avares://A_Pair.Presentation.Avalonia/Assets/Files/学生导入模板.xlsx");
+        using var source = AssetLoader.Open(uri);
+        await using var destination = File.Create(file.Path.LocalPath);
+        await source.CopyToAsync(destination, cancellationToken);
+
+        StatusMessage = "模板已保存";
+    }
 
     [RelayCommand]
     private async Task ImportAsync(CancellationToken cancellationToken)
