@@ -5,6 +5,23 @@
 			 RequestedThemeVariant="Default">
 	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.ThemeDictionaries>
+				<ResourceDictionary x:Key="Light">
+					<Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
+					<Color x:Key="LoadingOverlayColor">#40FFFFFF</Color>
+				</ResourceDictionary>
+				<ResourceDictionary x:Key="Dark">
+					<Color x:Key="SidebarBackgroundColor">#252525</Color>
+					<Color x:Key="LoadingOverlayColor">#40000000</Color>
+				</ResourceDictionary>
+			</ResourceDictionary.ThemeDictionaries>
+			<SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{DynamicResource SidebarBackgroundColor}" />
+			<SolidColorBrush x:Key="LoadingOverlayBrush" Color="{DynamicResource LoadingOverlayColor}" />
+		</ResourceDictionary>
+	</Application.Resources>
+
 	<Application.DataTemplates>
 		<local:ViewLocator/>
 	</Application.DataTemplates>

@@ -348,13 +348,13 @@
 													 FontSize="14" VerticalAlignment="Center"
 													 BorderThickness="0" Background="Transparent"
 													 Padding="4,2"
-													 Watermark="必填，姓名"
+													 PlaceholderText="必填，姓名"
 													 ToolTip.Tip="必填。学生姓名，不能为空。" />
 											<TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
 													 FontSize="14" VerticalAlignment="Center"
 													 BorderThickness="0" Background="Transparent"
 													 Padding="4,2"
-													 Watermark="身高 cm"
+													 PlaceholderText="身高 cm"
 													 ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
 											<ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
 													  FontSize="14" VerticalAlignment="Center"
@@ -379,7 +379,7 @@
 				</DockPanel>
 
 				<!-- 加载中遮罩 -->
-				<Border IsVisible="{Binding IsLoading}" Background="#40FFFFFF"
+				<Border IsVisible="{Binding IsLoading}" Background="{DynamicResource LoadingOverlayBrush}"
 						HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
 						<ProgressBar IsIndeterminate="True" Width="200" />

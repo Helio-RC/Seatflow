@@ -19,7 +19,7 @@
 
 	<DockPanel>
 		<!-- 侧边栏 -->
-		<Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="#F0F0F0"
+		<Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="{DynamicResource SidebarBackgroundBrush}"
 				ClipToBounds="True">
 			<Border.Transitions>
 				<Transitions>
