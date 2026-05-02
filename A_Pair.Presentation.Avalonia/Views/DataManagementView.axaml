@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:models="using:A_Pair.Core.Models"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -94,28 +95,45 @@
                 </StackPanel>
             </Border>
 
-            <!-- DataGrid: x:CompileBindings=False 因为列绑定的是 Student 属性，而非 DataManagementViewModel -->
-            <DataGrid ItemsSource="{Binding Students}" IsVisible="{Binding HasData}"
-                      IsReadOnly="True"
-                      GridLinesVisibility="Horizontal"
-                      VerticalScrollBarVisibility="Auto"
-                      x:CompileBindings="False">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="姓名" Binding="{Binding Name}" Width="120" />
-                    <DataGridTextColumn Header="身高 (cm)" Binding="{Binding Height}" Width="100" />
-                    <DataGridTextColumn Header="性别" Binding="{Binding Gender}" Width="80" />
-                    <DataGridCheckBoxColumn Header="需要前排" Binding="{Binding NeedsFrontRow}" Width="90" />
-                </DataGrid.Columns>
-                <DataGrid.Styles>
-                    <Style Selector="DataGridRow">
-                        <Setter Property="FontSize" Value="14" />
-                    </Style>
-                    <Style Selector="DataGridColumnHeader">
-                        <Setter Property="FontSize" Value="14" />
-                        <Setter Property="FontWeight" Value="SemiBold" />
-                    </Style>
-                </DataGrid.Styles>
-            </DataGrid>
+            <!-- 数据表格 -->
+            <DockPanel IsVisible="{Binding HasData}">
+                <!-- 表头 -->
+                <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                        Padding="12,8" CornerRadius="4,4,0,0">
+                    <Grid ColumnDefinitions="2*,*,*,*">
+                        <TextBlock Grid.Column="0" Text="姓名" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1" Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="2" Text="性别" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="3" Text="需要前排" FontSize="14" FontWeight="SemiBold" />
+                    </Grid>
+                </Border>
+
+                <!-- 数据行 -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ListBox ItemsSource="{Binding Students}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:Student">
+                                <Border Padding="12,6" BorderThickness="0,0,0,1"
+                                        BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
+                                    <Grid ColumnDefinitions="2*,*,*,*">
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="14"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Height}" FontSize="14"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Gender}" FontSize="14"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="3" FontSize="14" VerticalAlignment="Center">
+                                            <TextBlock.Text>
+                                                <Binding Path="NeedsFrontRow" />
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+            </DockPanel>
 
             <!-- 加载中遮罩 -->
             <Border IsVisible="{Binding IsLoading}" Background="#40FFFFFF"

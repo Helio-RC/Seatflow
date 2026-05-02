@@ -24,14 +24,14 @@ namespace A_Pair.Presentation.Avalonia
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainShellViewModel>();
-            services.AddTransient<DataManagementViewModel>();
-            services.AddTransient<VenueConfigurationViewModel>();
-            services.AddTransient<StrategyConfigurationViewModel>();
-            services.AddTransient<SeatingArrangementViewModel>();
-            services.AddTransient<SnapshotHistoryViewModel>();
-            services.AddTransient<PluginManagementViewModel>();
-            services.AddTransient<SettingsViewModel>();
-            services.AddTransient<AboutViewModel>();
+            services.AddSingleton<DataManagementViewModel>();
+            services.AddSingleton<VenueConfigurationViewModel>();
+            services.AddSingleton<StrategyConfigurationViewModel>();
+            services.AddSingleton<SeatingArrangementViewModel>();
+            services.AddSingleton<SnapshotHistoryViewModel>();
+            services.AddSingleton<PluginManagementViewModel>();
+            services.AddSingleton<SettingsViewModel>();
+            services.AddSingleton<AboutViewModel>();
 
             var serviceProvider = services.BuildServiceProvider();
             BuildAvaloniaApp(serviceProvider)
