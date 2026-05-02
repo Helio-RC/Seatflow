@@ -19,7 +19,7 @@ public partial class MainShellViewModel : ViewModelBase
     private bool _isSidebarExpanded = true;
 
     [ObservableProperty]
-    private double _sidebarWidth = 200;
+    private double _sidebarWidth = 160;
 
     private bool _userWantsExpanded = true;
 
@@ -44,7 +44,7 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     partial void OnIsSidebarExpandedChanged(bool value)
-        => SidebarWidth = value ? 200 : 64;
+        => SidebarWidth = value ? 160 : 64;
 
     [RelayCommand]
     private void ToggleSidebar()
