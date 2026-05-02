@@ -19,18 +19,18 @@ internal partial class InputWindow : Window
         set => InputBox.Text = value;
     }
 
-    public InputWindow()
+    public InputWindow ()
     {
         InitializeComponent();
     }
 
-    protected override void OnLoaded(RoutedEventArgs e)
+    protected override void OnLoaded (RoutedEventArgs e)
     {
         base.OnLoaded(e);
         InputBox.Focus();
         InputBox.SelectAll();
 
-        OkButton.Click += (_, _) => { _result = true; Close(_result); };
-        CancelButton.Click += (_, _) => { _result = false; Close(_result); };
+        OkButton.Click += (_ , _) => { _result = true; Close(_result); };
+        CancelButton.Click += (_ , _) => { _result = false; Close(_result); };
     }
 }

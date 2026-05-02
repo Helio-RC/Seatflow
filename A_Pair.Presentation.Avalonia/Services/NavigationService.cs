@@ -12,13 +12,13 @@ public class NavigationService : INavigationService
     public PageKey CurrentPage { get; private set; }
     public event Action? CurrentViewModelChanged;
 
-    public NavigationService(IServiceProvider serviceProvider)
+    public NavigationService (IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
         NavigateTo(PageKey.DataManagement);
     }
 
-    public void NavigateTo(PageKey page)
+    public void NavigateTo (PageKey page)
     {
         CurrentPage = page;
         CurrentViewModel = page switch

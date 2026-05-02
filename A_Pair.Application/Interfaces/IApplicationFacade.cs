@@ -1,5 +1,4 @@
 using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
 using A_Pair.Core.Workspace;
 
 namespace A_Pair.Application.Interfaces

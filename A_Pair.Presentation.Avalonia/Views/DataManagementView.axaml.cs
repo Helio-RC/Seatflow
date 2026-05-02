@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 
 namespace A_Pair.Presentation.Avalonia.Views;
 
@@ -8,12 +7,12 @@ public partial class DataManagementView : UserControl
 {
     private const double CompactThreshold = 800;
 
-    public DataManagementView()
+    public DataManagementView ()
     {
         InitializeComponent();
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 

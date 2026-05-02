@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using A_Pair.Core.Enums;
 using A_Pair.Core.Models;
 
@@ -15,32 +13,32 @@ internal static class StudentDataMapping
     public const int DataStartRow = 3;
 
     /// <summary>列名到 Student 属性名的映射表。</summary>
-    private static readonly Dictionary<string, string> ColumnMap = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string , string> ColumnMap = new(StringComparer.OrdinalIgnoreCase)
     {
         // English
-        ["Name"] = "Name",
-        ["Height"] = "Height",
-        ["Gender"] = "Gender",
-        ["NeedsFrontRow"] = "NeedsFrontRow",
+        ["Name"] = "Name" ,
+        ["Height"] = "Height" ,
+        ["Gender"] = "Gender" ,
+        ["NeedsFrontRow"] = "NeedsFrontRow" ,
         // 中文
-        ["姓名"] = "Name",
-        ["身高"] = "Height",
-        ["性别"] = "Gender",
-        ["需要前排"] = "NeedsFrontRow",
+        ["姓名"] = "Name" ,
+        ["身高"] = "Height" ,
+        ["性别"] = "Gender" ,
+        ["需要前排"] = "NeedsFrontRow" ,
         ["前排"] = "NeedsFrontRow"
     };
 
     /// <summary>解析列名，返回对应的 Student 属性名。</summary>
-    public static string? ResolveProperty(string columnName)
+    public static string? ResolveProperty (string columnName)
     {
         var trimmed = columnName.Trim();
-        return ColumnMap.TryGetValue(trimmed, out var prop) ? prop : null;
+        return ColumnMap.TryGetValue(trimmed , out var prop) ? prop : null;
     }
 
     /// <summary>
     /// 将单元格值设置到 Student 对象的对应属性上。
     /// </summary>
-    public static void SetProperty(Student student, string propertyName, string? rawValue)
+    public static void SetProperty (Student student , string propertyName , string? rawValue)
     {
         switch (propertyName)
         {
@@ -48,7 +46,7 @@ internal static class StudentDataMapping
                 student.Name = rawValue?.Trim() ?? string.Empty;
                 break;
             case "Height":
-                if (float.TryParse(rawValue, out var h))
+                if (float.TryParse(rawValue , out var h))
                     student.Height = h;
                 break;
             case "Gender":
@@ -60,7 +58,7 @@ internal static class StudentDataMapping
         }
     }
 
-    private static Gender? ParseGender(string? value)
+    private static Gender? ParseGender (string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
         return value switch
@@ -72,7 +70,7 @@ internal static class StudentDataMapping
         };
     }
 
-    private static bool ParseBool(string? value)
+    private static bool ParseBool (string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return false;
         return value switch

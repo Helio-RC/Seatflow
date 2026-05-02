@@ -1,14 +1,10 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
-using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
 using AvaloniaApplication = Avalonia.Application;
@@ -19,12 +15,12 @@ namespace A_Pair.Presentation.Avalonia
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public App(IServiceProvider serviceProvider)
+        public App (IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
-        private async Task EnsureDefaultSettingsAsync()
+        private async Task EnsureDefaultSettingsAsync ()
         {
             try
             {
@@ -37,12 +33,12 @@ namespace A_Pair.Presentation.Avalonia
             }
         }
 
-        public override void Initialize()
+        public override void Initialize ()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
-        public override void OnFrameworkInitializationCompleted()
+        public override void OnFrameworkInitializationCompleted ()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

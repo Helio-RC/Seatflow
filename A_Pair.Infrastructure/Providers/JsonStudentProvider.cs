@@ -11,14 +11,14 @@ public class JsonStudentProvider : IStudentProvider
         PropertyNameCaseInsensitive = true
     };
 
-    public async Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
+    public async Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(source) || !File.Exists(source)) return [];
 
         try
         {
             await using var stream = File.OpenRead(source);
-            var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream, Options, cancellationToken);
+            var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream , Options , cancellationToken);
             return roster?.Students ?? [];
         }
         catch (JsonException)

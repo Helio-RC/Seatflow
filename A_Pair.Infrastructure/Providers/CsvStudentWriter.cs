@@ -11,10 +11,10 @@ namespace A_Pair.Infrastructure.Providers
     /// </summary>
     public class CsvStudentWriter : IStudentWriter
     {
-        public async Task WriteAsync(string path, IEnumerable<Student> students, CancellationToken cancellationToken = default)
+        public async Task WriteAsync (string path , IEnumerable<Student> students , CancellationToken cancellationToken = default)
         {
-            await using var writer = new StreamWriter(path, false, new System.Text.UTF8Encoding(true));
-            await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            await using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
+            await using var csv = new CsvWriter(writer , CultureInfo.InvariantCulture);
 
             // 第 1 行：列名
             csv.WriteField("Name");

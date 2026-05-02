@@ -12,17 +12,17 @@ namespace A_Pair.Infrastructure.Providers
     /// </remarks>
     public class CsvStudentProvider : IStudentProvider
     {
-        public async Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
+        public async Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
         {
             var list = new List<Student>();
             if (string.IsNullOrEmpty(source) || !File.Exists(source)) return list;
 
-            var lines = await File.ReadAllLinesAsync(source, cancellationToken);
+            var lines = await File.ReadAllLinesAsync(source , cancellationToken);
             if (lines.Length < StudentDataMapping.DataStartRow) return list;
 
             // 第 1 行：列名
             var headers = ParseCsvLine(lines[0]);
-            var columnMap = new Dictionary<int, string>();
+            var columnMap = new Dictionary<int , string>();
             for (int i = 0; i < headers.Length; i++)
             {
                 var prop = StudentDataMapping.ResolveProperty(headers[i]);
@@ -36,10 +36,10 @@ namespace A_Pair.Infrastructure.Providers
                 cancellationToken.ThrowIfCancellationRequested();
                 var values = ParseCsvLine(lines[r]);
                 var student = new Student();
-                foreach (var (idx, prop) in columnMap)
+                foreach (var (idx , prop) in columnMap)
                 {
                     var raw = idx < values.Length ? values[idx] : null;
-                    StudentDataMapping.SetProperty(student, prop, raw);
+                    StudentDataMapping.SetProperty(student , prop , raw);
                 }
                 if (!string.IsNullOrWhiteSpace(student.Name))
                     list.Add(student);
@@ -48,7 +48,7 @@ namespace A_Pair.Infrastructure.Providers
             return list;
         }
 
-        private static string[] ParseCsvLine(string line)
+        private static string[] ParseCsvLine (string line)
         {
             var result = new List<string>();
             var current = new System.Text.StringBuilder();

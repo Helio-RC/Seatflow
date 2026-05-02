@@ -11,13 +11,13 @@ public abstract class ViewModelBase : ObservableObject
     internal static IDialogService Dialog { get; private set; } = default!;
 
     /// <summary>由 DI 在应用启动时调用一次。</summary>
-    public static void InitializeDialogService(IDialogService dialog)
+    public static void InitializeDialogService (IDialogService dialog)
     {
         Dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
     }
 
     /// <summary>在 try-catch 中执行操作，出错时弹窗。</summary>
-    protected async Task<bool> SafeExecuteAsync(Func<Task> action, string errorTitle = "操作失败")
+    protected async Task<bool> SafeExecuteAsync (Func<Task> action , string errorTitle = "操作失败")
     {
         try
         {
@@ -26,7 +26,7 @@ public abstract class ViewModelBase : ObservableObject
         }
         catch (Exception ex)
         {
-            await Dialog.ShowErrorAsync(errorTitle, ex.Message);
+            await Dialog.ShowErrorAsync(errorTitle , ex.Message);
             return false;
         }
     }

@@ -72,7 +72,7 @@ public partial class DataManagementViewModel : ViewModelBase
     public bool HasExpanded => !IsCompact;
     public bool HasSelectedDataset => SelectedDataset is not null;
 
-    public DataManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
+    public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)
     {
         _facade = facade;
         _fileService = fileService;
@@ -80,7 +80,7 @@ public partial class DataManagementViewModel : ViewModelBase
         _ = RefreshDatasetsAsync(CancellationToken.None);
     }
 
-    private async Task RefreshDatasetsAsync(CancellationToken ct)
+    private async Task RefreshDatasetsAsync (CancellationToken ct)
     {
         try
         {
@@ -107,26 +107,26 @@ public partial class DataManagementViewModel : ViewModelBase
         new("Excel 文件") { Patterns = ["*.xlsx"] }
     ];
 
-    private static readonly Dictionary<string, (string Suffix, string DisplayName)> TemplateLocales = new()
+    private static readonly Dictionary<string , (string Suffix , string DisplayName)> TemplateLocales = new()
     {
-        ["zh_cn"] = ("zh_cn", "学生导入模板.xlsx"),
-        ["zh_tw"] = ("zh_tw", "學生匯入範本.xlsx"),
-        ["ja_jp"] = ("ja_jp", "学生インポートテンプレート.xlsx"),
-        ["ko_kr"] = ("ko_kr", "학생가져오기템플릿.xlsx"),
+        ["zh_cn"] = ("zh_cn" , "学生导入模板.xlsx") ,
+        ["zh_tw"] = ("zh_tw" , "學生匯入範本.xlsx") ,
+        ["ja_jp"] = ("ja_jp" , "学生インポートテンプレート.xlsx") ,
+        ["ko_kr"] = ("ko_kr" , "학생가져오기템플릿.xlsx") ,
     };
 
     private const string DefaultTemplateSuffix = "en_us";
     private const string DefaultTemplateDisplayName = "StudentImportTemplate.xlsx";
 
     [RelayCommand]
-    private async Task ExportTemplateAsync(CancellationToken ct)
+    private async Task ExportTemplateAsync (CancellationToken ct)
     {
         string? errorTitle = null;
         string? errorMsg = null;
 
         try
         {
-            var (suffix, displayName) = await ResolveTemplateLocaleAsync(ct);
+            var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
             var uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
 
             if (!AssetLoader.Exists(uri))
@@ -143,12 +143,12 @@ public partial class DataManagementViewModel : ViewModelBase
                 return;
             }
 
-            var file = await _fileService.SaveFileAsync("保存导入模板", TemplateFileTypes, displayName);
+            var file = await _fileService.SaveFileAsync("保存导入模板" , TemplateFileTypes , displayName);
             if (file is null) return;
 
             using var source = AssetLoader.Open(uri);
             await using var destination = File.Create(file.Path.LocalPath);
-            await source.CopyToAsync(destination, ct);
+            await source.CopyToAsync(destination , ct);
 
             StatusMessage = "模板已保存";
         }
@@ -160,41 +160,41 @@ public partial class DataManagementViewModel : ViewModelBase
         finally
         {
             if (errorTitle != null)
-                await _dialog.ShowErrorAsync(errorTitle, errorMsg!);
+                await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
     }
 
-    private async Task<(string Suffix, string DisplayName)> ResolveTemplateLocaleAsync(CancellationToken ct)
+    private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
     {
         try
         {
             var settings = await _facade.LoadAppSettingsAsync(ct);
             var lang = !string.IsNullOrEmpty(settings.Language)
                 ? settings.Language
-                : CultureInfo.CurrentUICulture.Name.Replace('-', '_').ToLowerInvariant();
+                : CultureInfo.CurrentUICulture.Name.Replace('-' , '_').ToLowerInvariant();
 
-            if (TemplateLocales.TryGetValue(lang, out var entry))
+            if (TemplateLocales.TryGetValue(lang , out var entry))
                 return entry;
 
             var prefix = lang.Split('_')[0];
             var fallback = TemplateLocales.FirstOrDefault(kv => kv.Key.StartsWith(prefix));
-            return fallback.Value is (var f, var d) ? (f, d) : (DefaultTemplateSuffix, DefaultTemplateDisplayName);
+            return fallback.Value is (var f, var d) ? (f , d) : (DefaultTemplateSuffix , DefaultTemplateDisplayName);
         }
         catch
         {
-            return (DefaultTemplateSuffix, DefaultTemplateDisplayName);
+            return (DefaultTemplateSuffix , DefaultTemplateDisplayName);
         }
     }
 
     [RelayCommand]
-    private async Task ImportAsync(CancellationToken ct)
+    private async Task ImportAsync (CancellationToken ct)
     {
         string? errorTitle = null;
         string? errorMsg = null;
 
         try
         {
-            var file = await _fileService.OpenFileAsync("导入学生数据", StudentFileTypes);
+            var file = await _fileService.OpenFileAsync("导入学生数据" , StudentFileTypes);
             if (file is null) return;
 
             FilePath = file.Path.LocalPath;
@@ -202,7 +202,7 @@ public partial class DataManagementViewModel : ViewModelBase
             ErrorMessage = string.Empty;
             StatusMessage = "正在导入...";
 
-            var students = await _facade.LoadStudentsAsync(FilePath, ct);
+            var students = await _facade.LoadStudentsAsync(FilePath , ct);
 
             Students = new ObservableCollection<Student>(students);
             StudentCount = Students.Count;
@@ -213,7 +213,7 @@ public partial class DataManagementViewModel : ViewModelBase
             if (!IsEmpty)
             {
                 var name = Path.GetFileNameWithoutExtension(FilePath);
-                CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name, students, Path.GetFileName(FilePath), ct);
+                CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name , students , Path.GetFileName(FilePath) , ct);
                 CurrentDatasetName = name;
                 _ = RefreshDatasetsAsync(ct);
             }
@@ -236,49 +236,49 @@ public partial class DataManagementViewModel : ViewModelBase
         {
             IsLoading = false;
             if (errorTitle != null)
-                await _dialog.ShowErrorAsync(errorTitle, errorMsg!);
+                await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
     }
 
     [RelayCommand]
-    private async Task ExportCsvAsync(CancellationToken ct)
+    private async Task ExportCsvAsync (CancellationToken ct)
     {
-        await ExportAsync(ExportFormat.Csv, [new("CSV 文件") { Patterns = ["*.csv"] }], ct);
+        await ExportAsync(ExportFormat.Csv , [new("CSV 文件") { Patterns = ["*.csv"] }] , ct);
     }
 
     [RelayCommand]
-    private async Task ExportExcelAsync(CancellationToken ct)
+    private async Task ExportExcelAsync (CancellationToken ct)
     {
-        await ExportAsync(ExportFormat.Excel, [new("Excel 文件") { Patterns = ["*.xlsx"] }], ct);
+        await ExportAsync(ExportFormat.Excel , [new("Excel 文件") { Patterns = ["*.xlsx"] }] , ct);
     }
 
     [RelayCommand]
-    private async Task ExportJsonAsync(CancellationToken ct)
+    private async Task ExportJsonAsync (CancellationToken ct)
     {
-        await ExportAsync(ExportFormat.Json, [new("JSON 文件") { Patterns = ["*.json"] }], ct);
+        await ExportAsync(ExportFormat.Json , [new("JSON 文件") { Patterns = ["*.json"] }] , ct);
     }
 
-    private async Task ExportAsync(ExportFormat format, FilePickerFileType[] types, CancellationToken ct)
+    private async Task ExportAsync (ExportFormat format , FilePickerFileType[] types , CancellationToken ct)
     {
         string? errorTitle = null;
         string? errorMsg = null;
 
         if (Students.Count == 0)
         {
-            await _dialog.ShowWarningAsync("无数据", "当前没有可导出的学生数据。");
+            await _dialog.ShowWarningAsync("无数据" , "当前没有可导出的学生数据。");
             return;
         }
 
         try
         {
-            var file = await _fileService.SaveFileAsync("导出", types);
+            var file = await _fileService.SaveFileAsync("导出" , types);
             if (file is null) return;
 
             IsLoading = true;
             ErrorMessage = string.Empty;
             StatusMessage = "正在导出...";
 
-            await _facade.ExportStudentsAsync(file.Path.LocalPath, Students, format, ct);
+            await _facade.ExportStudentsAsync(file.Path.LocalPath , Students , format , ct);
 
             StatusMessage = "导出完成";
         }
@@ -292,16 +292,16 @@ public partial class DataManagementViewModel : ViewModelBase
         {
             IsLoading = false;
             if (errorTitle != null)
-                await _dialog.ShowErrorAsync(errorTitle, errorMsg!);
+                await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
     }
 
     [RelayCommand]
-    private async Task ClearDataAsync()
+    private async Task ClearDataAsync ()
     {
         if (!IsEmpty)
         {
-            var confirmed = await _dialog.ShowConfirmAsync("确认清除",
+            var confirmed = await _dialog.ShowConfirmAsync("确认清除" ,
                 $"确定要清除当前导入的 {StudentCount} 名学生数据吗？");
             if (!confirmed) return;
         }
@@ -317,7 +317,7 @@ public partial class DataManagementViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task LoadSelectedDatasetAsync(CancellationToken ct)
+    private async Task LoadSelectedDatasetAsync (CancellationToken ct)
     {
         if (SelectedDataset is null) return;
 
@@ -327,7 +327,7 @@ public partial class DataManagementViewModel : ViewModelBase
 
         try
         {
-            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id , ct);
             if (students is not null)
             {
                 CurrentDatasetId = SelectedDataset.Id;
@@ -343,14 +343,14 @@ public partial class DataManagementViewModel : ViewModelBase
             else
             {
                 StatusMessage = "数据集文件不存在";
-                await _dialog.ShowErrorAsync("加载失败", $"找不到数据集「{SelectedDataset.Name}」的文件。");
+                await _dialog.ShowErrorAsync("加载失败" , $"找不到数据集「{SelectedDataset.Name}」的文件。");
                 await RefreshDatasetsAsync(ct);
             }
         }
         catch (Exception ex)
         {
             StatusMessage = "加载失败";
-            await _dialog.ShowErrorAsync("加载失败", ex.Message);
+            await _dialog.ShowErrorAsync("加载失败" , ex.Message);
         }
         finally
         {
@@ -359,34 +359,34 @@ public partial class DataManagementViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task DeleteSelectedDatasetAsync(CancellationToken ct)
+    private async Task DeleteSelectedDatasetAsync (CancellationToken ct)
     {
         if (SelectedDataset is null) return;
 
-        var confirmed = await _dialog.ShowConfirmAsync("确认删除",
+        var confirmed = await _dialog.ShowConfirmAsync("确认删除" ,
             $"确定要删除数据集「{SelectedDataset.Name}」吗？\n此操作不可撤销。");
         if (!confirmed) return;
 
         try
         {
-            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id, ct);
+            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id , ct);
             SelectedDataset = null;
             await RefreshDatasetsAsync(ct);
             StatusMessage = "数据集已删除";
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("删除失败", ex.Message);
+            await _dialog.ShowErrorAsync("删除失败" , ex.Message);
         }
     }
 
     [RelayCommand]
-    private async Task RenameSelectedDatasetAsync(CancellationToken ct)
+    private async Task RenameSelectedDatasetAsync (CancellationToken ct)
     {
         if (SelectedDataset is null) return;
 
-        var (confirmed, newName) = await _dialog.ShowInputAsync("重命名数据集",
-            $"请输入「{SelectedDataset.Name}」的新名称：", SelectedDataset.Name);
+        var (confirmed , newName) = await _dialog.ShowInputAsync("重命名数据集" ,
+            $"请输入「{SelectedDataset.Name}」的新名称：" , SelectedDataset.Name);
         if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
 
         try
@@ -394,12 +394,12 @@ public partial class DataManagementViewModel : ViewModelBase
             // 如果是当前数据集，用内存中的最新数据；否则从文件加载
             var students = CurrentDatasetId == SelectedDataset.Id
                 ? Students.ToList()
-                : await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
+                : await _facade.LoadStudentDatasetAsync(SelectedDataset.Id , ct);
 
             if (students is null) return;
 
-            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id, ct);
-            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim(), students, SelectedDataset.OriginalFileName, ct);
+            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id , ct);
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , students , SelectedDataset.OriginalFileName , ct);
 
             if (CurrentDatasetId == SelectedDataset.Id)
             {
@@ -413,47 +413,47 @@ public partial class DataManagementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("重命名失败", ex.Message);
+            await _dialog.ShowErrorAsync("重命名失败" , ex.Message);
         }
     }
 
     [RelayCommand]
-    private async Task SaveAsync(CancellationToken ct)
+    private async Task SaveAsync (CancellationToken ct)
     {
         if (Students.Count == 0) return;
 
         var datasetName = CurrentDatasetName ?? "未命名";
 
-        var confirmed = await _dialog.ShowConfirmAsync("确认保存",
+        var confirmed = await _dialog.ShowConfirmAsync("确认保存" ,
             $"将覆盖数据集「{datasetName}」（{StudentCount} 名学生），确定继续？");
         if (!confirmed) return;
 
         try
         {
             if (CurrentDatasetId is not null)
-                await _facade.DeleteStudentDatasetAsync(CurrentDatasetId, ct);
+                await _facade.DeleteStudentDatasetAsync(CurrentDatasetId , ct);
 
-            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName, Students.ToList(), null, ct);
+            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
             CurrentDatasetName = datasetName;
             await RefreshDatasetsAsync(ct);
             StatusMessage = $"已保存「{datasetName}」";
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("保存失败", ex.Message);
+            await _dialog.ShowErrorAsync("保存失败" , ex.Message);
         }
     }
 
     [RelayCommand]
-    private async Task RenameSaveAsync(CancellationToken ct)
+    private async Task RenameSaveAsync (CancellationToken ct)
     {
-        var (confirmed, newName) = await _dialog.ShowInputAsync("另存为",
-            "输入新数据集名称，原数据集不会被修改：", "");
+        var (confirmed , newName) = await _dialog.ShowInputAsync("另存为" ,
+            "输入新数据集名称，原数据集不会被修改：" , "");
         if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
 
         try
         {
-            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim(), Students.ToList(), null, ct);
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , Students.ToList() , null , ct);
             CurrentDatasetId = newId;
             CurrentDatasetName = newName.Trim();
             await RefreshDatasetsAsync(ct);
@@ -461,7 +461,7 @@ public partial class DataManagementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("保存失败", ex.Message);
+            await _dialog.ShowErrorAsync("保存失败" , ex.Message);
         }
     }
 }

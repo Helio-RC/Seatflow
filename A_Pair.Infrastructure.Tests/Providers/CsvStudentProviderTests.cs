@@ -4,15 +4,15 @@ namespace A_Pair.Infrastructure.Tests.Providers;
 
 public class CsvStudentProviderTests
 {
-    private static string CreateTempCsv(string content)
+    private static string CreateTempCsv (string content)
     {
         var path = Path.GetTempFileName() + ".csv";
-        File.WriteAllText(path, content, Encoding.UTF8);
+        File.WriteAllText(path , content , Encoding.UTF8);
         return path;
     }
 
     [Fact]
-    public async Task LoadAsync_ValidCsv_ShouldReturnStudents()
+    public async Task LoadAsync_ValidCsv_ShouldReturnStudents ()
     {
         var csvContent =
             "Name,Height,Gender,NeedsFrontRow\n" +
@@ -23,7 +23,7 @@ public class CsvStudentProviderTests
         try
         {
             var provider = new CsvStudentProvider();
-            var students = await provider.LoadAsync(path, CancellationToken.None);
+            var students = await provider.LoadAsync(path , CancellationToken.None);
             students.Should().HaveCount(2);
             students[0].Name.Should().Be("Alice");
             students[1].NeedsFrontRow.Should().BeTrue();
@@ -35,7 +35,7 @@ public class CsvStudentProviderTests
     }
 
     [Fact]
-    public async Task LoadAsync_ChineseHeaders_ShouldReturnStudents()
+    public async Task LoadAsync_ChineseHeaders_ShouldReturnStudents ()
     {
         var csvContent =
             "姓名,身高,性别,需要前排\n" +
@@ -46,7 +46,7 @@ public class CsvStudentProviderTests
         try
         {
             var provider = new CsvStudentProvider();
-            var students = await provider.LoadAsync(path, CancellationToken.None);
+            var students = await provider.LoadAsync(path , CancellationToken.None);
             students.Should().HaveCount(2);
             students[0].Name.Should().Be("Alice");
             students[1].NeedsFrontRow.Should().BeTrue();
@@ -58,13 +58,13 @@ public class CsvStudentProviderTests
     }
 
     [Fact]
-    public async Task LoadAsync_EmptyFile_ShouldReturnEmptyList()
+    public async Task LoadAsync_EmptyFile_ShouldReturnEmptyList ()
     {
         var path = CreateTempCsv("Name,Height\n备注,cm\n");
         try
         {
             var provider = new CsvStudentProvider();
-            var students = await provider.LoadAsync(path, CancellationToken.None);
+            var students = await provider.LoadAsync(path , CancellationToken.None);
             students.Should().BeEmpty();
         }
         finally
@@ -74,10 +74,10 @@ public class CsvStudentProviderTests
     }
 
     [Fact]
-    public async Task LoadAsync_FileNotFound_ShouldReturnEmptyList()
+    public async Task LoadAsync_FileNotFound_ShouldReturnEmptyList ()
     {
         var provider = new CsvStudentProvider();
-        var students = await provider.LoadAsync("nonexistent.csv", CancellationToken.None);
+        var students = await provider.LoadAsync("nonexistent.csv" , CancellationToken.None);
         students.Should().BeEmpty();
     }
 }

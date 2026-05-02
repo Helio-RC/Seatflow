@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
-             x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
-             x:DataType="vm:SettingsViewModel">
-    <TextBlock Text="{Binding Title}"
-               HorizontalAlignment="Center" VerticalAlignment="Center"
-               FontSize="18"/>
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+			 x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
+			 x:DataType="vm:SettingsViewModel">
+	<TextBlock Text="{Binding Title}"
+			   HorizontalAlignment="Center" VerticalAlignment="Center"
+			   FontSize="18"/>
 </UserControl>

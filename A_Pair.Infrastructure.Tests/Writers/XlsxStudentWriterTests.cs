@@ -5,7 +5,7 @@ namespace A_Pair.Infrastructure.Tests.Writers;
 public class XlsxStudentWriterTests
 {
     [Fact]
-    public async Task WriteAsync_ThenReadBack_ShouldMatch()
+    public async Task WriteAsync_ThenReadBack_ShouldMatch ()
     {
         var students = new List<Student>
         {
@@ -16,10 +16,10 @@ public class XlsxStudentWriterTests
         try
         {
             var writer = new XlsxStudentWriter();
-            await writer.WriteAsync(path, students, CancellationToken.None);
+            await writer.WriteAsync(path , students , CancellationToken.None);
 
             var provider = new XlsxStudentProvider();
-            var loaded = await provider.LoadAsync(path, CancellationToken.None);
+            var loaded = await provider.LoadAsync(path , CancellationToken.None);
             loaded.Should().HaveCount(2);
             loaded.First().Name.Should().Be("Alice");
             loaded.First().Gender.Should().Be(Gender.Female);

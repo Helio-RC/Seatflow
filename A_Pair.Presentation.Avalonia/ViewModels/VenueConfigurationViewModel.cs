@@ -10,7 +10,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
     public string Title { get; } = "会场配置";
 
-    public VenueConfigurationViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
+    public VenueConfigurationViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)
     {
         _facade = facade;
         _fileService = fileService;

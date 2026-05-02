@@ -19,11 +19,11 @@ public partial class MainShellViewModel : ViewModelBase
     private bool _isSidebarExpanded = true;
 
     [ObservableProperty]
-    private double _sidebarWidth = 160;
+    private double _sidebarWidth = 140;
 
     private bool _userWantsExpanded = true;
 
-    public MainShellViewModel(INavigationService navigation)
+    public MainShellViewModel (INavigationService navigation)
     {
         _navigation = navigation;
         _navigation.CurrentViewModelChanged += () =>
@@ -35,28 +35,28 @@ public partial class MainShellViewModel : ViewModelBase
         CurrentPage = _navigation.CurrentPage;
     }
 
-    public void OnWindowWidthChanged(double windowWidth)
+    public void OnWindowWidthChanged (double windowWidth)
     {
-        if (windowWidth < 800)
+        if (windowWidth < 750)
             IsSidebarExpanded = false;
         else
             IsSidebarExpanded = _userWantsExpanded;
     }
 
-    partial void OnIsSidebarExpandedChanged(bool value)
-        => SidebarWidth = value ? 160 : 64;
+    partial void OnIsSidebarExpandedChanged (bool value)
+        => SidebarWidth = value ? 140 : 64;
 
     [RelayCommand]
-    private void ToggleSidebar()
+    private void ToggleSidebar ()
     {
         _userWantsExpanded = !_userWantsExpanded;
         IsSidebarExpanded = _userWantsExpanded;
     }
 
     [RelayCommand]
-    private void Navigate(string pageName)
+    private void Navigate (string pageName)
     {
-        if (Enum.TryParse<PageKey>(pageName, out var key))
+        if (Enum.TryParse<PageKey>(pageName , out var key))
             _navigation.NavigateTo(key);
     }
 }

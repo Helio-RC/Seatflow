@@ -13,7 +13,7 @@ namespace A_Pair.Infrastructure.Providers
     /// </remarks>
     public class XlsxStudentProvider : IStudentProvider
     {
-        public async Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
+        public async Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
         {
             var list = new List<Student>();
             if (string.IsNullOrEmpty(source) || !File.Exists(source)) return list;
@@ -25,10 +25,10 @@ namespace A_Pair.Infrastructure.Providers
             if (ws.Dimension == null) return list;
 
             // 第 1 行：读取列名，建立 列索引 → 属性名 的映射
-            var columnMap = new Dictionary<int, string>();
+            var columnMap = new Dictionary<int , string>();
             for (int c = ws.Dimension.Start.Column; c <= ws.Dimension.End.Column; c++)
             {
-                var header = ws.Cells[ws.Dimension.Start.Row, c].GetValue<string>();
+                var header = ws.Cells[ws.Dimension.Start.Row , c].GetValue<string>();
                 if (!string.IsNullOrWhiteSpace(header))
                 {
                     var prop = StudentDataMapping.ResolveProperty(header);
@@ -42,10 +42,10 @@ namespace A_Pair.Infrastructure.Providers
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var student = new Student();
-                foreach (var (col, prop) in columnMap)
+                foreach (var (col , prop) in columnMap)
                 {
-                    var raw = ws.Cells[r, col].GetValue<string>();
-                    StudentDataMapping.SetProperty(student, prop, raw);
+                    var raw = ws.Cells[r , col].GetValue<string>();
+                    StudentDataMapping.SetProperty(student , prop , raw);
                 }
                 if (!string.IsNullOrWhiteSpace(student.Name))
                     list.Add(student);
