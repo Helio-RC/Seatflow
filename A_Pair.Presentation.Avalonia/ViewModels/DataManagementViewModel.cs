@@ -422,6 +422,14 @@ public partial class DataManagementViewModel : ViewModelBase
     {
         if (Students.Count == 0) return;
 
+        var errors = ValidateStudents();
+        if (errors.Count > 0)
+        {
+            await _dialog.ShowErrorAsync("数据校验未通过" ,
+                string.Join('\n' , errors.Take(10)));
+            return;
+        }
+
         var datasetName = CurrentDatasetName ?? "未命名";
 
         var confirmed = await _dialog.ShowConfirmAsync("确认保存" ,
@@ -443,6 +451,30 @@ public partial class DataManagementViewModel : ViewModelBase
             await _dialog.ShowErrorAsync("保存失败" , ex.Message);
         }
     }
+
+    private List<string> ValidateStudents()
+    {
+        var errors = new List<string>();
+
+        for (int i = 0; i < Students.Count; i++)
+        {
+            var s = Students[i];
+            var row = i + 1;
+
+            if (string.IsNullOrWhiteSpace(s.Name))
+                errors.Add($"第 {row} 行：姓名不能为空");
+
+            if (s.Height.HasValue && s.Height.Value <= 0)
+                errors.Add($"第 {row} 行 \"{s.Name}\"：身高必须为正数");
+
+            if (s.Gender.HasValue && !Enum.IsDefined(s.Gender.Value))
+                errors.Add($"第 {row} 行 \"{s.Name}\"：性别值无效，请输入 男/女/其他 或 Male/Female/Other");
+        }
+
+        return errors;
+    }
+
+
 
     [RelayCommand]
     private async Task RenameSaveAsync (CancellationToken ct)
