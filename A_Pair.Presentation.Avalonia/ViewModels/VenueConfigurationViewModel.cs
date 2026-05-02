@@ -64,6 +64,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public VenueConfigurationViewModel(IApplicationFacade facade, IDialogService dialog)
     {
         _facade = facade;
+        _ = LoadVenueList(); // 启动后自动加载会场列表
     }
 
     [RelayCommand]

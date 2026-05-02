@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.VenueConfigurationView"
@@ -8,203 +9,220 @@
 
     <Grid ColumnDefinitions="240,*,Auto">
         <!-- 左侧：会场列表 -->
-        <Border Grid.Column="0" BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                BorderThickness="0,0,1,0" Padding="12">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
-                    <TextBlock Text="会场列表" FontSize="16" FontWeight="SemiBold"/>
+        <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+            <DockPanel Margin="8">
+                <TextBlock DockPanel.Dock="Top" Text="会场列表"
+                           FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+                <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,8,0,0">
                     <Button Command="{Binding NewVenueCommand}"
-                            HorizontalContentAlignment="Center" Classes="accent">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="18"/>
-                            <TextBlock Text="新建会场" FontSize="13"/>
+                            HorizontalContentAlignment="Stretch">
+                        <StackPanel Orientation="Horizontal" Spacing="6"
+                                    HorizontalAlignment="Center">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14" />
+                            <TextBlock Text="新建会场" FontSize="13" />
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding LoadVenueListCommand}"
+                            HorizontalContentAlignment="Stretch">
+                        <StackPanel Orientation="Horizontal" Spacing="6"
+                                    HorizontalAlignment="Center">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14" />
+                            <TextBlock Text="刷新列表" FontSize="13" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <ListBox ItemsSource="{Binding VenueIds}" SelectedItem="{Binding SelectedVenueId, Mode=TwoWay}"
-                         Margin="0,0,0,8">
+                <ListBox ItemsSource="{Binding VenueIds}"
+                         SelectedItem="{Binding SelectedVenueId, Mode=TwoWay}"
+                         BorderThickness="0">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
                             <TextBlock Text="{Binding}" FontSize="13" Margin="4,6"/>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-
-                <StackPanel DockPanel.Dock="Bottom" Spacing="4">
-                    <Button Command="{Binding LoadVenueListCommand}"
-                            HorizontalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="18"/>
-                            <TextBlock Text="刷新列表" FontSize="13"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- 右侧：布局编辑器 -->
-        <ScrollViewer Grid.Column="1">
-            <DockPanel Margin="16">
-                <!-- 顶部工具栏 -->
-                <Border DockPanel.Dock="Top" Padding="0,0,0,12" BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                        BorderThickness="0,0,0,1" Margin="0,0,0,16">
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8"
-                                    VerticalAlignment="Center">
-                            <TextBlock Text="会场名称" FontSize="13" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding LayoutName, Mode=TwoWay}" Width="200" FontSize="14"/>
-                        </StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                            <Button Command="{Binding SaveVenueCommand}"
-                                    IsEnabled="{Binding HasSelectedVenue}" Classes="accent"
+        <!-- 分隔条 -->
+        <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
+                      HorizontalAlignment="Stretch" />
+
+        <!-- 右侧 -->
+        <Grid Grid.Column="2">
+            <!-- 空状态：未选择会场 -->
+            <Border IsVisible="{Binding HasSelectedVenue, Converter={x:Static conv:BoolConverters.Negate}}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="8">
+                <StackPanel Spacing="8" HorizontalAlignment="Center">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="48"
+                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                    HorizontalAlignment="Center" />
+                    <TextBlock Text="未选择会场" FontSize="16" FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <TextBlock Text="请从左侧选择一个会场或新建一个"
+                               FontSize="12" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- 布局编辑器 -->
+            <ScrollViewer IsVisible="{Binding HasSelectedVenue}">
+                <DockPanel Margin="16">
+                    <!-- 顶部工具栏 -->
+                    <Border DockPanel.Dock="Top" Padding="0,0,0,12"
+                            BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            BorderThickness="0,0,0,1" Margin="0,0,0,16">
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="会场名称" FontSize="13" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding LayoutName, Mode=TwoWay}" Width="200" FontSize="14"/>
+                            </StackPanel>
+                            <Button Grid.Row="0" Grid.Column="1"
+                                    Command="{Binding SaveVenueCommand}" Classes="accent"
                                     HorizontalContentAlignment="Center">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="18"/>
                                     <TextBlock Text="保存" FontSize="13"/>
                                 </StackPanel>
                             </Button>
-                        </StackPanel>
-                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding StatusMessage}"
-                                   FontSize="12" Margin="0,4,0,0"/>
-                    </Grid>
-                </Border>
-
-                <!-- 布局类型选择 -->
-                <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,16">
-                    <TextBlock Text="布局类型" FontSize="14" FontWeight="SemiBold"/>
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"
-                                     Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Grid"
-                                     Content="网格 Grid"/>
-                        <RadioButton GroupName="LayoutType" IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
-                                     Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Polar"
-                                     Content="极坐标 Polar"/>
-                        <RadioButton GroupName="LayoutType" IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
-                                     Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Freeform"
-                                     Content="自由点 Freeform"/>
-                    </StackPanel>
-                </StackPanel>
-
-                <!-- Grid 参数面板 -->
-                <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
-                        Padding="12" Margin="0,0,0,16"
-                        BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                        BorderThickness="1" CornerRadius="4">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="网格参数" FontSize="13" FontWeight="SemiBold"/>
-                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
-                              RowSpacing="6" ColumnSpacing="12">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding GridRows, Mode=TwoWay}"
-                                           Minimum="1" Maximum="20"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="列数" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridColumns, Mode=TwoWay}"
-                                           Minimum="1" Maximum="20"/>
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
-                                           Minimum="8" Maximum="120"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
-                                           Minimum="8" Maximum="120"/>
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding GridOriginX, Mode=TwoWay}"
-                                           Minimum="0" Maximum="500"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding GridOriginY, Mode=TwoWay}"
-                                           Minimum="0" Maximum="500"/>
+                            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding StatusMessage}"
+                                       FontSize="12" Margin="0,4,0,0"/>
                         </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Polar 参数面板 -->
-                <Border DockPanel.Dock="Top" IsVisible="{Binding IsPolarSelected}"
-                        Padding="12" Margin="0,0,0,16"
-                        BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                        BorderThickness="1" CornerRadius="4">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="极坐标参数" FontSize="13" FontWeight="SemiBold"/>
-                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                              RowSpacing="6" ColumnSpacing="12">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding PolarRings, Mode=TwoWay}"
-                                           Minimum="1" Maximum="10"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="每环座位数" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarSeatsPerRing, Mode=TwoWay}"
-                                           Minimum="2" Maximum="60"/>
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="半径步长" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
-                                           Minimum="16" Maximum="200"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2" Text="起始角度" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarStartAngle, Mode=TwoWay}"
-                                           Minimum="0" Maximum="360"/>
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding PolarOriginX, Mode=TwoWay}"
-                                           Minimum="0" Maximum="500"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginY, Mode=TwoWay}"
-                                           Minimum="0" Maximum="500"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Freeform 提示 -->
-                <Border DockPanel.Dock="Top" IsVisible="{Binding IsFreeformSelected}"
-                        Padding="12" Margin="0,0,0,16"
-                        BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                        BorderThickness="1" CornerRadius="4">
-                    <TextBlock Text="自由点布局通过自定义坐标文件导入座位位置。请先在数据管理中导入坐标数据。"
-                               FontSize="13" TextWrapping="Wrap"/>
-                </Border>
-
-                <!-- 预览区域 -->
-                <DockPanel Margin="0,8,0,0">
-                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="布局预览" FontSize="14" FontWeight="SemiBold"/>
-                            <Button Command="{Binding RegeneratePreviewCommand}"
-                                    HorizontalContentAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14"/>
-                                    <TextBlock Text="刷新预览" FontSize="12"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <Border BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            BorderThickness="1" CornerRadius="4"
-                            MinHeight="300" Padding="8">
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding PreviewSeats}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <Canvas Width="600" Height="500"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:SeatPreview">
-                                        <Border Width="24" Height="24" CornerRadius="2"
-                                                Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}"
-                                                ToolTip.Tip="{Binding Label}">
-                                            <Border.Styles>
-                                                <Style Selector="Border">
-                                                    <Setter Property="Background"
-                                                            Value="{DynamicResource SystemAccentColor}"/>
-                                                </Style>
-                                            </Border.Styles>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
                     </Border>
+
+                    <!-- 布局类型选择 -->
+                    <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,16">
+                        <TextBlock Text="布局类型" FontSize="14" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"
+                                         Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Grid"
+                                         Content="网格 Grid"/>
+                            <RadioButton GroupName="LayoutType" IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
+                                         Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Polar"
+                                         Content="极坐标 Polar"/>
+                            <RadioButton GroupName="LayoutType" IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
+                                         Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Freeform"
+                                         Content="自由点 Freeform"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Grid 参数面板 -->
+                    <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
+                            Padding="12" Margin="0,0,0,16"
+                            BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            BorderThickness="1" CornerRadius="4">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="网格参数" FontSize="13" FontWeight="SemiBold"/>
+                            <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
+                                  RowSpacing="6" ColumnSpacing="12">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding GridRows, Mode=TwoWay}"
+                                               Minimum="1" Maximum="20"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="列数" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridColumns, Mode=TwoWay}"
+                                               Minimum="1" Maximum="20"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
+                                               Minimum="8" Maximum="120"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
+                                               Minimum="8" Maximum="120"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding GridOriginX, Mode=TwoWay}"
+                                               Minimum="0" Maximum="500"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding GridOriginY, Mode=TwoWay}"
+                                               Minimum="0" Maximum="500"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Polar 参数面板 -->
+                    <Border DockPanel.Dock="Top" IsVisible="{Binding IsPolarSelected}"
+                            Padding="12" Margin="0,0,0,16"
+                            BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            BorderThickness="1" CornerRadius="4">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="极坐标参数" FontSize="13" FontWeight="SemiBold"/>
+                            <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
+                                  RowSpacing="6" ColumnSpacing="12">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding PolarRings, Mode=TwoWay}"
+                                               Minimum="1" Maximum="10"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="每环座位数" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarSeatsPerRing, Mode=TwoWay}"
+                                               Minimum="2" Maximum="60"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="半径步长" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
+                                               Minimum="16" Maximum="200"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="起始角度" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarStartAngle, Mode=TwoWay}"
+                                               Minimum="0" Maximum="360"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding PolarOriginX, Mode=TwoWay}"
+                                               Minimum="0" Maximum="500"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                                <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginY, Mode=TwoWay}"
+                                               Minimum="0" Maximum="500"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Freeform 提示 -->
+                    <Border DockPanel.Dock="Top" IsVisible="{Binding IsFreeformSelected}"
+                            Padding="12" Margin="0,0,0,16"
+                            BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            BorderThickness="1" CornerRadius="4">
+                        <TextBlock Text="自由点布局通过自定义坐标文件导入座位位置。请先在数据管理中导入坐标数据。"
+                                   FontSize="13" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <!-- 预览区域 -->
+                    <DockPanel Margin="0,8,0,0">
+                        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+                            <TextBlock Text="布局预览" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+
+                        <Border BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                BorderThickness="1" CornerRadius="4"
+                                MinHeight="300" Padding="8">
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding PreviewSeats}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas Width="600" Height="500"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:SeatPreview">
+                                            <Border Width="24" Height="24" CornerRadius="2"
+                                                    Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}"
+                                                    ToolTip.Tip="{Binding Label}">
+                                                <Border.Styles>
+                                                    <Style Selector="Border">
+                                                        <Setter Property="Background"
+                                                                Value="{DynamicResource SystemAccentColor}"/>
+                                                    </Style>
+                                                </Border.Styles>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </DockPanel>
                 </DockPanel>
-            </DockPanel>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

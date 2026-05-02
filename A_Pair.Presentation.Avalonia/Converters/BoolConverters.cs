@@ -8,6 +8,7 @@ public static class BoolConverters
 {
     public static readonly IValueConverter TrueToVisible = new BoolToDoubleConverter(1 , 0);
     public static readonly IValueConverter FalseToVisible = new BoolToDoubleConverter(0 , 1);
+    public static readonly IValueConverter Negate = new BoolInvertConverter();
     public static readonly IValueConverter CompactPanelWidth = new BoolToDoubleConverter(80 , double.NaN);
 
     private class BoolToDoubleConverter (double trueValue , double falseValue) : IValueConverter
@@ -17,5 +18,14 @@ public static class BoolConverters
 
         public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
             => throw new NotSupportedException();
+    }
+
+    private class BoolInvertConverter : IValueConverter
+    {
+        public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
+            => value is bool b ? !b : value;
+
+        public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
+            => value is bool b ? !b : value;
     }
 }
