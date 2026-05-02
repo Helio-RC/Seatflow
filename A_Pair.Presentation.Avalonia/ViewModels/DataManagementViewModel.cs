@@ -29,7 +29,10 @@ public partial class DataManagementViewModel : ViewModelBase
     private string _filePath = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotLoading))]
     private bool _isLoading;
+
+    public bool IsNotLoading => !IsLoading;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasData))]
@@ -63,8 +66,10 @@ public partial class DataManagementViewModel : ViewModelBase
     private string? _currentDatasetName;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasExpanded))]
     private bool _isCompact;
 
+    public bool HasExpanded => !IsCompact;
     public bool HasSelectedDataset => SelectedDataset is not null;
 
     public DataManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
