@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -87,6 +88,30 @@ public partial class FreeformManagementViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task ExportTemplate()
+    {
+        var file = await _fileService.SaveFileAsync(
+            "保存 CSV 模板",
+            [new("CSV 文件") { Patterns = ["*.csv"] }],
+            "自由点导入模板.csv");
+        if (file == null) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            await using var stream = await file.OpenWriteAsync();
+            using var writer = new StreamWriter(stream);
+            await writer.WriteLineAsync("X,Y");
+            await writer.WriteLineAsync("100,100");
+            await writer.WriteLineAsync("200,100");
+            await writer.WriteLineAsync("300,100");
+            await writer.WriteLineAsync("100,200");
+            await writer.WriteLineAsync("200,200");
+            await writer.WriteLineAsync("300,200");
+            StatusMessage = "模板已保存";
+        }, "保存模板失败");
+    }
+
+    [RelayCommand]
     private async Task ImportCsv()
     {
         var file = await _fileService.OpenFileAsync(
@@ -99,12 +124,15 @@ public partial class FreeformManagementViewModel : ViewModelBase
             await using var stream = await file.OpenReadAsync();
             using var reader = new StreamReader(stream);
             var pts = new List<FreeformPoint>();
+            var lineNum = 0;
             while (await reader.ReadLineAsync() is { } line)
             {
+                lineNum++;
+                if (lineNum == 1) continue; // skip header
                 var parts = line.Split(',');
                 if (parts.Length >= 2 &&
-                    double.TryParse(parts[0].Trim(), out var x) &&
-                    double.TryParse(parts[1].Trim(), out var y))
+                    double.TryParse(parts[0].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var x) &&
+                    double.TryParse(parts[1].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var y))
                 {
                     pts.Add(new FreeformPoint(x, y));
                 }
@@ -146,6 +174,14 @@ public partial class FreeformManagementViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(LayoutName))
         {
             await Dialog.ShowWarningAsync("保存失败", "请输入布局名称");
+            return;
+        }
+
+        var errors = ValidatePoints();
+        if (errors.Count > 0)
+        {
+            await Dialog.ShowErrorAsync("数据校验未通过",
+                string.Join('\n', errors.Take(10)));
             return;
         }
 
@@ -210,6 +246,32 @@ public partial class FreeformManagementViewModel : ViewModelBase
         Points.Clear();
         IsEmpty = true;
         StatusMessage = "已清空所有点";
+    }
+
+    private List<string> ValidatePoints()
+    {
+        var errors = new List<string>();
+        var seen = new HashSet<(double, double)>();
+
+        for (int i = 0; i < Points.Count; i++)
+        {
+            var p = Points[i];
+            var n = i + 1;
+
+            if (double.IsNaN(p.X) || double.IsInfinity(p.X))
+                errors.Add($"第 {n} 行：X 坐标无效");
+            if (double.IsNaN(p.Y) || double.IsInfinity(p.Y))
+                errors.Add($"第 {n} 行：Y 坐标无效");
+            if (p.Y < 0)
+                errors.Add($"第 {n} 行：Y 坐标为负值 ({p.Y:F1})，请确认坐标是否正确");
+
+            var key = (p.X, p.Y);
+            if (seen.Contains(key))
+                errors.Add($"第 {n} 行：坐标 ({p.X:F1}, {p.Y:F1}) 与前面的点重复");
+            seen.Add(key);
+        }
+
+        return errors;
     }
 }
 

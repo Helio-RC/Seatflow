@@ -15,6 +15,13 @@
                            VerticalAlignment="Center" />
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                    <Button Command="{Binding ExportTemplateCommand}"
+                            HorizontalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
+                            <TextBlock Text="模板" FontSize="14" />
+                        </StackPanel>
+                    </Button>
                     <Button Command="{Binding ImportCsvCommand}"
                             HorizontalContentAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="6">
@@ -43,8 +50,12 @@
 
         <!-- 底部状态栏 -->
         <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
-            <TextBlock Text="{Binding StatusMessage}" FontSize="12"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding Points.Count, StringFormat='共 {0} 个点'}"
+                           FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </DockPanel>
         </Border>
 
         <Grid ColumnDefinitions="240,4,*">
@@ -103,7 +114,7 @@
                         <TextBlock Text="暂无数据" FontSize="16" FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                        <TextBlock Text="点击「导入 CSV」或从左侧加载已保存的布局"
+                        <TextBlock Text="点击「模板」下载 CSV 模板，编辑后「导入 CSV」或从左侧加载已保存的布局"
                                    FontSize="12" HorizontalAlignment="Center"
                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                     </StackPanel>
