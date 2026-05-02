@@ -1,4 +1,5 @@
 using A_Pair.Core.Models;
+using A_Pair.Core.Providers;
 using A_Pair.Core.Workspace;
 
 namespace A_Pair.Application.Interfaces
@@ -64,6 +65,18 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>回滚到指定快照。</summary>
         Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default);
+
+        /// <summary>保存学生数据集到托管存储。</summary>
+        Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
+
+        /// <summary>从托管存储加载学生数据集。</summary>
+        Task<List<Student>?> LoadStudentDatasetAsync (string id , CancellationToken ct = default);
+
+        /// <summary>列出所有已保存的学生数据集。</summary>
+        Task<IReadOnlyList<StudentDatasetInfo>> ListStudentDatasetsAsync (CancellationToken ct = default);
+
+        /// <summary>删除指定学生数据集。</summary>
+        Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default);
     }
 
     /// <summary>

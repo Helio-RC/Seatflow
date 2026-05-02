@@ -12,7 +12,8 @@ public class ApplicationFacadeTests
         out PluginManager pluginManager ,
         out IPluginConfigurationService pluginConfigService ,
         out IAppSettingsRepository appSettingsRepo ,
-        out IVenueRepository venueRepo)
+        out IVenueRepository venueRepo ,
+        out IStudentDatasetRepository datasetRepo)
     {
         serviceProvider = Substitute.For<IServiceProvider>();
         snapshotRepo = Substitute.For<ISeatingSnapshotRepository>();
@@ -21,6 +22,7 @@ public class ApplicationFacadeTests
         pluginConfigService = Substitute.For<IPluginConfigurationService>();
         appSettingsRepo = Substitute.For<IAppSettingsRepository>();
         venueRepo = Substitute.For<IVenueRepository>();
+        datasetRepo = Substitute.For<IStudentDatasetRepository>();
 
         var facade = new ApplicationFacade(
             serviceProvider ,
@@ -29,7 +31,8 @@ public class ApplicationFacadeTests
             pluginManager ,
             pluginConfigService ,
             appSettingsRepo ,
-            venueRepo);
+            venueRepo ,
+            datasetRepo);
         return facade;
     }
 
@@ -37,7 +40,7 @@ public class ApplicationFacadeTests
     public async Task ExportSeatingPlanAsync_ShouldCallExporterWithOptions ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr);
         var ws = new SeatingWorkspace(new List<Student>() , new List<Seat>());
         var options = new ExportOptions { Format = ExportFormat.Excel , Anonymize = true };
 
@@ -57,7 +60,7 @@ public class ApplicationFacadeTests
     public async Task ExecuteCommandAsync_ShouldDelegateToHistory ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr);
         var cmd = Substitute.For<IUndoableCommand>();
         cmd.ExecuteAsync(Arg.Any<SeatingWorkspace>() , Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
@@ -75,7 +78,7 @@ public class ApplicationFacadeTests
     public async Task UndoAsync_NoWorkspace_ReturnsFalse ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr);
         var result = await facade.UndoAsync(CancellationToken.None);
         result.Should().BeFalse();
     }
@@ -84,7 +87,7 @@ public class ApplicationFacadeTests
     public async Task RollbackToSnapshot_ShouldApplyAssignments ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr);
         var ws = new SeatingWorkspace(
             new[] { new Student { Id = "s1" } , new Student { Id = "s2" } } ,
             new Seat[] { new GridSeat { Id = "seat1" } , new GridSeat { Id = "seat2" } });

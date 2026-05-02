@@ -46,11 +46,37 @@ public partial class DataManagementViewModel : ViewModelBase
     [ObservableProperty]
     private int _studentCount;
 
+    [ObservableProperty]
+    private ObservableCollection<StudentDatasetInfo> _savedDatasets = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
+    private StudentDatasetInfo? _selectedDataset;
+
+    [ObservableProperty]
+    private bool _isLoadingDatasets;
+
+    public bool HasSelectedDataset => SelectedDataset is not null;
+
     public DataManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
     {
         _facade = facade;
         _fileService = fileService;
         _dialog = dialog;
+        _ = RefreshDatasetsAsync(CancellationToken.None);
+    }
+
+    private async Task RefreshDatasetsAsync(CancellationToken ct)
+    {
+        try
+        {
+            var datasets = await _facade.ListStudentDatasetsAsync(ct);
+            SavedDatasets = new ObservableCollection<StudentDatasetInfo>(datasets);
+        }
+        catch
+        {
+            // 静默处理
+        }
     }
 
     private static readonly FilePickerFileType[] StudentFileTypes =
@@ -169,6 +195,14 @@ public partial class DataManagementViewModel : ViewModelBase
             IsEmpty = StudentCount == 0;
             StatusMessage = IsEmpty ? "未导入任何学生数据" : $"已导入 {StudentCount} 名学生";
 
+            // 自动保存到托管存储
+            if (!IsEmpty)
+            {
+                var name = Path.GetFileNameWithoutExtension(FilePath);
+                await _facade.SaveStudentDatasetAsync(name, students, Path.GetFileName(FilePath), ct);
+                _ = RefreshDatasetsAsync(ct);
+            }
+
             if (IsEmpty)
             {
                 errorTitle = "导入结果";
@@ -263,5 +297,59 @@ public partial class DataManagementViewModel : ViewModelBase
         FilePath = string.Empty;
         ErrorMessage = string.Empty;
         StatusMessage = "就绪，请导入学生数据";
+    }
+
+    [RelayCommand]
+    private async Task LoadSelectedDatasetAsync(CancellationToken ct)
+    {
+        if (SelectedDataset is null) return;
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        StatusMessage = "正在加载...";
+
+        try
+        {
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
+            if (students is not null)
+            {
+                Students = new ObservableCollection<Student>(students);
+                StudentCount = Students.Count;
+                IsEmpty = StudentCount == 0;
+                FilePath = SelectedDataset.OriginalFileName ?? SelectedDataset.Name;
+                StatusMessage = $"已加载 {StudentCount} 名学生";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "加载失败";
+            await _dialog.ShowErrorAsync("加载失败", ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteSelectedDatasetAsync(CancellationToken ct)
+    {
+        if (SelectedDataset is null) return;
+
+        var confirmed = await _dialog.ShowConfirmAsync("确认删除",
+            $"确定要删除数据集「{SelectedDataset.Name}」吗？\n此操作不可撤销。");
+        if (!confirmed) return;
+
+        try
+        {
+            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id, ct);
+            SelectedDataset = null;
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = "数据集已删除";
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync("删除失败", ex.Message);
+        }
     }
 }

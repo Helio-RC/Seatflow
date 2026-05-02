@@ -35,7 +35,8 @@ namespace A_Pair.Application.Services
         PluginManager pluginManager ,
         IPluginConfigurationService pluginConfigService ,
         IAppSettingsRepository appSettingsRepo ,
-        IVenueRepository venueRepo) : IApplicationFacade
+        IVenueRepository venueRepo ,
+        IStudentDatasetRepository datasetRepo) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
@@ -45,6 +46,7 @@ namespace A_Pair.Application.Services
         private readonly CommandHistory _history = new();
         private readonly IAppSettingsRepository _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
         private readonly IVenueRepository _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
+        private readonly IStudentDatasetRepository _datasetRepo = datasetRepo ?? throw new ArgumentNullException(nameof(datasetRepo));
         private SeatingWorkspace? _currentWorkspace;
 
         /// <inheritdoc />
@@ -249,6 +251,22 @@ namespace A_Pair.Application.Services
             // 应用快照中的座位分配
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
         }
+
+        public async Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
+        {
+            var id = Guid.NewGuid().ToString("N");
+            await _datasetRepo.SaveAsync(id , name , students , originalFileName , ct);
+            return id;
+        }
+
+        public Task<List<Student>?> LoadStudentDatasetAsync (string id , CancellationToken ct = default)
+            => _datasetRepo.LoadAsync(id , ct);
+
+        public Task<IReadOnlyList<StudentDatasetInfo>> ListStudentDatasetsAsync (CancellationToken ct = default)
+            => _datasetRepo.ListAsync(ct);
+
+        public Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default)
+            => _datasetRepo.DeleteAsync(id , ct);
 
         #region Private Helpers
 

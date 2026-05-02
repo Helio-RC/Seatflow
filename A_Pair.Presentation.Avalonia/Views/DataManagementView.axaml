@@ -77,72 +77,130 @@
         </Border>
 
         <!-- 中间内容区 -->
-        <Grid>
-            <!-- 空状态提示 -->
-            <Border IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="8">
-                <StackPanel Spacing="8" HorizontalAlignment="Center">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="48"
-                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                    HorizontalAlignment="Center" />
-                    <TextBlock Text="暂无数据" FontSize="16" FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                    <TextBlock Text="点击「导入」按钮从 CSV、Excel 或 JSON 文件加载学生数据"
-                               FontSize="12" HorizontalAlignment="Center"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                </StackPanel>
-            </Border>
+        <Grid ColumnDefinitions="240,4,*">
+            <!-- 左侧：已保存数据集 -->
+            <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+                <DockPanel Margin="8">
+                    <TextBlock DockPanel.Dock="Top" Text="已保存数据集"
+                               FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
-            <!-- 数据表格 -->
-            <DockPanel IsVisible="{Binding HasData}">
-                <!-- 表头 -->
-                <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                        Padding="12,8" CornerRadius="4,4,0,0">
-                    <Grid ColumnDefinitions="2*,*,*,*">
-                        <TextBlock Grid.Column="0" Text="姓名" FontSize="14" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="1" Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="2" Text="性别" FontSize="14" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="3" Text="需要前排" FontSize="14" FontWeight="SemiBold" />
-                    </Grid>
-                </Border>
+                    <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,8,0,0">
+                        <Button Command="{Binding LoadSelectedDatasetCommand}"
+                                IsEnabled="{Binding HasSelectedDataset}"
+                                HorizontalContentAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                        HorizontalAlignment="Center">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
+                                <TextBlock Text="加载" FontSize="13" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DeleteSelectedDatasetCommand}"
+                                IsEnabled="{Binding HasSelectedDataset}"
+                                HorizontalContentAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                        HorizontalAlignment="Center">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
+                                <TextBlock Text="删除" FontSize="13" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
 
-                <!-- 数据行 -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <ListBox ItemsSource="{Binding Students}">
+                    <ListBox ItemsSource="{Binding SavedDatasets}"
+                             SelectedItem="{Binding SelectedDataset}"
+                             BorderThickness="0">
                         <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="models:Student">
-                                <Border Padding="12,6" BorderThickness="0,0,0,1"
-                                        BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                                    <Grid ColumnDefinitions="2*,*,*,*">
-                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="14"
-                                                   VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Height}" FontSize="14"
-                                                   VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="{Binding Gender}" FontSize="14"
-                                                   VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="3" FontSize="14" VerticalAlignment="Center">
-                                            <TextBlock.Text>
-                                                <Binding Path="NeedsFrontRow" />
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </Grid>
+                            <DataTemplate x:DataType="models:StudentDatasetInfo">
+                                <Border Padding="8,6" CornerRadius="4">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" FontSize="13" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding StudentCount, StringFormat='{0} 人'}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                                            <TextBlock Text="{Binding CreatedAt, StringFormat='{0:yyyy-MM-dd}'}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                                        </StackPanel>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </ScrollViewer>
-            </DockPanel>
-
-            <!-- 加载中遮罩 -->
-            <Border IsVisible="{Binding IsLoading}" Background="#40FFFFFF"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-                    <ProgressBar IsIndeterminate="True" Width="200" />
-                    <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
-                </StackPanel>
+                </DockPanel>
             </Border>
+
+            <!-- 分隔条 -->
+            <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
+                          HorizontalAlignment="Stretch" />
+
+            <!-- 右侧：数据表格 -->
+            <Grid Grid.Column="2">
+                <!-- 空状态提示 -->
+                <Border IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                        CornerRadius="8">
+                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="48"
+                                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                        HorizontalAlignment="Center" />
+                        <TextBlock Text="暂无数据" FontSize="16" FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                        <TextBlock Text="点击「导入」或从左侧加载已保存的数据集"
+                                   FontSize="12" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 数据表格 -->
+                <DockPanel IsVisible="{Binding HasData}">
+                    <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            Padding="12,8" CornerRadius="4,4,0,0">
+                        <Grid ColumnDefinitions="2*,*,*,*">
+                            <TextBlock Grid.Column="0" Text="姓名" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="1" Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="2" Text="性别" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock Grid.Column="3" Text="需要前排" FontSize="14" FontWeight="SemiBold" />
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ListBox ItemsSource="{Binding Students}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="models:Student">
+                                    <Border Padding="12,6" BorderThickness="0,0,0,1"
+                                            BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
+                                        <Grid ColumnDefinitions="2*,*,*,*">
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="14"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Height}" FontSize="14"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Gender}" FontSize="14"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" FontSize="14" VerticalAlignment="Center">
+                                                <TextBlock.Text>
+                                                    <Binding Path="NeedsFrontRow" />
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </DockPanel>
+
+                <!-- 加载中遮罩 -->
+                <Border IsVisible="{Binding IsLoading}" Background="#40FFFFFF"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                        <ProgressBar IsIndeterminate="True" Width="200" />
+                        <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </DockPanel>
 </UserControl>
