@@ -11,7 +11,7 @@
 
 	<Application.Styles>
 		<Style Selector="Window">
-			<Setter Property="FontFamily" Value="Microsoft YaHei UI,Simsun,苹方-简,宋体-简"/>
+			<Setter Property="FontFamily" Value="Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
 		</Style>
 		<FluentTheme />
 	</Application.Styles>
