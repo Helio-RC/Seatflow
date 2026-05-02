@@ -24,32 +24,78 @@
 
                 <!-- === 右侧操作按钮 === -->
 
-                <!-- 紧凑模式 -->
-                <Button DockPanel.Dock="Right"
-                        IsVisible="{Binding IsCompact}"
-                        Opacity="0"
-                        HorizontalContentAlignment="Center" Padding="8,4" FontSize="14">
-                    <Button.Transitions>
+                <!-- 右侧操作按钮组 -->
+                <Panel DockPanel.Dock="Right"
+                       Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
+                       ClipToBounds="True">
+                    <Panel.Transitions>
                         <Transitions>
-                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                            <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseInOut" />
                         </Transitions>
-                    </Button.Transitions>
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.MoreHorizontal}" FontSize="16" />
-                        <TextBlock Text="操作" FontSize="14" />
+                    </Panel.Transitions>
+
+                    <!-- 展开模式 -->
+                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                                IsHitTestVisible="{Binding HasExpanded}">
+                        <StackPanel.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                            </Transitions>
+                        </StackPanel.Transitions>
+                        <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
+                                <TextBlock Text="模板" FontSize="14" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
+                                <TextBlock Text="导入" FontSize="14" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+                                <TextBlock Text="保存" FontSize="14" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding RenameSaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+                                <TextBlock Text="另存为" FontSize="14" />
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
+                                <TextBlock Text="清除" FontSize="14" />
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
-                    <Button.Flyout>
+
+                    <!-- 紧凑模式 -->
+                    <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                            IsHitTestVisible="{Binding IsCompact}"
+                            HorizontalAlignment="Right"
+                            HorizontalContentAlignment="Center" Padding="8,4" FontSize="14">
+                        <Button.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                            </Transitions>
+                        </Button.Transitions>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.MoreHorizontal}" FontSize="16" />
+                            <TextBlock Text="操作" FontSize="14" />
+                        </StackPanel>
+                        <Button.Flyout>
                             <Flyout>
                                 <StackPanel Spacing="2" Width="160">
-                                    <StackPanel.RenderTransform>
-                                        <TranslateTransform />
-                                    </StackPanel.RenderTransform>
                                     <StackPanel.Transitions>
                                         <Transitions>
                                             <DoubleTransition Property="Opacity" Duration="0:0:0.3"
                                                               Easing="CubicEaseOut" />
-                                            <TransformOperationsTransition Property="RenderTransform"
-                                                                           Duration="0:0:0.3" Easing="CubicEaseOut" />
                                         </Transitions>
                                     </StackPanel.Transitions>
                                     <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Left"
@@ -80,59 +126,53 @@
                                             <TextBlock Text="另存为" FontSize="14" />
                                         </StackPanel>
                                     </Button>
-                                <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
-                                        HorizontalContentAlignment="Left" Padding="12,8" x:CompileBindings="False">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
-                                        <TextBlock Text="清除" FontSize="14" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
-
-                <!-- 展开模式：5 个独立按钮 -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8"
-                            IsVisible="{Binding HasExpanded}">
-                    <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-                            <TextBlock Text="模板" FontSize="14" />
-                        </StackPanel>
+                                    <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
+                                            HorizontalContentAlignment="Left" Padding="12,8" x:CompileBindings="False">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
+                                            <TextBlock Text="清除" FontSize="14" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
                     </Button>
-                    <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-                            <TextBlock Text="导入" FontSize="14" />
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-                            <TextBlock Text="保存" FontSize="14" />
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding RenameSaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-                            <TextBlock Text="另存为" FontSize="14" />
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
-                            <TextBlock Text="清除" FontSize="14" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                </Panel>
 
                 <!-- === 导出按钮组 === -->
-                <Button DockPanel.Dock="Right"
-                        IsVisible="{Binding IsCompact}"
-                        Opacity="0"
-                        VerticalAlignment="Center"
-                        Padding="8,4" FontSize="14">
+                <Panel VerticalAlignment="Center"
+                       Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
+                       ClipToBounds="True">
+                    <Panel.Transitions>
+                        <Transitions>
+                            <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+                        </Transitions>
+                    </Panel.Transitions>
+
+                    <!-- 展开模式 -->
+                    <StackPanel Spacing="4" Orientation="Horizontal"
+                                Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                                IsHitTestVisible="{Binding HasExpanded}">
+                        <StackPanel.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                            </Transitions>
+                        </StackPanel.Transitions>
+                        <TextBlock Text="导出格式:" FontSize="12" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                        <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
+                                Padding="8,4" FontSize="12">CSV</Button>
+                        <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
+                                Padding="8,4" FontSize="12">Excel</Button>
+                        <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
+                                Padding="8,4" FontSize="12">JSON</Button>
+                    </StackPanel>
+
+                    <!-- 紧凑模式 -->
+                    <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                            IsHitTestVisible="{Binding IsCompact}"
+                            HorizontalAlignment="Right"
+                            Padding="8,4" FontSize="14">
                         <Button.Transitions>
                             <Transitions>
                                 <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
@@ -145,15 +185,10 @@
                         <Button.Flyout>
                             <Flyout>
                                 <StackPanel Spacing="2" Width="140">
-                                    <StackPanel.RenderTransform>
-                                        <TranslateTransform />
-                                    </StackPanel.RenderTransform>
                                     <StackPanel.Transitions>
                                         <Transitions>
                                             <DoubleTransition Property="Opacity" Duration="0:0:0.3"
                                                               Easing="CubicEaseOut" />
-                                            <TransformOperationsTransition Property="RenderTransform"
-                                                                           Duration="0:0:0.3" Easing="CubicEaseOut" />
                                         </Transitions>
                                     </StackPanel.Transitions>
                                     <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
@@ -164,27 +199,15 @@
                                             HorizontalContentAlignment="Left" Padding="12,8" x:CompileBindings="False">
                                         <TextBlock Text="导出 Excel" FontSize="14" />
                                     </Button>
-                                <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
-                                        HorizontalContentAlignment="Left" Padding="12,8" x:CompileBindings="False">
-                                    <TextBlock Text="导出 JSON" FontSize="14" />
-                                </Button>
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
-
-                <!-- 展开模式 -->
-                <StackPanel Spacing="4" Orientation="Horizontal" VerticalAlignment="Center"
-                            IsVisible="{Binding HasExpanded}">
-                    <TextBlock Text="导出格式:" FontSize="12" VerticalAlignment="Center"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                    <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
-                            Padding="8,4" FontSize="12">CSV</Button>
-                    <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
-                            Padding="8,4" FontSize="12">Excel</Button>
-                    <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
-                            Padding="8,4" FontSize="12">JSON</Button>
-                </StackPanel>
+                                    <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
+                                            HorizontalContentAlignment="Left" Padding="12,8" x:CompileBindings="False">
+                                        <TextBlock Text="导出 JSON" FontSize="14" />
+                                    </Button>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Panel>
             </DockPanel>
         </Border>
 
