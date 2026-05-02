@@ -40,12 +40,13 @@
         "id": "4",
         "title": "会场配置视图（VenueConfigurationView）",
         "description": "实现会场布局的创建、编辑和可视化预览界面",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": ["2"],
         "details": "1. 创建 VenueConfigurationView.axaml\n2. 会场列表管理（新建/删除/重命名）\n3. 布局类型选择（Grid/Polar/Freeform）\n4. 动态参数面板\n5. 布局预览画布\n6. 调用 SaveVenueAsync/LoadVenueAsync 持久化",
         "testStrategy": "手动测试：创建 Grid 布局 → 调整参数 → 预览更新 → 保存 → 重新加载",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-05-02T14:00:00.000Z"
       },
       {
         "id": "5",
@@ -162,7 +163,7 @@
       "version": "1.0.0",
       "lastModified": "2026-05-02T00:40:00.000Z",
       "taskCount": 14,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": ["ui-layer"]
     }
   }
