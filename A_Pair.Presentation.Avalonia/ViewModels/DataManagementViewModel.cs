@@ -59,8 +59,10 @@ public partial class DataManagementViewModel : ViewModelBase
     [ObservableProperty]
     private string? _currentDatasetId;
 
+    [ObservableProperty]
+    private string? _currentDatasetName;
+
     public bool HasSelectedDataset => SelectedDataset is not null;
-    public bool HasCurrentDataset => CurrentDatasetId is not null;
 
     public DataManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog)
     {
@@ -204,6 +206,7 @@ public partial class DataManagementViewModel : ViewModelBase
             {
                 var name = Path.GetFileNameWithoutExtension(FilePath);
                 CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name, students, Path.GetFileName(FilePath), ct);
+                CurrentDatasetName = name;
                 _ = RefreshDatasetsAsync(ct);
             }
 
@@ -299,6 +302,7 @@ public partial class DataManagementViewModel : ViewModelBase
         StudentCount = 0;
         IsEmpty = true;
         CurrentDatasetId = null;
+        CurrentDatasetName = null;
         FilePath = string.Empty;
         ErrorMessage = string.Empty;
         StatusMessage = "就绪，请导入学生数据";
@@ -319,6 +323,7 @@ public partial class DataManagementViewModel : ViewModelBase
             if (students is not null)
             {
                 CurrentDatasetId = SelectedDataset.Id;
+                CurrentDatasetName = SelectedDataset.Name;
                 Students = new ObservableCollection<Student>(students);
                 StudentCount = Students.Count;
                 IsEmpty = StudentCount == 0;
@@ -378,14 +383,21 @@ public partial class DataManagementViewModel : ViewModelBase
 
         try
         {
-            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
+            // 如果是当前数据集，用内存中的最新数据；否则从文件加载
+            var students = CurrentDatasetId == SelectedDataset.Id
+                ? Students.ToList()
+                : await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
+
             if (students is null) return;
 
             await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id, ct);
-            await _facade.SaveStudentDatasetAsync(newName.Trim(), students, SelectedDataset.OriginalFileName, ct);
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim(), students, SelectedDataset.OriginalFileName, ct);
 
             if (CurrentDatasetId == SelectedDataset.Id)
-                CurrentDatasetId = null;
+            {
+                CurrentDatasetId = newId;
+                CurrentDatasetName = newName.Trim();
+            }
 
             SelectedDataset = null;
             await RefreshDatasetsAsync(ct);
@@ -402,26 +414,21 @@ public partial class DataManagementViewModel : ViewModelBase
     {
         if (Students.Count == 0) return;
 
+        var datasetName = CurrentDatasetName ?? "未命名";
+
+        var confirmed = await _dialog.ShowConfirmAsync("确认保存",
+            $"将覆盖数据集「{datasetName}」（{StudentCount} 名学生），确定继续？");
+        if (!confirmed) return;
+
         try
         {
             if (CurrentDatasetId is not null)
-            {
-                var existing = await _facade.LoadStudentDatasetAsync(CurrentDatasetId, ct);
-                var name = existing is not null
-                    ? (await _facade.ListStudentDatasetsAsync(ct))
-                        .FirstOrDefault(d => d.Id == CurrentDatasetId)?.Name ?? "已保存数据"
-                    : "已保存数据";
-
                 await _facade.DeleteStudentDatasetAsync(CurrentDatasetId, ct);
-                CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name, Students.ToList(), null, ct);
-            }
-            else
-            {
-                CurrentDatasetId = await _facade.SaveStudentDatasetAsync("手动保存", Students.ToList(), null, ct);
-            }
 
+            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName, Students.ToList(), null, ct);
+            CurrentDatasetName = datasetName;
             await RefreshDatasetsAsync(ct);
-            StatusMessage = "保存完成";
+            StatusMessage = $"已保存「{datasetName}」";
         }
         catch (Exception ex)
         {
@@ -433,17 +440,14 @@ public partial class DataManagementViewModel : ViewModelBase
     private async Task RenameSaveAsync(CancellationToken ct)
     {
         var (confirmed, newName) = await _dialog.ShowInputAsync("另存为",
-            "请输入新数据集名称：", "");
+            "输入新数据集名称，原数据集不会被修改：", "");
         if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
 
         try
         {
-            if (CurrentDatasetId is not null)
-            {
-                try { await _facade.DeleteStudentDatasetAsync(CurrentDatasetId, ct); } catch { }
-            }
-
-            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(newName.Trim(), Students.ToList(), null, ct);
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim(), Students.ToList(), null, ct);
+            CurrentDatasetId = newId;
+            CurrentDatasetName = newName.Trim();
             await RefreshDatasetsAsync(ct);
             StatusMessage = $"已保存为「{newName.Trim()}」";
         }
