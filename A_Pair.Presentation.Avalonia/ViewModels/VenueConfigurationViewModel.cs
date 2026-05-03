@@ -208,16 +208,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private void AddDoor()
     {
-        // 默认门位置：第一排第一个座位左上方
         double dx = GridOriginX - 50;
         double dy = GridOriginY - 20;
-        DoorItems.Add(new DoorItem(dx, dy, $"门 {DoorItems.Count + 1}"));
-    }
-
-    [RelayCommand]
-    private void RemoveDoor(DoorItem door)
-    {
-        DoorItems.Remove(door);
+        var door = new DoorItem(dx, dy, $"门 {DoorItems.Count + 1}");
+        door.RemoveSelf = () => DoorItems.Remove(door);
+        DoorItems.Add(door);
     }
 
     [RelayCommand]
@@ -512,11 +507,17 @@ public partial class DoorItem : ObservableObject
     [ObservableProperty] private double _y;
     [ObservableProperty] private string _label = "门";
 
+    public Action? RemoveSelf { get; set; }
+
     public DoorItem() { }
-    public DoorItem(double x, double y, string label = "门")
+    public DoorItem(double x, double y, string label = "门", Action? removeSelf = null)
     {
         _x = x; _y = y; _label = label;
+        RemoveSelf = removeSelf;
     }
+
+    [RelayCommand]
+    private void Remove() => RemoveSelf?.Invoke();
 }
 
 public partial class AisleOption : ObservableObject

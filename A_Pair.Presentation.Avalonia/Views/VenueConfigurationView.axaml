@@ -321,8 +321,7 @@
                                                         <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
                                                                        Minimum="0" Maximum="2000" Width="70" FontSize="12"
                                                                        ToolTip.Tip="门的垂直位置（像素）"/>
-                                                        <Button Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
-                                                                CommandParameter="{Binding}"
+                                                        <Button Command="{Binding RemoveCommand}"
                                                                 Padding="4" FontSize="12">
                                                             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
                                                         </Button>
