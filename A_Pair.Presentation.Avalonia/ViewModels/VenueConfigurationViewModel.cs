@@ -285,32 +285,87 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var layout = PolarLayoutBuilder.BuildPolar(meta);
             int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
 
+            double seatR = 5;  // 座位圆点半径
             foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
             {
-                var (x , y) = SeatGeometryHelper.GetPosition(s , meta);
+                var (cx , cy) = SeatGeometryHelper.GetPosition(s , meta);
                 bool isFront = s.Ring > totalRings - meta.FrontRowCount;
                 seats.Add(new SeatPreview
                 {
-                    X = x ,
-                    Y = y ,
+                    X = cx - seatR ,
+                    Y = cy - seatR ,
+                    Width = seatR * 2 ,
+                    Height = seatR * 2 ,
                     Label = $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})" ,
                     ElementType = PreviewElementType.Seat ,
-                    IsFrontRow = isFront
+                    IsFrontRow = isFront ,
+                    CornerRadius = seatR ,
+                    IsCircle = true
                 });
             }
 
             // 讲台（圆心处）
             if (meta.HasPodium && meta.PodiumRadius > 0)
             {
+                double pr = meta.PodiumRadius;
                 overlays.Add(new SeatPreview
                 {
-                    X = meta.OriginX - meta.PodiumRadius ,
-                    Y = meta.OriginY - meta.PodiumRadius ,
-                    Width = meta.PodiumRadius * 2 ,
-                    Height = meta.PodiumRadius * 2 ,
+                    X = meta.OriginX - pr ,
+                    Y = meta.OriginY - pr ,
+                    Width = pr * 2 ,
+                    Height = pr * 2 ,
                     ElementType = PreviewElementType.Podium ,
-                    Label = "讲台"
+                    Label = "讲台" ,
+                    CornerRadius = pr ,
+                    IsCircle = true ,
+                    BackgroundColor = "#4080D0E0"
                 });
+            }
+
+            // 径向通道线：从中心辐射到最外层
+            double outerRadius = totalRings * meta.RadiusStep
+                + (meta.AisleCircularAfterRings?.Count(r => r < totalRings) ?? 0) * meta.AisleCircularWidth
+                + meta.RadiusStep; // 延长一点
+
+            foreach (double angle in meta.AisleRadialAngles ?? [])
+            {
+                overlays.Add(new SeatPreview
+                {
+                    X = meta.OriginX ,
+                    Y = meta.OriginY ,
+                    Width = 2 ,
+                    Height = outerRadius ,
+                    ElementType = PreviewElementType.Aisle ,
+                    Label = $"{angle:F0}°" ,
+                    Rotation = angle - 90 ,
+                    BackgroundColor = "#60FFFFFF"
+                });
+            }
+
+            // 环间通道圆环：在指定环之后画虚线圆
+            if (meta.AisleCircularAfterRings is { Count: > 0 })
+            {
+                var circularAisleSet = new HashSet<int>(meta.AisleCircularAfterRings);
+                for (int ringIdx = 0; ringIdx < totalRings; ringIdx++)
+                {
+                    int ringNum = ringIdx + 1;
+                    if (!circularAisleSet.Contains(ringNum)) continue;
+
+                    int aislesBefore = circularAisleSet.Count(r => r < ringNum);
+                    double aisleRadius = ringNum * meta.RadiusStep + aislesBefore * meta.AisleCircularWidth;
+                    overlays.Add(new SeatPreview
+                    {
+                        X = meta.OriginX - aisleRadius ,
+                        Y = meta.OriginY - aisleRadius ,
+                        Width = aisleRadius * 2 ,
+                        Height = aisleRadius * 2 ,
+                        ElementType = PreviewElementType.Aisle ,
+                        Label = $"环间 {ringNum}-{ringNum + 1}" ,
+                        IsCircle = true ,
+                        CornerRadius = aisleRadius ,
+                        BorderColor = "#40FFFFFF"
+                    });
+                }
             }
         }
 
@@ -631,6 +686,11 @@ public class SeatPreview
     public double Width { get; set; } = 20;
     public double Height { get; set; } = 20;
     public bool IsFrontRow { get; set; }
+    public double CornerRadius { get; set; } = 2;
+    public double Rotation { get; set; }
+    public string BackgroundColor { get; set; } = "";
+    public string BorderColor { get; set; } = "";
+    public bool IsCircle { get; set; }
 }
 
 public enum PreviewElementType

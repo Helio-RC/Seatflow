@@ -496,7 +496,8 @@
 											</ItemsControl.Styles>
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
-													<Border Width="18" Height="18" CornerRadius="2"
+													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+															CornerRadius="{ReflectionBinding CornerRadius}"
 															ToolTip.Tip="{Binding Label}">
 														<Border.Background>
 															<SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
@@ -506,7 +507,7 @@
 											</ItemsControl.ItemTemplate>
 										</ItemsControl>
 
-										<!-- 覆盖层: 讲台/障碍物/门 -->
+										<!-- 覆盖层: 讲台/障碍物/门/通道 -->
 										<ItemsControl ItemsSource="{Binding PreviewOverlays}">
 											<ItemsControl.ItemsPanel>
 												<ItemsPanelTemplate>
@@ -521,10 +522,15 @@
 											</ItemsControl.Styles>
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
-													<Border Width="{Binding Width}" Height="{Binding Height}"
-															CornerRadius="4" Opacity="0.7"
+													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+															CornerRadius="{ReflectionBinding CornerRadius}"
+															BorderThickness="0"
+															Opacity="0.7"
 															ToolTip.Tip="{Binding Label}"
 															Background="#800072C6">
+														<Border.RenderTransform>
+															<RotateTransform Angle="{ReflectionBinding Rotation}"/>
+														</Border.RenderTransform>
 														<TextBlock Text="{Binding Label}" FontSize="11"
 																   HorizontalAlignment="Center"
 																   VerticalAlignment="Center"/>
