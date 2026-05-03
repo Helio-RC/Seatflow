@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
@@ -209,11 +208,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private void AddDoor()
     {
+        // 默认门位置：第一排第一个座位左上方
         double dx = GridOriginX - 50;
         double dy = GridOriginY - 20;
-        var door = new DoorItem(dx, dy, $"门 {DoorItems.Count + 1}");
-        door.RemoveSelf = () => DoorItems.Remove(door);
-        DoorItems.Add(door);
+        DoorItems.Add(new DoorItem(dx, dy, $"门 {DoorItems.Count + 1}"));
+    }
+
+    [RelayCommand]
+    private void RemoveDoor(DoorItem door)
+    {
+        DoorItems.Remove(door);
     }
 
     [RelayCommand]
@@ -502,29 +506,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
 public record VenueItem(string Id, string Name);
 
-public class DoorItem : ObservableObject
+public partial class DoorItem : ObservableObject
 {
-    private double _x;
-    public double X { get => _x; set => SetProperty(ref _x, value); }
+    [ObservableProperty] private double _x;
+    [ObservableProperty] private double _y;
+    [ObservableProperty] private string _label = "门";
 
-    private double _y;
-    public double Y { get => _y; set => SetProperty(ref _y, value); }
-
-    private string _label = "门";
-    public string Label { get => _label; set => SetProperty(ref _label, value); }
-
-    public Action? RemoveSelf { get; set; }
-    public ICommand RemoveCommand { get; }
-
-    public DoorItem()
+    public DoorItem() { }
+    public DoorItem(double x, double y, string label = "门")
     {
-        RemoveCommand = new RelayCommand(() => RemoveSelf?.Invoke());
-    }
-
-    public DoorItem(double x, double y, string label = "门", Action? removeSelf = null) : this()
-    {
-        X = x; Y = y; Label = label;
-        RemoveSelf = removeSelf;
+        _x = x; _y = y; _label = label;
     }
 }
 
