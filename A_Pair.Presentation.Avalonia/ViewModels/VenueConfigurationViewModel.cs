@@ -345,7 +345,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                         Width = pr * 2 ,
                         Height = pr * 2 ,
                         ElementType = PreviewElementType.Podium ,
-                        Label = $"讲台 {meta.StartAngleDegrees:F0}°-{meta.EndAngleDegrees:F0}°" ,
+                        Label = "讲台" ,
                         BackgroundColor = "Transparent" ,
                         PathFill = "#4080D0E0" ,
                         PathData = path

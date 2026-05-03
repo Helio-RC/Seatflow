@@ -499,7 +499,7 @@
 													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
 															CornerRadius="{ReflectionBinding CornerRadius}"
 															BorderThickness="{ReflectionBinding BorderThickness}"
-															BorderBrush="#80FFFFFF"
+															BorderBrush="{StaticResource PreviewSeatBorderBrush}"
 															ToolTip.Tip="{Binding Label}">
 														<Border.Background>
 															<SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
@@ -533,7 +533,7 @@
 																BorderBrush="{ReflectionBinding BorderColor}"
 																Opacity="0.7"/>
 														<Path Data="{ReflectionBinding PathData}"
-															  Fill="{ReflectionBinding PathFill}"
+															  Fill="{StaticResource PreviewPodiumFillBrush}"
 															  Opacity="0.7"/>
 														<TextBlock Text="{Binding Label}" FontSize="11"
 																   HorizontalAlignment="Center"
