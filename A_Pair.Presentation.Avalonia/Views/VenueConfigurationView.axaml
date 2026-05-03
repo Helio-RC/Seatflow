@@ -76,25 +76,25 @@
 								<TextBlock Text="刷新列表" FontSize="13" />
 							</StackPanel>
 						</Button>
-							<Button Command="{Binding ToggleSidebarCommand}"
-									HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
-								<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-									<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-										   IsHitTestVisible="{Binding IsSidebarExpanded}">
-										<StackPanel Orientation="Horizontal" Spacing="4">
-											<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12" />
-											<TextBlock Text="收起列表" FontSize="12" />
-										</StackPanel>
-									</Panel>
-									<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-										   IsHitTestVisible="{Binding IsSidebarCollapsed}">
-										<StackPanel Orientation="Horizontal" Spacing="4">
-											<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12" />
-											<TextBlock Text="展开列表" FontSize="12" />
-										</StackPanel>
-									</Panel>
-								</StackPanel>
-							</Button>
+						<Button Command="{Binding ToggleSidebarCommand}"
+								HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
+							<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+								<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+									   IsHitTestVisible="{Binding IsSidebarExpanded}">
+									<StackPanel Orientation="Horizontal" Spacing="4">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12" />
+										<TextBlock Text="收起列表" FontSize="12" />
+									</StackPanel>
+								</Panel>
+								<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+									   IsHitTestVisible="{Binding IsSidebarCollapsed}">
+									<StackPanel Orientation="Horizontal" Spacing="4">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12" />
+										<TextBlock Text="展开列表" FontSize="12" />
+									</StackPanel>
+								</Panel>
+							</StackPanel>
+						</Button>
 					</StackPanel>
 					<ListBox ItemsSource="{Binding VenueItems}"
 							 SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}"
