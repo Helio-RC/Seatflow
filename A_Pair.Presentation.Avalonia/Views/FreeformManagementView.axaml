@@ -200,10 +200,15 @@
                                             <Canvas Width="400" Height="400"/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
+                                    <ItemsControl.Styles>
+                                        <Style Selector="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                                        </Style>
+                                    </ItemsControl.Styles>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:FreeformPoint">
                                             <Border Width="8" Height="8" CornerRadius="4"
-                                                    Canvas.Left="{Binding X}" Canvas.Top="{Binding Y}"
                                                     ToolTip.Tip="{Binding Id}">
                                                 <Border.Background>
                                                     <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
