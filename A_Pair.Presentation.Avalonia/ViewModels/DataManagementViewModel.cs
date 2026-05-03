@@ -452,7 +452,7 @@ public partial class DataManagementViewModel : ViewModelBase
         }
     }
 
-    private List<string> ValidateStudents()
+    private List<string> ValidateStudents ()
     {
         var errors = new List<string>();
 

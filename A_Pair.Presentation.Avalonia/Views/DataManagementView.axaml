@@ -15,10 +15,10 @@
 		<vm:DataManagementViewModel />
 	</Design.DataContext>
 
-		<UserControl.Resources>
-			<conv:GenderIndexConverter x:Key="GenderConverter" />
-			<conv:HeightConverter x:Key="HeightConverter" />
-		</UserControl.Resources>
+	<UserControl.Resources>
+		<conv:GenderIndexConverter x:Key="GenderConverter" />
+		<conv:HeightConverter x:Key="HeightConverter" />
+	</UserControl.Resources>
 
 	<DockPanel Margin="16">
 		<!-- 顶部工具栏 -->
