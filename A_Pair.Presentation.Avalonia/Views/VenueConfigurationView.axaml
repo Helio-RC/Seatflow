@@ -497,7 +497,7 @@
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
 													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-															CornerRadius="{ReflectionBinding CornerRadius}"
+															CornerRadius="1000"
 															ToolTip.Tip="{Binding Label}">
 														<Border.Background>
 															<SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
@@ -523,11 +523,17 @@
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
 													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-															CornerRadius="{ReflectionBinding CornerRadius}"
-															BorderThickness="0"
+															CornerRadius="1000"
+															BorderThickness="{ReflectionBinding BorderThickness}"
 															Opacity="0.7"
-															ToolTip.Tip="{Binding Label}"
-															Background="#800072C6">
+															RenderTransformOrigin="0,0"
+															ToolTip.Tip="{Binding Label}">
+														<Border.Background>
+															<SolidColorBrush Color="{ReflectionBinding BackgroundColor}"/>
+														</Border.Background>
+														<Border.BorderBrush>
+															<SolidColorBrush Color="{ReflectionBinding BorderColor}"/>
+														</Border.BorderBrush>
 														<Border.RenderTransform>
 															<RotateTransform Angle="{ReflectionBinding Rotation}"/>
 														</Border.RenderTransform>

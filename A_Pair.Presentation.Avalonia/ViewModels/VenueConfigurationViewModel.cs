@@ -363,7 +363,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                         Label = $"环间 {ringNum}-{ringNum + 1}" ,
                         IsCircle = true ,
                         CornerRadius = aisleRadius ,
-                        BorderColor = "#40FFFFFF"
+                        BackgroundColor = "Transparent" ,
+                        BorderColor = "#80FFFFFF" ,
+                        BorderThickness = 1
                     });
                 }
             }
@@ -688,8 +690,9 @@ public class SeatPreview
     public bool IsFrontRow { get; set; }
     public double CornerRadius { get; set; } = 2;
     public double Rotation { get; set; }
-    public string BackgroundColor { get; set; } = "";
+    public string BackgroundColor { get; set; } = "#800072C6";
     public string BorderColor { get; set; } = "";
+    public double BorderThickness { get; set; }
     public bool IsCircle { get; set; }
 }
 
