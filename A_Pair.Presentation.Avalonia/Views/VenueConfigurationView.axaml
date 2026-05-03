@@ -310,24 +310,28 @@
                                             <DataTemplate x:DataType="vm:DoorItem">
                                                 <Border Padding="4,2" BorderThickness="0,0,0,1"
                                                         BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                                                    <Grid ColumnDefinitions="40,Auto,70,Auto,70,Auto"
-                                                          ColumnSpacing="6">
-                                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12"
-                                                                   VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="1" Text="X:" FontSize="12" VerticalAlignment="Center"/>
-                                                        <NumericUpDown Grid.Column="2" Value="{Binding X, Mode=TwoWay}"
-                                                                       Minimum="0" Maximum="2000" FontSize="12"
-                                                                       ToolTip.Tip="门的水平位置（像素）"/>
-                                                        <TextBlock Grid.Column="3" Text="Y:" FontSize="12" VerticalAlignment="Center"/>
-                                                        <NumericUpDown Grid.Column="4" Value="{Binding Y, Mode=TwoWay}"
-                                                                       Minimum="0" Maximum="2000" FontSize="12"
-                                                                       ToolTip.Tip="门的垂直位置（像素）"/>
-                                                        <Button Grid.Column="5" Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
+                                                    <DockPanel LastChildFill="True">
+                                                        <Button DockPanel.Dock="Right"
+                                                                Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
                                                                 CommandParameter="{Binding}"
-                                                                Padding="4" FontSize="12">
+                                                                Padding="4" FontSize="12" VerticalAlignment="Center">
                                                             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
                                                         </Button>
-                                                    </Grid>
+                                                        <TextBlock DockPanel.Dock="Left" Text="{Binding Label}" FontSize="12"
+                                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                            <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
+                                                            <NumericUpDown Value="{Binding X, Mode=TwoWay}"
+                                                                           Minimum="0" Maximum="2000" FontSize="12"
+                                                                           HorizontalAlignment="Stretch"
+                                                                           ToolTip.Tip="门的水平位置（像素）"/>
+                                                            <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                                            <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
+                                                                           Minimum="0" Maximum="2000" FontSize="12"
+                                                                           HorizontalAlignment="Stretch"
+                                                                           ToolTip.Tip="门的垂直位置（像素）"/>
+                                                        </StackPanel>
+                                                    </DockPanel>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
