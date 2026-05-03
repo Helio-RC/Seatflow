@@ -241,7 +241,7 @@
       </Grid.ColumnDefinitions>
       <!-- 左侧：已保存数据集 -->
       <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
-              ClipToBounds="True"
+              ClipToBounds="True" HorizontalAlignment="Left"
               Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
         <Border.Transitions>
           <Transitions>
