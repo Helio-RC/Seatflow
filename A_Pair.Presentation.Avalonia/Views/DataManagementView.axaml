@@ -233,9 +233,14 @@
 		</Border>
 
 		<!-- 中间内容区 -->
-		<DockPanel>
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="4"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
 			<!-- 左侧：已保存数据集 -->
-			<Border DockPanel.Dock="Left" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
+			<Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
 					ClipToBounds="True"
 					Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 				<Border.Transitions>
@@ -365,11 +370,11 @@
 			</Border>
 
 			<!-- 分隔条 -->
-			<GridSplitter DockPanel.Dock="Left" Width="4" Background="Transparent"
+			<GridSplitter Grid.Column="1" Width="4" Background="Transparent"
 						  HorizontalAlignment="Stretch" />
 
 			<!-- 右侧：数据表格 -->
-			<Grid>
+			<Grid Grid.Column="2">
 				<!-- 空状态提示 -->
 				<Border IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center"
 						Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
@@ -449,6 +454,6 @@
 					</StackPanel>
 				</Border>
 			</Grid>
-		</DockPanel>
+		</Grid>
 	</DockPanel>
 </UserControl>
