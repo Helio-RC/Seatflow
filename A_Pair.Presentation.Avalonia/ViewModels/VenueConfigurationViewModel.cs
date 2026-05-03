@@ -304,22 +304,53 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 });
             }
 
-            // 讲台（圆心处）
+            // 讲台（圆心处，按角度范围画扇形）
             if (meta.HasPodium && meta.PodiumRadius > 0)
             {
                 double pr = meta.PodiumRadius;
-                overlays.Add(new SeatPreview
+                double sweep = meta.EndAngleDegrees - meta.StartAngleDegrees;
+
+                if (Math.Abs(sweep - 360) < 1e-9)
                 {
-                    X = meta.OriginX - pr ,
-                    Y = meta.OriginY - pr ,
-                    Width = pr * 2 ,
-                    Height = pr * 2 ,
-                    ElementType = PreviewElementType.Podium ,
-                    Label = "讲台" ,
-                    CornerRadius = pr ,
-                    IsCircle = true ,
-                    BackgroundColor = "#4080D0E0"
-                });
+                    // 全圆：用 Border + CornerRadius 渲染
+                    overlays.Add(new SeatPreview
+                    {
+                        X = meta.OriginX - pr ,
+                        Y = meta.OriginY - pr ,
+                        Width = pr * 2 ,
+                        Height = pr * 2 ,
+                        ElementType = PreviewElementType.Podium ,
+                        Label = "讲台" ,
+                        CornerRadius = pr ,
+                        IsCircle = true ,
+                        BackgroundColor = "#4080D0E0"
+                    });
+                }
+                else
+                {
+                    // 扇形：用 Path 画弧
+                    double startRad = meta.StartAngleDegrees * Math.PI / 180;
+                    double endRad = meta.EndAngleDegrees * Math.PI / 180;
+                    double x1 = meta.OriginX + pr * Math.Cos(startRad);
+                    double y1 = meta.OriginY + pr * Math.Sin(startRad);
+                    double x2 = meta.OriginX + pr * Math.Cos(endRad);
+                    double y2 = meta.OriginY + pr * Math.Sin(endRad);
+                    int largeArc = Math.Abs(sweep) > 180 ? 1 : 0;
+                    // F0 格式保持精度
+                    string path = $"M {meta.OriginX:F1},{meta.OriginY:F1} L {x1:F1},{y1:F1} A {pr:F1},{pr:F1} 0 {largeArc} 1 {x2:F1},{y2:F1} Z";
+                    overlays.Add(new SeatPreview
+                    {
+                        X = meta.OriginX - pr ,
+                        Y = meta.OriginY - pr ,
+                        Width = pr * 2 ,
+                        Height = pr * 2 ,
+                        ElementType = PreviewElementType.Podium ,
+                        Label = $"讲台 {meta.StartAngleDegrees:F0}°-{meta.EndAngleDegrees:F0}°" ,
+                        BackgroundColor = "Transparent" ,
+                        PathFill = "#4080D0E0" ,
+                        PathData = path
+                    });
+                }
             }
 
         }
@@ -647,6 +678,8 @@ public class SeatPreview
     public string BorderColor { get; set; } = "";
     public double BorderThickness { get; set; } = 1;
     public bool IsCircle { get; set; }
+    public string? PathData { get; set; }
+    public string PathFill { get; set; } = "";
 }
 
 public enum PreviewElementType

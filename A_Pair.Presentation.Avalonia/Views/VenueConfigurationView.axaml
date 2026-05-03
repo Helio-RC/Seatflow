@@ -524,21 +524,24 @@
 											</ItemsControl.Styles>
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
-													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-															CornerRadius="{ReflectionBinding CornerRadius}"
-															BorderThickness="{ReflectionBinding BorderThickness}"
-															Background="{ReflectionBinding BackgroundColor}"
-															BorderBrush="{ReflectionBinding BorderColor}"
-															Opacity="0.7"
-															RenderTransformOrigin="0,0"
-															ToolTip.Tip="{Binding Label}">
-														<Border.RenderTransform>
-															<RotateTransform Angle="{ReflectionBinding Rotation}"/>
-														</Border.RenderTransform>
+													<Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+														   RenderTransformOrigin="0,0"
+														   ToolTip.Tip="{Binding Label}">
+														<Border CornerRadius="{ReflectionBinding CornerRadius}"
+																BorderThickness="{ReflectionBinding BorderThickness}"
+																Background="{ReflectionBinding BackgroundColor}"
+																BorderBrush="{ReflectionBinding BorderColor}"
+																Opacity="0.7"/>
+														<Path Data="{ReflectionBinding PathData}"
+															  Fill="{ReflectionBinding PathFill}"
+															  Opacity="0.7"/>
 														<TextBlock Text="{Binding Label}" FontSize="11"
 																   HorizontalAlignment="Center"
 																   VerticalAlignment="Center"/>
-													</Border>
+														<Panel.RenderTransform>
+															<RotateTransform Angle="{ReflectionBinding Rotation}"/>
+														</Panel.RenderTransform>
+													</Panel>
 												</DataTemplate>
 											</ItemsControl.ItemTemplate>
 										</ItemsControl>
