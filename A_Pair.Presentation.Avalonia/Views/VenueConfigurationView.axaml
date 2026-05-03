@@ -532,7 +532,7 @@
 																Background="{ReflectionBinding BackgroundColor}"
 																BorderBrush="{ReflectionBinding BorderColor}"
 																Opacity="0.7"/>
-														<Path Data="{ReflectionBinding PathData}"
+														<Path Data="{ReflectionBinding PathGeometry}"
 															  Fill="{StaticResource PreviewPodiumFillBrush}"
 															  Opacity="0.7"/>
 														<TextBlock Text="{Binding Label}" FontSize="11"
