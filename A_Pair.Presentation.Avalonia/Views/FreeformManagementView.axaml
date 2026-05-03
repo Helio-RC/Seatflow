@@ -170,11 +170,15 @@
                                                 <TextBlock Grid.Column="0" Text="X:" FontSize="13"
                                                            VerticalAlignment="Center" Width="16"/>
                                                 <NumericUpDown Grid.Column="1" Value="{Binding X, Mode=TwoWay}"
-                                                               Minimum="0" Maximum="2000" Width="80" FontSize="13"/>
+                                                               Minimum="0" Maximum="5000" Width="80" FontSize="13"
+                                                               PlaceholderText="X px"
+                                                               ToolTip.Tip="X 坐标（像素），0-5000"/>
                                                 <TextBlock Grid.Column="2" Text="Y:" FontSize="13"
                                                            VerticalAlignment="Center" Width="16"/>
                                                 <NumericUpDown Grid.Column="3" Value="{Binding Y, Mode=TwoWay}"
-                                                               Minimum="0" Maximum="2000" Width="80" FontSize="13"/>
+                                                               Minimum="0" Maximum="5000" Width="80" FontSize="13"
+                                                               PlaceholderText="Y px"
+                                                               ToolTip.Tip="Y 坐标（像素），0-5000"/>
                                                 <Button Grid.Column="4"
                                                         Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
                                                         CommandParameter="{Binding}"

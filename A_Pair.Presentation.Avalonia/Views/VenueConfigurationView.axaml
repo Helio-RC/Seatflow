@@ -140,24 +140,36 @@
                                       RowSpacing="6" ColumnSpacing="12">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding GridRows, Mode=TwoWay}"
-                                                   Minimum="1" Maximum="20"/>
+                                                   Minimum="1" Maximum="100"
+                                                   PlaceholderText="排数"
+                                                   ToolTip.Tip="座位行数，1-100。如教室有 6 排座位则填 6。"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="列数" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridColumns, Mode=TwoWay}"
-                                                   Minimum="1" Maximum="20"/>
+                                                   Minimum="1" Maximum="100"
+                                                   PlaceholderText="每排数量"
+                                                   ToolTip.Tip="座位列数，1-100。如每排有 8 个座位则填 8。"/>
 
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
-                                                   Minimum="8" Maximum="120"/>
+                                                   Minimum="4" Maximum="300"
+                                                   PlaceholderText="间距 px"
+                                                   ToolTip.Tip="相邻列之间的水平距离（像素），4-300。通常设为 30-40。"/>
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
-                                                   Minimum="8" Maximum="120"/>
+                                                   Minimum="4" Maximum="300"
+                                                   PlaceholderText="间距 px"
+                                                   ToolTip.Tip="相邻行之间的垂直距离（像素），4-300。通常设为 30-40。"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding GridOriginX, Mode=TwoWay}"
-                                                   Minimum="0" Maximum="500"/>
+                                                   Minimum="0" Maximum="2000"
+                                                   PlaceholderText="起始 X"
+                                                   ToolTip.Tip="首列座位的起始水平位置（像素），0-2000。"/>
                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding GridOriginY, Mode=TwoWay}"
-                                                   Minimum="0" Maximum="500"/>
+                                                   Minimum="0" Maximum="2000"
+                                                   PlaceholderText="起始 Y"
+                                                   ToolTip.Tip="首行座位的起始垂直位置（像素），0-2000。"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -173,24 +185,36 @@
                                       RowSpacing="6" ColumnSpacing="12">
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding PolarRings, Mode=TwoWay}"
-                                                   Minimum="1" Maximum="10"/>
+                                                   Minimum="1" Maximum="20"
+                                                   PlaceholderText="圈数"
+                                                   ToolTip.Tip="极坐标环数，1-20。如阶梯教室有 3 圈座位则填 3。"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="每环座位数" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarSeatsPerRing, Mode=TwoWay}"
-                                                   Minimum="2" Maximum="60"/>
+                                                   Minimum="2" Maximum="120"
+                                                   PlaceholderText="座位/环"
+                                                   ToolTip.Tip="每环的座位数量，2-120。座位沿环均匀分布。"/>
 
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="半径步长" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
-                                                   Minimum="16" Maximum="200"/>
+                                                   Minimum="8" Maximum="400"
+                                                   PlaceholderText="步长 px"
+                                                   ToolTip.Tip="相邻环之间的半径增量（像素），8-400。通常设为 40-60。"/>
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="起始角度" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarStartAngle, Mode=TwoWay}"
-                                                   Minimum="0" Maximum="360"/>
+                                                   Minimum="0" Maximum="360"
+                                                   PlaceholderText="角度°"
+                                                   ToolTip.Tip="第一个座位的起始角度（度），0-360。0 为右侧水平方向，逆时针递增。"/>
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding PolarOriginX, Mode=TwoWay}"
-                                                   Minimum="0" Maximum="500"/>
+                                                   Minimum="0" Maximum="2000"
+                                                   PlaceholderText="圆心 X"
+                                                   ToolTip.Tip="圆心水平位置（像素），0-2000。"/>
                                     <TextBlock Grid.Row="2" Grid.Column="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
                                     <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginY, Mode=TwoWay}"
-                                                   Minimum="0" Maximum="500"/>
+                                                   Minimum="0" Maximum="2000"
+                                                   PlaceholderText="圆心 Y"
+                                                   ToolTip.Tip="圆心垂直位置（像素），0-2000。"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
