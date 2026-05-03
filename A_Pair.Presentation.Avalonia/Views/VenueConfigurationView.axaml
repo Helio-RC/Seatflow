@@ -305,6 +305,7 @@
 											</StackPanel>
 										</Button>
 									</StackPanel>
+									<!-- 下面的NumericUpDown的输入框无法拉伸填充满一行，我都无语了 -->
 									<ItemsControl ItemsSource="{Binding DoorItems}" HorizontalAlignment="Stretch">
 										<ItemsControl.ItemTemplate>
 											<DataTemplate x:DataType="vm:DoorItem">
@@ -314,7 +315,7 @@
 														  RowSpacing="6" ColumnSpacing="12">
 														<TextBlock Grid.Row="0" Grid.Column="0"  Text="{Binding Label}" FontSize="12"
 																   VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Left"/>
-														<StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Orientation="Horizontal">
+														<StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
 															<TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
 															<NumericUpDown Value="{Binding X, Mode=TwoWay}"
 																		   Minimum="0" Maximum="2000" FontSize="12"
@@ -334,6 +335,7 @@
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
+									<!-- 到这里 -->
 								</StackPanel>
 							</StackPanel>
 						</Border>
