@@ -305,27 +305,29 @@
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>
-                                    <ItemsControl ItemsSource="{Binding DoorItems}">
+                                    <ItemsControl ItemsSource="{Binding DoorItems}" HorizontalAlignment="Stretch">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:DoorItem">
                                                 <Border Padding="4,2" BorderThickness="0,0,0,1"
                                                         BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <TextBlock Text="{Binding Label}" FontSize="12"
-                                                                   VerticalAlignment="Center" Width="40"/>
-                                                        <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
-                                                        <NumericUpDown Value="{Binding X, Mode=TwoWay}"
-                                                                       Minimum="0" Maximum="2000" Width="70" FontSize="12"
+                                                    <Grid ColumnDefinitions="40,Auto,70,Auto,70,Auto"
+                                                          ColumnSpacing="6">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Grid.Column="1" Text="X:" FontSize="12" VerticalAlignment="Center"/>
+                                                        <NumericUpDown Grid.Column="2" Value="{Binding X, Mode=TwoWay}"
+                                                                       Minimum="0" Maximum="2000" FontSize="12"
                                                                        ToolTip.Tip="门的水平位置（像素）"/>
-                                                        <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center"/>
-                                                        <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
-                                                                       Minimum="0" Maximum="2000" Width="70" FontSize="12"
+                                                        <TextBlock Grid.Column="3" Text="Y:" FontSize="12" VerticalAlignment="Center"/>
+                                                        <NumericUpDown Grid.Column="4" Value="{Binding Y, Mode=TwoWay}"
+                                                                       Minimum="0" Maximum="2000" FontSize="12"
                                                                        ToolTip.Tip="门的垂直位置（像素）"/>
-                                                        <Button Command="{Binding RemoveCommand}"
+                                                        <Button Grid.Column="5" Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
+                                                                CommandParameter="{Binding}"
                                                                 Padding="4" FontSize="12">
                                                             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
                                                         </Button>
-                                                    </StackPanel>
+                                                    </Grid>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
