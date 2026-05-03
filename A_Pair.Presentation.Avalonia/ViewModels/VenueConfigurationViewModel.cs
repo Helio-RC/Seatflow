@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
@@ -501,23 +502,30 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
 public record VenueItem(string Id, string Name);
 
-public partial class DoorItem : ObservableObject
+public class DoorItem : ObservableObject
 {
-    [ObservableProperty] private double _x;
-    [ObservableProperty] private double _y;
-    [ObservableProperty] private string _label = "门";
+    private double _x;
+    public double X { get => _x; set => SetProperty(ref _x, value); }
+
+    private double _y;
+    public double Y { get => _y; set => SetProperty(ref _y, value); }
+
+    private string _label = "门";
+    public string Label { get => _label; set => SetProperty(ref _label, value); }
 
     public Action? RemoveSelf { get; set; }
+    public ICommand RemoveCommand { get; }
 
-    public DoorItem() { }
-    public DoorItem(double x, double y, string label = "门", Action? removeSelf = null)
+    public DoorItem()
     {
-        _x = x; _y = y; _label = label;
-        RemoveSelf = removeSelf;
+        RemoveCommand = new RelayCommand(() => RemoveSelf?.Invoke());
     }
 
-    [RelayCommand]
-    private void Remove() => RemoveSelf?.Invoke();
+    public DoorItem(double x, double y, string label = "门", Action? removeSelf = null) : this()
+    {
+        X = x; Y = y; Label = label;
+        RemoveSelf = removeSelf;
+    }
 }
 
 public partial class AisleOption : ObservableObject
