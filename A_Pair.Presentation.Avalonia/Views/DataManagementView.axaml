@@ -233,7 +233,7 @@
     </Border>
 
     <!-- 中间内容区 -->
-    <Grid>
+    <Grid x:Name="SidebarGrid">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="240"/>
         <ColumnDefinition Width="4"/>

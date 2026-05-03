@@ -38,17 +38,9 @@ public partial class DataManagementView : UserControl
 
     private void SyncSidebar (double width)
     {
-        // Find the content Grid (child of outermost DockPanel, first Grid with ColumnDefinitions)
-        var root = (Content as DockPanel) ?? (VisualChildren.Count > 0 ? VisualChildren[0] as DockPanel : null);
-        if (root == null) return;
-        foreach (var child in root.Children)
-        {
-            if (child is Grid grid && grid.ColumnDefinitions.Count >= 3)
-            {
-                grid.ColumnDefinitions[0].Width = new GridLength(width);
-                break;
-            }
-        }
+        var grid = this.FindControl<Grid>("SidebarGrid");
+        if (grid != null && grid.ColumnDefinitions.Count > 0)
+            grid.ColumnDefinitions[0].Width = new GridLength(width);
     }
 
     protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
