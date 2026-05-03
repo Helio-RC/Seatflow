@@ -352,13 +352,12 @@
                             <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                                     CornerRadius="4" MinHeight="300" Padding="8">
                                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                    <Canvas Width="800" Height="600">
-
+                                    <Grid>
                                         <!-- 座位层 -->
                                         <ItemsControl ItemsSource="{Binding PreviewSeats}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
-                                                    <Canvas/>
+                                                    <Canvas Width="800" Height="600"/>
                                                 </ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.Styles>
@@ -383,7 +382,7 @@
                                         <ItemsControl ItemsSource="{Binding PreviewOverlays}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
-                                                    <Canvas/>
+                                                    <Canvas Width="800" Height="600"/>
                                                 </ItemsPanelTemplate>
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.Styles>
@@ -405,7 +404,7 @@
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
-                                    </Canvas>
+                                    </Grid>
                                 </ScrollViewer>
                             </Border>
                         </StackPanel>
