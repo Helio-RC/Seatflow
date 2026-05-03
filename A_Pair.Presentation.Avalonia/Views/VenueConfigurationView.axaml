@@ -527,7 +527,7 @@
 													<Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
 														   RenderTransformOrigin="0,0"
 														   ToolTip.Tip="{Binding Label}">
-														<Border CornerRadius="{ReflectionBinding CornerRadius}"
+														<Border CornerRadius="1000"
 																BorderThickness="{ReflectionBinding BorderThickness}"
 																Background="{ReflectionBinding BackgroundColor}"
 																BorderBrush="{ReflectionBinding BorderColor}"
