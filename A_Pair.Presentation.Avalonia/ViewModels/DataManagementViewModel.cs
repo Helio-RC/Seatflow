@@ -92,7 +92,7 @@ public partial class DataManagementViewModel : ViewModelBase
     }
 
     partial void OnIsSidebarExpandedChanged (bool value)
-        => SidebarListWidth = value ? 240 : 64;
+        => SidebarListWidth = value ? 240 : 100;
 
     [RelayCommand]
     private void ToggleSidebar ()

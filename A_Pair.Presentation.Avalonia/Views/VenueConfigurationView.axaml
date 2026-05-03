@@ -53,45 +53,68 @@
 				</Border.Transitions>
 				<DockPanel Margin="8">
 					<TextBlock DockPanel.Dock="Top" Text="会场列表"
-							   FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
-					<StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,8,0,0">
-						<Button Command="{Binding NewVenueCommand}"
-								HorizontalContentAlignment="Stretch">
-							<StackPanel Orientation="Horizontal" Spacing="6"
-										HorizontalAlignment="Center">
-								<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14" />
-								<TextBlock Text="新建会场" FontSize="13" />
-							</StackPanel>
-						</Button>
-						<Button Command="{Binding LoadVenueListCommand}"
-								HorizontalContentAlignment="Stretch">
-							<StackPanel Orientation="Horizontal" Spacing="6"
-										HorizontalAlignment="Center">
-								<fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14" />
-								<TextBlock Text="刷新列表" FontSize="13" />
-							</StackPanel>
-						</Button>
-						<Button Command="{Binding ToggleSidebarCommand}"
-								HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
-							<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-								<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-									   IsHitTestVisible="{Binding IsSidebarExpanded}">
-									<StackPanel Orientation="Horizontal" Spacing="4">
-										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12" />
-										<TextBlock Text="收起列表" FontSize="12" />
+							   FontSize="14" FontWeight="SemiBold" Margin="3,0,0,8" />
+					<Border DockPanel.Dock="Bottom">
+						<Panel>
+							<!-- 展开状态 -->
+							<StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+										IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
+								<StackPanel.Transitions>
+									<Transitions>
+										<DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseInOut" />
+									</Transitions>
+								</StackPanel.Transitions>
+
+								<Button Command="{Binding LoadVenueListCommand}" CommandParameter="DataManagement"
+										HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+									<StackPanel Orientation="Horizontal">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSyncCircle}" FontSize="20" Height="20"/>
+										<TextBlock Text="刷新会场" FontSize="13" VerticalAlignment="Center"/>
 									</StackPanel>
-								</Panel>
-								<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-									   IsHitTestVisible="{Binding IsSidebarCollapsed}">
-									<StackPanel Orientation="Horizontal" Spacing="4">
-										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12" />
-										<TextBlock Text="展开列表" FontSize="12" />
+								</Button>
+								<Button Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
+										HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+									<StackPanel Orientation="Horizontal">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
+										<TextBlock Text="新建会场" FontSize="13" VerticalAlignment="Center"/>
 									</StackPanel>
-								</Panel>
+								</Button>
+								<Button Command="{Binding ToggleSidebarCommand}"
+										HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+									<StackPanel Orientation="Horizontal">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" Height="20"/>
+										<TextBlock Text="收起侧栏" FontSize="13" VerticalAlignment="Center"/>
+									</StackPanel>
+								</Button>
 							</StackPanel>
-						</Button>
-					</StackPanel>
-					<ListBox ItemsSource="{Binding VenueItems}"
+
+							<!-- 折叠状态 -->
+							<StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+										IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+								<StackPanel.Transitions>
+									<Transitions>
+										<DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+									</Transitions>
+								</StackPanel.Transitions>
+								<Button HorizontalContentAlignment="Left"
+										Command="{Binding LoadVenueListCommand}"
+										ToolTip.Tip="刷新会场">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
+								</Button>
+								<Button HorizontalContentAlignment="Left"
+										Command="{Binding NewVenueCommand}"
+										ToolTip.Tip="新建会场">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
+								</Button>
+								<Button HorizontalContentAlignment="Left"
+										Command="{Binding ToggleSidebarCommand}"
+										ToolTip.Tip="展开列表">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" Height="20"/>
+								</Button>
+							</StackPanel>
+						</Panel>
+					</Border>
+					<ListBox DockPanel.Dock="Bottom" ItemsSource="{Binding VenueItems}"
 							 SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}"
 							 BorderThickness="0">
 						<ListBox.ItemTemplate>

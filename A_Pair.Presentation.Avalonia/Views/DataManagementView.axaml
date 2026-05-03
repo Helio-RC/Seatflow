@@ -247,54 +247,91 @@
 					<TextBlock DockPanel.Dock="Top" Text="已保存数据集"
 							   FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
-					<StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,8,0,0">
-						<Button Command="{Binding LoadSelectedDatasetCommand}"
-								IsEnabled="{Binding HasSelectedDataset}"
-								HorizontalContentAlignment="Stretch">
-							<StackPanel Orientation="Horizontal" Spacing="6"
-										HorizontalAlignment="Center">
-								<fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
-								<TextBlock Text="加载" FontSize="13" />
+					<Border DockPanel.Dock="Bottom">
+						<Panel>
+							<!-- 展开状态 -->
+							<StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+										IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
+								<StackPanel.Transitions>
+									<Transitions>
+										<DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseInOut" />
+									</Transitions>
+								</StackPanel.Transitions>
+
+								<Button Command="{Binding LoadSelectedDatasetCommand}"
+										IsEnabled="{Binding HasSelectedDataset}"
+										HorizontalContentAlignment="Stretch">
+									<StackPanel Orientation="Horizontal" Spacing="6"
+												HorizontalAlignment="Center">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="20"/>
+										<TextBlock Text="加载" FontSize="13" />
+									</StackPanel>
+								</Button>
+								<Button Command="{Binding DeleteSelectedDatasetCommand}"
+										IsEnabled="{Binding HasSelectedDataset}"
+										HorizontalContentAlignment="Stretch">
+									<StackPanel Orientation="Horizontal" Spacing="6"
+												HorizontalAlignment="Center">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="20"/>
+										<TextBlock Text="删除" FontSize="13" />
+									</StackPanel>
+								</Button>
+								<Button Command="{Binding RenameSelectedDatasetCommand}"
+										IsEnabled="{Binding HasSelectedDataset}"
+										HorizontalContentAlignment="Stretch">
+									<StackPanel Orientation="Horizontal" Spacing="6"
+												HorizontalAlignment="Center">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Edit}" FontSize="20"/>
+										<TextBlock Text="重命名" FontSize="13" />
+									</StackPanel>
+								</Button>
+
+								<Button Command="{Binding ToggleSidebarCommand}"
+										HorizontalContentAlignment="Stretch">
+									<StackPanel Orientation="Horizontal" Spacing="6"
+												HorizontalAlignment="Center">
+										<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20"/>
+										<TextBlock Text="收起侧栏" FontSize="13" />
+									</StackPanel>
+								</Button>
 							</StackPanel>
-						</Button>
-						<Button Command="{Binding RenameSelectedDatasetCommand}"
-								IsEnabled="{Binding HasSelectedDataset}"
-								HorizontalContentAlignment="Stretch">
-							<StackPanel Orientation="Horizontal" Spacing="6"
-										HorizontalAlignment="Center">
-								<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Edit}" FontSize="14" />
-								<TextBlock Text="重命名" FontSize="13" />
+
+							<!-- 折叠状态 -->
+							<StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+										IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+								<StackPanel.Transitions>
+									<Transitions>
+										<DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseInOut"/>
+									</Transitions>
+								</StackPanel.Transitions>
+
+								<Button Command="{Binding LoadSelectedDatasetCommand}"
+										IsEnabled="{Binding HasSelectedDataset}"
+										HorizontalContentAlignment="Stretch"
+										ToolTip.Tip="加载">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="20"/>
+								</Button>
+								<Button Command="{Binding DeleteSelectedDatasetCommand}"
+										IsEnabled="{Binding HasSelectedDataset}"
+										HorizontalContentAlignment="Stretch"
+										ToolTip.Tip="删除">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="20"/>
+								</Button>
+								<Button Command="{Binding RenameSelectedDatasetCommand}"
+										IsEnabled="{Binding HasSelectedDataset}"
+										HorizontalContentAlignment="Stretch"
+										ToolTip.Tip="重命名">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Edit}" FontSize="20"/>
+								</Button>
+
+								<Button Command="{Binding ToggleSidebarCommand}"
+										HorizontalContentAlignment="Stretch"
+										ToolTip.Tip="展开侧栏">
+									<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20"/>
+								</Button>
 							</StackPanel>
-						</Button>
-						<Button Command="{Binding DeleteSelectedDatasetCommand}"
-								IsEnabled="{Binding HasSelectedDataset}"
-								HorizontalContentAlignment="Stretch">
-							<StackPanel Orientation="Horizontal" Spacing="6"
-										HorizontalAlignment="Center">
-								<fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
-								<TextBlock Text="删除" FontSize="13" />
-							</StackPanel>
-						</Button>
-							<Button Command="{Binding ToggleSidebarCommand}"
-									HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
-								<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-									<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-										   IsHitTestVisible="{Binding IsSidebarExpanded}">
-										<StackPanel Orientation="Horizontal" Spacing="4">
-											<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12" />
-											<TextBlock Text="收起列表" FontSize="12" />
-										</StackPanel>
-									</Panel>
-									<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-										   IsHitTestVisible="{Binding IsSidebarCollapsed}">
-										<StackPanel Orientation="Horizontal" Spacing="4">
-											<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12" />
-											<TextBlock Text="展开列表" FontSize="12" />
-										</StackPanel>
-									</Panel>
-								</StackPanel>
-							</Button>
-					</StackPanel>
+						</Panel>
+					</Border>
 
 					<ListBox ItemsSource="{Binding SavedDatasets}"
 							 SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"

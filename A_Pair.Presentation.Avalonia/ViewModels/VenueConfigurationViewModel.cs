@@ -68,7 +68,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     partial void OnIsSidebarExpandedChanged (bool value)
-        => SidebarListWidth = value ? 240 : 64;
+        => SidebarListWidth = value ? 240 : 80;
 
     [RelayCommand]
     private void ToggleSidebar ()
