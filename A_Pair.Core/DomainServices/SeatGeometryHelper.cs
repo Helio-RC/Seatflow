@@ -29,16 +29,35 @@ namespace A_Pair.Core.DomainServices
 
         /// <summary>
         /// 计算网格座位的物理坐标。
-        /// 公式：X = OriginX + (Column - 1) × HorizontalSpacing
-        ///       Y = OriginY + (Row - 1) × VerticalSpacing
+        /// 支持桌面分组（IntraDeskSpacing / InterDeskSpacing）、过道（AisleAfterColumns / AisleAfterRows / AisleWidth）。
         /// </summary>
         private static (double X , double Y) GetGridPosition (GridSeat seat , GridLayoutMetadata? gridMeta)
         {
             if (gridMeta == null)
                 throw new ArgumentException("Grid seat requires GridLayoutMetadata.");
 
-            double x = gridMeta.OriginX + (seat.Column - 1) * gridMeta.HorizontalSpacing;
-            double y = gridMeta.OriginY + (seat.Row - 1) * gridMeta.VerticalSpacing;
+            double intra = gridMeta.IntraDeskSpacing > 0 ? gridMeta.IntraDeskSpacing : 12.0;
+            double inter = gridMeta.InterDeskSpacing > 0 ? gridMeta.InterDeskSpacing : 40.0;
+            double aisle = gridMeta.AisleWidth > 0 ? gridMeta.AisleWidth : 60.0;
+            var aisleAfterCols = new HashSet<int>(gridMeta.AisleAfterColumns ?? []);
+            var aisleAfterRows = new HashSet<int>(gridMeta.AisleAfterRows ?? []);
+            int spd = gridMeta.SeatsPerDesk > 0 ? gridMeta.SeatsPerDesk : 1;
+
+            // X 坐标：逐列累加，区分桌内间距和桌间间距
+            double x = gridMeta.OriginX;
+            for (int c = 1; c < seat.Column; c++)
+            {
+                if (c % spd == 0)  // 当前是桌子的最后一个座位，后面是桌间/过道间距
+                    x += aisleAfterCols.Contains(c) ? aisle : inter;
+                else               // 桌内相邻座位间距
+                    x += intra;
+            }
+
+            // Y 坐标：累加前行产生的间距
+            double y = gridMeta.OriginY;
+            for (int r = 1; r < seat.Row; r++)
+                y += aisleAfterRows.Contains(r) ? aisle : gridMeta.VerticalSpacing;
+
             return (x , y);
         }
 

@@ -11,7 +11,7 @@ namespace A_Pair.Core.Models
     public class LayoutMetadata { }
 
     /// <summary>
-    /// 网格布局的元数据，定义行列数、间距和原点坐标。
+    /// 网格布局的元数据，定义行列数、间距、桌面配置、过道、教室特征等。
     /// </summary>
     public class GridLayoutMetadata : LayoutMetadata
     {
@@ -21,10 +21,10 @@ namespace A_Pair.Core.Models
         /// <summary>总列数。</summary>
         public int Columns { get; set; }
 
-        /// <summary>水平间距（相邻列之间的距离）。</summary>
+        /// <summary>水平间距（相邻列之间的基准距离，像素）。</summary>
         public double HorizontalSpacing { get; set; } = 1.0;
 
-        /// <summary>垂直间距（相邻行之间的距离）。</summary>
+        /// <summary>垂直间距（相邻行之间的基准距离，像素）。</summary>
         public double VerticalSpacing { get; set; } = 1.0;
 
         /// <summary>原点 X 坐标（第一行第一列的左上角位置）。</summary>
@@ -32,6 +32,42 @@ namespace A_Pair.Core.Models
 
         /// <summary>原点 Y 坐标。</summary>
         public double OriginY { get; set; } = 0.0;
+
+        /// <summary>每桌座位数，默认 2。支持 1~6。</summary>
+        public int SeatsPerDesk { get; set; } = 2;
+
+        /// <summary>同桌内相邻座位间距（像素），默认 12。</summary>
+        public double IntraDeskSpacing { get; set; } = 12.0;
+
+        /// <summary>相邻桌边界间距（像素），默认 40。</summary>
+        public double InterDeskSpacing { get; set; } = 40.0;
+
+        /// <summary>哪些列索引后是过道（列从 1 开始计数）。如 {3,6} 表示第 3 列和第 6 列后有过道。</summary>
+        public List<int> AisleAfterColumns { get; set; } = [];
+
+        /// <summary>哪些行索引后是过道（行从 1 开始计数）。</summary>
+        public List<int> AisleAfterRows { get; set; } = [];
+
+        /// <summary>过道宽度（像素），默认 60。</summary>
+        public double AisleWidth { get; set; } = 60.0;
+
+        /// <summary>不放置桌子的网格位置列表。每项包含行列号。</summary>
+        public List<GridPosition> EmptyPositions { get; set; } = [];
+
+        /// <summary>前排的行数（从第 1 行开始计数），默认 1。</summary>
+        public int FrontRowCount { get; set; } = 1;
+
+        /// <summary>是否有讲台。</summary>
+        public bool HasPodium { get; set; } = true;
+
+        /// <summary>讲台宽度（像素），默认 60。</summary>
+        public double PodiumWidth { get; set; } = 60.0;
+
+        /// <summary>讲台高度（像素），默认 40。</summary>
+        public double PodiumHeight { get; set; } = 40.0;
+
+        /// <summary>是否有前门。</summary>
+        public bool HasFrontDoor { get; set; } = false;
     }
 
     /// <summary>

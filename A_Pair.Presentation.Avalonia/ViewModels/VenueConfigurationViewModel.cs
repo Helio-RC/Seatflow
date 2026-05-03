@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
+using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
+using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -44,15 +46,32 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsPolarSelected => SelectedLayoutType == LayoutType.Polar;
     public bool IsFreeformSelected => SelectedLayoutType == LayoutType.Freeform;
 
-    // Grid 参数
+    // ── Grid 基础参数 ──
     [ObservableProperty] private int _gridRows = 5;
-    [ObservableProperty] private int _gridColumns = 6;
-    [ObservableProperty] private double _gridHorizontalSpacing = 32;
-    [ObservableProperty] private double _gridVerticalSpacing = 32;
+    [ObservableProperty] private int _gridColumns = 8;
+    [ObservableProperty] private double _gridHorizontalSpacing = 40;
+    [ObservableProperty] private double _gridVerticalSpacing = 36;
     [ObservableProperty] private double _gridOriginX = 0;
     [ObservableProperty] private double _gridOriginY = 0;
 
-    // Polar 参数
+    // ── Grid 桌面配置 ──
+    [ObservableProperty] private int _gridSeatsPerDesk = 2;
+    [ObservableProperty] private double _gridIntraDeskSpacing = 12;
+    [ObservableProperty] private double _gridInterDeskSpacing = 40;
+
+    // ── Grid 过道配置 ──
+    [ObservableProperty] private string _gridAisleAfterColumns = "";
+    [ObservableProperty] private string _gridAisleAfterRows = "";
+    [ObservableProperty] private double _gridAisleWidth = 60;
+
+    // ── Grid 教室特征 ──
+    [ObservableProperty] private int _gridFrontRowCount = 1;
+    [ObservableProperty] private bool _gridHasPodium = true;
+    [ObservableProperty] private double _gridPodiumWidth = 60;
+    [ObservableProperty] private double _gridPodiumHeight = 40;
+    [ObservableProperty] private bool _gridHasFrontDoor = false;
+
+    // ── Polar 参数 ──
     [ObservableProperty] private int _polarRings = 3;
     [ObservableProperty] private int _polarSeatsPerRing = 12;
     [ObservableProperty] private double _polarRadiusStep = 40;
@@ -60,8 +79,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private double _polarOriginX = 0;
     [ObservableProperty] private double _polarOriginY = 0;
 
-    // 预览
+    // ── 预览 ──
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewSeats = [];
+    [ObservableProperty] private ObservableCollection<SeatPreview> _previewOverlays = [];
     [ObservableProperty] private string _statusMessage = string.Empty;
 
     public VenueConfigurationViewModel(IApplicationFacade facade, IDialogService dialog, INavigationService navigation)
@@ -71,11 +91,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         _ = LoadVenueList();
     }
 
-    [RelayCommand]
-    private void NavigateToFreeform()
-    {
-        _navigation.NavigateTo(PageKey.FreeformManagement);
-    }
+    // ═══════════════════════════════════════════════
+    // 会场列表
+    // ═══════════════════════════════════════════════
 
     [RelayCommand]
     private async Task LoadVenueList()
@@ -114,7 +132,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private async Task DeleteVenue()
     {
         if (SelectedVenueItem == null) return;
-
         var item = SelectedVenueItem;
         var confirmed = await Dialog.ShowConfirmAsync("确认删除", $"确定要删除会场「{item.Name}」吗？此操作不可恢复。");
         if (!confirmed) return;
@@ -124,6 +141,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             await _facade.DeleteVenueAsync(item.Id);
             SelectedVenueItem = null;
             PreviewSeats.Clear();
+            PreviewOverlays.Clear();
             LayoutName = string.Empty;
             await LoadVenueList();
             StatusMessage = $"会场「{item.Name}」已删除";
@@ -135,11 +153,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var layout = await _facade.LoadVenueAsync(item.Id);
-            if (layout == null)
-            {
-                StatusMessage = $"加载会场「{item.Name}」失败";
-                return;
-            }
+            if (layout == null) { StatusMessage = $"加载会场「{item.Name}」失败"; return; }
 
             LayoutName = layout.Name;
             SelectedLayoutType = layout.LayoutType;
@@ -147,20 +161,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             switch (layout.Metadata)
             {
                 case GridLayoutMetadata g:
-                    GridRows = g.Rows > 0 ? g.Rows : 5;
-                    GridColumns = g.Columns > 0 ? g.Columns : 6;
-                    GridHorizontalSpacing = g.HorizontalSpacing > 0 ? g.HorizontalSpacing : 32;
-                    GridVerticalSpacing = g.VerticalSpacing > 0 ? g.VerticalSpacing : 32;
-                    GridOriginX = g.OriginX;
-                    GridOriginY = g.OriginY;
+                    PopulateGridFromMetadata(g);
                     break;
                 case PolarLayoutMetadata p:
-                    PolarRings = p.Rings > 0 ? p.Rings : 3;
-                    PolarSeatsPerRing = p.SeatsPerRing > 0 ? p.SeatsPerRing : 12;
-                    PolarRadiusStep = p.RadiusStep > 0 ? p.RadiusStep : 40;
-                    PolarStartAngle = p.StartAngleDegrees;
-                    PolarOriginX = p.OriginX;
-                    PolarOriginY = p.OriginY;
+                    PopulatePolarFromMetadata(p);
                     break;
             }
 
@@ -173,8 +177,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private async Task SaveVenue()
     {
         if (SelectedVenueItem == null) return;
-
         var item = SelectedVenueItem;
+
         await SafeExecuteAsync(async () =>
         {
             var layout = BuildLayoutDefinition();
@@ -197,83 +201,120 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void NavigateToFreeform() => _navigation.NavigateTo(PageKey.FreeformManagement);
+
+    // ═══════════════════════════════════════════════
+    // 预览 & 构建
+    // ═══════════════════════════════════════════════
+
+    [RelayCommand]
     private void RegeneratePreview()
     {
+        if (SelectedLayoutType != LayoutType.Grid) return;
+
+        var meta = BuildGridMetadata();
+        var layout = GridLayoutBuilder.BuildGrid(meta);
+
+        // 座位
         var seats = new List<SeatPreview>();
-        switch (SelectedLayoutType)
+        foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
         {
-            case LayoutType.Grid:
-                for (int r = 0; r < GridRows; r++)
-                    for (int c = 0; c < GridColumns; c++)
-                        seats.Add(new SeatPreview
-                        {
-                            X = GridOriginX + c * GridHorizontalSpacing,
-                            Y = GridOriginY + r * GridVerticalSpacing,
-                            Label = $"R{r + 1}C{c + 1}"
-                        });
-                break;
+            var (x, y) = SeatGeometryHelper.GetPosition(s, meta);
+            bool isFront = s.Row <= meta.FrontRowCount;
+            int deskNum = (s.Column - 1) / meta.SeatsPerDesk + 1;
+            seats.Add(new SeatPreview
+            {
+                X = x, Y = y,
+                Label = $"R{s.Row}C{s.Column} (桌{deskNum})",
+                ElementType = PreviewElementType.Seat,
+                IsFrontRow = isFront
+            });
+        }
+        PreviewSeats = new ObservableCollection<SeatPreview>(seats);
 
-            case LayoutType.Polar:
-                for (int ring = 0; ring < PolarRings; ring++)
-                {
-                    double radius = (ring + 1) * PolarRadiusStep;
-                    for (int i = 0; i < PolarSeatsPerRing; i++)
-                    {
-                        double angleDeg = PolarStartAngle + (360.0 / PolarSeatsPerRing) * i;
-                        double angleRad = angleDeg * Math.PI / 180.0;
-                        seats.Add(new SeatPreview
-                        {
-                            X = PolarOriginX + radius * Math.Cos(angleRad),
-                            Y = PolarOriginY + radius * Math.Sin(angleRad),
-                            Label = $"R{ring + 1}S{i + 1}"
-                        });
-                    }
-                }
-                break;
+        // 覆盖层
+        var overlays = new List<SeatPreview>();
 
-            case LayoutType.Freeform:
-                break;
+        // 讲台
+        if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
+        {
+            double podiumX = meta.OriginX;
+            double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
+            overlays.Add(new SeatPreview
+            {
+                X = podiumX, Y = podiumY,
+                Width = meta.PodiumWidth * meta.Columns / 2,
+                Height = meta.PodiumHeight,
+                ElementType = PreviewElementType.Podium,
+                Label = "讲台"
+            });
         }
 
-        PreviewSeats = new ObservableCollection<SeatPreview>(seats);
+        // 前门
+        if (meta.HasFrontDoor)
+        {
+            double doorX = meta.OriginX - 30;
+            double doorY = meta.OriginY;
+            overlays.Add(new SeatPreview
+            {
+                X = doorX, Y = doorY,
+                Width = 20, Height = 30,
+                ElementType = PreviewElementType.Door,
+                Label = "前门"
+            });
+        }
+
+        PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);
         StatusMessage = $"预览：{seats.Count} 个座位";
     }
 
     private ClassroomLayoutDefinition BuildLayoutDefinition()
     {
-        var layout = new ClassroomLayoutDefinition
-        {
-            Id = SelectedVenueItem?.Id ?? "",
-            Name = LayoutName,
-            LayoutType = SelectedLayoutType,
-        };
-
+        ClassroomLayoutDefinition layout;
         switch (SelectedLayoutType)
         {
             case LayoutType.Grid:
-                layout.Metadata = new GridLayoutMetadata
+                var meta = BuildGridMetadata();
+                layout = GridLayoutBuilder.BuildGrid(meta);
+                // 将讲台/前门作为 Obstacle 写入
+                if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
                 {
-                    Rows = GridRows,
-                    Columns = GridColumns,
-                    HorizontalSpacing = GridHorizontalSpacing,
-                    VerticalSpacing = GridVerticalSpacing,
-                    OriginX = GridOriginX,
-                    OriginY = GridOriginY
-                };
-                for (int r = 1; r <= GridRows; r++)
-                    for (int c = 1; c <= GridColumns; c++)
-                        layout.Seats.Add(new GridSeat { Row = r, Column = c });
+                    layout.Obstacles.Add(new Obstacle
+                    {
+                        X = meta.OriginX,
+                        Y = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing,
+                        Width = meta.PodiumWidth,
+                        Height = meta.PodiumHeight,
+                        Type = "Podium"
+                    });
+                }
+                if (meta.HasFrontDoor)
+                {
+                    layout.Obstacles.Add(new Obstacle
+                    {
+                        X = meta.OriginX - 30,
+                        Y = meta.OriginY,
+                        Width = 20, Height = 30,
+                        Type = "Door"
+                    });
+                }
                 break;
 
             case LayoutType.Polar:
-                layout.Metadata = new PolarLayoutMetadata
+                layout = new ClassroomLayoutDefinition
                 {
-                    Rings = PolarRings,
-                    SeatsPerRing = PolarSeatsPerRing,
-                    RadiusStep = PolarRadiusStep,
-                    StartAngleDegrees = PolarStartAngle,
-                    OriginX = PolarOriginX,
-                    OriginY = PolarOriginY
+                    Id = SelectedVenueItem?.Id ?? "",
+                    Name = LayoutName,
+                    LayoutType = LayoutType.Polar,
+                    Metadata = new PolarLayoutMetadata
+                    {
+                        Rings = PolarRings,
+                        SeatsPerRing = PolarSeatsPerRing,
+                        RadiusStep = PolarRadiusStep,
+                        StartAngleDegrees = PolarStartAngle,
+                        OriginX = PolarOriginX,
+                        OriginY = PolarOriginY
+                    }
                 };
                 for (int ring = 1; ring <= PolarRings; ring++)
                 {
@@ -287,21 +328,106 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 break;
 
             case LayoutType.Freeform:
-                layout.Metadata = new FreeformLayoutMetadata();
+                layout = new ClassroomLayoutDefinition
+                {
+                    Id = SelectedVenueItem?.Id ?? "",
+                    Name = LayoutName,
+                    LayoutType = LayoutType.Freeform,
+                    Metadata = new FreeformLayoutMetadata()
+                };
+                break;
+
+            default:
+                layout = new ClassroomLayoutDefinition { Name = LayoutName };
                 break;
         }
 
         return layout;
     }
 
+    // ═══════════════════════════════════════════════
+    // 辅助
+    // ═══════════════════════════════════════════════
+
+    private GridLayoutMetadata BuildGridMetadata()
+    {
+        return new GridLayoutMetadata
+        {
+            Rows = GridRows,
+            Columns = GridColumns,
+            HorizontalSpacing = GridHorizontalSpacing,
+            VerticalSpacing = GridVerticalSpacing,
+            OriginX = GridOriginX,
+            OriginY = GridOriginY,
+            SeatsPerDesk = GridSeatsPerDesk,
+            IntraDeskSpacing = GridIntraDeskSpacing,
+            InterDeskSpacing = GridInterDeskSpacing,
+            AisleAfterColumns = ParseIntList(GridAisleAfterColumns),
+            AisleAfterRows = ParseIntList(GridAisleAfterRows),
+            AisleWidth = GridAisleWidth,
+            FrontRowCount = GridFrontRowCount,
+            HasPodium = GridHasPodium,
+            PodiumWidth = GridPodiumWidth,
+            PodiumHeight = GridPodiumHeight,
+            HasFrontDoor = GridHasFrontDoor
+        };
+    }
+
+    private void PopulateGridFromMetadata(GridLayoutMetadata g)
+    {
+        GridRows = g.Rows > 0 ? g.Rows : 5;
+        GridColumns = g.Columns > 0 ? g.Columns : 8;
+        GridHorizontalSpacing = g.HorizontalSpacing > 0 ? g.HorizontalSpacing : 40;
+        GridVerticalSpacing = g.VerticalSpacing > 0 ? g.VerticalSpacing : 36;
+        GridOriginX = g.OriginX;
+        GridOriginY = g.OriginY;
+        GridSeatsPerDesk = g.SeatsPerDesk > 0 ? g.SeatsPerDesk : 2;
+        GridIntraDeskSpacing = g.IntraDeskSpacing > 0 ? g.IntraDeskSpacing : 12;
+        GridInterDeskSpacing = g.InterDeskSpacing > 0 ? g.InterDeskSpacing : 40;
+        GridAisleAfterColumns = string.Join(",", g.AisleAfterColumns ?? []);
+        GridAisleAfterRows = string.Join(",", g.AisleAfterRows ?? []);
+        GridAisleWidth = g.AisleWidth > 0 ? g.AisleWidth : 60;
+        GridFrontRowCount = g.FrontRowCount > 0 ? g.FrontRowCount : 1;
+        GridHasPodium = g.HasPodium;
+        GridPodiumWidth = g.PodiumWidth > 0 ? g.PodiumWidth : 60;
+        GridPodiumHeight = g.PodiumHeight > 0 ? g.PodiumHeight : 40;
+        GridHasFrontDoor = g.HasFrontDoor;
+    }
+
+    private void PopulatePolarFromMetadata(PolarLayoutMetadata p)
+    {
+        PolarRings = p.Rings > 0 ? p.Rings : 3;
+        PolarSeatsPerRing = p.SeatsPerRing > 0 ? p.SeatsPerRing : 12;
+        PolarRadiusStep = p.RadiusStep > 0 ? p.RadiusStep : 40;
+        PolarStartAngle = p.StartAngleDegrees;
+        PolarOriginX = p.OriginX;
+        PolarOriginY = p.OriginY;
+    }
+
     private void ResetParameters()
     {
-        GridRows = 5; GridColumns = 6;
-        GridHorizontalSpacing = 32; GridVerticalSpacing = 32;
+        GridRows = 5; GridColumns = 8;
+        GridHorizontalSpacing = 40; GridVerticalSpacing = 36;
         GridOriginX = 0; GridOriginY = 0;
+        GridSeatsPerDesk = 2;
+        GridIntraDeskSpacing = 12; GridInterDeskSpacing = 40;
+        GridAisleAfterColumns = ""; GridAisleAfterRows = "";
+        GridAisleWidth = 60;
+        GridFrontRowCount = 1;
+        GridHasPodium = true; GridPodiumWidth = 60; GridPodiumHeight = 40;
+        GridHasFrontDoor = false;
         PolarRings = 3; PolarSeatsPerRing = 12;
         PolarRadiusStep = 40; PolarStartAngle = 0;
         PolarOriginX = 0; PolarOriginY = 0;
+    }
+
+    private static List<int> ParseIntList(string csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return [];
+        return csv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => int.TryParse(s.Trim(), out var n) ? n : -1)
+            .Where(n => n > 0)
+            .ToList();
     }
 
     partial void OnSelectedVenueItemChanged(VenueItem? value)
@@ -309,8 +435,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         if (!_suppressAutoLoad && value != null)
             _ = SelectVenueAsync(value);
     }
-
-    partial void OnSelectedLayoutTypeChanged(LayoutType value) => RegeneratePreview();
 }
 
 public record VenueItem(string Id, string Name);
@@ -320,4 +444,17 @@ public class SeatPreview
     public double X { get; set; }
     public double Y { get; set; }
     public string Label { get; set; } = string.Empty;
+    public PreviewElementType ElementType { get; set; } = PreviewElementType.Seat;
+    public double Width { get; set; } = 20;
+    public double Height { get; set; } = 20;
+    public bool IsFrontRow { get; set; }
+}
+
+public enum PreviewElementType
+{
+    Seat,
+    Obstacle,
+    Podium,
+    Door,
+    Aisle
 }

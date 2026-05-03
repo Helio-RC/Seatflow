@@ -158,6 +158,17 @@ namespace A_Pair.Application.Services
             if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
                 strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
 
+            // 6b. 同步 FrontRowCount 到策略配置
+            if (!string.IsNullOrEmpty(request.LayoutId))
+            {
+                var venueLayout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
+                if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
+                {
+                    var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                    frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
+                }
+            }
+
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
             var plan = await pipeline.ExecuteAsync(workspace , progress , cancellationToken);

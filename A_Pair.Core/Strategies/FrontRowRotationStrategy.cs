@@ -17,6 +17,9 @@ namespace A_Pair.Core.Strategies
         /// </summary>
         public FrontRowRotationStrategy () : this(new FrontRowRotationConfiguration()) { }
 
+        /// <summary>设置前排行数（从布局元数据同步）。</summary>
+        public void SetFrontRowCount (int count) => _config.FrontRowCount = Math.Max(1 , count);
+
         /// <summary>策略 ID："FrontRowRotation"。</summary>
         public string Id { get; } = "FrontRowRotation";
 
@@ -48,8 +51,9 @@ namespace A_Pair.Core.Strategies
             if (gridSeats.Count == 0)
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
 
-            int frontRow = gridSeats.Min(s => s.Row);
-            var frontSeats = gridSeats.Where(s => s.Row == frontRow).ToList();
+            int frontRowMin = gridSeats.Min(s => s.Row);
+            int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
+            var frontSeats = gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax).ToList();
 
             // 获取尚未分配的学生
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
@@ -62,7 +66,7 @@ namespace A_Pair.Core.Strategies
                     .Count(seatId =>
                     {
                         var histSeat = workspace.FindSeats(seat => seat.Id == seatId).FirstOrDefault();
-                        return histSeat is GridSeat gs && gs.Row == frontRow;
+                        return histSeat is GridSeat gs && gs.Row >= frontRowMin && gs.Row <= frontRowMax;
                     });
 
                 int score = (s.NeedsFrontRow ? _config.NeedsFrontRowBonus : 0)
@@ -108,6 +112,11 @@ namespace A_Pair.Core.Strategies
             /// 设置为较大值（默认 1000）可确保有需求的学生优先获得前排座位。
             /// </summary>
             public int NeedsFrontRowBonus { get; set; } = 1000;
+
+            /// <summary>
+            /// 前排行数。默认为 1（仅第 1 行），可根据教室布局配置。
+            /// </summary>
+            public int FrontRowCount { get; set; } = 1;
         }
     }
 }
