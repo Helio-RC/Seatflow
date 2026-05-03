@@ -8,7 +8,6 @@ using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Services;
-using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -300,7 +299,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Label = $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})" ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront ,
-                    CornerRadius = seatR ,
+                    CornerRadius = new(5) ,
                     IsCircle = true
                 });
             }
@@ -317,7 +316,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Height = pr * 2 ,
                     ElementType = PreviewElementType.Podium ,
                     Label = "讲台" ,
-                    CornerRadius = pr ,
+                    CornerRadius = new(pr) ,
                     IsCircle = true ,
                     BackgroundColor = "#4080D0E0"
                 });
@@ -642,7 +641,7 @@ public class SeatPreview
     public double Width { get; set; } = 20;
     public double Height { get; set; } = 20;
     public bool IsFrontRow { get; set; }
-    public double CornerRadius { get; set; } = 2;
+    public global::Avalonia.CornerRadius CornerRadius { get; set; } = new(2);
     public double Rotation { get; set; }
     public string BackgroundColor { get; set; } = "#800072C6";
     public string BorderColor { get; set; } = "";
@@ -650,7 +649,7 @@ public class SeatPreview
     public bool IsCircle { get; set; }
     public string? PathData { get; set; }
     public string PathFill { get; set; } = "";
-    public StreamGeometry? PathGeometry { get; set; }
+    public global::Avalonia.Media.StreamGeometry? PathGeometry { get; set; }
 }
 
 public enum PreviewElementType

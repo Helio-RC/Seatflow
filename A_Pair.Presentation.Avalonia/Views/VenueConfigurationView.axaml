@@ -485,7 +485,7 @@
 										<ItemsControl ItemsSource="{Binding PreviewSeats}">
 											<ItemsControl.ItemsPanel>
 												<ItemsPanelTemplate>
-													<Canvas Width="800" Height="600"/>
+													<Canvas Width="600" Height="600"/>
 												</ItemsPanelTemplate>
 											</ItemsControl.ItemsPanel>
 											<ItemsControl.Styles>
@@ -513,7 +513,7 @@
 										<ItemsControl ItemsSource="{Binding PreviewOverlays}">
 											<ItemsControl.ItemsPanel>
 												<ItemsPanelTemplate>
-													<Canvas Width="800" Height="600"/>
+													<Canvas Width="600" Height="600"/>
 												</ItemsPanelTemplate>
 											</ItemsControl.ItemsPanel>
 											<ItemsControl.Styles>
@@ -527,7 +527,7 @@
 													<Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
 														   RenderTransformOrigin="0,0"
 														   ToolTip.Tip="{Binding Label}">
-														<Border CornerRadius="{ReflectionBinding CornerRadius}"
+														<Border CornerRadius="1000"
 																BorderThickness="{ReflectionBinding BorderThickness}"
 																Background="{ReflectionBinding BackgroundColor}"
 																BorderBrush="{ReflectionBinding BorderColor}"

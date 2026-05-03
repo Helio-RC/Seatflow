@@ -5,9 +5,9 @@ namespace A_Pair.Core.Models
     /// <summary>
     /// 布局元数据基类，每种布局类型有其对应的派生元数据类。
     /// </summary>
-    [JsonDerivedType(typeof(GridLayoutMetadata), "Grid")]
-    [JsonDerivedType(typeof(PolarLayoutMetadata), "Polar")]
-    [JsonDerivedType(typeof(FreeformLayoutMetadata), "Freeform")]
+    [JsonDerivedType(typeof(GridLayoutMetadata) , "Grid")]
+    [JsonDerivedType(typeof(PolarLayoutMetadata) , "Polar")]
+    [JsonDerivedType(typeof(FreeformLayoutMetadata) , "Freeform")]
     public class LayoutMetadata { }
 
     /// <summary>
@@ -28,10 +28,10 @@ namespace A_Pair.Core.Models
         public double VerticalSpacing { get; set; } = 1.0;
 
         /// <summary>原点 X 坐标（第一行第一列的左上角位置）。</summary>
-        public double OriginX { get; set; } = 0.0;
+        public double OriginX { get; set; } = 50.0;
 
         /// <summary>原点 Y 坐标。</summary>
-        public double OriginY { get; set; } = 0.0;
+        public double OriginY { get; set; } = 50.0;
 
         /// <summary>每桌座位数，默认 2。支持 1~6。</summary>
         public int SeatsPerDesk { get; set; } = 2;
@@ -61,7 +61,7 @@ namespace A_Pair.Core.Models
         public bool HasPodium { get; set; } = true;
 
         /// <summary>讲台宽度（像素），默认 60。</summary>
-        public double PodiumWidth { get; set; } = 60.0;
+        public double PodiumWidth { get; set; } = 40.0;
 
         /// <summary>讲台高度（像素），默认 40。</summary>
         public double PodiumHeight { get; set; } = 40.0;
@@ -88,10 +88,10 @@ namespace A_Pair.Core.Models
         public double StartAngleDegrees { get; set; } = 0.0;
 
         /// <summary>结束角度（度），360=全圆，180=半圆，90=1/4圆。</summary>
-        public double EndAngleDegrees { get; set; } = 360;
+        public double EndAngleDegrees { get; set; } = 180;
 
         /// <summary>原点 X 坐标（圆心水平位置，像素）。</summary>
-        public double OriginX { get; set; } = 200;
+        public double OriginX { get; set; } = 300;
 
         /// <summary>原点 Y 坐标（圆心垂直位置，像素）。</summary>
         public double OriginY { get; set; } = 200;
