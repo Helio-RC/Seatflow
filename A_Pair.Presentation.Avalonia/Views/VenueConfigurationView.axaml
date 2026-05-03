@@ -371,6 +371,9 @@
                                                 <DataTemplate x:DataType="vm:SeatPreview">
                                                     <Border Width="18" Height="18" CornerRadius="2"
                                                             ToolTip.Tip="{Binding Label}">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
+                                                        </Border.Background>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
