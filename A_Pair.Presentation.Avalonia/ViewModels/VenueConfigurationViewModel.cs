@@ -47,6 +47,36 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsFreeformSelected => SelectedLayoutType == LayoutType.Freeform;
     public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected;
 
+    // ── 侧边栏折叠 ──
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
+    private bool _isSidebarExpanded = true;
+
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
+
+    [ObservableProperty]
+    private double _sidebarListWidth = 240;
+
+    private bool _userWantsSidebarExpanded = true;
+
+    public void OnWindowWidthChanged (double windowWidth)
+    {
+        if (windowWidth < 750)
+            IsSidebarExpanded = false;
+        else
+            IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
+    partial void OnIsSidebarExpandedChanged (bool value)
+        => SidebarListWidth = value ? 240 : 64;
+
+    [RelayCommand]
+    private void ToggleSidebar ()
+    {
+        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
+        IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
     // ── Grid 基础参数 ──
     [ObservableProperty] private int _gridRows = 5;
     [ObservableProperty] private int _gridColumns = 8;

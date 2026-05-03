@@ -70,6 +70,36 @@ public partial class DataManagementViewModel : ViewModelBase
     private bool _isCompact;
 
     public bool HasExpanded => !IsCompact;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
+    private bool _isSidebarExpanded = true;
+
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
+
+    [ObservableProperty]
+    private double _sidebarListWidth = 240;
+
+    private bool _userWantsSidebarExpanded = true;
+
+    public void OnWindowWidthChanged (double windowWidth)
+    {
+        IsCompact = windowWidth < 800;
+        if (windowWidth < 750)
+            IsSidebarExpanded = false;
+        else
+            IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
+    partial void OnIsSidebarExpandedChanged (bool value)
+        => SidebarListWidth = value ? 240 : 64;
+
+    [RelayCommand]
+    private void ToggleSidebar ()
+    {
+        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
+        IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
     public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)

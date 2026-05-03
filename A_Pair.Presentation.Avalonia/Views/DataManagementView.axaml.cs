@@ -5,8 +5,6 @@ namespace A_Pair.Presentation.Avalonia.Views;
 
 public partial class DataManagementView : UserControl
 {
-    private const double CompactThreshold = 800;
-
     public DataManagementView ()
     {
         InitializeComponent();
@@ -18,7 +16,7 @@ public partial class DataManagementView : UserControl
 
         if (change.Property == BoundsProperty && DataContext is ViewModels.DataManagementViewModel vm)
         {
-            vm.IsCompact = Bounds.Width < CompactThreshold;
+            vm.OnWindowWidthChanged(Bounds.Width);
         }
     }
 }

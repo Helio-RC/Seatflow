@@ -233,10 +233,21 @@
 		</Border>
 
 		<!-- 中间内容区 -->
-		<Grid ColumnDefinitions="240,4,*">
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="{ReflectionBinding SidebarListWidth}"/>
+				<ColumnDefinition Width="4"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
 			<!-- 左侧：已保存数据集 -->
 			<Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
+					ClipToBounds="True"
 					Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+				<Border.Transitions>
+					<Transitions>
+						<DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+					</Transitions>
+				</Border.Transitions>
 				<DockPanel Margin="8">
 					<TextBlock DockPanel.Dock="Top" Text="已保存数据集"
 							   FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
@@ -269,6 +280,25 @@
 								<TextBlock Text="删除" FontSize="13" />
 							</StackPanel>
 						</Button>
+							<Button Command="{Binding ToggleSidebarCommand}"
+									HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
+								<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+									<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+										   IsHitTestVisible="{Binding IsSidebarExpanded}">
+										<StackPanel Orientation="Horizontal" Spacing="4">
+											<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12" />
+											<TextBlock Text="收起列表" FontSize="12" />
+										</StackPanel>
+									</Panel>
+									<Panel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+										   IsHitTestVisible="{Binding IsSidebarCollapsed}">
+										<StackPanel Orientation="Horizontal" Spacing="4">
+											<fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12" />
+											<TextBlock Text="展开列表" FontSize="12" />
+										</StackPanel>
+									</Panel>
+								</StackPanel>
+							</Button>
 					</StackPanel>
 
 					<ListBox ItemsSource="{Binding SavedDatasets}"
