@@ -45,6 +45,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsGridSelected => SelectedLayoutType == LayoutType.Grid;
     public bool IsPolarSelected => SelectedLayoutType == LayoutType.Polar;
     public bool IsFreeformSelected => SelectedLayoutType == LayoutType.Freeform;
+    public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected;
 
     // ── Grid 基础参数 ──
     [ObservableProperty] private int _gridRows = 5;
@@ -80,8 +81,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private int _polarSeatsPerRing = 12;
     [ObservableProperty] private double _polarRadiusStep = 40;
     [ObservableProperty] private double _polarStartAngle = 0;
-    [ObservableProperty] private double _polarOriginX = 0;
-    [ObservableProperty] private double _polarOriginY = 0;
+    [ObservableProperty] private double _polarEndAngle = 360;
+    [ObservableProperty] private double _polarOriginX = 200;
+    [ObservableProperty] private double _polarOriginY = 200;
+    [ObservableProperty] private string _polarRingSeatCountsSpec = "";   // 每环座位数逗号分隔，空=用均匀环
+    [ObservableProperty] private bool _polarHasPodium = true;
+    [ObservableProperty] private double _polarPodiumRadius = 30;
+    [ObservableProperty] private string _polarAisleRadialAngles = "";
+    [ObservableProperty] private double _polarAisleRadialWidth = 5;
+    [ObservableProperty] private string _polarAisleCircularRings = "";
+    [ObservableProperty] private double _polarAisleCircularWidth = 20;
+    [ObservableProperty] private int _polarFrontRowCount = 1;
 
     // ── 预览 ──
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewSeats = [];
@@ -230,47 +240,78 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private void RegeneratePreview()
     {
-        if (SelectedLayoutType != LayoutType.Grid) return;
-
-        var meta = BuildGridMetadata();
-        var layout = GridLayoutBuilder.BuildGrid(meta);
-
-        // 座位
         var seats = new List<SeatPreview>();
-        foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
-        {
-            var (x, y) = SeatGeometryHelper.GetPosition(s, meta);
-            bool isFront = s.Row <= meta.FrontRowCount;
-            int deskNum = (s.Column - 1) / meta.SeatsPerDesk + 1;
-            seats.Add(new SeatPreview
-            {
-                X = x, Y = y,
-                Label = $"R{s.Row}C{s.Column} (桌{deskNum})",
-                ElementType = PreviewElementType.Seat,
-                IsFrontRow = isFront
-            });
-        }
-        PreviewSeats = new ObservableCollection<SeatPreview>(seats);
-
-        // 覆盖层
         var overlays = new List<SeatPreview>();
 
-        // 讲台
-        if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
+        if (SelectedLayoutType == LayoutType.Grid)
         {
-            double podiumX = meta.OriginX;
-            double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
-            overlays.Add(new SeatPreview
+            var meta = BuildGridMetadata();
+            var layout = GridLayoutBuilder.BuildGrid(meta);
+
+            foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
             {
-                X = podiumX, Y = podiumY,
-                Width = meta.PodiumWidth * meta.Columns / 2,
-                Height = meta.PodiumHeight,
-                ElementType = PreviewElementType.Podium,
-                Label = "讲台"
-            });
+                var (x, y) = SeatGeometryHelper.GetPosition(s, meta);
+                bool isFront = s.Row <= meta.FrontRowCount;
+                int deskNum = (s.Column - 1) / meta.SeatsPerDesk + 1;
+                seats.Add(new SeatPreview
+                {
+                    X = x, Y = y,
+                    Label = $"R{s.Row}C{s.Column} (桌{deskNum})",
+                    ElementType = PreviewElementType.Seat,
+                    IsFrontRow = isFront
+                });
+            }
+
+            // 讲台
+            if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
+            {
+                double podiumX = meta.OriginX;
+                double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
+                overlays.Add(new SeatPreview
+                {
+                    X = podiumX, Y = podiumY,
+                    Width = meta.PodiumWidth * meta.Columns / 2,
+                    Height = meta.PodiumHeight,
+                    ElementType = PreviewElementType.Podium,
+                    Label = "讲台"
+                });
+            }
+        }
+        else if (SelectedLayoutType == LayoutType.Polar)
+        {
+            var meta = BuildPolarMetadata();
+            var layout = PolarLayoutBuilder.BuildPolar(meta);
+            int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
+
+            foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
+            {
+                var (x, y) = SeatGeometryHelper.GetPosition(s, meta);
+                bool isFront = s.Ring > totalRings - meta.FrontRowCount;
+                seats.Add(new SeatPreview
+                {
+                    X = x, Y = y,
+                    Label = $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})",
+                    ElementType = PreviewElementType.Seat,
+                    IsFrontRow = isFront
+                });
+            }
+
+            // 讲台（圆心处）
+            if (meta.HasPodium && meta.PodiumRadius > 0)
+            {
+                overlays.Add(new SeatPreview
+                {
+                    X = meta.OriginX - meta.PodiumRadius,
+                    Y = meta.OriginY - meta.PodiumRadius,
+                    Width = meta.PodiumRadius * 2,
+                    Height = meta.PodiumRadius * 2,
+                    ElementType = PreviewElementType.Podium,
+                    Label = "讲台"
+                });
+            }
         }
 
-        // 门（从 DoorItems 集合）
+        // 门（两种布局共用 DoorItems）
         foreach (var door in DoorItems)
         {
             overlays.Add(new SeatPreview
@@ -282,6 +323,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             });
         }
 
+        PreviewSeats = new ObservableCollection<SeatPreview>(seats);
         PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);
         StatusMessage = $"预览：{seats.Count} 个座位";
     }
@@ -368,29 +410,18 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 break;
 
             case LayoutType.Polar:
-                layout = new ClassroomLayoutDefinition
+                var polarMeta = BuildPolarMetadata();
+                layout = PolarLayoutBuilder.BuildPolar(polarMeta);
+                layout.Name = LayoutName;
+                layout.Id = SelectedVenueItem?.Id ?? "";
+                foreach (var door in DoorItems)
                 {
-                    Id = SelectedVenueItem?.Id ?? "",
-                    Name = LayoutName,
-                    LayoutType = LayoutType.Polar,
-                    Metadata = new PolarLayoutMetadata
+                    layout.Obstacles.Add(new Obstacle
                     {
-                        Rings = PolarRings,
-                        SeatsPerRing = PolarSeatsPerRing,
-                        RadiusStep = PolarRadiusStep,
-                        StartAngleDegrees = PolarStartAngle,
-                        OriginX = PolarOriginX,
-                        OriginY = PolarOriginY
-                    }
-                };
-                for (int ring = 1; ring <= PolarRings; ring++)
-                {
-                    double radius = ring * PolarRadiusStep;
-                    for (int i = 0; i < PolarSeatsPerRing; i++)
-                    {
-                        double angleDeg = PolarStartAngle + (360.0 / PolarSeatsPerRing) * i;
-                        layout.Seats.Add(new PolarSeat { Radius = radius, AngleDegrees = angleDeg });
-                    }
+                        X = door.X, Y = door.Y,
+                        Width = 36, Height = 24,
+                        Type = "Door"
+                    });
                 }
                 break;
 
@@ -439,6 +470,28 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         };
     }
 
+    private PolarLayoutMetadata BuildPolarMetadata()
+    {
+        return new PolarLayoutMetadata
+        {
+            Rings = PolarRings,
+            SeatsPerRing = PolarSeatsPerRing,
+            RadiusStep = PolarRadiusStep,
+            StartAngleDegrees = PolarStartAngle,
+            EndAngleDegrees = PolarEndAngle,
+            OriginX = PolarOriginX,
+            OriginY = PolarOriginY,
+            RingSeatCounts = ParseIntList(PolarRingSeatCountsSpec),
+            HasPodium = PolarHasPodium,
+            PodiumRadius = PolarPodiumRadius,
+            AisleRadialAngles = ParseDoubleList(PolarAisleRadialAngles),
+            AisleRadialWidthDegrees = PolarAisleRadialWidth,
+            AisleCircularAfterRings = ParseIntList(PolarAisleCircularRings),
+            AisleCircularWidth = PolarAisleCircularWidth,
+            FrontRowCount = PolarFrontRowCount
+        };
+    }
+
     private void PopulateGridFromMetadata(GridLayoutMetadata g)
     {
         GridRows = g.Rows > 0 ? g.Rows : 5;
@@ -465,8 +518,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         PolarSeatsPerRing = p.SeatsPerRing > 0 ? p.SeatsPerRing : 12;
         PolarRadiusStep = p.RadiusStep > 0 ? p.RadiusStep : 40;
         PolarStartAngle = p.StartAngleDegrees;
-        PolarOriginX = p.OriginX;
-        PolarOriginY = p.OriginY;
+        PolarEndAngle = p.EndAngleDegrees > 0 ? p.EndAngleDegrees : 360;
+        PolarOriginX = p.OriginX > 0 ? p.OriginX : 200;
+        PolarOriginY = p.OriginY > 0 ? p.OriginY : 200;
+        PolarRingSeatCountsSpec = p.RingSeatCounts is { Count: > 0 } ? string.Join("," , p.RingSeatCounts) : "";
+        PolarHasPodium = p.HasPodium;
+        PolarPodiumRadius = p.PodiumRadius > 0 ? p.PodiumRadius : 30;
+        PolarAisleRadialAngles = p.AisleRadialAngles is { Count: > 0 } ? string.Join("," , p.AisleRadialAngles.Select(a => a.ToString("F1"))) : "";
+        PolarAisleRadialWidth = p.AisleRadialWidthDegrees > 0 ? p.AisleRadialWidthDegrees : 5;
+        PolarAisleCircularRings = p.AisleCircularAfterRings is { Count: > 0 } ? string.Join("," , p.AisleCircularAfterRings) : "";
+        PolarAisleCircularWidth = p.AisleCircularWidth > 0 ? p.AisleCircularWidth : 20;
+        PolarFrontRowCount = p.FrontRowCount > 0 ? p.FrontRowCount : 1;
     }
 
     private void ResetParameters()
@@ -482,8 +544,13 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridHasPodium = true; GridPodiumWidth = 60; GridPodiumHeight = 40;
         DoorItems.Clear();
         PolarRings = 3; PolarSeatsPerRing = 12;
-        PolarRadiusStep = 40; PolarStartAngle = 0;
-        PolarOriginX = 0; PolarOriginY = 0;
+        PolarRadiusStep = 40; PolarStartAngle = 0; PolarEndAngle = 360;
+        PolarOriginX = 200; PolarOriginY = 200;
+        PolarRingSeatCountsSpec = "";
+        PolarHasPodium = true; PolarPodiumRadius = 30;
+        PolarAisleRadialAngles = ""; PolarAisleRadialWidth = 5;
+        PolarAisleCircularRings = ""; PolarAisleCircularWidth = 20;
+        PolarFrontRowCount = 1;
     }
 
     private static List<int> ParseIntList(string csv)
@@ -492,6 +559,15 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         return csv.Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(s => int.TryParse(s.Trim(), out var n) ? n : -1)
             .Where(n => n > 0)
+            .ToList();
+    }
+
+    private static List<double> ParseDoubleList(string csv)
+    {
+        if (string.IsNullOrWhiteSpace(csv)) return [];
+        return csv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => double.TryParse(s.Trim(), out var n) ? n : -1)
+            .Where(n => n >= 0)
             .ToList();
     }
 

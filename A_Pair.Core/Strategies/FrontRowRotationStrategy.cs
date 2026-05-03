@@ -34,7 +34,7 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>
         /// 执行前排轮换：
-        /// 1. 识别网格布局中的最前排（Row 最小的行）。
+        /// 1. 识别网格布局最前行 / 极坐标布局最外层环。
         /// 2. 计算每个未分配学生的前排需求分数。
         /// 3. 按分数从高到低分配前排座位。
         /// </summary>
@@ -46,28 +46,39 @@ namespace A_Pair.Core.Strategies
             if (emptySeats.Count == 0)
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
 
-            // 识别前排座位（对于 GridSeat，Row 最小的行视为前排）
-            var gridSeats = emptySeats.OfType<GridSeat>().ToList();
-            if (gridSeats.Count == 0)
-                return Task.FromResult(new StrategyExecutionResult { Success = true });
+            // 收集前排座位（Grid + Polar）
+            var frontRowSeats = new List<Seat>();
 
-            int frontRowMin = gridSeats.Min(s => s.Row);
-            int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
-            var frontSeats = gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax).ToList();
+            var gridSeats = emptySeats.OfType<GridSeat>().ToList();
+            if (gridSeats.Count > 0)
+            {
+                int frontRowMin = gridSeats.Min(s => s.Row);
+                int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
+                frontRowSeats.AddRange(gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax));
+            }
+
+            var polarSeats = emptySeats.OfType<PolarSeat>().ToList();
+            if (polarSeats.Count > 0)
+            {
+                int maxRing = polarSeats.Max(s => s.Ring);
+                int frontRingMin = maxRing - _config.FrontRowCount + 1;
+                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring >= frontRingMin));
+            }
+
+            if (frontRowSeats.Count == 0)
+                return Task.FromResult(new StrategyExecutionResult { Success = true });
 
             // 获取尚未分配的学生
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
             var availableStudents = workspace.Students.Where(s => !assignedStudentIds.Contains(s.Id)).ToList();
 
             // 计算每个学生对前排的"需求度分数"
+            var frontSeatIds = new HashSet<string>(frontRowSeats.Select(s => s.Id));
+
             var studentScores = availableStudents.Select(s =>
             {
                 int frontRowHistoryCount = s.RecentSeatHistory.GetAll()
-                    .Count(seatId =>
-                    {
-                        var histSeat = workspace.FindSeats(seat => seat.Id == seatId).FirstOrDefault();
-                        return histSeat is GridSeat gs && gs.Row >= frontRowMin && gs.Row <= frontRowMax;
-                    });
+                    .Count(seatId => frontSeatIds.Contains(seatId));
 
                 int score = (s.NeedsFrontRow ? _config.NeedsFrontRowBonus : 0)
             + s.FrontRowPreferenceScore
@@ -75,10 +86,10 @@ namespace A_Pair.Core.Strategies
                 return new { Student = s , Score = score };
             }).OrderByDescending(x => x.Score).ToList();
 
-            int assignCount = Math.Min(frontSeats.Count , studentScores.Count);
+            int assignCount = Math.Min(frontRowSeats.Count , studentScores.Count);
             for (int i = 0; i < assignCount && !cancellationToken.IsCancellationRequested; i++)
             {
-                workspace.TryAssignSeat(frontSeats[i].Id , studentScores[i].Student.Id , out _);
+                workspace.TryAssignSeat(frontRowSeats[i].Id , studentScores[i].Student.Id , out _);
             }
 
             return Task.FromResult(new StrategyExecutionResult { Success = true });

@@ -167,6 +167,11 @@ namespace A_Pair.Application.Services
                     var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
                     frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
                 }
+                else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
+                {
+                    var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                    frontRowStrategy?.SetFrontRowCount(polarMeta.FrontRowCount);
+                }
             }
 
             // 7. 执行策略管道

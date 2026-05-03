@@ -71,27 +71,54 @@ namespace A_Pair.Core.Models
     }
 
     /// <summary>
-    /// 极坐标布局的元数据，定义环数、每环座位数、半径步长和原点坐标。
+    /// 极坐标布局的元数据，定义环数、每环座位数、半径步长、角度范围、通道和教室特征。
     /// </summary>
     public class PolarLayoutMetadata : LayoutMetadata
     {
-        /// <summary>环数。</summary>
+        /// <summary>环数（旧属性，保留兼容）。若 <see cref="RingSeatCounts"/> 为空则使用 Rings × SeatsPerRing 均匀生成。</summary>
         public int Rings { get; set; } = 1;
 
-        /// <summary>每环的座位数。</summary>
+        /// <summary>每环的座位数（旧属性，保留兼容）。</summary>
         public int SeatsPerRing { get; set; } = 8;
 
-        /// <summary>相邻环之间的半径增量。</summary>
-        public double RadiusStep { get; set; } = 1.0;
+        /// <summary>相邻环之间的半径增量（像素）。</summary>
+        public double RadiusStep { get; set; } = 40;
 
-        /// <summary>起始角度（度），0° 为右侧水平方向。</summary>
+        /// <summary>起始角度（度），0° 为右侧水平方向，逆时针递增。</summary>
         public double StartAngleDegrees { get; set; } = 0.0;
 
-        /// <summary>原点 X 坐标。</summary>
-        public double OriginX { get; set; } = 0.0;
+        /// <summary>结束角度（度），360=全圆，180=半圆，90=1/4圆。</summary>
+        public double EndAngleDegrees { get; set; } = 360;
 
-        /// <summary>原点 Y 坐标。</summary>
-        public double OriginY { get; set; } = 0.0;
+        /// <summary>原点 X 坐标（圆心水平位置，像素）。</summary>
+        public double OriginX { get; set; } = 200;
+
+        /// <summary>原点 Y 坐标（圆心垂直位置，像素）。</summary>
+        public double OriginY { get; set; } = 200;
+
+        /// <summary>每环座位数列表（索引0=最内环）。非空时优先使用，忽略 Rings/SeatsPerRing。</summary>
+        public List<int> RingSeatCounts { get; set; } = [];
+
+        /// <summary>中心是否有讲台。</summary>
+        public bool HasPodium { get; set; } = true;
+
+        /// <summary>讲台半径（像素），圆形区域。</summary>
+        public double PodiumRadius { get; set; } = 30;
+
+        /// <summary>径向通道所在角度列表（度），通道中心线的角度。</summary>
+        public List<double> AisleRadialAngles { get; set; } = [];
+
+        /// <summary>径向通道的角宽度（度），默认 5°。</summary>
+        public double AisleRadialWidthDegrees { get; set; } = 5;
+
+        /// <summary>哪些环之后有环间通道（1=第1环后，即第1和第2环之间）。</summary>
+        public List<int> AisleCircularAfterRings { get; set; } = [];
+
+        /// <summary>环间通道的径向宽度（像素）。</summary>
+        public double AisleCircularWidth { get; set; } = 20;
+
+        /// <summary>前排环数（从最外层环向内计数），默认 1。</summary>
+        public int FrontRowCount { get; set; } = 1;
     }
 
     /// <summary>
