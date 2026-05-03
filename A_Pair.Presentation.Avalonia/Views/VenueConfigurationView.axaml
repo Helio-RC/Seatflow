@@ -497,7 +497,9 @@
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
 													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-															CornerRadius="1000"
+															CornerRadius="{ReflectionBinding CornerRadius}"
+															BorderThickness="{ReflectionBinding BorderThickness}"
+															BorderBrush="#80FFFFFF"
 															ToolTip.Tip="{Binding Label}">
 														<Border.Background>
 															<SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
@@ -507,7 +509,7 @@
 											</ItemsControl.ItemTemplate>
 										</ItemsControl>
 
-										<!-- 覆盖层: 讲台/障碍物/门/通道 -->
+										<!-- 覆盖层: 讲台/障碍物/门 -->
 										<ItemsControl ItemsSource="{Binding PreviewOverlays}">
 											<ItemsControl.ItemsPanel>
 												<ItemsPanelTemplate>
@@ -523,17 +525,13 @@
 											<ItemsControl.ItemTemplate>
 												<DataTemplate x:DataType="vm:SeatPreview">
 													<Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-															CornerRadius="1000"
+															CornerRadius="{ReflectionBinding CornerRadius}"
 															BorderThickness="{ReflectionBinding BorderThickness}"
+															Background="{ReflectionBinding BackgroundColor}"
+															BorderBrush="{ReflectionBinding BorderColor}"
 															Opacity="0.7"
 															RenderTransformOrigin="0,0"
 															ToolTip.Tip="{Binding Label}">
-														<Border.Background>
-															<SolidColorBrush Color="{ReflectionBinding BackgroundColor}"/>
-														</Border.Background>
-														<Border.BorderBrush>
-															<SolidColorBrush Color="{ReflectionBinding BorderColor}"/>
-														</Border.BorderBrush>
 														<Border.RenderTransform>
 															<RotateTransform Angle="{ReflectionBinding Rotation}"/>
 														</Border.RenderTransform>

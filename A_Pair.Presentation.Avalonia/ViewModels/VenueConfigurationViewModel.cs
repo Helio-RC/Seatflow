@@ -322,53 +322,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 });
             }
 
-            // 径向通道线：从中心辐射到最外层
-            double outerRadius = totalRings * meta.RadiusStep
-                + (meta.AisleCircularAfterRings?.Count(r => r < totalRings) ?? 0) * meta.AisleCircularWidth
-                + meta.RadiusStep; // 延长一点
-
-            foreach (double angle in meta.AisleRadialAngles ?? [])
-            {
-                overlays.Add(new SeatPreview
-                {
-                    X = meta.OriginX ,
-                    Y = meta.OriginY ,
-                    Width = 2 ,
-                    Height = outerRadius ,
-                    ElementType = PreviewElementType.Aisle ,
-                    Label = $"{angle:F0}°" ,
-                    Rotation = angle - 90 ,
-                    BackgroundColor = "#60FFFFFF"
-                });
-            }
-
-            // 环间通道圆环：在指定环之后画虚线圆
-            if (meta.AisleCircularAfterRings is { Count: > 0 })
-            {
-                var circularAisleSet = new HashSet<int>(meta.AisleCircularAfterRings);
-                for (int ringIdx = 0; ringIdx < totalRings; ringIdx++)
-                {
-                    int ringNum = ringIdx + 1;
-                    if (!circularAisleSet.Contains(ringNum)) continue;
-
-                    int aislesBefore = circularAisleSet.Count(r => r < ringNum);
-                    double aisleRadius = ringNum * meta.RadiusStep + aislesBefore * meta.AisleCircularWidth;
-                    overlays.Add(new SeatPreview
-                    {
-                        X = meta.OriginX - aisleRadius ,
-                        Y = meta.OriginY - aisleRadius ,
-                        Width = aisleRadius * 2 ,
-                        Height = aisleRadius * 2 ,
-                        ElementType = PreviewElementType.Aisle ,
-                        Label = $"环间 {ringNum}-{ringNum + 1}" ,
-                        IsCircle = true ,
-                        CornerRadius = aisleRadius ,
-                        BackgroundColor = "Transparent" ,
-                        BorderColor = "#80FFFFFF" ,
-                        BorderThickness = 1
-                    });
-                }
-            }
         }
 
         // 门（两种布局共用 DoorItems）
@@ -692,7 +645,7 @@ public class SeatPreview
     public double Rotation { get; set; }
     public string BackgroundColor { get; set; } = "#800072C6";
     public string BorderColor { get; set; } = "";
-    public double BorderThickness { get; set; }
+    public double BorderThickness { get; set; } = 1;
     public bool IsCircle { get; set; }
 }
 
