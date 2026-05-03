@@ -51,8 +51,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private int _gridColumns = 8;
     [ObservableProperty] private double _gridHorizontalSpacing = 40;
     [ObservableProperty] private double _gridVerticalSpacing = 36;
-    [ObservableProperty] private double _gridOriginX = 0;
-    [ObservableProperty] private double _gridOriginY = 0;
+    [ObservableProperty] private double _gridOriginX = 200;
+    [ObservableProperty] private double _gridOriginY = 200;
 
     // ── Grid 桌面配置 ──
     [ObservableProperty] private int _gridSeatsPerDesk = 2;
@@ -63,6 +63,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private string _gridAisleAfterColumns = "";
     [ObservableProperty] private string _gridAisleAfterRows = "";
     [ObservableProperty] private double _gridAisleWidth = 60;
+    [ObservableProperty] private ObservableCollection<AisleOption> _aisleColumnOptions = [];
+    [ObservableProperty] private ObservableCollection<AisleOption> _aisleRowOptions = [];
 
     // ── Grid 教室特征 ──
     [ObservableProperty] private int _gridFrontRowCount = 1;
@@ -253,12 +255,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         // 前门
         if (meta.HasFrontDoor)
         {
-            double doorX = meta.OriginX - 30;
-            double doorY = meta.OriginY;
+            double doorX = meta.OriginX - 50;
+            double doorY = meta.OriginY + 10;
             overlays.Add(new SeatPreview
             {
                 X = doorX, Y = doorY,
-                Width = 20, Height = 30,
+                Width = 36, Height = 24,
                 ElementType = PreviewElementType.Door,
                 Label = "前门"
             });
@@ -266,6 +268,54 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
         PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);
         StatusMessage = $"预览：{seats.Count} 个座位";
+    }
+
+    private void RegenerateAisleOptions()
+    {
+        var prevCols = new HashSet<int>(ParseIntList(GridAisleAfterColumns));
+        var prevRows = new HashSet<int>(ParseIntList(GridAisleAfterRows));
+        int spd = GridSeatsPerDesk > 0 ? GridSeatsPerDesk : 1;
+
+        // 列过道选项：以桌列为单位
+        int deskCols = GridColumns / spd;
+        var colOptions = new List<AisleOption>();
+        for (int d = 1; d < deskCols; d++)
+        {
+            int seatCol = d * spd; // 过道在该座位列索引之后
+            int leftStart = (d - 1) * spd + 1;
+            int leftEnd = d * spd;
+            int rightStart = d * spd + 1;
+            int rightEnd = Math.Min((d + 1) * spd, GridColumns);
+            string label = $"{leftStart}-{leftEnd} 列 ↔ {rightStart}-{rightEnd} 列";
+            colOptions.Add(new AisleOption(label, seatCol, prevCols.Contains(seatCol)));
+        }
+        AisleColumnOptions = new ObservableCollection<AisleOption>(colOptions);
+        foreach (var opt in AisleColumnOptions)
+            opt.PropertyChanged += (_, _) => { if (opt.IsSelected != prevCols.Contains(opt.SeatColumn)) SyncAisleColumnsFromOptions(); };
+
+        // 行过道选项
+        var rowOptions = new List<AisleOption>();
+        for (int r = 1; r < GridRows; r++)
+        {
+            string label = $"第 {r} 排 ↔ 第 {r + 1} 排";
+            rowOptions.Add(new AisleOption(label, r, prevRows.Contains(r)));
+        }
+        AisleRowOptions = new ObservableCollection<AisleOption>(rowOptions);
+        foreach (var opt in AisleRowOptions)
+            opt.PropertyChanged += (_, _) => { if (opt.IsSelected != prevRows.Contains(opt.SeatColumn)) SyncAisleRowsFromOptions(); };
+    }
+
+    /// <summary>过道勾选状态变化时同步回字符串。</summary>
+    private void SyncAisleColumnsFromOptions()
+    {
+        var selected = AisleColumnOptions.Where(o => o.IsSelected).Select(o => o.SeatColumn);
+        GridAisleAfterColumns = string.Join(",", selected);
+    }
+
+    private void SyncAisleRowsFromOptions()
+    {
+        var selected = AisleRowOptions.Where(o => o.IsSelected).Select(o => o.SeatColumn);
+        GridAisleAfterRows = string.Join(",", selected);
     }
 
     private ClassroomLayoutDefinition BuildLayoutDefinition()
@@ -379,8 +429,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridColumns = g.Columns > 0 ? g.Columns : 8;
         GridHorizontalSpacing = g.HorizontalSpacing > 0 ? g.HorizontalSpacing : 40;
         GridVerticalSpacing = g.VerticalSpacing > 0 ? g.VerticalSpacing : 36;
-        GridOriginX = g.OriginX;
-        GridOriginY = g.OriginY;
+        GridOriginX = g.OriginX > 0 ? g.OriginX : 200;
+        GridOriginY = g.OriginY > 0 ? g.OriginY : 200;
         GridSeatsPerDesk = g.SeatsPerDesk > 0 ? g.SeatsPerDesk : 2;
         GridIntraDeskSpacing = g.IntraDeskSpacing > 0 ? g.IntraDeskSpacing : 12;
         GridInterDeskSpacing = g.InterDeskSpacing > 0 ? g.InterDeskSpacing : 40;
@@ -408,7 +458,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         GridRows = 5; GridColumns = 8;
         GridHorizontalSpacing = 40; GridVerticalSpacing = 36;
-        GridOriginX = 0; GridOriginY = 0;
+        GridOriginX = 200; GridOriginY = 200;
         GridSeatsPerDesk = 2;
         GridIntraDeskSpacing = 12; GridInterDeskSpacing = 40;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
@@ -435,9 +485,29 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         if (!_suppressAutoLoad && value != null)
             _ = SelectVenueAsync(value);
     }
+
+    partial void OnGridSeatsPerDeskChanged(int value) => RegenerateAisleOptions();
+    partial void OnGridColumnsChanged(int value) => RegenerateAisleOptions();
+    partial void OnGridRowsChanged(int value) => RegenerateAisleOptions();
 }
 
 public record VenueItem(string Id, string Name);
+
+public partial class AisleOption : ObservableObject
+{
+    public string Label { get; set; } = "";
+    public int SeatColumn { get; set; }
+
+    [ObservableProperty]
+    private bool _isSelected;
+
+    public AisleOption(string label, int seatColumn, bool selected = false)
+    {
+        Label = label;
+        SeatColumn = seatColumn;
+        _isSelected = selected;
+    }
+}
 
 public class SeatPreview
 {
