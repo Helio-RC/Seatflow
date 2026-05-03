@@ -1,23 +1,23 @@
-<Window xmlns="https://github.com/avaloniaui"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		x:Class="A_Pair.Presentation.Avalonia.Views.InputWindow"
-		Width="400" SizeToContent="Height" MinHeight="140"
-		CanResize="False" ShowInTaskbar="False"
-		WindowStartupLocation="CenterOwner">
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="A_Pair.Presentation.Avalonia.Views.InputWindow"
+        Width="400" SizeToContent="Height" MinHeight="140"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
 
-	<DockPanel Margin="20,16">
-		<StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
-					HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8">
-			<Button x:Name="CancelButton" MinWidth="80" Padding="12,6"
-					FontSize="14">取消</Button>
-			<Button x:Name="OkButton" MinWidth="80" Padding="12,6"
-					FontSize="14" IsDefault="True">确定</Button>
-		</StackPanel>
+  <DockPanel Margin="20,16">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8">
+      <Button x:Name="CancelButton" MinWidth="80" Padding="12,6"
+              FontSize="14">取消</Button>
+      <Button x:Name="OkButton" MinWidth="80" Padding="12,6"
+              FontSize="14" IsDefault="True">确定</Button>
+    </StackPanel>
 
-		<StackPanel Spacing="8">
-			<TextBlock x:Name="PromptBlock" FontSize="14"
-					   TextWrapping="Wrap" />
-			<TextBox x:Name="InputBox" FontSize="14" Padding="8,4" />
-		</StackPanel>
-	</DockPanel>
+    <StackPanel Spacing="8">
+      <TextBlock x:Name="PromptBlock" FontSize="14"
+                 TextWrapping="Wrap" />
+      <TextBox x:Name="InputBox" FontSize="14" Padding="8,4" />
+    </StackPanel>
+  </DockPanel>
 </Window>
