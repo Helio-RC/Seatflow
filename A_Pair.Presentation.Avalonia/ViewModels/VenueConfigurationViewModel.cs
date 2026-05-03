@@ -342,6 +342,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             case LayoutType.Grid:
                 var meta = BuildGridMetadata();
                 layout = GridLayoutBuilder.BuildGrid(meta);
+                layout.Name = LayoutName;
+                layout.Id = SelectedVenueItem?.Id ?? "";
                 // 将讲台/前门作为 Obstacle 写入
                 if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
                 {
