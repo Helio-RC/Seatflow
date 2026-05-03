@@ -293,9 +293,45 @@
                                                    PlaceholderText="40 px"
                                                    ToolTip.Tip="讲台高度（像素），20-200。"/>
                                 </Grid>
-                                <CheckBox IsChecked="{Binding GridHasFrontDoor, Mode=TwoWay}"
-                                          Content="有前门" FontSize="13"
-                                          ToolTip.Tip="是否在教室前部显示前门标识。"/>
+                                <!-- 门配置 -->
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="门" FontSize="13" VerticalAlignment="Center"/>
+                                        <Button Command="{Binding AddDoorCommand}" Padding="8,2" FontSize="12"
+                                                ToolTip.Tip="添加一扇门到预览中">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
+                                                <TextBlock Text="添加门" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding DoorItems}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:DoorItem">
+                                                <Border Padding="4,2" BorderThickness="0,0,0,1"
+                                                        BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Label}" FontSize="12"
+                                                                   VerticalAlignment="Center" Width="40"/>
+                                                        <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
+                                                        <NumericUpDown Value="{Binding X, Mode=TwoWay}"
+                                                                       Minimum="0" Maximum="2000" Width="70" FontSize="12"
+                                                                       ToolTip.Tip="门的水平位置（像素）"/>
+                                                        <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center"/>
+                                                        <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
+                                                                       Minimum="0" Maximum="2000" Width="70" FontSize="12"
+                                                                       ToolTip.Tip="门的垂直位置（像素）"/>
+                                                        <Button Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Padding="4" FontSize="12">
+                                                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 

@@ -71,7 +71,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private bool _gridHasPodium = true;
     [ObservableProperty] private double _gridPodiumWidth = 60;
     [ObservableProperty] private double _gridPodiumHeight = 40;
-    [ObservableProperty] private bool _gridHasFrontDoor = false;
+
+    // ── 门配置（支持多门、自定义位置）──
+    [ObservableProperty] private ObservableCollection<DoorItem> _doorItems = [];
 
     // ── Polar 参数 ──
     [ObservableProperty] private int _polarRings = 3;
@@ -91,6 +93,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         _facade = facade;
         _navigation = navigation;
         _ = LoadVenueList();
+        RegenerateAisleOptions();
     }
 
     // ═══════════════════════════════════════════════
@@ -203,6 +206,21 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void AddDoor()
+    {
+        // 默认门位置：第一排第一个座位左上方
+        double dx = GridOriginX - 50;
+        double dy = GridOriginY - 20;
+        DoorItems.Add(new DoorItem(dx, dy, $"门 {DoorItems.Count + 1}"));
+    }
+
+    [RelayCommand]
+    private void RemoveDoor(DoorItem door)
+    {
+        DoorItems.Remove(door);
+    }
+
+    [RelayCommand]
     private void NavigateToFreeform() => _navigation.NavigateTo(PageKey.FreeformManagement);
 
     // ═══════════════════════════════════════════════
@@ -252,17 +270,15 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             });
         }
 
-        // 前门
-        if (meta.HasFrontDoor)
+        // 门（从 DoorItems 集合）
+        foreach (var door in DoorItems)
         {
-            double doorX = meta.OriginX - 50;
-            double doorY = meta.OriginY + 10;
             overlays.Add(new SeatPreview
             {
-                X = doorX, Y = doorY,
+                X = door.X, Y = door.Y,
                 Width = 36, Height = 24,
                 ElementType = PreviewElementType.Door,
-                Label = "前门"
+                Label = door.Label
             });
         }
 
@@ -338,13 +354,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                         Type = "Podium"
                     });
                 }
-                if (meta.HasFrontDoor)
+                foreach (var door in DoorItems)
                 {
                     layout.Obstacles.Add(new Obstacle
                     {
-                        X = meta.OriginX - 30,
-                        Y = meta.OriginY,
-                        Width = 20, Height = 30,
+                        X = door.X, Y = door.Y,
+                        Width = 36, Height = 24,
                         Type = "Door"
                     });
                 }
@@ -418,8 +433,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             FrontRowCount = GridFrontRowCount,
             HasPodium = GridHasPodium,
             PodiumWidth = GridPodiumWidth,
-            PodiumHeight = GridPodiumHeight,
-            HasFrontDoor = GridHasFrontDoor
+            PodiumHeight = GridPodiumHeight
         };
     }
 
@@ -441,7 +455,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridHasPodium = g.HasPodium;
         GridPodiumWidth = g.PodiumWidth > 0 ? g.PodiumWidth : 60;
         GridPodiumHeight = g.PodiumHeight > 0 ? g.PodiumHeight : 40;
-        GridHasFrontDoor = g.HasFrontDoor;
     }
 
     private void PopulatePolarFromMetadata(PolarLayoutMetadata p)
@@ -465,7 +478,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridAisleWidth = 60;
         GridFrontRowCount = 1;
         GridHasPodium = true; GridPodiumWidth = 60; GridPodiumHeight = 40;
-        GridHasFrontDoor = false;
+        DoorItems.Clear();
         PolarRings = 3; PolarSeatsPerRing = 12;
         PolarRadiusStep = 40; PolarStartAngle = 0;
         PolarOriginX = 0; PolarOriginY = 0;
@@ -492,6 +505,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 }
 
 public record VenueItem(string Id, string Name);
+
+public partial class DoorItem : ObservableObject
+{
+    [ObservableProperty] private double _x;
+    [ObservableProperty] private double _y;
+    [ObservableProperty] private string _label = "门";
+
+    public DoorItem() { }
+    public DoorItem(double x, double y, string label = "门")
+    {
+        _x = x; _y = y; _label = label;
+    }
+}
 
 public partial class AisleOption : ObservableObject
 {
