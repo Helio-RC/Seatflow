@@ -188,34 +188,34 @@
                 <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
                                  PlaceholderText="排数"
                                  ToolTip.Tip="座位行数，1-100。如教室有 6 排座位则填 6。"/>
-                  <TextBlock Grid.Row="0" Text="列数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="列数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridColumns, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
                                  PlaceholderText="每排座位数"
                                  ToolTip.Tip="座位列数（单排座位总数），1-100。如每排 8 个座位则填 8。"/>
 
-                  <TextBlock Grid.Row="1" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
                                  PlaceholderText="行内间距 px"
                                  ToolTip.Tip="行方向基准间距（像素），4-600。参考桌间距和过道宽度。"/>
-                  <TextBlock Grid.Row="1" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
                                  PlaceholderText="列间距 px"
                                  ToolTip.Tip="列方向基准间距（像素），4-600。用于计算行间距离。"/>
 
-                  <TextBlock Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="2" Value="{Binding GridOriginX, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding GridOriginX, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  PlaceholderText="起始 X"
                                  ToolTip.Tip="首列座位的起始水平位置（像素），0-2000。"/>
-                  <TextBlock Grid.Row="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding GridOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  PlaceholderText="起始 Y"
@@ -233,12 +233,12 @@
                 <TextBlock Text="桌面配置" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="每桌人数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding GridSeatsPerDesk, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="每桌人数" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridSeatsPerDesk, Mode=TwoWay}"
                                  Minimum="1" Maximum="6"
                                  PlaceholderText="2"
                                  ToolTip.Tip="每张桌子的座位数，1-6。通常为 2（同桌两人）。值为 1 时无桌面分组。"/>
-                  <TextBlock Grid.Row="0" Text="桌内间距" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="桌内间距" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="200"
                                  PlaceholderText="12 px"
@@ -246,8 +246,8 @@
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="桌间距" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding GridInterDeskSpacing, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="桌间距" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridInterDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="400"
                                  PlaceholderText="40 px"
                                  ToolTip.Tip="相邻桌之间的间距（像素），4-400。较桌内间距大，用于区分同桌和邻桌。"/>
@@ -317,13 +317,13 @@
                 <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding GridFrontRowCount, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
                                  PlaceholderText="1"
                                  ToolTip.Tip="视作前排的行数（从第 1 行开始），1-10。影响前排轮换策略。"/>
 
-                  <CheckBox Grid.Row="0" Grid.ColumnSpan="2"
+                  <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
                             IsChecked="{Binding GridHasPodium, Mode=TwoWay}"
                             Content="有讲台" FontSize="13"
                             ToolTip.Tip="是否在教室前部显示讲台。讲台将显示在预览中第一排上方。"/>
@@ -331,12 +331,12 @@
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       IsVisible="{Binding GridHasPodium}">
-                  <TextBlock Grid.Row="0" Text="讲台宽度" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding GridPodiumWidth, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="讲台宽度" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridPodiumWidth, Mode=TwoWay}"
                                  Minimum="20" Maximum="400"
                                  PlaceholderText="60 px"
                                  ToolTip.Tip="讲台宽度（像素），20-400。"/>
-                  <TextBlock Grid.Row="0" Text="讲台高度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="讲台高度" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridPodiumHeight, Mode=TwoWay}"
                                  Minimum="20" Maximum="200"
                                  PlaceholderText="40 px"
@@ -354,40 +354,40 @@
                 <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding PolarRings, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarRings, Mode=TwoWay}"
                                  Minimum="1" Maximum="20"
                                  ToolTip.Tip="极坐标环数，1-20。若填写了每环座位列表则此项忽略。"/>
-                  <TextBlock Grid.Row="0" Text="每环座位数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="每环座位数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarSeatsPerRing, Mode=TwoWay}"
                                  Minimum="2" Maximum="120"
                                  ToolTip.Tip="均匀模式每环座位数。若填写了每环座位列表则忽略此项。"/>
 
-                  <TextBlock Grid.Row="1" Text="半径步长" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="半径步长" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
                                  Minimum="8" Maximum="400"
                                  ToolTip.Tip="相邻环之间的半径增量（像素），8-400。"/>
-                  <TextBlock Grid.Row="1" Text="起始角度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="起始角度" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarStartAngle, Mode=TwoWay}"
                                  Minimum="0" Maximum="360"
                                  ToolTip.Tip="扫描起始角度（度）。0=右侧，逆时针递增。"/>
 
-                  <TextBlock Grid.Row="2" Text="结束角度" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="2" Value="{Binding PolarEndAngle, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="2" Text="结束角度" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding PolarEndAngle, Mode=TwoWay}"
                                  Minimum="10" Maximum="360"
                                  ToolTip.Tip="扫描结束角度。360=全圆，180=半圆，90=1/4圆。"/>
-                  <TextBlock Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginX, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  ToolTip.Tip="圆心水平位置（像素）。"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  ToolTip.Tip="圆心垂直位置（像素）。"/>
-                  <TextBlock Grid.Row="0" Text="每环座位列表" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="每环座位列表" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 8,12,16"
                            ToolTip.Tip="逗号分隔每环座位数，空=使用均匀模式。如 8,12,16 表示3环依次8/12/16座。"/>
@@ -404,16 +404,16 @@
                 <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <CheckBox Grid.Row="0" Grid.ColumnSpan="2"
+                  <CheckBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
                             IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
                             Content="有讲台" FontSize="13"/>
-                  <TextBlock Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="1" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
                                  ToolTip.Tip="视作前排的最外层环数，影响前排轮换策略。"/>
 
-                  <TextBlock Grid.Row="1" Text="讲台半径" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="1" Value="{Binding PolarPodiumRadius, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="讲台半径" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarPodiumRadius, Mode=TwoWay}"
                                  Minimum="10" Maximum="200" IsEnabled="{Binding PolarHasPodium}"
                                  ToolTip.Tip="讲台圆形半径（像素），圆心位于预览原点。"/>
                 </Grid>
@@ -429,20 +429,20 @@
                 <TextBlock Text="通道配置" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12">
-                  <TextBlock Grid.Row="0" Text="径向通道角度" VerticalAlignment="Center" FontSize="13"/>
-                  <TextBox Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="径向通道角度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 0,90,180,270"
                            ToolTip.Tip="逗号分隔的通道中心角度。通道从圆心向外辐射。"/>
-                  <TextBlock Grid.Row="0" Text="径向通道宽度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="径向通道宽度" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}"
                                  Minimum="1" Maximum="30"
                                  ToolTip.Tip="径向通道角宽度（度），默认为5。"/>
 
-                  <TextBlock Grid.Row="1" Text="环间通道位置" VerticalAlignment="Center" FontSize="13"/>
-                  <TextBox Grid.Row="1" Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="环间通道位置" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 1,3"
                            ToolTip.Tip="逗号分隔的环号，在该环后插入通道。如 1 表示第1-2环之间有通道。"/>
-                  <TextBlock Grid.Row="1" Text="环间通道宽度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="环间通道宽度" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}"
                                  Minimum="4" Maximum="200"
                                  ToolTip.Tip="环间通道的径向宽度（像素），默认为20。"/>
@@ -473,9 +473,9 @@
                               BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
                         <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                               RowSpacing="6" ColumnSpacing="12">
-                          <TextBlock Grid.Row="0" Text="{Binding Label}" FontSize="12"
+                          <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Label}" FontSize="12"
                                      VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Left"/>
-                          <StackPanel Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
+                          <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
                             <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" FontSize="12"

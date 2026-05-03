@@ -397,9 +397,9 @@
           <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                   Padding="12,8" CornerRadius="4,4,0,0">
             <Grid ColumnDefinitions="2*,*,*,*">
-              <TextBlock Text="姓名" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Text="性别" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="0" Text="姓名" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="1" Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="2" Text="性别" FontSize="14" FontWeight="SemiBold" />
               <TextBlock Grid.Column="3" Text="需要前排" FontSize="14" FontWeight="SemiBold" />
             </Grid>
           </Border>
@@ -411,19 +411,19 @@
                   <Border Padding="6,3" BorderThickness="0,0,0,1"
                           BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
                     <Grid ColumnDefinitions="2*,*,*,*">
-                      <TextBox Text="{Binding Name, Mode=TwoWay}"
+                      <TextBox Grid.Column="0" Text="{Binding Name, Mode=TwoWay}"
                                FontSize="14" VerticalAlignment="Center"
                                BorderThickness="0" Background="Transparent"
                                Padding="4,2"
                                PlaceholderText="必填，姓名"
                                ToolTip.Tip="必填。学生姓名，不能为空。" />
-                      <TextBox Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
+                      <TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
                                FontSize="14" VerticalAlignment="Center"
                                BorderThickness="0" Background="Transparent"
                                Padding="4,2"
                                PlaceholderText="身高 cm"
                                ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
-                      <ComboBox SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
+                      <ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
                                 FontSize="14" VerticalAlignment="Center"
                                 BorderThickness="0" Background="Transparent"
                                 Padding="0,2"
@@ -436,7 +436,7 @@
                       <CheckBox Grid.Column="3" IsChecked="{Binding NeedsFrontRow, Mode=TwoWay}"
                                 FontSize="14" VerticalAlignment="Center"
                                 HorizontalAlignment="Center"
-                                ToolTip.Tip="需要前排座位（如视力不佳等特殊需求）" />
+                                ToolTip.Tip="需要前排座位（如视力不佳等特殊应用）" />
                     </Grid>
                   </Border>
                 </DataTemplate>
