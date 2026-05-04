@@ -3,7 +3,6 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:fauic="using:FluentAvalonia.UI.Controls"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.VenueConfigurationView"
              x:DataType="vm:VenueConfigurationViewModel">
@@ -36,9 +35,10 @@
     </Border>
 
     <!-- 底部状态栏 -->
-    <fauic:InfoBar DockPanel.Dock="Bottom" IsOpen="{Binding HasStatusMessage}"
-                   Message="{Binding StatusMessage}" IsClosable="False"
-                   Severity="Informational" Margin="0,8,0,0" />
+    <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
+      <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </Border>
 
     <!-- 中间内容区 -->
     <Grid x:Name="SidebarGrid">

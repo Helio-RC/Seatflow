@@ -3,7 +3,6 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             xmlns:fauic="using:FluentAvalonia.UI.Controls"
              x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -48,69 +47,109 @@
 
     <!-- 中间内容 -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="4" MaxWidth="560">
-
+      <StackPanel Spacing="16" MaxWidth="560">
         <!-- 外观 -->
-        <fauic:SettingsExpander Header="外观" IsExpanded="True">
-          <fauic:SettingsExpanderItem Description="选择亮色、暗色或跟随系统主题">
-            <ComboBox ItemsSource="{Binding ThemeOptions}"
-                      SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"
-                      MinWidth="160" FontSize="14" />
-          </fauic:SettingsExpanderItem>
-          <fauic:SettingsExpanderItem Description="Mica 仅 Windows 11，Acrylic 需要 Windows 10 1803+">
-            <ComboBox ItemsSource="{Binding BackgroundMaterialOptions}"
-                      SelectedIndex="{Binding BackgroundMaterialIndex, Mode=TwoWay}"
-                      MinWidth="160" FontSize="14" />
-          </fauic:SettingsExpanderItem>
-        </fauic:SettingsExpander>
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="20">
+          <StackPanel Spacing="14">
+            <TextBlock Text="外观" FontSize="16" FontWeight="SemiBold" />
+            <Separator />
+
+            <!-- 主题模式 -->
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Left" Text="主题模式" FontSize="14"
+                         VerticalAlignment="Center" Width="140" />
+              <ComboBox ItemsSource="{Binding ThemeOptions}"
+                        SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"
+                        MinWidth="160" FontSize="14" />
+            </DockPanel>
+
+            <Separator />
+          </StackPanel>
+        </Border>
 
         <!-- 语言 -->
-        <fauic:SettingsExpander Header="语言" IsExpanded="True">
-          <fauic:SettingsExpanderItem Description="语言代码，如 zh-CN、en-US。留空跟随系统">
-            <TextBox Text="{Binding Language, Mode=TwoWay}"
-                     PlaceholderText="留空跟随系统" Width="200" FontSize="14" />
-          </fauic:SettingsExpanderItem>
-        </fauic:SettingsExpander>
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="20">
+          <StackPanel Spacing="14">
+            <TextBlock Text="语言" FontSize="16" FontWeight="SemiBold" />
+            <Separator />
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Left" Text="界面语言" FontSize="14"
+                         VerticalAlignment="Center" Width="140" />
+              <TextBox Text="{Binding Language, Mode=TwoWay}"
+                       PlaceholderText="留空跟随系统" Width="200" FontSize="14"
+                       ToolTip.Tip="语言代码，如 zh-CN、en-US。留空则跟随系统。"/>
+            </DockPanel>
+          </StackPanel>
+        </Border>
 
         <!-- 数据目录 -->
-        <fauic:SettingsExpander Header="存储" IsExpanded="True">
-          <fauic:SettingsExpanderItem Description="用户数据、会场、快照等文件的存储位置。留空使用默认位置">
-            <StackPanel Spacing="8" Orientation="Horizontal">
-              <TextBox Text="{Binding DataDirectory, Mode=TwoWay}"
-                       PlaceholderText="留空使用默认位置" FontSize="14"
-                       MinWidth="240" />
-              <Button Command="{Binding BrowseDataDirectoryCommand}" Padding="10,6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="16" />
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="20">
+          <StackPanel Spacing="14">
+            <TextBlock Text="存储" FontSize="16" FontWeight="SemiBold" />
+            <Separator />
+            <StackPanel Spacing="8">
+              <TextBlock Text="数据目录" FontSize="14"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBox Text="{Binding DataDirectory, Mode=TwoWay}"
+                         PlaceholderText="留空使用默认位置" FontSize="14"
+                         MinWidth="240" />
+                <Button Command="{Binding BrowseDataDirectoryCommand}" Padding="10,6">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="16" />
+                </Button>
+              </StackPanel>
+              <Button Command="{Binding OpenDataDirectoryCommand}"
+                      HorizontalContentAlignment="Left" Padding="8,6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
+                  <TextBlock Text="打开当前数据目录" FontSize="13" />
+                </StackPanel>
               </Button>
             </StackPanel>
-          </fauic:SettingsExpanderItem>
-          <fauic:SettingsExpanderItem Description="在文件管理器中打开当前数据目录">
-            <Button Command="{Binding OpenDataDirectoryCommand}"
-                    HorizontalContentAlignment="Left" Padding="8,6">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
-                <TextBlock Text="打开当前数据目录" FontSize="13" />
-              </StackPanel>
-            </Button>
-          </fauic:SettingsExpanderItem>
-        </fauic:SettingsExpander>
+          </StackPanel>
+        </Border>
 
         <!-- 行为 -->
-        <fauic:SettingsExpander Header="行为" IsExpanded="True">
-          <fauic:SettingsExpanderItem Description="自动保存工作进度的间隔时间，选择「禁用」关闭自动保存">
-            <ComboBox ItemsSource="{Binding AutoSaveOptions}"
-                      SelectedIndex="{Binding AutoSaveIndex, Mode=TwoWay}"
-                      MinWidth="160" FontSize="14" />
-          </fauic:SettingsExpanderItem>
-          <fauic:SettingsExpanderItem Description="避免误操作，清除数据前需要用户确认">
-            <ToggleSwitch IsChecked="{Binding ConfirmBeforeClear, Mode=TwoWay}" />
-          </fauic:SettingsExpanderItem>
-          <fauic:SettingsExpanderItem Description="新生成的座位安排默认显示比例">
-            <ComboBox ItemsSource="{Binding ZoomOptions}"
-                      SelectedIndex="{Binding ZoomIndex, Mode=TwoWay}"
-                      MinWidth="160" FontSize="14" />
-          </fauic:SettingsExpanderItem>
-        </fauic:SettingsExpander>
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="20" Margin="0,0,0,16">
+          <StackPanel Spacing="14">
+            <TextBlock Text="行为" FontSize="16" FontWeight="SemiBold" />
+            <Separator />
+
+            <!-- 自动保存间隔 -->
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Left" Text="自动保存间隔" FontSize="14"
+                         VerticalAlignment="Center" Width="140" />
+              <ComboBox ItemsSource="{Binding AutoSaveOptions}"
+                        SelectedIndex="{Binding AutoSaveIndex, Mode=TwoWay}"
+                        MinWidth="160" FontSize="14" />
+            </DockPanel>
+
+            <Separator />
+
+            <!-- 清除确认 -->
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Left" Text="清除数据前确认" FontSize="14"
+                         VerticalAlignment="Center" Width="140" />
+              <ToggleSwitch IsChecked="{Binding ConfirmBeforeClear, Mode=TwoWay}"
+                            HorizontalAlignment="Right" />
+            </DockPanel>
+
+            <Separator />
+
+            <!-- 默认缩放 -->
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Left" Text="座位图默认缩放" FontSize="14"
+                         VerticalAlignment="Center" Width="140" />
+              <ComboBox ItemsSource="{Binding ZoomOptions}"
+                        SelectedIndex="{Binding ZoomIndex, Mode=TwoWay}"
+                        MinWidth="160" FontSize="14" />
+            </DockPanel>
+          </StackPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

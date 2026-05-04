@@ -48,10 +48,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
     private string _statusMessage = "就绪，请导入自由点数据或选择已有布局";
-
-    public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
     private static readonly string[] GroupColors =
         ["#4A90D9", "#E74C3C", "#2ECC71", "#F39C12", "#9B59B6", "#1ABC9C", "#E67E22", "#3498DB"];

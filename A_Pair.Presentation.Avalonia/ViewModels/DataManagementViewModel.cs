@@ -41,10 +41,7 @@ public partial class DataManagementViewModel : ViewModelBase
     public bool HasData => !IsEmpty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
     private string _statusMessage = "就绪，请导入学生数据";
-
-    public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
     [ObservableProperty]
     private string _errorMessage = string.Empty;

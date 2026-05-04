@@ -126,12 +126,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     // ── 预览 ──
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewSeats = [];
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewOverlays = [];
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasStatusMessage))]
-    private string _statusMessage = string.Empty;
-
-    public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
-
+    [ObservableProperty] private string _statusMessage = string.Empty;
 
     public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation)
     {

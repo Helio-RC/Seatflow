@@ -1,10 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
-using Avalonia.Controls;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -14,7 +11,6 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 public partial class MainShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
-    private readonly IApplicationFacade _facade;
 
     [ObservableProperty]
     private ViewModelBase _currentViewModel = default!;
@@ -37,9 +33,6 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoadingContentVisible;
 
-    [ObservableProperty]
-    private WindowTransparencyLevel _windowMaterial;
-
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
 
@@ -49,10 +42,9 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>遮罩背景淡入后，延迟此时间再显示加载条。</summary>
     private static readonly TimeSpan ContentFadeInDelay = TimeSpan.FromMilliseconds(180);
 
-    public MainShellViewModel(INavigationService navigation, IApplicationFacade facade)
+    public MainShellViewModel(INavigationService navigation)
     {
         _navigation = navigation;
-        _facade = facade;
         _navigation.CurrentViewModelChanged += () =>
         {
             IsPageLoading = true;
@@ -62,30 +54,6 @@ public partial class MainShellViewModel : ViewModelBase
         };
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
-        _ = LoadMaterialSettingAsync(CancellationToken.None);
-    }
-
-    private async Task LoadMaterialSettingAsync(CancellationToken ct)
-    {
-        try
-        {
-            var settings = await _facade.LoadAppSettingsAsync(ct);
-            ApplyMaterial(settings.BackgroundMaterial);
-        }
-        catch
-        {
-            ApplyMaterial(BackgroundMaterial.Mica);
-        }
-    }
-
-    public void ApplyMaterial(BackgroundMaterial material)
-    {
-        WindowMaterial = material switch
-        {
-            BackgroundMaterial.None => WindowTransparencyLevel.None,
-            BackgroundMaterial.Acrylic => WindowTransparencyLevel.AcrylicBlur,
-            _ => WindowTransparencyLevel.Mica
-        };
     }
 
     /// <summary>

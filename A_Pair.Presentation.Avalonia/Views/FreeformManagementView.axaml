@@ -3,7 +3,6 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:fauic="using:FluentAvalonia.UI.Controls"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.FreeformManagementView"
              x:DataType="vm:FreeformManagementViewModel">
@@ -53,11 +52,9 @@
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
         <TextBlock DockPanel.Dock="Right" Text="{Binding Points.Count, StringFormat='共 {0} 个元素'}"
-                   FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                   VerticalAlignment="Center" Margin="0,0,12,0" />
-        <fauic:InfoBar IsOpen="{Binding HasStatusMessage}" Message="{Binding StatusMessage}"
-                       IsClosable="False" Severity="Informational"
-                       HorizontalAlignment="Stretch" />
+                   FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
       </DockPanel>
     </Border>
 
