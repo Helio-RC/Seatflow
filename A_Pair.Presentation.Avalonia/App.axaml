@@ -33,7 +33,6 @@
   </Application.DataTemplates>
   <Application.Styles>
     <FluentTheme />
-    <StyleInclude Source="avares://FluentAvalonia.ProgressRing/Styling/Controls/ProgressRing.axaml" />
     <Style Selector="Window">
       <Setter Property="FontFamily" Value="Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
     </Style>
