@@ -207,7 +207,7 @@
       <!-- 加载遮罩：导航时先出现遮罩，等待页面渲染完成后淡出 -->
       <Border Opacity="{Binding IsPageLoading, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
               IsHitTestVisible="{Binding IsPageLoading}"
-              Background="{DynamicResource LoadingOverlayBrush}"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Border.Transitions>
           <Transitions>
