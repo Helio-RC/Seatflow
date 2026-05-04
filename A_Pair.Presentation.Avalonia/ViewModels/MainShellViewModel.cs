@@ -34,71 +34,78 @@ public partial class MainShellViewModel : ViewModelBase
     private bool _isLoadingContentVisible;
 
     [ObservableProperty]
-    private bool _isPageTransitioning;
-
-    [ObservableProperty]
     private double _pageOpacity = 1.0;
 
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
 
+    /// <summary>页面淡出时长（对应 AXAML ContentControl Opacity 0.35s）。</summary>
+    private static readonly TimeSpan FadeOutDuration = TimeSpan.FromMilliseconds(350);
+
     /// <summary>遮罩最短显示时间。</summary>
     private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(500);
 
-    /// <summary>遮罩背景淡入后，延迟此时间再显示加载条。</summary>
-    private static readonly TimeSpan ContentFadeInDelay = TimeSpan.FromMilliseconds(120);
+    /// <summary>内容切换后延迟显示进度条。</summary>
+    private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
 
     public MainShellViewModel(INavigationService navigation)
     {
         _navigation = navigation;
-        _navigation.CurrentViewModelChanged += () =>
-        {
-            IsPageTransitioning = true;
-            PageOpacity = 0;
-            IsPageLoading = true;
-            CurrentViewModel = _navigation.CurrentViewModel;
-            CurrentPage = _navigation.CurrentPage;
-            _ = DelayCloseLoadingAsync();
-        };
+        _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
     }
 
     /// <summary>
-    /// 动画序列：遮罩背景先淡入 → 加载条随后淡入 → 等页面布局+最短时间 → 整体淡出。
+    /// ===== 阶段1：旧页淡出 ‖ 遮罩淡入（并行） =====
+    /// ===== 阶段2：内容切换（遮罩背后）           =====
+    /// ===== 阶段3：进度条渐显 + 等待加载          =====
+    /// ===== 阶段4：进度条渐隐                     =====
+    /// ===== 阶段5：新页淡入 ‖ 遮罩淡出（并行）   =====
     /// </summary>
-    private async Task DelayCloseLoadingAsync()
+    private async Task RunTransitionAsync()
     {
         _pageLoadCts?.Cancel();
         _pageLoadCts = new CancellationTokenSource();
         var ct = _pageLoadCts.Token;
         IsLoadingContentVisible = false;
 
+        var newVm = _navigation.CurrentViewModel;
+        var newPage = _navigation.CurrentPage;
+
         try
         {
-            // 阶段1: 遮罩背景已开始淡入，延迟后显示加载条
-            await Task.Delay(ContentFadeInDelay, ct);
+            // 阶段1：旧页淡出 ‖ 遮罩淡入（并行）
+            PageOpacity = 0;
+            IsPageLoading = true;
+            await Task.Delay(FadeOutDuration, ct);
+
+            // 阶段2：内容切换（遮罩背后，不可见）
+            CurrentViewModel = newVm;
+            CurrentPage = newPage;
+
+            // 阶段3：进度条渐显 + 等待加载
+            await Task.Delay(ProgressBarDelay, ct);
             IsLoadingContentVisible = true;
 
-            // 阶段2: 等待布局完成 + 最短显示时间
             var layoutDone = new TaskCompletionSource();
             Dispatcher.UIThread.Post(() => layoutDone.TrySetResult(), DispatcherPriority.Loaded);
             await Task.WhenAll(Task.Delay(MinLoadDuration, ct), layoutDone.Task);
 
-            // 阶段3: 整体淡出（遮罩背景 + 加载条同时消失）
+            // 阶段4：进度条渐隐
             IsLoadingContentVisible = false;
         }
         catch (OperationCanceledException)
         {
             IsLoadingContentVisible = false;
             PageOpacity = 1;
-            IsPageTransitioning = false;
+            IsPageLoading = false;
             return;
         }
 
-        IsPageLoading = false;
+        // 阶段5：新页淡入 ‖ 遮罩淡出（并行）
         PageOpacity = 1;
-        IsPageTransitioning = false;
+        IsPageLoading = false;
     }
 
     public void OnWindowWidthChanged(double windowWidth)
