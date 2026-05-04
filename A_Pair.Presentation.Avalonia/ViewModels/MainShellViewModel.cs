@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.Services;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -31,7 +32,6 @@ public partial class MainShellViewModel : ViewModelBase
 
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
-    private TaskCompletionSource _pageLoadedTcs = new();
 
     /// <summary>loading 遮罩最短显示时间。</summary>
     private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(350);
@@ -39,11 +39,9 @@ public partial class MainShellViewModel : ViewModelBase
     public MainShellViewModel(INavigationService navigation)
     {
         _navigation = navigation;
-        _pageLoadedTcs.TrySetResult();
         _navigation.CurrentViewModelChanged += () =>
         {
             IsPageLoading = true;
-            _pageLoadedTcs = new TaskCompletionSource();
             CurrentViewModel = _navigation.CurrentViewModel;
             CurrentPage = _navigation.CurrentPage;
             _ = DelayCloseLoadingAsync();
@@ -53,15 +51,8 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 由 MainWindow 在新页面 View 完成布局渲染后调用。
-    /// </summary>
-    public void SignalPageLoaded()
-    {
-        _pageLoadedTcs.TrySetResult();
-    }
-
-    /// <summary>
-    /// 等待最短显示时间 AND 新页面加载完成后，关闭 loading 遮罩。
+    /// 等待页面布局完成 AND 最短显示时间后关闭遮罩。
+    /// DispatcherPriority.Loaded 在绑定+布局完成后执行，确保新页面已渲染。
     /// </summary>
     private async Task DelayCloseLoadingAsync()
     {
@@ -69,9 +60,13 @@ public partial class MainShellViewModel : ViewModelBase
         _pageLoadCts = new CancellationTokenSource();
         var ct = _pageLoadCts.Token;
 
+        // 用 Dispatcher.Loaded 等待页面布局完成
+        var layoutDone = new TaskCompletionSource();
+        Dispatcher.UIThread.Post(() => layoutDone.TrySetResult(), DispatcherPriority.Loaded);
+
         try
         {
-            await Task.WhenAll(Task.Delay(MinLoadDuration, ct), _pageLoadedTcs.Task);
+            await Task.WhenAll(Task.Delay(MinLoadDuration, ct), layoutDone.Task);
         }
         catch (OperationCanceledException)
         {
