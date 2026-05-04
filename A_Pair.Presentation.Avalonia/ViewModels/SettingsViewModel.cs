@@ -141,15 +141,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnTransitionAnimationIndexChanged(int value)
     {
         if (!Enum.IsDefined(typeof(PageTransitionType), value)) return;
-        var type = (PageTransitionType)value;
-        if (TransitionAnimation == type) return;
-        TransitionAnimation = type;
-
-        if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            && desktop.MainWindow?.DataContext is MainShellViewModel shell)
-        {
-            shell.ApplyTransitionType(type);
-        }
+        TransitionAnimation = (PageTransitionType)value;
     }
 
     partial void OnAutoSaveIndexChanged(int value)

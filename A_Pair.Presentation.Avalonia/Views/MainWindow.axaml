@@ -201,50 +201,21 @@
 
     <!-- 内容区域 -->
     <Grid>
-      <TransitioningContentControl x:Name="PageHost"
-                                   Content="{Binding CurrentViewModel}"
-                                   PageTransition="{Binding PageTransition}"
-                                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+      <ContentControl Content="{Binding CurrentViewModel}"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
-      <!-- 加载遮罩：用 Opacity（非 IsVisible）保留淡出动画 -->
+      <!-- 加载遮罩：导航时先出现遮罩，等待页面渲染完成后淡出 -->
       <Border Opacity="{Binding IsPageLoading, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
               IsHitTestVisible="{Binding IsPageLoading}"
               Background="{DynamicResource LoadingOverlayBrush}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Border.Transitions>
           <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseInOut" />
+            <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
           </Transitions>
         </Border.Transitions>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-          <!-- 圆形旋转加载动画 -->
-          <Panel Width="40" Height="40">
-            <Panel.RenderTransform>
-              <RotateTransform />
-            </Panel.RenderTransform>
-            <Panel.Styles>
-              <Style Selector="Panel">
-                <Style.Animations>
-                  <Animation Duration="0:0:1.2" IterationCount="INFINITE">
-                    <KeyFrame Cue="0%">
-                      <Setter Property="RotateTransform.Angle" Value="0" />
-                    </KeyFrame>
-                    <KeyFrame Cue="100%">
-                      <Setter Property="RotateTransform.Angle" Value="360" />
-                    </KeyFrame>
-                  </Animation>
-                </Style.Animations>
-              </Style>
-            </Panel.Styles>
-            <!-- 底色圆环 -->
-            <Ellipse Width="40" Height="40" StrokeThickness="4"
-                     Stroke="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
-            <!-- 旋转弧线 -->
-            <Ellipse Width="40" Height="40" StrokeThickness="4"
-                     Stroke="{DynamicResource SystemAccentColor}"
-                     StrokeLineCap="Round"
-                     StrokeDashArray="90,160" />
-          </Panel>
+          <ProgressBar IsIndeterminate="True" Width="160" Height="6" />
           <TextBlock Text="正在加载..." FontSize="14"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                      HorizontalAlignment="Center" />
