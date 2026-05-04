@@ -201,7 +201,7 @@
 
     <!-- 内容区域 -->
     <Grid>
-      <ContentControl Content="{Binding CurrentViewModel}"
+      <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
       <!-- 加载遮罩：CubicEaseOut 快入慢出，不透明覆盖右侧内容区 -->

@@ -20,6 +20,7 @@ public class NavigationService : INavigationService
 
     public void NavigateTo (PageKey page)
     {
+        if (page == CurrentPage) return;
         CurrentPage = page;
         CurrentViewModel = page switch
         {

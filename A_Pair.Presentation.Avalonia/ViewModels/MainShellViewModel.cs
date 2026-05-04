@@ -31,25 +31,38 @@ public partial class MainShellViewModel : ViewModelBase
 
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
+    private TaskCompletionSource _pageLoadedTcs = new();
 
-    /// <summary>loading 遮罩最短显示时间，防止闪烁。</summary>
+    /// <summary>loading 遮罩最短显示时间。</summary>
     private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(350);
 
     public MainShellViewModel(INavigationService navigation)
     {
         _navigation = navigation;
+        _pageLoadedTcs.TrySetResult();
         _navigation.CurrentViewModelChanged += () =>
         {
             IsPageLoading = true;
+            _pageLoadedTcs = new TaskCompletionSource();
             CurrentViewModel = _navigation.CurrentViewModel;
             CurrentPage = _navigation.CurrentPage;
             _ = DelayCloseLoadingAsync();
         };
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
-        _ = DelayCloseLoadingAsync();
     }
 
+    /// <summary>
+    /// 由 MainWindow 在新页面 View 完成布局渲染后调用。
+    /// </summary>
+    public void SignalPageLoaded()
+    {
+        _pageLoadedTcs.TrySetResult();
+    }
+
+    /// <summary>
+    /// 等待最短显示时间 AND 新页面加载完成后，关闭 loading 遮罩。
+    /// </summary>
     private async Task DelayCloseLoadingAsync()
     {
         _pageLoadCts?.Cancel();
@@ -58,7 +71,7 @@ public partial class MainShellViewModel : ViewModelBase
 
         try
         {
-            await Task.Delay(MinLoadDuration, ct);
+            await Task.WhenAll(Task.Delay(MinLoadDuration, ct), _pageLoadedTcs.Task);
         }
         catch (OperationCanceledException)
         {
