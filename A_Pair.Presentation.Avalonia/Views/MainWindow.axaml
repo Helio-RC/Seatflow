@@ -204,7 +204,7 @@
       <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
-      <!-- 加载遮罩：FluentUI 浮层风格 — BoxShadow立体感 + 半透明背景压暗旧页 -->
+      <!-- 加载遮罩：FluentUI 浮层 — 渐显渐隐全动画 -->
       <Border IsVisible="{Binding IsPageLoading}"
               IsHitTestVisible="{Binding IsPageLoading}"
               Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
@@ -213,45 +213,20 @@
               Margin="1">
         <Border.Transitions>
           <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseOut" />
+            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Easing="CubicEaseInOut" />
           </Transitions>
         </Border.Transitions>
 
-        <!-- 加载内容 -->
+        <!-- 加载内容：在遮罩之后渐显 -->
         <Border Opacity="{Binding IsLoadingContentVisible, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
           <Border.Transitions>
             <Transitions>
-              <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
+              <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="CubicEaseInOut" />
             </Transitions>
           </Border.Transitions>
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-            <!-- 圆形旋转加载指示器 -->
-            <Border Width="36" Height="36" CornerRadius="18"
-                    BorderBrush="{DynamicResource SystemAccentColor}"
-                    BorderThickness="3"
-                    Background="Transparent"
-                    RenderTransformOrigin="50%,50%"
-                    HorizontalAlignment="Center"
-                    Classes="spinner">
-              <Border.RenderTransform>
-                <RotateTransform Angle="0" />
-              </Border.RenderTransform>
-              <Border.Styles>
-                <Style Selector="Border.spinner">
-                  <Style.Animations>
-                    <Animation Duration="0:0:1" IterationCount="Infinite">
-                      <KeyFrame Cue="0%">
-                        <Setter Property="RotateTransform.Angle" Value="0" />
-                      </KeyFrame>
-                      <KeyFrame Cue="100%">
-                        <Setter Property="RotateTransform.Angle" Value="360" />
-                      </KeyFrame>
-                    </Animation>
-                  </Style.Animations>
-                </Style>
-              </Border.Styles>
-            </Border>
+            <ProgressBar IsIndeterminate="True" Width="200" Height="6" />
             <TextBlock Text="正在加载..." FontSize="14"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                        HorizontalAlignment="Center" />
