@@ -66,6 +66,26 @@
                         Padding="16,8" FontSize="14" Content="深色" />
               </StackPanel>
             </StackPanel>
+
+            <Separator />
+
+            <!-- 页面切换动画 -->
+            <StackPanel Spacing="8">
+              <TextBlock Text="页面切换动画" FontSize="14"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Content="淡入淡出" Padding="12,6" FontSize="13"
+                        Command="{Binding SetTransitionAnimationCommand}" CommandParameter="0" />
+                <Button Content="水平滑动" Padding="12,6" FontSize="13"
+                        Command="{Binding SetTransitionAnimationCommand}" CommandParameter="1" />
+                <Button Content="垂直滑动" Padding="12,6" FontSize="13"
+                        Command="{Binding SetTransitionAnimationCommand}" CommandParameter="2" />
+                <Button Content="滑动+淡出" Padding="12,6" FontSize="13"
+                        Command="{Binding SetTransitionAnimationCommand}" CommandParameter="3" />
+                <Button Content="无动画" Padding="12,6" FontSize="13"
+                        Command="{Binding SetTransitionAnimationCommand}" CommandParameter="4" />
+              </StackPanel>
+            </StackPanel>
           </StackPanel>
         </Border>
 

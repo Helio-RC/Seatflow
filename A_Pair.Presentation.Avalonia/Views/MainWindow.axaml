@@ -200,7 +200,8 @@
     </Border>
 
     <!-- 内容区域 -->
-    <ContentControl Content="{Binding CurrentViewModel}"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    <TransitioningContentControl Content="{Binding CurrentViewModel}"
+                                 PageTransition="{Binding PageTransition}"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
   </DockPanel>
 </Window>

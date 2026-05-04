@@ -43,6 +43,12 @@ public partial class SettingsViewModel : ViewModelBase
     private int _themeIndex;
 
     [ObservableProperty]
+    private PageTransitionType _transitionAnimation;
+
+    [ObservableProperty]
+    private int _transitionAnimationIndex;
+
+    [ObservableProperty]
     private bool _isSaving;
 
     public SettingsViewModel(IApplicationFacade facade, IDialogService dialog)
@@ -63,6 +69,8 @@ public partial class SettingsViewModel : ViewModelBase
             AutoSaveIntervalSeconds = settings.AutoSaveIntervalSeconds;
             ConfirmBeforeClear = settings.ConfirmBeforeClear;
             DefaultZoomLevel = settings.DefaultZoomLevel;
+            TransitionAnimation = settings.TransitionAnimation;
+            TransitionAnimationIndex = (int)settings.TransitionAnimation;
             ThemeIndex = Theme switch
             {
                 ThemeMode.Light => 1,
@@ -99,6 +107,27 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
+    partial void OnTransitionAnimationIndexChanged(int value)
+    {
+        if (!Enum.IsDefined(typeof(PageTransitionType), value)) return;
+        var type = (PageTransitionType)value;
+        if (TransitionAnimation == type) return;
+        TransitionAnimation = type;
+
+        if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            && desktop.MainWindow?.DataContext is MainShellViewModel shell)
+        {
+            shell.ApplyTransitionType(type);
+        }
+    }
+
+    [RelayCommand]
+    private void SetTransitionAnimation(string parameter)
+    {
+        if (int.TryParse(parameter, out var index))
+            TransitionAnimationIndex = index;
+    }
+
     [RelayCommand]
     private async Task SaveSettingsAsync(CancellationToken ct)
     {
@@ -114,7 +143,8 @@ public partial class SettingsViewModel : ViewModelBase
                 DataDirectory = DataDirectory,
                 AutoSaveIntervalSeconds = AutoSaveIntervalSeconds,
                 ConfirmBeforeClear = ConfirmBeforeClear,
-                DefaultZoomLevel = DefaultZoomLevel
+                DefaultZoomLevel = DefaultZoomLevel,
+                TransitionAnimation = TransitionAnimation
             };
 
             await _facade.SaveAppSettingsAsync(settings, ct);
@@ -144,6 +174,8 @@ public partial class SettingsViewModel : ViewModelBase
         AutoSaveIntervalSeconds = 300;
         ConfirmBeforeClear = true;
         DefaultZoomLevel = 1.0;
+        TransitionAnimation = PageTransitionType.CrossFade;
+        TransitionAnimationIndex = (int)PageTransitionType.CrossFade;
         ThemeIndex = 0;
         StatusMessage = "已恢复默认值（尚未保存）";
     }

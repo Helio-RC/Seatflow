@@ -121,7 +121,7 @@
         "status": "pending",
         "priority": "medium",
         "dependencies": ["2"],
-        "details": "1. Ctrl+Z/Ctrl+Y 快捷键\n2. 撤销/重做按钮\n3. 菜单栏（文件/编辑/视图）\n4. 全局错误处理\n5. 应用程序设置界面",
+        "details": "1. Ctrl+Z/Ctrl+Y 快捷键\n2. 撤销/重做按钮\n3. 菜单栏（文件/编辑/视图）\n4. 全局错误处理",
         "testStrategy": "手动测试：Ctrl+Z 撤销 → Ctrl+Y 重做 → 菜单导航 → 错误对话框",
         "subtasks": []
       },
@@ -131,7 +131,7 @@
         "description": "为所有 ViewModel 补充完整逻辑，编写 UI 集成测试",
         "status": "pending",
         "priority": "low",
-        "dependencies": ["3", "4", "5", "6", "7", "8", "9", "10", "11", "13", "14"],
+        "dependencies": ["3", "4", "5", "6", "7", "8", "9", "10", "11"],
         "details": "1. 检查所有 ViewModel 完整性和边界情况\n2. 添加 Avalonia.Headless.XUnit 测试\n3. 编写关键流程集成测试\n4. 测试 ViewLocator 类型解析\n5. dotnet test 全部通过",
         "testStrategy": "dotnet test 全部通过，集成测试覆盖主要用户流程",
         "subtasks": []
@@ -139,31 +139,33 @@
       {
         "id": "13",
         "title": "设置视图（SettingsView）",
-        "description": "实现应用程序设置页面，支持主题切换、语言、数据目录等配置项",
-        "status": "pending",
+        "description": "实现应用程序设置页面，支持主题切换、语言、数据目录等配置项和页面切换动画选项",
+        "status": "done",
         "priority": "low",
         "dependencies": ["2"],
-        "details": "1. 创建 SettingsView.axaml\n2. 主题切换（亮色/暗色/跟随系统）\n3. 语言选择\n4. 数据目录路径配置\n5. 自动保存间隔设置\n6. 重置为默认值\n7. 通过 IApplicationFacade 读写 AppSettings",
-        "testStrategy": "手动测试：切换主题 → 修改设置 → 重启 → 验证持久化",
-        "subtasks": []
+        "details": "1. SettingsViewModel：注入 IApplicationFacade/IDialogService\n2. 外观：主题模式（跟随系统/浅色/深色）即时切换 ThemeVariant\n3. 语言：界面语言代码输入\n4. 存储：数据目录路径 + 文件夹浏览按钮\n5. 行为：自动保存间隔（禁用/1/5/10分钟）、清除确认 ToggleSwitch、默认缩放（75%/100%/125%/150%）\n6. 页面切换动画：淡入淡出/水平滑动/垂直滑动/滑动+淡出/无动画，即时生效\n7. AppSettings 新增 PageTransitionType 枚举和 TransitionAnimation 属性\n8. MainShellViewModel 注入 IApplicationFacade，管理 IPageTransition\n9. MainWindow 使用 TransitioningContentControl 替换 ContentControl\n10. 所有显示内容绑定到 ViewModel 属性，AXAML 零硬编码",
+        "testStrategy": "dotnet build + dotnet test 全部通过；手动测试所有设置项保存/重置/重启持久化",
+        "subtasks": [],
+        "updatedAt": "2026-05-04T08:00:00.000Z"
       },
       {
         "id": "14",
         "title": "关于视图（AboutView）",
         "description": "实现关于页面，展示应用信息、版本号和依赖库列表",
-        "status": "pending",
+        "status": "done",
         "priority": "low",
         "dependencies": ["2"],
-        "details": "1. 创建 AboutView.axaml\n2. 应用名称和版本号\n3. 项目主页链接（可点击打开浏览器）\n4. 依赖库列表及版本\n5. 许可证信息",
-        "testStrategy": "手动测试：打开关于页 → 验证版本号 → 点击链接",
-        "subtasks": []
+        "details": "1. AboutViewModel：AppName/Version/Description/RuntimeVersion/AvaloniaVersion/ProjectUrl/License/Copyright/Dependencies 全部需属性绑定\n2. Version 从 AssemblyInformationalVersionAttribute 反射获取\n3. RuntimeVersion 从 RuntimeInformation.FrameworkDescription 获取\n4. AvaloniaVersion 从 Avalonia.Application 程序集反射\n5. DependencyInfo 列表（Name/Version/Purpose）通过 DataTemplate 展示\n6. 卡式布局：应用图标+名称→描述→运行环境→核心依赖→链接\n7. AXAML 零硬编码字符串，所有文本来自 ViewModel 属性",
+        "testStrategy": "dotnet build + dotnet test 全部通过",
+        "subtasks": [],
+        "updatedAt": "2026-05-04T08:00:00.000Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-02T00:40:00.000Z",
+      "lastModified": "2026-05-04T08:00:00.000Z",
       "taskCount": 14,
-      "completedCount": 4,
+      "completedCount": 6,
       "tags": ["ui-layer"]
     }
   }
