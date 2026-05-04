@@ -43,7 +43,7 @@ public partial class MainShellViewModel : ViewModelBase
     private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(500);
 
     /// <summary>遮罩背景淡入后，延迟此时间再显示加载条。</summary>
-    private static readonly TimeSpan ContentFadeInDelay = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan ContentFadeInDelay = TimeSpan.FromMilliseconds(120);
 
     public MainShellViewModel(INavigationService navigation)
     {

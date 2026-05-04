@@ -204,11 +204,22 @@
       <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
-      <!-- 加载遮罩：FluentUI 浮层 — 渐显渐隐全动画 -->
+      <!-- 压暗层：深色半透明覆盖旧页 -->
+      <Border IsVisible="{Binding IsPageLoading}"
+              Background="#33000000"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Border.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseInOut" />
+          </Transitions>
+        </Border.Transitions>
+      </Border>
+
+      <!-- 加载内容层：深色背景 + 浮层阴影 + 加载条 -->
       <Border IsVisible="{Binding IsPageLoading}"
               IsHitTestVisible="{Binding IsPageLoading}"
               Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              BoxShadow="0 4 16 0 #20000000, 0 1 4 0 #10000000"
+              BoxShadow="0 8 24 0 #30000000, 0 2 8 0 #18000000"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               Margin="1">
         <Border.Transitions>
@@ -217,12 +228,11 @@
           </Transitions>
         </Border.Transitions>
 
-        <!-- 加载内容：在遮罩之后渐显 -->
         <Border Opacity="{Binding IsLoadingContentVisible, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
           <Border.Transitions>
             <Transitions>
-              <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="CubicEaseInOut" />
+              <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseInOut" />
             </Transitions>
           </Border.Transitions>
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
