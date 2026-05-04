@@ -22,6 +22,11 @@ namespace A_Pair.Presentation.Avalonia
             _serviceProvider = serviceProvider;
         }
 
+        public override void Initialize ()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
+
         private async Task RestoreSettingsAsync ()
         {
             try
@@ -47,11 +52,6 @@ namespace A_Pair.Presentation.Avalonia
                 ThemeMode.Dark => ThemeVariant.Dark,
                 _ => ThemeVariant.Default
             };
-        }
-
-        public override void Initialize ()
-        {
-            AvaloniaXamlLoader.Load(this);
         }
 
         public override void OnFrameworkInitializationCompleted ()

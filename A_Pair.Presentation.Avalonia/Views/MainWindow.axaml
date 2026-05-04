@@ -13,13 +13,14 @@
         Title="A_Pair — 安排" Width="1200" Height="800"
         MinWidth="550" MinHeight="600"
         ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="32"
         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
   <Design.DataContext>
     <vm:MainShellViewModel/>
   </Design.DataContext>
 
-  <DockPanel>
+  <DockPanel Margin="0,32,0,0">
     <!-- 侧边栏 -->
     <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="{DynamicResource SidebarBackgroundBrush}"
             ClipToBounds="True">
