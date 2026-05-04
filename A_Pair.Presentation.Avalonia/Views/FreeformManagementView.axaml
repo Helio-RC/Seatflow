@@ -237,14 +237,14 @@
                                 CornerRadius="20" Opacity="0.6"
                                 IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
                                     ConverterParameter=1}"
-                                Background="#4080D0E0"
+                                Background="{DynamicResource PreviewPodiumFillBrush}"
                                 ToolTip.Tip="讲台"/>
                         <!-- 门：矩形 -->
                         <Border Width="36" Height="24"
                                 CornerRadius="4" Opacity="0.7"
                                 IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
                                     ConverterParameter=2}"
-                                Background="#800072C6"
+                                Background="{DynamicResource PreviewDoorFillBrush}"
                                 ToolTip.Tip="门"/>
                       </Panel>
                     </DataTemplate>

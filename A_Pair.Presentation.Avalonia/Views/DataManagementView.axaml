@@ -446,7 +446,7 @@
         </DockPanel>
 
         <!-- 加载中遮罩 -->
-        <Border IsVisible="{Binding IsLoading}" Background="{DynamicResource LoadingOverlayBrush}"
+        <Border IsVisible="{Binding IsLoading}" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
             <ProgressBar IsIndeterminate="True" Width="200" />

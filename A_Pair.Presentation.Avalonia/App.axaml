@@ -10,14 +10,21 @@
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
           <Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
+          <Color x:Key="PreviewSeatBorderColor">#80000000</Color>
+          <Color x:Key="PreviewPodiumFillColor">#4080D0E0</Color>
+          <Color x:Key="PreviewDoorFillColor">#800072C6</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <Color x:Key="SidebarBackgroundColor">#252525</Color>
+          <Color x:Key="PreviewSeatBorderColor">#80FFFFFF</Color>
+          <Color x:Key="PreviewPodiumFillColor">#4060A0FF</Color>
+          <Color x:Key="PreviewDoorFillColor">#809080F0</Color>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{DynamicResource SidebarBackgroundColor}" />
-      <SolidColorBrush x:Key="PreviewSeatBorderBrush" Color="#80FFFFFF" />
-      <SolidColorBrush x:Key="PreviewPodiumFillBrush" Color="#4080D0E0" />
+      <SolidColorBrush x:Key="PreviewSeatBorderBrush" Color="{DynamicResource PreviewSeatBorderColor}" />
+      <SolidColorBrush x:Key="PreviewPodiumFillBrush" Color="{DynamicResource PreviewPodiumFillColor}" />
+      <SolidColorBrush x:Key="PreviewDoorFillBrush" Color="{DynamicResource PreviewDoorFillColor}" />
     </ResourceDictionary>
   </Application.Resources>
 

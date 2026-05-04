@@ -201,17 +201,32 @@
 
     <!-- 内容区域 -->
     <Grid>
-      <ContentControl Content="{Binding CurrentViewModel}"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+      <!-- 内容：ClipToBounds 裁剪溢出，RenderTransform 用于滑动动画 -->
+      <Border ClipToBounds="True">
+        <ContentControl x:Name="PageHost"
+                        Content="{Binding CurrentViewModel}"
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+          <ContentControl.RenderTransform>
+            <TranslateTransform X="0" Y="0" />
+          </ContentControl.RenderTransform>
+          <ContentControl.Transitions>
+            <Transitions>
+              <TransformOperationsTransition Property="RenderTransform"
+                                             Duration="0:0:0.2"
+                                             Easing="CubicEaseInOut" />
+            </Transitions>
+          </ContentControl.Transitions>
+        </ContentControl>
+      </Border>
 
-      <!-- 加载遮罩：导航时先出现遮罩，等待页面渲染完成后淡出 -->
-      <Border Opacity="{Binding IsPageLoading, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-              IsHitTestVisible="{Binding IsPageLoading}"
+      <!-- 加载遮罩 -->
+      <Border x:Name="LoadingOverlay" Opacity="0" IsHitTestVisible="False"
               Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Border.Transitions>
           <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+            <DoubleTransition Property="Opacity" Duration="0:0:0.15"
+                              Easing="CubicEaseInOut" />
           </Transitions>
         </Border.Transitions>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
