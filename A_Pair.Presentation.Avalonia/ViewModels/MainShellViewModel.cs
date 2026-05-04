@@ -33,6 +33,9 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoadingContentVisible;
 
+    [ObservableProperty]
+    private bool _isPageTransitioning;
+
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
 
@@ -47,6 +50,7 @@ public partial class MainShellViewModel : ViewModelBase
         _navigation = navigation;
         _navigation.CurrentViewModelChanged += () =>
         {
+            IsPageTransitioning = true;
             IsPageLoading = true;
             CurrentViewModel = _navigation.CurrentViewModel;
             CurrentPage = _navigation.CurrentPage;
@@ -83,10 +87,12 @@ public partial class MainShellViewModel : ViewModelBase
         catch (OperationCanceledException)
         {
             IsLoadingContentVisible = false;
+            IsPageTransitioning = false;
             return;
         }
 
         IsPageLoading = false;
+        IsPageTransitioning = false;
     }
 
     public void OnWindowWidthChanged(double windowWidth)
