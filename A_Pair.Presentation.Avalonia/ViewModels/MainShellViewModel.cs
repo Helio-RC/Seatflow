@@ -5,6 +5,7 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Animation;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -36,20 +37,36 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     private PageTransitionType _currentTransitionType;
 
+    [ObservableProperty]
+    private bool _isPageLoading;
+
     private bool _userWantsExpanded = true;
 
     public MainShellViewModel(INavigationService navigation, IApplicationFacade facade)
     {
         _navigation = navigation;
         _facade = facade;
+        // 必须在首次设置 CurrentViewModel 之前同步赋默认值，
+        // 确保 TransitioningContentControl 从第一页就正确初始化过渡管道。
+        PageTransition = CreateTransition(PageTransitionType.CrossFade);
         _navigation.CurrentViewModelChanged += () =>
         {
+            IsPageLoading = true;
             CurrentViewModel = _navigation.CurrentViewModel;
             CurrentPage = _navigation.CurrentPage;
+            // DispatcherPriority.Loaded 在布局和绑定完成后执行，此时新页面已渲染完毕
+            Dispatcher.UIThread.Post(SignalPageLoaded, DispatcherPriority.Loaded);
         };
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
+        Dispatcher.UIThread.Post(SignalPageLoaded, DispatcherPriority.Loaded);
         _ = LoadTransitionSettingAsync(CancellationToken.None);
+    }
+
+    /// <summary>由 MainWindow 在新页面 View 完成布局渲染后调用。</summary>
+    public void SignalPageLoaded()
+    {
+        IsPageLoading = false;
     }
 
     private async Task LoadTransitionSettingAsync(CancellationToken ct)
