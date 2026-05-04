@@ -11,7 +11,7 @@ public class CommandHistoryTests
 
         var history = new CommandHistory();
         var ws = new SeatingWorkspace(new List<Student>() , new List<Seat>());
-        var result = await history.ExecuteAsync(cmd , ws , CancellationToken.None);
+        var result = await history.ExecuteAsync(cmd , ws , TestContext.Current.CancellationToken);
 
         result.Should().BeTrue();
         history.CanUndo.Should().BeTrue();
@@ -44,8 +44,8 @@ public class CommandHistoryTests
         var history = new CommandHistory();
         var ws = new SeatingWorkspace(new List<Student>() , new List<Seat>());
 
-        await history.ExecuteAsync(cmd , ws);
-        var result = await history.UndoAsync(ws);
+        await history.ExecuteAsync(cmd , ws , TestContext.Current.CancellationToken);
+        var result = await history.UndoAsync(ws , TestContext.Current.CancellationToken);
 
         result.Should().BeTrue();
         history.CanRedo.Should().BeTrue();
@@ -64,9 +64,9 @@ public class CommandHistoryTests
         var history = new CommandHistory();
         var ws = new SeatingWorkspace(new List<Student>() , new List<Seat>());
 
-        await history.ExecuteAsync(cmd , ws);
-        await history.UndoAsync(ws);
-        var result = await history.RedoAsync(ws);
+        await history.ExecuteAsync(cmd , ws , TestContext.Current.CancellationToken);
+        await history.UndoAsync(ws , TestContext.Current.CancellationToken);
+        var result = await history.RedoAsync(ws , TestContext.Current.CancellationToken);
 
         result.Should().BeTrue();
         history.CanUndo.Should().BeTrue(); // 应该又回到 undo 栈
