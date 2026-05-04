@@ -40,6 +40,7 @@ public partial class MainShellViewModel : ViewModelBase
     private CancellationTokenSource? _pageLoadCts;
 
     /// <summary>页面淡出时长（对应 AXAML ContentControl Opacity 0.35s）。</summary>
+    private static readonly TimeSpan StaggerDelay = TimeSpan.FromMilliseconds(150);
     private static readonly TimeSpan FadeOutDuration = TimeSpan.FromMilliseconds(350);
 
     /// <summary>遮罩最短显示时间。</summary>
@@ -75,9 +76,10 @@ public partial class MainShellViewModel : ViewModelBase
 
         try
         {
-            // 阶段1：旧页淡出 ‖ 遮罩淡入（并行）
-            PageOpacity = 0;
+            // 阶段1：遮罩先淡入 → 旧页随后淡出（错开）
             IsPageLoading = true;
+            await Task.Delay(StaggerDelay, ct);
+            PageOpacity = 0;
             await Task.Delay(FadeOutDuration, ct);
 
             // 阶段2：内容切换（遮罩背后，不可见）
@@ -94,6 +96,10 @@ public partial class MainShellViewModel : ViewModelBase
 
             // 阶段4：进度条渐隐
             IsLoadingContentVisible = false;
+
+            // 阶段5：新页先淡入 → 遮罩随后淡出（错开）
+            PageOpacity = 1;
+            await Task.Delay(StaggerDelay, ct);
         }
         catch (OperationCanceledException)
         {
@@ -103,8 +109,6 @@ public partial class MainShellViewModel : ViewModelBase
             return;
         }
 
-        // 阶段5：新页淡入 ‖ 遮罩淡出（并行）
-        PageOpacity = 1;
         IsPageLoading = false;
     }
 
