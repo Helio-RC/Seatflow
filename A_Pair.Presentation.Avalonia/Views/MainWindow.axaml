@@ -202,7 +202,14 @@
     <!-- 内容区域 -->
     <Grid>
       <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                      Opacity="{Binding PageOpacity}"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ContentControl.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="CubicEaseInOut" />
+          </Transitions>
+        </ContentControl.Transitions>
+      </ContentControl>
 
       <!-- 加载遮罩：深色背景压暗旧页 + 浮层阴影 + 加载条 -->
       <Border IsVisible="{Binding IsPageLoading}"
