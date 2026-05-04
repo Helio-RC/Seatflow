@@ -31,10 +31,18 @@
         </Transitions>
       </Border.Transitions>
       <DockPanel>
-        <!-- 标题：居中，固定位置，收窄时右侧被裁切 -->
+        <!-- 标题 -->
         <Border DockPanel.Dock="Top" Height="44">
-          <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold"
-                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          <Panel>
+            <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold"
+                       Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                       IsHitTestVisible="{Binding IsSidebarExpanded}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBlock Text="安排" FontSize="18" FontWeight="Bold"
+                       Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                       IsHitTestVisible="{Binding IsSidebarCollapsed}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Panel>
         </Border>
 
         <!-- 底部：设置 + 关于 -->
@@ -104,6 +112,14 @@
               </StackPanel>
             </Button>
 
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Home" AutomationProperties.Name="首页"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Home}" FontSize="24" Height="24"/>
+                <TextBlock Text="首页" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+
             <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="DataManagement" AutomationProperties.Name="数据管理"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -167,6 +183,11 @@
                     Command="{Binding ToggleSidebarCommand}"
                     ToolTip.Tip="展开侧边栏">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="24" Height="24"/>
+            </Button>
+
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="首页"
+                    Command="{Binding NavigateCommand}" CommandParameter="Home">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Home}" FontSize="24" Height="24"/>
             </Button>
 
             <Button Height="44" Width="44" Padding="0" ToolTip.Tip="数据管理"

@@ -5,6 +5,7 @@ namespace A_Pair.Presentation.Avalonia.Services;
 
 public enum PageKey
 {
+    Home,
     DataManagement,
     VenueConfiguration,
     FreeformManagement,

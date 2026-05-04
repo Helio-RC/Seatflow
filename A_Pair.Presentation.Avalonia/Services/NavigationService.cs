@@ -15,7 +15,7 @@ public class NavigationService : INavigationService
     public NavigationService (IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        NavigateTo(PageKey.DataManagement);
+        NavigateTo(PageKey.Home);
     }
 
     public void NavigateTo (PageKey page)
@@ -24,6 +24,7 @@ public class NavigationService : INavigationService
         CurrentPage = page;
         CurrentViewModel = page switch
         {
+            PageKey.Home => _serviceProvider.GetRequiredService<HomeViewModel>(),
             PageKey.DataManagement => _serviceProvider.GetRequiredService<DataManagementViewModel>(),
             PageKey.VenueConfiguration => _serviceProvider.GetRequiredService<VenueConfigurationViewModel>(),
             PageKey.FreeformManagement => _serviceProvider.GetRequiredService<FreeformManagementViewModel>(),

@@ -24,6 +24,7 @@ namespace A_Pair.Presentation.Avalonia
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainShellViewModel>();
+            services.AddSingleton<HomeViewModel>();
             services.AddSingleton<DataManagementViewModel>();
             services.AddSingleton<VenueConfigurationViewModel>();
             services.AddSingleton<FreeformManagementViewModel>();
