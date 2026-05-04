@@ -4,6 +4,7 @@
         xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+        xmlns:fauic="using:FluentAvalonia.UI.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"

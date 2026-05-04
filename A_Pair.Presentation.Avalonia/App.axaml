@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="A_Pair.Presentation.Avalonia.App"
              xmlns:local="using:A_Pair.Presentation.Avalonia"
+             xmlns:styling="using:FluentAvalonia.Styling"
              RequestedThemeVariant="Default">
   <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -31,8 +32,11 @@
   <Application.DataTemplates>
     <local:ViewLocator/>
   </Application.DataTemplates>
+  <!-- Define xmlns:sty="using:FluentAvalonia.Styling" -->
 
   <Application.Styles>
+    <styling:FluentAvaloniaTheme />
+    <StyleInclude Source="avares://FluentAvalonia.ProgressRing/Styling/Controls/ProgressRing.axaml" />
     <Style Selector="Window">
       <Setter Property="FontFamily" Value="Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
     </Style>
