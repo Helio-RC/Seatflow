@@ -11,7 +11,10 @@
         x:DataType="vm:MainShellViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="A_Pair — 安排" Width="1200" Height="800"
-        MinWidth="550" MinHeight="600">
+        MinWidth="550" MinHeight="600"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="SystemChrome"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
   <Design.DataContext>
     <vm:MainShellViewModel/>
@@ -202,14 +205,7 @@
     <!-- 内容区域 -->
     <Grid>
       <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
-                      Opacity="{Binding PageOpacity}"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <ContentControl.Transitions>
-          <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="CubicEaseInOut" />
-          </Transitions>
-        </ContentControl.Transitions>
-      </ContentControl>
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
       <!-- 加载遮罩：深色背景压暗旧页 + 浮层阴影 + 加载条 -->
       <Border IsVisible="{Binding IsPageLoading}"
