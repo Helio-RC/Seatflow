@@ -5,7 +5,6 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Animation;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -41,6 +40,10 @@ public partial class MainShellViewModel : ViewModelBase
     private bool _isPageLoading;
 
     private bool _userWantsExpanded = true;
+    private CancellationTokenSource? _pageLoadCts;
+
+    /// <summary>loading 遮罩最短显示时间，确保动画完成且不闪。</summary>
+    private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(350);
 
     public MainShellViewModel(INavigationService navigation, IApplicationFacade facade)
     {
@@ -54,18 +57,33 @@ public partial class MainShellViewModel : ViewModelBase
             IsPageLoading = true;
             CurrentViewModel = _navigation.CurrentViewModel;
             CurrentPage = _navigation.CurrentPage;
-            // DispatcherPriority.Loaded 在布局和绑定完成后执行，此时新页面已渲染完毕
-            Dispatcher.UIThread.Post(SignalPageLoaded, DispatcherPriority.Loaded);
+            _ = DelayCloseLoadingAsync();
         };
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
-        Dispatcher.UIThread.Post(SignalPageLoaded, DispatcherPriority.Loaded);
+        _ = DelayCloseLoadingAsync();
         _ = LoadTransitionSettingAsync(CancellationToken.None);
     }
 
-    /// <summary>由 MainWindow 在新页面 View 完成布局渲染后调用。</summary>
-    public void SignalPageLoaded()
+    /// <summary>
+    /// 等待最短显示时间后关闭 loading 遮罩。
+    /// 用 Task.Delay 替代 Dispatcher 确保 PageSlide 动画（250ms）在遮罩背后完整播完。
+    /// </summary>
+    private async Task DelayCloseLoadingAsync()
     {
+        _pageLoadCts?.Cancel();
+        _pageLoadCts = new CancellationTokenSource();
+        var ct = _pageLoadCts.Token;
+
+        try
+        {
+            await Task.Delay(MinLoadDuration, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         IsPageLoading = false;
     }
 
