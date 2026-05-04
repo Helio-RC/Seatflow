@@ -45,14 +45,14 @@
                 </Transitions>
               </StackPanel.Transitions>
               <Separator Margin="0,0,0,0"/>
-              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Settings"
+              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Settings" AutomationProperties.Name="设置"
                       HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Settings}" FontSize="20" Height="20"/>
                   <TextBlock Text="设置" FontSize="15" VerticalAlignment="Center"/>
                 </StackPanel>
               </Button>
-              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="About"
+              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="About" AutomationProperties.Name="关于"
                       HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Info}" FontSize="20" Height="20"/>
@@ -92,7 +92,7 @@
                 <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
               </Transitions>
             </StackPanel.Transitions>
-            <Button Height="44" Command="{Binding ToggleSidebarCommand}"
+            <Button Height="44" Command="{Binding ToggleSidebarCommand}" AutomationProperties.Name="切换侧边栏"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
                     ToolTip.Tip="收起侧边栏">
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -101,49 +101,49 @@
               </StackPanel>
             </Button>
 
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="DataManagement" AutomationProperties.Name="数据管理"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="24" Height="24"/>
                 <TextBlock Text="数据管理" FontSize="15" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration" AutomationProperties.Name="会场配置"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="24" Height="24"/>
                 <TextBlock Text="会场配置" FontSize="15" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="FreeformManagement"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="FreeformManagement" AutomationProperties.Name="自由点管理"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowMove}" FontSize="24" Height="24"/>
                 <TextBlock Text="自由点管理" FontSize="15" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration" AutomationProperties.Name="策略配置"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="24" Height="24"/>
                 <TextBlock Text="策略配置" FontSize="15" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement" AutomationProperties.Name="座位安排"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="24" Height="24"/>
                 <TextBlock Text="座位安排" FontSize="15" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory" AutomationProperties.Name="历史快照"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="24" Height="24"/>
                 <TextBlock Text="历史快照" FontSize="15" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="PluginManagement" AutomationProperties.Name="插件管理"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="24" Height="24"/>

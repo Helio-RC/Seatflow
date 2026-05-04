@@ -24,7 +24,7 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="数据管理" FontSize="20" FontWeight="Bold"
+        <TextBlock DockPanel.Dock="Left" Text="数据管理" Classes="pageTitle"
                    VerticalAlignment="Center" />
 
         <!-- === 右侧操作按钮 === -->
@@ -220,7 +220,7 @@
       <DockPanel>
         <TextBlock DockPanel.Dock="Right" Text="{Binding StudentCount, StringFormat='共 {0} 名学生'}"
                    FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-        <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+        <TextBlock Text="{Binding StatusMessage}" Classes="caption"
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
       </DockPanel>
     </Border>
@@ -383,7 +383,7 @@
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="48"
                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                             HorizontalAlignment="Center" />
-            <TextBlock Text="暂无数据" FontSize="16" FontWeight="SemiBold"
+            <TextBlock Text="暂无数据" Classes="sectionTitle"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <TextBlock Text="点击「导入」或从左侧加载已保存的数据集"

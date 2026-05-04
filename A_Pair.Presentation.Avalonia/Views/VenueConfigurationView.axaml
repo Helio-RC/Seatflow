@@ -11,7 +11,7 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="会场配置" FontSize="20" FontWeight="Bold"
+        <TextBlock DockPanel.Dock="Left" Text="会场配置" Classes="pageTitle"
                    VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding DeleteVenueCommand}"
@@ -36,7 +36,7 @@
 
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
-      <TextBlock Text="{Binding StatusMessage}" FontSize="12"
+      <TextBlock Text="{Binding StatusMessage}" Classes="caption"
                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
     </Border>
 
@@ -145,7 +145,7 @@
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="48"
                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                             HorizontalAlignment="Center" />
-            <TextBlock Text="未选择会场" FontSize="16" FontWeight="SemiBold"
+            <TextBlock Text="未选择会场" Classes="sectionTitle"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <TextBlock Text="请从左侧选择一个会场或新建一个"
@@ -262,7 +262,7 @@
                     CornerRadius="4">
               <StackPanel Spacing="8">
                 <TextBlock Text="过道配置" FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Text="列过道（点击选择相邻桌列之间插入过道）：" FontSize="12"
+                <TextBlock Text="列过道（点击选择相邻桌列之间插入过道）：" Classes="caption"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                 <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
                   <ItemsControl.ItemsPanel>
@@ -458,7 +458,7 @@
               <StackPanel Spacing="4">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="门" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                  <Button Command="{Binding AddDoorCommand}" Padding="8,2" FontSize="12"
+                  <Button Command="{Binding AddDoorCommand}" Padding="8,2" Classes="caption"
                           ToolTip.Tip="添加一扇门到预览中">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
@@ -473,16 +473,16 @@
                               BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
                         <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Center"
                               RowSpacing="6" ColumnSpacing="12">
-                          <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Label}" FontSize="12"
+                          <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Label}" Classes="caption"
                                      VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Left"/>
                           <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
                             <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
-                                           Minimum="0" Maximum="2000" FontSize="12"
+                                           Minimum="0" Maximum="2000" Classes="caption"
                                            ToolTip.Tip="门的水平位置（像素）"/>
                             <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
                             <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
-                                           Minimum="0" Maximum="2000" FontSize="12"
+                                           Minimum="0" Maximum="2000" Classes="caption"
                                            ToolTip.Tip="门的垂直位置（像素）"/>
                           </StackPanel>
                           <Button Grid.Row="0" Grid.Column="3" Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"

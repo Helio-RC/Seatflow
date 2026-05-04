@@ -34,7 +34,7 @@
       <fic:FluentIcon x:Name="DialogIcon" DockPanel.Dock="Left"
                       FontSize="28" Margin="0,0,16,0" VerticalAlignment="Top" />
       <StackPanel Spacing="4">
-        <TextBlock x:Name="TitleBlock" FontSize="16" FontWeight="SemiBold"
+        <TextBlock x:Name="TitleBlock" Classes="sectionTitle"
                    TextWrapping="Wrap" />
         <TextBlock x:Name="MessageBlock" FontSize="14"
                    TextWrapping="Wrap"

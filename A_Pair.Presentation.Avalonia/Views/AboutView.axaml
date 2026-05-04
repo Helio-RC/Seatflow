@@ -13,7 +13,7 @@
   <DockPanel Margin="16">
     <!-- 顶部标题 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
-      <TextBlock Text="关于" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+      <TextBlock Text="关于" Classes="pageTitle" VerticalAlignment="Center" />
     </Border>
 
     <!-- 中间内容 -->
@@ -88,7 +88,7 @@
 
         <!-- 底部信息 -->
         <StackPanel Spacing="6" HorizontalAlignment="Center" Margin="0,0,0,24">
-          <TextBlock HorizontalAlignment="Center" FontSize="12"
+          <TextBlock HorizontalAlignment="Center" Classes="caption"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
             <TextBlock.Text>
               <Binding Path="ProjectUrl" />
