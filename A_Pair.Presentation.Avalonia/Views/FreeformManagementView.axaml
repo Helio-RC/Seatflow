@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
@@ -51,17 +51,23 @@
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding Points.Count, StringFormat='共 {0} 个点'}"
+        <TextBlock DockPanel.Dock="Right" Text="{Binding Points.Count, StringFormat='共 {0} 个元素'}"
                    FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         <TextBlock Text="{Binding StatusMessage}" FontSize="12"
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
       </DockPanel>
     </Border>
 
-    <Grid ColumnDefinitions="240,4,*">
+    <Grid x:Name="SidebarGrid" ColumnDefinitions="240,4,*">
       <!-- 左侧：已保存的布局 -->
-      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
+      <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
+              ClipToBounds="True"
               Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+        <Border.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+          </Transitions>
+        </Border.Transitions>
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="已保存布局"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
@@ -82,6 +88,16 @@
                           HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
                 <TextBlock Text="删除" FontSize="13" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding ToggleSidebarCommand}"
+                    HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
+              <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12"
+                                IsVisible="{Binding IsSidebarExpanded}"/>
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12"
+                                IsVisible="{Binding IsSidebarCollapsed}"/>
+                <TextBlock Text="侧栏" FontSize="12" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -150,14 +166,14 @@
                   <TextBlock Text="清空" FontSize="12"/>
                 </StackPanel>
               </Button>
-              <TextBlock Text="{Binding Points.Count, StringFormat='共 {0} 个点'}"
+              <TextBlock Text="{Binding Points.Count, StringFormat='共 {0} 个元素'}"
                          FontSize="12" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
             </StackPanel>
           </Border>
 
           <!-- 坐标列表 + 预览 -->
-          <Grid ColumnDefinitions="*,300" RowDefinitions="*">
+          <Grid ColumnDefinitions="*,320" RowDefinitions="*">
             <!-- 坐标表格 -->
             <ScrollViewer Grid.Column="0">
               <ListBox ItemsSource="{Binding Points}">
@@ -165,26 +181,49 @@
                   <DataTemplate x:DataType="vm:FreeformPoint">
                     <Border Padding="6,3" BorderThickness="0,0,0,1"
                             BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*"
-                            ColumnSpacing="8">
-                        <TextBlock Grid.Column="0" Text="X:" FontSize="13"
-                                   VerticalAlignment="Center" Width="16"/>
-                        <NumericUpDown Grid.Column="1" Value="{Binding X, Mode=TwoWay}"
-                                       Minimum="0" Maximum="5000" Width="80" FontSize="13"
-                                       PlaceholderText="X px"
-                                       ToolTip.Tip="X 坐标（像素），0-5000"/>
-                        <TextBlock Grid.Column="2" Text="Y:" FontSize="13"
-                                   VerticalAlignment="Center" Width="16"/>
-                        <NumericUpDown Grid.Column="3" Value="{Binding Y, Mode=TwoWay}"
-                                       Minimum="0" Maximum="5000" Width="80" FontSize="13"
-                                       PlaceholderText="Y px"
-                                       ToolTip.Tip="Y 坐标（像素），0-5000"/>
-                        <Button Grid.Column="4"
+                      <Grid ColumnDefinitions="60,60,60,50,40,40,Auto"
+                            ColumnSpacing="4" RowDefinitions="Auto,Auto"
+                            RowSpacing="2">
+                        <!-- 第一行：X, Y, 类型 -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding X, Mode=TwoWay}"
+                                       Minimum="0" Maximum="5000" Width="56" FontSize="12"
+                                       ToolTip.Tip="X 坐标（像素）"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Y:" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding Y, Mode=TwoWay}"
+                                       Minimum="0" Maximum="5000" Width="56" FontSize="12"
+                                       ToolTip.Tip="Y 坐标（像素）"/>
+                        <ComboBox Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2"
+                                  SelectedIndex="{ReflectionBinding ElementType}"
+                                  FontSize="11" Padding="0,2" ToolTip.Tip="元素类型">
+                          <ComboBoxItem Content="座位"/>
+                          <ComboBoxItem Content="讲台"/>
+                          <ComboBoxItem Content="门"/>
+                        </ComboBox>
+                        <!-- 第二行：行, 列, 组 -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="行:" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Row, Mode=TwoWay}"
+                                       Minimum="0" Maximum="100" Width="56" FontSize="12"
+                                       ToolTip.Tip="行号（可选，用于前排策略）"/>
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="列:" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding Column, Mode=TwoWay}"
+                                       Minimum="0" Maximum="100" Width="56" FontSize="12"
+                                       ToolTip.Tip="列号（可选）"/>
+                        <TextBlock Grid.Row="1" Grid.Column="4" Text="组:" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="5" Value="{Binding GroupId, Mode=TwoWay}"
+                                       Minimum="0" Maximum="7" Width="40" FontSize="12"
+                                       ToolTip.Tip="同桌组号（0-7），同组同色"/>
+                        <Button Grid.Row="1" Grid.Column="6"
                                 Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
                                 CommandParameter="{Binding}"
                                 HorizontalContentAlignment="Center"
-                                Padding="4" FontSize="12" Margin="8,0,0,0">
-                          <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
+                                Padding="2" FontSize="11">
+                          <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="12"/>
                         </Button>
                       </Grid>
                     </Border>
@@ -196,12 +235,12 @@
             <!-- 预览画布 -->
             <Border Grid.Column="1" Margin="8,0,0,0"
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    CornerRadius="4" Padding="8">
+                    CornerRadius="4" Padding="4">
               <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding Points}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <Canvas Width="400" Height="400"/>
+                      <Canvas Width="800" Height="600"/>
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.Styles>
@@ -212,12 +251,32 @@
                   </ItemsControl.Styles>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:FreeformPoint">
-                      <Border Width="8" Height="8" CornerRadius="4"
-                              ToolTip.Tip="{Binding Id}">
-                        <Border.Background>
-                          <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
-                        </Border.Background>
-                      </Border>
+                      <Panel>
+                        <!-- 座位：彩色圆点 -->
+                        <Border Width="12" Height="12"
+                                CornerRadius="6" Opacity="0.85"
+                                IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
+                                    ConverterParameter=0}"
+                                ToolTip.Tip="{Binding Id}">
+                          <Border.Background>
+                            <SolidColorBrush Color="{ReflectionBinding GroupColor}"/>
+                          </Border.Background>
+                        </Border>
+                        <!-- 讲台：大圆点 -->
+                        <Border Width="40" Height="40"
+                                CornerRadius="20" Opacity="0.6"
+                                IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
+                                    ConverterParameter=1}"
+                                Background="#4080D0E0"
+                                ToolTip.Tip="讲台"/>
+                        <!-- 门：矩形 -->
+                        <Border Width="36" Height="24"
+                                CornerRadius="4" Opacity="0.7"
+                                IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
+                                    ConverterParameter=2}"
+                                Background="#800072C6"
+                                ToolTip.Tip="门"/>
+                      </Panel>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -19,6 +20,35 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private readonly IFileService _fileService;
 
     public string Title { get; } = "自由点管理";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
+    private bool _isSidebarExpanded = true;
+
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
+
+    [ObservableProperty]
+    private double _sidebarListWidth = 240;
+
+    private bool _userWantsSidebarExpanded = true;
+
+    public void OnWindowWidthChanged (double windowWidth)
+    {
+        if (windowWidth < 750)
+            IsSidebarExpanded = false;
+        else
+            IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
+    partial void OnIsSidebarExpandedChanged (bool value)
+        => SidebarListWidth = value ? 240 : 64;
+
+    [RelayCommand]
+    private void ToggleSidebar ()
+    {
+        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
+        IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
 
     [ObservableProperty]
     private ObservableCollection<VenueItem> _savedLayouts = [];
@@ -42,6 +72,12 @@ public partial class FreeformManagementViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _statusMessage = "就绪，请导入自由点数据或选择已有布局";
+
+    private static readonly string[] GroupColors =
+        ["#4A90D9", "#E74C3C", "#2ECC71", "#F39C12", "#9B59B6", "#1ABC9C", "#E67E22", "#3498DB"];
+
+    public static string GetGroupColor (int? groupId)
+        => groupId is >= 0 and < 8 ? GroupColors[groupId.Value] : "#4A90D9";
 
     public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)
     {
@@ -77,12 +113,43 @@ public partial class FreeformManagementViewModel : ViewModelBase
             if (layout == null) return;
 
             LayoutName = layout.Name;
-            var pts = layout.Seats.OfType<FreeformSeat>()
-                .Select(s => new FreeformPoint(s.X , s.Y , s.Id))
-                .ToList();
+            var pts = new List<FreeformPoint>();
+
+            // 加载座位
+            foreach (var s in layout.Seats.OfType<FreeformSeat>())
+            {
+                int? groupId = null;
+                if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
+                    && int.TryParse(s.LogicalGroup[1..], out var gid))
+                {
+                    groupId = gid;
+                }
+                pts.Add(new FreeformPoint(s.X , s.Y , s.Id)
+                {
+                    ElementType = (int)FreeformElementType.Seat ,
+                    GroupId = groupId ,
+                    Row = s.Row ,
+                    Column = s.Column
+                });
+            }
+
+            // 加载障碍物（讲台/门）
+            foreach (var obs in layout.Obstacles)
+            {
+                var et = obs.Type == "Podium" ? (int)FreeformElementType.Podium
+                       : obs.Type == "Door" ? (int)FreeformElementType.Door
+                       : (int)FreeformElementType.Door;
+                pts.Add(new FreeformPoint(obs.X , obs.Y)
+                {
+                    ElementType = et ,
+                    Width = obs.Width ,
+                    Height = obs.Height
+                });
+            }
+
             Points = new ObservableCollection<FreeformPoint>(pts);
             IsEmpty = Points.Count == 0;
-            StatusMessage = $"已加载布局「{layout.Name}」，共 {pts.Count} 个座位";
+            StatusMessage = $"已加载布局「{layout.Name}」，共 {pts.Count} 个元素";
         });
     }
 
@@ -99,13 +166,15 @@ public partial class FreeformManagementViewModel : ViewModelBase
         {
             await using var stream = await file.OpenWriteAsync();
             using var writer = new StreamWriter(stream);
-            await writer.WriteLineAsync("X,Y");
-            await writer.WriteLineAsync("100,100");
-            await writer.WriteLineAsync("200,100");
-            await writer.WriteLineAsync("300,100");
-            await writer.WriteLineAsync("100,200");
-            await writer.WriteLineAsync("200,200");
-            await writer.WriteLineAsync("300,200");
+            await writer.WriteLineAsync("X,Y,Type,GroupId,Row,Column");
+            await writer.WriteLineAsync("100,100,Seat,1,1,1");
+            await writer.WriteLineAsync("200,100,Seat,1,1,2");
+            await writer.WriteLineAsync("300,100,Seat,2,2,1");
+            await writer.WriteLineAsync("100,200,Seat,2,2,2");
+            await writer.WriteLineAsync("200,200,Seat,3,3,1");
+            await writer.WriteLineAsync("300,200,Seat,3,3,2");
+            await writer.WriteLineAsync("200,50,Podium,,,");
+            await writer.WriteLineAsync("400,150,Door,,,");
             StatusMessage = "模板已保存";
         } , "保存模板失败");
     }
@@ -127,19 +196,34 @@ public partial class FreeformManagementViewModel : ViewModelBase
             while (await reader.ReadLineAsync() is { } line)
             {
                 lineNum++;
-                if (lineNum == 1) continue; // skip header
+                if (lineNum == 1) continue;
                 var parts = line.Split(',');
                 if (parts.Length >= 2 &&
                     double.TryParse(parts[0].Trim() , NumberStyles.Any , CultureInfo.InvariantCulture , out var x) &&
                     double.TryParse(parts[1].Trim() , NumberStyles.Any , CultureInfo.InvariantCulture , out var y))
                 {
-                    pts.Add(new FreeformPoint(x , y));
+                    var pt = new FreeformPoint(x , y);
+                    // 解析可选列：Type,GroupId,Row,Column
+                    if (parts.Length >= 3)
+                        pt.ElementType = parts[2].Trim() switch
+                        {
+                            "Podium" => (int)FreeformElementType.Podium ,
+                            "Door" => (int)FreeformElementType.Door ,
+                            _ => (int)FreeformElementType.Seat
+                        };
+                    if (parts.Length >= 4 && int.TryParse(parts[3].Trim() , out var gid))
+                        pt.GroupId = gid;
+                    if (parts.Length >= 5 && int.TryParse(parts[4].Trim() , out var row))
+                        pt.Row = row;
+                    if (parts.Length >= 6 && int.TryParse(parts[5].Trim() , out var col))
+                        pt.Column = col;
+                    pts.Add(pt);
                 }
             }
             Points = new ObservableCollection<FreeformPoint>(pts);
             IsEmpty = Points.Count == 0;
             LayoutName = file.Name.Replace(".csv" , "");
-            StatusMessage = $"已导入 {pts.Count} 个坐标点";
+            StatusMessage = $"已导入 {pts.Count} 个点";
         } , "导入 CSV 失败");
     }
 
@@ -157,13 +241,37 @@ public partial class FreeformManagementViewModel : ViewModelBase
             var layout = await System.Text.Json.JsonSerializer.DeserializeAsync<ClassroomLayoutDefinition>(stream);
             if (layout == null) return;
 
-            var pts = layout.Seats.OfType<FreeformSeat>()
-                .Select(s => new FreeformPoint(s.X , s.Y , s.Id))
-                .ToList();
+            var pts = new List<FreeformPoint>();
+            foreach (var s in layout.Seats.OfType<FreeformSeat>())
+            {
+                int? groupId = null;
+                if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
+                    && int.TryParse(s.LogicalGroup[1..], out var gid))
+                    groupId = gid;
+                pts.Add(new FreeformPoint(s.X , s.Y , s.Id)
+                {
+                    ElementType = (int)FreeformElementType.Seat ,
+                    GroupId = groupId ,
+                    Row = s.Row ,
+                    Column = s.Column
+                });
+            }
+            foreach (var obs in layout.Obstacles)
+            {
+                var et = obs.Type == "Podium" ? (int)FreeformElementType.Podium
+                       : (int)FreeformElementType.Door;
+                pts.Add(new FreeformPoint(obs.X , obs.Y)
+                {
+                    ElementType = et ,
+                    Width = obs.Width ,
+                    Height = obs.Height
+                });
+            }
+
             Points = new ObservableCollection<FreeformPoint>(pts);
             IsEmpty = Points.Count == 0;
             LayoutName = layout.Name;
-            StatusMessage = $"已导入 {pts.Count} 个坐标点";
+            StatusMessage = $"已导入 {pts.Count} 个元素";
         } , "导入 JSON 失败");
     }
 
@@ -187,19 +295,28 @@ public partial class FreeformManagementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var id = SelectedLayout?.Id ?? Guid.NewGuid().ToString("N")[..8];
-            var layout = new ClassroomLayoutDefinition
-            {
-                Id = id ,
-                Name = LayoutName ,
-                LayoutType = LayoutType.Freeform ,
-                Metadata = new FreeformLayoutMetadata()
-            };
-            foreach (var pt in Points)
-                layout.Seats.Add(new FreeformSeat { Id = pt.Id , X = pt.X , Y = pt.Y });
+
+            var seatPoints = Points
+                .Where(p => p.ElementType == (int)FreeformElementType.Seat)
+                .Select(p => (p.X , p.Y , p.Row , p.Column , p.GroupId))
+                .ToList();
+
+            var obstaclePoints = Points
+                .Where(p => (p.ElementType == (int)FreeformElementType.Podium) || p.ElementType == (int)FreeformElementType.Door)
+                .Select(p => (p.X , p.Y , p.Width > 0 ? p.Width : 60 , p.Height > 0 ? p.Height : 40 ,
+                    p.ElementType == (int)FreeformElementType.Podium ? "Podium" : "Door"))
+                .ToList();
+
+            var layout = FreeformLayoutBuilder.BuildFreeform(
+                seatPoints ,
+                obstaclePoints.Count > 0 ? obstaclePoints : null);
+            layout.Id = id;
+            layout.Name = LayoutName;
 
             await _facade.SaveVenueAsync(id , layout);
             await LoadSavedLayouts();
-            StatusMessage = $"布局「{LayoutName}」已保存，共 {Points.Count} 个座位";
+            SelectedLayout = SavedLayouts.FirstOrDefault(v => v.Id == id);
+            StatusMessage = $"布局「{LayoutName}」已保存，共 {Points.Count} 个元素";
         } , "保存布局失败");
     }
 
@@ -264,14 +381,24 @@ public partial class FreeformManagementViewModel : ViewModelBase
             if (p.Y < 0)
                 errors.Add($"第 {n} 行：Y 坐标为负值 ({p.Y:F1})，请确认坐标是否正确");
 
-            var key = (p.X , p.Y);
-            if (seen.Contains(key))
-                errors.Add($"第 {n} 行：坐标 ({p.X:F1}, {p.Y:F1}) 与前面的点重复");
-            seen.Add(key);
+            if (p.ElementType == (int)FreeformElementType.Seat)
+            {
+                var key = (p.X , p.Y);
+                if (seen.Contains(key))
+                    errors.Add($"第 {n} 行：坐标 ({p.X:F1}, {p.Y:F1}) 与前面的点重复");
+                seen.Add(key);
+            }
         }
 
         return errors;
     }
+}
+
+public enum FreeformElementType
+{
+    Seat ,
+    Podium ,
+    Door
 }
 
 public class FreeformPoint
@@ -280,6 +407,16 @@ public class FreeformPoint
     public double Y { get; set; }
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
+    /// <summary>元素类型: 0=座位, 1=讲台, 2=门</summary>
+    public int ElementType { get; set; }
+
+    public int? GroupId { get; set; }
+    public int? Row { get; set; }
+    public int? Column { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public string GroupColor { get; set; } = "#4A90D9";
+
     public FreeformPoint () { }
 
     public FreeformPoint (double x , double y , string? id = null)
@@ -287,5 +424,6 @@ public class FreeformPoint
         X = x;
         Y = y;
         Id = id ?? Guid.NewGuid().ToString();
+        GroupColor = FreeformManagementViewModel.GetGroupColor(null);
     }
 }

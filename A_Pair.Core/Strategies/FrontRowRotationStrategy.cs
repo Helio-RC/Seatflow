@@ -65,6 +65,14 @@ namespace A_Pair.Core.Strategies
                 frontRowSeats.AddRange(polarSeats.Where(s => s.Ring >= frontRingMin));
             }
 
+            var freeformSeats = emptySeats.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();
+            if (freeformSeats.Count > 0)
+            {
+                int frontRowMin = freeformSeats.Min(s => s.Row!.Value);
+                int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
+                frontRowSeats.AddRange(freeformSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax));
+            }
+
             if (frontRowSeats.Count == 0)
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
 

@@ -301,6 +301,13 @@ namespace A_Pair.Core.Strategies
 
             if (a is FreeformSeat fa && b is FreeformSeat fb)
             {
+                // 优先：LogicalGroup 判定（由布局构建器设置，反映分组划分）
+                bool hasGroups = !string.IsNullOrEmpty(fa.LogicalGroup)
+                              && !string.IsNullOrEmpty(fb.LogicalGroup);
+                if (hasGroups)
+                    return fa.LogicalGroup == fb.LogicalGroup;
+
+                // 回退：欧几里得距离判定
                 double dx = fa.X - fb.X;
                 double dy = fa.Y - fb.Y;
                 double distance = Math.Sqrt(dx * dx + dy * dy);
