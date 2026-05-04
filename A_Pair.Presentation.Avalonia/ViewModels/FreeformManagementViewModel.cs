@@ -41,6 +41,12 @@ public partial class FreeformManagementViewModel : ViewModelBase
     public bool HasSelectedLayout => SelectedLayout != null;
     public bool HasPoints => !IsEmpty;
 
+    partial void OnSelectedLayoutChanged (VenueItem? value)
+    {
+        if (value != null)
+            _ = SelectLayout(value);
+    }
+
     [ObservableProperty]
     private string _statusMessage = "就绪，请导入自由点数据或选择已有布局";
 

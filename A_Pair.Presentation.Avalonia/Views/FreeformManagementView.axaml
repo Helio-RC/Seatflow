@@ -163,53 +163,42 @@
               <ListBox ItemsSource="{Binding Points}">
                 <ListBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:FreeformPoint">
-                    <Border Padding="6,3" BorderThickness="0,0,0,1"
+                    <Border Padding="4,2" BorderThickness="0,0,0,1"
                             BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                      <Grid ColumnDefinitions="60,60,60,50,40,40,Auto"
-                            ColumnSpacing="4" RowDefinitions="Auto,Auto"
-                            RowSpacing="2">
-                        <!-- 第一行：X, Y, 类型 -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" FontSize="11"
-                                   VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding X, Mode=TwoWay}"
-                                       Minimum="0" Maximum="5000" Width="56" FontSize="12"
+                      <WrapPanel HorizontalAlignment="Stretch">
+                        <TextBlock Text="X:" FontSize="11" VerticalAlignment="Center" Margin="0,0,2,0"/>
+                        <NumericUpDown Value="{Binding X, Mode=TwoWay}"
+                                       Minimum="0" Maximum="5000" Width="56" FontSize="11"
                                        ToolTip.Tip="X 坐标（像素）"/>
-                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Y:" FontSize="11"
-                                   VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding Y, Mode=TwoWay}"
-                                       Minimum="0" Maximum="5000" Width="56" FontSize="12"
+                        <TextBlock Text=" Y:" FontSize="11" VerticalAlignment="Center" Margin="4,0,2,0"/>
+                        <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
+                                       Minimum="0" Maximum="5000" Width="56" FontSize="11"
                                        ToolTip.Tip="Y 坐标（像素）"/>
-                        <ComboBox Grid.Row="0" Grid.Column="4" Grid.ColumnSpan="2"
-                                  SelectedIndex="{ReflectionBinding ElementType}"
-                                  FontSize="11" Padding="0,2" ToolTip.Tip="元素类型">
+                        <ComboBox SelectedIndex="{ReflectionBinding ElementType}"
+                                  FontSize="11" Width="56" Margin="4,0,0,0"
+                                  ToolTip.Tip="元素类型">
                           <ComboBoxItem Content="座位"/>
                           <ComboBoxItem Content="讲台"/>
                           <ComboBoxItem Content="门"/>
                         </ComboBox>
-                        <!-- 第二行：行, 列, 组 -->
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="行:" FontSize="11"
-                                   VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Row, Mode=TwoWay}"
-                                       Minimum="0" Maximum="100" Width="56" FontSize="12"
-                                       ToolTip.Tip="行号（可选，用于前排策略）"/>
-                        <TextBlock Grid.Row="1" Grid.Column="2" Text="列:" FontSize="11"
-                                   VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding Column, Mode=TwoWay}"
-                                       Minimum="0" Maximum="100" Width="56" FontSize="12"
-                                       ToolTip.Tip="列号（可选）"/>
-                        <TextBlock Grid.Row="1" Grid.Column="4" Text="组:" FontSize="11"
-                                   VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="1" Grid.Column="5" Value="{Binding GroupId, Mode=TwoWay}"
-                                       Minimum="0" Maximum="7" Width="40" FontSize="12"
-                                       ToolTip.Tip="同桌组号（0-7），同组同色"/>
-                        <Button Grid.Row="1" Grid.Column="6"
-                                Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
+                        <TextBlock Text=" 行:" FontSize="11" VerticalAlignment="Center" Margin="4,0,2,0"/>
+                        <NumericUpDown Value="{Binding Row, Mode=TwoWay}"
+                                       Minimum="0" Maximum="100" Width="40" FontSize="11"
+                                       ToolTip.Tip="行号"/>
+                        <TextBlock Text=" 列:" FontSize="11" VerticalAlignment="Center" Margin="2,0,2,0"/>
+                        <NumericUpDown Value="{Binding Column, Mode=TwoWay}"
+                                       Minimum="0" Maximum="100" Width="40" FontSize="11"
+                                       ToolTip.Tip="列号"/>
+                        <TextBlock Text=" 组:" FontSize="11" VerticalAlignment="Center" Margin="2,0,2,0"/>
+                        <NumericUpDown Value="{Binding GroupId, Mode=TwoWay}"
+                                       Minimum="0" Maximum="7" Width="36" FontSize="11"
+                                       ToolTip.Tip="同桌组号（0-7）"/>
+                        <Button Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
                                 CommandParameter="{Binding}"
-                                HorizontalContentAlignment="Center"
-                                Padding="2" FontSize="11">
+                                Padding="2" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center">
                           <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="12"/>
                         </Button>
-                      </Grid>
+                      </WrapPanel>
                     </Border>
                   </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -236,16 +225,13 @@
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:FreeformPoint">
                       <Panel>
-                        <!-- 座位：彩色圆点 -->
+                        <!-- 座位：圆点 -->
                         <Border Width="12" Height="12"
                                 CornerRadius="6" Opacity="0.85"
                                 IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
                                     ConverterParameter=0}"
-                                ToolTip.Tip="{Binding Id}">
-                          <Border.Background>
-                            <SolidColorBrush Color="{ReflectionBinding GroupColor}"/>
-                          </Border.Background>
-                        </Border>
+                                Background="{DynamicResource SystemAccentColor}"
+                                ToolTip.Tip="{Binding Id}"/>
                         <!-- 讲台：大圆点 -->
                         <Border Width="40" Height="40"
                                 CornerRadius="20" Opacity="0.6"
