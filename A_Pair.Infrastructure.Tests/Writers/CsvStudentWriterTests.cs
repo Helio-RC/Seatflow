@@ -1,4 +1,4 @@
-﻿using A_Pair.Core.Enums;
+using A_Pair.Core.Enums;
 
 namespace A_Pair.Infrastructure.Tests.Writers;
 
@@ -9,8 +9,8 @@ public class CsvStudentWriterTests
     {
         var students = new List<Student>
         {
-            new() { Id = "1", Name = "Alice", Height = 165, Gender = Gender.Female },
-            new() { Id = "2", Name = "Bob", Height = 180, Gender = Gender.Male }
+            new() { Name = "Alice", Height = 165, Gender = Gender.Female, NeedsFrontRow = true },
+            new() { Name = "Bob", Height = 180, Gender = Gender.Male, NeedsFrontRow = false }
         };
         var path = Path.GetTempFileName() + ".csv";
 
@@ -19,11 +19,11 @@ public class CsvStudentWriterTests
             var writer = new CsvStudentWriter();
             await writer.WriteAsync(path , students , CancellationToken.None);
 
-            // 读取回来验证
             var provider = new CsvStudentProvider();
             var loaded = await provider.LoadAsync(path , CancellationToken.None);
             loaded.Should().HaveCount(2);
             loaded.First().Name.Should().Be("Alice");
+            loaded.First().Gender.Should().Be(Gender.Female);
         }
         finally
         {

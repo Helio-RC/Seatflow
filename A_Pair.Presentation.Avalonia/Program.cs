@@ -1,9 +1,9 @@
 using System;
-using Avalonia;
 using A_Pair.Application.Services;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
+using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace A_Pair.Presentation.Avalonia
@@ -11,32 +11,36 @@ namespace A_Pair.Presentation.Avalonia
     internal sealed class Program
     {
         [STAThread]
-        public static void Main(string[] args)
+        public static void Main (string[] args)
         {
             var services = new ServiceCollection();
-            services.AddA_PairApplication("AppData", "Plugins");
+            services.AddA_PairApplication("AppData" , "Plugins");
 
             // 注册导航服务
-            services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<INavigationService , NavigationService>();
+            services.AddSingleton<IFileService , FileService>();
+            services.AddSingleton<IDialogService , DialogService>();
 
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainShellViewModel>();
-            services.AddTransient<DataManagementViewModel>();
-            services.AddTransient<VenueConfigurationViewModel>();
-            services.AddTransient<StrategyConfigurationViewModel>();
-            services.AddTransient<SeatingArrangementViewModel>();
-            services.AddTransient<SnapshotHistoryViewModel>();
-            services.AddTransient<PluginManagementViewModel>();
-            services.AddTransient<SettingsViewModel>();
-            services.AddTransient<AboutViewModel>();
+            services.AddSingleton<HomeViewModel>();
+            services.AddSingleton<DataManagementViewModel>();
+            services.AddSingleton<VenueConfigurationViewModel>();
+            services.AddSingleton<FreeformManagementViewModel>();
+            services.AddSingleton<StrategyConfigurationViewModel>();
+            services.AddSingleton<SeatingArrangementViewModel>();
+            services.AddSingleton<SnapshotHistoryViewModel>();
+            services.AddSingleton<PluginManagementViewModel>();
+            services.AddSingleton<SettingsViewModel>();
+            services.AddSingleton<AboutViewModel>();
 
             var serviceProvider = services.BuildServiceProvider();
             BuildAvaloniaApp(serviceProvider)
                 .StartWithClassicDesktopLifetime(args);
         }
 
-        public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider)
+        public static AppBuilder BuildAvaloniaApp (IServiceProvider serviceProvider)
             => AppBuilder.Configure(() => new App(serviceProvider))
                 .UsePlatformDetect()
 #if DEBUG

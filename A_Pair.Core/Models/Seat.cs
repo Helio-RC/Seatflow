@@ -70,6 +70,9 @@ namespace A_Pair.Core.Models
     /// </summary>
     public class PolarSeat : Seat
     {
+        /// <summary>环号（1-based，1=最内环），用于前排识别等策略。</summary>
+        public int Ring { get; set; }
+
         /// <summary>半径距离（从原点起算）。</summary>
         public double Radius { get; set; }
 

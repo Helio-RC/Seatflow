@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/解决方案项/">
-    <File Path="项目目标.md" />
-    <File Path="项目阶段.md" />
+    <File Path="Goal.md" />
+    <File Path="Phases.md" />
   </Folder>
   <Project Path="A_Pair.Application.Tests/A_Pair.Application.Tests.csproj" />
   <Project Path="A_Pair.Application/A_Pair.Application.csproj" />

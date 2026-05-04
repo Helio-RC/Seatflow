@@ -4,7 +4,7 @@ namespace A_Pair.Presentation.Avalonia.Views
 {
     public partial class SettingsView : UserControl
     {
-        public SettingsView()
+        public SettingsView ()
         {
             InitializeComponent();
         }

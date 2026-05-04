@@ -18,7 +18,7 @@ public class JsonStudentWriterTests
             var writer = new JsonStudentWriter();
             await writer.WriteAsync(path , students , CancellationToken.None);
 
-            var json = await File.ReadAllTextAsync(path);
+            var json = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
             // camelCase 命名策略，验证包含 "name": "Alice"
             json.Should().Contain("\"name\": \"Alice\"");
             var roster = JsonSerializer.Deserialize<RosterFile>(json , new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

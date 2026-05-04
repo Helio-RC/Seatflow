@@ -4,32 +4,56 @@ namespace A_Pair.Infrastructure.Layouts
 {
     /// <summary>
     /// 网格布局构建器，创建基于行和列的矩形座位排列。
+    /// 支持桌面分组、空位跳过、过道配置。
     /// </summary>
-    /// <remarks>
-    /// 生成 <see cref="LayoutType.Grid"/> 类型的布局，每个座位使用 <see cref="GridSeat"/>
-    /// 表示，包含行号（Row）和列号（Column）属性。元数据记录总行数和总列数。
-    /// </remarks>
     public class GridLayoutBuilder
     {
         /// <summary>
-        /// 构建指定行数和列数的网格布局。
+        /// 构建指定行数和列数的传统均匀网格布局（向后兼容入口）。
         /// </summary>
-        /// <param name="rows">行数。</param>
-        /// <param name="columns">列数。</param>
-        /// <returns>包含所有网格座位的布局定义。</returns>
         public static ClassroomLayoutDefinition BuildGrid (int rows , int columns)
+        {
+            return BuildGrid(new GridLayoutMetadata
+            {
+                Rows = rows ,
+                Columns = columns ,
+                SeatsPerDesk = 1 ,
+                HorizontalSpacing = 1.0 ,
+                VerticalSpacing = 1.0
+            });
+        }
+
+        /// <summary>
+        /// 根据完整元数据构建网格布局。
+        /// 支持桌面分组、空位跳过、逻辑组标识。
+        /// </summary>
+        public static ClassroomLayoutDefinition BuildGrid (GridLayoutMetadata metadata)
         {
             var layout = new ClassroomLayoutDefinition
             {
                 LayoutType = LayoutType.Grid ,
-                Metadata = new GridLayoutMetadata { Rows = rows , Columns = columns }
+                Metadata = metadata
             };
 
-            for (int r = 1; r <= rows; r++)
+            var emptySet = new HashSet<(int Row , int Col)>(
+                (metadata.EmptyPositions ?? []).Select(p => (p.Row , p.Column)));
+
+            for (int r = 1; r <= metadata.Rows; r++)
             {
-                for (int c = 1; c <= columns; c++)
+                for (int c = 1; c <= metadata.Columns; c++)
                 {
+                    if (emptySet.Contains((r , c)))
+                        continue;
+
                     var seat = new GridSeat { Row = r , Column = c };
+
+                    // 桌面分组：同桌面座位共享 LogicalGroup
+                    if (metadata.SeatsPerDesk > 1)
+                    {
+                        int deskNumber = (c - 1) / metadata.SeatsPerDesk + 1;
+                        seat.LogicalGroup = $"Desk_R{r}_D{deskNumber}";
+                    }
+
                     layout.Seats.Add(seat);
                 }
             }

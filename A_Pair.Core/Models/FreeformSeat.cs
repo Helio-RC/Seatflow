@@ -12,6 +12,12 @@
         /// <summary>垂直坐标。</summary>
         public double Y { get; set; }
 
+        /// <summary>行号（可选，用于前排轮换策略）。</summary>
+        public int? Row { get; set; }
+
+        /// <summary>列号（可选，用于列分组）。</summary>
+        public int? Column { get; set; }
+
         /// <summary>座位类型：Freeform。</summary>
         public override SeatType Type => SeatType.Freeform;
 

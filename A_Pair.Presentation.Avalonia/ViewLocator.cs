@@ -24,7 +24,9 @@ namespace A_Pair.Presentation.Avalonia
 
             if (type != null)
             {
-                return (Control)Activator.CreateInstance(type)!;
+                var control = (Control)Activator.CreateInstance(type)!;
+                control.DataContext = param;
+                return control;
             }
 
             return new TextBlock { Text = "Not Found: " + name };

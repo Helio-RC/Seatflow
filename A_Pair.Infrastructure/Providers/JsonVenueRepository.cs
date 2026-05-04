@@ -56,6 +56,15 @@ namespace A_Pair.Infrastructure.Providers
         }
 
         /// <inheritdoc />
+        public Task DeleteAsync (string venueId , CancellationToken cancellationToken = default)
+        {
+            var filePath = GetFilePath(venueId);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
         public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
         {
             var files = Directory.GetFiles(_venuesFolder , "*.venue.json");

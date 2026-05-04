@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:fic="using:FluentIcons.Avalonia"
+             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             x:Class="A_Pair.Presentation.Avalonia.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+
+  <Design.DataContext>
+    <vm:HomeViewModel />
+  </Design.DataContext>
+
+  <DockPanel>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="72" Height="72"
+                      HorizontalAlignment="Center"
+                      Foreground="{DynamicResource SystemAccentColor}" />
+      <TextBlock Text="{Binding Greeting}" FontSize="28" FontWeight="Bold"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Subtitle}" FontSize="16"
+                 HorizontalAlignment="Center"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      <Separator Width="200" Margin="0,8" />
+      <TextBlock Text="点击左侧导航开始使用" FontSize="14"
+                 HorizontalAlignment="Center"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </StackPanel>
+  </DockPanel>
+</UserControl>

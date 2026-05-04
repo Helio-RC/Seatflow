@@ -1,9 +1,459 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:models="using:A_Pair.Core.Models"
+             xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+             xmlns:fic="using:FluentIcons.Avalonia"
+             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
              x:Class="A_Pair.Presentation.Avalonia.Views.DataManagementView"
              x:DataType="vm:DataManagementViewModel">
-    <TextBlock Text="{Binding Title}"
-               HorizontalAlignment="Center" VerticalAlignment="Center"
-               FontSize="18"/>
+
+  <Design.DataContext>
+    <vm:DataManagementViewModel />
+  </Design.DataContext>
+
+  <UserControl.Resources>
+    <conv:GenderIndexConverter x:Key="GenderConverter" />
+    <conv:HeightConverter x:Key="HeightConverter" />
+  </UserControl.Resources>
+
+  <DockPanel Margin="16">
+    <!-- 顶部工具栏 -->
+    <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Left" Text="数据管理" Classes="pageTitle"
+                   VerticalAlignment="Center" />
+
+        <!-- === 右侧操作按钮 === -->
+
+        <!-- 右侧操作按钮组 -->
+        <Panel DockPanel.Dock="Right"
+               Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
+               ClipToBounds="True">
+          <Panel.Transitions>
+            <Transitions>
+              <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+            </Transitions>
+          </Panel.Transitions>
+
+          <!-- 展开模式 -->
+          <StackPanel Orientation="Horizontal" Spacing="8"
+                      Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                      IsHitTestVisible="{Binding HasExpanded}">
+            <StackPanel.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+              </Transitions>
+            </StackPanel.Transitions>
+            <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center" >
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
+                <TextBlock Text="模板" FontSize="14" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
+                <TextBlock Text="导入" FontSize="14" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+                <TextBlock Text="保存" FontSize="14" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding RenameSaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+                <TextBlock Text="另存为" FontSize="14" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
+                <TextBlock Text="清除" FontSize="14" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <!-- 紧凑模式 -->
+          <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                  IsHitTestVisible="{Binding IsCompact}"
+                  HorizontalAlignment="Right"
+                  HorizontalContentAlignment="Center" Padding="8,4" FontSize="14">
+            <Button.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+              </Transitions>
+            </Button.Transitions>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.MoreHorizontal}" FontSize="16" />
+              <TextBlock Text="操作" FontSize="14" />
+            </StackPanel>
+            <Button.Flyout>
+              <Flyout>
+                <StackPanel Spacing="2" Width="90" HorizontalAlignment="Center">
+                  <StackPanel.Transitions>
+                    <Transitions>
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.1"
+                                        Easing="CubicEaseOut" />
+                    </Transitions>
+                  </StackPanel.Transitions>
+                  <Button Command="{Binding ExportTemplateCommand}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                      <TextBlock Text="模板" FontSize="14" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
+                      <TextBlock Text="导入" FontSize="14" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
+                      <TextBlock Text="保存" FontSize="14" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding RenameSaveCommand}" IsEnabled="{Binding HasData}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
+                      <TextBlock Text="另存为" FontSize="14" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
+                          HorizontalContentAlignment="Left"  HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
+                      <TextBlock Text="清除" FontSize="14" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </Panel>
+
+        <!-- === 导出按钮组 === -->
+        <Panel VerticalAlignment="Center" HorizontalAlignment="Left"
+               Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
+               ClipToBounds="True" Margin="16,0,0,0">
+          <Panel.Transitions>
+            <Transitions>
+              <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+            </Transitions>
+          </Panel.Transitions>
+
+          <!-- 展开模式 -->
+          <StackPanel Spacing="4" Orientation="Horizontal"
+                      Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                      IsHitTestVisible="{Binding HasExpanded}">
+            <StackPanel.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+              </Transitions>
+            </StackPanel.Transitions>
+            <TextBlock Text="导出:" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
+                    Padding="8,4" FontSize="12">CSV</Button>
+            <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
+                    Padding="8,4" FontSize="12">Excel</Button>
+            <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
+                    Padding="8,4" FontSize="12">JSON</Button>
+          </StackPanel>
+
+          <!-- 紧凑模式 -->
+          <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                  IsHitTestVisible="{Binding IsCompact}"
+                  Padding="8,4" FontSize="14">
+            <Button.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.1" />
+              </Transitions>
+            </Button.Transitions>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
+              <TextBlock Text="导出" FontSize="14" />
+            </StackPanel>
+            <Button.Flyout>
+              <Flyout>
+                <StackPanel Spacing="2" Width="100" HorizontalAlignment="Center">
+                  <StackPanel.Transitions>
+                    <Transitions>
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.1"
+                                        Easing="CubicEaseOut"  />
+                    </Transitions>
+                  </StackPanel.Transitions>
+                  <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <TextBlock Text="导出 CSV" FontSize="14" />
+                  </Button>
+                  <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <TextBlock Text="导出 Excel" FontSize="14" />
+                  </Button>
+                  <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <TextBlock Text="导出 JSON" FontSize="14" />
+                  </Button>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </Panel>
+      </DockPanel>
+    </Border>
+
+    <!-- 底部状态栏 -->
+    <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Right" Text="{Binding StudentCount, StringFormat='共 {0} 名学生'}"
+                   FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <TextBlock Text="{Binding StatusMessage}" Classes="caption"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      </DockPanel>
+    </Border>
+
+    <!-- 文件路径 -->
+    <Border DockPanel.Dock="Bottom" Padding="0,4,0,8"
+            IsVisible="{Binding HasData}">
+      <TextBlock Text="{Binding FilePath, StringFormat='数据源: {0}'}" FontSize="11"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </Border>
+
+    <!-- 中间内容区 -->
+    <Grid x:Name="SidebarGrid">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="240"/>
+        <ColumnDefinition Width="4"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <!-- 左侧：已保存数据集 -->
+      <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
+              ClipToBounds="True" HorizontalAlignment="Left"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+        <Border.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+          </Transitions>
+        </Border.Transitions>
+        <DockPanel Margin="8">
+          <TextBlock DockPanel.Dock="Top" Text="已保存数据集"
+                     FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+          <Border DockPanel.Dock="Bottom">
+            <Panel>
+              <!-- 展开状态 -->
+              <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                          IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
+                <StackPanel.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseInOut" />
+                  </Transitions>
+                </StackPanel.Transitions>
+
+                <Button Command="{Binding LoadSelectedDatasetCommand}"
+                        IsEnabled="{Binding HasSelectedDataset}"
+                        HorizontalContentAlignment="Stretch">
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              HorizontalAlignment="Center">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="20"/>
+                    <TextBlock Text="加载" FontSize="13" />
+                  </StackPanel>
+                </Button>
+                <Button Command="{Binding DeleteSelectedDatasetCommand}"
+                        IsEnabled="{Binding HasSelectedDataset}"
+                        HorizontalContentAlignment="Stretch">
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              HorizontalAlignment="Center">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="20"/>
+                    <TextBlock Text="删除" FontSize="13" />
+                  </StackPanel>
+                </Button>
+                <Button Command="{Binding RenameSelectedDatasetCommand}"
+                        IsEnabled="{Binding HasSelectedDataset}"
+                        HorizontalContentAlignment="Stretch">
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              HorizontalAlignment="Center">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Edit}" FontSize="20"/>
+                    <TextBlock Text="重命名" FontSize="13" />
+                  </StackPanel>
+                </Button>
+
+                <Button Command="{Binding ToggleSidebarCommand}"
+                        HorizontalContentAlignment="Stretch">
+                  <StackPanel Orientation="Horizontal" Spacing="6"
+                              HorizontalAlignment="Center">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20"/>
+                    <TextBlock Text="收起侧栏" FontSize="13" />
+                  </StackPanel>
+                </Button>
+              </StackPanel>
+
+              <!-- 折叠状态 -->
+              <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                          IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                <StackPanel.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseInOut"/>
+                  </Transitions>
+                </StackPanel.Transitions>
+
+                <Button Command="{Binding LoadSelectedDatasetCommand}"
+                        IsEnabled="{Binding HasSelectedDataset}"
+                        HorizontalContentAlignment="Stretch"
+                        ToolTip.Tip="加载">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="20"/>
+                </Button>
+                <Button Command="{Binding DeleteSelectedDatasetCommand}"
+                        IsEnabled="{Binding HasSelectedDataset}"
+                        HorizontalContentAlignment="Stretch"
+                        ToolTip.Tip="删除">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="20"/>
+                </Button>
+                <Button Command="{Binding RenameSelectedDatasetCommand}"
+                        IsEnabled="{Binding HasSelectedDataset}"
+                        HorizontalContentAlignment="Stretch"
+                        ToolTip.Tip="重命名">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Edit}" FontSize="20"/>
+                </Button>
+
+                <Button Command="{Binding ToggleSidebarCommand}"
+                        HorizontalContentAlignment="Stretch"
+                        ToolTip.Tip="展开侧栏">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20"/>
+                </Button>
+              </StackPanel>
+            </Panel>
+          </Border>
+
+          <ListBox ItemsSource="{Binding SavedDatasets}"
+                   SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
+                   BorderThickness="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="models:StudentDatasetInfo">
+                <Border Padding="8,6" CornerRadius="4">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" FontSize="13" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock FontSize="11"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                        <TextBlock.Text>
+                          <Binding Path="StudentCount" StringFormat="{}{0} 人" />
+                        </TextBlock.Text>
+                      </TextBlock>
+                      <TextBlock FontSize="11"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                        <TextBlock.Text>
+                          <Binding Path="CreatedAt" StringFormat="{}{0:yyyy-MM-dd}" />
+                        </TextBlock.Text>
+                      </TextBlock>
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- 分隔条 -->
+      <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
+                    HorizontalAlignment="Stretch" />
+
+      <!-- 右侧：数据表格 -->
+      <Grid Grid.Column="2">
+        <!-- 空状态提示 -->
+        <Border IsVisible="{Binding IsEmpty}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Padding="40" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8">
+          <StackPanel Spacing="8" HorizontalAlignment="Center">
+            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="48"
+                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            HorizontalAlignment="Center" />
+            <TextBlock Text="暂无数据" Classes="sectionTitle"
+                       HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <TextBlock Text="点击「导入」或从左侧加载已保存的数据集"
+                       FontSize="12" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+          </StackPanel>
+        </Border>
+
+        <!-- 数据表格 -->
+        <DockPanel IsVisible="{Binding HasData}">
+          <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                  Padding="12,8" CornerRadius="4,4,0,0">
+            <Grid ColumnDefinitions="2*,*,*,*">
+              <TextBlock Grid.Column="0" Text="姓名" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="1" Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="2" Text="性别" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="3" Text="需要前排" FontSize="14" FontWeight="SemiBold" />
+            </Grid>
+          </Border>
+
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ListBox ItemsSource="{Binding Students}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="models:Student">
+                  <Border Padding="6,3" BorderThickness="0,0,0,1"
+                          BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
+                    <Grid ColumnDefinitions="2*,*,*,*">
+                      <TextBox Grid.Column="0" Text="{Binding Name, Mode=TwoWay}"
+                               FontSize="14" VerticalAlignment="Center"
+                               BorderThickness="0" Background="Transparent"
+                               Padding="4,2"
+                               PlaceholderText="必填，姓名"
+                               ToolTip.Tip="必填。学生姓名，不能为空。" />
+                      <TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
+                               FontSize="14" VerticalAlignment="Center"
+                               BorderThickness="0" Background="Transparent"
+                               Padding="4,2"
+                               PlaceholderText="身高 cm"
+                               ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
+                      <ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
+                                FontSize="14" VerticalAlignment="Center"
+                                BorderThickness="0" Background="Transparent"
+                                Padding="0,2"
+                                ToolTip.Tip="性别：男、女 或 其他。留空表示未知。">
+                        <ComboBoxItem Content=""/>
+                        <ComboBoxItem Content="男"/>
+                        <ComboBoxItem Content="女"/>
+                        <ComboBoxItem Content="其他"/>
+                      </ComboBox>
+                      <CheckBox Grid.Column="3" IsChecked="{Binding NeedsFrontRow, Mode=TwoWay}"
+                                FontSize="14" VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                ToolTip.Tip="需要前排座位（如视力不佳等特殊应用）" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </ScrollViewer>
+        </DockPanel>
+
+        <!-- 加载中遮罩 -->
+        <Border IsVisible="{Binding IsLoading}" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+            <ProgressBar IsIndeterminate="True" Width="200" />
+            <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Grid>
+  </DockPanel>
 </UserControl>

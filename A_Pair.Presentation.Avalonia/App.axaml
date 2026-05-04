@@ -1,15 +1,42 @@
-<Application xmlns="https://github.com/avaloniaui"
+﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="A_Pair.Presentation.Avalonia.App"
              xmlns:local="using:A_Pair.Presentation.Avalonia"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+  <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
-    <Application.DataTemplates>
-        <local:ViewLocator/>
-    </Application.DataTemplates>
-  
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
+          <Color x:Key="PreviewSeatBorderColor">#80000000</Color>
+          <Color x:Key="PreviewPodiumFillColor">#4080D0E0</Color>
+          <Color x:Key="PreviewDoorFillColor">#800072C6</Color>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <Color x:Key="SidebarBackgroundColor">#252525</Color>
+          <Color x:Key="PreviewSeatBorderColor">#80FFFFFF</Color>
+          <Color x:Key="PreviewPodiumFillColor">#4060A0FF</Color>
+          <Color x:Key="PreviewDoorFillColor">#809080F0</Color>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+      <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{DynamicResource SidebarBackgroundColor}" />
+      <SolidColorBrush x:Key="PreviewSeatBorderBrush" Color="{DynamicResource PreviewSeatBorderColor}" />
+      <SolidColorBrush x:Key="PreviewPodiumFillBrush" Color="{DynamicResource PreviewPodiumFillColor}" />
+      <SolidColorBrush x:Key="PreviewDoorFillBrush" Color="{DynamicResource PreviewDoorFillColor}" />
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.DataTemplates>
+    <local:ViewLocator/>
+  </Application.DataTemplates>
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="/Styles/Typography.axaml" />
+    <StyleInclude Source="/Styles/Spacing.axaml" />
+    <Style Selector="Window">
+      <Setter Property="FontFamily" Value="Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
+    </Style>
+  </Application.Styles>
 </Application>

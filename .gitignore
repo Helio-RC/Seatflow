@@ -362,9 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-# Claude Code
-CLAUDE.md
-
 # Logs
 logs
 npm-debug.log*
@@ -384,7 +381,4 @@ dev-debug.log
 # OS specific
 .DS_Store
 
-# Task files
-tasks.json
-tasks/ 
 /.claude

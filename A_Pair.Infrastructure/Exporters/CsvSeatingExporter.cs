@@ -31,7 +31,7 @@ namespace A_Pair.Infrastructure.Exporters
                 StudentId = options.Anonymize ? "***" : kv.Value
             }).ToList();
 
-            await using var writer = new StreamWriter(path);
+            await using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
             await using var csv = new CsvWriter(writer , CultureInfo.InvariantCulture);
             await csv.WriteRecordsAsync(records , cancellationToken);
         }

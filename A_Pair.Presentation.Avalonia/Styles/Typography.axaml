@@ -1,0 +1,40 @@
+<Style xmlns="https://github.com/avaloniaui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 页面标题：20px Bold -->
+  <Style Selector="TextBlock.pageTitle">
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <!-- 区块标题：16px SemiBold -->
+  <Style Selector="TextBlock.sectionTitle">
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- 正文：14px Regular -->
+  <Style Selector="TextBlock.body">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 辅助文字：12px Regular -->
+  <Style Selector="TextBlock.caption">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 标签/徽标：11px Regular -->
+  <Style Selector="TextBlock.small">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 强调正文：14px SemiBold -->
+  <Style Selector="TextBlock.bodyStrong">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+</Style>

@@ -35,7 +35,8 @@ namespace A_Pair.Application.Services
         PluginManager pluginManager ,
         IPluginConfigurationService pluginConfigService ,
         IAppSettingsRepository appSettingsRepo ,
-        IVenueRepository venueRepo) : IApplicationFacade
+        IVenueRepository venueRepo ,
+        IStudentDatasetRepository datasetRepo) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
@@ -45,6 +46,7 @@ namespace A_Pair.Application.Services
         private readonly CommandHistory _history = new();
         private readonly IAppSettingsRepository _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
         private readonly IVenueRepository _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
+        private readonly IStudentDatasetRepository _datasetRepo = datasetRepo ?? throw new ArgumentNullException(nameof(datasetRepo));
         private SeatingWorkspace? _currentWorkspace;
 
         /// <inheritdoc />
@@ -70,6 +72,10 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
             => _venueRepo.ListVenueIdsAsync(cancellationToken);
+
+        /// <inheritdoc />
+        public Task DeleteVenueAsync (string venueId , CancellationToken cancellationToken = default)
+            => _venueRepo.DeleteAsync(venueId , cancellationToken);
 
         /// <inheritdoc />
         public async Task<List<Student>> LoadStudentsAsync (string source , CancellationToken cancellationToken = default)
@@ -151,6 +157,22 @@ namespace A_Pair.Application.Services
             // 6. 按请求过滤策略
             if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
                 strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
+
+            // 6b. 同步 FrontRowCount 到策略配置
+            if (!string.IsNullOrEmpty(request.LayoutId))
+            {
+                var venueLayout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
+                if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
+                {
+                    var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                    frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
+                }
+                else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
+                {
+                    var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                    frontRowStrategy?.SetFrontRowCount(polarMeta.FrontRowCount);
+                }
+            }
 
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
@@ -249,6 +271,22 @@ namespace A_Pair.Application.Services
             // 应用快照中的座位分配
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
         }
+
+        public async Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
+        {
+            var id = Guid.NewGuid().ToString("N");
+            await _datasetRepo.SaveAsync(id , name , students , originalFileName , ct);
+            return id;
+        }
+
+        public Task<List<Student>?> LoadStudentDatasetAsync (string id , CancellationToken ct = default)
+            => _datasetRepo.LoadAsync(id , ct);
+
+        public Task<IReadOnlyList<StudentDatasetInfo>> ListStudentDatasetsAsync (CancellationToken ct = default)
+            => _datasetRepo.ListAsync(ct);
+
+        public Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default)
+            => _datasetRepo.DeleteAsync(id , ct);
 
         #region Private Helpers
 

@@ -8,5 +8,6 @@ global using A_Pair.Core.Models;
 global using A_Pair.Core.Strategies;
 global using A_Pair.Core.Utilities;
 global using A_Pair.Core.Workspace;
+global using A_Pair.Infrastructure.Layouts;
 global using FluentAssertions;
 global using Xunit;

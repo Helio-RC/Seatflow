@@ -1,96 +1,266 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+        xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+        xmlns:fic="using:FluentIcons.Avalonia"
+        xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="A_Pair.Presentation.Avalonia.Views.MainWindow"
         x:DataType="vm:MainShellViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="A_Pair — 座位安排系统" Width="1200" Height="800"
-        MinWidth="550" MinHeight="600">
+        Title="A_Pair — 安排" Width="1200" Height="800"
+        MinWidth="550" MinHeight="600"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="32"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
-    <Design.DataContext>
-        <vm:MainShellViewModel/>
-    </Design.DataContext>
+  <Design.DataContext>
+    <vm:MainShellViewModel/>
+  </Design.DataContext>
 
-    <DockPanel>
-        <!-- 侧边栏：宽度根据 IsSidebarExpanded 动态变化 -->
-        <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="#F0F0F0">
-            <Grid>
-                <!-- 展开状态：完整文字按钮 -->
-                <DockPanel Margin="10" IsVisible="{Binding IsSidebarExpanded}">
-                <StackPanel DockPanel.Dock="Top" Spacing="6">
-                    <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
-
-                    <Button Content="数据管理"
-                            Command="{Binding NavigateCommand}" CommandParameter="DataManagement"/>
-                    <Button Content="会场配置"
-                            Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"/>
-                    <Button Content="策略配置"
-                            Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"/>
-                    <Button Content="座位安排"
-                            Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"/>
-                    <Button Content="历史快照"
-                            Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"/>
-                    <Button Content="插件管理"
-                            Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"/>
-                </StackPanel>
-
-                <!-- 底部：设置、关于、折叠 -->
-                <StackPanel DockPanel.Dock="Bottom" Spacing="6">
-                    <Button Content="设置"
-                            Command="{Binding NavigateCommand}" CommandParameter="Settings"/>
-                    <Button Content="关于"
-                            Command="{Binding NavigateCommand}" CommandParameter="About"/>
-                    <Separator Margin="0,4"/>
-                    <Button Content="« 折叠"
-                            Command="{Binding ToggleSidebarCommand}"
-                            ToolTip.Tip="折叠侧边栏"/>
-                </StackPanel>
-            </DockPanel>
-
-            <!-- 折叠状态：单字按钮 + ToolTip -->
-            <DockPanel Margin="4" IsVisible="{Binding !IsSidebarExpanded}">
-                <StackPanel DockPanel.Dock="Top" Spacing="4">
-                    <Button Content="☰" FontSize="14" Padding="4"
-                            Command="{Binding ToggleSidebarCommand}"
-                            ToolTip.Tip="展开侧边栏" Margin="0,0,0,8"/>
-
-                    <Button Content="数" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="DataManagement"
-                            ToolTip.Tip="数据管理"/>
-                    <Button Content="场" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration"
-                            ToolTip.Tip="会场配置"/>
-                    <Button Content="策" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration"
-                            ToolTip.Tip="策略配置"/>
-                    <Button Content="座" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement"
-                            ToolTip.Tip="座位安排"/>
-                    <Button Content="史" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory"
-                            ToolTip.Tip="历史快照"/>
-                    <Button Content="插" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="PluginManagement"
-                            ToolTip.Tip="插件管理"/>
-                </StackPanel>
-
-                <StackPanel DockPanel.Dock="Bottom" Spacing="4">
-                    <Button Content="设" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="Settings"
-                            ToolTip.Tip="设置"/>
-                    <Button Content="关" FontSize="14" Padding="4"
-                            Command="{Binding NavigateCommand}" CommandParameter="About"
-                            ToolTip.Tip="关于"/>
-                </StackPanel>
-            </DockPanel>
-            </Grid>
+  <DockPanel Margin="0,32,0,0">
+    <!-- 侧边栏 -->
+    <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="{DynamicResource SidebarBackgroundBrush}"
+            ClipToBounds="True">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Width" Duration="0:0:0.25"
+                            Easing="CubicEaseInOut" />
+        </Transitions>
+      </Border.Transitions>
+      <DockPanel>
+        <!-- 标题 -->
+        <Border DockPanel.Dock="Top" Height="44">
+          <Panel>
+            <TextBlock Text="A_Pair" FontSize="18" FontWeight="Bold"
+                       Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                       IsHitTestVisible="{Binding IsSidebarExpanded}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBlock Text="安排" FontSize="18" FontWeight="Bold"
+                       Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                       IsHitTestVisible="{Binding IsSidebarCollapsed}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Panel>
         </Border>
 
-        <!-- 内容区域 -->
-        <ContentControl Content="{Binding CurrentViewModel}"
-                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-    </DockPanel>
+        <!-- 底部：设置 + 关于 -->
+        <Border DockPanel.Dock="Bottom" Margin="0,0,0,10">
+          <Panel>
+            <StackPanel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}" IsHitTestVisible="{Binding IsSidebarExpanded}"
+                        Margin="10,0,10,0" Spacing="8">
+              <StackPanel.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+                </Transitions>
+              </StackPanel.Transitions>
+              <Separator Margin="0,0,0,0"/>
+              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Settings" AutomationProperties.Name="设置"
+                      HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Settings}" FontSize="20" Height="20"/>
+                  <TextBlock Text="设置" FontSize="15" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Button>
+              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="About" AutomationProperties.Name="关于"
+                      HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Info}" FontSize="20" Height="20"/>
+                  <TextBlock Text="关于" FontSize="15" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Button>
+            </StackPanel>
+            <StackPanel Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                        IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center">
+              <StackPanel.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+                </Transitions>
+              </StackPanel.Transitions>
+              <Separator Margin="0,0,0,0"/>
+              <Button Height="44" Width="44" Padding="0"
+                      ToolTip.Tip="设置"
+                      Command="{Binding NavigateCommand}" CommandParameter="Settings">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Settings}" FontSize="24" Height="24"/>
+              </Button>
+              <Button Height="44" Width="44" Padding="0" HorizontalAlignment="Center"
+                      ToolTip.Tip="关于"
+                      Command="{Binding NavigateCommand}" CommandParameter="About">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Info}" FontSize="24" Height="24"/>
+              </Button>
+            </StackPanel>
+          </Panel>
+        </Border>
+
+        <!-- 导航区：中部填充 -->
+        <Panel>
+          <!-- 展开状态 -->
+          <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                      IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Stretch">
+            <StackPanel.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+              </Transitions>
+            </StackPanel.Transitions>
+            <Button Height="44" Command="{Binding ToggleSidebarCommand}" AutomationProperties.Name="切换侧边栏"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
+                    ToolTip.Tip="收起侧边栏">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="24" Height="24"/>
+                <TextBlock Text="收起边栏" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Home" AutomationProperties.Name="首页"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Home}" FontSize="24" Height="24"/>
+                <TextBlock Text="首页" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="DataManagement" AutomationProperties.Name="数据管理"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="24" Height="24"/>
+                <TextBlock Text="数据管理" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration" AutomationProperties.Name="会场配置"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="24" Height="24"/>
+                <TextBlock Text="会场配置" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="FreeformManagement" AutomationProperties.Name="自由点管理"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowMove}" FontSize="24" Height="24"/>
+                <TextBlock Text="自由点管理" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration" AutomationProperties.Name="策略配置"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="24" Height="24"/>
+                <TextBlock Text="策略配置" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement" AutomationProperties.Name="座位安排"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="24" Height="24"/>
+                <TextBlock Text="座位安排" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory" AutomationProperties.Name="历史快照"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="24" Height="24"/>
+                <TextBlock Text="历史快照" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="PluginManagement" AutomationProperties.Name="插件管理"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="24" Height="24"/>
+                <TextBlock Text="插件管理" FontSize="15" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <!-- 折叠状态 -->
+          <StackPanel Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                      IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center">
+            <StackPanel.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+              </Transitions>
+            </StackPanel.Transitions>
+            <Button Height="44" Width="44" Padding="0" HorizontalAlignment="Center"
+                    Command="{Binding ToggleSidebarCommand}"
+                    ToolTip.Tip="展开侧边栏">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="24" Height="24"/>
+            </Button>
+
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="首页"
+                    Command="{Binding NavigateCommand}" CommandParameter="Home">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Home}" FontSize="24" Height="24"/>
+            </Button>
+
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="数据管理"
+                    Command="{Binding NavigateCommand}" CommandParameter="DataManagement">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="24" Height="24"/>
+            </Button>
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="会场配置"
+                    Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="24" Height="24"/>
+            </Button>
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="自由点管理"
+                    Command="{Binding NavigateCommand}" CommandParameter="FreeformManagement">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowMove}" FontSize="24" Height="24"/>
+            </Button>
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="策略配置"
+                    Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="24" Height="24"/>
+            </Button>
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="座位安排"
+                    Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="24" Height="24"/>
+            </Button>
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="历史快照"
+                    Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="24" Height="24"/>
+            </Button>
+            <Button Height="44" Width="44" Padding="0" ToolTip.Tip="插件管理"
+                    Command="{Binding NavigateCommand}" CommandParameter="PluginManagement">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="24" Height="24"/>
+            </Button>
+          </StackPanel>
+        </Panel>
+      </DockPanel>
+    </Border>
+
+    <!-- 内容区域 -->
+    <Grid>
+      <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+      <!-- 加载遮罩：深色背景压暗旧页 + 浮层阴影 + 加载条 -->
+      <Border IsVisible="{Binding IsPageLoading}"
+              IsHitTestVisible="{Binding IsPageLoading}"
+              BoxShadow="0 8 24 0 #30000000, 0 2 8 0 #18000000"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              Margin="1">
+        <Border.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Easing="CubicEaseInOut" />
+          </Transitions>
+        </Border.Transitions>
+
+        <Grid>
+          <!-- 压暗底层 -->
+          <Border Background="#44000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+
+          <!-- 加载内容：在遮罩之后渐显 -->
+          <Border Opacity="{Binding IsLoadingContentVisible, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseInOut" />
+              </Transitions>
+            </Border.Transitions>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
+              <ProgressBar IsIndeterminate="True" Width="200" Height="6" />
+              <TextBlock Text="正在加载..." FontSize="14"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                         HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Border>
+    </Grid>
+  </DockPanel>
 </Window>

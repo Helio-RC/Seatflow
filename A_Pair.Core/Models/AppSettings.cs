@@ -1,13 +1,29 @@
-﻿namespace A_Pair.Core.Models
+using System.Text.Json.Serialization;
+
+namespace A_Pair.Core.Models
 {
     /// <summary>
     /// 应用程序全局设置，持久化存储于 AppSettings.json 文件。
-    /// 包含窗口状态、最近文件记录等用户偏好。
     /// </summary>
     public class AppSettings
     {
         /// <summary>窗口位置与大小设置。</summary>
         public WindowStateSettings WindowState { get; set; } = new();
+
+        /// <summary>主题模式。</summary>
+        public ThemeMode Theme { get; set; } = ThemeMode.System;
+
+        /// <summary>界面语言，为空时跟随系统。</summary>
+        public string Language { get; set; } = string.Empty;
+
+        /// <summary>用户数据目录路径，为空时使用默认位置。</summary>
+        public string DataDirectory { get; set; } = string.Empty;
+
+        /// <summary>自动保存间隔（秒），0 表示禁用。</summary>
+        public int AutoSaveIntervalSeconds { get; set; } = 300;
+
+        /// <summary>最近打开的文件列表。</summary>
+        public List<string> RecentFiles { get; set; } = [];
 
         /// <summary>上次打开的文件路径。</summary>
         public string? LastOpenedFilePath { get; set; }
@@ -15,28 +31,38 @@
         /// <summary>上次使用的会场 ID。</summary>
         public string? LastVenueId { get; set; }
 
-        /// <summary>最近打开的文件列表，用于"最近使用"快捷入口。</summary>
-        public List<string> RecentFiles { get; set; } = [];
+        /// <summary>是否在清除数据前弹出确认对话框。</summary>
+        public bool ConfirmBeforeClear { get; set; } = true;
+
+        /// <summary>座位图默认缩放比例。</summary>
+        public double DefaultZoomLevel { get; set; } = 1.0;
+
     }
 
     /// <summary>
-    /// 窗口状态设置，记录主窗口的位置、大小和最大化状态。
+    /// 窗口状态设置。
     /// </summary>
     public class WindowStateSettings
     {
-        /// <summary>窗口左上角 X 坐标。</summary>
         public double Left { get; set; }
-
-        /// <summary>窗口左上角 Y 坐标。</summary>
         public double Top { get; set; }
-
-        /// <summary>窗口宽度。</summary>
         public double Width { get; set; } = 1024;
-
-        /// <summary>窗口高度。</summary>
         public double Height { get; set; } = 768;
-
-        /// <summary>是否最大化。</summary>
         public bool IsMaximized { get; set; }
     }
+
+    /// <summary>
+    /// 主题模式枚举。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum ThemeMode
+    {
+        /// <summary>跟随系统主题。</summary>
+        System,
+        /// <summary>浅色主题。</summary>
+        Light,
+        /// <summary>深色主题。</summary>
+        Dark
+    }
+
 }

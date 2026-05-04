@@ -19,7 +19,7 @@ public class CsvSeatingExporterTests
         try
         {
             await exporter.ExportAsync(plan , path , CancellationToken.None);
-            var content = await File.ReadAllTextAsync(path);
+            var content = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
             content.Should().Contain("seat1,student1");
             content.Should().Contain("seat2,student2");
         }
@@ -46,7 +46,7 @@ public class CsvSeatingExporterTests
         {
             var options = new ExportOptions { Format = ExportFormat.Csv , Anonymize = true };
             await exporter.ExportAsync(plan , path , options , CancellationToken.None);
-            var content = await File.ReadAllTextAsync(path);
+            var content = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
             content.Should().Contain("***");
             content.Should().NotContain("student1");
         }

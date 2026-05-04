@@ -8,11 +8,20 @@ public class ObstacleProcessorTests
         var layout = new ClassroomLayoutDefinition
         {
             LayoutType = LayoutType.Grid ,
-            Metadata = new GridLayoutMetadata { OriginX = 0 , OriginY = 0 , HorizontalSpacing = 1 , VerticalSpacing = 1 } ,
-            Obstacles = { new Obstacle { X = 1 , Y = 1 , Width = 1 , Height = 1 } } // covers (1,1) to (2,2)
+            Metadata = new GridLayoutMetadata
+            {
+                SeatsPerDesk = 1 ,
+                IntraDeskSpacing = 0 ,
+                InterDeskSpacing = 10 ,
+                VerticalSpacing = 10 ,
+                OriginX = 0 ,
+                OriginY = 0
+            } ,
+            Obstacles = { new Obstacle { X = 5 , Y = 5 , Width = 15 , Height = 15 } }
         };
-        layout.Seats.Add(new GridSeat { Row = 2 , Column = 2 }); // position (1,1) -> inside
-        layout.Seats.Add(new GridSeat { Row = 3 , Column = 1 }); // position (0,2) -> outside
+        // 每桌 1 人，间距 10：col=1 x=0, col=2 x=10, col=3 x=20...
+        layout.Seats.Add(new GridSeat { Row = 2 , Column = 2 }); // position (10,10) -> inside obstacle
+        layout.Seats.Add(new GridSeat { Row = 3 , Column = 1 }); // position (0,20) -> outside
 
         ObstacleProcessor.ApplyObstacles(layout);
         layout.Seats[0].IsAvailable.Should().BeFalse();
