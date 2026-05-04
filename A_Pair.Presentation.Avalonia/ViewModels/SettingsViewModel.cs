@@ -32,6 +32,16 @@ public partial class SettingsViewModel : ViewModelBase
 
     public List<string> ThemeOptions { get; } = ["跟随系统", "浅色", "深色"];
 
+    // ---- 材质 ----
+
+    [ObservableProperty]
+    private BackgroundMaterial _backgroundMaterial;
+
+    [ObservableProperty]
+    private int _backgroundMaterialIndex;
+
+    public List<string> BackgroundMaterialOptions { get; } = ["无", "Mica (云母)", "Acrylic (亚克力)"];
+
     // ---- 语言 ----
 
     [ObservableProperty]
@@ -100,6 +110,9 @@ public partial class SettingsViewModel : ViewModelBase
             _defaultZoomLevel = settings.DefaultZoomLevel;
             ZoomIndex = _defaultZoomLevel switch { 0.75 => 0, 1.0 => 1, 1.25 => 2, 1.5 => 3, _ => 1 };
 
+            BackgroundMaterial = settings.BackgroundMaterial;
+            BackgroundMaterialIndex = (int)settings.BackgroundMaterial;
+
         }
         catch
         {
@@ -132,6 +145,18 @@ public partial class SettingsViewModel : ViewModelBase
         _autoSaveIntervalSeconds = seconds;
     }
 
+    partial void OnBackgroundMaterialIndexChanged(int value)
+    {
+        if (!Enum.IsDefined(typeof(BackgroundMaterial), value)) return;
+        BackgroundMaterial = (BackgroundMaterial)value;
+
+        if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            && desktop.MainWindow?.DataContext is MainShellViewModel shell)
+        {
+            shell.ApplyMaterial(BackgroundMaterial);
+        }
+    }
+
     partial void OnZoomIndexChanged(int value)
     {
         var zoom = value switch { 0 => 0.75, 1 => 1.0, 2 => 1.25, 3 => 1.5, _ => 1.0 };
@@ -155,7 +180,8 @@ public partial class SettingsViewModel : ViewModelBase
                 DataDirectory = DataDirectory,
                 AutoSaveIntervalSeconds = _autoSaveIntervalSeconds,
                 ConfirmBeforeClear = ConfirmBeforeClear,
-                DefaultZoomLevel = _defaultZoomLevel
+                DefaultZoomLevel = _defaultZoomLevel,
+                BackgroundMaterial = BackgroundMaterial
             };
 
             await _facade.SaveAppSettingsAsync(settings, ct);
@@ -184,6 +210,7 @@ public partial class SettingsViewModel : ViewModelBase
         AutoSaveIndex = 2;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
+        BackgroundMaterialIndex = 1; // Mica
         StatusMessage = "已恢复默认值（尚未保存）";
     }
 

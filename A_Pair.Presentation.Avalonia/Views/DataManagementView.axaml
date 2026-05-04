@@ -5,6 +5,7 @@
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:fauic="using:FluentAvalonia.UI.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
@@ -145,73 +146,32 @@
         </Panel>
 
         <!-- === 导出按钮组 === -->
-        <Panel VerticalAlignment="Center" HorizontalAlignment="Left"
-               Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
-               ClipToBounds="True" Margin="16,0,0,0">
-          <Panel.Transitions>
-            <Transitions>
-              <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseInOut" />
-            </Transitions>
-          </Panel.Transitions>
-
-          <!-- 展开模式 -->
-          <StackPanel Spacing="4" Orientation="Horizontal"
-                      Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                      IsHitTestVisible="{Binding HasExpanded}">
-            <StackPanel.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
-              </Transitions>
-            </StackPanel.Transitions>
-            <TextBlock Text="导出:" FontSize="12" VerticalAlignment="Center"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
-                    Padding="8,4" FontSize="12">CSV</Button>
-            <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
-                    Padding="8,4" FontSize="12">Excel</Button>
-            <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
-                    Padding="8,4" FontSize="12">JSON</Button>
+        <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
+                VerticalAlignment="Center" HorizontalAlignment="Left"
+                Margin="16,0,0,0" Padding="8,4" FontSize="12">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
+            <TextBlock Text="导出 Excel" FontSize="12" />
           </StackPanel>
-
-          <!-- 紧凑模式 -->
-          <Button Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                  IsHitTestVisible="{Binding IsCompact}"
-                  Padding="8,4" FontSize="14">
-            <Button.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.1" />
-              </Transitions>
-            </Button.Transitions>
-            <StackPanel Orientation="Horizontal" Spacing="4">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
-              <TextBlock Text="导出" FontSize="14" />
-            </StackPanel>
-            <Button.Flyout>
-              <Flyout>
-                <StackPanel Spacing="2" Width="100" HorizontalAlignment="Center">
-                  <StackPanel.Transitions>
-                    <Transitions>
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.1"
-                                        Easing="CubicEaseOut"  />
-                    </Transitions>
-                  </StackPanel.Transitions>
-                  <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
-                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="导出 CSV" FontSize="14" />
-                  </Button>
-                  <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
-                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="导出 Excel" FontSize="14" />
-                  </Button>
-                  <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
-                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="导出 JSON" FontSize="14" />
-                  </Button>
-                </StackPanel>
-              </Flyout>
-            </Button.Flyout>
-          </Button>
-        </Panel>
+          <Button.Flyout>
+            <Flyout>
+              <StackPanel Spacing="2" Width="100" HorizontalAlignment="Center">
+                <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
+                        HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="10,6" x:CompileBindings="False">
+                  <TextBlock Text="Excel" FontSize="14" />
+                </Button>
+                <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
+                        HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="10,6" x:CompileBindings="False">
+                  <TextBlock Text="CSV" FontSize="14" />
+                </Button>
+                <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
+                        HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="10,6" x:CompileBindings="False">
+                  <TextBlock Text="JSON" FontSize="14" />
+                </Button>
+              </StackPanel>
+            </Flyout>
+          </Button.Flyout>
+        </Button>
       </DockPanel>
     </Border>
 
@@ -219,9 +179,11 @@
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
         <TextBlock DockPanel.Dock="Right" Text="{Binding StudentCount, StringFormat='共 {0} 名学生'}"
-                   FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-        <TextBlock Text="{Binding StatusMessage}" FontSize="12"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                   FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   VerticalAlignment="Center" Margin="0,0,12,0" />
+        <fauic:InfoBar IsOpen="{Binding HasStatusMessage}" Message="{Binding StatusMessage}"
+                       IsClosable="False" Severity="Informational"
+                       HorizontalAlignment="Stretch" />
       </DockPanel>
     </Border>
 
@@ -417,12 +379,11 @@
                                Padding="4,2"
                                PlaceholderText="必填，姓名"
                                ToolTip.Tip="必填。学生姓名，不能为空。" />
-                      <TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
-                               FontSize="14" VerticalAlignment="Center"
-                               BorderThickness="0" Background="Transparent"
-                               Padding="4,2"
-                               PlaceholderText="身高 cm"
-                               ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
+                      <fauic:NumberBox Grid.Column="1" Value="{Binding Height, Mode=TwoWay}"
+                                       FontSize="14" VerticalAlignment="Center"
+                                       SpinButtonPlacementMode="Inline"
+                                       PlaceholderText="身高 cm"
+                                       ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
                       <ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
                                 FontSize="14" VerticalAlignment="Center"
                                 BorderThickness="0" Background="Transparent"

@@ -37,6 +37,9 @@ namespace A_Pair.Core.Models
         /// <summary>座位图默认缩放比例。</summary>
         public double DefaultZoomLevel { get; set; } = 1.0;
 
+        /// <summary>窗口背景材质。</summary>
+        public BackgroundMaterial BackgroundMaterial { get; set; } = BackgroundMaterial.Mica;
+
     }
 
     /// <summary>
@@ -63,6 +66,20 @@ namespace A_Pair.Core.Models
         Light,
         /// <summary>深色主题。</summary>
         Dark
+    }
+
+    /// <summary>
+    /// 窗口背景材质枚举。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum BackgroundMaterial
+    {
+        /// <summary>无材质。</summary>
+        None,
+        /// <summary>云母材质（仅 Windows 11）。</summary>
+        Mica,
+        /// <summary>亚克力模糊材质。</summary>
+        Acrylic
     }
 
 }
