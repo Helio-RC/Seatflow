@@ -1,9 +1,105 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:fic="using:FluentIcons.Avalonia"
+             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.AboutView"
              x:DataType="vm:AboutViewModel">
-  <TextBlock Text="{Binding Title}"
-             HorizontalAlignment="Center" VerticalAlignment="Center"
-             FontSize="18"/>
+
+  <Design.DataContext>
+    <vm:AboutViewModel />
+  </Design.DataContext>
+
+  <DockPanel Margin="16">
+    <!-- 顶部标题 -->
+    <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+      <TextBlock Text="关于" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+    </Border>
+
+    <!-- 中间内容 -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="20" MaxWidth="520" HorizontalAlignment="Center">
+
+        <!-- 应用图标和名称 -->
+        <StackPanel Spacing="12" HorizontalAlignment="Center" Margin="0,12,0,0">
+          <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="64" Height="64"
+                          HorizontalAlignment="Center"
+                          Foreground="{DynamicResource SystemAccentColor}" />
+          <TextBlock Text="{Binding AppName}" FontSize="24" FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+          <TextBlock HorizontalAlignment="Center" FontSize="14"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+            <TextBlock.Text>
+              <Binding Path="Version" StringFormat="版本 {0}" />
+            </TextBlock.Text>
+          </TextBlock>
+        </StackPanel>
+
+        <!-- 描述 -->
+        <TextBlock Text="{Binding Description}" FontSize="14" TextWrapping="Wrap"
+                   HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="400"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+        <Separator />
+
+        <!-- 运行环境 -->
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="20">
+          <StackPanel Spacing="10">
+            <TextBlock Text="运行环境" FontSize="15" FontWeight="SemiBold" />
+            <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="运行框架" FontSize="13"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RuntimeVersion}" FontSize="13" />
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="Avalonia UI" FontSize="13" Margin="0,4,0,0"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AvaloniaVersion}" FontSize="13" Margin="0,4,0,0" />
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="许可证" FontSize="13" Margin="0,4,0,0"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding License}" FontSize="13" Margin="0,4,0,0" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- 依赖库 -->
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="20">
+          <StackPanel Spacing="10">
+            <TextBlock Text="核心依赖" FontSize="15" FontWeight="SemiBold" />
+            <ListBox ItemsSource="{Binding Dependencies}" BorderThickness="0">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:DependencyInfo">
+                  <Border Padding="6,4">
+                    <Grid ColumnDefinitions="140,100,*">
+                      <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Text="{Binding Version}" FontSize="13"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                      <TextBlock Grid.Column="2" Text="{Binding Purpose}" FontSize="13"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
+        </Border>
+
+        <!-- 底部信息 -->
+        <StackPanel Spacing="6" HorizontalAlignment="Center" Margin="0,0,0,24">
+          <TextBlock HorizontalAlignment="Center" FontSize="12"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+            <TextBlock.Text>
+              <Binding Path="ProjectUrl" />
+            </TextBlock.Text>
+          </TextBlock>
+          <TextBlock Text="{Binding Copyright}" FontSize="11"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
