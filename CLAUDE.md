@@ -15,7 +15,7 @@ dotnet test --filter "FullyQualifiedName~TestName"  # Run a single test
 dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 ```
 
-**Test stack**: xUnit v3 + FluentAssertions + NSubstitute. Tests are in 3 projects: `*.Core.Tests`, `*.Application.Tests`, `*.Infrastructure.Tests`. Each test project has a `Usings.cs` with shared global usings (`System`, `System.Collections.Generic`, `System.Linq`, `System.Threading.Tasks`).
+**Test stack**: xUnit v3 + FluentAssertions + NSubstitute. Tests are in 3 projects: `*.Core.Tests`, `*.Application.Tests`, `*.Infrastructure.Tests`. Each has `<ImplicitUsings>enable</ImplicitUsings>` (provides `System`, `System.Collections.Generic`, `System.Linq`, `System.Threading.Tasks`). Project-specific global usings are in `Usings.cs` (or `Using.cs` in Application.Tests).
 
 **No `Directory.Build.props` or `Directory.Packages.props`** — package versions are managed directly in each `.csproj`.
 
@@ -31,9 +31,9 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 - **Plugins.Sdk** — Lightweight assembly for external plugin authors
 - **Presentation.Avalonia** — Avalonia 12 desktop app, MVVM with CommunityToolkit.Mvvm
 
-**DI**: `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). UI calls it in `Program.cs`, then adds its own services (navigation, ViewModels, Views).
+**DI**: `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
 
-**Navigation**: `INavigationService` + `MainShellViewModel` manages 8 pages via `PageKey` enum (`DataManagement`, `VenueConfiguration`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
+**Navigation**: `INavigationService` + `MainShellViewModel` manages 9 pages via `PageKey` enum (`DataManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
 
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
 
@@ -50,6 +50,8 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 protected async Task<bool> SafeExecuteAsync(Func<Task> action, string errorTitle = "操作失败")
 ```
 Wraps async operations in try-catch and shows error dialogs automatically. Use this in ViewModels for user-facing operations.
+
+`ViewModelBase` uses a static `IDialogService` — `App.axaml.cs` must call `ViewModelBase.InitializeDialogService(dialog)` at startup before any ViewModel uses `SafeExecuteAsync`.
 
 ### Adding a New Page
 1. Add a new value to `PageKey` enum in `INavigationService.cs`
