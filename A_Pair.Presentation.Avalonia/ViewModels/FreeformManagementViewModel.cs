@@ -22,35 +22,6 @@ public partial class FreeformManagementViewModel : ViewModelBase
     public string Title { get; } = "自由点管理";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
-    private bool _isSidebarExpanded = true;
-
-    public bool IsSidebarCollapsed => !IsSidebarExpanded;
-
-    [ObservableProperty]
-    private double _sidebarListWidth = 240;
-
-    private bool _userWantsSidebarExpanded = true;
-
-    public void OnWindowWidthChanged (double windowWidth)
-    {
-        if (windowWidth < 750)
-            IsSidebarExpanded = false;
-        else
-            IsSidebarExpanded = _userWantsSidebarExpanded;
-    }
-
-    partial void OnIsSidebarExpandedChanged (bool value)
-        => SidebarListWidth = value ? 240 : 64;
-
-    [RelayCommand]
-    private void ToggleSidebar ()
-    {
-        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
-        IsSidebarExpanded = _userWantsSidebarExpanded;
-    }
-
-    [ObservableProperty]
     private ObservableCollection<VenueItem> _savedLayouts = [];
 
     [ObservableProperty]

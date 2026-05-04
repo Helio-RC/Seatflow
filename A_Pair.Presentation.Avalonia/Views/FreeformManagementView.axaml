@@ -58,16 +58,10 @@
       </DockPanel>
     </Border>
 
-    <Grid x:Name="SidebarGrid" ColumnDefinitions="240,4,*">
+    <Grid ColumnDefinitions="240,4,*">
       <!-- 左侧：已保存的布局 -->
-      <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
-              ClipToBounds="True"
+      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
               Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
-          </Transitions>
-        </Border.Transitions>
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="已保存布局"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
@@ -88,16 +82,6 @@
                           HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
                 <TextBlock Text="删除" FontSize="13" />
-              </StackPanel>
-            </Button>
-            <Button Command="{Binding ToggleSidebarCommand}"
-                    HorizontalContentAlignment="Center" Padding="4,6" FontSize="12">
-              <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="12"
-                                IsVisible="{Binding IsSidebarExpanded}"/>
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="12"
-                                IsVisible="{Binding IsSidebarCollapsed}"/>
-                <TextBlock Text="侧栏" FontSize="12" />
               </StackPanel>
             </Button>
           </StackPanel>
