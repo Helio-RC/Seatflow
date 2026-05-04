@@ -9,7 +9,7 @@ public class NavigationService : INavigationService
     private readonly IServiceProvider _serviceProvider;
 
     public ViewModelBase CurrentViewModel { get; private set; } = default!;
-    public PageKey CurrentPage { get; private set; }
+    public PageKey CurrentPage { get; private set; } = (PageKey)(-1);
     public event Action? CurrentViewModelChanged;
 
     public NavigationService (IServiceProvider serviceProvider)
