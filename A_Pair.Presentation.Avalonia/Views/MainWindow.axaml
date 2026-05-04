@@ -211,7 +211,7 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Border.Transitions>
           <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+            <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseOut" />
           </Transitions>
         </Border.Transitions>
 
