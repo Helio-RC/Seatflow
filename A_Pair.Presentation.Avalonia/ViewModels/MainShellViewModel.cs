@@ -1,8 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,7 +10,6 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 public partial class MainShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
-    private readonly IApplicationFacade _facade;
 
     [ObservableProperty]
     private ViewModelBase _currentViewModel = default!;
@@ -30,35 +27,45 @@ public partial class MainShellViewModel : ViewModelBase
     private double _sidebarWidth = 140;
 
     [ObservableProperty]
-    private PageTransitionType _currentTransitionType = PageTransitionType.CrossFade;
+    private bool _isPageLoading;
 
     private bool _userWantsExpanded = true;
+    private CancellationTokenSource? _pageLoadCts;
 
-    public MainShellViewModel(INavigationService navigation, IApplicationFacade facade)
+    /// <summary>loading 遮罩最短显示时间，防止闪烁。</summary>
+    private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(350);
+
+    public MainShellViewModel(INavigationService navigation)
     {
         _navigation = navigation;
-        _facade = facade;
         _navigation.CurrentViewModelChanged += () =>
         {
+            IsPageLoading = true;
             CurrentViewModel = _navigation.CurrentViewModel;
             CurrentPage = _navigation.CurrentPage;
+            _ = DelayCloseLoadingAsync();
         };
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
-        _ = LoadTransitionTypeAsync(CancellationToken.None);
+        _ = DelayCloseLoadingAsync();
     }
 
-    private async Task LoadTransitionTypeAsync(CancellationToken ct)
+    private async Task DelayCloseLoadingAsync()
     {
+        _pageLoadCts?.Cancel();
+        _pageLoadCts = new CancellationTokenSource();
+        var ct = _pageLoadCts.Token;
+
         try
         {
-            var settings = await _facade.LoadAppSettingsAsync(ct);
-            CurrentTransitionType = settings.TransitionAnimation;
+            await Task.Delay(MinLoadDuration, ct);
         }
-        catch
+        catch (OperationCanceledException)
         {
-            CurrentTransitionType = PageTransitionType.CrossFade;
+            return;
         }
+
+        IsPageLoading = false;
     }
 
     public void OnWindowWidthChanged(double windowWidth)

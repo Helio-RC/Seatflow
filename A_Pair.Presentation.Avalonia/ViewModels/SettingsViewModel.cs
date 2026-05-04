@@ -32,16 +32,6 @@ public partial class SettingsViewModel : ViewModelBase
 
     public List<string> ThemeOptions { get; } = ["跟随系统", "浅色", "深色"];
 
-    // ---- 动画 ----
-
-    [ObservableProperty]
-    private PageTransitionType _transitionAnimation;
-
-    [ObservableProperty]
-    private int _transitionAnimationIndex;
-
-    public List<string> TransitionAnimationOptions { get; } = ["淡入淡出", "水平滑动", "垂直滑动", "滑动+淡出", "无动画"];
-
     // ---- 语言 ----
 
     [ObservableProperty]
@@ -110,8 +100,6 @@ public partial class SettingsViewModel : ViewModelBase
             _defaultZoomLevel = settings.DefaultZoomLevel;
             ZoomIndex = _defaultZoomLevel switch { 0.75 => 0, 1.0 => 1, 1.25 => 2, 1.5 => 3, _ => 1 };
 
-            TransitionAnimation = settings.TransitionAnimation;
-            TransitionAnimationIndex = (int)settings.TransitionAnimation;
         }
         catch
         {
@@ -135,19 +123,6 @@ public partial class SettingsViewModel : ViewModelBase
                 ThemeMode.Dark => ThemeVariant.Dark,
                 _ => ThemeVariant.Default
             };
-        }
-    }
-
-    partial void OnTransitionAnimationIndexChanged(int value)
-    {
-        if (!Enum.IsDefined(typeof(PageTransitionType), value)) return;
-        var type = (PageTransitionType)value;
-        TransitionAnimation = type;
-
-        if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-            && desktop.MainWindow?.DataContext is MainShellViewModel shell)
-        {
-            shell.CurrentTransitionType = type;
         }
     }
 
@@ -180,8 +155,7 @@ public partial class SettingsViewModel : ViewModelBase
                 DataDirectory = DataDirectory,
                 AutoSaveIntervalSeconds = _autoSaveIntervalSeconds,
                 ConfirmBeforeClear = ConfirmBeforeClear,
-                DefaultZoomLevel = _defaultZoomLevel,
-                TransitionAnimation = TransitionAnimation
+                DefaultZoomLevel = _defaultZoomLevel
             };
 
             await _facade.SaveAppSettingsAsync(settings, ct);
@@ -210,7 +184,6 @@ public partial class SettingsViewModel : ViewModelBase
         AutoSaveIndex = 2;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
-        TransitionAnimationIndex = (int)PageTransitionType.CrossFade;
         StatusMessage = "已恢复默认值（尚未保存）";
     }
 

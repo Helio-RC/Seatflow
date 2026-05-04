@@ -37,8 +37,6 @@ namespace A_Pair.Core.Models
         /// <summary>座位图默认缩放比例。</summary>
         public double DefaultZoomLevel { get; set; } = 1.0;
 
-        /// <summary>页面切换动画类型。</summary>
-        public PageTransitionType TransitionAnimation { get; set; } = PageTransitionType.CrossFade;
     }
 
     /// <summary>
@@ -67,21 +65,4 @@ namespace A_Pair.Core.Models
         Dark
     }
 
-    /// <summary>
-    /// 页面切换动画类型枚举。
-    /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum PageTransitionType
-    {
-        /// <summary>淡入淡出。</summary>
-        CrossFade,
-        /// <summary>水平滑动。</summary>
-        SlideHorizontal,
-        /// <summary>垂直滑动。</summary>
-        SlideVertical,
-        /// <summary>滑动 + 淡入淡出叠加。</summary>
-        Composite,
-        /// <summary>无动画，即刻切换。</summary>
-        None
-    }
 }

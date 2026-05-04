@@ -65,15 +65,6 @@
             </DockPanel>
 
             <Separator />
-
-            <!-- 页面切换动画 -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="页面切换动画" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <ComboBox ItemsSource="{Binding TransitionAnimationOptions}"
-                        SelectedIndex="{Binding TransitionAnimationIndex, Mode=TwoWay}"
-                        MinWidth="160" FontSize="14" />
-            </DockPanel>
           </StackPanel>
         </Border>
 
