@@ -261,7 +261,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void NavigateToFreeform () => _navigation.NavigateTo(PageKey.FreeformManagement);
+    private async Task NavigateToFreeformAsync () => await _navigation.NavigateToAsync(PageKey.FreeformManagement);
 
     // ═══════════════════════════════════════════════
     // 预览 & 构建

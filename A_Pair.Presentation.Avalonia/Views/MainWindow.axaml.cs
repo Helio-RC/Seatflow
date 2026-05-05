@@ -24,7 +24,9 @@ namespace A_Pair.Presentation.Avalonia.Views
 
         protected override async void OnClosing (WindowClosingEventArgs e)
         {
-            // 在 UI 线程捕获窗口状态
+            // 延迟关闭，等 IO 完成后再真正关闭窗口
+            e.Cancel = true;
+
             var state = new WindowStateSettings
             {
                 Left = Position.X,
@@ -38,11 +40,10 @@ namespace A_Pair.Presentation.Avalonia.Views
             if (appInstance is not null)
             {
                 var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
-                // IO 放到线程池，避免 UI 线程死锁
                 await Task.Run(async () => await SaveWindowStateAsync(facade, state));
             }
 
-            base.OnClosing(e);
+            Close();
         }
 
         private static async Task SaveWindowStateAsync (IApplicationFacade facade , WindowStateSettings state)
