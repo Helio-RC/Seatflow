@@ -106,30 +106,58 @@
                  BorderThickness="0"
                  Background="{DynamicResource SidebarBackgroundBrush}">
           <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:StrategyItemViewModel">
+            <DataTemplate x:DataType="vm:StrategyItemViewModel" x:CompileBindings="False">
               <Border Padding="8,6" CornerRadius="4">
-                <DockPanel>
-                  <ToggleSwitch DockPanel.Dock="Right"
-                                IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                VerticalAlignment="Center" />
-                  <StackPanel Spacing="2">
-                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis" FontSize="13" />
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                      <TextBlock FontSize="11"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-                        <TextBlock.Text>
-                          <Binding Path="Priority" StringFormat="优先级: {0}" />
-                        </TextBlock.Text>
-                      </TextBlock>
-                      <Border CornerRadius="2" Padding="4,1"
-                              Background="{DynamicResource SystemControlAccentBrush}"
-                              IsVisible="{Binding IsBuiltIn, Converter={x:Static conv:BoolConverters.Negate}}">
-                        <TextBlock Text="插件" FontSize="9" Foreground="White" />
-                      </Border>
+                <Grid>
+                  <!-- 展开状态：ToggleSwitch + 名称 + 优先级 -->
+                  <DockPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                             IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarExpanded}">
+                    <DockPanel.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                      </Transitions>
+                    </DockPanel.Transitions>
+                    <ToggleSwitch DockPanel.Dock="Right"
+                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                  VerticalAlignment="Center" />
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" FontSize="13" />
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock FontSize="11"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                          <TextBlock.Text>
+                            <Binding Path="Priority" StringFormat="优先级: {0}" />
+                          </TextBlock.Text>
+                        </TextBlock>
+                        <Border CornerRadius="2" Padding="4,1"
+                                Background="{DynamicResource SystemControlAccentBrush}"
+                                IsVisible="{Binding IsBuiltIn, Converter={x:Static conv:BoolConverters.Negate}}">
+                          <TextBlock Text="插件" FontSize="9" Foreground="White" />
+                        </Border>
+                      </StackPanel>
                     </StackPanel>
+                  </DockPanel>
+                  <!-- 折叠状态：仅名称（单选模式） -->
+                  <StackPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                              IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarCollapsed}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                      </Transitions>
+                    </StackPanel.Transitions>
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis" FontSize="12"
+                               HorizontalAlignment="Center" />
+                    <TextBlock FontSize="10" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                      <TextBlock.Text>
+                        <Binding Path="Priority" StringFormat="P{0}" />
+                      </TextBlock.Text>
+                    </TextBlock>
                   </StackPanel>
-                </DockPanel>
+                </Grid>
               </Border>
             </DataTemplate>
           </ListBox.ItemTemplate>
