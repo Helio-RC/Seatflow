@@ -17,6 +17,9 @@ namespace A_Pair.Core.Strategies
         /// </summary>
         public FrontRowRotationStrategy () : this(new FrontRowRotationConfiguration()) { }
 
+        /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
+        public FrontRowRotationConfiguration Config => _config;
+
         /// <summary>设置前排行数（从布局元数据同步）。</summary>
         public void SetFrontRowCount (int count) => _config.FrontRowCount = Math.Max(1 , count);
 

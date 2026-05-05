@@ -12,6 +12,9 @@ namespace A_Pair.Core.Strategies
     {
         private readonly DeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
 
+        /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
+        public DeskMateConfiguration Config => _config;
+
         /// <summary>使用默认配置创建实例。</summary>
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
 

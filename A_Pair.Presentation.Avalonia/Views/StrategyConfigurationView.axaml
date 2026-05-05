@@ -1,9 +1,236 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+             xmlns:fic="using:FluentIcons.Avalonia"
+             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.StrategyConfigurationView"
              x:DataType="vm:StrategyConfigurationViewModel">
-  <TextBlock Text="{Binding Title}"
-             HorizontalAlignment="Center" VerticalAlignment="Center"
-             FontSize="18"/>
+
+  <Design.DataContext>
+    <vm:StrategyConfigurationViewModel />
+  </Design.DataContext>
+
+  <DockPanel Margin="16">
+    <!-- ═══════ 顶部标题栏 ═══════ -->
+    <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Left" Text="策略配置" Classes="pageTitle"
+                   VerticalAlignment="Center" />
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+          <Button Command="{Binding ResetDefaultsCommand}" AutomationProperties.Name="恢复默认策略配置"
+                  HorizontalContentAlignment="Center" Padding="12,6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
+              <TextBlock Text="恢复默认" FontSize="14" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding SaveStrategiesCommand}" AutomationProperties.Name="保存策略配置"
+                  IsEnabled="{Binding HasChanges}"
+                  HorizontalContentAlignment="Center" Padding="12,6"
+                  IsDefault="True">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+              <TextBlock Text="保存配置" FontSize="14" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- ═══════ 底部状态栏 ═══════ -->
+    <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
+      <StackPanel>
+        <Separator Margin="0,0,0,8" />
+        <TextBlock Text="{Binding StatusMessage}" Classes="caption"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+      </StackPanel>
+    </Border>
+
+    <!-- ═══════ 中间可滚动内容 ═══════ -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="12" MaxWidth="680">
+
+        <!-- 提示卡片 -->
+        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8" Padding="16">
+          <StackPanel Spacing="6">
+            <TextBlock Text="策略执行说明" Classes="bodyStrong" />
+            <TextBlock Text="策略按优先级升序执行（数值越小越先执行）。"
+                       Classes="caption" TextWrapping="Wrap"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <TextBlock Text="可通过开关启用或禁用策略，使用上下按钮调整执行顺序。展开策略卡片可编辑其专属参数。"
+                       Classes="caption" TextWrapping="Wrap"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+          </StackPanel>
+        </Border>
+
+        <!-- 策略列表 -->
+        <ItemsControl x:Name="StrategyList" ItemsSource="{Binding Strategies}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:StrategyItemViewModel">
+              <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                      CornerRadius="8" Padding="16" Margin="0,0,0,4">
+                <StackPanel Spacing="10">
+
+                  <!-- 策略头部 -->
+                  <DockPanel>
+                    <!-- 启用开关 (右侧) -->
+                    <ToggleSwitch DockPanel.Dock="Right"
+                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                  VerticalAlignment="Center"
+                                  AutomationProperties.Name="{Binding Name, StringFormat='启用 {0}'}" />
+
+                    <!-- 上下移动按钮 (右侧) -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                                Spacing="4" Margin="0,0,16,0"
+                                VerticalAlignment="Center">
+                      <Button Command="{Binding #StrategyList.DataContext.MoveUpCommand}"
+                              CommandParameter="{Binding}"
+                              Width="30" Height="30" Padding="0"
+                              AutomationProperties.Name="提高优先级">
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="14" />
+                      </Button>
+                      <Button Command="{Binding #StrategyList.DataContext.MoveDownCommand}"
+                              CommandParameter="{Binding}"
+                              Width="30" Height="30" Padding="0"
+                              AutomationProperties.Name="降低优先级">
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="14" />
+                      </Button>
+                    </StackPanel>
+
+                    <!-- 优先级标签 -->
+                    <Border DockPanel.Dock="Right"
+                            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            CornerRadius="4"
+                            VerticalAlignment="Center" Padding="8,4"
+                            Margin="0,0,12,0">
+                      <TextBlock Text="{Binding Priority, StringFormat='优先级: {0}'}"
+                                 Classes="caption" />
+                    </Border>
+
+                    <!-- 策略名称 -->
+                    <TextBlock Text="{Binding Name}" Classes="bodyStrong"
+                               VerticalAlignment="Center" />
+                  </DockPanel>
+
+                  <Separator />
+
+                  <!-- 参数配置 (可展开) -->
+                  <Expander Header="参数配置"
+                            IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                            ExpandDirection="Down">
+                    <StackPanel Spacing="0">
+
+                      <!-- FrontRowRotation 配置 -->
+                      <StackPanel IsVisible="{Binding HasFrontRowConfig}"
+                                Spacing="10" Margin="0,8,0,0">
+                      <DockPanel>
+                        <TextBlock Text="历史权重 (HistoryWeight)"
+                                   DockPanel.Dock="Left"
+                                   VerticalAlignment="Center" Width="220"
+                                   Classes="body" />
+                        <NumericUpDown Value="{Binding HistoryWeight, Mode=TwoWay}"
+                                       Minimum="0" Maximum="100" Increment="1"
+                                       MinWidth="120" HorizontalAlignment="Right" />
+                      </DockPanel>
+                      <DockPanel>
+                        <TextBlock Text="前排需求加分 (NeedsFrontRowBonus)"
+                                   DockPanel.Dock="Left"
+                                   VerticalAlignment="Center" Width="220"
+                                   Classes="body" />
+                        <NumericUpDown Value="{Binding NeedsFrontRowBonus, Mode=TwoWay}"
+                                       Minimum="0" Maximum="10000" Increment="100"
+                                       MinWidth="120" HorizontalAlignment="Right" />
+                      </DockPanel>
+                      <DockPanel>
+                        <TextBlock Text="前排行数 (FrontRowCount)"
+                                   DockPanel.Dock="Left"
+                                   VerticalAlignment="Center" Width="220"
+                                   Classes="body" />
+                        <NumericUpDown Value="{Binding FrontRowCount, Mode=TwoWay}"
+                                       Minimum="1" Maximum="10" Increment="1"
+                                       MinWidth="120" HorizontalAlignment="Right" />
+                      </DockPanel>
+                    </StackPanel>
+
+                    <!-- DeskMate 配置 -->
+                    <StackPanel IsVisible="{Binding HasDeskMateConfig}"
+                                Spacing="10" Margin="0,8,0,0">
+                      <DockPanel>
+                        <TextBlock Text="优先水平相邻"
+                                   DockPanel.Dock="Left"
+                                   VerticalAlignment="Center" Width="220"
+                                   Classes="body" />
+                        <ToggleSwitch IsChecked="{Binding PreferHorizontal, Mode=TwoWay}"
+                                      HorizontalAlignment="Right"
+                                      AutomationProperties.Name="优先水平相邻" />
+                      </DockPanel>
+                      <DockPanel>
+                        <TextBlock Text="允许垂直相邻"
+                                   DockPanel.Dock="Left"
+                                   VerticalAlignment="Center" Width="220"
+                                   Classes="body" />
+                        <ToggleSwitch IsChecked="{Binding AllowVertical, Mode=TwoWay}"
+                                      HorizontalAlignment="Right"
+                                      AutomationProperties.Name="允许垂直相邻" />
+                      </DockPanel>
+                    </StackPanel>
+
+                    <!-- 无配置策略提示 -->
+                    <Border IsVisible="{Binding HasNoConfig}"
+                            Margin="0,8,0,0" Padding="12"
+                            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            CornerRadius="4">
+                      <TextBlock Text="该策略无需额外配置"
+                                 Classes="body"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    </Border>
+
+                    <!-- 插件策略配置 -->
+                    <Border IsVisible="{Binding HasPluginConfig}"
+                            Margin="0,8,0,0" Padding="12"
+                            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            CornerRadius="4">
+                      <TextBlock Text="插件策略参数请在插件管理页面编辑"
+                                 Classes="body"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                 TextWrapping="Wrap" />
+                    </Border>
+
+                    </StackPanel>
+                  </Expander>
+
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- 空状态 -->
+        <Border IsVisible="{Binding HasStrategies, Converter={x:Static conv:BoolConverters.Negate}}"
+                Padding="40" CornerRadius="8"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                HorizontalAlignment="Stretch">
+          <StackPanel Spacing="8" HorizontalAlignment="Center">
+            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="48"
+                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            HorizontalAlignment="Center" />
+            <TextBlock Text="暂无可用策略" Classes="sectionTitle" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+        <!-- 加载遮罩 -->
+        <Border IsVisible="{Binding IsLoading}"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                Padding="40" CornerRadius="8" HorizontalAlignment="Stretch">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+            <ProgressBar IsIndeterminate="True" Width="200" />
+            <TextBlock Text="加载中..." Classes="body" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>

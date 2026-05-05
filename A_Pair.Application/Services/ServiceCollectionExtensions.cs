@@ -75,6 +75,11 @@ namespace A_Pair.Application.Services
             // 注册学生数据集仓储（全局单例）
             var rostersPath = Path.Combine(snapshotBasePath , "Rosters");
             services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(rostersPath));
+
+            // 注册策略配置仓储（全局单例）
+            var strategyConfigPath = Path.Combine(snapshotBasePath , ".." , "StrategyConfig" , "StrategyConfigs.json");
+            services.AddSingleton(sp => new JsonStrategyConfigRepository(strategyConfigPath));
+
             return services;
         }
     }
