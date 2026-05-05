@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using Avalonia;
@@ -21,32 +22,36 @@ namespace A_Pair.Presentation.Avalonia.Views
                 vm.OnWindowWidthChanged(Bounds.Width);
         }
 
-        protected override void OnClosing (WindowClosingEventArgs e)
+        protected override async void OnClosing (WindowClosingEventArgs e)
         {
-            SaveWindowState();
+            // 在 UI 线程捕获窗口状态
+            var state = new WindowStateSettings
+            {
+                Left = Position.X,
+                Top = Position.Y,
+                Width = Width,
+                Height = Height,
+                IsMaximized = WindowState == WindowState.Maximized
+            };
+
+            var appInstance = global::Avalonia.Application.Current as App;
+            if (appInstance is not null)
+            {
+                var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
+                // IO 放到线程池，避免 UI 线程死锁
+                await Task.Run(async () => await SaveWindowStateAsync(facade, state));
+            }
+
             base.OnClosing(e);
         }
 
-        /// <summary>
-        /// 在窗口关闭时将位置、大小和最大化状态写入 AppSettings。
-        /// </summary>
-        private void SaveWindowState ()
+        private static async Task SaveWindowStateAsync (IApplicationFacade facade , WindowStateSettings state)
         {
             try
             {
-                var appInstance = global::Avalonia.Application.Current as App;
-                if (appInstance is null) return;
-                var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
-                var settings = facade.LoadAppSettingsAsync().Result;
-                settings.WindowState = new WindowStateSettings
-                {
-                    Left = Position.X,
-                    Top = Position.Y,
-                    Width = Width,
-                    Height = Height,
-                    IsMaximized = WindowState == WindowState.Maximized
-                };
-                facade.SaveAppSettingsAsync(settings).Wait();
+                var settings = await facade.LoadAppSettingsAsync();
+                settings.WindowState = state;
+                await facade.SaveAppSettingsAsync(settings);
             }
             catch
             {
