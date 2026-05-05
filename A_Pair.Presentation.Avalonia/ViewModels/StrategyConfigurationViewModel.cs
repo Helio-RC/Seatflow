@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -113,7 +114,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (_suppressChangeTracking) return;
         MarkDetailChanged();
     }
-    partial void OnEditIsEnabledChanged (bool value)      { if (!_suppressChangeTracking) MarkDetailChanged(); }
+    partial void OnEditIsEnabledChanged (bool value)
+    {
+        if (_suppressChangeTracking) return;
+        MarkDetailChanged();
+        // 联动侧栏开关
+        if (SelectedStrategy is not null)
+            SelectedStrategy.IsEnabled = value;
+    }
     partial void OnEditHistoryWeightChanged (int value)   { if (!_suppressChangeTracking) MarkDetailChanged(); }
     partial void OnEditNeedsFrontRowBonusChanged (int value)  { if (!_suppressChangeTracking) MarkDetailChanged(); }
     partial void OnEditFrontRowCountChanged (int value)      { if (!_suppressChangeTracking) MarkDetailChanged(); }
@@ -198,7 +206,20 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 d.Priority, d.DefaultPriority, d.IsEnabled)).ToList();
 
             foreach (var item in items)
-                item.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HasChanges));
+            {
+                item.PropertyChanged += (_, e) =>
+                {
+                    OnPropertyChanged(nameof(HasChanges));
+                    // 侧栏开关联动详情面板
+                    if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled)
+                        && item == SelectedStrategy)
+                    {
+                        _suppressChangeTracking = true;
+                        EditIsEnabled = item.IsEnabled;
+                        _suppressChangeTracking = false;
+                    }
+                };
+            }
 
             Strategies = new ObservableCollection<StrategyItemViewModel>(items);
 
