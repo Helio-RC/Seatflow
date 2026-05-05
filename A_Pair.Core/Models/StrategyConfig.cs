@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+﻿namespace A_Pair.Core.Models;
 
 /// <summary>
 /// 策略的可变运行时配置，由用户通过 UI 修改并持久化到 AppData。
@@ -15,5 +15,5 @@ public sealed class StrategyConfig
     public bool IsEnabled { get; set; } = true;
 
     /// <summary>策略特有的配置参数。</summary>
-    public Dictionary<string, object?> Parameters { get; set; } = [];
+    public Dictionary<string , object?> Parameters { get; set; } = [];
 }

@@ -1,4 +1,4 @@
-using A_Pair.Application.Commands;
+﻿using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Core.DomainServices;
@@ -6,9 +6,6 @@ using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
@@ -308,7 +305,7 @@ namespace A_Pair.Application.Services
             foreach (var manifest in builtInManifests)
             {
                 var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
-                var info = BuildDisplayInfo(manifest, "builtin", persisted, runtimeStrategy);
+                var info = BuildDisplayInfo(manifest , "builtin" , persisted , runtimeStrategy);
                 result.Add(info);
             }
 
@@ -318,20 +315,20 @@ namespace A_Pair.Application.Services
             {
                 var pluginManifest = new StrategyManifest
                 {
-                    Id = pi.Manifest.Id,
-                    Name = pi.Manifest.Name,
-                    DisplayName = pi.Manifest.Name,
-                    Version = pi.Manifest.Version ?? "1.0.0",
-                    Description = pi.Manifest.Description ?? string.Empty,
-                    Author = pi.Manifest.Author ?? string.Empty,
-                    Category = "plugin",
-                    DefaultPriority = pi.Manifest.Priority,
+                    Id = pi.Manifest.Id ,
+                    Name = pi.Manifest.Name ,
+                    DisplayName = pi.Manifest.Name ,
+                    Version = pi.Manifest.Version ?? "1.0.0" ,
+                    Description = pi.Manifest.Description ?? string.Empty ,
+                    Author = pi.Manifest.Author ?? string.Empty ,
+                    Category = "plugin" ,
+                    DefaultPriority = pi.Manifest.Priority ,
                     DefaultEnabled = pi.Manifest.Enabled
                 };
 
                 var runtimePluginConfig = pi.Strategy;
                 var source = $"plugin:{pi.Manifest.Id}";
-                var info = BuildDisplayInfo(pluginManifest, source, persisted, null);
+                var info = BuildDisplayInfo(pluginManifest , source , persisted , null);
                 result.Add(info);
             }
 
@@ -342,7 +339,7 @@ namespace A_Pair.Application.Services
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
             // 持久化到文件
-            await _strategyConfigRepo.SaveAsync(strategyId, config, ct);
+            await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
 
             // 更新运行时内置策略实例
             var builtInInstances = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
@@ -351,7 +348,7 @@ namespace A_Pair.Application.Services
             {
                 strategy.Priority = config.Priority;
                 strategy.IsEnabled = config.IsEnabled;
-                ApplyConfiguration(strategy, config.Parameters);
+                ApplyConfiguration(strategy , config.Parameters);
             }
         }
 
@@ -365,20 +362,20 @@ namespace A_Pair.Application.Services
         {
             var info = new StrategyDisplayInfo
             {
-                Id = manifest.Id,
-                DisplayName = manifest.DisplayName,
-                Description = manifest.Description,
-                Author = manifest.Author,
-                Category = manifest.Category,
-                Source = source,
-                DefaultPriority = manifest.DefaultPriority,
-                DefaultEnabled = manifest.DefaultEnabled,
-                Priority = manifest.DefaultPriority,
+                Id = manifest.Id ,
+                DisplayName = manifest.DisplayName ,
+                Description = manifest.Description ,
+                Author = manifest.Author ,
+                Category = manifest.Category ,
+                Source = source ,
+                DefaultPriority = manifest.DefaultPriority ,
+                DefaultEnabled = manifest.DefaultEnabled ,
+                Priority = manifest.DefaultPriority ,
                 IsEnabled = manifest.DefaultEnabled
             };
 
             // 用持久化的配置覆盖默认值
-            if (persisted.TryGetValue(manifest.Id, out var savedConfig))
+            if (persisted.TryGetValue(manifest.Id , out var savedConfig))
             {
                 info.Priority = savedConfig.Priority;
                 info.IsEnabled = savedConfig.IsEnabled;
@@ -393,44 +390,44 @@ namespace A_Pair.Application.Services
             return info;
         }
 
-        private static Dictionary<string, object?> ExtractParameters (ISeatingStrategy strategy)
+        private static Dictionary<string , object?> ExtractParameters (ISeatingStrategy strategy)
         {
             return strategy switch
             {
-                FrontRowRotationStrategy fr => new Dictionary<string, object?>
+                FrontRowRotationStrategy fr => new Dictionary<string , object?>
                 {
-                    ["HistoryWeight"] = fr.Config.HistoryWeight,
-                    ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus,
+                    ["HistoryWeight"] = fr.Config.HistoryWeight ,
+                    ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus ,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
-                DeskMateStrategy d => new Dictionary<string, object?>
+                DeskMateStrategy d => new Dictionary<string , object?>
                 {
-                    ["PreferHorizontal"] = d.Config.PreferHorizontal,
+                    ["PreferHorizontal"] = d.Config.PreferHorizontal ,
                     ["AllowVertical"] = d.Config.AllowVertical
                 },
                 _ => []
             };
         }
 
-        private static void ApplyConfiguration (ISeatingStrategy strategy , Dictionary<string, object?> parameters)
+        private static void ApplyConfiguration (ISeatingStrategy strategy , Dictionary<string , object?> parameters)
         {
             if (parameters.Count == 0) return;
 
             switch (strategy)
             {
                 case FrontRowRotationStrategy fr:
-                    if (parameters.TryGetValue("HistoryWeight", out var hw) && hw is int hwi)
+                    if (parameters.TryGetValue("HistoryWeight" , out var hw) && hw is int hwi)
                         fr.Config.HistoryWeight = hwi;
-                    if (parameters.TryGetValue("NeedsFrontRowBonus", out var nb) && nb is int nbi)
+                    if (parameters.TryGetValue("NeedsFrontRowBonus" , out var nb) && nb is int nbi)
                         fr.Config.NeedsFrontRowBonus = nbi;
-                    if (parameters.TryGetValue("FrontRowCount", out var fc) && fc is int fci)
+                    if (parameters.TryGetValue("FrontRowCount" , out var fc) && fc is int fci)
                         fr.Config.FrontRowCount = fci;
                     break;
 
                 case DeskMateStrategy d:
-                    if (parameters.TryGetValue("PreferHorizontal", out var ph) && ph is bool phb)
+                    if (parameters.TryGetValue("PreferHorizontal" , out var ph) && ph is bool phb)
                         d.Config.PreferHorizontal = phb;
-                    if (parameters.TryGetValue("AllowVertical", out var av) && av is bool avb)
+                    if (parameters.TryGetValue("AllowVertical" , out var av) && av is bool avb)
                         d.Config.AllowVertical = avb;
                     break;
             }

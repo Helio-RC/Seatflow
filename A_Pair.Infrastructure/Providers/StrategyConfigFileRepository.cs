@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using A_Pair.Core.Models;
 
 namespace A_Pair.Infrastructure.Providers
@@ -14,7 +14,7 @@ namespace A_Pair.Infrastructure.Providers
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            PropertyNameCaseInsensitive = true,
+            PropertyNameCaseInsensitive = true ,
             WriteIndented = true
         };
 
@@ -27,8 +27,8 @@ namespace A_Pair.Infrastructure.Providers
             if (!File.Exists(filePath))
                 return null;
 
-            var json = await File.ReadAllTextAsync(filePath, ct);
-            return JsonSerializer.Deserialize<StrategyConfig>(json, JsonOptions);
+            var json = await File.ReadAllTextAsync(filePath , ct);
+            return JsonSerializer.Deserialize<StrategyConfig>(json , JsonOptions);
         }
 
         /// <summary>
@@ -40,8 +40,8 @@ namespace A_Pair.Infrastructure.Providers
                 Directory.CreateDirectory(_configDir);
 
             var filePath = GetFilePath(strategyId);
-            var json = JsonSerializer.Serialize(config, JsonOptions);
-            await File.WriteAllTextAsync(filePath, json, ct);
+            var json = JsonSerializer.Serialize(config , JsonOptions);
+            await File.WriteAllTextAsync(filePath , json , ct);
         }
 
         /// <summary>
@@ -59,8 +59,8 @@ namespace A_Pair.Infrastructure.Providers
                 // 去掉 .config 后缀：FixedSeat.config.json → FixedSeat
                 var strategyId = Path.GetFileNameWithoutExtension(fileName);
 
-                var json = await File.ReadAllTextAsync(filePath, ct);
-                var config = JsonSerializer.Deserialize<StrategyConfig>(json, JsonOptions);
+                var json = await File.ReadAllTextAsync(filePath , ct);
+                var config = JsonSerializer.Deserialize<StrategyConfig>(json , JsonOptions);
                 if (config is not null)
                     results[strategyId] = config;
             }

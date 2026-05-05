@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json;
+﻿using System.Text.Json;
 using A_Pair.Core.Models;
 
 namespace A_Pair.Core.Services;
@@ -37,7 +33,7 @@ public class StrategyManifestProvider
 
             using var reader = new StreamReader(stream);
             var json = reader.ReadToEnd();
-            var manifest = JsonSerializer.Deserialize<StrategyManifest>(json, JsonOptions);
+            var manifest = JsonSerializer.Deserialize<StrategyManifest>(json , JsonOptions);
             if (manifest is not null)
                 results.Add(manifest);
         }
