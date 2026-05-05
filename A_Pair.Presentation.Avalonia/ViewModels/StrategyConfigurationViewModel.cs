@@ -197,7 +197,19 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 item.PropertyChanged += (_, _) => OnPropertyChanged(nameof(HasChanges));
 
             Strategies = new ObservableCollection<StrategyItemViewModel>(items);
-            StatusMessage = $"已加载 {Strategies.Count} 个策略";
+
+            // 检测并修复初始优先级冲突
+            var fixedList = DetectAndFixPriorityConflicts();
+            if (fixedList.Count > 0)
+            {
+                var names = string.Join("\n", fixedList.Select(n => $"• {n}"));
+                await Dialog.ShowWarningAsync(
+                    "优先级冲突已自动修复",
+                    $"以下策略的优先级存在冲突，已自动调整为递增：\n\n{names}");
+                StatusMessage = $"已加载 {Strategies.Count} 个策略，自动修复了 {fixedList.Count} 处优先级冲突";
+            }
+            else
+                StatusMessage = $"已加载 {Strategies.Count} 个策略";
         }
         catch (Exception ex)
         {
@@ -325,6 +337,29 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private void AssignWithCascade (StrategyItemViewModel higher, StrategyItemViewModel lower)
     {
         higher.Priority = Math.Max(0, lower.Priority - 1);
+        EnsureUniquePriorities();
+    }
+
+    /// <summary>
+    /// 确保所有策略优先级严格递增（无重复、无逆序），返回被修复的策略名列表。
+    /// </summary>
+    private List<string> DetectAndFixPriorityConflicts ()
+    {
+        var fixedNames = new List<string>();
+        var ordered = Strategies.OrderBy(s => s.Priority).ToList();
+        for (int i = 1; i < ordered.Count; i++)
+        {
+            if (ordered[i].Priority <= ordered[i - 1].Priority)
+            {
+                fixedNames.Add(ordered[i].DisplayName);
+                ordered[i].Priority = ordered[i - 1].Priority + 1;
+            }
+        }
+        return fixedNames;
+    }
+
+    private void EnsureUniquePriorities ()
+    {
         var ordered = Strategies.OrderBy(s => s.Priority).ToList();
         for (int i = 1; i < ordered.Count; i++)
         {
