@@ -471,8 +471,9 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             EditAllowVertical = false;
         }
 
-        MarkDetailChanged();
-        StatusMessage = "已恢复默认值（尚未保存）";
+        // 确认后直接保存
+        await SaveCurrentConfigCommand.ExecuteAsync(null);
+        StatusMessage = "已恢复默认值并保存";
     }
 
     // ═══════════════ 辅助 ═══════════════
