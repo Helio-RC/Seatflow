@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.Services;
@@ -49,7 +49,7 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>内容切换后延迟显示进度条。</summary>
     private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
 
-    public MainShellViewModel(INavigationService navigation)
+    public MainShellViewModel (INavigationService navigation)
     {
         _navigation = navigation;
         _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
@@ -64,7 +64,7 @@ public partial class MainShellViewModel : ViewModelBase
     /// ===== 阶段4：进度条渐隐                     =====
     /// ===== 阶段5：新页淡入 ‖ 遮罩淡出（并行）   =====
     /// </summary>
-    private async Task RunTransitionAsync()
+    private async Task RunTransitionAsync ()
     {
         _pageLoadCts?.Cancel();
         _pageLoadCts = new CancellationTokenSource();
@@ -78,28 +78,28 @@ public partial class MainShellViewModel : ViewModelBase
         {
             // 阶段1：遮罩先淡入 → 旧页随后淡出（错开）
             IsPageLoading = true;
-            await Task.Delay(StaggerDelay, ct);
+            await Task.Delay(StaggerDelay , ct);
             PageOpacity = 0;
-            await Task.Delay(FadeOutDuration, ct);
+            await Task.Delay(FadeOutDuration , ct);
 
             // 阶段2：内容切换（遮罩背后，不可见）
             CurrentViewModel = newVm;
             CurrentPage = newPage;
 
             // 阶段3：进度条渐显 + 等待加载
-            await Task.Delay(ProgressBarDelay, ct);
+            await Task.Delay(ProgressBarDelay , ct);
             IsLoadingContentVisible = true;
 
             var layoutDone = new TaskCompletionSource();
-            Dispatcher.UIThread.Post(() => layoutDone.TrySetResult(), DispatcherPriority.Loaded);
-            await Task.WhenAll(Task.Delay(MinLoadDuration, ct), layoutDone.Task);
+            Dispatcher.UIThread.Post(() => layoutDone.TrySetResult() , DispatcherPriority.Loaded);
+            await Task.WhenAll(Task.Delay(MinLoadDuration , ct) , layoutDone.Task);
 
             // 阶段4：进度条渐隐
             IsLoadingContentVisible = false;
 
             // 阶段5：新页先淡入 → 遮罩随后淡出（错开）
             PageOpacity = 1;
-            await Task.Delay(StaggerDelay, ct);
+            await Task.Delay(StaggerDelay , ct);
         }
         catch (OperationCanceledException)
         {
@@ -112,7 +112,7 @@ public partial class MainShellViewModel : ViewModelBase
         IsPageLoading = false;
     }
 
-    public void OnWindowWidthChanged(double windowWidth)
+    public void OnWindowWidthChanged (double windowWidth)
     {
         if (windowWidth < 750)
             IsSidebarExpanded = false;
@@ -120,20 +120,20 @@ public partial class MainShellViewModel : ViewModelBase
             IsSidebarExpanded = _userWantsExpanded;
     }
 
-    partial void OnIsSidebarExpandedChanged(bool value)
+    partial void OnIsSidebarExpandedChanged (bool value)
         => SidebarWidth = value ? 140 : 64;
 
     [RelayCommand]
-    private void ToggleSidebar()
+    private void ToggleSidebar ()
     {
         _userWantsExpanded = !_userWantsExpanded;
         IsSidebarExpanded = _userWantsExpanded;
     }
 
     [RelayCommand]
-    private void Navigate(string pageName)
+    private void Navigate (string pageName)
     {
-        if (Enum.TryParse<PageKey>(pageName, out var key))
+        if (Enum.TryParse<PageKey>(pageName , out var key))
             _navigation.NavigateTo(key);
     }
 }

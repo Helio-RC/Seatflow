@@ -310,7 +310,7 @@ namespace A_Pair.Core.Strategies
                 // 回退：欧几里得距离判定
                 double dx = fa.X - fb.X;
                 double dy = fa.Y - fb.Y;
-                double distance = Math.Sqrt(dx * dx + dy * dy);
+                double distance = Math.Sqrt((dx * dx) + (dy * dy));
                 return distance <= 1.5;
             }
 

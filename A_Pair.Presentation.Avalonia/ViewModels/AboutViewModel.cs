@@ -1,6 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using CommunityToolkit.Mvvm.ComponentModel;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
@@ -18,7 +17,7 @@ public partial class AboutViewModel : ViewModelBase
 
     public List<DependencyInfo> Dependencies { get; }
 
-    public AboutViewModel()
+    public AboutViewModel ()
     {
         var assembly = Assembly.GetEntryAssembly();
         Version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -48,7 +47,7 @@ public class DependencyInfo
     public string Version { get; }
     public string Purpose { get; }
 
-    public DependencyInfo(string name, string version, string purpose)
+    public DependencyInfo (string name , string version , string purpose)
     {
         Name = name;
         Version = version;

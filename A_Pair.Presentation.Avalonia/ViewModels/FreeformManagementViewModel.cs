@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -51,7 +51,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private string _statusMessage = "就绪，请导入自由点数据或选择已有布局";
 
     private static readonly string[] GroupColors =
-        ["#4A90D9", "#E74C3C", "#2ECC71", "#F39C12", "#9B59B6", "#1ABC9C", "#E67E22", "#3498DB"];
+        ["#4A90D9" , "#E74C3C" , "#2ECC71" , "#F39C12" , "#9B59B6" , "#1ABC9C" , "#E67E22" , "#3498DB"];
 
     public static string GetGroupColor (int? groupId)
         => groupId is >= 0 and < 8 ? GroupColors[groupId.Value] : "#4A90D9";
@@ -97,7 +97,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             {
                 int? groupId = null;
                 if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
-                    && int.TryParse(s.LogicalGroup[1..], out var gid))
+                    && int.TryParse(s.LogicalGroup[1..] , out var gid))
                 {
                     groupId = gid;
                 }
@@ -184,8 +184,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
                     if (parts.Length >= 3)
                         pt.ElementType = parts[2].Trim() switch
                         {
-                            "Podium" => (int)FreeformElementType.Podium ,
-                            "Door" => (int)FreeformElementType.Door ,
+                            "Podium" => (int)FreeformElementType.Podium,
+                            "Door" => (int)FreeformElementType.Door,
                             _ => (int)FreeformElementType.Seat
                         };
                     if (parts.Length >= 4 && int.TryParse(parts[3].Trim() , out var gid))
@@ -223,7 +223,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             {
                 int? groupId = null;
                 if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
-                    && int.TryParse(s.LogicalGroup[1..], out var gid))
+                    && int.TryParse(s.LogicalGroup[1..] , out var gid))
                     groupId = gid;
                 pts.Add(new FreeformPoint(s.X , s.Y , s.Id)
                 {
@@ -373,8 +373,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
 
 public enum FreeformElementType
 {
-    Seat ,
-    Podium ,
+    Seat,
+    Podium,
     Door
 }
 

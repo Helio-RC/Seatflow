@@ -1,16 +1,16 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 
 namespace A_Pair.Presentation.Avalonia.Views
 {
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow ()
         {
             InitializeComponent();
         }
 
-        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
 

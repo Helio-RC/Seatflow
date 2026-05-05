@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
@@ -229,21 +229,21 @@
                         <Border Width="12" Height="12"
                                 CornerRadius="6" Opacity="0.85"
                                 IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
-                                    ConverterParameter=0}"
+                                ConverterParameter=0}"
                                 Background="{DynamicResource SystemAccentColor}"
                                 ToolTip.Tip="{Binding Id}"/>
                         <!-- 讲台：大圆点 -->
                         <Border Width="40" Height="40"
                                 CornerRadius="20" Opacity="0.6"
                                 IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
-                                    ConverterParameter=1}"
+                                ConverterParameter=1}"
                                 Background="{DynamicResource PreviewPodiumFillBrush}"
                                 ToolTip.Tip="讲台"/>
                         <!-- 门：矩形 -->
                         <Border Width="36" Height="24"
                                 CornerRadius="4" Opacity="0.7"
                                 IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
-                                    ConverterParameter=2}"
+                                ConverterParameter=2}"
                                 Background="{DynamicResource PreviewDoorFillBrush}"
                                 ToolTip.Tip="门"/>
                       </Panel>

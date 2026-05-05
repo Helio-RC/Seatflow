@@ -50,7 +50,7 @@ namespace A_Pair.Infrastructure.Layouts
                     // 桌面分组：同桌面座位共享 LogicalGroup
                     if (metadata.SeatsPerDesk > 1)
                     {
-                        int deskNumber = (c - 1) / metadata.SeatsPerDesk + 1;
+                        int deskNumber = ((c - 1) / metadata.SeatsPerDesk) + 1;
                         seat.LogicalGroup = $"Desk_R{r}_D{deskNumber}";
                     }
 

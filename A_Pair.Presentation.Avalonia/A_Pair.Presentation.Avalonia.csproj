@@ -38,4 +38,12 @@
   <ItemGroup>
     <ProjectReference Include="..\A_Pair.Application\A_Pair.Application.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\Administrator\source\repos\Helio-RC\A_Pair\A_Pair.Presentation.Avalonia\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\Administrator\source\repos\Helio-RC\A_Pair\A_Pair.Presentation.Avalonia\.editorconfig" />
+  </ItemGroup>
 </Project>

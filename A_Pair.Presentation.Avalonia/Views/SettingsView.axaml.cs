@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 
 namespace A_Pair.Presentation.Avalonia.Views
 {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using A_Pair.Application.Services;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;

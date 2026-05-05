@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using A_Pair.Core.Enums;
-using Avalonia.Data;
 using Avalonia.Data.Converters;
 
 namespace A_Pair.Presentation.Avalonia.Converters;
@@ -11,7 +10,7 @@ namespace A_Pair.Presentation.Avalonia.Converters;
 /// </summary>
 public class GenderIndexConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         return value switch
         {
@@ -22,7 +21,7 @@ public class GenderIndexConverter : IValueConverter
         };
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         if (value is int i)
         {
@@ -43,17 +42,17 @@ public class GenderIndexConverter : IValueConverter
 /// </summary>
 public class HeightConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         return value?.ToString() ?? "";
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         var s = value as string;
         if (string.IsNullOrWhiteSpace(s))
             return null;
 
-        return float.TryParse(s, out var h) ? h : null;
+        return float.TryParse(s , out var h) ? h : null;
     }
 }

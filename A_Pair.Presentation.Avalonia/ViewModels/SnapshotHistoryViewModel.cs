@@ -1,4 +1,4 @@
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+﻿namespace A_Pair.Presentation.Avalonia.ViewModels;
 
 public partial class SnapshotHistoryViewModel : ViewModelBase
 {

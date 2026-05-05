@@ -73,8 +73,8 @@ namespace A_Pair.Core.DomainServices
                 throw new ArgumentException("Polar seat requires PolarLayoutMetadata.");
 
             double rad = seat.AngleDegrees * Math.PI / 180.0;
-            double x = polarMeta.OriginX + seat.Radius * Math.Cos(rad);
-            double y = polarMeta.OriginY + seat.Radius * Math.Sin(rad);
+            double x = polarMeta.OriginX + (seat.Radius * Math.Cos(rad));
+            double y = polarMeta.OriginY + (seat.Radius * Math.Sin(rad));
             return (x , y);
         }
     }

@@ -47,7 +47,7 @@ namespace A_Pair.Infrastructure.Layouts
 
                 // 计算此环的半径（累加环间通道）
                 int aislesBefore = circularAisleSet.Count(r => r < ringNum);
-                double radius = ringNum * metadata.RadiusStep + aislesBefore * metadata.AisleCircularWidth;
+                double radius = (ringNum * metadata.RadiusStep) + (aislesBefore * metadata.AisleCircularWidth);
 
                 // 按各段角宽度比例分配座位
                 var segSeatCounts = DistributeSeats(totalSeats , segments , totalAngularRange);
@@ -63,7 +63,7 @@ namespace A_Pair.Infrastructure.Layouts
 
                     for (int j = 0; j < segSeats; j++)
                     {
-                        double angle = seg.Start + segRange * (j + 0.5) / segSeats;
+                        double angle = seg.Start + (segRange * (j + 0.5) / segSeats);
                         // 规范化到 [0, 360)
                         angle = ((angle % 360) + 360) % 360;
 

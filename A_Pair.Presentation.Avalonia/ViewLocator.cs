@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using Avalonia.Controls;
