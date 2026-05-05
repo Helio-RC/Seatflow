@@ -22,11 +22,9 @@ namespace A_Pair.Presentation.Avalonia.Views
                 vm.OnWindowWidthChanged(Bounds.Width);
         }
 
-        protected override async void OnClosing (WindowClosingEventArgs e)
+        protected override void OnClosing (WindowClosingEventArgs e)
         {
-            // 延迟关闭，等 IO 完成后再真正关闭窗口
-            e.Cancel = true;
-
+            // fire-and-forget 保存窗口状态，不阻塞关闭
             var state = new WindowStateSettings
             {
                 Left = Position.X,
@@ -36,28 +34,26 @@ namespace A_Pair.Presentation.Avalonia.Views
                 IsMaximized = WindowState == WindowState.Maximized
             };
 
-            var appInstance = global::Avalonia.Application.Current as App;
-            if (appInstance is not null)
-            {
-                var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
-                await Task.Run(async () => await SaveWindowStateAsync(facade, state));
-            }
-
-            Close();
+            _ = SaveWindowStateAsync(state);
+            base.OnClosing(e);
         }
 
-        private static async Task SaveWindowStateAsync (IApplicationFacade facade , WindowStateSettings state)
+        private async Task SaveWindowStateAsync (WindowStateSettings state)
         {
             try
             {
+                var appInstance = global::Avalonia.Application.Current as App;
+                if (appInstance is null) return;
+                var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
                 settings.WindowState = state;
                 await facade.SaveAppSettingsAsync(settings);
             }
             catch
             {
-                // 保存失败静默忽略
+                // 静默忽略
             }
         }
+
     }
 }

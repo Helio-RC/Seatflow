@@ -19,12 +19,14 @@ namespace A_Pair.Presentation.Avalonia
             if (param is null)
                 return null;
 
-            var name = param.GetType().FullName!.Replace("ViewModel" , "View" , StringComparison.Ordinal);
+            var fullName = param.GetType().FullName;
+            if (fullName is null) return null;
+
+            var name = fullName.Replace("ViewModel", "View", StringComparison.Ordinal);
             var type = Type.GetType(name);
 
-            if (type != null)
+            if (type != null && Activator.CreateInstance(type) is Control control)
             {
-                var control = (Control)Activator.CreateInstance(type)!;
                 control.DataContext = param;
                 return control;
             }

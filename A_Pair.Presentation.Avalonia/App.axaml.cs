@@ -89,6 +89,15 @@ namespace A_Pair.Presentation.Avalonia
 
                 ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
 
+                // 启动看门狗，防止 UI 卡死无法退出
+                var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
+                watchdog.Start();
+                var pingTimer = new global::Avalonia.Threading.DispatcherTimer(
+                    TimeSpan.FromSeconds(3),
+                    global::Avalonia.Threading.DispatcherPriority.Background,
+                    (_, _) => watchdog.Ping());
+                pingTimer.Start();
+
                 // 启动时恢复已保存的设置（主题、语言等）
                 _ = RestoreSettingsAsync();
             }

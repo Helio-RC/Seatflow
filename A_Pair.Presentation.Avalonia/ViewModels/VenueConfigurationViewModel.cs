@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
@@ -24,6 +25,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private ObservableCollection<VenueItem> _venueItems = [];
 
     private bool _suppressAutoLoad;
+    private CancellationTokenSource? _selectVenueCts;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
@@ -193,8 +195,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         } , "删除会场失败");
     }
 
-    private async Task SelectVenueAsync (VenueItem item)
+    private async Task SelectVenueAsync (VenueItem item , CancellationToken ct = default)
     {
+        ct.ThrowIfCancellationRequested();
         await SafeExecuteAsync(async () =>
         {
             var layout = await _facade.LoadVenueAsync(item.Id);
@@ -623,7 +626,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     partial void OnSelectedVenueItemChanged (VenueItem? value)
     {
         if (!_suppressAutoLoad && value != null)
-            _ = SelectVenueAsync(value);
+        {
+            _selectVenueCts?.Cancel();
+            _selectVenueCts = new CancellationTokenSource();
+            _ = SelectVenueAsync(value, _selectVenueCts.Token);
+        }
     }
 
     partial void OnGridSeatsPerDeskChanged (int value) => RegenerateAisleOptions();

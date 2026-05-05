@@ -21,7 +21,11 @@ public class DialogService : IDialogService
 
     public async Task<bool> ShowConfirmAsync (string title , string message)
     {
-        if (_topLevel is not Window window) return false;
+        if (_topLevel is not Window window)
+        {
+            System.Diagnostics.Debug.WriteLine("DialogService: ShowConfirmAsync called before SetTopLevel");
+            return false;
+        }
 
         var dialog = new DialogWindow
         {
@@ -35,7 +39,11 @@ public class DialogService : IDialogService
 
     public async Task<(bool Confirmed , string Input)> ShowInputAsync (string title , string prompt , string initialValue = "")
     {
-        if (_topLevel is not Window window) return (false , "");
+        if (_topLevel is not Window window)
+        {
+            System.Diagnostics.Debug.WriteLine("DialogService: ShowInputAsync called before SetTopLevel");
+            return (false, "");
+        }
 
         var dialog = new InputWindow
         {
@@ -50,7 +58,11 @@ public class DialogService : IDialogService
 
     private async Task ShowAsync (string title , string message , DialogKind kind)
     {
-        if (_topLevel is not Window window) return;
+        if (_topLevel is not Window window)
+        {
+            System.Diagnostics.Debug.WriteLine("DialogService: ShowAsync called before SetTopLevel");
+            return;
+        }
 
         var dialog = new DialogWindow
         {

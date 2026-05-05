@@ -20,6 +20,7 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<INavigationService , NavigationService>();
             services.AddSingleton<IFileService , FileService>();
             services.AddSingleton<IDialogService , DialogService>();
+            services.AddSingleton<WatchdogService>();
 
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
