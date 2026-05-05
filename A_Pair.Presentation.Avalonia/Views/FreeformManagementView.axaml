@@ -61,7 +61,7 @@
     <Grid ColumnDefinitions="240,4,*">
       <!-- 左侧：已保存的布局 -->
       <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="已保存布局"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
