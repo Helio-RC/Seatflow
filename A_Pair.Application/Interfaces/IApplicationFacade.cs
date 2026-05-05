@@ -80,11 +80,11 @@ namespace A_Pair.Application.Interfaces
         /// <summary>删除指定学生数据集。</summary>
         Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default);
 
-        /// <summary>获取所有策略（内置 + 插件），按优先级升序排列。</summary>
-        Task<List<StrategyConfigDto>> GetStrategiesAsync (CancellationToken ct = default);
+        /// <summary>获取所有策略（内置 + 插件）的完整展示信息，合并 Manifest 和运行时 Config。</summary>
+        Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default);
 
-        /// <summary>批量保存策略配置（优先级、启用状态、参数），并更新运行时策略实例。</summary>
-        Task SaveStrategiesAsync (List<StrategyConfigDto> strategies , CancellationToken ct = default);
+        /// <summary>保存单个策略的运行时配置（优先级、启用状态、参数），并更新运行时策略实例。</summary>
+        Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default);
     }
 
     /// <summary>

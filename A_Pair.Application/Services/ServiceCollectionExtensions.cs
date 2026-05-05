@@ -2,6 +2,7 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
+using A_Pair.Core.Services;
 using A_Pair.Core.Strategies;
 using A_Pair.Infrastructure.Exporters;
 using A_Pair.Infrastructure.Providers;
@@ -76,9 +77,12 @@ namespace A_Pair.Application.Services
             var rostersPath = Path.Combine(snapshotBasePath , "Rosters");
             services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(rostersPath));
 
-            // 注册策略配置仓储（全局单例）
-            var strategyConfigPath = Path.Combine(snapshotBasePath , ".." , "StrategyConfig" , "StrategyConfigs.json");
-            services.AddSingleton(sp => new JsonStrategyConfigRepository(strategyConfigPath));
+            // 注册策略 Manifest 提供器（全局单例）
+            services.AddSingleton<StrategyManifestProvider>();
+
+            // 注册策略运行时配置仓储（per-file，全局单例）
+            var strategyConfigDir = Path.Combine(snapshotBasePath , ".." , "StrategyConfig");
+            services.AddSingleton(sp => new StrategyConfigFileRepository(strategyConfigDir));
 
             return services;
         }

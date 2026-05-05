@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -15,25 +14,92 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
 
-    public string Title { get; } = "策略配置";
+    // ═══════════════ 侧栏列表 ═══════════════
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasStrategies))]
+    [NotifyPropertyChangedFor(nameof(HasSelection))]
     private ObservableCollection<StrategyItemViewModel> _strategies = [];
 
-    public bool HasStrategies => Strategies.Count > 0;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelection))]
+    private StrategyItemViewModel? _selectedStrategy;
+
+    public bool HasSelection => SelectedStrategy is not null;
+
+    // ═══════════════ 侧栏折叠 ═══════════════
 
     [ObservableProperty]
-    private StrategyItemViewModel? _selectedStrategy;
+    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
+    private bool _isSidebarExpanded = true;
+
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
+
+    [ObservableProperty]
+    private double _sidebarListWidth = 240;
+
+    private bool _userWantsSidebarExpanded = true;
+
+    // ═══════════════ 详情区域 ═══════════════
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDetail))]
+    private StrategyDisplayInfo? _selectedDetail;
+
+    public bool HasDetail => SelectedDetail is not null;
+
+    [ObservableProperty]
+    private bool _isEditing;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotLoading))]
     private bool _isLoading;
+
+    public bool IsNotLoading => !IsLoading;
+
+    // ═══════════════ 详情属性（双向绑定用） ═══════════════
+
+    [ObservableProperty]
+    private int _editPriority;
+
+    [ObservableProperty]
+    private bool _editIsEnabled;
 
     [ObservableProperty]
     private bool _hasChanges;
+
+    // FrontRowRotation 参数
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasFrontRowConfig))]
+    private bool _showFrontRowConfig;
+
+    public bool HasFrontRowConfig => ShowFrontRowConfig;
+
+    [ObservableProperty]
+    private int _editHistoryWeight;
+
+    [ObservableProperty]
+    private int _editNeedsFrontRowBonus;
+
+    [ObservableProperty]
+    private int _editFrontRowCount;
+
+    // DeskMate 参数
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasDeskMateConfig))]
+    private bool _showDeskMateConfig;
+
+    public bool HasDeskMateConfig => ShowDeskMateConfig;
+
+    [ObservableProperty]
+    private bool _editPreferHorizontal;
+
+    [ObservableProperty]
+    private bool _editAllowVertical;
+
+    // ═══════════════ 构造函数 ═══════════════
 
     public StrategyConfigurationViewModel (IApplicationFacade facade)
     {
@@ -41,7 +107,37 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         _ = LoadAsync(CancellationToken.None);
     }
 
-    // ═══════════════════════════ 加载 ═══════════════════════════
+    // ═══════════════ 响应式 ═══════════════
+
+    public void OnWindowWidthChanged (double windowWidth)
+    {
+        if (windowWidth < 750)
+            IsSidebarExpanded = false;
+        else
+            IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
+    partial void OnIsSidebarExpandedChanged (bool value)
+        => SidebarListWidth = value ? 240 : 100;
+
+    [RelayCommand]
+    private void ToggleSidebar ()
+    {
+        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
+        IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
+    partial void OnSelectedStrategyChanged (StrategyItemViewModel? value)
+    {
+        if (value is null)
+        {
+            SelectedDetail = null;
+            return;
+        }
+        _ = LoadDetailAsync(value);
+    }
+
+    // ═══════════════ 加载 ═══════════════
 
     private async Task LoadAsync (CancellationToken ct)
     {
@@ -50,19 +146,18 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             IsLoading = true;
             StatusMessage = "正在加载策略列表...";
 
-            var dtos = await _facade.GetStrategiesAsync(ct);
+            var displayInfos = await _facade.GetStrategiesAsync(ct);
             Strategies = new ObservableCollection<StrategyItemViewModel>(
-                dtos.Select(d => new StrategyItemViewModel(
-                    d.Id, d.Name, d.StrategyTypeKey, d.IsPlugin,
-                    d.Priority, d.IsEnabled, d.Configuration)));
+                displayInfos.Select(d => new StrategyItemViewModel(
+                    d.Id, d.DisplayName, d.Source, d.IsBuiltIn,
+                    d.Priority, d.DefaultPriority, d.IsEnabled)));
 
-            HasChanges = false;
             StatusMessage = $"已加载 {Strategies.Count} 个策略";
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
-            StatusMessage = "加载策略列表失败";
-            await Dialog.ShowErrorAsync("加载失败", ex.Message);
+            StatusMessage = "加载失败";
+            await Dialog.ShowErrorAsync("加载策略列表失败", ex.Message);
         }
         finally
         {
@@ -70,7 +165,44 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         }
     }
 
-    // ═══════════════════════════ 优先级调整 ═══════════════════════════
+    private async Task LoadDetailAsync (StrategyItemViewModel item)
+    {
+        try
+        {
+            var displayInfos = await _facade.GetStrategiesAsync(CancellationToken.None);
+            var detail = displayInfos.FirstOrDefault(d => d.Id == item.Id);
+            if (detail is null) return;
+
+            SelectedDetail = detail;
+            EditPriority = item.Priority;
+            EditIsEnabled = item.IsEnabled;
+
+            // 同步策略专属配置
+            ShowFrontRowConfig = detail.Id == "FrontRowRotation";
+            ShowDeskMateConfig = detail.Id == "DeskMate";
+
+            if (ShowFrontRowConfig && detail.Parameters is { Count: > 0 })
+            {
+                EditHistoryWeight = GetParamInt(detail.Parameters, "HistoryWeight");
+                EditNeedsFrontRowBonus = GetParamInt(detail.Parameters, "NeedsFrontRowBonus");
+                EditFrontRowCount = GetParamInt(detail.Parameters, "FrontRowCount");
+            }
+
+            if (ShowDeskMateConfig && detail.Parameters is { Count: > 0 })
+            {
+                EditPreferHorizontal = GetParamBool(detail.Parameters, "PreferHorizontal");
+                EditAllowVertical = GetParamBool(detail.Parameters, "AllowVertical");
+            }
+
+            HasChanges = false;
+        }
+        catch (System.Exception ex)
+        {
+            await Dialog.ShowErrorAsync("加载详情失败", ex.Message);
+        }
+    }
+
+    // ═══════════════ 优先级调整 ═══════════════
 
     public bool CanMoveUp (StrategyItemViewModel? item)
     {
@@ -94,12 +226,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (idx <= 0) return;
 
         Strategies.Move(idx, idx - 1);
-
         var above = Strategies[idx - 1];
         (above.Priority, item.Priority) = (item.Priority, above.Priority);
 
         HasChanges = true;
-        StatusMessage = $"已将「{item.Name}」上移";
+        StatusMessage = $"已将「{item.DisplayName}」上移";
     }
 
     [RelayCommand]
@@ -110,44 +241,63 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (idx < 0 || idx >= Strategies.Count - 1) return;
 
         Strategies.Move(idx, idx + 1);
-
         var below = Strategies[idx + 1];
         (below.Priority, item.Priority) = (item.Priority, below.Priority);
 
         HasChanges = true;
-        StatusMessage = $"已将「{item.Name}」下移";
+        StatusMessage = $"已将「{item.DisplayName}」下移";
     }
 
-    // ═══════════════════════════ 保存 ═══════════════════════════
+    // ═══════════════ 保存 ═══════════════
 
     [RelayCommand]
-    private async Task SaveStrategiesAsync (CancellationToken ct)
+    private async Task SaveConfigAsync (CancellationToken ct)
     {
+        if (SelectedDetail is null) return;
+
         try
         {
             IsLoading = true;
-            StatusMessage = "正在保存策略配置...";
+            StatusMessage = "正在保存...";
 
-            var dtos = Strategies.Select(s => new StrategyConfigDto
+            var parameters = new Dictionary<string, object?>();
+            if (ShowFrontRowConfig)
             {
-                Id = s.Id,
-                Name = s.Name,
-                Priority = s.Priority,
-                IsEnabled = s.IsEnabled,
-                StrategyTypeKey = s.StrategyTypeKey,
-                IsPlugin = s.IsPlugin,
-                Configuration = s.GetConfigurationSnapshot()
-            }).ToList();
+                parameters["HistoryWeight"] = EditHistoryWeight;
+                parameters["NeedsFrontRowBonus"] = EditNeedsFrontRowBonus;
+                parameters["FrontRowCount"] = EditFrontRowCount;
+            }
+            if (ShowDeskMateConfig)
+            {
+                parameters["PreferHorizontal"] = EditPreferHorizontal;
+                parameters["AllowVertical"] = EditAllowVertical;
+            }
 
-            await _facade.SaveStrategiesAsync(dtos, ct);
+            var config = new StrategyConfig
+            {
+                Source = SelectedDetail.Source,
+                Priority = EditPriority,
+                IsEnabled = EditIsEnabled,
+                Parameters = parameters
+            };
 
-            foreach (var s in Strategies)
-                s.MarkClean();
+            await _facade.SaveStrategyConfigAsync(SelectedDetail.Id, config, ct);
+
+            // 同步侧栏项
+            if (SelectedStrategy is not null)
+            {
+                SelectedStrategy.Priority = EditPriority;
+                SelectedStrategy.IsEnabled = EditIsEnabled;
+            }
+
+            SelectedDetail.Priority = EditPriority;
+            SelectedDetail.IsEnabled = EditIsEnabled;
+            SelectedDetail.Parameters = parameters;
 
             HasChanges = false;
-            StatusMessage = "策略配置已保存";
+            StatusMessage = $"{SelectedDetail.DisplayName} 配置已保存";
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             StatusMessage = "保存失败";
             await Dialog.ShowErrorAsync("保存策略配置失败", ex.Message);
@@ -159,13 +309,44 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ResetDefaultsAsync ()
+    private async Task ResetConfigAsync ()
     {
+        if (SelectedDetail is null) return;
+
         var confirmed = await Dialog.ShowConfirmAsync("恢复默认",
-            "确定要恢复所有策略配置到默认值吗？");
+            $"确定要将「{SelectedDetail.DisplayName}」恢复到默认配置吗？");
         if (!confirmed) return;
 
-        await LoadAsync(CancellationToken.None);
-        StatusMessage = "已恢复默认配置（尚未保存）";
+        EditPriority = SelectedDetail.DefaultPriority;
+        EditIsEnabled = SelectedDetail.DefaultEnabled;
+
+        if (ShowFrontRowConfig)
+        {
+            EditHistoryWeight = 10;
+            EditNeedsFrontRowBonus = 1000;
+            EditFrontRowCount = 1;
+        }
+        if (ShowDeskMateConfig)
+        {
+            EditPreferHorizontal = true;
+            EditAllowVertical = false;
+        }
+
+        HasChanges = true;
+        StatusMessage = "已恢复默认值（尚未保存）";
+    }
+
+    // ═══════════════ 辅助 ═══════════════
+
+    private static int GetParamInt (Dictionary<string, object?> parameters , string key)
+    {
+        if (parameters.TryGetValue(key, out var v) && v is int i) return i;
+        return 0;
+    }
+
+    private static bool GetParamBool (Dictionary<string, object?> parameters , string key)
+    {
+        if (parameters.TryGetValue(key, out var v) && v is bool b) return b;
+        return false;
     }
 }

@@ -1,0 +1,11 @@
+{
+    "id": "FixedSeat",
+    "name": "FixedSeat",
+    "displayName": "固定座位",
+    "version": "1.0.0",
+    "description": "将指定学生强制分配到固定座位。支持通过配置定义学生与座位的固定映射关系，常用于特殊需求学生（如视力不佳需坐前排）的固定安排。",
+    "author": "A_Pair Team",
+    "category": "assignment",
+    "defaultPriority": 100,
+    "defaultEnabled": true
+}

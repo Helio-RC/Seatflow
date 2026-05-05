@@ -1,0 +1,11 @@
+{
+    "id": "DeskMate",
+    "name": "DeskMate",
+    "displayName": "同桌分组",
+    "version": "1.0.0",
+    "description": "将指定的学生组分配到相邻座位。支持水平相邻（同行相邻列）和垂直相邻（同列相邻行）两种模式，适合需要坐在一起的朋友组。",
+    "author": "A_Pair Team",
+    "category": "grouping",
+    "defaultPriority": 50,
+    "defaultEnabled": true
+}

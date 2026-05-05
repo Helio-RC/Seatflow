@@ -5,6 +5,10 @@ using A_Pair.Core.DomainServices;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Core.Services;
+using A_Pair.Core.Strategies;
+using A_Pair.Core.Models;
+using A_Pair.Core.Providers;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
@@ -37,7 +41,8 @@ namespace A_Pair.Application.Services
         IAppSettingsRepository appSettingsRepo ,
         IVenueRepository venueRepo ,
         IStudentDatasetRepository datasetRepo ,
-        JsonStrategyConfigRepository strategyConfigRepo) : IApplicationFacade
+        StrategyManifestProvider manifestProvider ,
+        StrategyConfigFileRepository strategyConfigRepo) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
@@ -48,7 +53,8 @@ namespace A_Pair.Application.Services
         private readonly IAppSettingsRepository _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
         private readonly IVenueRepository _venueRepo = venueRepo ?? throw new ArgumentNullException(nameof(venueRepo));
         private readonly IStudentDatasetRepository _datasetRepo = datasetRepo ?? throw new ArgumentNullException(nameof(datasetRepo));
-        private readonly JsonStrategyConfigRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
+        private readonly StrategyManifestProvider _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
+        private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private SeatingWorkspace? _currentWorkspace;
 
         /// <inheritdoc />
@@ -291,98 +297,103 @@ namespace A_Pair.Application.Services
             => _datasetRepo.DeleteAsync(id , ct);
 
         /// <inheritdoc />
-        public async Task<List<StrategyConfigDto>> GetStrategiesAsync (CancellationToken ct = default)
+        public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default)
         {
-            // 加载已持久化的配置
             var persisted = await _strategyConfigRepo.LoadAllAsync(ct);
+            var result = new List<StrategyDisplayInfo>();
 
-            var result = new List<StrategyConfigDto>();
-
-            // 收集内置策略
-            var builtInStrategies = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
-            foreach (var s in builtInStrategies)
+            // 收集内置策略（Manifest + 运行时实例配置）
+            var builtInManifests = _manifestProvider.GetBuiltInManifests();
+            var builtInInstances = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            foreach (var manifest in builtInManifests)
             {
-                var dto = BuildDtoFromStrategy(s, isPlugin: false);
-                // 用持久化值覆盖默认值
-                if (persisted.TryGetValue(s.Id, out var saved))
-                {
-                    dto.Priority = saved.Priority;
-                    dto.IsEnabled = saved.IsEnabled;
-                    if (saved.Configuration is { Count: > 0 })
-                        dto.Configuration = saved.Configuration;
-                }
-                result.Add(dto);
+                var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
+                var info = BuildDisplayInfo(manifest, "builtin", persisted, runtimeStrategy);
+                result.Add(info);
             }
 
-            // 收集插件策略
+            // 收集插件策略（PluginManifest → StrategyManifest + 运行时配置）
             var loadedPlugins = _pluginManager.LoadPlugins();
             foreach (var pi in loadedPlugins)
             {
-                var pluginConfig = await _pluginConfigService.LoadConfigurationAsync<Dictionary<string, object?>>(pi.Manifest.Id, ct);
-                var dto = new StrategyConfigDto
+                var pluginManifest = new StrategyManifest
                 {
-                    Id = pi.Strategy.Id,
-                    Name = pi.Strategy.Name,
-                    Priority = pi.Strategy.Priority,
-                    IsEnabled = pi.Strategy.IsEnabled,
-                    StrategyTypeKey = $"Plugin:{pi.Manifest.Id}",
-                    IsPlugin = true,
-                    Configuration = pluginConfig ?? []
+                    Id = pi.Manifest.Id,
+                    Name = pi.Manifest.Name,
+                    DisplayName = pi.Manifest.Name,
+                    Version = pi.Manifest.Version ?? "1.0.0",
+                    Description = pi.Manifest.Description ?? string.Empty,
+                    Author = pi.Manifest.Author ?? string.Empty,
+                    Category = "plugin",
+                    DefaultPriority = pi.Manifest.Priority,
+                    DefaultEnabled = pi.Manifest.Enabled
                 };
-                result.Add(dto);
+
+                var runtimePluginConfig = pi.Strategy;
+                var source = $"plugin:{pi.Manifest.Id}";
+                var info = BuildDisplayInfo(pluginManifest, source, persisted, null);
+                result.Add(info);
             }
 
             return result.OrderBy(d => d.Priority).ToList();
         }
 
         /// <inheritdoc />
-        public async Task SaveStrategiesAsync (List<StrategyConfigDto> strategies , CancellationToken ct = default)
+        public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
-            // 分离内置和插件策略
-            var builtInDtos = strategies.Where(d => !d.IsPlugin).ToList();
-            var pluginDtos = strategies.Where(d => d.IsPlugin).ToList();
-
-            // 持久化内置策略到统一 JSON
-            await _strategyConfigRepo.SaveAllAsync(builtInDtos, ct);
-
-            // 持久化插件策略到各自 config.json
-            foreach (var dto in pluginDtos)
-            {
-                var pluginId = dto.StrategyTypeKey.StartsWith("Plugin:")
-                    ? dto.StrategyTypeKey["Plugin:".Length..]
-                    : dto.Id;
-                await _pluginConfigService.SaveConfigurationAsync(pluginId, dto.Configuration, ct);
-            }
+            // 持久化到文件
+            await _strategyConfigRepo.SaveAsync(strategyId, config, ct);
 
             // 更新运行时内置策略实例
             var builtInInstances = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
-            foreach (var dto in builtInDtos)
+            var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
+            if (strategy is not null)
             {
-                var strategy = builtInInstances.FirstOrDefault(s => s.Id == dto.Id);
-                if (strategy is null) continue;
-                strategy.Priority = dto.Priority;
-                strategy.IsEnabled = dto.IsEnabled;
-                ApplyConfiguration(strategy, dto.Configuration);
+                strategy.Priority = config.Priority;
+                strategy.IsEnabled = config.IsEnabled;
+                ApplyConfiguration(strategy, config.Parameters);
             }
         }
 
         #region Strategy Helpers
 
-        private static StrategyConfigDto BuildDtoFromStrategy (ISeatingStrategy strategy , bool isPlugin)
+        private static StrategyDisplayInfo BuildDisplayInfo (
+            StrategyManifest manifest ,
+            string source ,
+            Dictionary<string , StrategyConfig> persisted ,
+            ISeatingStrategy? runtimeStrategy)
         {
-            return new StrategyConfigDto
+            var info = new StrategyDisplayInfo
             {
-                Id = strategy.Id,
-                Name = strategy.Name,
-                Priority = strategy.Priority,
-                IsEnabled = strategy.IsEnabled,
-                StrategyTypeKey = isPlugin ? $"Plugin:{strategy.Id}" : strategy.Id,
-                IsPlugin = isPlugin,
-                Configuration = ExtractConfiguration(strategy)
+                Id = manifest.Id,
+                DisplayName = manifest.DisplayName,
+                Description = manifest.Description,
+                Author = manifest.Author,
+                Category = manifest.Category,
+                Source = source,
+                DefaultPriority = manifest.DefaultPriority,
+                DefaultEnabled = manifest.DefaultEnabled,
+                Priority = manifest.DefaultPriority,
+                IsEnabled = manifest.DefaultEnabled
             };
+
+            // 用持久化的配置覆盖默认值
+            if (persisted.TryGetValue(manifest.Id, out var savedConfig))
+            {
+                info.Priority = savedConfig.Priority;
+                info.IsEnabled = savedConfig.IsEnabled;
+                info.Parameters = savedConfig.Parameters;
+            }
+            // 否则从运行时策略实例读取当前参数
+            else if (runtimeStrategy is not null)
+            {
+                info.Parameters = ExtractParameters(runtimeStrategy);
+            }
+
+            return info;
         }
 
-        private static Dictionary<string, object?> ExtractConfiguration (ISeatingStrategy strategy)
+        private static Dictionary<string, object?> ExtractParameters (ISeatingStrategy strategy)
         {
             return strategy switch
             {
@@ -397,30 +408,29 @@ namespace A_Pair.Application.Services
                     ["PreferHorizontal"] = d.Config.PreferHorizontal,
                     ["AllowVertical"] = d.Config.AllowVertical
                 },
-                FixedSeatStrategy => new Dictionary<string, object?>(),
                 _ => []
             };
         }
 
-        private static void ApplyConfiguration (ISeatingStrategy strategy , Dictionary<string, object?> config)
+        private static void ApplyConfiguration (ISeatingStrategy strategy , Dictionary<string, object?> parameters)
         {
-            if (config.Count == 0) return;
+            if (parameters.Count == 0) return;
 
             switch (strategy)
             {
                 case FrontRowRotationStrategy fr:
-                    if (config.TryGetValue("HistoryWeight", out var hw) && hw is int hwi)
+                    if (parameters.TryGetValue("HistoryWeight", out var hw) && hw is int hwi)
                         fr.Config.HistoryWeight = hwi;
-                    if (config.TryGetValue("NeedsFrontRowBonus", out var nb) && nb is int nbi)
+                    if (parameters.TryGetValue("NeedsFrontRowBonus", out var nb) && nb is int nbi)
                         fr.Config.NeedsFrontRowBonus = nbi;
-                    if (config.TryGetValue("FrontRowCount", out var fc) && fc is int fci)
+                    if (parameters.TryGetValue("FrontRowCount", out var fc) && fc is int fci)
                         fr.Config.FrontRowCount = fci;
                     break;
 
                 case DeskMateStrategy d:
-                    if (config.TryGetValue("PreferHorizontal", out var ph) && ph is bool phb)
+                    if (parameters.TryGetValue("PreferHorizontal", out var ph) && ph is bool phb)
                         d.Config.PreferHorizontal = phb;
-                    if (config.TryGetValue("AllowVertical", out var av) && av is bool avb)
+                    if (parameters.TryGetValue("AllowVertical", out var av) && av is bool avb)
                         d.Config.AllowVertical = avb;
                     break;
             }

@@ -1,0 +1,11 @@
+{
+    "id": "FrontRowRotation",
+    "name": "FrontRowRotation",
+    "displayName": "前排轮换",
+    "version": "1.0.0",
+    "description": "基于累计分数公平分配前排座位。有视力需求的学生优先获得前排，同时记录历史座位数据避免同一学生连续坐前排，确保轮换公平性。",
+    "author": "A_Pair Team",
+    "category": "rotation",
+    "defaultPriority": 30,
+    "defaultEnabled": true
+}
