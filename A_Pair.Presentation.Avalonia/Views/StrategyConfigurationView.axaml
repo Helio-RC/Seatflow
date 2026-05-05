@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
@@ -35,7 +35,7 @@
 
         <!-- 底部操作按钮 -->
         <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
-          <StackPanel Spacing="4">
+          <Panel>
             <!-- 展开状态 -->
             <StackPanel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                         IsHitTestVisible="{Binding IsSidebarExpanded}"
@@ -49,23 +49,23 @@
                       CommandParameter="{Binding SelectedStrategy}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="14" />
-                  <TextBlock Text="提高优先级" FontSize="12" />
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
+                  <TextBlock Text="提高优先级" FontSize="13" />
                 </StackPanel>
               </Button>
               <Button Command="{Binding MoveDownCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="14" />
-                  <TextBlock Text="降低优先级" FontSize="12" />
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
+                  <TextBlock Text="降低优先级" FontSize="13" />
                 </StackPanel>
               </Button>
               <Button Command="{Binding ToggleSidebarCommand}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="14" />
-                  <TextBlock Text="收起侧栏" FontSize="12" />
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" />
+                  <TextBlock Text="收起侧栏" FontSize="13" />
                 </StackPanel>
               </Button>
             </StackPanel>
@@ -81,23 +81,20 @@
               </StackPanel.Transitions>
               <Button Command="{Binding MoveUpCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
-                      Width="30" Height="30" Padding="0"
                       ToolTip.Tip="提高优先级" HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
               </Button>
               <Button Command="{Binding MoveDownCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
-                      Width="30" Height="30" Padding="0"
                       ToolTip.Tip="降低优先级" HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
               </Button>
               <Button Command="{Binding ToggleSidebarCommand}"
-                      Width="30" Height="30" Padding="0"
                       ToolTip.Tip="展开侧栏" HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" />
               </Button>
             </StackPanel>
-          </StackPanel>
+          </Panel>
         </Border>
 
         <!-- 策略列表 -->
