@@ -115,10 +115,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
     partial void OnEditIsEnabledChanged (bool value)      { if (!_suppressChangeTracking) MarkDetailChanged(); }
     partial void OnEditHistoryWeightChanged (int value)   { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditNeedsFrontRowBonusChanged (int v)  { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditFrontRowCountChanged (int value)   { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditPreferHorizontalChanged (bool v)   { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditAllowVerticalChanged (bool v)      { if (!_suppressChangeTracking) MarkDetailChanged(); }
+    partial void OnEditNeedsFrontRowBonusChanged (int value)  { if (!_suppressChangeTracking) MarkDetailChanged(); }
+    partial void OnEditFrontRowCountChanged (int value)      { if (!_suppressChangeTracking) MarkDetailChanged(); }
+    partial void OnEditPreferHorizontalChanged (bool value)  { if (!_suppressChangeTracking) MarkDetailChanged(); }
+    partial void OnEditAllowVerticalChanged (bool value)     { if (!_suppressChangeTracking) MarkDetailChanged(); }
 
     private void MarkDetailChanged ()
     {
@@ -451,6 +451,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (!await ValidatePriorityBeforeSaveAsync(SelectedStrategy.Id, EditPriority))
             return;
 
+        var savedName = SelectedDetail.DisplayName;
+
         try
         {
             IsLoading = true;
@@ -473,7 +475,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             _hasDetailChanges = false;
             ReSort();
             OnPropertyChanged(nameof(HasChanges));
-            StatusMessage = $"{SelectedDetail.DisplayName} 已保存";
+            StatusMessage = $"{savedName} 已保存";
         }
         catch (Exception ex)
         {
