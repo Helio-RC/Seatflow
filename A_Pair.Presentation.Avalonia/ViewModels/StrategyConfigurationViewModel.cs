@@ -365,12 +365,23 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// <summary>
     /// 批量保存前检查所有待保存策略之间及与其余策略的优先级冲突。
     /// </summary>
-    private async Task<bool> ValidatePriorityBeforeSaveAllAsync (List<StrategyItemViewModel> dirtyItems)
+    private async Task<bool> ValidatePriorityBeforeSaveAllAsync (
+        List<StrategyItemViewModel> dirtyItems,
+        string? detailStrategyId,
+        int? detailPriority)
     {
+        // 构建保存后的优先级快照：dirty 项用新的 Priority，详情编辑用 EditPriority
         var snapshot = Strategies.Select(s =>
         {
-            var dirty = dirtyItems.FirstOrDefault(d => d.Id == s.Id);
-            return (Id: s.Id, DisplayName: s.DisplayName, Priority: dirty?.Priority ?? s.Priority);
+            int priority;
+            if (s.Id == detailStrategyId && detailPriority.HasValue)
+                priority = detailPriority.Value;
+            else if (dirtyItems.Any(d => d.Id == s.Id))
+                priority = dirtyItems.First(d => d.Id == s.Id).Priority;
+            else
+                priority = s.Priority;
+
+            return (Id: s.Id, DisplayName: s.DisplayName, Priority: priority);
         }).OrderBy(s => s.Priority).ToList();
 
         var duplicates = new List<string>();
@@ -482,31 +493,33 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAllAsync (CancellationToken ct)
     {
+        // 构建"保存后"的优先级快照（基于当前待保存值，尚未同步到侧栏）
+        var dirtyItems = Strategies.Where(s => s.HasChanges).ToList();
+        if (_hasDetailChanges && SelectedStrategy is not null && !dirtyItems.Contains(SelectedStrategy))
+            dirtyItems.Add(SelectedStrategy);
+
+        // 用待保存的优先级构建快照进行冲突检测
+        int? detailPriority = _hasDetailChanges ? EditPriority : null;
+        if (!await ValidatePriorityBeforeSaveAllAsync(dirtyItems, SelectedStrategy?.Id, detailPriority))
+            return;
+
+        if (dirtyItems.Count == 0)
+        {
+            StatusMessage = "没有需要保存的更改";
+            return;
+        }
+
         try
         {
-            // 先同步详情编辑
+            IsLoading = true;
+            StatusMessage = "正在保存...";
+
+            // 同步详情编辑到侧栏项
             if (_hasDetailChanges && SelectedStrategy is not null)
             {
                 SelectedStrategy.Priority = EditPriority;
                 SelectedStrategy.IsEnabled = EditIsEnabled;
             }
-
-            var dirtyItems = Strategies.Where(s => s.HasChanges).ToList();
-            if (_hasDetailChanges && SelectedStrategy is not null && !dirtyItems.Contains(SelectedStrategy))
-                dirtyItems.Add(SelectedStrategy);
-
-            // 检测所有待保存策略之间及其与其余策略的冲突
-            if (!await ValidatePriorityBeforeSaveAllAsync(dirtyItems))
-                return;
-
-            if (dirtyItems.Count == 0)
-            {
-                StatusMessage = "没有需要保存的更改";
-                return;
-            }
-
-            IsLoading = true;
-            StatusMessage = "正在保存...";
 
             foreach (var item in dirtyItems)
             {
