@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
@@ -219,33 +220,97 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void MoveUp (StrategyItemViewModel? item)
+    private async Task MoveUpAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var idx = Strategies.IndexOf(item);
+        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
+        var idx = sorted.IndexOf(item);
         if (idx <= 0) return;
 
-        Strategies.Move(idx , idx - 1);
-        var above = Strategies[idx - 1];
-        (above.Priority , item.Priority) = (item.Priority , above.Priority);
-
+        var neighbor = sorted[idx - 1];
+        // 置换优先级：item 获得更小的优先级值（更高优先级）
+        await ResolveAndSwapPriorityAsync(item, neighbor);
+        ReSort();
         HasChanges = true;
-        StatusMessage = $"已将「{item.DisplayName}」上移";
+        StatusMessage = $"已将「{item.DisplayName}」上移（优先级 {item.Priority}）";
     }
 
     [RelayCommand]
-    private void MoveDown (StrategyItemViewModel? item)
+    private async Task MoveDownAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var idx = Strategies.IndexOf(item);
-        if (idx < 0 || idx >= Strategies.Count - 1) return;
+        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
+        var idx = sorted.IndexOf(item);
+        if (idx < 0 || idx >= sorted.Count - 1) return;
 
-        Strategies.Move(idx , idx + 1);
-        var below = Strategies[idx + 1];
-        (below.Priority , item.Priority) = (item.Priority , below.Priority);
-
+        var neighbor = sorted[idx + 1];
+        // 置换优先级：neighbor 获得更小的优先级值
+        await ResolveAndSwapPriorityAsync(neighbor, item);
+        ReSort();
         HasChanges = true;
-        StatusMessage = $"已将「{item.DisplayName}」下移";
+        StatusMessage = $"已将「{item.DisplayName}」下移（优先级 {item.Priority}）";
+    }
+
+    /// <summary>
+    /// 解决优先级冲突并交换。若无冲突则直接交换；若冲突则弹窗选择先后并级联微调。
+    /// </summary>
+    private async Task ResolveAndSwapPriorityAsync (
+        StrategyItemViewModel first ,
+        StrategyItemViewModel second)
+    {
+        // 已正确排序则直接交换
+        if (first.Priority < second.Priority)
+        {
+            (first.Priority, second.Priority) = (second.Priority, first.Priority);
+            return;
+        }
+
+        if (first.Priority == second.Priority)
+        {
+            // 冲突：弹窗询问
+            var choice = await Dialog.ShowConfirmAsync(
+                "优先级冲突",
+                $"「{first.DisplayName}」和「{second.DisplayName}」的优先级相同（均为 {first.Priority}）。\n\n" +
+                $"选择「是」— {first.DisplayName} 优先执行\n" +
+                $"选择「否」— {second.DisplayName} 优先执行");
+            if (choice)
+                AssignWithCascade(first, second);
+            else
+                AssignWithCascade(second, first);
+        }
+        else
+        {
+            // 顺序颠倒：直接交换
+            (first.Priority, second.Priority) = (second.Priority, first.Priority);
+        }
+    }
+
+    /// <summary>
+    /// 将 higher 的优先级设为 lower 之前（数值更小），并级联检查所有策略避免重复。
+    /// </summary>
+    private void AssignWithCascade (StrategyItemViewModel higher , StrategyItemViewModel lower)
+    {
+        higher.Priority = Math.Max(0, lower.Priority - 1);
+
+        // 级联：确保所有策略优先级唯一，按当前列表顺序递增
+        var ordered = Strategies.OrderBy(s => s.Priority).ToList();
+        for (int i = 1; i < ordered.Count; i++)
+        {
+            if (ordered[i].Priority <= ordered[i - 1].Priority)
+                ordered[i].Priority = ordered[i - 1].Priority + 1;
+        }
+    }
+
+    /// <summary>
+    /// 按优先级升序重新排列列表，保持选中项不变。
+    /// </summary>
+    private void ReSort ()
+    {
+        var selected = SelectedStrategy;
+        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
+        Strategies = new ObservableCollection<StrategyItemViewModel>(sorted);
+        SelectedStrategy = selected;
+        OnPropertyChanged(nameof(Strategies));
     }
 
     // ═══════════════ 保存 ═══════════════
