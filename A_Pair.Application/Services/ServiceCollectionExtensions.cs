@@ -39,6 +39,7 @@ namespace A_Pair.Application.Services
         /// <returns>服务集合，支持链式调用。</returns>
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
+            services.AddLogging();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
@@ -62,7 +63,8 @@ namespace A_Pair.Application.Services
             services.AddSingleton<IConflictResolver , DefaultConflictResolver>();
 
             // 注册插件管理器与配置服务
-            services.AddSingleton<PluginManager>(sp => new PluginManager(pluginsPath));
+            services.AddSingleton<PluginManager>(sp =>
+                new PluginManager(pluginsPath, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
             services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath));
 
             // 注册场地仓储（全局单例）
@@ -82,7 +84,8 @@ namespace A_Pair.Application.Services
 
             // 注册策略运行时配置仓储（per-file，全局单例）
             var strategyConfigDir = Path.Combine(snapshotBasePath , ".." , "StrategyConfig");
-            services.AddSingleton(sp => new StrategyConfigFileRepository(strategyConfigDir));
+            services.AddSingleton(sp => new StrategyConfigFileRepository(
+                strategyConfigDir, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 
             return services;
         }

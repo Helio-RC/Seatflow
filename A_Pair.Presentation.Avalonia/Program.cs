@@ -1,10 +1,13 @@
 ﻿using System;
+using System.IO;
 using A_Pair.Application.Services;
+using A_Pair.Infrastructure.Providers;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Presentation.Avalonia
 {
@@ -21,6 +24,13 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<IFileService , FileService>();
             services.AddSingleton<IDialogService , DialogService>();
             services.AddSingleton<WatchdogService>();
+
+            // 注册文件日志
+            var logDir = Path.Combine("AppData", "Logs");
+            services.AddLogging(builder =>
+            {
+                builder.AddProvider(new FileLoggerProvider(logDir, LogLevel.Information, 5 * 1024 * 1024, 10));
+            });
 
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();

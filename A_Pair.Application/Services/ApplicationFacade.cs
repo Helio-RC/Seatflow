@@ -11,6 +11,7 @@ using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Infrastructure.Providers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Application.Services
 {
@@ -39,7 +40,8 @@ namespace A_Pair.Application.Services
         IVenueRepository venueRepo ,
         IStudentDatasetRepository datasetRepo ,
         StrategyManifestProvider manifestProvider ,
-        StrategyConfigFileRepository strategyConfigRepo) : IApplicationFacade
+        StrategyConfigFileRepository strategyConfigRepo ,
+        ILogger<ApplicationFacade> logger) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
@@ -332,12 +334,18 @@ namespace A_Pair.Application.Services
                 result.Add(info);
             }
 
-            return result.OrderBy(d => d.Priority).ToList();
+            var sorted = result.OrderBy(d => d.Priority).ToList();
+            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，共 {Total} 个",
+                builtInManifests.Count, loadedPlugins.Count(), sorted.Count);
+            return sorted;
         }
 
         /// <inheritdoc />
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
+            logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}",
+                strategyId, config.Priority, config.IsEnabled);
+
             // 持久化到文件
             await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
 

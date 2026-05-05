@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using A_Pair.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Infrastructure.Providers
 {
@@ -8,7 +9,8 @@ namespace A_Pair.Infrastructure.Providers
     /// 每个策略的配置存储在 <c>{configDir}/{strategyId}.config.json</c>。
     /// </summary>
     /// <param name="configDir">配置目录路径，通常为 AppData/StrategyConfig。</param>
-    public class StrategyConfigFileRepository (string configDir)
+    /// <param name="logger">日志记录器。</param>
+    public class StrategyConfigFileRepository (string configDir, ILogger<StrategyConfigFileRepository> logger)
     {
         private readonly string _configDir = configDir ?? throw new ArgumentNullException(nameof(configDir));
 
@@ -42,6 +44,7 @@ namespace A_Pair.Infrastructure.Providers
             var filePath = GetFilePath(strategyId);
             var json = JsonSerializer.Serialize(config , JsonOptions);
             await File.WriteAllTextAsync(filePath , json , ct);
+            logger.LogDebug("策略配置已保存：{Id} → {Path}", strategyId, filePath);
         }
 
         /// <summary>

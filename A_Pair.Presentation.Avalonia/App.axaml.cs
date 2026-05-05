@@ -11,6 +11,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia
@@ -88,6 +89,7 @@ namespace A_Pair.Presentation.Avalonia
                 _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(mainWindow);
 
                 ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
+                ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
 
                 // 启动看门狗，防止 UI 卡死无法退出
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();

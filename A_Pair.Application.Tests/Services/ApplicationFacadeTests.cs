@@ -2,6 +2,7 @@
 using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
 using A_Pair.Infrastructure.Providers;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Application.Tests.Services;
 
@@ -17,18 +18,22 @@ public class ApplicationFacadeTests
         out IVenueRepository venueRepo ,
         out IStudentDatasetRepository datasetRepo ,
         out StrategyManifestProvider manifestProvider ,
-        out StrategyConfigFileRepository strategyConfigRepo)
+        out StrategyConfigFileRepository strategyConfigRepo ,
+        out ILogger<ApplicationFacade> logger)
     {
         serviceProvider = Substitute.For<IServiceProvider>();
         snapshotRepo = Substitute.For<ISeatingSnapshotRepository>();
         exporter = Substitute.For<ISeatingPlanExporter>();
-        pluginManager = Substitute.For<PluginManager>("dummyPath");
+        pluginManager = Substitute.For<PluginManager>("dummyPath",
+            Substitute.For<ILogger<PluginManager>>());
         pluginConfigService = Substitute.For<IPluginConfigurationService>();
         appSettingsRepo = Substitute.For<IAppSettingsRepository>();
         venueRepo = Substitute.For<IVenueRepository>();
         datasetRepo = Substitute.For<IStudentDatasetRepository>();
         manifestProvider = Substitute.For<StrategyManifestProvider>();
-        strategyConfigRepo = Substitute.For<StrategyConfigFileRepository>("/tmp/dummy_config_dir");
+        strategyConfigRepo = Substitute.For<StrategyConfigFileRepository>("/tmp/dummy_config_dir",
+            Substitute.For<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>());
+        logger = Substitute.For<ILogger<ApplicationFacade>>();
 
         var facade = new ApplicationFacade(
             serviceProvider ,
@@ -40,7 +45,8 @@ public class ApplicationFacadeTests
             venueRepo ,
             datasetRepo ,
             manifestProvider ,
-            strategyConfigRepo);
+            strategyConfigRepo ,
+            logger);
         return facade;
     }
 
@@ -48,7 +54,7 @@ public class ApplicationFacadeTests
     public async Task ExportSeatingPlanAsync_ShouldCallExporterWithOptions ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var log);
         var ws = new SeatingWorkspace(new List<Student>() , new List<Seat>());
         var options = new ExportOptions { Format = ExportFormat.Excel , Anonymize = true };
 
@@ -68,7 +74,7 @@ public class ApplicationFacadeTests
     public async Task ExecuteCommandAsync_ShouldDelegateToHistory ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var log);
         var cmd = Substitute.For<IUndoableCommand>();
         cmd.ExecuteAsync(Arg.Any<SeatingWorkspace>() , Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
@@ -86,7 +92,7 @@ public class ApplicationFacadeTests
     public async Task UndoAsync_NoWorkspace_ReturnsFalse ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var log);
         var result = await facade.UndoAsync(CancellationToken.None);
         result.Should().BeFalse();
     }
@@ -95,7 +101,7 @@ public class ApplicationFacadeTests
     public async Task RollbackToSnapshot_ShouldApplyAssignments ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var log);
         var ws = new SeatingWorkspace(
             new[] { new Student { Id = "s1" } , new Student { Id = "s2" } } ,
             new Seat[] { new GridSeat { Id = "seat1" } , new GridSeat { Id = "seat2" } });

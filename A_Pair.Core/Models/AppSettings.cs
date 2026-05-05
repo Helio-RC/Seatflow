@@ -37,6 +37,24 @@ namespace A_Pair.Core.Models
         /// <summary>座位图默认缩放比例。</summary>
         public double DefaultZoomLevel { get; set; } = 1.0;
 
+        /// <summary>日志配置（不暴露到设置 UI）。</summary>
+        public LogSettings Logging { get; set; } = new();
+
+    }
+
+    /// <summary>
+    /// 日志配置，存放于 AppSettings.json 中，不在设置页面展示。
+    /// </summary>
+    public sealed class LogSettings
+    {
+        /// <summary>最低日志级别：Debug / Information / Warning / Error。</summary>
+        public string MinimumLevel { get; set; } = "Information";
+
+        /// <summary>单个日志文件最大字节数，默认 10MB。</summary>
+        public long FileSizeLimitBytes { get; set; } = 10_485_760;
+
+        /// <summary>保留的日志文件数量上限。</summary>
+        public int RetainedFileCountLimit { get; set; } = 30;
     }
 
     /// <summary>

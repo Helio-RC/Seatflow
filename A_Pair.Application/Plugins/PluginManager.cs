@@ -1,5 +1,6 @@
 using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Application.Plugins
 {
@@ -15,9 +16,11 @@ namespace A_Pair.Application.Plugins
     /// 每个插件目录必须包含 <c>plugin.manifest.json</c> 清单文件描述插件元数据和加载方式。
     /// </remarks>
     /// <param name="pluginsPath">插件根目录路径。</param>
+    /// <param name="logger">日志记录器。</param>
     public class PluginManager
     {
         private readonly string _pluginsPath;
+        private readonly ILogger<PluginManager> _logger;
         private readonly List<PluginLoadContext> _contexts = [];
         private readonly Dictionary<string , PluginManifest> _loadedManifests = [];
 
@@ -25,9 +28,11 @@ namespace A_Pair.Application.Plugins
         /// 初始化插件管理器，确保插件目录存在。
         /// </summary>
         /// <param name="pluginsPath">插件根目录路径。</param>
-        public PluginManager (string pluginsPath)
+        /// <param name="logger">日志记录器。</param>
+        public PluginManager (string pluginsPath , ILogger<PluginManager> logger)
         {
             _pluginsPath = pluginsPath;
+            _logger = logger;
             Directory.CreateDirectory(_pluginsPath);
         }
 
@@ -90,7 +95,7 @@ namespace A_Pair.Application.Plugins
                 catch (Exception ex)
                 {
                     // 记录日志：加载插件失败
-                    System.Diagnostics.Debug.WriteLine($"Failed to load plugin from {pluginDir}: {ex.Message}");
+                    _logger.LogWarning(ex, "加载插件失败：{PluginDir}", pluginDir);
                 }
             }
 
