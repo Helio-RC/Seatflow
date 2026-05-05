@@ -210,6 +210,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 await Dialog.ShowWarningAsync(
                     "优先级冲突已自动修复",
                     $"以下策略的优先级存在冲突，已自动调整为递增：\n\n{names}");
+                ReSort();
                 StatusMessage = $"已加载 {Strategies.Count} 个策略，自动修复了 {fixedList.Count} 处优先级冲突";
             }
             else
@@ -470,6 +471,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             await _facade.SaveStrategyConfigAsync(SelectedDetail.Id, config, ct);
             SelectedStrategy.MarkClean();
             _hasDetailChanges = false;
+            ReSort();
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = $"{SelectedDetail.DisplayName} 已保存";
         }
@@ -538,6 +540,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             }
 
             _hasDetailChanges = false;
+            ReSort();
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = $"已保存 {dirtyItems.Count} 个策略";
         }
