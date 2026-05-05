@@ -61,6 +61,15 @@
                   <TextBlock Text="降低优先级" FontSize="13" />
                 </StackPanel>
               </Button>
+              <Separator Margin="0,2" />
+              <Button Command="{Binding SaveAllCommand}"
+                      IsEnabled="{Binding HasChanges}"
+                      HorizontalContentAlignment="Left" Padding="8,5">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
+                  <TextBlock Text="保存更改" FontSize="13" />
+                </StackPanel>
+              </Button>
               <Button Command="{Binding ToggleSidebarCommand}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -88,6 +97,11 @@
                       CommandParameter="{Binding SelectedStrategy}"
                       ToolTip.Tip="降低优先级" HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
+              </Button>
+              <Button Command="{Binding SaveAllCommand}"
+                      IsEnabled="{Binding HasChanges}"
+                      ToolTip.Tip="保存更改" HorizontalAlignment="Center">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
               </Button>
               <Button Command="{Binding ToggleSidebarCommand}"
                       ToolTip.Tip="展开侧栏" HorizontalAlignment="Center">
@@ -309,7 +323,7 @@
                 <TextBlock Text="恢复默认" FontSize="14" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding SaveConfigCommand}"
+                <Button Command="{Binding SaveCurrentConfigCommand}"
                     HorizontalContentAlignment="Center" Padding="12,6"
                     IsDefault="True">
               <StackPanel Orientation="Horizontal" Spacing="6">

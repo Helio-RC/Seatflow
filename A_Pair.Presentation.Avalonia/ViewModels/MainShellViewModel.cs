@@ -131,9 +131,9 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Navigate (string pageName)
+    private async Task NavigateAsync (string pageName)
     {
         if (Enum.TryParse<PageKey>(pageName , out var key))
-            _navigation.NavigateTo(key);
+            await _navigation.NavigateToAsync(key);
     }
 }

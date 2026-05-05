@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -30,4 +30,10 @@ public abstract class ViewModelBase : ObservableObject
             return false;
         }
     }
+
+    /// <summary>
+    /// 导航离开前调用。子类可重写以询问用户是否保存未提交的更改。
+    /// 返回 true 表示允许离开，false 表示取消导航。
+    /// </summary>
+    public virtual Task<bool> CanLeaveAsync () => Task.FromResult(true);
 }

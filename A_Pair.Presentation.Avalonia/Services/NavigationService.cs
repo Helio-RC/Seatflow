@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,23 @@ public class NavigationService : INavigationService
     public void NavigateTo (PageKey page)
     {
         if (page == CurrentPage) return;
+        SwitchToPage(page);
+    }
+
+    public async Task<bool> NavigateToAsync (PageKey page)
+    {
+        if (page == CurrentPage) return false;
+
+        // 询问当前页面是否可以离开
+        if (CurrentViewModel is not null && !await CurrentViewModel.CanLeaveAsync())
+            return false;
+
+        SwitchToPage(page);
+        return true;
+    }
+
+    private void SwitchToPage (PageKey page)
+    {
         CurrentPage = page;
         CurrentViewModel = page switch
         {
