@@ -23,7 +23,9 @@
             CornerRadius="6" ClipToBounds="True" HorizontalAlignment="Left"
             Background="{DynamicResource SidebarBackgroundBrush}">
       <Border.Transitions>
-        <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+        <Transitions>
+          <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+        </Transitions>
       </Border.Transitions>
 
       <DockPanel Margin="8">
@@ -39,7 +41,9 @@
                         IsHitTestVisible="{Binding IsSidebarExpanded}"
                         Spacing="4">
               <StackPanel.Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+                </Transitions>
               </StackPanel.Transitions>
               <Button Command="{Binding MoveUpCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
@@ -71,7 +75,9 @@
                         IsHitTestVisible="{Binding IsSidebarCollapsed}"
                         Spacing="4" HorizontalAlignment="Center">
               <StackPanel.Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+                </Transitions>
               </StackPanel.Transitions>
               <Button Command="{Binding MoveUpCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
