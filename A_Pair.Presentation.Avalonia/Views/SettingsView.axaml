@@ -16,7 +16,7 @@
       <DockPanel>
         <TextBlock DockPanel.Dock="Left" Text="设置" Classes="pageTitle"
                    VerticalAlignment="Center" />
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
           <Button Command="{Binding ResetDefaultsCommand}" AutomationProperties.Name="恢复默认设置"
                   HorizontalContentAlignment="Center" Padding="12,6">
             <StackPanel Orientation="Horizontal" Spacing="6">

@@ -137,7 +137,7 @@
                   </DockPanel>
                   <!-- 折叠状态：名称 + CheckBox（单选模式） -->
                   <StackPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                              IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarCollapsed}"
+                              IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarCollapsed}" Orientation="Horizontal"
                               HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
                     <StackPanel.Transitions>
                       <Transitions>
@@ -145,11 +145,11 @@
                       </Transitions>
                     </StackPanel.Transitions>
                     <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                               TextTrimming="CharacterEllipsis" FontSize="11"
-                               HorizontalAlignment="Center" />
+                               TextTrimming="CharacterEllipsis" FontSize="13"
+                               HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}"
                               ToolTip.Tip="{Binding DisplayName, StringFormat='启用 {0}'}"
-                              HorizontalAlignment="Center" />
+                              HorizontalAlignment="Right" VerticalAlignment="Center" />
                   </StackPanel>
                 </Grid>
               </Border>
