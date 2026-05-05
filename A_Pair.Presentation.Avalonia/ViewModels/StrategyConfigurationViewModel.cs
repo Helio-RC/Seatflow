@@ -108,7 +108,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     // ── 详情编辑触发 _hasDetailChanges ──
 
-    partial void OnEditPriorityChanged (int value)       { if (!_suppressChangeTracking) MarkDetailChanged(); }
+    partial void OnEditPriorityChanged (int value)
+    {
+        if (_suppressChangeTracking) return;
+        MarkDetailChanged();
+    }
     partial void OnEditIsEnabledChanged (bool value)      { if (!_suppressChangeTracking) MarkDetailChanged(); }
     partial void OnEditHistoryWeightChanged (int value)   { if (!_suppressChangeTracking) MarkDetailChanged(); }
     partial void OnEditNeedsFrontRowBonusChanged (int v)  { if (!_suppressChangeTracking) MarkDetailChanged(); }
@@ -340,6 +344,51 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         EnsureUniquePriorities();
     }
 
+    // ═══════════════ 优先级冲突验证 ═══════════════
+
+    /// <summary>
+    /// 保存单个策略前检查优先级是否与其他策略冲突。
+    /// </summary>
+    private bool ValidatePriorityBeforeSave (string strategyId , int newPriority)
+    {
+        var conflict = Strategies.FirstOrDefault(s =>
+            s.Id != strategyId && s.Priority == newPriority);
+
+        if (conflict is null) return true;
+
+        _ = Dialog.ShowWarningAsync(
+            "优先级冲突",
+            $"优先级 {newPriority} 已被「{conflict.DisplayName}」使用。\n\n请修改为不同的优先级值后再保存。");
+        return false;
+    }
+
+    /// <summary>
+    /// 批量保存前检查所有待保存策略之间及与其余策略的优先级冲突。
+    /// </summary>
+    private bool ValidatePriorityBeforeSaveAll (List<StrategyItemViewModel> dirtyItems)
+    {
+        // 构建"保存后"的优先级快照：dirty 用新值，其余用当前值
+        var snapshot = Strategies.Select(s =>
+        {
+            var dirty = dirtyItems.FirstOrDefault(d => d.Id == s.Id);
+            return (Id: s.Id, DisplayName: s.DisplayName, Priority: dirty?.Priority ?? s.Priority);
+        }).OrderBy(s => s.Priority).ToList();
+
+        var duplicates = new List<string>();
+        for (int i = 1; i < snapshot.Count; i++)
+        {
+            if (snapshot[i].Priority <= snapshot[i - 1].Priority)
+                duplicates.Add($"• {snapshot[i].DisplayName}（优先级 {snapshot[i].Priority}）");
+        }
+
+        if (duplicates.Count == 0) return true;
+
+        _ = Dialog.ShowWarningAsync(
+            "优先级冲突",
+            $"保存后将出现以下优先级冲突：\n\n{string.Join("\n", duplicates)}\n\n请逐个调整冲突策略的优先级后再保存。");
+        return false;
+    }
+
     /// <summary>
     /// 确保所有策略优先级严格递增（无重复、无逆序），返回被修复的策略名列表。
     /// </summary>
@@ -381,11 +430,15 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     /// <summary>
     /// 仅保存当前选中策略的配置（优先级 + 启用 + 参数）。
+    /// 保存前检测优先级冲突，冲突则拒绝保存。
     /// </summary>
     [RelayCommand]
     private async Task SaveCurrentConfigAsync (CancellationToken ct)
     {
         if (SelectedDetail is null || SelectedStrategy is null) return;
+
+        if (!ValidatePriorityBeforeSave(SelectedStrategy.Id, EditPriority))
+            return;
 
         try
         {
@@ -425,22 +478,27 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     /// <summary>
     /// 保存所有有变更的策略。由侧栏底部按钮和离开弹窗触发。
+    /// 保存前检测所有待保存策略的优先级冲突。
     /// </summary>
     [RelayCommand]
     private async Task SaveAllAsync (CancellationToken ct)
     {
         try
         {
-            var dirtyItems = Strategies.Where(s => s.HasChanges).ToList();
-
-            // 当前详情编辑也计入
+            // 先同步详情编辑
             if (_hasDetailChanges && SelectedStrategy is not null)
             {
                 SelectedStrategy.Priority = EditPriority;
                 SelectedStrategy.IsEnabled = EditIsEnabled;
-                if (!dirtyItems.Contains(SelectedStrategy))
-                    dirtyItems.Add(SelectedStrategy);
             }
+
+            var dirtyItems = Strategies.Where(s => s.HasChanges).ToList();
+            if (_hasDetailChanges && SelectedStrategy is not null && !dirtyItems.Contains(SelectedStrategy))
+                dirtyItems.Add(SelectedStrategy);
+
+            // 检测所有待保存策略之间及其与其余策略的冲突
+            if (!ValidatePriorityBeforeSaveAll(dirtyItems))
+                return;
 
             if (dirtyItems.Count == 0)
             {
