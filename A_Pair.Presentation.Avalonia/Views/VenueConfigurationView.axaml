@@ -121,7 +121,7 @@
           </Border>
           <ListBox DockPanel.Dock="Bottom" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}"
-                   BorderThickness="0">
+                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6"/>

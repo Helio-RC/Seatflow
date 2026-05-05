@@ -340,7 +340,7 @@
 
           <ListBox ItemsSource="{Binding SavedDatasets}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
-                   BorderThickness="0">
+                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="models:StudentDatasetInfo">
                 <Border Padding="8,6" CornerRadius="4">

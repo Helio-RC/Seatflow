@@ -9,13 +9,13 @@
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-          <Color x:Key="SidebarBackgroundColor">#F0F0F0</Color>
+          <Color x:Key="SidebarBackgroundColor">#E6E6E6</Color>
           <Color x:Key="PreviewSeatBorderColor">#80000000</Color>
           <Color x:Key="PreviewPodiumFillColor">#4080D0E0</Color>
           <Color x:Key="PreviewDoorFillColor">#800072C6</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <Color x:Key="SidebarBackgroundColor">#252525</Color>
+          <Color x:Key="SidebarBackgroundColor">#1A1A1A</Color>
           <Color x:Key="PreviewSeatBorderColor">#80FFFFFF</Color>
           <Color x:Key="PreviewPodiumFillColor">#4060A0FF</Color>
           <Color x:Key="PreviewDoorFillColor">#809080F0</Color>

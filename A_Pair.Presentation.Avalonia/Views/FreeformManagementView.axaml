@@ -88,7 +88,7 @@
 
           <ListBox ItemsSource="{Binding SavedLayouts}"
                    SelectedItem="{Binding SelectedLayout, Mode=TwoWay}"
-                   BorderThickness="0">
+                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6"/>
