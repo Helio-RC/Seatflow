@@ -147,8 +147,12 @@ public partial class SettingsViewModel : ViewModelBase
             IsSaving = true;
             StatusMessage = "正在保存...";
 
+            // 保留已有的窗口状态，避免覆盖
+            var existing = await _facade.LoadAppSettingsAsync(ct);
+
             var settings = new AppSettings
             {
+                WindowState = existing.WindowState ,
                 Theme = Theme ,
                 Language = Language ,
                 DataDirectory = DataDirectory ,

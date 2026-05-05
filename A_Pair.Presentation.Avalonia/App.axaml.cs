@@ -5,6 +5,8 @@ using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
@@ -16,6 +18,8 @@ namespace A_Pair.Presentation.Avalonia
     public partial class App : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider;
+
+        internal IServiceProvider ServiceProvider => _serviceProvider;
 
         public App (IServiceProvider serviceProvider)
         {
@@ -34,6 +38,23 @@ namespace A_Pair.Presentation.Avalonia
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
                 ApplyTheme(settings.Theme);
+
+                // 恢复窗口状态
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                    && desktop.MainWindow is { } window)
+                {
+                    var ws = settings.WindowState;
+                    if (ws.Width > 0 && ws.Height > 0)
+                    {
+                        window.Width = ws.Width;
+                        window.Height = ws.Height;
+                    }
+                    if (ws.Left != 0 || ws.Top != 0)
+                        window.Position = new PixelPoint((int)ws.Left, (int)ws.Top);
+
+                    if (ws.IsMaximized)
+                        window.WindowState = WindowState.Maximized;
+                }
 
                 // 无文件时创建默认配置文件
                 await facade.SaveAppSettingsAsync(settings);
