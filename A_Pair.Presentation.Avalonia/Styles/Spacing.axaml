@@ -1,5 +1,5 @@
-<Style xmlns="https://github.com/avaloniaui"
-       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- 间距令牌：页面/区块级 Margin -->
   <Style Selector="Border.pageMargin">
@@ -12,4 +12,4 @@
     <Setter Property="CornerRadius" Value="8" />
   </Style>
 
-</Style>
+</Styles>
