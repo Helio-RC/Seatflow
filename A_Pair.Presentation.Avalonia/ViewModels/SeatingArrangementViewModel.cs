@@ -249,6 +249,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var metadata = _currentLayout.Metadata;
         var studentMap = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
         var assignments = _currentPlan.Assignments;
+        var (seatWidth, seatHeight) = GetSeatDimensions(metadata);
 
         var items = new List<SeatDisplayItem>();
         double maxX = 0, maxY = 0;
@@ -263,14 +264,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             bool isOccupied = occupantId != null;
             bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
-            maxX = Math.Max(maxX, x + 68);
-            maxY = Math.Max(maxY, y + 44);
+            maxX = Math.Max(maxX, x + seatWidth + 4);
+            maxY = Math.Max(maxY, y + seatHeight + 4);
             seatCounter++;
 
             items.Add(new SeatDisplayItem
             {
                 X = x,
                 Y = y,
+                Width = seatWidth,
+                Height = seatHeight,
                 SeatId = seat.Id,
                 SeatLabel = BuildSeatLabel(seat, seatCounter),
                 IsFrontRow = isFrontRow,
@@ -287,6 +290,24 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
         CanvasWidth = Math.Max(800, maxX + 40);
         CanvasHeight = Math.Max(600, maxY + 40);
+    }
+
+    private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
+    {
+        if (metadata is GridLayoutMetadata gm)
+        {
+            double w = gm.SeatsPerDesk > 1
+                ? Math.Max(gm.IntraDeskSpacing - 2, 10)
+                : Math.Max(gm.InterDeskSpacing - 8, 16);
+            double h = Math.Clamp(gm.VerticalSpacing - 4, 14, 24);
+            return (Math.Min(w, 24), h);
+        }
+        if (metadata is PolarLayoutMetadata pm)
+        {
+            double s = Math.Clamp(pm.RadiusStep * 0.45, 10, 22);
+            return (s, s);
+        }
+        return (22, 18);
     }
 
     // ── 座位标签与行列判断 ──

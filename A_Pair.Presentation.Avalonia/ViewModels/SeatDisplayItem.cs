@@ -9,9 +9,9 @@ public partial class SeatDisplayItem : ObservableObject
     // ── 几何（不可变） ──
     public double X { get; init; }
     public double Y { get; init; }
-    public double Width { get; init; } = 64;
-    public double Height { get; init; } = 40;
-    public CornerRadius CornerRadius { get; init; } = new(4);
+    public double Width { get; init; } = 22;
+    public double Height { get; init; } = 18;
+    public CornerRadius CornerRadius { get; init; } = new(3);
     public string SeatId { get; init; } = string.Empty;
     public string SeatLabel { get; init; } = string.Empty;
 

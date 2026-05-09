@@ -46,7 +46,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasDetail))]
     private StrategyDisplayInfo? _selectedDetail;
 
-    public bool HasDetail => SelectedDetail is not null;
+    public bool HasDetail => SelectedDetail is not null && !string.IsNullOrEmpty(SelectedDetail.Id);
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
@@ -138,6 +138,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     public StrategyConfigurationViewModel (IApplicationFacade facade)
     {
         _facade = facade;
+        _selectedDetail = new();
         _ = LoadAsync(CancellationToken.None);
     }
 
@@ -184,7 +185,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         if (value is null)
         {
-            SelectedDetail = null;
+            SelectedDetail = new();
             return;
         }
         _ = LoadDetailAsync(value);
