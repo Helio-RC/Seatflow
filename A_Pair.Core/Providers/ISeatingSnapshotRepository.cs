@@ -8,5 +8,6 @@ namespace A_Pair.Core.Providers
         SeatingSnapshot? Load (string id);
         Task<IReadOnlyList<SeatingSnapshot>> ListByVenueAsync (string venueId);
         Task DeleteAsync (string id);
+        Task SaveVenueInfoAsync (string venueId, VenueSnapshotInfo info);
     }
 }

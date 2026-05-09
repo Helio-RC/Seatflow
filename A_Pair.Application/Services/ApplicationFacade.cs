@@ -123,15 +123,16 @@ namespace A_Pair.Application.Services
 
             // 2. 生成座位布局
             List<Seat> seats;
+            ClassroomLayoutDefinition? venueLayout = null;
             if (!string.IsNullOrEmpty(request.LayoutId))
             {
                 // 从已保存的会场加载布局
-                var layout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
-                if (layout != null)
+                venueLayout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
+                if (venueLayout != null)
                 {
-                    seats = layout.Seats;
+                    seats = venueLayout.Seats;
                     // 应用障碍物 (已在保存时处理，但为确保安全再次处理)
-                    ObstacleProcessor.ApplyObstacles(layout);
+                    ObstacleProcessor.ApplyObstacles(venueLayout);
                 }
                 else
                 {
@@ -166,19 +167,15 @@ namespace A_Pair.Application.Services
                 strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
 
             // 6b. 同步 FrontRowCount 到策略配置
-            if (!string.IsNullOrEmpty(request.LayoutId))
+            if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
             {
-                var venueLayout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
-                if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
-                {
-                    var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
-                    frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
-                }
-                else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
-                {
-                    var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
-                    frontRowStrategy?.SetFrontRowCount(polarMeta.FrontRowCount);
-                }
+                var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
+            }
+            else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
+            {
+                var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                frontRowStrategy?.SetFrontRowCount(polarMeta.FrontRowCount);
             }
 
             // 7. 执行策略管道
@@ -209,6 +206,18 @@ namespace A_Pair.Application.Services
                 SeatAssignments = plan.Assignments
             };
             await _snapshotRepository.SaveAsync(snapshot);
+
+            // 9b. 保存会场摘要到快照目录
+            if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
+            {
+                await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId, new VenueSnapshotInfo
+                {
+                    Name = venueLayout.Name,
+                    LayoutType = venueLayout.LayoutType,
+                    SeatCount = venueLayout.Seats.Count(s => s.IsAvailable),
+                    ObstacleCount = venueLayout.Obstacles.Count
+                });
+            }
 
             progress?.Report(new SeatingProgress
             {

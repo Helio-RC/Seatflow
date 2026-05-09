@@ -57,4 +57,12 @@ public class RandomFillStrategyTests
         await strategy.Awaiting(s => s.ExecuteAsync(ws , cts.Token))
             .Should().ThrowAsync<OperationCanceledException>();
     }
+
+    [Fact]
+    public void ValidateConfiguration_AlwaysValid ()
+    {
+        var strategy = new RandomFillStrategy();
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeTrue();
+    }
 }

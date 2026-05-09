@@ -92,4 +92,28 @@ public class DeskMateStrategyTests
         // 垂直相邻意味着同列
         assignedSeats.Select(s => s.Column).Distinct().Should().ContainSingle();
     }
+
+    [Fact]
+    public void ValidateConfiguration_HasGroups_ShouldPass ()
+    {
+        var config = new DeskMateConfiguration
+        {
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            }
+        };
+        var strategy = new DeskMateStrategy(config);
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ValidateConfiguration_NullGroups_ShouldFail ()
+    {
+        var config = new DeskMateConfiguration { Groups = null! };
+        var strategy = new DeskMateStrategy(config);
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeFalse();
+    }
 }

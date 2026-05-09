@@ -30,6 +30,16 @@ namespace A_Pair.Infrastructure.Repositories
         }
 
         /// <inheritdoc />
+        public async Task SaveVenueInfoAsync (string venueId, VenueSnapshotInfo info)
+        {
+            var dir = Path.Combine(_basePath, venueId);
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, "_venue.json");
+            var json = JsonSerializer.Serialize(info, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(path, json);
+        }
+
+        /// <inheritdoc />
         public SeatingSnapshot? Load (string id)
         {
             foreach (var venueDir in SafeEnumerateDirectories(_basePath))
