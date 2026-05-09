@@ -64,7 +64,7 @@
 
     <Grid ColumnDefinitions="240,4,*">
       <!-- 左侧：已保存的布局 -->
-      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
+      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" MinWidth="120"
               Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="已保存布局"
@@ -163,7 +163,7 @@
           <!-- 坐标列表 + 预览 -->
           <Grid ColumnDefinitions="*,Auto" RowDefinitions="*">
             <!-- 坐标表格 -->
-            <ScrollViewer Grid.Column="0"
+            <ScrollViewer Grid.Column="0" MinWidth="500"
                           HorizontalScrollBarVisibility="Auto">
               <ListBox ItemsSource="{Binding Points}">
                 <ListBox.ItemTemplate>
