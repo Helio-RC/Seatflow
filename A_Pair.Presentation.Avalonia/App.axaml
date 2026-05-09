@@ -69,7 +69,7 @@
       <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="{DynamicResource SurfaceOverlayColor}" />
 
       <!-- BoxShadows -->
-      <BoxShadows x:Key="CardShadowNone">none</BoxShadows>
+      <BoxShadows x:Key="CardShadowNone">0 0 0 0 Transparent</BoxShadows>
       <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #30000000, 0 2 8 0 #18000000</BoxShadows>
       <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #18000000</BoxShadows>
     </ResourceDictionary>

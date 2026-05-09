@@ -1,4 +1,5 @@
 ﻿using A_Pair.Core.Exporters;
+using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -72,8 +73,14 @@ public class ServiceCollectionExtensionsTests : IDisposable
         provider.GetService<PluginManager>();
         Directory.Exists(pluginsPath).Should().BeTrue();
 
-        // 快照目录由 Repository 创建，解析才生成
-        provider.GetService<ISeatingSnapshotRepository>();
-        Assert.True(Directory.Exists(Path.Combine(snapshotBasePath)));
+        // 快照目录由 Repository 在保存时按需创建
+        var snapshotRepo = provider.GetRequiredService<ISeatingSnapshotRepository>();
+        snapshotRepo.SaveAsync(new SeatingSnapshot
+        {
+            Id = "test_snap",
+            LayoutId = "venue1",
+            CreatedAt = DateTime.UtcNow
+        }).GetAwaiter().GetResult();
+        Assert.True(Directory.Exists(Path.Combine(snapshotBasePath, "Assignments", "venue1")));
     }
 }

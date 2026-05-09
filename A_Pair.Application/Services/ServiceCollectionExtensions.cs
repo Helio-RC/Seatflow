@@ -1,3 +1,4 @@
+using System.IO;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Core.Exporters;
@@ -41,7 +42,8 @@ namespace A_Pair.Application.Services
         {
             services.AddLogging();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
-            services.AddSingleton<ISeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
+            services.AddSingleton<ISeatingSnapshotRepository>(sp =>
+                new SeatingSnapshotRepository(Path.Combine(snapshotBasePath, "Assignments")));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 

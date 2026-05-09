@@ -31,7 +31,7 @@ public sealed class FileLoggerProvider : ILoggerProvider, IDisposable
         _maxFileSize = maxFileSize;
         _maxFiles = maxFiles;
         _currentDate = DateTime.Today;
-        OpenWriter();
+        try { OpenWriter(); } catch { /* 启动时日志文件创建失败不影响运行 */ }
     }
 
     public ILogger CreateLogger (string categoryName)
@@ -98,15 +98,22 @@ public sealed class FileLoggerProvider : ILoggerProvider, IDisposable
 
     private void OpenWriter ()
     {
-        _writer?.Dispose();
-        Directory.CreateDirectory(_logDir);
+        try
+        {
+            _writer?.Dispose();
+            Directory.CreateDirectory(_logDir);
 
-        var dateStr = _currentDate.ToString("yyyyMMdd");
-        var suffix = _fileIndex > 0 ? $"_{_fileIndex:000}" : "";
-        var path = Path.Combine(_logDir, $"A_Pair_{dateStr}{suffix}.log");
+            var dateStr = _currentDate.ToString("yyyyMMdd");
+            var suffix = _fileIndex > 0 ? $"_{_fileIndex:000}" : "";
+            var path = Path.Combine(_logDir, $"A_Pair_{dateStr}{suffix}.log");
 
-        _writer = new StreamWriter(path, append: true, Encoding.UTF8);
-        _currentSize = new FileInfo(path).Length;
+            _writer = new StreamWriter(path, append: true, Encoding.UTF8);
+            _currentSize = new FileInfo(path).Length;
+        }
+        catch
+        {
+            _writer = null;
+        }
     }
 
     private void CleanupOldFiles ()
