@@ -397,7 +397,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         }
         AisleColumnOptions = new ObservableCollection<AisleOption>(colOptions);
         foreach (var opt in AisleColumnOptions)
-            opt.PropertyChanged += (_ , _) => { if (opt.IsSelected != prevCols.Contains(opt.SeatColumn)) SyncAisleColumnsFromOptions(); };
+            opt.PropertyChanged += (_ , _) => SyncAisleColumnsFromOptions();
 
         // 行过道选项
         var rowOptions = new List<AisleOption>();
@@ -408,7 +408,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         }
         AisleRowOptions = new ObservableCollection<AisleOption>(rowOptions);
         foreach (var opt in AisleRowOptions)
-            opt.PropertyChanged += (_ , _) => { if (opt.IsSelected != prevRows.Contains(opt.SeatColumn)) SyncAisleRowsFromOptions(); };
+            opt.PropertyChanged += (_ , _) => SyncAisleRowsFromOptions();
     }
 
     /// <summary>过道勾选状态变化时同步回字符串。</summary>
