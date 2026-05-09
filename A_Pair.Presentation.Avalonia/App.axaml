@@ -1,4 +1,4 @@
-<Application xmlns="https://github.com/avaloniaui"
+﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="A_Pair.Presentation.Avalonia.App"
              xmlns:local="using:A_Pair.Presentation.Avalonia"

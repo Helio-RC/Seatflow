@@ -62,9 +62,9 @@
       </DockPanel>
     </Border>
 
-    <Grid ColumnDefinitions="240,4,*">
+    <StackPanel Orientation="Horizontal" Spacing="8" Background="{DynamicResource ContentBackgroundBrush}">
       <!-- 左侧：已保存的布局 -->
-      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" MinWidth="120"
+      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" MinWidth="240"
               Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="已保存布局"
@@ -102,11 +102,7 @@
         </DockPanel>
       </Border>
 
-      <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
-                    HorizontalAlignment="Stretch" />
-
       <!-- 右侧 -->
-      <Grid Grid.Column="2">
         <!-- 空状态 -->
         <Border IsVisible="{Binding IsEmpty}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -125,7 +121,7 @@
         </Border>
 
         <!-- 编辑器 -->
-        <DockPanel IsVisible="{Binding HasPoints}">
+        <DockPanel IsVisible="{Binding HasPoints}" HorizontalAlignment="Stretch">
           <!-- 名称栏 -->
           <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -161,7 +157,7 @@
           </Border>
 
           <!-- 坐标列表 + 预览 -->
-          <Grid ColumnDefinitions="*,Auto" RowDefinitions="*">
+          <Grid ColumnDefinitions="*,*" RowDefinitions="*">
             <!-- 坐标表格 -->
             <ScrollViewer Grid.Column="0" MinWidth="500"
                           HorizontalScrollBarVisibility="Auto">
@@ -273,7 +269,6 @@
             </Border>
           </Grid>
         </DockPanel>
-      </Grid>
-    </Grid>
+    </StackPanel>
   </DockPanel>
 </UserControl>
