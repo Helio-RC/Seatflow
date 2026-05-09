@@ -6,7 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 你需要使用中文来进行对话和思考、编写注释。
 
-## Build & Test
+## Development Environment
+
+你处在无头环境中，无法使用 avdt。
+
+##  Build & Test
 
 ```bash
 dotnet build                    # Build all 9 projects (uses .slnx, requires .NET 10 SDK)

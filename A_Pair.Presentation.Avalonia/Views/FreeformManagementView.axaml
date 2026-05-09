@@ -161,48 +161,57 @@
           </Border>
 
           <!-- 坐标列表 + 预览 -->
-          <Grid ColumnDefinitions="*,320" RowDefinitions="*">
+          <Grid ColumnDefinitions="*,Auto" RowDefinitions="*">
             <!-- 坐标表格 -->
-            <ScrollViewer Grid.Column="0">
+            <ScrollViewer Grid.Column="0" MaxWidth="520"
+                          HorizontalScrollBarVisibility="Auto">
               <ListBox ItemsSource="{Binding Points}">
                 <ListBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:FreeformPoint">
-                    <Border Padding="4,2" BorderThickness="0,0,0,1"
+                    <Border Padding="6,4" BorderThickness="0,0,0,1"
                             BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                      <WrapPanel HorizontalAlignment="Stretch">
-                        <TextBlock Text="X:" FontSize="11" VerticalAlignment="Center" Margin="0,0,2,0"/>
-                        <NumericUpDown Value="{Binding X, Mode=TwoWay}"
-                                       Minimum="0" Maximum="5000" Width="56" FontSize="11"
-                                       ToolTip.Tip="X 坐标（像素）"/>
-                        <TextBlock Text=" Y:" FontSize="11" VerticalAlignment="Center" Margin="4,0,2,0"/>
-                        <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
-                                       Minimum="0" Maximum="5000" Width="56" FontSize="11"
-                                       ToolTip.Tip="Y 坐标（像素）"/>
-                        <ComboBox SelectedIndex="{ReflectionBinding ElementType}"
-                                  FontSize="11" Width="56" Margin="4,0,0,0"
-                                  ToolTip.Tip="元素类型">
-                          <ComboBoxItem Content="座位"/>
-                          <ComboBoxItem Content="讲台"/>
-                          <ComboBoxItem Content="门"/>
-                        </ComboBox>
-                        <TextBlock Text=" 行:" FontSize="11" VerticalAlignment="Center" Margin="4,0,2,0"/>
-                        <NumericUpDown Value="{Binding Row, Mode=TwoWay}"
-                                       Minimum="0" Maximum="100" Width="40" FontSize="11"
-                                       ToolTip.Tip="行号"/>
-                        <TextBlock Text=" 列:" FontSize="11" VerticalAlignment="Center" Margin="2,0,2,0"/>
-                        <NumericUpDown Value="{Binding Column, Mode=TwoWay}"
-                                       Minimum="0" Maximum="100" Width="40" FontSize="11"
-                                       ToolTip.Tip="列号"/>
-                        <TextBlock Text=" 组:" FontSize="11" VerticalAlignment="Center" Margin="2,0,2,0"/>
-                        <NumericUpDown Value="{Binding GroupId, Mode=TwoWay}"
-                                       Minimum="0" Maximum="7" Width="36" FontSize="11"
-                                       ToolTip.Tip="同桌组号（0-7）"/>
-                        <Button Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
-                                CommandParameter="{Binding}"
-                                Padding="2" FontSize="11" Margin="4,0,0,0" VerticalAlignment="Center">
-                          <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="12"/>
-                        </Button>
-                      </WrapPanel>
+                      <StackPanel Spacing="4">
+                        <!-- 第一行: X, Y, 类型 -->
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center" Width="14"/>
+                          <NumericUpDown Value="{Binding X, Mode=TwoWay}"
+                                         Minimum="0" Maximum="5000" Width="80" FontSize="12"
+                                         ToolTip.Tip="X 坐标（像素）"/>
+                          <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Width="14"/>
+                          <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
+                                         Minimum="0" Maximum="5000" Width="80" FontSize="12"
+                                         ToolTip.Tip="Y 坐标（像素）"/>
+                          <TextBlock Text="类型:" FontSize="12" VerticalAlignment="Center"/>
+                          <ComboBox SelectedIndex="{ReflectionBinding ElementType}"
+                                    FontSize="12" Width="72"
+                                    ToolTip.Tip="元素类型">
+                            <ComboBoxItem Content="座位"/>
+                            <ComboBoxItem Content="讲台"/>
+                            <ComboBoxItem Content="门"/>
+                          </ComboBox>
+                        </StackPanel>
+                        <!-- 第二行: 行, 列, 组 -->
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <TextBlock Text="行:" FontSize="12" VerticalAlignment="Center" Width="14"/>
+                          <NumericUpDown Value="{Binding Row, Mode=TwoWay}"
+                                         Minimum="0" Maximum="100" Width="60" FontSize="12"
+                                         ToolTip.Tip="行号"/>
+                          <TextBlock Text="列:" FontSize="12" VerticalAlignment="Center" Width="14"/>
+                          <NumericUpDown Value="{Binding Column, Mode=TwoWay}"
+                                         Minimum="0" Maximum="100" Width="60" FontSize="12"
+                                         ToolTip.Tip="列号"/>
+                          <TextBlock Text="组:" FontSize="12" VerticalAlignment="Center" Width="14"/>
+                          <NumericUpDown Value="{Binding GroupId, Mode=TwoWay}"
+                                         Minimum="0" Maximum="7" Width="60" FontSize="12"
+                                         ToolTip.Tip="同桌组号（0-7）"/>
+                          <Button Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
+                                  CommandParameter="{Binding}"
+                                  Padding="4,2" FontSize="12" VerticalAlignment="Center"
+                                  AutomationProperties.Name="删除此点">
+                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="12"/>
+                          </Button>
+                        </StackPanel>
+                      </StackPanel>
                     </Border>
                   </DataTemplate>
                 </ListBox.ItemTemplate>
