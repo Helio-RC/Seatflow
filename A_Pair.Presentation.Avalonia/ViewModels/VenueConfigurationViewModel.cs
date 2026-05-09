@@ -682,7 +682,7 @@ public class SeatPreview
     public double Rotation { get; set; }
     public string BackgroundColor { get; set; } = "#800072C6";
     public string BorderColor { get; set; } = "";
-    public double BorderThickness { get; set; } = 1;
+    public global::Avalonia.Thickness BorderThickness { get; set; } = new(1);
     public bool IsCircle { get; set; }
     public string? PathData { get; set; }
     public string PathFill { get; set; } = "";

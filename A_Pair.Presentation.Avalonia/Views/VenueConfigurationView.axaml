@@ -16,6 +16,7 @@
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding DeleteVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
+                  AutomationProperties.Name="删除会场"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
@@ -24,6 +25,7 @@
           </Button>
           <Button Command="{Binding SaveVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
+                  AutomationProperties.Name="保存会场"
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
@@ -78,6 +80,7 @@
                   </StackPanel>
                 </Button>
                 <Button Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
+                        AutomationProperties.Name="新建会场"
                         HorizontalContentAlignment="Left" HorizontalAlignment="Left">
                   <StackPanel Orientation="Horizontal">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>

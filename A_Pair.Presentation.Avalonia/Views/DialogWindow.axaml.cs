@@ -33,11 +33,11 @@ internal partial class DialogWindow : Window
 
         var (icon, color) = Kind switch
         {
-            DialogKind.Error => (IconEnum.ErrorCircle, Color.Parse("#DC2626")),
-            DialogKind.Warning => (IconEnum.Warning, Color.Parse("#F59E0B")),
-            DialogKind.Info => (IconEnum.Info, Color.Parse("#2563EB")),
-            DialogKind.Confirm => (IconEnum.QuestionCircle, Color.Parse("#2563EB")),
-            _ => (IconEnum.Info, Color.Parse("#2563EB"))
+            DialogKind.Error => (IconEnum.ErrorCircle, GetThemeColor("ColorError")),
+            DialogKind.Warning => (IconEnum.Warning, GetThemeColor("ColorWarning")),
+            DialogKind.Info => (IconEnum.Info, GetThemeColor("ColorInfo")),
+            DialogKind.Confirm => (IconEnum.QuestionCircle, GetThemeColor("ColorInfo")),
+            _ => (IconEnum.Info, GetThemeColor("ColorInfo"))
         };
 
         DialogIcon.Icon = icon;
@@ -50,6 +50,13 @@ internal partial class DialogWindow : Window
             OkButton.Content = "确定";
             CancelButton.IsVisible = true;
         }
+    }
+
+    private Color GetThemeColor (string key)
+    {
+        if (global::Avalonia.Application.Current is { } app && app.FindResource(key) is Color c)
+            return c;
+        return Colors.Gray;
     }
 }
 

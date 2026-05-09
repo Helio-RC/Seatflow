@@ -16,6 +16,7 @@
 
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding ExportTemplateCommand}"
+                  AutomationProperties.Name="导出模板"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
@@ -23,6 +24,7 @@
             </StackPanel>
           </Button>
           <Button Command="{Binding ImportCsvCommand}"
+                  AutomationProperties.Name="导入CSV文件"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
@@ -30,6 +32,7 @@
             </StackPanel>
           </Button>
           <Button Command="{Binding ImportJsonCommand}"
+                  AutomationProperties.Name="导入JSON文件"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
@@ -38,6 +41,7 @@
           </Button>
           <Button Command="{Binding SaveLayoutCommand}"
                   IsEnabled="{Binding HasPoints}"
+                  AutomationProperties.Name="保存布局"
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />

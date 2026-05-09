@@ -16,7 +16,8 @@
                    VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <!-- 导出按钮 + Flyout -->
-          <Button IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center">
+          <Button IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="导出座位安排">
             <Button.Flyout>
               <MenuFlyout>
                 <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportExcelCommand}">
@@ -43,7 +44,8 @@
           </Button>
           <!-- 撤销 -->
           <Button Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}"
-                  HorizontalContentAlignment="Center">
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="撤销交换">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
               <TextBlock Text="撤销" FontSize="14" />
@@ -51,7 +53,8 @@
           </Button>
           <!-- 重做 -->
           <Button Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo}"
-                  HorizontalContentAlignment="Center">
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="重做交换">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowRedo}" FontSize="16" />
               <TextBlock Text="重做" FontSize="14" />
@@ -92,6 +95,7 @@
                    Foreground="{DynamicResource SystemAccentColor}"
                    VerticalAlignment="Center" />
         <Button Grid.Column="1" Command="{Binding CancelSwapCommand}"
+                AutomationProperties.Name="取消交换"
                 Padding="8,2" FontSize="12">
           <TextBlock Text="取消"/>
         </Button>
@@ -116,7 +120,8 @@
           <ListBox DockPanel.Dock="Top" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0" Margin="0,0,0,12"
-                   Background="{DynamicResource SidebarBackgroundBrush}">
+                   Background="{DynamicResource SidebarBackgroundBrush}"
+                   AutomationProperties.Name="会场列表">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6" />
@@ -129,7 +134,8 @@
           <ListBox ItemsSource="{Binding DatasetItems}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
-                   Background="{DynamicResource SidebarBackgroundBrush}">
+                   Background="{DynamicResource SidebarBackgroundBrush}"
+                   AutomationProperties.Name="学生数据集列表">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="core:StudentDatasetInfo">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6" />
@@ -142,6 +148,7 @@
                   Command="{Binding GenerateSeatingCommand}"
                   IsEnabled="{Binding CanGenerate}"
                   HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="生成座位安排"
                   Margin="4,8" Classes="accent" Height="36">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />

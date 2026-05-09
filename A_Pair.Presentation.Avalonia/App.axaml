@@ -1,4 +1,4 @@
-﻿<Application xmlns="https://github.com/avaloniaui"
+<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="A_Pair.Presentation.Avalonia.App"
              xmlns:local="using:A_Pair.Presentation.Avalonia"
@@ -9,22 +9,70 @@
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+          <!-- Sidebar & Preview -->
           <Color x:Key="SidebarBackgroundColor">#E6E6E6</Color>
           <Color x:Key="PreviewSeatBorderColor">#80000000</Color>
           <Color x:Key="PreviewPodiumFillColor">#4080D0E0</Color>
           <Color x:Key="PreviewDoorFillColor">#800072C6</Color>
+
+          <!-- Semantic Colors -->
+          <Color x:Key="ColorSuccess">#16A34A</Color>
+          <Color x:Key="ColorWarning">#F59E0B</Color>
+          <Color x:Key="ColorError">#DC2626</Color>
+          <Color x:Key="ColorInfo">#2563EB</Color>
+
+          <!-- Surface Colors -->
+          <Color x:Key="SurfaceCardColor">#FFFFFF</Color>
+          <Color x:Key="SurfaceOverlayColor">#44000000</Color>
+
+          <!-- Shadow -->
+          <Color x:Key="ShadowLargeColor">#40000000</Color>
+          <Color x:Key="ShadowSmallColor">#20000000</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+          <!-- Sidebar & Preview -->
           <Color x:Key="SidebarBackgroundColor">#1A1A1A</Color>
           <Color x:Key="PreviewSeatBorderColor">#80FFFFFF</Color>
           <Color x:Key="PreviewPodiumFillColor">#4060A0FF</Color>
           <Color x:Key="PreviewDoorFillColor">#809080F0</Color>
+
+          <!-- Semantic Colors (slightly brightened for dark mode contrast) -->
+          <Color x:Key="ColorSuccess">#22C55E</Color>
+          <Color x:Key="ColorWarning">#FBBF24</Color>
+          <Color x:Key="ColorError">#EF4444</Color>
+          <Color x:Key="ColorInfo">#60A5FA</Color>
+
+          <!-- Surface Colors -->
+          <Color x:Key="SurfaceCardColor">#2A2A2A</Color>
+          <Color x:Key="SurfaceOverlayColor">#66000000</Color>
+
+          <!-- Shadow (lighter in dark mode) -->
+          <Color x:Key="ShadowLargeColor">#60000000</Color>
+          <Color x:Key="ShadowSmallColor">#30000000</Color>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
+
+      <!-- Sidebar & Preview Brushes -->
       <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="{DynamicResource SidebarBackgroundColor}" />
       <SolidColorBrush x:Key="PreviewSeatBorderBrush" Color="{DynamicResource PreviewSeatBorderColor}" />
       <SolidColorBrush x:Key="PreviewPodiumFillBrush" Color="{DynamicResource PreviewPodiumFillColor}" />
       <SolidColorBrush x:Key="PreviewDoorFillBrush" Color="{DynamicResource PreviewDoorFillColor}" />
+
+      <!-- Semantic Brushes -->
+      <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource ColorSuccess}" />
+      <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource ColorWarning}" />
+      <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource ColorError}" />
+      <SolidColorBrush x:Key="InfoBrush" Color="{DynamicResource ColorInfo}" />
+
+      <!-- Surface Brushes -->
+      <SolidColorBrush x:Key="SurfaceCardBrush" Color="{DynamicResource SurfaceCardColor}" />
+      <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="{DynamicResource SurfaceOverlayColor}" />
+
+      <!-- BoxShadows -->
+      <BoxShadows x:Key="CardShadowNone">none</BoxShadows>
+      <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #30000000, 0 2 8 0 #18000000</BoxShadows>
+      <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #18000000</BoxShadows>
+      <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #20000000</BoxShadows>
     </ResourceDictionary>
   </Application.Resources>
 
@@ -35,6 +83,7 @@
     <FluentTheme />
     <StyleInclude Source="/Styles/Typography.axaml" />
     <StyleInclude Source="/Styles/Spacing.axaml" />
+    <StyleInclude Source="/Styles/Colors.axaml" />
     <Style Selector="Window">
       <Setter Property="FontFamily" Value="Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
     </Style>
