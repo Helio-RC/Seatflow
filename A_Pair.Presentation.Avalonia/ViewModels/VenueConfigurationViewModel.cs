@@ -49,6 +49,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsFreeformSelected => SelectedLayoutType == LayoutType.Freeform;
     public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected;
 
+    private List<FreeformSeat> _freeformPreviewSeats = [];
+    private List<Obstacle> _freeformPreviewObstacles = [];
+
     // ── 侧边栏折叠 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
@@ -214,6 +217,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 case PolarLayoutMetadata p:
                     PopulatePolarFromMetadata(p);
                     break;
+                case FreeformLayoutMetadata:
+                    _freeformPreviewSeats = layout.Seats.OfType<FreeformSeat>().ToList();
+                    _freeformPreviewObstacles = layout.Obstacles.ToList();
+                    break;
             }
 
             RegeneratePreview();
@@ -355,6 +362,47 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 });
             }
 
+        }
+        else if (SelectedLayoutType == LayoutType.Freeform)
+        {
+            double seatSize = 12;
+            foreach (var s in _freeformPreviewSeats)
+            {
+                seats.Add(new SeatPreview
+                {
+                    X = s.X - seatSize / 2 ,
+                    Y = s.Y - seatSize / 2 ,
+                    Width = seatSize ,
+                    Height = seatSize ,
+                    Label = s.Row.HasValue && s.Column.HasValue
+                        ? $"R{s.Row}C{s.Column}"
+                        : $"({s.X:F0}, {s.Y:F0})" ,
+                    ElementType = PreviewElementType.Seat ,
+                    CornerRadius = new(seatSize / 2) ,
+                    IsCircle = true
+                });
+            }
+
+            foreach (var obs in _freeformPreviewObstacles)
+            {
+                var elementType = obs.Type == "Podium" ? PreviewElementType.Podium
+                    : obs.Type == "Door" ? PreviewElementType.Door
+                    : PreviewElementType.Obstacle;
+                double w = obs.Width > 0 ? obs.Width : 60;
+                double h = obs.Height > 0 ? obs.Height : 40;
+                overlays.Add(new SeatPreview
+                {
+                    X = obs.X - w / 2 ,
+                    Y = obs.Y - h / 2 ,
+                    Width = w ,
+                    Height = h ,
+                    Label = obs.Type ?? "障碍物" ,
+                    ElementType = elementType ,
+                    CornerRadius = elementType == PreviewElementType.Podium ? new(w / 2) : new(4) ,
+                    IsCircle = elementType == PreviewElementType.Podium ,
+                    BackgroundColor = elementType == PreviewElementType.Podium ? "#4080D0E0" : "#60DD6666"
+                });
+            }
         }
 
         // 门（两种布局共用 DoorItems）
