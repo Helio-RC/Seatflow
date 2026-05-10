@@ -178,12 +178,15 @@
                 <TextBlock Text="布局类型" FontSize="14" FontWeight="SemiBold"/>
                 <StackPanel Orientation="Horizontal" Spacing="16">
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"
+                               IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Grid"
                                Content="网格 Grid"/>
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
+                               IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Polar"
                                Content="极坐标 Polar"/>
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
+                               IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Freeform"
                                Content="自由点 Freeform"/>
                 </StackPanel>

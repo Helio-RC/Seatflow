@@ -49,6 +49,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsFreeformSelected => SelectedLayoutType == LayoutType.Freeform;
     public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanChangeLayoutType))]
+    private bool _isFreeformVenue;
+
+    public bool CanChangeLayoutType => !IsFreeformVenue;
+
     private List<FreeformSeat> _freeformPreviewSeats = [];
     private List<Obstacle> _freeformPreviewObstacles = [];
 
@@ -170,6 +176,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         var id = Guid.NewGuid().ToString("N")[..8];
         var item = new VenueItem(id , $"新会场_{id}");
         LayoutName = item.Name;
+        IsFreeformVenue = false;
         SelectedLayoutType = LayoutType.Grid;
         ResetParameters();
         VenueItems.Add(item);
@@ -209,6 +216,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
             LayoutName = layout.Name;
             SelectedLayoutType = layout.LayoutType;
+            IsFreeformVenue = layout.LayoutType == LayoutType.Freeform;
 
             switch (layout.Metadata)
             {
@@ -530,13 +538,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 break;
 
             case LayoutType.Freeform:
-                layout = new ClassroomLayoutDefinition
-                {
-                    Id = SelectedVenueItem?.Id ?? "" ,
-                    Name = LayoutName ,
-                    LayoutType = LayoutType.Freeform ,
-                    Metadata = new FreeformLayoutMetadata()
-                };
+                var seatPoints = _freeformPreviewSeats
+                    .Select(s => (s.X , s.Y , (int?)s.Row , (int?)s.Column , GroupId: (int?)null))
+                    .ToList();
+                var obstaclePoints = _freeformPreviewObstacles
+                    .Select(o => (o.X , o.Y , Math.Max(o.Width, 60) , Math.Max(o.Height, 40) , o.Type ?? "Door"))
+                    .ToList();
+                layout = FreeformLayoutBuilder.BuildFreeform(
+                    seatPoints , obstaclePoints.Count > 0 ? obstaclePoints : null);
+                layout.Id = SelectedVenueItem?.Id ?? "";
+                layout.Name = LayoutName;
                 break;
 
             default:
