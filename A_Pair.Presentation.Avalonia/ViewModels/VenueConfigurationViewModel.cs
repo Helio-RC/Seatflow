@@ -640,6 +640,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridHasPodium = g.HasPodium;
         GridPodiumWidth = g.PodiumWidth > 0 ? g.PodiumWidth : 60;
         GridPodiumHeight = g.PodiumHeight > 0 ? g.PodiumHeight : 40;
+
+        RegenerateAisleOptions();
     }
 
     private void PopulatePolarFromMetadata (PolarLayoutMetadata p)

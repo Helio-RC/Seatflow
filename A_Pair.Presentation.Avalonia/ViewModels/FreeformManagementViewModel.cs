@@ -115,7 +115,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             {
                 var et = obs.Type == "Podium" ? (int)FreeformElementType.Podium
                        : obs.Type == "Door" ? (int)FreeformElementType.Door
-                       : (int)FreeformElementType.Door;
+                       : (int)FreeformElementType.Seat;
                 pts.Add(new FreeformPoint(obs.X , obs.Y)
                 {
                     ElementType = et ,
@@ -270,7 +270,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
             foreach (var obs in layout.Obstacles)
             {
                 var et = obs.Type == "Podium" ? (int)FreeformElementType.Podium
-                       : (int)FreeformElementType.Door;
+                       : obs.Type == "Door" ? (int)FreeformElementType.Door
+                       : (int)FreeformElementType.Seat;
                 pts.Add(new FreeformPoint(obs.X , obs.Y)
                 {
                     ElementType = et ,
@@ -392,6 +393,9 @@ public partial class FreeformManagementViewModel : ViewModelBase
     {
         for (int i = 0; i < Points.Count; i++)
             Points[i].DisplayIndex = i + 1;
+        // 强制刷新 UI（FreeformPoint 非 ObservableObject）
+        var copy = Points.ToList();
+        Points = new ObservableCollection<FreeformPoint>(copy);
     }
 
     private List<string> ValidatePoints ()

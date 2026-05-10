@@ -42,7 +42,14 @@ public sealed class WatchdogService : IDisposable
     {
         while (!_cts.IsCancellationRequested)
         {
-            await Task.Delay(1000, _cts.Token).ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(1000, _cts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
 
             var elapsed = DateTime.UtcNow.Ticks - Interlocked.Read(ref _heartbeatTicks);
             if (new TimeSpan(elapsed).TotalSeconds >= _timeoutSeconds)

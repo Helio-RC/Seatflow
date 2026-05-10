@@ -82,7 +82,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private bool _canRedo;
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
-    public bool IsNotFreeform => _currentLayout?.LayoutType != LayoutType.Freeform;
 
     // ── 右侧面板 ──
     [ObservableProperty]
@@ -554,9 +553,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         await SafeExecuteAsync(async () =>
         {
-            var tempPath = CapturePreviewAsync();
-            if (tempPath == null) return;
-            var resultPath = await tempPath;
+            var resultPath = await CapturePreviewAsync();
             if (resultPath == null) return;
 
             // 复制临时文件到用户选择的路径

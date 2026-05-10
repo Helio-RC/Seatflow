@@ -111,9 +111,9 @@ public class LayoutSeatingExportModel
         foreach (var obs in layout.Obstacles.Where(o => o.Type == "Door"))
         {
             var doorRow = new ExportRow();
+            int doorCol = colPlan.Count / 2;
             for (int i = 0; i < colPlan.Count; i++)
-                doorRow.Cells.Add(new ExportCell { Text = "" });
-            doorRow.Cells.Add(new ExportCell { Text = $"[门] ({obs.X:F0}, {obs.Y:F0})" });
+                doorRow.Cells.Add(new ExportCell { Text = i == doorCol ? $"[门] ({obs.X:F0}, {obs.Y:F0})" : "" });
             model.Rows.Add(doorRow);
         }
 
