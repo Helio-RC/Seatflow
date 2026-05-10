@@ -61,7 +61,7 @@ public class ApplicationFacadeTests
         // 设置导出器的 Format 属性
         exporter.Format.Returns(ExportFormat.Excel);
 
-        await facade.ExportSeatingPlanAsync(ws , "test.xlsx" , options , CancellationToken.None);
+        await facade.ExportSeatingPlanAsync(ws , null , "test.xlsx" , options , CancellationToken.None);
 
         await exporter.Received(1).ExportAsync(
             Arg.Any<SeatingPlan>() ,

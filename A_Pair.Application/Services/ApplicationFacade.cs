@@ -232,15 +232,27 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task ExportSeatingPlanAsync (
     SeatingWorkspace workspace ,
+    ClassroomLayoutDefinition? layout ,
     string path ,
     ExportOptions options ,
     CancellationToken cancellationToken = default)
         {
-            var plan = workspace.BuildSeatingPlan();
             ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format);
             if (exporter == null)
                 throw new NotSupportedException($"No exporter registered for format {options.Format}.");
-            await exporter.ExportAsync(plan , path , options , cancellationToken);
+
+            if (layout != null)
+            {
+                var assignments = workspace.BuildSeatingPlan().Assignments;
+                var studentNames = workspace.Students.ToDictionary(s => s.Id, s => s.Name);
+                var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames);
+                await exporter.ExportLayoutAsync(model, path, options, cancellationToken);
+            }
+            else
+            {
+                var plan = workspace.BuildSeatingPlan();
+                await exporter.ExportAsync(plan, path, options, cancellationToken);
+            }
         }
 
         /// <inheritdoc />

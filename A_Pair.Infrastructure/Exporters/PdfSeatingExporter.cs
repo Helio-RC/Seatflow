@@ -1,4 +1,4 @@
-﻿using A_Pair.Core.Exporters;
+using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 using QuestPDF.Fluent;
@@ -7,32 +7,19 @@ using QuestPDF.Infrastructure;
 
 namespace A_Pair.Infrastructure.Exporters
 {
-    /// <summary>
-    /// PDF 格式的座位安排导出器，使用 QuestPDF 库生成 A4 格式的 PDF 文档。
-    /// </summary>
-    /// <remarks>
-    /// 生成包含标题、表格（座位 ID / 学生 ID）和页脚（生成时间）的 PDF 文档。
-    /// 使用 QuestPDF 社区版许可证。当 <see cref="ExportOptions.Anonymize"/> 为 true 时，
-    /// 标题和表格中的学生 ID 将被匿名化处理。
-    /// </remarks>
     public class PdfSeatingExporter : ISeatingPlanExporter
     {
         public ExportFormat Format => ExportFormat.Pdf;
-        /// <summary>
-        /// 静态构造函数，设置 QuestPDF 为社区版许可证。
-        /// </summary>
         static PdfSeatingExporter ()
         {
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        /// <inheritdoc />
         public Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
         {
             return ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Pdf } , cancellationToken);
         }
 
-        /// <inheritdoc />
         public Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
             Document.Create(container =>
@@ -67,6 +54,61 @@ namespace A_Pair.Infrastructure.Exporters
                             {
                                 table.Cell().Text(kv.Key);
                                 table.Cell().Text(options.Anonymize ? "***" : kv.Value);
+                            }
+                        });
+
+                    page.Footer()
+                        .AlignCenter()
+                        .Text(x =>
+                        {
+                            x.Span("生成时间: ");
+                            x.Span(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                        });
+                });
+            }).GeneratePdf(path);
+
+            return Task.CompletedTask;
+        }
+
+        public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
+        {
+            Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(1 , Unit.Centimetre);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(9));
+
+                    page.Header()
+                        .Text(model.LayoutName)
+                        .SemiBold().FontSize(18).AlignCenter();
+
+                    page.Content()
+                        .Table(table =>
+                        {
+                            int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
+                            table.ColumnsDefinition(columns =>
+                            {
+                                for (int i = 0; i < maxCols; i++)
+                                    columns.ConstantColumn(36);
+                            });
+
+                            foreach (var row in model.Rows)
+                            {
+                                foreach (var cell in row.Cells)
+                                {
+                                    table.Cell()
+                                        .Border(1).BorderColor(Colors.Grey.Lighten2)
+                                        .Background(cell.IsPodium ? Colors.Blue.Lighten4 :
+                                                     cell.IsAisle ? Colors.Grey.Lighten3 :
+                                                     cell.IsSeat ? Colors.Green.Lighten5 :
+                                                     Colors.White)
+                                        .Padding(2)
+                                        .AlignCenter()
+                                        .Text(cell.Text);
+                                }
                             }
                         });
 

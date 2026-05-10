@@ -27,7 +27,7 @@ namespace A_Pair.Application.Interfaces
         Task<SeatingWorkspace> GenerateSeatingAsync (SeatingRequest request , IProgress<SeatingProgress>? progress = null , CancellationToken cancellationToken = default);
 
         /// <summary>导出座位安排计划到文件。</summary>
-        Task ExportSeatingPlanAsync (SeatingWorkspace workspace , string path , ExportOptions options , CancellationToken cancellationToken = default);
+        Task ExportSeatingPlanAsync (SeatingWorkspace workspace , ClassroomLayoutDefinition? layout , string path , ExportOptions options , CancellationToken cancellationToken = default);
 
         /// <summary>导出学生列表到文件。</summary>
         Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default);

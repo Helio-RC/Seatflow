@@ -35,6 +35,11 @@
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="预览图片 (.png)" Command="{Binding ExportImageCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
               </MenuFlyout>
             </Button.Flyout>
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -194,7 +199,7 @@
           </Border>
 
           <!-- 座位渲染区 -->
-          <ScrollViewer IsVisible="{Binding HasGenerated}"
+          <ScrollViewer x:Name="PreviewScrollViewer" IsVisible="{Binding HasGenerated}"
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding SeatItems}">

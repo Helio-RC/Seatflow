@@ -500,6 +500,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 导出 ──
 
+    public Func<Task<string?>>? CapturePreviewAsync { get; set; }
+
     [RelayCommand]
     private async Task ExportExcelAsync() => await ExportAsync(ExportFormat.Excel,
         [new FilePickerFileType("Excel 文件") { Patterns = ["*.xlsx"] }], "座位安排.xlsx");
@@ -512,6 +514,31 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private async Task ExportPdfAsync() => await ExportAsync(ExportFormat.Pdf,
         [new FilePickerFileType("PDF 文件") { Patterns = ["*.pdf"] }], "座位安排.pdf");
 
+    [RelayCommand]
+    private async Task ExportImageAsync()
+    {
+        if (CapturePreviewAsync == null) return;
+        var file = await _fileService.SaveFileAsync("导出预览图片",
+            [new FilePickerFileType("PNG 图片") { Patterns = ["*.png"] }], "座位安排.png");
+        if (file == null) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            var tempPath = CapturePreviewAsync();
+            if (tempPath == null) return;
+            var resultPath = await tempPath;
+            if (resultPath == null) return;
+
+            // 复制临时文件到用户选择的路径
+            await using var src = File.OpenRead(resultPath);
+            await using var dest = await file.OpenWriteAsync();
+            await src.CopyToAsync(dest);
+            try { File.Delete(resultPath); } catch { }
+
+            StatusMessage = $"预览图片已导出至 {file.Name}";
+        }, "导出图片失败");
+    }
+
     private async Task ExportAsync(ExportFormat format, IReadOnlyList<FilePickerFileType> types, string suggestedName)
     {
         if (_workspace == null) return;
@@ -522,7 +549,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var options = new ExportOptions { Format = format, IncludeMetadata = true };
-            await _facade.ExportSeatingPlanAsync(_workspace, file.Path.LocalPath, options);
+            await _facade.ExportSeatingPlanAsync(_workspace, _currentLayout, file.Path.LocalPath, options);
             StatusMessage = $"已导出至 {file.Name}";
         }, "导出失败");
     }
