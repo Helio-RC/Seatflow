@@ -47,7 +47,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsGridSelected => SelectedLayoutType == LayoutType.Grid;
     public bool IsPolarSelected => SelectedLayoutType == LayoutType.Polar;
     public bool IsFreeformSelected => SelectedLayoutType == LayoutType.Freeform;
-    public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected;
+    public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected || IsFreeformSelected;
 
     [ObservableProperty]
     private bool _isFreeformVenue;
@@ -275,16 +275,25 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private void AddDoor ()
     {
-        // 默认门位置：第一排第一个座位左上方
         double dx = GridOriginX - 50;
         double dy = GridOriginY - 20;
         DoorItems.Add(new DoorItem(dx , dy , $"门 {DoorItems.Count + 1}"));
+
+        if (IsFreeformSelected)
+            _freeformPreviewObstacles.Add(new Obstacle { X = dx , Y = dy , Width = 36 , Height = 24 , Type = "Door" });
     }
 
     [RelayCommand]
     private void RemoveDoor (DoorItem door)
     {
         DoorItems.Remove(door);
+        if (IsFreeformSelected)
+        {
+            var match = _freeformPreviewObstacles
+                .FirstOrDefault(o => o.Type == "Door" && Math.Abs(o.X - door.X) < 1 && Math.Abs(o.Y - door.Y) < 1);
+            if (match != null)
+                _freeformPreviewObstacles.Remove(match);
+        }
     }
 
     [RelayCommand]
@@ -549,13 +558,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 var obstaclePoints = _freeformPreviewObstacles
                     .Select(o => (o.X , o.Y , Math.Max(o.Width, 60) , Math.Max(o.Height, 40) , o.Type ?? "Podium"))
                     .ToList();
-                // 合并 DoorItems 中的门
-                foreach (var d in DoorItems)
-                    obstaclePoints.Add((d.X , d.Y , 36.0 , 24.0 , "Door"));
-                if (obstaclePoints.All(o => o.Item5 == "Door"))
-                {
-                    // 只有门没有讲台时，保留讲台（如果原来就有Podium类型）
-                }
                 layout = FreeformLayoutBuilder.BuildFreeform(
                     seatPoints , obstaclePoints.Count > 0 ? obstaclePoints : null);
                 layout.Id = SelectedVenueItem?.Id ?? "";
