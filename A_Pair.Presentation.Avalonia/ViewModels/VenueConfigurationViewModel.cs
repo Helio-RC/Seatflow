@@ -73,7 +73,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     partial void OnIsSidebarExpandedChanged (bool value)
-        => SidebarListWidth = value ? 240 : 80;
+        => SidebarListWidth = value ? 240 : 78;
 
     [RelayCommand]
     private void ToggleSidebar ()
@@ -370,8 +370,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             {
                 seats.Add(new SeatPreview
                 {
-                    X = s.X - seatSize / 2 ,
-                    Y = s.Y - seatSize / 2 ,
+                    X = s.X - (seatSize / 2) ,
+                    Y = s.Y - (seatSize / 2) ,
                     Width = seatSize ,
                     Height = seatSize ,
                     Label = s.Row.HasValue && s.Column.HasValue
@@ -392,8 +392,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 double h = obs.Height > 0 ? obs.Height : 40;
                 overlays.Add(new SeatPreview
                 {
-                    X = obs.X - w / 2 ,
-                    Y = obs.Y - h / 2 ,
+                    X = obs.X - (w / 2) ,
+                    Y = obs.Y - (h / 2) ,
                     Width = w ,
                     Height = h ,
                     Label = obs.Type ?? "障碍物" ,
@@ -677,7 +677,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         {
             _selectVenueCts?.Cancel();
             _selectVenueCts = new CancellationTokenSource();
-            _ = SelectVenueAsync(value, _selectVenueCts.Token);
+            _ = SelectVenueAsync(value , _selectVenueCts.Token);
         }
     }
 

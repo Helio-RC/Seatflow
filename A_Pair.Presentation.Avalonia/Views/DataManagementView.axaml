@@ -52,14 +52,14 @@
                     AutomationProperties.Name="导出模板" >
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-                <TextBlock Text="模板" FontSize="14" />
+                <TextBlock Text="获取模板" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center"
                     AutomationProperties.Name="导入数据">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-                <TextBlock Text="导入" FontSize="14" />
+                <TextBlock Text="从文件导入" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
@@ -76,10 +76,10 @@
               </StackPanel>
             </Button>
             <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="清除数据">
+                    AutomationProperties.Name="卸载已加载数据">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
-                <TextBlock Text="清除" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="16" />
+                <TextBlock Text="卸载已加载数据" FontSize="14" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -111,14 +111,14 @@
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                      <TextBlock Text="模板" FontSize="14" />
+                      <TextBlock Text="获取模板" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
-                      <TextBlock Text="导入" FontSize="14" />
+                      <TextBlock Text="从文件导入" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
@@ -138,8 +138,8 @@
                   <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left"  HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
-                      <TextBlock Text="清除" FontSize="14" />
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="14" />
+                      <TextBlock Text="卸载已加载数据" FontSize="14" />
                     </StackPanel>
                   </Button>
                 </StackPanel>

@@ -67,7 +67,7 @@
               <Border>
                 <Border.Transitions>
                   <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseInOut" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseInOut" />
                   </Transitions>
                 </Border.Transitions>
                 <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
@@ -108,7 +108,7 @@
                             IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                   <StackPanel.Transitions>
                     <Transitions>
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.28" Easing="SineEaseInOut" />
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="SineEaseInOut" />
                     </Transitions>
                   </StackPanel.Transitions>
                   <Button HorizontalContentAlignment="Left"
@@ -198,7 +198,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
@@ -243,7 +244,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="桌面配置" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="每桌人数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridSeatsPerDesk, Mode=TwoWay}"
                                  Minimum="1" Maximum="6"
@@ -256,7 +258,8 @@
                                  ToolTip.Tip="同桌内相邻座位间距（像素），4-200。较小值表示同桌座位靠近。"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="桌间距" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridInterDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="400"
@@ -327,7 +330,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
@@ -341,6 +345,7 @@
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left"
                       IsVisible="{Binding GridHasPodium}">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="讲台宽度" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridPodiumWidth, Mode=TwoWay}"
@@ -364,7 +369,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarRings, Mode=TwoWay}"
                                  Minimum="1" Maximum="20"
@@ -393,7 +399,8 @@
                                  ToolTip.Tip="圆心水平位置（像素）。"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
@@ -414,14 +421,16 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
-                  <CheckBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
-                            IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
-                            Content="有讲台" FontSize="13"/>
-                  <TextBlock Grid.Column="1" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
                                  ToolTip.Tip="视作前排的最外层环数，影响前排轮换策略。"/>
+
+                  <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
+                            IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
+                            Content="有讲台" FontSize="13"/>
 
                   <TextBlock Grid.Column="0" Grid.Row="1" Text="讲台半径" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarPodiumRadius, Mode=TwoWay}"
@@ -439,7 +448,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="通道配置" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="径向通道角度" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 0,90,180,270"
