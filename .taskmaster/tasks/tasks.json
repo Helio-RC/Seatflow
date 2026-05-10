@@ -52,7 +52,7 @@
         "id": "5",
         "title": "策略配置视图（StrategyConfigurationView）",
         "description": "实现策略列表管理、优先级调整和参数配置界面",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": ["2"],
         "details": "1. 创建 StrategyConfigurationView.axaml\n2. 策略列表（名称/优先级/启用状态）\n3. 启用/禁用 ToggleSwitch\n4. 优先级上下移动\n5. 策略参数配置面板\n6. 内置策略和插件策略混合展示",
@@ -63,12 +63,13 @@
         "id": "6",
         "title": "座位安排视图 — 座位图渲染（SeatingArrangementView）",
         "description": "实现核心座位图的可视化渲染，支持不同布局类型的绘制",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": ["2", "4"],
-        "details": "1. 创建 SeatingArrangementView.axaml\n2. 调用 GenerateSeatingAsync 生成座位安排\n3. 座位图 Canvas 渲染（颜色区分空位/已分配/固定/冲突）\n4. 学生列表侧边栏（已分配/未分配）\n5. 支持 Grid/Polar/Freeform 三种布局渲染",
+        "details": "1. 创建 SeatingArrangementView.axaml\n2. 调用 GenerateSeatingAsync 生成座位安排\n3. 座位图 Canvas 渲染（颜色区分空位/已分配/固定/冲突）\n4. 学生列表侧边栏（已分配/未分配）\n5. 支持 Grid/Polar/Freeform 三种布局渲染\n6. 座位导出（Excel/CSV/PDF 布局感知导出）\n7. 图片导出（仅自由点）\n8. 撤销/重做\n9. 交换模式",
         "testStrategy": "手动测试：加载会场+学生 → 生成座位 → 验证渲染正确",
-        "subtasks": []
+        "subtasks": [],
+        "updatedAt": "2026-05-10T10:00:00.000Z"
       },
       {
         "id": "7",
@@ -85,7 +86,7 @@
         "id": "8",
         "title": "座位安排视图 — Tooltip 与进度报告",
         "description": "实现座位悬停信息提示和生成进度展示",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": ["6"],
         "details": "1. 座位 Tooltip（学生详情/空位信息）\n2. ProgressBar 绑定进度\n3. 生成完成自动刷新\n4. 取消按钮（CancellationToken）",
@@ -96,7 +97,8 @@
         "id": "9",
         "title": "快照历史视图（SnapshotHistoryView）",
         "description": "实现座位安排快照的浏览、对比和回滚界面",
-        "status": "pending",
+        "status": "done",
+        "updatedAt": "2026-05-10T12:00:00.000Z",
         "priority": "medium",
         "dependencies": ["2"],
         "details": "1. 创建 SnapshotHistoryView.axaml\n2. GetSnapshotsAsync 获取快照列表\n3. 快照详情展示\n4. 回滚功能 + 确认对话框\n5. 快照对比（可选）",
@@ -118,7 +120,7 @@
         "id": "11",
         "title": "撤销/重做与全局功能集成",
         "description": "实现全局撤销/重做、菜单栏、错误处理",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": ["2"],
         "details": "1. Ctrl+Z/Ctrl+Y 快捷键\n2. 撤销/重做按钮\n3. 菜单栏（文件/编辑/视图）\n4. 全局错误处理",
@@ -163,9 +165,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-04T08:00:00.000Z",
+      "lastModified": "2026-05-10T10:00:00.000Z",
       "taskCount": 14,
-      "completedCount": 6,
+      "completedCount": 10,
       "tags": ["ui-layer"]
     }
   }

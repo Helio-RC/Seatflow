@@ -68,6 +68,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>回滚到指定快照。</summary>
         Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default);
 
+        /// <summary>删除指定快照。</summary>
+        Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default);
+
         /// <summary>保存学生数据集到托管存储。</summary>
         Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
 
