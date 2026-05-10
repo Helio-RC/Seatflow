@@ -409,11 +409,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 });
             }
 
-            foreach (var obs in _freeformPreviewObstacles)
+            foreach (var obs in _freeformPreviewObstacles.Where(o => o.Type != "Door"))
             {
-                var elementType = obs.Type == "Podium" ? PreviewElementType.Podium
-                    : obs.Type == "Door" ? PreviewElementType.Door
-                    : PreviewElementType.Obstacle;
+                var elementType = obs.Type == "Podium" ? PreviewElementType.Podium : PreviewElementType.Obstacle;
                 double w = obs.Width > 0 ? obs.Width : 60;
                 double h = obs.Height > 0 ? obs.Height : 40;
                 overlays.Add(new SeatPreview
@@ -625,7 +623,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         var doors = layout.Obstacles.Where(o => o.Type == "Door").ToList();
         DoorItems = new ObservableCollection<DoorItem>(
-            doors.Select(d => new DoorItem { X = d.X , Y = d.Y , Label = "门" }));
+            doors.Select((d , i) => new DoorItem(d.X , d.Y , $"门 {i + 1}")));
 
         if (layout.Metadata is GridLayoutMetadata gridMeta)
             GridHasFrontDoor = gridMeta.HasFrontDoor;
