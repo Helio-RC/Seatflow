@@ -19,12 +19,26 @@ internal partial class DialogWindow : Window
 
     public DialogKind Kind { get; set; } = DialogKind.Info;
 
+    public static readonly StyledProperty<string?> Button1TextProperty =
+        AvaloniaProperty.Register<DialogWindow, string?>(nameof(Button1Text));
+    public static readonly StyledProperty<string?> Button2TextProperty =
+        AvaloniaProperty.Register<DialogWindow, string?>(nameof(Button2Text));
+    public static readonly StyledProperty<string?> Button3TextProperty =
+        AvaloniaProperty.Register<DialogWindow, string?>(nameof(Button3Text));
+
+    public string? Button1Text { get => GetValue(Button1TextProperty); set => SetValue(Button1TextProperty, value); }
+    public string? Button2Text { get => GetValue(Button2TextProperty); set => SetValue(Button2TextProperty, value); }
+    public string? Button3Text { get => GetValue(Button3TextProperty); set => SetValue(Button3TextProperty, value); }
+
+    public int? DialogResult { get; private set; }
+
     public DialogWindow ()
     {
         InitializeComponent();
 
-        OkButton.Click += (_, _) => Close(true);
-        CancelButton.Click += (_, _) => Close(false);
+        OkButton.Click += (_, _) => { DialogResult = 0; Close(true); };
+        CancelButton.Click += (_, _) => { DialogResult = 2; Close(false); };
+        ThirdButton.Click += (_, _) => { DialogResult = 1; Close(true); };
     }
 
     protected override void OnLoaded (RoutedEventArgs e)
@@ -50,6 +64,14 @@ internal partial class DialogWindow : Window
             OkButton.Content = "确定";
             CancelButton.IsVisible = true;
         }
+        else if (Kind == DialogKind.MultiOption)
+        {
+            OkButton.Content = Button1Text ?? "选项1";
+            ThirdButton.Content = Button2Text ?? "选项2";
+            CancelButton.Content = Button3Text ?? "取消";
+            ThirdButton.IsVisible = true;
+            CancelButton.IsVisible = true;
+        }
     }
 
     private Color GetThemeColor (string key)
@@ -60,4 +82,4 @@ internal partial class DialogWindow : Window
     }
 }
 
-internal enum DialogKind { Error, Warning, Info, Confirm }
+internal enum DialogKind { Error, Warning, Info, Confirm, MultiOption }

@@ -164,6 +164,22 @@ public partial class FreeformManagementViewModel : ViewModelBase
             [new("CSV 文件") { Patterns = ["*.csv"] }]);
         if (file == null) return;
 
+        var cleanImport = false;
+        if (Points.Count > 0)
+        {
+            var result = await Dialog.ShowMultiOptionAsync("导入方式" ,
+                $"当前已有 {Points.Count} 个元素，请选择导入方式：" ,
+                "卸载后导入" , "直接覆盖" , "取消");
+            if (result == null || result == 2) return;
+            cleanImport = result == 0;
+        }
+
+        if (cleanImport)
+        {
+            SelectedLayout = null;
+            LayoutName = string.Empty;
+        }
+
         await SafeExecuteAsync(async () =>
         {
             await using var stream = await file.OpenReadAsync();
@@ -211,6 +227,22 @@ public partial class FreeformManagementViewModel : ViewModelBase
             "导入 JSON 布局" ,
             [new("JSON 文件") { Patterns = ["*.json"] }]);
         if (file == null) return;
+
+        var cleanImport = false;
+        if (Points.Count > 0)
+        {
+            var result = await Dialog.ShowMultiOptionAsync("导入方式" ,
+                $"当前已有 {Points.Count} 个元素，请选择导入方式：" ,
+                "卸载后导入" , "直接覆盖" , "取消");
+            if (result == null || result == 2) return;
+            cleanImport = result == 0;
+        }
+
+        if (cleanImport)
+        {
+            SelectedLayout = null;
+            LayoutName = string.Empty;
+        }
 
         await SafeExecuteAsync(async () =>
         {
@@ -339,6 +371,16 @@ public partial class FreeformManagementViewModel : ViewModelBase
         Points.Clear();
         IsEmpty = true;
         StatusMessage = "已清空所有点";
+    }
+
+    [RelayCommand]
+    private void Unload ()
+    {
+        Points.Clear();
+        IsEmpty = true;
+        LayoutName = string.Empty;
+        SelectedLayout = null;
+        StatusMessage = "已卸载，请导入数据或选择布局";
     }
 
     private List<string> ValidatePoints ()

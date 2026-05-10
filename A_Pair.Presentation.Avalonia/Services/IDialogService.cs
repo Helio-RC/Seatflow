@@ -13,4 +13,8 @@ public interface IDialogService
 
     /// <summary>显示文本输入对话框，返回 (是否确认, 输入文本)。</summary>
     Task<(bool Confirmed , string Input)> ShowInputAsync (string title , string prompt , string initialValue = "");
+
+    /// <summary>显示多按钮对话框，返回 null(Windw关闭) / 0(第一个按钮) / 1(第二个按钮) / 2(第三个按钮)。</summary>
+    Task<int?> ShowMultiOptionAsync (string title , string message ,
+        string primaryText , string secondaryText , string cancelText = "取消");
 }
