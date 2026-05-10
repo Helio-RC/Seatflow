@@ -168,11 +168,11 @@ public partial class FreeformManagementViewModel : ViewModelBase
         var cleanImport = false;
         if (Points.Count > 0)
         {
-            var result = await Dialog.ShowMultiOptionAsync("导入方式" ,
+            var choice = await Dialog.ShowMultiOptionAsync("导入方式" ,
                 $"当前已有 {Points.Count} 个元素，请选择导入方式：" ,
                 "卸载后导入" , "直接覆盖" , "取消");
-            if (result == null || result == 2) return;
-            cleanImport = result == 0;
+            if (choice == null || choice == 2) return;
+            cleanImport = choice == 0;
         }
 
         if (cleanImport)
@@ -233,11 +233,11 @@ public partial class FreeformManagementViewModel : ViewModelBase
         var cleanImport = false;
         if (Points.Count > 0)
         {
-            var result = await Dialog.ShowMultiOptionAsync("导入方式" ,
+            var choice = await Dialog.ShowMultiOptionAsync("导入方式" ,
                 $"当前已有 {Points.Count} 个元素，请选择导入方式：" ,
                 "卸载后导入" , "直接覆盖" , "取消");
-            if (result == null || result == 2) return;
-            cleanImport = result == 0;
+            if (choice == null || choice == 2) return;
+            cleanImport = choice == 0;
         }
 
         if (cleanImport)

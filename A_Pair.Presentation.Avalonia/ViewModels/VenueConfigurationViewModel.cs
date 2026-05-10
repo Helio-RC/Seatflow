@@ -50,10 +50,14 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanChangeLayoutType))]
     private bool _isFreeformVenue;
 
     public bool CanChangeLayoutType => !IsFreeformVenue;
+
+    partial void OnIsFreeformVenueChanged (bool value)
+    {
+        OnPropertyChanged(nameof(CanChangeLayoutType));
+    }
 
     private List<FreeformSeat> _freeformPreviewSeats = [];
     private List<Obstacle> _freeformPreviewObstacles = [];
@@ -259,6 +263,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private void SelectLayoutType (string type)
     {
+        if (IsFreeformVenue) return;
         SelectedLayoutType = type switch
         {
             "Polar" => LayoutType.Polar,
@@ -542,8 +547,15 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     .Select(s => (s.X , s.Y , (int?)s.Row , (int?)s.Column , GroupId: (int?)null))
                     .ToList();
                 var obstaclePoints = _freeformPreviewObstacles
-                    .Select(o => (o.X , o.Y , Math.Max(o.Width, 60) , Math.Max(o.Height, 40) , o.Type ?? "Door"))
+                    .Select(o => (o.X , o.Y , Math.Max(o.Width, 60) , Math.Max(o.Height, 40) , o.Type ?? "Podium"))
                     .ToList();
+                // 合并 DoorItems 中的门
+                foreach (var d in DoorItems)
+                    obstaclePoints.Add((d.X , d.Y , 36.0 , 24.0 , "Door"));
+                if (obstaclePoints.All(o => o.Item5 == "Door"))
+                {
+                    // 只有门没有讲台时，保留讲台（如果原来就有Podium类型）
+                }
                 layout = FreeformLayoutBuilder.BuildFreeform(
                     seatPoints , obstaclePoints.Count > 0 ? obstaclePoints : null);
                 layout.Id = SelectedVenueItem?.Id ?? "";
