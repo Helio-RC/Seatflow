@@ -140,7 +140,7 @@
                       Padding="8,4" FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
-                  <TextBlock Text="添加点" FontSize="12"/>
+                  <TextBlock Text="添加自由点" FontSize="12"/>
                 </StackPanel>
               </Button>
               <Button Command="{Binding ClearPointsCommand}"
@@ -148,15 +148,15 @@
                       Padding="8,4" FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-                  <TextBlock Text="清空" FontSize="12"/>
+                  <TextBlock Text="清空数据" FontSize="12"/>
                 </StackPanel>
               </Button>
               <Button Command="{Binding UnloadCommand}"
                       IsEnabled="{Binding HasPoints}" HorizontalContentAlignment="Center"
                       Padding="8,4" FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Dismiss}" FontSize="14"/>
-                  <TextBlock Text="卸载" FontSize="12"/>
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="14"/>
+                  <TextBlock Text="卸载已加载数据" FontSize="12"/>
                 </StackPanel>
               </Button>
               <TextBlock Text="{Binding Points.Count, StringFormat='共 {0} 个元素'}"
