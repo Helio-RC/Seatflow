@@ -84,8 +84,8 @@ public partial class DataManagementViewModel : ViewModelBase
 
     public void OnWindowWidthChanged (double windowWidth)
     {
-        IsCompact = windowWidth < 800;
-        if (windowWidth < 750)
+        IsCompact = windowWidth < 820;
+        if (windowWidth < 780)
             IsSidebarExpanded = false;
         else
             IsSidebarExpanded = _userWantsSidebarExpanded;

@@ -108,7 +108,7 @@
                             IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                   <StackPanel.Transitions>
                     <Transitions>
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="SineEaseInOut" />
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="SineEaseInOut" />
                     </Transitions>
                   </StackPanel.Transitions>
                   <Button HorizontalContentAlignment="Left"
