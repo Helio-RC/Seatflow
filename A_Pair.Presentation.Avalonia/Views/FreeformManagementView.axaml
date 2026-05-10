@@ -62,9 +62,9 @@
       </DockPanel>
     </Border>
 
-    <StackPanel Orientation="Horizontal" Spacing="8">
+    <Grid ColumnDefinitions="Auto,*">
       <!-- 左侧：已保存的布局 -->
-      <Border Margin="0,0,8,0" CornerRadius="6" MinWidth="240"
+      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" MinWidth="240"
               Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="已保存布局"
@@ -103,6 +103,7 @@
       </Border>
 
       <!-- 右侧 -->
+      <Grid Grid.Column="1">
         <!-- 空状态 -->
         <Border IsVisible="{Binding IsEmpty}"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -279,6 +280,7 @@
           </Grid>
           </ScrollViewer>
         </DockPanel>
-      </StackPanel>
+      </Grid>
+    </Grid>
   </DockPanel>
 </UserControl>
