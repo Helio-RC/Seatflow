@@ -73,15 +73,7 @@ namespace A_Pair.Infrastructure.Exporters
                     foreach (var cell in row.Cells)
                     {
                         ws.Cells[r , c].Value = cell.Text;
-                        if (cell.ColSpan > 1 && c + cell.ColSpan - 1 > c)
-                        {
-                            ws.Cells[r , c , r , c + cell.ColSpan - 1].Merge = true;
-                            c += cell.ColSpan;
-                        }
-                        else
-                        {
-                            c++;
-                        }
+                        c++;
                     }
                     r++;
                 }

@@ -27,14 +27,13 @@ namespace A_Pair.Infrastructure.Exporters
             await csv.WriteRecordsAsync(records , cancellationToken);
         }
 
-        public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
+        public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
-            await using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
-            await writer.WriteLineAsync($"# {model.LayoutName}");
+            using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
+            writer.WriteLine($"# {model.LayoutName}");
             foreach (var row in model.Rows)
-            {
-                await writer.WriteLineAsync(string.Join("," , row.Cells.Select(c => EscapeCsv(c.Text))));
-            }
+                writer.WriteLine(string.Join("," , row.Cells.Select(c => EscapeCsv(c.Text))));
+            return Task.CompletedTask;
         }
 
         private static string EscapeCsv (string text)

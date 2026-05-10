@@ -59,6 +59,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private ObservableCollection<SeatDisplayItem> _seatItems = [];
 
     [ObservableProperty]
+    private ObservableCollection<SeatDisplayItem> _overlayItems = [];
+
+    [ObservableProperty]
     private double _canvasWidth = 800;
 
     [ObservableProperty]
@@ -79,6 +82,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private bool _canRedo;
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
+    public bool IsNotFreeform => _currentLayout?.LayoutType != LayoutType.Freeform;
 
     // ── 右侧面板 ──
     [ObservableProperty]
@@ -119,6 +123,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync());
         StatusMessage = "就绪，请选择会场和学生数据集后生成座位安排";
+    }
+
+    public async Task RefreshDataAsync()
+    {
+        await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync());
     }
 
     [RelayCommand]
@@ -290,6 +299,27 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
         CanvasWidth = Math.Max(800, maxX + 40);
         CanvasHeight = Math.Max(600, maxY + 40);
+
+        // 障碍物叠加层
+        var overlays = new List<SeatDisplayItem>();
+        foreach (var obs in _currentLayout.Obstacles)
+        {
+            double w = obs.Width > 0 ? obs.Width : 60;
+            double h = obs.Height > 0 ? obs.Height : 40;
+            string label = obs.Type ?? "障碍物";
+            overlays.Add(new SeatDisplayItem
+            {
+                X = obs.X,
+                Y = obs.Y,
+                Width = w,
+                Height = h,
+                SeatId = obs.Id,
+                SeatLabel = label,
+                CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4),
+                OccupancyStatus = SeatOccupancyStatus.Empty
+            });
+        }
+        OverlayItems = new ObservableCollection<SeatDisplayItem>(overlays);
     }
 
     private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
@@ -542,6 +572,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private async Task ExportAsync(ExportFormat format, IReadOnlyList<FilePickerFileType> types, string suggestedName)
     {
         if (_workspace == null) return;
+
+        if (_currentLayout?.LayoutType == LayoutType.Freeform)
+        {
+            await Dialog.ShowWarningAsync("不支持的数据导出" ,
+                "自由点布局不支持导出为表格格式，请使用「预览图片」导出。");
+            return;
+        }
 
         var file = await _fileService.SaveFileAsync("导出座位安排", types, suggestedName);
         if (file == null) return;

@@ -16,10 +16,10 @@ public sealed class WatchdogService : IDisposable
     private readonly CancellationTokenSource _cts = new();
     private long _heartbeatTicks;
     private Task? _watchTask;
+    private static IDialogService? _dialog;
 
-    /// <summary>
-    /// </summary>
-    /// <param name="timeoutSeconds">UI 线程无响应多少秒后视为卡死。</param>
+    public static void SetDialogService (IDialogService dialog) => _dialog = dialog;
+
     public WatchdogService (int timeoutSeconds = 45)
     {
         _timeoutSeconds = timeoutSeconds;
@@ -47,12 +47,12 @@ public sealed class WatchdogService : IDisposable
             var elapsed = DateTime.UtcNow.Ticks - Interlocked.Read(ref _heartbeatTicks);
             if (new TimeSpan(elapsed).TotalSeconds >= _timeoutSeconds)
             {
-                await DumpAndExit();
+                await DumpAndExit(_timeoutSeconds);
             }
         }
     }
 
-    private static async Task DumpAndExit ()
+    private static async Task DumpAndExit (int timeoutSeconds = 45)
     {
         var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
         var logPath = Path.Combine(AppContext.BaseDirectory, $"err_{timestamp}.log");
@@ -126,6 +126,14 @@ public sealed class WatchdogService : IDisposable
         }
         finally
         {
+            // 尝试弹窗通知用户
+            try
+            {
+                var msg = $"UI 线程超过 {timeoutSeconds} 秒未响应，程序将自动退出。\n诊断日志已保存至: {logPath}";
+                _dialog?.ShowErrorAsync("程序无响应" , msg).Wait(3000);
+            }
+            catch { /* UI 可能已死锁，弹窗无法显示 */ }
+
             Environment.Exit(1);
         }
     }

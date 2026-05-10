@@ -72,6 +72,9 @@ namespace A_Pair.Infrastructure.Exporters
 
         public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
+            int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
+            int actualCols = Math.Min(maxCols, 40);
+
             Document.Create(container =>
             {
                 container.Page(page =>
@@ -79,25 +82,25 @@ namespace A_Pair.Infrastructure.Exporters
                     page.Size(PageSizes.A4.Landscape());
                     page.Margin(1 , Unit.Centimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(9));
+                    page.DefaultTextStyle(x => x.FontSize(8));
 
                     page.Header()
                         .Text(model.LayoutName)
-                        .SemiBold().FontSize(18).AlignCenter();
+                        .SemiBold().FontSize(16).AlignCenter();
 
                     page.Content()
                         .Table(table =>
                         {
-                            int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
                             table.ColumnsDefinition(columns =>
                             {
-                                for (int i = 0; i < maxCols; i++)
-                                    columns.ConstantColumn(36);
+                                for (int i = 0; i < actualCols; i++)
+                                    columns.RelativeColumn();
                             });
 
                             foreach (var row in model.Rows)
                             {
-                                foreach (var cell in row.Cells)
+                                int colCount = 0;
+                                foreach (var cell in row.Cells.Take(actualCols))
                                 {
                                     table.Cell()
                                         .Border(1).BorderColor(Colors.Grey.Lighten2)
@@ -108,7 +111,11 @@ namespace A_Pair.Infrastructure.Exporters
                                         .Padding(2)
                                         .AlignCenter()
                                         .Text(cell.Text);
+                                    colCount++;
                                 }
+                                // 补齐不足列
+                                for (int i = colCount; i < actualCols; i++)
+                                    table.Cell().Border(1).BorderColor(Colors.Grey.Lighten2).Padding(2).Text("");
                             }
                         });
 

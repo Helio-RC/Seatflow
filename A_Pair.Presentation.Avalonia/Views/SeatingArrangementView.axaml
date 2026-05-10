@@ -201,7 +201,9 @@
           <!-- 座位渲染区 -->
           <ScrollViewer x:Name="PreviewScrollViewer" IsVisible="{Binding HasGenerated}"
                         HorizontalScrollBarVisibility="Auto"
-                        VerticalScrollBarVisibility="Auto">
+                        VerticalScrollBarVisibility="Auto"
+                        Background="White">
+            <Panel>
             <ItemsControl ItemsSource="{Binding SeatItems}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -236,6 +238,37 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <ItemsControl ItemsSource="{Binding OverlayItems}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
+                          Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.Styles>
+                <Style Selector="ItemsControl > ContentPresenter">
+                  <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                  <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
+                </Style>
+              </ItemsControl.Styles>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SeatDisplayItem">
+                  <Border Width="{ReflectionBinding Width}"
+                          Height="{ReflectionBinding Height}"
+                          CornerRadius="{ReflectionBinding CornerRadius}"
+                          Background="{ReflectionBinding BackgroundBrush}"
+                          BorderBrush="{ReflectionBinding BorderBrush}"
+                          BorderThickness="1"
+                          ToolTip.Tip="{ReflectionBinding TooltipText}">
+                    <TextBlock Text="{ReflectionBinding DisplayText}"
+                               FontSize="10"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </Panel>
           </ScrollViewer>
           </Panel>
         </Border>

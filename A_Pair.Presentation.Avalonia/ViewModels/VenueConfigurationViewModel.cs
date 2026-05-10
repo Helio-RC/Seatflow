@@ -105,6 +105,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     // ── Grid 教室特征 ──
     [ObservableProperty] private int _gridFrontRowCount = 1;
     [ObservableProperty] private bool _gridHasPodium = true;
+    [ObservableProperty] private bool _gridHasFrontDoor;
     [ObservableProperty] private double _gridPodiumWidth = 60;
     [ObservableProperty] private double _gridPodiumHeight = 40;
 
@@ -222,6 +223,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     _freeformPreviewObstacles = layout.Obstacles.ToList();
                     break;
             }
+
+            // 恢复障碍物配置（门等）
+            RestoreObstaclesFromLayout(layout);
 
             RegeneratePreview();
             StatusMessage = $"已加载会场「{layout.Name}」，共 {layout.Seats.Count} 个座位";
@@ -590,6 +594,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             AisleCircularWidth = PolarAisleCircularWidth ,
             FrontRowCount = PolarFrontRowCount
         };
+    }
+
+    private void RestoreObstaclesFromLayout (ClassroomLayoutDefinition layout)
+    {
+        var doors = layout.Obstacles.Where(o => o.Type == "Door").ToList();
+        DoorItems = new ObservableCollection<DoorItem>(
+            doors.Select(d => new DoorItem { X = d.X , Y = d.Y , Label = "门" }));
+
+        if (layout.Metadata is GridLayoutMetadata gridMeta)
+            GridHasFrontDoor = gridMeta.HasFrontDoor;
     }
 
     private void PopulateGridFromMetadata (GridLayoutMetadata g)

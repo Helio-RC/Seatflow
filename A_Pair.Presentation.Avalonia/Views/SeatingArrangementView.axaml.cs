@@ -19,7 +19,10 @@ public partial class SeatingArrangementView : UserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ViewModels.SeatingArrangementViewModel vm)
+        {
             vm.CapturePreviewAsync = CapturePreviewAsync;
+            _ = vm.RefreshDataAsync();
+        }
     }
 
     private async Task<string?> CapturePreviewAsync()

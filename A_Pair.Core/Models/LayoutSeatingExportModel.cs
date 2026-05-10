@@ -1,3 +1,5 @@
+using A_Pair.Core.Models;
+
 namespace A_Pair.Core.Models;
 
 /// <summary>
@@ -9,9 +11,6 @@ public class LayoutSeatingExportModel
     public LayoutType LayoutType { get; set; }
     public List<ExportRow> Rows { get; set; } = [];
 
-    /// <summary>
-    /// 从布局定义和座位分配构建导出模型。
-    /// </summary>
     public static LayoutSeatingExportModel FromLayout(
         ClassroomLayoutDefinition layout,
         Dictionary<string, string> assignments,
@@ -35,36 +34,51 @@ public class LayoutSeatingExportModel
 
         var seatMap = layout.Seats.OfType<GridSeat>()
             .ToDictionary(s => (s.Row, s.Column), s => s);
-        var aisleCols = new HashSet<int>(meta.AisleAfterColumns);
-        var aisleRows = new HashSet<int>(meta.AisleAfterRows);
+        var aisleColSet = new HashSet<int>(meta.AisleAfterColumns);
+        var aisleRowSet = new HashSet<int>(meta.AisleAfterRows);
         var emptyPos = new HashSet<(int, int)>(
             meta.EmptyPositions.Select(p => (p.Row, p.Column)));
 
-        // 计算最大列数（含过道列）
-        int maxCol = meta.Columns + aisleCols.Count;
+        // 构建列计划: 每个槽位是 (列号, 是否过道)
+        var colPlan = new List<(int? Col, bool IsAisle)>();
+        for (int c = 1; c <= meta.Columns; c++)
+        {
+            colPlan.Add((c, false));
+            if (aisleColSet.Contains(c))
+                colPlan.Add((null, true));
+        }
 
-        // 讲台行（如果 HasPodium）
+        // 讲台行（居中）
         if (meta.HasPodium)
         {
             var podiumRow = new ExportRow();
-            podiumRow.Cells.Add(new ExportCell { IsPodium = true, Text = "讲台", ColSpan = maxCol });
+            int mid = colPlan.Count / 2;
+            for (int i = 0; i < colPlan.Count; i++)
+            {
+                if (i == mid)
+                    podiumRow.Cells.Add(new ExportCell { IsPodium = true, Text = "讲台" });
+                else
+                    podiumRow.Cells.Add(new ExportCell { Text = "" });
+            }
             model.Rows.Add(podiumRow);
         }
 
         for (int r = 1; r <= meta.Rows; r++)
         {
             var row = new ExportRow();
-            for (int c = 1; c <= meta.Columns; c++)
+            foreach (var (col, isAisle) in colPlan)
             {
-                // 过道列
-                if (aisleCols.Contains(c - 1))
-                    row.Cells.Add(new ExportCell { IsAisle = true, Text = "过道" });
-
-                if (emptyPos.Contains((r, c)))
-                    row.Cells.Add(new ExportCell { Text = "" });
-                else if (seatMap.TryGetValue((r, c), out var seat))
+                if (isAisle)
                 {
-                    string label = $"R{r}C{c}";
+                    row.Cells.Add(new ExportCell { IsAisle = true, Text = "过道" });
+                }
+                else if (col.HasValue && emptyPos.Contains((r, col.Value)))
+                {
+                    row.Cells.Add(new ExportCell { Text = "" });
+                }
+                else if (col.HasValue && seatMap.TryGetValue((r, col.Value), out var seat))
+                {
+                    string label = $"R{r}C{col.Value}";
                     string? studentName = null;
                     if (assignments.TryGetValue(seat.Id, out var sid) &&
                         studentNames.TryGetValue(sid, out var name))
@@ -84,8 +98,23 @@ public class LayoutSeatingExportModel
             model.Rows.Add(row);
 
             // 过道行
-            if (aisleRows.Contains(r))
-                model.Rows.Add(new ExportRow { Cells = { new ExportCell { IsAisle = true, Text = "过道", ColSpan = maxCol } } });
+            if (aisleRowSet.Contains(r))
+            {
+                var aisleRow = new ExportRow();
+                for (int i = 0; i < colPlan.Count; i++)
+                    aisleRow.Cells.Add(new ExportCell { IsAisle = true, Text = "过道" });
+                model.Rows.Add(aisleRow);
+            }
+        }
+
+        // 门（从 Obstacles 提取）
+        foreach (var obs in layout.Obstacles.Where(o => o.Type == "Door"))
+        {
+            var doorRow = new ExportRow();
+            for (int i = 0; i < colPlan.Count; i++)
+                doorRow.Cells.Add(new ExportCell { Text = "" });
+            doorRow.Cells.Add(new ExportCell { Text = $"[门] ({obs.X:F0}, {obs.Y:F0})" });
+            model.Rows.Add(doorRow);
         }
 
         return model;
@@ -104,18 +133,17 @@ public class LayoutSeatingExportModel
 
         if (rings.Count == 0) return model;
 
-        int maxRingSeats = rings.Max(g => g.Count());
+        int maxRingSeats = Math.Min(rings.Max(g => g.Count()), 30);
 
         // 讲台行（居中）
         if (meta.HasPodium && meta.PodiumRadius > 0)
         {
             var podiumRow = new ExportRow();
             int padBefore = (maxRingSeats - 1) / 2;
-            int padAfter = maxRingSeats - 1 - padBefore;
             for (int i = 0; i < padBefore; i++)
                 podiumRow.Cells.Add(new ExportCell { Text = "" });
             podiumRow.Cells.Add(new ExportCell { IsPodium = true, Text = "讲台" });
-            for (int i = 0; i < padAfter; i++)
+            while (podiumRow.Cells.Count < maxRingSeats)
                 podiumRow.Cells.Add(new ExportCell { Text = "" });
             model.Rows.Add(podiumRow);
         }
@@ -125,14 +153,13 @@ public class LayoutSeatingExportModel
         {
             var row = new ExportRow();
             var seatsInRing = ringGroup.OrderBy(s => s.AngleDegrees).ToList();
-            int ringSeatCount = seatsInRing.Count;
+            int ringSeatCount = Math.Min(seatsInRing.Count, maxRingSeats);
 
-            // 居中：计算前置空格
             int padding = (maxRingSeats - ringSeatCount) / 2;
             for (int i = 0; i < padding; i++)
                 row.Cells.Add(new ExportCell { Text = "" });
 
-            foreach (var seat in seatsInRing)
+            foreach (var seat in seatsInRing.Take(maxRingSeats))
             {
                 string label = $"环{seat.Ring} {seat.AngleDegrees:F0}°";
                 string? studentName = null;
@@ -147,11 +174,23 @@ public class LayoutSeatingExportModel
                 });
             }
 
-            // 后置空格补齐
             while (row.Cells.Count < maxRingSeats)
                 row.Cells.Add(new ExportCell { Text = "" });
 
             model.Rows.Add(row);
+        }
+
+        // 门（从 Obstacles 提取）
+        foreach (var obs in layout.Obstacles.Where(o => o.Type == "Door"))
+        {
+            var doorRow = new ExportRow();
+            int padBefore = maxRingSeats / 2;
+            for (int i = 0; i < padBefore; i++)
+                doorRow.Cells.Add(new ExportCell { Text = "" });
+            doorRow.Cells.Add(new ExportCell { Text = $"[门] ({obs.X:F0}, {obs.Y:F0})" });
+            while (doorRow.Cells.Count < maxRingSeats)
+                doorRow.Cells.Add(new ExportCell { Text = "" });
+            model.Rows.Add(doorRow);
         }
 
         return model;
@@ -165,7 +204,6 @@ public class LayoutSeatingExportModel
         var model = new LayoutSeatingExportModel { LayoutName = layout.Name, LayoutType = LayoutType.Freeform };
         var freeSeats = layout.Seats.OfType<FreeformSeat>().ToList();
 
-        // Freeform 不要求保持布局，简单按行列表
         int idx = 0;
         foreach (var seat in freeSeats)
         {
@@ -176,13 +214,8 @@ public class LayoutSeatingExportModel
                 studentNames.TryGetValue(sid, out var name))
                 studentName = name;
 
-            // 讲台和门作为单独行
             var row = new ExportRow();
-            row.Cells.Add(new ExportCell
-            {
-                IsSeat = true,
-                Text = studentName ?? label
-            });
+            row.Cells.Add(new ExportCell { IsSeat = true, Text = studentName ?? label });
             model.Rows.Add(row);
         }
 
@@ -208,5 +241,4 @@ public class ExportCell
     public bool IsSeat { get; set; }
     public bool IsAisle { get; set; }
     public bool IsPodium { get; set; }
-    public int ColSpan { get; set; } = 1;
 }

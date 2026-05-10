@@ -92,6 +92,7 @@ namespace A_Pair.Presentation.Avalonia
                 ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
 
                 // 启动看门狗，防止 UI 卡死无法退出
+                WatchdogService.SetDialogService(_serviceProvider.GetRequiredService<IDialogService>());
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
                 watchdog.Start();
                 var pingTimer = new global::Avalonia.Threading.DispatcherTimer(
