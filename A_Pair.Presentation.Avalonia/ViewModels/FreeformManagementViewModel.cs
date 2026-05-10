@@ -125,6 +125,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             }
 
             Points = new ObservableCollection<FreeformPoint>(pts);
+            RefreshIndices();
             IsEmpty = Points.Count == 0;
             StatusMessage = $"已加载布局「{layout.Name}」，共 {pts.Count} 个元素";
         });
@@ -214,6 +215,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 }
             }
             Points = new ObservableCollection<FreeformPoint>(pts);
+            RefreshIndices();
             IsEmpty = Points.Count == 0;
             LayoutName = file.Name.Replace(".csv" , "");
             StatusMessage = $"已导入 {pts.Count} 个点";
@@ -278,6 +280,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             }
 
             Points = new ObservableCollection<FreeformPoint>(pts);
+            RefreshIndices();
             IsEmpty = Points.Count == 0;
             LayoutName = layout.Name;
             StatusMessage = $"已导入 {pts.Count} 个元素";
@@ -353,6 +356,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void AddPoint ()
     {
         Points.Add(new FreeformPoint(0 , 0));
+        RefreshIndices();
         IsEmpty = false;
         StatusMessage = $"已添加点，当前共 {Points.Count} 个点";
     }
@@ -361,6 +365,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void DeletePoint (FreeformPoint point)
     {
         Points.Remove(point);
+        RefreshIndices();
         IsEmpty = Points.Count == 0;
         StatusMessage = $"当前共 {Points.Count} 个点";
     }
@@ -381,6 +386,12 @@ public partial class FreeformManagementViewModel : ViewModelBase
         LayoutName = string.Empty;
         SelectedLayout = null;
         StatusMessage = "已卸载，请导入数据或选择布局";
+    }
+
+    private void RefreshIndices ()
+    {
+        for (int i = 0; i < Points.Count; i++)
+            Points[i].DisplayIndex = i + 1;
     }
 
     private List<string> ValidatePoints ()
@@ -434,6 +445,7 @@ public class FreeformPoint
     public int? Column { get; set; }
     public double Width { get; set; }
     public double Height { get; set; }
+    public int DisplayIndex { get; set; }
     public string GroupColor { get; set; } = "#4A90D9";
 
     public FreeformPoint () { }
