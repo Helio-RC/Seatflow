@@ -278,22 +278,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         double dx = GridOriginX - 50;
         double dy = GridOriginY - 20;
         DoorItems.Add(new DoorItem(dx , dy , $"门 {DoorItems.Count + 1}"));
-
-        if (IsFreeformSelected)
-            _freeformPreviewObstacles.Add(new Obstacle { X = dx , Y = dy , Width = 36 , Height = 24 , Type = "Door" });
     }
 
     [RelayCommand]
     private void RemoveDoor (DoorItem door)
     {
         DoorItems.Remove(door);
-        if (IsFreeformSelected)
-        {
-            var match = _freeformPreviewObstacles
-                .FirstOrDefault(o => o.Type == "Door" && Math.Abs(o.X - door.X) < 1 && Math.Abs(o.Y - door.Y) < 1);
-            if (match != null)
-                _freeformPreviewObstacles.Remove(match);
-        }
     }
 
     [RelayCommand]
@@ -554,8 +544,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     .Select(s => (s.X , s.Y , (int?)s.Row , (int?)s.Column , GroupId: (int?)null))
                     .ToList();
                 var obstaclePoints = _freeformPreviewObstacles
+                    .Where(o => o.Type != "Door")
                     .Select(o => (o.X , o.Y , Math.Max(o.Width, 60) , Math.Max(o.Height, 40) , o.Type ?? "Podium"))
                     .ToList();
+                foreach (var d in DoorItems)
+                    obstaclePoints.Add((d.X , d.Y , 36.0 , 24.0 , "Door"));
                 layout = FreeformLayoutBuilder.BuildFreeform(
                     seatPoints , obstaclePoints.Count > 0 ? obstaclePoints : null);
                 layout.Id = SelectedVenueItem?.Id ?? "";
