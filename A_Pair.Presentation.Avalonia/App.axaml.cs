@@ -101,6 +101,9 @@ namespace A_Pair.Presentation.Avalonia
                     (_, _) => watchdog.Ping());
                 pingTimer.Start();
 
+                // 全角字符输入转换（全角数字/符号 → 半角）
+                Behaviors.ChineseInputNormalizer.Attach(mainWindow);
+
                 // 启动时恢复已保存的设置（主题、语言等）
                 _ = RestoreSettingsAsync();
             }
