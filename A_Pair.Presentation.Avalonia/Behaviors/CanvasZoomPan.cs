@@ -96,11 +96,9 @@ public static class CanvasZoomPan
     private static void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
-        if (!e.GetCurrentPoint(sv).Properties.IsMiddleButtonPressed) return;
+        if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
 
-        e.Handled = true;
         EnsureTransforms(sv);
-        sv.SetValue(IsPanningProperty, true);
         sv.SetValue(PanOriginProperty, e.GetPosition(sv));
         sv.SetValue(OriginalTranslateProperty,
             new Point(sv.GetValue(TranslateProperty)!.X, sv.GetValue(TranslateProperty)!.Y));
@@ -109,13 +107,21 @@ public static class CanvasZoomPan
     private static void OnPointerMoved(object? sender, PointerEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
-        if (!sv.GetValue(IsPanningProperty)) return;
+        if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
 
-        var origin = sv.GetValue(PanOriginProperty);
-        var origTrans = sv.GetValue(OriginalTranslateProperty);
         var pos = e.GetPosition(sv);
-        var translate = sv.GetValue(TranslateProperty)!;
+        var origin = sv.GetValue(PanOriginProperty);
+        double dist = Math.Sqrt((pos.X - origin.X) * (pos.X - origin.X) + (pos.Y - origin.Y) * (pos.Y - origin.Y));
 
+        if (!sv.GetValue(IsPanningProperty))
+        {
+            if (dist < 4) return; // 拖动阈值，避免与点击冲突
+            sv.SetValue(IsPanningProperty, true);
+            e.Handled = true;
+        }
+
+        var origTrans = sv.GetValue(OriginalTranslateProperty);
+        var translate = sv.GetValue(TranslateProperty)!;
         translate.X = origTrans.X + (pos.X - origin.X);
         translate.Y = origTrans.Y + (pos.Y - origin.Y);
     }

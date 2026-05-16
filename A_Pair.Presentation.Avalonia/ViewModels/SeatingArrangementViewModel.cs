@@ -288,8 +288,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         // 第二遍：以中心缩放
         double z = baseScale * ZoomLevel;
-        double seatWidth = baseW * z;
-        double seatHeight = baseH * z;
+        double seatWidth = baseW * baseScale;
+        double seatHeight = baseH * baseScale;
 
         var items = new List<SeatDisplayItem>();
         int seatCounter = 0;
@@ -335,8 +335,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var overlays = new List<SeatDisplayItem>();
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double w = (obs.Width > 0 ? obs.Width : 60) * z;
-            double h = (obs.Height > 0 ? obs.Height : 40) * z;
+            double w = (obs.Width > 0 ? obs.Width : 60) * baseScale;
+            double h = (obs.Height > 0 ? obs.Height : 40) * baseScale;
             double ox = _contentCenterX + (obs.X * baseScale - _contentCenterX) * ZoomLevel + offsetX;
             double oy = _contentCenterY + (obs.Y * baseScale - _contentCenterY) * ZoomLevel + offsetY;
             overlays.Add(new SeatDisplayItem
