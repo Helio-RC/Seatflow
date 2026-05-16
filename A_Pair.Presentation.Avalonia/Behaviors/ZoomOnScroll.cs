@@ -8,12 +8,10 @@ namespace A_Pair.Presentation.Avalonia.Behaviors;
 public static class ZoomOnScroll
 {
     public static readonly AttachedProperty<bool> EnabledProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, bool>("Enabled",
-            typeof(ZoomOnScroll), defaultValue: false);
+        AvaloniaProperty.RegisterAttached<ScrollViewer, bool>("Enabled", typeof(ZoomOnScroll), defaultValue: false);
 
     public static readonly AttachedProperty<Action<double>?> OnZoomProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, Action<double>?>("OnZoom",
-            typeof(ZoomOnScroll));
+        AvaloniaProperty.RegisterAttached<ScrollViewer, Action<double>?>("OnZoom", typeof(ZoomOnScroll));
 
     public static void SetEnabled(ScrollViewer el, bool v) { el.SetValue(EnabledProperty, v); }
     public static void SetOnZoom(ScrollViewer el, Action<double>? v) { el.SetValue(OnZoomProperty, v); }
@@ -25,10 +23,8 @@ public static class ZoomOnScroll
 
     private static void OnEnabledChanged(ScrollViewer sv, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.NewValue is true)
-            sv.PointerWheelChanged += OnWheel;
-        else
-            sv.PointerWheelChanged -= OnWheel;
+        if (e.NewValue is true) sv.PointerWheelChanged += OnWheel;
+        else sv.PointerWheelChanged -= OnWheel;
     }
 
     private static void OnWheel(object? sender, PointerWheelEventArgs e)
