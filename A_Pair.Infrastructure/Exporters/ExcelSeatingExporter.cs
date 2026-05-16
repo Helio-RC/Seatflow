@@ -81,8 +81,7 @@ namespace A_Pair.Infrastructure.Exporters
                         }
                         c++;
                     }
-                    if (isFullAisleRow)
-                        ws.Row(r).Height = 24;
+                    ws.Row(r).Height = isFullAisleRow ? 20 : 28;
                     r++;
                 }
 

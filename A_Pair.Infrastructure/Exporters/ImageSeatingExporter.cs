@@ -8,8 +8,8 @@ namespace A_Pair.Infrastructure.Exporters;
 public class ImageSeatingExporter : ISeatingPlanExporter
 {
     private const int CellWidth = 76;
-    private const int CellHeight = 24;
-    private const int AisleRowHeight = 14;
+    private const int CellHeight = 32;
+    private const int AisleRowHeight = 16;
     private const int Margin = 20;
     private const float TextSize = 11;
 

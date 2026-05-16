@@ -109,10 +109,10 @@ namespace A_Pair.Infrastructure.Exporters
                                                      cell.IsAisle || isFullAisleRow ? Colors.Grey.Lighten3 :
                                                      cell.IsSeat ? Colors.Green.Lighten5 :
                                                      Colors.White)
-                                        .Padding(2)
+                                        .Padding(3)
+                                        .MinHeight(isFullAisleRow ? 8 : 14 , Unit.Millimetre)
+                                        .AlignMiddle()
                                         .AlignCenter();
-                                    if (isFullAisleRow)
-                                        cellElement = cellElement.MinHeight(10 , Unit.Millimetre);
                                     cellElement.Text(cell.Text);
                                     colCount++;
                                 }
