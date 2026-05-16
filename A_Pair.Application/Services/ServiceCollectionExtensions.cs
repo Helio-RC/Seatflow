@@ -57,6 +57,7 @@ namespace A_Pair.Application.Services
             services.AddSingleton<ISeatingPlanExporter , ExcelSeatingExporter>();
             services.AddSingleton<ISeatingPlanExporter , CsvSeatingExporter>();
             services.AddSingleton<ISeatingPlanExporter , PdfSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter , ImageSeatingExporter>();
             services.AddTransient<IStudentWriter , JsonStudentWriter>();
             services.AddTransient<IStudentWriter , CsvStudentWriter>();
             services.AddTransient<IStudentWriter , XlsxStudentWriter>();

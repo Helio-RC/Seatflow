@@ -43,7 +43,7 @@ public class ServiceCollectionExtensionsTests : IDisposable
         provider.GetService<IConflictResolver>().Should().NotBeNull();
         // 导出器
         var exporters = provider.GetServices<ISeatingPlanExporter>().ToList();
-        exporters.Should().HaveCount(3);
+        exporters.Should().HaveCount(4);
         // 学生写入器
         var writers = provider.GetServices<IStudentWriter>().ToList();
         writers.Should().HaveCount(3);
