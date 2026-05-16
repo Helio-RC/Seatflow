@@ -433,15 +433,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             });
         }
 
-        // 内容居中
+        // 内容居中：margin 按内容范围的 25% 计算，最小 60px
         double minX = double.MaxValue, minY = double.MaxValue;
         double maxX = 0, maxY = 0;
         foreach (var s in seats) { minX = Math.Min(minX, s.X); minY = Math.Min(minY, s.Y); maxX = Math.Max(maxX, s.X + s.Width); maxY = Math.Max(maxY, s.Y + s.Height); }
         foreach (var o in overlays) { minX = Math.Min(minX, o.X); minY = Math.Min(minY, o.Y); maxX = Math.Max(maxX, o.X + o.Width); maxY = Math.Max(maxY, o.Y + o.Height); }
         if (seats.Count > 0 || overlays.Count > 0)
         {
-            double pad = 80;
-            double ox = pad - minX, oy = pad - minY;
+            double cw = maxX - minX, ch = maxY - minY;
+            double mx = Math.Max(60, cw * 0.25), my = Math.Max(60, ch * 0.25);
+            double ox = mx - minX, oy = my - minY;
             foreach (var s in seats) { s.X += ox; s.Y += oy; }
             foreach (var o in overlays) { o.X += ox; o.Y += oy; }
         }

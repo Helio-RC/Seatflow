@@ -204,7 +204,9 @@
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Auto"
                         Background="White"
-                        behaviors:CanvasZoomPan.Enabled="True">
+                        behaviors:CanvasZoomPan.Enabled="True"
+                        behaviors:ZoomOnScroll.Enabled="True"
+                        behaviors:ZoomOnScroll.OnZoom="{Binding ApplyZoom}">
             <Panel>
             <ItemsControl ItemsSource="{Binding SeatItems}">
               <ItemsControl.ItemsPanel>

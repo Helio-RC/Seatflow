@@ -67,6 +67,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     private double _canvasHeight = 600;
 
+    public double ZoomLevel { get; set; } = 1.0;
+    public void ApplyZoom(double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta, 0.2, 3.0); BuildSeatDisplayItems(); }
+
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
@@ -260,7 +263,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var (baseW, baseH) = GetSeatDimensions(metadata);
 
         // 根据实际间距计算缩放因子，保证座位不重叠
-        double scale = ComputeLayoutScale(metadata);
+        double scale = ComputeLayoutScale(metadata) * ZoomLevel;
         double seatWidth = baseW * scale;
         double seatHeight = baseH * scale;
 
@@ -308,22 +311,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
 
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
-        // 内容居中：计算偏移使整个布局居中于画布
-        double margin = 80;
-        double offsetX = margin - minX;
-        double offsetY = margin - minY;
-        if (offsetX != 0 || offsetY != 0)
-        {
-            foreach (var item in items)
-            {
-                item.X += offsetX;
-                item.Y += offsetY;
-            }
-            minX += offsetX; minY += offsetY;
-            maxX += offsetX; maxY += offsetY;
-        }
-        CanvasWidth = Math.Max(800, maxX + margin);
-        CanvasHeight = Math.Max(600, maxY + margin);
+        // 内容居中：margin 按内容范围的 25% 计算，最小 60px
+        double contentW = maxX - minX;
+        double contentH = maxY - minY;
+        double marginX = Math.Max(60, contentW * 0.25);
+        double marginY = Math.Max(60, contentH * 0.25);
+        double offsetX = marginX - minX;
+        double offsetY = marginY - minY;
+        foreach (var item in items) { item.X += offsetX; item.Y += offsetY; }
+        CanvasWidth = contentW + marginX * 2;
+        CanvasHeight = contentH + marginY * 2;
 
         // 障碍物叠加层
         var overlays = new List<SeatDisplayItem>();
