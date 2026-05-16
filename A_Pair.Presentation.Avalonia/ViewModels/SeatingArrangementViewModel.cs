@@ -263,34 +263,43 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var assignments = _currentPlan.Assignments;
         var (baseW, baseH) = GetSeatDimensions(metadata);
 
-        // 基础缩放 + 用户缩放
+        // 基础缩放
         double baseScale = ComputeLayoutScale(metadata);
+
+        // 第一遍：收集原始坐标范围，计算内容中心
+        double minX0 = double.MaxValue, minY0 = double.MaxValue;
+        double maxX0 = 0, maxY0 = 0;
+        var rawPositions = new List<(double cx, double cy, Seat seat)>();
+        foreach (var seat in _currentLayout.Seats)
+        {
+            if (!seat.IsAvailable) continue;
+            var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
+            cx *= baseScale; cy *= baseScale;
+            rawPositions.Add((cx, cy, seat));
+            minX0 = Math.Min(minX0, cx);
+            minY0 = Math.Min(minY0, cy);
+            maxX0 = Math.Max(maxX0, cx);
+            maxY0 = Math.Max(maxY0, cy);
+        }
+
+        // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
+        _contentCenterX = (minX0 + maxX0) / 2;
+        _contentCenterY = (minY0 + maxY0) / 2;
+
+        // 第二遍：以中心缩放
         double z = baseScale * ZoomLevel;
         double seatWidth = baseW * z;
         double seatHeight = baseH * z;
 
         var items = new List<SeatDisplayItem>();
-        double minX0 = double.MaxValue, minY0 = double.MaxValue;
-        double maxX0 = 0, maxY0 = 0;
         int seatCounter = 0;
 
-        foreach (var seat in _currentLayout.Seats)
+        foreach (var (cx, cy, seat) in rawPositions)
         {
-            if (!seat.IsAvailable) continue;
-
-            var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
             var occupantId = assignments.GetValueOrDefault(seat.Id);
             bool isOccupied = occupantId != null;
             bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
-            // 原始坐标（zoom=1 时）
-            cx *= baseScale; cy *= baseScale;
-            minX0 = Math.Min(minX0, cx);
-            minY0 = Math.Min(minY0, cy);
-            maxX0 = Math.Max(maxX0, cx);
-            maxY0 = Math.Max(maxY0, cy);
-
-            // 缩放后坐标
             double sx = _contentCenterX + (cx - _contentCenterX) * ZoomLevel;
             double sy = _contentCenterY + (cy - _contentCenterY) * ZoomLevel;
             double x = seat is PolarSeat ? sx - seatWidth / 2 : sx;
@@ -299,10 +308,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             seatCounter++;
             items.Add(new SeatDisplayItem
             {
-                X = x,
-                Y = y,
-                Width = seatWidth,
-                Height = seatHeight,
+                X = x, Y = y, Width = seatWidth, Height = seatHeight,
                 SeatId = seat.Id,
                 SeatLabel = BuildSeatLabel(seat, seatCounter),
                 IsFrontRow = isFrontRow,
@@ -316,19 +322,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             });
         }
 
-        // 记录参考中心（zoom=1 时的内容中心）
-        if (Math.Abs(ZoomLevel - 1.0) < 0.01)
-        {
-            _contentCenterX = (minX0 + maxX0) / 2;
-            _contentCenterY = (minY0 + maxY0) / 2;
-        }
-
+        // Canvas 大小 + 居中偏移
+        double margin = 120;
+        CanvasWidth = Math.Max(900, (maxX0 - minX0) * ZoomLevel + margin * 2);
+        CanvasHeight = Math.Max(700, (maxY0 - minY0) * ZoomLevel + margin * 2);
+        double offsetX = CanvasWidth / 2 - _contentCenterX;
+        double offsetY = CanvasHeight / 2 - _contentCenterY;
+        foreach (var item in items) { item.X += offsetX; item.Y += offsetY; }
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
-
-        // Canvas 大小按比例缩放
-        double margin = 80;
-        CanvasWidth = Math.Max(800, (maxX0 - minX0) * ZoomLevel + margin * 2);
-        CanvasHeight = Math.Max(600, (maxY0 - minY0) * ZoomLevel + margin * 2);
 
         // 障碍物叠加层
         var overlays = new List<SeatDisplayItem>();
@@ -336,17 +337,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         {
             double w = (obs.Width > 0 ? obs.Width : 60) * z;
             double h = (obs.Height > 0 ? obs.Height : 40) * z;
-            string label = obs.Type ?? "障碍物";
-            double ox = _contentCenterX + (obs.X * baseScale - _contentCenterX) * ZoomLevel;
-            double oy = _contentCenterY + (obs.Y * baseScale - _contentCenterY) * ZoomLevel;
+            double ox = _contentCenterX + (obs.X * baseScale - _contentCenterX) * ZoomLevel + offsetX;
+            double oy = _contentCenterY + (obs.Y * baseScale - _contentCenterY) * ZoomLevel + offsetY;
             overlays.Add(new SeatDisplayItem
             {
-                X = ox,
-                Y = oy,
-                Width = w,
-                Height = h,
+                X = ox, Y = oy, Width = w, Height = h,
                 SeatId = obs.Id,
-                SeatLabel = label,
+                SeatLabel = obs.Type ?? "障碍物",
                 CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4),
                 OccupancyStatus = SeatOccupancyStatus.Empty
             });
