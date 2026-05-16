@@ -67,6 +67,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     private double _canvasHeight = 600;
 
+    [ObservableProperty]
+    private double _scaleFactor = 1.0;
+
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
@@ -298,6 +301,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
         CanvasWidth = Math.Max(800, maxX + 40);
         CanvasHeight = Math.Max(600, maxY + 40);
+        ScaleFactor = Math.Min(1.0, Math.Min(700.0 / CanvasWidth, 500.0 / CanvasHeight));
 
         // 障碍物叠加层
         var overlays = new List<SeatDisplayItem>();
@@ -323,20 +327,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
     {
-        if (metadata is GridLayoutMetadata gm)
+        // 使用固定最佳尺寸渲染，整体缩放由 ScaleTransform 处理
+        return metadata switch
         {
-            double w = gm.SeatsPerDesk > 1
-                ? Math.Max(gm.IntraDeskSpacing - 2, 10)
-                : Math.Max(gm.InterDeskSpacing - 8, 16);
-            double h = Math.Clamp(gm.VerticalSpacing - 4, 14, 24);
-            return (Math.Min(w, 24), h);
-        }
-        if (metadata is PolarLayoutMetadata pm)
-        {
-            double s = Math.Clamp(pm.RadiusStep * 0.45, 10, 22);
-            return (s, s);
-        }
-        return (22, 18);
+            GridLayoutMetadata => (34, 26),
+            PolarLayoutMetadata => (26, 26),
+            _ => (24, 20)
+        };
     }
 
     // ── 座位标签与行列判断 ──
