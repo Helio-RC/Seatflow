@@ -257,7 +257,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var metadata = _currentLayout.Metadata;
         var studentMap = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
         var assignments = _currentPlan.Assignments;
-        var (seatWidth, seatHeight) = GetSeatDimensions(metadata);
+        var (baseW, baseH) = GetSeatDimensions(metadata);
+
+        // 根据实际间距计算缩放因子，保证座位不重叠
+        double scale = ComputeLayoutScale(metadata);
+        double seatWidth = baseW * scale;
+        double seatHeight = baseH * scale;
 
         var items = new List<SeatDisplayItem>();
         double maxX = 0, maxY = 0;
@@ -272,11 +277,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             bool isOccupied = occupantId != null;
             bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
-            // Polar 座位返回圆心坐标，需要用左上角偏移
-            double offsetX = seat is PolarSeat ? seatWidth / 2 : 0;
-            double offsetY = seat is PolarSeat ? seatHeight / 2 : 0;
-            double x = cx - offsetX;
-            double y = cy - offsetY;
+            cx *= scale; cy *= scale;
+            double x = seat is PolarSeat ? cx - seatWidth / 2 : cx;
+            double y = seat is PolarSeat ? cy - seatHeight / 2 : cy;
 
             maxX = Math.Max(maxX, cx + seatWidth / 2 + 4);
             maxY = Math.Max(maxY, cy + seatHeight / 2 + 4);
@@ -309,13 +312,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var overlays = new List<SeatDisplayItem>();
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double w = obs.Width > 0 ? obs.Width : 60;
-            double h = obs.Height > 0 ? obs.Height : 40;
+            double w = (obs.Width > 0 ? obs.Width : 60) * scale;
+            double h = (obs.Height > 0 ? obs.Height : 40) * scale;
             string label = obs.Type ?? "障碍物";
             overlays.Add(new SeatDisplayItem
             {
-                X = obs.X,
-                Y = obs.Y,
+                X = obs.X * scale,
+                Y = obs.Y * scale,
                 Width = w,
                 Height = h,
                 SeatId = obs.Id,
@@ -331,10 +334,37 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         return metadata switch
         {
-            GridLayoutMetadata => (40, 30),
-            PolarLayoutMetadata => (28, 28),
+            GridLayoutMetadata => (42, 32),
+            PolarLayoutMetadata => (30, 30),
             _ => (28, 22)
         };
+    }
+
+    /// <summary>保证座位不重叠的缩放因子。</summary>
+    private static double ComputeLayoutScale(LayoutMetadata metadata)
+    {
+        if (metadata is GridLayoutMetadata gm)
+        {
+            // 取最小行间距或列间距作为基准
+            double minGap = double.MaxValue;
+            if (gm.HorizontalSpacing > 0) minGap = Math.Min(minGap, gm.HorizontalSpacing);
+            if (gm.VerticalSpacing > 0) minGap = Math.Min(minGap, gm.VerticalSpacing);
+            if (gm.IntraDeskSpacing > 0) minGap = Math.Min(minGap, gm.IntraDeskSpacing);
+            if (gm.InterDeskSpacing > 0 && gm.SeatsPerDesk <= 1)
+                minGap = Math.Min(minGap, gm.InterDeskSpacing);
+            if (minGap >= 40) return 1.0;
+            if (minGap >= 30) return 0.85;
+            if (minGap >= 20) return 0.7;
+            return 0.55;
+        }
+        if (metadata is PolarLayoutMetadata pm)
+        {
+            double step = pm.RadiusStep > 0 ? pm.RadiusStep : 40;
+            if (step >= 40) return 1.0;
+            if (step >= 30) return 0.85;
+            return 0.7;
+        }
+        return 1.0;
     }
 
     // ── 座位标签与行列判断 ──
