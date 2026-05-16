@@ -495,16 +495,16 @@
                     <DataTemplate x:DataType="vm:DoorItem">
                       <Border Padding="4,2" BorderThickness="0,0,0,1" HorizontalAlignment="Stretch"
                               BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                              RowSpacing="6" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Left" VerticalAlignment="Center"
+                              RowSpacing="8" ColumnSpacing="16">
                           <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Label}" Classes="caption"
                                      VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Left"/>
-                          <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                            <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
+                          <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="1">
+                            <TextBlock Text="X :" FontSize="12" VerticalAlignment="Center"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" Classes="caption"
                                            ToolTip.Tip="门的水平位置（像素）"/>
-                            <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Y :" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
                             <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" Classes="caption"
                                            ToolTip.Tip="门的垂直位置（像素）"/>
