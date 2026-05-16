@@ -70,11 +70,19 @@ namespace A_Pair.Infrastructure.Exporters
                 foreach (var row in model.Rows)
                 {
                     int c = 1;
+                    bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(cell => cell.IsAisle);
                     foreach (var cell in row.Cells)
                     {
                         ws.Cells[r , c].Value = cell.Text;
+                        if (cell.IsAisle || isFullAisleRow)
+                        {
+                            ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                        }
                         c++;
                     }
+                    if (isFullAisleRow)
+                        ws.Row(r).Height = 24;
                     r++;
                 }
 

@@ -99,18 +99,21 @@ namespace A_Pair.Infrastructure.Exporters
 
                             foreach (var row in model.Rows)
                             {
+                                bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(c => c.IsAisle);
                                 int colCount = 0;
                                 foreach (var cell in row.Cells.Take(actualCols))
                                 {
-                                    table.Cell()
+                                    var cellElement = table.Cell()
                                         .Border(1).BorderColor(Colors.Grey.Lighten2)
                                         .Background(cell.IsPodium ? Colors.Blue.Lighten4 :
-                                                     cell.IsAisle ? Colors.Grey.Lighten3 :
+                                                     cell.IsAisle || isFullAisleRow ? Colors.Grey.Lighten3 :
                                                      cell.IsSeat ? Colors.Green.Lighten5 :
                                                      Colors.White)
                                         .Padding(2)
-                                        .AlignCenter()
-                                        .Text(cell.Text);
+                                        .AlignCenter();
+                                    if (isFullAisleRow)
+                                        cellElement = cellElement.MinHeight(10 , Unit.Millimetre);
+                                    cellElement.Text(cell.Text);
                                     colCount++;
                                 }
                                 // 补齐不足列

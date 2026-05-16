@@ -70,7 +70,7 @@ public class LayoutSeatingExportModel
             {
                 if (isAisle)
                 {
-                    row.Cells.Add(new ExportCell { IsAisle = true, Text = "过道" });
+                    row.Cells.Add(new ExportCell { IsAisle = true, Text = "" });
                 }
                 else if (col.HasValue && emptyPos.Contains((r, col.Value)))
                 {
@@ -102,7 +102,7 @@ public class LayoutSeatingExportModel
             {
                 var aisleRow = new ExportRow();
                 for (int i = 0; i < colPlan.Count; i++)
-                    aisleRow.Cells.Add(new ExportCell { IsAisle = true, Text = "过道" });
+                    aisleRow.Cells.Add(new ExportCell { IsAisle = true, Text = "" });
                 model.Rows.Add(aisleRow);
             }
         }

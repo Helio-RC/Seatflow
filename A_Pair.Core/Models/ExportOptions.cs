@@ -30,6 +30,8 @@
         /// <summary>PDF 文档</summary>
         Pdf,
         /// <summary>JSON 格式</summary>
-        Json
+        Json,
+        /// <summary>PNG 图片</summary>
+        Png
     }
 }

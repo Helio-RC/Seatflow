@@ -290,6 +290,10 @@ namespace A_Pair.Application.Services
         }
 
         /// <inheritdoc />
+        public async Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
+            => await _snapshotRepository.DeleteAsync(snapshotId);
+
+        /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
             var snapshot = _snapshotRepository.Load(snapshotId) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
