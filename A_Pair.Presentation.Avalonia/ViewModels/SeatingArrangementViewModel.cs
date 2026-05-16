@@ -67,9 +67,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     private double _canvasHeight = 600;
 
-    [ObservableProperty]
-    private double _scaleFactor = 1.0;
-
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
@@ -270,13 +267,19 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         {
             if (!seat.IsAvailable) continue;
 
-            var (x, y) = SeatGeometryHelper.GetPosition(seat, metadata);
+            var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
             var occupantId = assignments.GetValueOrDefault(seat.Id);
             bool isOccupied = occupantId != null;
             bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
-            maxX = Math.Max(maxX, x + seatWidth + 4);
-            maxY = Math.Max(maxY, y + seatHeight + 4);
+            // Polar 座位返回圆心坐标，需要用左上角偏移
+            double offsetX = seat is PolarSeat ? seatWidth / 2 : 0;
+            double offsetY = seat is PolarSeat ? seatHeight / 2 : 0;
+            double x = cx - offsetX;
+            double y = cy - offsetY;
+
+            maxX = Math.Max(maxX, cx + seatWidth / 2 + 4);
+            maxY = Math.Max(maxY, cy + seatHeight / 2 + 4);
             seatCounter++;
 
             items.Add(new SeatDisplayItem
@@ -301,7 +304,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
         CanvasWidth = Math.Max(800, maxX + 40);
         CanvasHeight = Math.Max(600, maxY + 40);
-        ScaleFactor = Math.Min(1.0, Math.Min(700.0 / CanvasWidth, 500.0 / CanvasHeight));
 
         // 障碍物叠加层
         var overlays = new List<SeatDisplayItem>();
@@ -327,12 +329,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
     {
-        // 使用固定最佳尺寸渲染，整体缩放由 ScaleTransform 处理
         return metadata switch
         {
-            GridLayoutMetadata => (34, 26),
-            PolarLayoutMetadata => (26, 26),
-            _ => (24, 20)
+            GridLayoutMetadata => (40, 30),
+            PolarLayoutMetadata => (28, 28),
+            _ => (28, 22)
         };
     }
 

@@ -205,9 +205,6 @@
                         Background="White">
             <Panel>
             <ItemsControl ItemsSource="{Binding SeatItems}">
-              <ItemsControl.RenderTransform>
-                <ScaleTransform ScaleX="{ReflectionBinding ScaleFactor}" ScaleY="{ReflectionBinding ScaleFactor}"/>
-              </ItemsControl.RenderTransform>
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
@@ -242,9 +239,6 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
             <ItemsControl ItemsSource="{Binding OverlayItems}">
-              <ItemsControl.RenderTransform>
-                <ScaleTransform ScaleX="{ReflectionBinding ScaleFactor}" ScaleY="{ReflectionBinding ScaleFactor}"/>
-              </ItemsControl.RenderTransform>
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
