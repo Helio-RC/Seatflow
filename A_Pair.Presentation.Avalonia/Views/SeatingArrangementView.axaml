@@ -3,6 +3,7 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:core="using:A_Pair.Core.Models"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+             xmlns:behaviors="using:A_Pair.Presentation.Avalonia.Behaviors"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.SeatingArrangementView"
@@ -202,7 +203,8 @@
           <ScrollViewer x:Name="PreviewScrollViewer" IsVisible="{Binding HasGenerated}"
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Auto"
-                        Background="White">
+                        Background="White"
+                        behaviors:CanvasZoomPan.Enabled="True">
             <Panel>
             <ItemsControl ItemsSource="{Binding SeatItems}">
               <ItemsControl.ItemsPanel>

@@ -7,8 +7,8 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 public partial class SeatDisplayItem : ObservableObject
 {
     // ── 几何（不可变） ──
-    public double X { get; init; }
-    public double Y { get; init; }
+    public double X { get; set; }
+    public double Y { get; set; }
     public double Width { get; init; } = 22;
     public double Height { get; init; } = 18;
     public CornerRadius CornerRadius { get; init; } = new(3);

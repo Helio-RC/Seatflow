@@ -265,6 +265,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         double seatHeight = baseH * scale;
 
         var items = new List<SeatDisplayItem>();
+        double minX = double.MaxValue, minY = double.MaxValue;
         double maxX = 0, maxY = 0;
         int seatCounter = 0;
 
@@ -281,6 +282,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double x = seat is PolarSeat ? cx - seatWidth / 2 : cx;
             double y = seat is PolarSeat ? cy - seatHeight / 2 : cy;
 
+            minX = Math.Min(minX, x);
+            minY = Math.Min(minY, y);
             maxX = Math.Max(maxX, cx + seatWidth / 2 + 4);
             maxY = Math.Max(maxY, cy + seatHeight / 2 + 4);
             seatCounter++;
@@ -305,8 +308,22 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
 
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
-        CanvasWidth = Math.Max(800, maxX + 40);
-        CanvasHeight = Math.Max(600, maxY + 40);
+        // 内容居中：计算偏移使整个布局居中于画布
+        double margin = 80;
+        double offsetX = margin - minX;
+        double offsetY = margin - minY;
+        if (offsetX != 0 || offsetY != 0)
+        {
+            foreach (var item in items)
+            {
+                item.X += offsetX;
+                item.Y += offsetY;
+            }
+            minX += offsetX; minY += offsetY;
+            maxX += offsetX; maxY += offsetY;
+        }
+        CanvasWidth = Math.Max(800, maxX + margin);
+        CanvasHeight = Math.Max(600, maxY + margin);
 
         // 障碍物叠加层
         var overlays = new List<SeatDisplayItem>();
@@ -317,8 +334,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             string label = obs.Type ?? "障碍物";
             overlays.Add(new SeatDisplayItem
             {
-                X = obs.X * scale,
-                Y = obs.Y * scale,
+                X = obs.X * scale + offsetX,
+                Y = obs.Y * scale + offsetY,
                 Width = w,
                 Height = h,
                 SeatId = obs.Id,

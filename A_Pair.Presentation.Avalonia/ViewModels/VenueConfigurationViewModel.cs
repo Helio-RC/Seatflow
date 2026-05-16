@@ -433,6 +433,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             });
         }
 
+        // 内容居中
+        double minX = double.MaxValue, minY = double.MaxValue;
+        double maxX = 0, maxY = 0;
+        foreach (var s in seats) { minX = Math.Min(minX, s.X); minY = Math.Min(minY, s.Y); maxX = Math.Max(maxX, s.X + s.Width); maxY = Math.Max(maxY, s.Y + s.Height); }
+        foreach (var o in overlays) { minX = Math.Min(minX, o.X); minY = Math.Min(minY, o.Y); maxX = Math.Max(maxX, o.X + o.Width); maxY = Math.Max(maxY, o.Y + o.Height); }
+        if (seats.Count > 0 || overlays.Count > 0)
+        {
+            double pad = 80;
+            double ox = pad - minX, oy = pad - minY;
+            foreach (var s in seats) { s.X += ox; s.Y += oy; }
+            foreach (var o in overlays) { o.X += ox; o.Y += oy; }
+        }
+
         PreviewSeats = new ObservableCollection<SeatPreview>(seats);
         PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);
         StatusMessage = $"预览：{seats.Count} 个座位";
