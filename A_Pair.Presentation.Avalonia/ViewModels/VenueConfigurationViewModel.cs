@@ -319,16 +319,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 });
             }
 
-            // 讲台
+            // 讲台（水平居中于网格）
             if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
             {
-                double podiumX = meta.OriginX;
+                double gridLeft = seats.Min(s => s.X);
+                double gridRight = seats.Max(s => s.X + s.Width);
+                double podiumW = meta.PodiumWidth;
+                double podiumX = (gridLeft + gridRight) / 2 - podiumW / 2;
                 double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
                 overlays.Add(new SeatPreview
                 {
                     X = podiumX ,
                     Y = podiumY ,
-                    Width = meta.PodiumWidth * meta.Columns / 2 ,
+                    Width = podiumW ,
                     Height = meta.PodiumHeight ,
                     ElementType = PreviewElementType.Podium ,
                     Label = "讲台"
@@ -510,14 +513,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 layout = GridLayoutBuilder.BuildGrid(meta);
                 layout.Name = LayoutName;
                 layout.Id = SelectedVenueItem?.Id ?? "";
-                // 将讲台/前门作为 Obstacle 写入
+                // 将讲台/前门作为 Obstacle 写入（讲台居中于网格）
                 if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0)
                 {
+                    double podiumW = meta.PodiumWidth;
+                    double gridMidX = layout.Seats.Count > 0
+                        ? (layout.Seats.Min(s => s is GridSeat g ? SeatGeometryHelper.GetPosition(s, meta).X : 0)
+                         + layout.Seats.Max(s => s is GridSeat g ? SeatGeometryHelper.GetPosition(s, meta).X : 0)) / 2
+                        : meta.OriginX;
                     layout.Obstacles.Add(new Obstacle
                     {
-                        X = meta.OriginX ,
+                        X = gridMidX - podiumW / 2 ,
                         Y = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing ,
-                        Width = meta.PodiumWidth ,
+                        Width = podiumW ,
                         Height = meta.PodiumHeight ,
                         Type = "Podium"
                     });
@@ -680,14 +688,14 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private void ResetParameters ()
     {
         GridRows = 5; GridColumns = 8;
-        GridHorizontalSpacing = 40; GridVerticalSpacing = 36;
+        GridHorizontalSpacing = 52; GridVerticalSpacing = 48;
         GridOriginX = 200; GridOriginY = 200;
         GridSeatsPerDesk = 2;
-        GridIntraDeskSpacing = 12; GridInterDeskSpacing = 40;
+        GridIntraDeskSpacing = 20; GridInterDeskSpacing = 52;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
         GridAisleWidth = 60;
         GridFrontRowCount = 1;
-        GridHasPodium = true; GridPodiumWidth = 60; GridPodiumHeight = 40;
+        GridHasPodium = true; GridPodiumWidth = 100; GridPodiumHeight = 40;
         DoorItems.Clear();
         PolarRings = 3; PolarSeatsPerRing = 12;
         PolarRadiusStep = 40; PolarStartAngle = 0; PolarEndAngle = 360;

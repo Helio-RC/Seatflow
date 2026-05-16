@@ -275,11 +275,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (!seat.IsAvailable) continue;
             var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
             cx *= baseScale; cy *= baseScale;
+            // Polar 返回圆心，转为左上角以与障碍物坐标一致
+            if (seat is PolarSeat) { cx -= baseW * baseScale / 2; cy -= baseH * baseScale / 2; }
             rawPositions.Add((cx, cy, seat));
             minX0 = Math.Min(minX0, cx);
             minY0 = Math.Min(minY0, cy);
-            maxX0 = Math.Max(maxX0, cx);
-            maxY0 = Math.Max(maxY0, cy);
+            maxX0 = Math.Max(maxX0, cx + baseW * baseScale);
+            maxY0 = Math.Max(maxY0, cy + baseH * baseScale);
         }
 
         // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
@@ -355,9 +357,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         return metadata switch
         {
-            GridLayoutMetadata => (42, 32),
-            PolarLayoutMetadata => (30, 30),
-            _ => (28, 22)
+            GridLayoutMetadata => (40, 30),
+            PolarLayoutMetadata => (34, 34),
+            _ => (30, 24)
         };
     }
 
