@@ -67,8 +67,13 @@ namespace A_Pair.Infrastructure.Exporters
                 ws.Cells[1 , 1].Style.Font.Size = 14;
 
                 int r = 3;
+                int rowIndex = 0;
                 foreach (var row in model.Rows)
                 {
+                    // 每 30 行检查取消信号，防止大表格卡死
+                    if (++rowIndex % 30 == 0)
+                        cancellationToken.ThrowIfCancellationRequested();
+
                     int c = 1;
                     bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(cell => cell.IsAisle);
                     foreach (var cell in row.Cells)

@@ -63,7 +63,11 @@ public class LayoutSeatingExportModel
             model.Rows.Add(podiumRow);
         }
 
-        for (int r = 1; r <= meta.Rows; r++)
+        int maxRows = meta.ColumnRowCounts is { Count: > 0 }
+            ? meta.ColumnRowCounts.Max()
+            : meta.Rows;
+
+        for (int r = 1; r <= maxRows; r++)
         {
             var row = new ExportRow();
             foreach (var (col, isAisle) in colPlan)
