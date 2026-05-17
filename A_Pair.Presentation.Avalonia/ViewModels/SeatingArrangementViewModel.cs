@@ -263,6 +263,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var assignments = _currentPlan.Assignments;
         var (baseW, baseH) = GetSeatDimensions(metadata);
 
+        // 网格布局扩距系数（增大间距防重叠）
+        double spread = metadata is GridLayoutMetadata ? 1.35 : 1.0;
+
         // 第一遍：收集原始坐标范围
         double minX0 = double.MaxValue, minY0 = double.MaxValue;
         double maxX0 = 0, maxY0 = 0;
@@ -271,7 +274,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         {
             if (!seat.IsAvailable) continue;
             var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
-            // Polar 返回圆心，转为左上角以与障碍物坐标一致
+            cx *= spread; cy *= spread;
             if (seat is PolarSeat) { cx -= baseW / 2; cy -= baseH / 2; }
             rawPositions.Add((cx, cy, seat));
             minX0 = Math.Min(minX0, cx);
@@ -282,12 +285,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         // 将障碍物也纳入包围盒
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double ow = obs.Width > 0 ? obs.Width : 60;
-            double oh = obs.Height > 0 ? obs.Height : 40;
-            minX0 = Math.Min(minX0, obs.X);
-            minY0 = Math.Min(minY0, obs.Y);
-            maxX0 = Math.Max(maxX0, obs.X + ow);
-            maxY0 = Math.Max(maxY0, obs.Y + oh);
+            double ow = (obs.Width > 0 ? obs.Width : 60) * spread;
+            double oh = (obs.Height > 0 ? obs.Height : 40) * spread;
+            double ox = obs.X * spread;
+            double oy = obs.Y * spread;
+            minX0 = Math.Min(minX0, ox);
+            minY0 = Math.Min(minY0, oy);
+            maxX0 = Math.Max(maxX0, ox + ow);
+            maxY0 = Math.Max(maxY0, oy + oh);
         }
 
         // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
@@ -340,10 +345,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var overlays = new List<SeatDisplayItem>();
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double w = obs.Width > 0 ? obs.Width : 60;
-            double h = obs.Height > 0 ? obs.Height : 40;
-            double ox = _contentCenterX + (obs.X - _contentCenterX) * ZoomLevel + offsetX;
-            double oy = _contentCenterY + (obs.Y - _contentCenterY) * ZoomLevel + offsetY;
+            double w = (obs.Width > 0 ? obs.Width : 60) * spread;
+            double h = (obs.Height > 0 ? obs.Height : 40) * spread;
+            double ox = _contentCenterX + (obs.X * spread - _contentCenterX) * ZoomLevel + offsetX;
+            double oy = _contentCenterY + (obs.Y * spread - _contentCenterY) * ZoomLevel + offsetY;
             overlays.Add(new SeatDisplayItem
             {
                 X = ox, Y = oy, Width = w, Height = h,
@@ -370,10 +375,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double inter = gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64;
             double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra, inter) : inter;
             double rowGap = gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 56;
-            // 宽度基于列间距（横排文字，宽>高），高度适当压缩
-            double wRatio = 0.9;
-            double w = Math.Clamp(colGap * wRatio, 32, 64);
-            double h = Math.Clamp(rowGap * 0.6, 20, 40);
+            double w = Math.Clamp(colGap * 0.92, 38, 68);
+            double h = Math.Clamp(rowGap * 0.6, 22, 42);
             return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
