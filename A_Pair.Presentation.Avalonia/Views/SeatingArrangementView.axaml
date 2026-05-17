@@ -13,8 +13,9 @@
     <!-- ═══ 工具栏 ═══ -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,12">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="座位安排" Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="座位安排  " Classes="pageTitle"
                    VerticalAlignment="Center" />
+        <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <!-- 导出按钮 + Flyout -->
           <Button IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
@@ -181,99 +182,99 @@
                 Padding="0">
           <Panel>
 
-          <!-- 空状态 -->
-          <Border IsVisible="{Binding HasGenerated, Converter={x:Static conv:BoolConverters.Negate}}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Padding="40">
-            <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="48"
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                              HorizontalAlignment="Center" />
-              <TextBlock Text="尚未生成座位安排" Classes="sectionTitle"
-                         HorizontalAlignment="Center"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-              <TextBlock Text="请从左侧选择一个会场和数据集，然后点击「生成座位安排」"
-                         FontSize="12" HorizontalAlignment="Center"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                         TextWrapping="Wrap" />
-            </StackPanel>
-          </Border>
+            <!-- 空状态 -->
+            <Border IsVisible="{Binding HasGenerated, Converter={x:Static conv:BoolConverters.Negate}}"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Padding="40">
+              <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="48"
+                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                HorizontalAlignment="Center" />
+                <TextBlock Text="尚未生成座位安排" Classes="sectionTitle"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <TextBlock Text="请从左侧选择一个会场和数据集，然后点击「生成座位安排」"
+                           FontSize="12" HorizontalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
 
-          <!-- 座位渲染区 -->
-          <ScrollViewer x:Name="PreviewScrollViewer" IsVisible="{Binding HasGenerated}"
-                        HorizontalScrollBarVisibility="Auto"
-                        VerticalScrollBarVisibility="Auto"
-                        Background="White"
-                        behaviors:CanvasZoomPan.Enabled="True"
-                        behaviors:ZoomOnScroll.Enabled="True"
-                        behaviors:ZoomOnScroll.OnZoom="{Binding ApplyZoom}">
-            <Panel>
-            <ItemsControl ItemsSource="{Binding SeatItems}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
-                          Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.Styles>
-                <Style Selector="ContentPresenter">
-                  <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
-                  <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
-                </Style>
-              </ItemsControl.Styles>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SeatDisplayItem">
-                  <Border Width="{ReflectionBinding Width}"
-                          Height="{ReflectionBinding Height}"
-                          CornerRadius="{ReflectionBinding CornerRadius}"
-                          BorderThickness="2"
-                          Background="{ReflectionBinding BackgroundBrush}"
-                          BorderBrush="{ReflectionBinding BorderBrush}"
-                          Cursor="Hand"
-                          ToolTip.Tip="{ReflectionBinding TooltipText}"
-                          PointerPressed="SeatBorder_PointerPressed">
-                    <TextBlock Text="{ReflectionBinding DisplayText}"
-                               FontSize="11" FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               TextWrapping="NoWrap"
-                               Margin="2,0" />
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <ItemsControl ItemsSource="{Binding OverlayItems}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
-                          Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.Styles>
-                <Style Selector="ItemsControl > ContentPresenter">
-                  <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
-                  <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
-                </Style>
-              </ItemsControl.Styles>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:SeatDisplayItem">
-                  <Border Width="{ReflectionBinding Width}"
-                          Height="{ReflectionBinding Height}"
-                          CornerRadius="{ReflectionBinding CornerRadius}"
-                          Background="{ReflectionBinding BackgroundBrush}"
-                          BorderBrush="{ReflectionBinding BorderBrush}"
-                          BorderThickness="1"
-                          ToolTip.Tip="{ReflectionBinding TooltipText}">
-                    <TextBlock Text="{ReflectionBinding DisplayText}"
-                               FontSize="10"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            </Panel>
-          </ScrollViewer>
+            <!-- 座位渲染区 -->
+            <ScrollViewer x:Name="PreviewScrollViewer" IsVisible="{Binding HasGenerated}"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          Background="White"
+                          behaviors:CanvasZoomPan.Enabled="True"
+                          behaviors:ZoomOnScroll.Enabled="True"
+                          behaviors:ZoomOnScroll.OnZoom="{Binding ApplyZoom}">
+              <Panel>
+                <ItemsControl ItemsSource="{Binding SeatItems}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
+                              Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.Styles>
+                    <Style Selector="ContentPresenter">
+                      <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                      <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
+                    </Style>
+                  </ItemsControl.Styles>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SeatDisplayItem">
+                      <Border Width="{ReflectionBinding Width}"
+                              Height="{ReflectionBinding Height}"
+                              CornerRadius="{ReflectionBinding CornerRadius}"
+                              BorderThickness="2"
+                              Background="{ReflectionBinding BackgroundBrush}"
+                              BorderBrush="{ReflectionBinding BorderBrush}"
+                              Cursor="Hand"
+                              ToolTip.Tip="{ReflectionBinding TooltipText}"
+                              PointerPressed="SeatBorder_PointerPressed">
+                        <TextBlock Text="{ReflectionBinding DisplayText}"
+                                   FontSize="11" FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   TextWrapping="NoWrap"
+                                   Margin="2,0" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ItemsControl ItemsSource="{Binding OverlayItems}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}"
+                              Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.Styles>
+                    <Style Selector="ItemsControl > ContentPresenter">
+                      <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                      <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
+                    </Style>
+                  </ItemsControl.Styles>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SeatDisplayItem">
+                      <Border Width="{ReflectionBinding Width}"
+                              Height="{ReflectionBinding Height}"
+                              CornerRadius="{ReflectionBinding CornerRadius}"
+                              Background="{ReflectionBinding BackgroundBrush}"
+                              BorderBrush="{ReflectionBinding BorderBrush}"
+                              BorderThickness="1"
+                              ToolTip.Tip="{ReflectionBinding TooltipText}">
+                        <TextBlock Text="{ReflectionBinding DisplayText}"
+                                   FontSize="10"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </Panel>
+            </ScrollViewer>
           </Panel>
         </Border>
 
