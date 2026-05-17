@@ -25,6 +25,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private VenueItem? _selectedVenue;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSnapshots))]
     private ObservableCollection<SeatingSnapshot> _snapshots = [];
 
     [ObservableProperty]
@@ -40,6 +41,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedSnapshot => SelectedSnapshot != null;
     public bool HasSnapshots => Snapshots.Count > 0;
+    public bool CanCreateSnapshot => _facade.HasActiveWorkspace;
 
     public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation)
     {
@@ -64,6 +66,27 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             Venues = items;
             StatusMessage = $"已加载 {items.Count} 个会场";
         });
+    }
+
+    [RelayCommand]
+    private async Task CreateSnapshotAsync ()
+    {
+        var (confirmed , description) = await Dialog.ShowInputAsync(
+            "创建快照" , "请输入快照描述：" , $"手动快照 - {DateTime.Now:yyyy-MM-dd HH:mm}");
+        if (!confirmed || string.IsNullOrWhiteSpace(description)) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            var snapshot = await _facade.CreateSnapshotAsync(description);
+            if (snapshot == null)
+            {
+                await Dialog.ShowWarningAsync("创建快照失败" , "当前没有活动的工作区，请先生成座位安排。");
+                return;
+            }
+            if (SelectedVenue != null)
+                await LoadSnapshotsAsync();
+            StatusMessage = "快照已创建";
+        }, "创建快照失败");
     }
 
     partial void OnSelectedVenueChanged (VenueItem? value)

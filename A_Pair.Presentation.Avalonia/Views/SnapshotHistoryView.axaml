@@ -34,6 +34,15 @@
               <TextBlock Text="刷新" FontSize="13"/>
             </StackPanel>
           </Button>
+          <Button Command="{Binding CreateSnapshotCommand}"
+                  IsEnabled="{Binding CanCreateSnapshot}"
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="创建快照">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14"/>
+              <TextBlock Text="创建快照" FontSize="13"/>
+            </StackPanel>
+          </Button>
         </StackPanel>
       </DockPanel>
     </Border>
@@ -56,6 +65,19 @@
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="快照列表"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+          <!-- 加载遮罩 -->
+          <Border IsVisible="{Binding IsLoading}"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                  Background="#40FFFFFF"
+                  ZIndex="10">
+            <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <ProgressBar IsIndeterminate="True" Width="160" Height="4" />
+              <TextBlock Text="正在加载..." FontSize="12"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                         HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
 
           <!-- 空列表 -->
           <Border IsVisible="{Binding !HasSnapshots}"
@@ -142,29 +164,29 @@
               <TextBlock Text="快照详情" FontSize="16" FontWeight="SemiBold"/>
               <StackPanel Spacing="6">
                 <TextBlock FontSize="13" FontWeight="SemiBold" Text="快照ID"/>
-                <TextBlock Text="{ReflectionBinding SelectedSnapshot.Id}"
+                <TextBlock Text="{Binding SelectedSnapshot.Id}"
                            FontSize="12" TextWrapping="Wrap"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
               </StackPanel>
               <StackPanel Spacing="6">
                 <TextBlock FontSize="13" FontWeight="SemiBold" Text="创建时间"/>
-                <TextBlock Text="{ReflectionBinding SelectedSnapshot.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                <TextBlock Text="{Binding SelectedSnapshot.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
                            FontSize="13"/>
               </StackPanel>
               <StackPanel Spacing="6">
                 <TextBlock FontSize="13" FontWeight="SemiBold" Text="描述"/>
-                <TextBlock Text="{ReflectionBinding SelectedSnapshot.Description}"
+                <TextBlock Text="{Binding SelectedSnapshot.Description}"
                            FontSize="13" TextWrapping="Wrap"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
               </StackPanel>
               <StackPanel Spacing="6">
                 <TextBlock FontSize="13" FontWeight="SemiBold" Text="座位数"/>
-                <TextBlock Text="{ReflectionBinding SelectedSnapshot.SeatAssignments.Count}"
+                <TextBlock Text="{Binding SelectedSnapshot.SeatAssignments.Count}"
                            FontSize="13"/>
               </StackPanel>
               <StackPanel Spacing="6">
                 <TextBlock FontSize="13" FontWeight="SemiBold" Text="关联会场"/>
-                <TextBlock Text="{ReflectionBinding SelectedSnapshot.LayoutId}"
+                <TextBlock Text="{Binding SelectedSnapshot.LayoutId}"
                            FontSize="12" TextWrapping="Wrap"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
               </StackPanel>

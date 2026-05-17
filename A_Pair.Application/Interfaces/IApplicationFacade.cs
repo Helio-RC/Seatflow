@@ -71,6 +71,12 @@ namespace A_Pair.Application.Interfaces
         /// <summary>删除指定快照。</summary>
         Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default);
 
+        /// <summary>从当前工作区手动创建快照。返回 null 表示无活跃工作区。</summary>
+        Task<SeatingSnapshot?> CreateSnapshotAsync (string description , CancellationToken cancellationToken = default);
+
+        /// <summary>当前是否有活跃的工作区（可用于创建快照或回滚）。</summary>
+        bool HasActiveWorkspace { get; }
+
         /// <summary>保存学生数据集到托管存储。</summary>
         Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
 

@@ -294,11 +294,33 @@ namespace A_Pair.Application.Services
             => await _snapshotRepository.DeleteAsync(snapshotId);
 
         /// <inheritdoc />
+        public bool HasActiveWorkspace => _currentWorkspace != null;
+
+        /// <inheritdoc />
+        public async Task<SeatingSnapshot?> CreateSnapshotAsync (string description , CancellationToken cancellationToken = default)
+        {
+            if (_currentWorkspace == null) return null;
+
+            var plan = _currentWorkspace.BuildSeatingPlan();
+            var snapshot = new SeatingSnapshot
+            {
+                Description = description ,
+                LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
+                SeatAssignments = plan.Assignments
+            };
+            await _snapshotRepository.SaveAsync(snapshot);
+            return snapshot;
+        }
+
+        /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
             var snapshot = _snapshotRepository.Load(snapshotId) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
             if (_currentWorkspace == null)
                 throw new InvalidOperationException("当前没有活动的工作区");
+
+            // 回滚前自动保存当前状态为备份快照，确保可撤销
+            await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}");
 
             // 应用快照中的座位分配
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
