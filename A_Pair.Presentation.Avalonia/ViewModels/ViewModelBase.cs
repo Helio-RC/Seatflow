@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -32,6 +33,35 @@ public abstract class ViewModelBase : ObservableObject
         {
             await action();
             return true;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
+            await Dialog.ShowErrorAsync(errorTitle , ex.Message);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 在带超时的 try-catch 中执行操作。超时后自动取消 CancellationToken 并弹窗提示，不会终止程序。
+    /// </summary>
+    /// <param name="action">接受 CancellationToken 的异步操作，超时后 token 会被取消</param>
+    /// <param name="timeout">超时阈值，应小于 UI 看门狗的 45 秒</param>
+    /// <param name="errorTitle">错误弹窗标题</param>
+    protected async Task<bool> SafeExecuteAsync (Func<CancellationToken , Task> action , TimeSpan timeout , string errorTitle = "操作失败")
+    {
+        using var cts = new CancellationTokenSource(timeout);
+        try
+        {
+            await action(cts.Token);
+            return true;
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            _logger?.LogError("操作超时：{Title}（{Seconds} 秒）", errorTitle , timeout.TotalSeconds);
+            await Dialog.ShowErrorAsync("操作超时" ,
+                $"「{errorTitle}」超过 {timeout.TotalSeconds:F0} 秒未完成，已自动取消。\n部分数据可能未写入，请重试。");
+            return false;
         }
         catch (Exception ex)
         {

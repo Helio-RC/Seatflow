@@ -22,6 +22,8 @@ namespace A_Pair.Infrastructure.Exporters
 
         public Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             Document.Create(container =>
             {
                 container.Page(page =>
@@ -72,6 +74,8 @@ namespace A_Pair.Infrastructure.Exporters
 
         public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
             int actualCols = Math.Min(maxCols, 40);
 
@@ -97,8 +101,13 @@ namespace A_Pair.Infrastructure.Exporters
                                     columns.RelativeColumn();
                             });
 
+                            int rowIndex = 0;
                             foreach (var row in model.Rows)
                             {
+                                // 每 30 行检查一次取消信号
+                                if (++rowIndex % 30 == 0)
+                                    cancellationToken.ThrowIfCancellationRequested();
+
                                 bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(c => c.IsAisle);
                                 int colCount = 0;
                                 foreach (var cell in row.Cells.Take(actualCols))

@@ -29,6 +29,8 @@ namespace A_Pair.Infrastructure.Exporters
 
         public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
             writer.WriteLine($"# {model.LayoutName}");
             foreach (var row in model.Rows)

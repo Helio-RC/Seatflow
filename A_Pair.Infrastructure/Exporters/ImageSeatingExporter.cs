@@ -23,6 +23,8 @@ public class ImageSeatingExporter : ISeatingPlanExporter
 
     public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (model.Rows.Count == 0) return Task.CompletedTask;
 
         int maxCols = model.Rows.Max(r => r.Cells.Count);
@@ -43,9 +45,14 @@ public class ImageSeatingExporter : ISeatingPlanExporter
         using var textPaint = new SKPaint { Color = SKColors.Black , IsAntialias = true };
         using var font = new SKFont { Size = TextSize , Subpixel = true };
 
+        int rowIndex = 0;
         float y = Margin;
         foreach (var row in model.Rows)
         {
+            // 每 30 行检查一次取消信号
+            if (++rowIndex % 30 == 0)
+                cancellationToken.ThrowIfCancellationRequested();
+
             bool isAisleRow = row.Cells.Count > 0 && row.Cells.All(c => c.IsAisle);
             float rowH = isAisleRow ? AisleRowHeight : CellHeight;
             float x = Margin;

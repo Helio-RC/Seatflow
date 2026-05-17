@@ -613,6 +613,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 导出 ──
 
+    private static readonly TimeSpan ExportTimeout = TimeSpan.FromSeconds(30);
+
     [RelayCommand]
     private async Task ExportExcelAsync() => await ExportAsync(ExportFormat.Excel,
         [new FilePickerFileType("Excel 文件") { Patterns = ["*.xlsx"] }], "座位安排.xlsx");
@@ -643,11 +645,18 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var file = await _fileService.SaveFileAsync("导出座位安排", types, suggestedName);
         if (file == null) return;
 
-        await SafeExecuteAsync(async () =>
+        var filePath = file.Path.LocalPath;
+        var ok = await SafeExecuteAsync(async (ct) =>
         {
             var options = new ExportOptions { Format = format, IncludeMetadata = true };
-            await _facade.ExportSeatingPlanAsync(_workspace, _currentLayout, file.Path.LocalPath, options);
+            await _facade.ExportSeatingPlanAsync(_workspace, _currentLayout, filePath, options, ct);
             StatusMessage = $"已导出至 {file.Name}";
-        }, "导出失败");
+        }, ExportTimeout, "导出座位安排");
+
+        if (!ok)
+        {
+            try { File.Delete(filePath); } catch { /* 忽略清理失败 */ }
+            StatusMessage = "导出超时，已取消";
+        }
     }
 }
