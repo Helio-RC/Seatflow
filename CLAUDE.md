@@ -23,6 +23,8 @@ dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 
 **No `Directory.Build.props` or `Directory.Packages.props`** — package versions are managed directly in each `.csproj`.
 
+**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in `.config/dotnet-tools.json`. 在无头环境中无法使用 avdt，但构建时无需此工具。
+
 ## Architecture
 
 A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4. The solution file is `A_Pair.slnx` (the new XML-based format).
@@ -30,7 +32,7 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 **Layers (bottom-up)**:
 - **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`), strategy interfaces (`ISeatingStrategy`), domain services (`ObstacleProcessor`, `SeatGeometryHelper`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
 - **Contracts** — Cross-layer interface for plugins (`IPluginSeatingStrategy`)
-- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider`, `JsonStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories, serialization
+- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider`, `JsonStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization
 - **Application** — `IApplicationFacade` (UI's single entry point), `StrategyExecutionPipeline`, command pattern (`IUndoableCommand` / `CommandHistory`), plugin manager (`PluginManager`, `PluginLoadContext`), script adapters (Lua/C#), DI registration
 - **Plugins.Sdk** — Lightweight assembly for external plugin authors
 - **Presentation.Avalonia** — Avalonia 12 desktop app, MVVM with CommunityToolkit.Mvvm
@@ -40,6 +42,14 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 **Navigation**: `INavigationService` + `MainShellViewModel` manages 9 pages via `PageKey` enum (`DataManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
 
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
+
+**App startup sequence** (`App.axaml.cs` `OnFrameworkInitializationCompleted`):
+1. Resolve `MainShellViewModel` and `MainWindow` from DI, wire DataContext
+2. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
+3. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
+4. Start `WatchdogService` (prevents UI freeze from blocking exit) with a 3s DispatcherTimer ping
+5. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
+6. Restore saved settings (theme, window position/size) via `RestoreSettingsAsync()`
 
 ## Key Patterns
 
@@ -55,7 +65,31 @@ protected async Task<bool> SafeExecuteAsync(Func<Task> action, string errorTitle
 ```
 Wraps async operations in try-catch and shows error dialogs automatically. Use this in ViewModels for user-facing operations.
 
-`ViewModelBase` uses a static `IDialogService` — `App.axaml.cs` must call `ViewModelBase.InitializeDialogService(dialog)` at startup before any ViewModel uses `SafeExecuteAsync`.
+`ViewModelBase` uses a static `IDialogService` — `App.axaml.cs` must call `ViewModelBase.InitializeDialogService(dialog)` at startup before any ViewModel uses `SafeExecuteAsync`. **If you add a new window or test ViewModels in isolation, Dialog must be initialized first.**
+
+### ViewModelBase.CanLeaveAsync
+```csharp
+public virtual Task<bool> CanLeaveAsync()
+```
+Called by `NavigationService` before navigating away. Override to prompt user about unsaved changes.
+
+### Theme & Custom Resources
+- **Theme dictionaries**: App.axaml defines `ResourceDictionary.ThemeDictionaries` with Light/Dark variants for sidebar colors, semantic colors (Success/Warning/Error/Info), surface colors, and shadows.
+- **Brushes**: SolidColorBrush resources reference theme colors via `DynamicResource`. Always use these brush resources (e.g., `{StaticResource SuccessBrush}`) — never hardcode hex colors.
+- **Style includes**: `Typography.axaml`, `Spacing.axaml`, `Colors.axaml` are included after FluentTheme.
+- **Font**: Global `Window` style sets `FontFamily` to `Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif` for CJK support.
+- **BoxShadows**: `CardShadowNone`, `CardShadowLarge`, `CardShadowSmall` are defined as `BoxShadows` resources.
+
+### UI Services (`A_Pair.Presentation.Avalonia/Services/`)
+- **INavigationService** — Page switching with `PageKey` enum. `NavigateTo()` is synchronous, `NavigateToAsync()` runs `CanLeaveAsync()` first.
+- **IDialogService** — Shows error/info dialogs. Requires `SetTopLevel(TopLevel)` before use.
+- **IFileService** — File open/save pickers. Also requires `SetTopLevel()`.
+- **WatchdogService** — Detects UI thread hangs. Pings from a DispatcherTimer; if no ping for 60s, shows force-quit dialog.
+
+### Behaviors (`A_Pair.Presentation.Avalonia/Behaviors/`)
+- `CanvasZoomPan` — Pan and zoom for Canvas-based previews
+- `ZoomOnScroll` — Ctrl+Scroll to zoom
+- `ChineseInputNormalizer` — Converts full-width numbers/symbols to half-width on text input
 
 ### Adding a New Page
 1. Add a new value to `PageKey` enum in `INavigationService.cs`

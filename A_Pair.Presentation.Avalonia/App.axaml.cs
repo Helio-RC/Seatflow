@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
@@ -40,25 +41,32 @@ namespace A_Pair.Presentation.Avalonia
                 var settings = await facade.LoadAppSettingsAsync();
                 ApplyTheme(settings.Theme);
 
-                // 恢复窗口状态
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                     && desktop.MainWindow is { } window)
                 {
                     var ws = settings.WindowState;
-                    if (ws.Width > 0 && ws.Height > 0)
+                    // 先设置最大化状态，避免先设尺寸再最大化导致的闪烁
+                    if (ws.IsMaximized)
+                        window.WindowState = WindowState.Maximized;
+
+                    // 非最大化时才恢复尺寸（最大化状态下尺寸由系统管理）
+                    if (!ws.IsMaximized && ws.Width > 0 && ws.Height > 0)
                     {
                         window.Width = ws.Width;
                         window.Height = ws.Height;
                     }
-                    if (ws.Left != 0 || ws.Top != 0)
-                        window.Position = new PixelPoint((int)ws.Left, (int)ws.Top);
 
-                    if (ws.IsMaximized)
-                        window.WindowState = WindowState.Maximized;
+                    // 始终恢复窗口位置，包括 (0,0)（它是合法的屏幕坐标）
+                    window.Position = new PixelPoint((int)ws.Left, (int)ws.Top);
                 }
 
-                // 无文件时创建默认配置文件
-                await facade.SaveAppSettingsAsync(settings);
+                // 仅在配置文件不存在时创建默认文件，防止覆盖已有设置
+                var repo = _serviceProvider.GetRequiredService<Core.Providers.IAppSettingsRepository>();
+                if (repo is Infrastructure.Providers.JsonAppSettingsRepository jsonRepo
+                    && !File.Exists(jsonRepo.SettingsFilePath))
+                {
+                    await facade.SaveAppSettingsAsync(settings);
+                }
             }
             catch
             {

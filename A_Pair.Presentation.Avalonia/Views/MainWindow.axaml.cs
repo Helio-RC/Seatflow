@@ -24,7 +24,6 @@ namespace A_Pair.Presentation.Avalonia.Views
 
         protected override void OnClosing (WindowClosingEventArgs e)
         {
-            // fire-and-forget 保存窗口状态，不阻塞关闭
             var state = new WindowStateSettings
             {
                 Left = Position.X,
@@ -34,24 +33,33 @@ namespace A_Pair.Presentation.Avalonia.Views
                 IsMaximized = WindowState == WindowState.Maximized
             };
 
-            _ = SaveWindowStateAsync(state);
+            SaveWindowStateBlocking(state);
             base.OnClosing(e);
         }
 
-        private async Task SaveWindowStateAsync (WindowStateSettings state)
+        /// <summary>同步保存窗口状态，确保在窗口关闭前完成 I/O 写入。</summary>
+        /// <remarks>
+        /// 不能使用 fire-and-forget 异步：Avalonia dispatcher 在窗口关闭后停止，
+        /// 异步 continuation 无法回发到 UI 线程，导致写入丢失。
+        /// 使用 Task.Run 将整个操作放到线程池，避免阻塞 UI 线程时发生死锁。
+        /// </remarks>
+        private static void SaveWindowStateBlocking (WindowStateSettings state)
         {
             try
             {
                 var appInstance = global::Avalonia.Application.Current as App;
                 if (appInstance is null) return;
                 var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
-                var settings = await facade.LoadAppSettingsAsync();
-                settings.WindowState = state;
-                await facade.SaveAppSettingsAsync(settings);
+                Task.Run(async () =>
+                {
+                    var settings = await facade.LoadAppSettingsAsync();
+                    settings.WindowState = state;
+                    await facade.SaveAppSettingsAsync(settings);
+                }).GetAwaiter().GetResult();
             }
             catch
             {
-                // 静默忽略
+                // 关闭时保存失败不应阻止退出
             }
         }
 
