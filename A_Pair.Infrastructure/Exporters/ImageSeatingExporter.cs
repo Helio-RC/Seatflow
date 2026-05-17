@@ -40,10 +40,8 @@ public class ImageSeatingExporter : ISeatingPlanExporter
         using var seatFill = new SKPaint { Color = SKColors.White , Style = SKPaintStyle.Fill };
         using var aisleFill = new SKPaint { Color = new SKColor(0xE0 , 0xE0 , 0xE0) , Style = SKPaintStyle.Fill };
         using var podiumFill = new SKPaint { Color = new SKColor(0xE3 , 0xF2 , 0xFD) , Style = SKPaintStyle.Fill };
-        using var textPaint = new SKPaint
-        {
-            Color = SKColors.Black , TextSize = TextSize , IsAntialias = true , SubpixelText = true
-        };
+        using var textPaint = new SKPaint { Color = SKColors.Black , IsAntialias = true };
+        using var font = new SKFont { Size = TextSize , Subpixel = true };
 
         float y = Margin;
         foreach (var row in model.Rows)
@@ -65,7 +63,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
                 if (!string.IsNullOrEmpty(cell.Text))
                 {
                     float textY = y + rowH / 2 + TextSize / 3;
-                    canvas.DrawText(cell.Text , x + 3 , textY , textPaint);
+                    canvas.DrawText(cell.Text , x + 3 , textY , SKTextAlign.Left , font , textPaint);
                 }
 
                 x += CellWidth;
