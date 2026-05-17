@@ -279,6 +279,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             maxX0 = Math.Max(maxX0, cx + baseW);
             maxY0 = Math.Max(maxY0, cy + baseH);
         }
+        // 将障碍物也纳入包围盒
+        foreach (var obs in _currentLayout.Obstacles)
+        {
+            double ow = obs.Width > 0 ? obs.Width : 60;
+            double oh = obs.Height > 0 ? obs.Height : 40;
+            minX0 = Math.Min(minX0, obs.X);
+            minY0 = Math.Min(minY0, obs.Y);
+            maxX0 = Math.Max(maxX0, obs.X + ow);
+            maxY0 = Math.Max(maxY0, obs.Y + oh);
+        }
 
         // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
         _contentCenterX = (minX0 + maxX0) / 2;

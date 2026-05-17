@@ -691,7 +691,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridHorizontalSpacing = 64; GridVerticalSpacing = 56;
         GridOriginX = 200; GridOriginY = 200;
         GridSeatsPerDesk = 2;
-        GridIntraDeskSpacing = 28; GridInterDeskSpacing = 64;
+        GridIntraDeskSpacing = 40; GridInterDeskSpacing = 64;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
         GridAisleWidth = 60;
         GridFrontRowCount = 1;
