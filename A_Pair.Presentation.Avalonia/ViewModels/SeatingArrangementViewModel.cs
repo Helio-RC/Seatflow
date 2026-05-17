@@ -370,19 +370,19 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double inter = gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64;
             double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra, inter) : inter;
             double rowGap = gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 56;
-            // 间距 ≤18 → 小座位，≤30 → 中等，>30 → 大座位
-            double ratio = colGap <= 18 ? 0.7 : colGap <= 30 ? 0.75 : 0.82;
-            double w = Math.Clamp(colGap * ratio, 20, 60);
-            double h = Math.Clamp(rowGap * 0.7, 18, 50);
+            // 宽度基于列间距（横排文字，宽>高），高度适当压缩
+            double wRatio = 0.9;
+            double w = Math.Clamp(colGap * wRatio, 32, 64);
+            double h = Math.Clamp(rowGap * 0.6, 20, 40);
             return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
         {
             double step = pm.RadiusStep > 0 ? pm.RadiusStep : 40;
-            double s = Math.Clamp(step * 0.7, 24, 42);
+            double s = Math.Clamp(step * 0.85, 28, 48);
             return (s, s);
         }
-        return (30, 24);
+        return (36, 24);
     }
 
     // ── 座位标签与行列判断 ──
