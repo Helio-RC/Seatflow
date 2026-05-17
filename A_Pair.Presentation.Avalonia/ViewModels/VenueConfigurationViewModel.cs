@@ -119,7 +119,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private double _gridPodiumWidth = 60;
     [ObservableProperty] private double _gridPodiumHeight = 40;
 
-    // ── Grid 高级配置 ──
+    // ── Grid 每列行数 & 禁用座位 ──
     [ObservableProperty] private string _gridColumnRowCountsSpec = "";
     [ObservableProperty] private string _gridEmptyPositionsSpec = "";
 
