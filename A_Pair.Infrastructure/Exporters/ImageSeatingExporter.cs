@@ -13,6 +13,15 @@ public class ImageSeatingExporter : ISeatingPlanExporter
     private const int Margin = 20;
     private const float TextSize = 11;
 
+    /// <summary>跨平台 CJK 字体，通过 MatchCharacter 动态匹配系统可用字体。</summary>
+    private static readonly SKTypeface CjkTypeface = ResolveCjkTypeface();
+
+    private static SKTypeface ResolveCjkTypeface()
+    {
+        var fm = SKFontManager.Default;
+        return fm.MatchCharacter('中') ?? SKTypeface.Default;
+    }
+
     public ExportFormat Format => ExportFormat.Png;
 
     public Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
@@ -43,7 +52,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
         using var aisleFill = new SKPaint { Color = new SKColor(0xE0 , 0xE0 , 0xE0) , Style = SKPaintStyle.Fill };
         using var podiumFill = new SKPaint { Color = new SKColor(0xE3 , 0xF2 , 0xFD) , Style = SKPaintStyle.Fill };
         using var textPaint = new SKPaint { Color = SKColors.Black , IsAntialias = true };
-        using var font = new SKFont { Size = TextSize , Subpixel = true };
+        using var font = new SKFont(CjkTypeface , TextSize);
 
         int rowIndex = 0;
         float y = Margin;
