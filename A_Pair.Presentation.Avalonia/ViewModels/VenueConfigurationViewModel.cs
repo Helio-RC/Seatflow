@@ -311,21 +311,26 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var meta = BuildGridMetadata();
             var layout = GridLayoutBuilder.BuildGrid(meta);
 
+            double SpacingTimes = 2.0;
+
             // 仅放大同桌间距（IntraDeskSpacing），桌间和行间保持原样
+
             var previewMeta = new GridLayoutMetadata
             {
-                Rows = meta.Rows, Columns = meta.Columns,
-                OriginX = meta.OriginX, OriginY = meta.OriginY,
-                SeatsPerDesk = meta.SeatsPerDesk,
-                IntraDeskSpacing = meta.IntraDeskSpacing * 4,
-                InterDeskSpacing = meta.InterDeskSpacing,
-                HorizontalSpacing = meta.HorizontalSpacing,
-                VerticalSpacing = meta.VerticalSpacing,
-                AisleAfterColumns = meta.AisleAfterColumns,
-                AisleAfterRows = meta.AisleAfterRows,
-                AisleWidth = meta.AisleWidth,
-                ColumnRowCounts = meta.ColumnRowCounts,
-                EmptyPositions = meta.EmptyPositions,
+                Rows = meta.Rows ,
+                Columns = meta.Columns ,
+                OriginX = meta.OriginX ,
+                OriginY = meta.OriginY ,
+                SeatsPerDesk = meta.SeatsPerDesk ,
+                IntraDeskSpacing = meta.IntraDeskSpacing * SpacingTimes ,
+                InterDeskSpacing = meta.InterDeskSpacing ,
+                HorizontalSpacing = meta.HorizontalSpacing ,
+                VerticalSpacing = meta.VerticalSpacing ,
+                AisleAfterColumns = meta.AisleAfterColumns ,
+                AisleAfterRows = meta.AisleAfterRows ,
+                AisleWidth = meta.AisleWidth ,
+                ColumnRowCounts = meta.ColumnRowCounts ,
+                EmptyPositions = meta.EmptyPositions ,
             };
             double seatW = 20, seatH = 14;
 
@@ -353,7 +358,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 double gridRight = seats.Max(s => s.X + s.Width);
                 double podiumW = meta.PodiumWidth;
                 double podiumH = meta.PodiumHeight;
-                double podiumX = (gridLeft + gridRight) / 2 - podiumW / 2;
+                double podiumX = ((gridLeft + gridRight) / 2) - (podiumW / 2);
                 double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
                 overlays.Add(new SeatPreview
                 {
@@ -510,12 +515,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         // 内容居中：margin 按内容范围的 25% 计算，最小 60px
         double minX = double.MaxValue, minY = double.MaxValue;
         double maxX = 0, maxY = 0;
-        foreach (var s in seats) { minX = Math.Min(minX, s.X); minY = Math.Min(minY, s.Y); maxX = Math.Max(maxX, s.X + s.Width); maxY = Math.Max(maxY, s.Y + s.Height); }
-        foreach (var o in overlays) { minX = Math.Min(minX, o.X); minY = Math.Min(minY, o.Y); maxX = Math.Max(maxX, o.X + o.Width); maxY = Math.Max(maxY, o.Y + o.Height); }
+        foreach (var s in seats) { minX = Math.Min(minX , s.X); minY = Math.Min(minY , s.Y); maxX = Math.Max(maxX , s.X + s.Width); maxY = Math.Max(maxY , s.Y + s.Height); }
+        foreach (var o in overlays) { minX = Math.Min(minX , o.X); minY = Math.Min(minY , o.Y); maxX = Math.Max(maxX , o.X + o.Width); maxY = Math.Max(maxY , o.Y + o.Height); }
         if (seats.Count > 0 || overlays.Count > 0)
         {
             double cw = maxX - minX, ch = maxY - minY;
-            double mx = Math.Max(60, cw * 0.25), my = Math.Max(60, ch * 0.25);
+            double mx = Math.Max(60 , cw * 0.25), my = Math.Max(60 , ch * 0.25);
             double ox = mx - minX, oy = my - minY;
             foreach (var s in seats) { s.X += ox; s.Y += oy; }
             foreach (var o in overlays) { o.X += ox; o.Y += oy; }
@@ -526,10 +531,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         if (seats.Count > 0 || overlays.Count > 0)
         {
             double cmaxX = 0, cmaxY = 0;
-            foreach (var s in seats) { cmaxX = Math.Max(cmaxX, s.X + s.Width); cmaxY = Math.Max(cmaxY, s.Y + s.Height); }
-            foreach (var o in overlays) { cmaxX = Math.Max(cmaxX, o.X + o.Width); cmaxY = Math.Max(cmaxY, o.Y + o.Height); }
-            canvasW = Math.Max(600, cmaxX + 40);
-            canvasH = Math.Max(600, cmaxY + 40);
+            foreach (var s in seats) { cmaxX = Math.Max(cmaxX , s.X + s.Width); cmaxY = Math.Max(cmaxY , s.Y + s.Height); }
+            foreach (var o in overlays) { cmaxX = Math.Max(cmaxX , o.X + o.Width); cmaxY = Math.Max(cmaxY , o.Y + o.Height); }
+            canvasW = Math.Max(600 , cmaxX + 40);
+            canvasH = Math.Max(600 , cmaxY + 40);
         }
         CanvasWidth = canvasW;
         CanvasHeight = canvasH;
@@ -602,12 +607,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 {
                     double podiumW = meta.PodiumWidth;
                     double gridMidX = layout.Seats.Count > 0
-                        ? (layout.Seats.Min(s => s is GridSeat g ? SeatGeometryHelper.GetPosition(s, meta).X : 0)
-                         + layout.Seats.Max(s => s is GridSeat g ? SeatGeometryHelper.GetPosition(s, meta).X : 0)) / 2
+                        ? (layout.Seats.Min(s => s is GridSeat g ? SeatGeometryHelper.GetPosition(s , meta).X : 0)
+                         + layout.Seats.Max(s => s is GridSeat g ? SeatGeometryHelper.GetPosition(s , meta).X : 0)) / 2
                         : meta.OriginX;
                     layout.Obstacles.Add(new Obstacle
                     {
-                        X = gridMidX - podiumW / 2 ,
+                        X = gridMidX - (podiumW / 2) ,
                         Y = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing ,
                         Width = podiumW ,
                         Height = meta.PodiumHeight ,
@@ -651,7 +656,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     .ToList();
                 var obstaclePoints = _freeformPreviewObstacles
                     .Where(o => o.Type != "Door")
-                    .Select(o => (o.X , o.Y , Math.Max(o.Width, 60) , Math.Max(o.Height, 40) , o.Type ?? "Podium"))
+                    .Select(o => (o.X , o.Y , Math.Max(o.Width , 60) , Math.Max(o.Height , 40) , o.Type ?? "Podium"))
                     .ToList();
                 foreach (var d in DoorItems)
                     obstaclePoints.Add((d.X , d.Y , 36.0 , 24.0 , "Door"));
