@@ -1,4 +1,4 @@
-namespace A_Pair.Infrastructure.Tests.Repositories;
+﻿namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonStudentDatasetRepositoryTests : IDisposable
 {
@@ -7,7 +7,7 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
 
     public JsonStudentDatasetRepositoryTests ()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        _tempDir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString("N"));
         _repo = new JsonStudentDatasetRepository(_tempDir);
     }
 
@@ -21,8 +21,8 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
         };
 
         const string id = "test";
-        await _repo.SaveAsync(id, "test", students, "original.xlsx");
-        var loaded = await _repo.LoadAsync(id);
+        await _repo.SaveAsync(id , "test" , students , "original.xlsx" , TestContext.Current.CancellationToken);
+        var loaded = await _repo.LoadAsync(id , TestContext.Current.CancellationToken);
 
         loaded.Should().NotBeNull();
         loaded!.Should().HaveCount(2);
@@ -32,14 +32,14 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
     [Fact]
     public async Task LoadAsync_InvalidId_ReturnsNull ()
     {
-        var result = await _repo.LoadAsync("nonexistent");
+        var result = await _repo.LoadAsync("nonexistent" , TestContext.Current.CancellationToken);
         result.Should().BeNull();
     }
 
     [Fact]
     public async Task ListAsync_EmptyDir_ReturnsEmpty ()
     {
-        var result = await _repo.ListAsync();
+        var result = await _repo.ListAsync(TestContext.Current.CancellationToken);
         result.Should().BeEmpty();
     }
 
@@ -47,8 +47,8 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
     public async Task ListAsync_WithSavedDataset_ReturnsInfo ()
     {
         const string id = "mydataset";
-        await _repo.SaveAsync(id, "mydataset", new List<Student> { new() { Id = "1", Name = "X" } }, null);
-        var list = await _repo.ListAsync();
+        await _repo.SaveAsync(id , "mydataset" , new List<Student> { new() { Id = "1" , Name = "X" } } , null , TestContext.Current.CancellationToken);
+        var list = await _repo.ListAsync(TestContext.Current.CancellationToken);
         list.Should().HaveCount(1);
         list[0].Id.Should().Be(id);
         list[0].Name.Should().Be("mydataset");
@@ -59,14 +59,14 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
     public async Task DeleteAsync_RemovesDataset ()
     {
         const string id = "temp";
-        await _repo.SaveAsync(id, "temp", new List<Student>(), null);
-        await _repo.DeleteAsync(id);
-        var result = await _repo.LoadAsync(id);
+        await _repo.SaveAsync(id , "temp" , new List<Student>() , null , TestContext.Current.CancellationToken);
+        await _repo.DeleteAsync(id , TestContext.Current.CancellationToken);
+        var result = await _repo.LoadAsync(id , TestContext.Current.CancellationToken);
         result.Should().BeNull();
     }
 
     public void Dispose ()
     {
-        try { Directory.Delete(_tempDir, true); } catch { }
+        try { Directory.Delete(_tempDir , true); } catch { }
     }
 }
