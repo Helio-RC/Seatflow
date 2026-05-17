@@ -341,14 +341,38 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         foreach (var item in items) { item.X += offsetX; item.Y += offsetY; }
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
 
-        // 障碍物叠加层
+        // 障碍物叠加层（大小按座宽比例动态计算）
         var overlays = new List<SeatDisplayItem>();
+        double podiumW = baseW * 2.5;
+        double podiumH = baseH * 1.6;
+        double doorW = baseW * 1.2;
+        double doorH = baseH * 0.9;
+
+        // Grid 讲台 X 坐标：水平居中于座位范围
+        double seatMinX = double.MaxValue, seatMaxX = 0;
+        foreach (var seat in _currentLayout.Seats)
+        {
+            if (!seat.IsAvailable) continue;
+            var (cx, _) = SeatGeometryHelper.GetPosition(seat, metadata);
+            cx *= spread;
+            seatMinX = Math.Min(seatMinX, cx);
+            seatMaxX = Math.Max(seatMaxX, cx + baseW);
+        }
+
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double w = (obs.Width > 0 ? obs.Width : 60) * spread;
-            double h = (obs.Height > 0 ? obs.Height : 40) * spread;
-            double ox = _contentCenterX + (obs.X * spread - _contentCenterX) * ZoomLevel + offsetX;
-            double oy = _contentCenterY + (obs.Y * spread - _contentCenterY) * ZoomLevel + offsetY;
+            double w = obs.Width > 0 ? obs.Width : (obs.Type == "Podium" ? podiumW : doorW);
+            double h = obs.Height > 0 ? obs.Height : (obs.Type == "Podium" ? podiumH : doorH);
+            w *= spread; h *= spread;
+
+            double obsX = obs.X * spread;
+            double obsY = obs.Y * spread;
+            // Grid 讲台强制居中（seatMin/Max 已含 spread）
+            if (metadata is GridLayoutMetadata && obs.Type == "Podium" && seatMinX < seatMaxX)
+                obsX = (seatMinX + seatMaxX) / 2 - w / 2;
+
+            double ox = _contentCenterX + (obsX - _contentCenterX) * ZoomLevel + offsetX;
+            double oy = _contentCenterY + (obsY - _contentCenterY) * ZoomLevel + offsetY;
             overlays.Add(new SeatDisplayItem
             {
                 X = ox, Y = oy, Width = w, Height = h,
