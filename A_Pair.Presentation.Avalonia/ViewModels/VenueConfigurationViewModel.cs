@@ -313,8 +313,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 {
                     X = x ,
                     Y = y ,
-                    Width = 46 ,
-                    Height = 36 ,
+                    Width = 36 ,
+                    Height = 28 ,
                     Label = $"R{s.Row}C{s.Column} (桌{deskNum})" ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront
@@ -346,7 +346,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var layout = PolarLayoutBuilder.BuildPolar(meta);
             int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
 
-            double seatR = 16;
+            double seatR = 12;  // 座位圆点半径
             foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
             {
                 var (cx , cy) = SeatGeometryHelper.GetPosition(s , meta);
@@ -386,7 +386,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         }
         else if (SelectedLayoutType == LayoutType.Freeform)
         {
-            double seatSize = 20;
+            double seatSize = 16;
             foreach (var s in _freeformPreviewSeats)
             {
                 seats.Add(new SeatPreview
@@ -690,14 +690,14 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private void ResetParameters ()
     {
         GridRows = 5; GridColumns = 8;
-        GridHorizontalSpacing = 60; GridVerticalSpacing = 54;
+        GridHorizontalSpacing = 52; GridVerticalSpacing = 48;
         GridOriginX = 200; GridOriginY = 200;
         GridSeatsPerDesk = 2;
-        GridIntraDeskSpacing = 24; GridInterDeskSpacing = 60;
+        GridIntraDeskSpacing = 20; GridInterDeskSpacing = 52;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
         GridAisleWidth = 60;
         GridFrontRowCount = 1;
-        GridHasPodium = true; GridPodiumWidth = 120; GridPodiumHeight = 44;
+        GridHasPodium = true; GridPodiumWidth = 100; GridPodiumHeight = 40;
         DoorItems.Clear();
         PolarRings = 3; PolarSeatsPerRing = 12;
         PolarRadiusStep = 40; PolarStartAngle = 0; PolarEndAngle = 360;
