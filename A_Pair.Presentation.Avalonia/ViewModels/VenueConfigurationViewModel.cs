@@ -688,10 +688,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private void ResetParameters ()
     {
         GridRows = 5; GridColumns = 8;
-        GridHorizontalSpacing = 52; GridVerticalSpacing = 48;
+        GridHorizontalSpacing = 64; GridVerticalSpacing = 56;
         GridOriginX = 200; GridOriginY = 200;
         GridSeatsPerDesk = 2;
-        GridIntraDeskSpacing = 20; GridInterDeskSpacing = 52;
+        GridIntraDeskSpacing = 28; GridInterDeskSpacing = 64;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
         GridAisleWidth = 60;
         GridFrontRowCount = 1;

@@ -263,10 +263,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var assignments = _currentPlan.Assignments;
         var (baseW, baseH) = GetSeatDimensions(metadata);
 
-        // 基础缩放
-        double baseScale = ComputeLayoutScale(metadata);
-
-        // 第一遍：收集原始坐标范围，计算内容中心
+        // 第一遍：收集原始坐标范围
         double minX0 = double.MaxValue, minY0 = double.MaxValue;
         double maxX0 = 0, maxY0 = 0;
         var rawPositions = new List<(double cx, double cy, Seat seat)>();
@@ -274,24 +271,22 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         {
             if (!seat.IsAvailable) continue;
             var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
-            cx *= baseScale; cy *= baseScale;
             // Polar 返回圆心，转为左上角以与障碍物坐标一致
-            if (seat is PolarSeat) { cx -= baseW * baseScale / 2; cy -= baseH * baseScale / 2; }
+            if (seat is PolarSeat) { cx -= baseW / 2; cy -= baseH / 2; }
             rawPositions.Add((cx, cy, seat));
             minX0 = Math.Min(minX0, cx);
             minY0 = Math.Min(minY0, cy);
-            maxX0 = Math.Max(maxX0, cx + baseW * baseScale);
-            maxY0 = Math.Max(maxY0, cy + baseH * baseScale);
+            maxX0 = Math.Max(maxX0, cx + baseW);
+            maxY0 = Math.Max(maxY0, cy + baseH);
         }
 
         // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
         _contentCenterX = (minX0 + maxX0) / 2;
         _contentCenterY = (minY0 + maxY0) / 2;
 
-        // 第二遍：以中心缩放
-        double z = baseScale * ZoomLevel;
-        double seatWidth = baseW * baseScale;
-        double seatHeight = baseH * baseScale;
+        // 第二遍：以中心缩放，座位尺寸固定
+        double seatWidth = baseW;
+        double seatHeight = baseH;
 
         var items = new List<SeatDisplayItem>();
         int seatCounter = 0;
@@ -304,13 +299,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             double sx = _contentCenterX + (cx - _contentCenterX) * ZoomLevel;
             double sy = _contentCenterY + (cy - _contentCenterY) * ZoomLevel;
-            double x = seat is PolarSeat ? sx - seatWidth / 2 : sx;
-            double y = seat is PolarSeat ? sy - seatHeight / 2 : sy;
 
             seatCounter++;
             items.Add(new SeatDisplayItem
             {
-                X = x, Y = y, Width = seatWidth, Height = seatHeight,
+                X = sx, Y = sy, Width = seatWidth, Height = seatHeight,
                 SeatId = seat.Id,
                 SeatLabel = BuildSeatLabel(seat, seatCounter),
                 IsFrontRow = isFrontRow,
@@ -337,10 +330,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var overlays = new List<SeatDisplayItem>();
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double w = (obs.Width > 0 ? obs.Width : 60) * baseScale;
-            double h = (obs.Height > 0 ? obs.Height : 40) * baseScale;
-            double ox = _contentCenterX + (obs.X * baseScale - _contentCenterX) * ZoomLevel + offsetX;
-            double oy = _contentCenterY + (obs.Y * baseScale - _contentCenterY) * ZoomLevel + offsetY;
+            double w = obs.Width > 0 ? obs.Width : 60;
+            double h = obs.Height > 0 ? obs.Height : 40;
+            double ox = _contentCenterX + (obs.X - _contentCenterX) * ZoomLevel + offsetX;
+            double oy = _contentCenterY + (obs.Y - _contentCenterY) * ZoomLevel + offsetY;
             overlays.Add(new SeatDisplayItem
             {
                 X = ox, Y = oy, Width = w, Height = h,
@@ -354,40 +347,29 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     }
 
     private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
-    {
-        return metadata switch
-        {
-            GridLayoutMetadata => (40, 30),
-            PolarLayoutMetadata => (34, 34),
-            _ => (30, 24)
-        };
-    }
+        => ComputeSeatSize(metadata);
 
-    /// <summary>保证座位不重叠的缩放因子。</summary>
-    private static double ComputeLayoutScale(LayoutMetadata metadata)
+    /// <summary>按间距计算座位的安全尺寸（宽<最近邻间距的70%）。</summary>
+    private static (double w, double h) ComputeSeatSize(LayoutMetadata metadata)
     {
         if (metadata is GridLayoutMetadata gm)
         {
-            // 取最小行间距或列间距作为基准
             double minGap = double.MaxValue;
             if (gm.HorizontalSpacing > 0) minGap = Math.Min(minGap, gm.HorizontalSpacing);
             if (gm.VerticalSpacing > 0) minGap = Math.Min(minGap, gm.VerticalSpacing);
-            if (gm.IntraDeskSpacing > 0) minGap = Math.Min(minGap, gm.IntraDeskSpacing);
-            if (gm.InterDeskSpacing > 0 && gm.SeatsPerDesk <= 1)
-                minGap = Math.Min(minGap, gm.InterDeskSpacing);
-            if (minGap >= 40) return 1.0;
-            if (minGap >= 30) return 0.85;
-            if (minGap >= 20) return 0.7;
-            return 0.55;
+            if (gm.InterDeskSpacing > 0 && gm.SeatsPerDesk <= 1) minGap = Math.Min(minGap, gm.InterDeskSpacing);
+            if (minGap > 1000) minGap = 52;
+            double w = Math.Clamp(minGap * 0.65, 32, 60);
+            double h = Math.Clamp((gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 48) * 0.7, 26, 50);
+            return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
         {
             double step = pm.RadiusStep > 0 ? pm.RadiusStep : 40;
-            if (step >= 40) return 1.0;
-            if (step >= 30) return 0.85;
-            return 0.7;
+            double s = Math.Clamp(step * 0.55, 22, 40);
+            return (s, s);
         }
-        return 1.0;
+        return (28, 22);
     }
 
     // ── 座位标签与行列判断 ──
