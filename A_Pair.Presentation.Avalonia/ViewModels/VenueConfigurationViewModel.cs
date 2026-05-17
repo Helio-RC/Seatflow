@@ -699,7 +699,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             PodiumWidth = GridPodiumWidth ,
             PodiumHeight = GridPodiumHeight ,
             ColumnRowCounts = ParseIntList(GridColumnRowCountsSpec) ,
-            EmptyPositions = ParseGridEmptyPositions(GridEmptyPositionsSpec)
+            EmptyPositions = FilterGridEmptyPositions(
+                ParseGridEmptyPositions(GridEmptyPositionsSpec), GridColumns, GridRows,
+                ParseIntList(GridColumnRowCountsSpec))
         };
     }
 
@@ -722,7 +724,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             AisleCircularAfterRings = ParseIntList(PolarAisleCircularRings) ,
             AisleCircularWidth = PolarAisleCircularWidth ,
             FrontRowCount = PolarFrontRowCount ,
-            EmptyPositions = ParsePolarEmptyPositions(PolarEmptyPositionsSpec)
+            EmptyPositions = FilterPolarEmptyPositions(
+                ParsePolarEmptyPositions(PolarEmptyPositionsSpec),
+                ParseIntList(PolarRingSeatCountsSpec), PolarRings)
         };
     }
 
@@ -862,6 +866,26 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             .Where(p => p != null)
             .Cast<PolarRingAngle>()
             .ToList();
+    }
+
+    /// <summary>过滤掉行列号超出有效范围的禁用位置。</summary>
+    private static List<GridPosition> FilterGridEmptyPositions (List<GridPosition> raw , int columns , int defaultRows , List<int> columnRowCounts)
+    {
+        if (raw.Count == 0) return raw;
+        return raw.Where(p =>
+        {
+            int maxRows = columnRowCounts is { Count: > 0 } && p.Column <= columnRowCounts.Count
+                ? columnRowCounts[p.Column - 1] : defaultRows;
+            return p.Row >= 1 && p.Column >= 1 && p.Row <= maxRows && p.Column <= columns;
+        }).ToList();
+    }
+
+    /// <summary>过滤掉环号超出有效范围的禁用位置。</summary>
+    private static List<PolarRingAngle> FilterPolarEmptyPositions (List<PolarRingAngle> raw , List<int> ringSeatCounts , int defaultRings)
+    {
+        if (raw.Count == 0) return raw;
+        int totalRings = ringSeatCounts.Count > 0 ? ringSeatCounts.Count : defaultRings;
+        return raw.Where(p => p.Ring >= 1 && p.Ring <= totalRings).ToList();
     }
 
     partial void OnSelectedVenueItemChanged (VenueItem? value)
