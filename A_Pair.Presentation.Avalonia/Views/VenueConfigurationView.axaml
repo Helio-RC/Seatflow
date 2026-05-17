@@ -584,75 +584,81 @@
 
               <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                       CornerRadius="4" MinHeight="300" Padding="8">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                              behaviors:CanvasZoomPan.Enabled="True">
-                  <Grid>
-                    <!-- 座位层 -->
-                    <ItemsControl ItemsSource="{Binding PreviewSeats}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
-                      <ItemsControl.Styles>
-                        <Style Selector="ContentPresenter">
-                          <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                          <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                        </Style>
-                      </ItemsControl.Styles>
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:SeatPreview">
-                          <Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-                                  CornerRadius="{ReflectionBinding CornerRadius}"
-                                  BorderThickness="{ReflectionBinding BorderThickness}"
-                                  BorderBrush="{StaticResource PreviewSeatBorderBrush}"
-                                  ToolTip.Tip="{Binding Label}">
-                            <Border.Background>
-                              <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
-                            </Border.Background>
-                          </Border>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- 覆盖层: 讲台/障碍物/门 -->
-                    <ItemsControl ItemsSource="{Binding PreviewOverlays}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
-                      <ItemsControl.Styles>
-                        <Style Selector="ContentPresenter">
-                          <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                          <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                        </Style>
-                      </ItemsControl.Styles>
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:SeatPreview">
-                          <Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-                                 RenderTransformOrigin="0,0"
-                                 ToolTip.Tip="{Binding Label}">
-                            <Border CornerRadius="1000"
+                <Grid>
+                  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                Background="{DynamicResource PreviewBackgroundBrush}"
+                                behaviors:CanvasZoomPan.Enabled="True">
+                    <Grid>
+                      <!-- 座位层 -->
+                      <ItemsControl ItemsSource="{Binding PreviewSeats}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                          <Style Selector="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                          </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:SeatPreview">
+                            <Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+                                    CornerRadius="{ReflectionBinding CornerRadius}"
                                     BorderThickness="{ReflectionBinding BorderThickness}"
-                                    Background="{ReflectionBinding BackgroundColor}"
-                                    BorderBrush="{ReflectionBinding BorderColor}"
+                                    BorderBrush="{StaticResource PreviewSeatBorderBrush}"
+                                    ToolTip.Tip="{Binding Label}">
+                              <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
+                              </Border.Background>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <!-- 覆盖层: 讲台/障碍物/门 -->
+                      <ItemsControl ItemsSource="{Binding PreviewOverlays}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                          <Style Selector="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                          </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:SeatPreview">
+                            <Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+                                   RenderTransformOrigin="0,0"
+                                   ToolTip.Tip="{Binding Label}">
+                              <Border CornerRadius="1000"
+                                      BorderThickness="{ReflectionBinding BorderThickness}"
+                                      Background="{ReflectionBinding BackgroundColor}"
+                                      BorderBrush="{ReflectionBinding BorderColor}"
+                                      Opacity="0.7"/>
+                              <Path Data="{ReflectionBinding PathGeometry}"
+                                    Fill="{StaticResource PreviewPodiumFillBrush}"
                                     Opacity="0.7"/>
-                            <Path Data="{ReflectionBinding PathGeometry}"
-                                  Fill="{StaticResource PreviewPodiumFillBrush}"
-                                  Opacity="0.7"/>
-                            <TextBlock Text="{Binding Label}" FontSize="11"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                            <Panel.RenderTransform>
-                              <RotateTransform Angle="{ReflectionBinding Rotation}"/>
-                            </Panel.RenderTransform>
-                          </Panel>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </Grid>
-                </ScrollViewer>
+                              <TextBlock Text="{Binding Label}" FontSize="11"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+                              <Panel.RenderTransform>
+                                <RotateTransform Angle="{ReflectionBinding Rotation}"/>
+                              </Panel.RenderTransform>
+                            </Panel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Grid>
+                  </ScrollViewer>
+                  <TextBlock Text="左键拖动" FontSize="11" Opacity="0.4"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,12,8"/>
+                </Grid>
               </Border>
             </StackPanel>
           </DockPanel>

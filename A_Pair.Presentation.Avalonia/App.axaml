@@ -26,6 +26,9 @@
           <Color x:Key="SurfaceCardColor">#FFFFFF</Color>
           <Color x:Key="SurfaceOverlayColor">#44000000</Color>
 
+          <!-- Preview Background -->
+          <Color x:Key="PreviewBackgroundColor">#F5F5F5</Color>
+
           <!-- Shadow -->
           <Color x:Key="ShadowLargeColor">#40000000</Color>
           <Color x:Key="ShadowSmallColor">#20000000</Color>
@@ -46,6 +49,9 @@
           <!-- Surface Colors -->
           <Color x:Key="SurfaceCardColor">#2A2A2A</Color>
           <Color x:Key="SurfaceOverlayColor">#66000000</Color>
+
+          <!-- Preview Background -->
+          <Color x:Key="PreviewBackgroundColor">#1C1C1C</Color>
 
           <!-- Shadow (lighter in dark mode) -->
           <Color x:Key="ShadowLargeColor">#60000000</Color>
@@ -68,6 +74,9 @@
       <!-- Surface Brushes -->
       <SolidColorBrush x:Key="SurfaceCardBrush" Color="{DynamicResource SurfaceCardColor}" />
       <SolidColorBrush x:Key="OverlayBackgroundBrush" Color="{DynamicResource SurfaceOverlayColor}" />
+
+      <!-- Preview Background -->
+      <SolidColorBrush x:Key="PreviewBackgroundBrush" Color="{DynamicResource PreviewBackgroundColor}" />
 
       <!-- BoxShadows -->
       <BoxShadows x:Key="CardShadowNone">0 0 0 0 Transparent</BoxShadows>
