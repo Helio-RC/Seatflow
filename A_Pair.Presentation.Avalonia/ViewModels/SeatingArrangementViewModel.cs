@@ -70,6 +70,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private double _contentCenterX, _contentCenterY;
     private double _defaultZoomLevel = 1.0;
     public double ZoomLevel { get; set; } = 1.0;
+    public Action<double> ZoomAction => delta => ApplyZoom(delta);
     public void ApplyZoom(double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta, 0.2, 3.0); BuildSeatDisplayItems(); }
 
     // ── 工具栏 ──
@@ -405,8 +406,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         if (metadata is GridLayoutMetadata gm)
         {
-            double minGap = double.MaxValue;
-            // 取实际列间距决定座宽（同桌 intra，桌间 inter，取较小值）
             double intra = gm.IntraDeskSpacing > 0 ? gm.IntraDeskSpacing : 20;
             double inter = gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64;
             double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra, inter) : inter;

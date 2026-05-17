@@ -206,7 +206,7 @@
                         Background="White"
                         behaviors:CanvasZoomPan.Enabled="True"
                         behaviors:ZoomOnScroll.Enabled="True"
-                        behaviors:ZoomOnScroll.OnZoom="{Binding ApplyZoom}">
+                        behaviors:ZoomOnScroll.OnZoom="{Binding ZoomAction}">
             <Panel>
             <ItemsControl ItemsSource="{Binding SeatItems}">
               <ItemsControl.ItemsPanel>
