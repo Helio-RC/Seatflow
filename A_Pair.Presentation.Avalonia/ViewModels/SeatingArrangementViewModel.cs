@@ -264,7 +264,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var (baseW, baseH) = GetSeatDimensions(metadata);
 
         // 网格布局扩距系数（增大间距防重叠）
-        double spread = metadata is GridLayoutMetadata ? 1.35 : 1.0;
+        double spread = metadata is GridLayoutMetadata ? 1.6 : 1.0;
 
         // 第一遍：收集原始坐标范围
         double minX0 = double.MaxValue, minY0 = double.MaxValue;
@@ -375,8 +375,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double inter = gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64;
             double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra, inter) : inter;
             double rowGap = gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 56;
-            double w = Math.Clamp(colGap * 0.92, 38, 68);
-            double h = Math.Clamp(rowGap * 0.6, 22, 42);
+            double w = Math.Clamp(colGap * 0.95, 44, 72);
+            double h = Math.Clamp(rowGap * 0.62, 24, 44);
             return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
@@ -385,7 +385,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double s = Math.Clamp(step * 0.85, 28, 48);
             return (s, s);
         }
-        return (36, 24);
+        return (42, 26);
     }
 
     // ── 座位标签与行列判断 ──
