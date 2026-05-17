@@ -464,8 +464,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             canvasW = Math.Max(600, cmaxX + 40);
             canvasH = Math.Max(600, cmaxY + 40);
         }
-        _canvasWidth = canvasW;
-        _canvasHeight = canvasH;
+        CanvasWidth = canvasW;
+        CanvasHeight = canvasH;
 
         PreviewSeats = new ObservableCollection<SeatPreview>(seats);
         PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);
