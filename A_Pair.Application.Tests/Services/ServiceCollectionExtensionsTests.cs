@@ -60,7 +60,7 @@ public class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public void AddA_PairApplication_CreatesExpectedDirectories ()
+    public async Task AddA_PairApplication_CreatesExpectedDirectories ()
     {
         var services = new ServiceCollection();
         var snapshotBasePath = Path.Combine(_tempDir , "Snapshots");
@@ -75,12 +75,12 @@ public class ServiceCollectionExtensionsTests : IDisposable
 
         // 快照目录由 Repository 在保存时按需创建
         var snapshotRepo = provider.GetRequiredService<ISeatingSnapshotRepository>();
-        snapshotRepo.SaveAsync(new SeatingSnapshot
+        await snapshotRepo.SaveAsync(new SeatingSnapshot
         {
             Id = "test_snap",
             LayoutId = "venue1",
             CreatedAt = DateTime.UtcNow
-        }).GetAwaiter().GetResult();
+        });
         Assert.True(Directory.Exists(Path.Combine(snapshotBasePath, "Assignments", "venue1")));
     }
 }
