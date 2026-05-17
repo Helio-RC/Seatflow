@@ -142,6 +142,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     // ── 预览 ──
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewSeats = [];
     [ObservableProperty] private ObservableCollection<SeatPreview> _previewOverlays = [];
+    [ObservableProperty] private double _canvasWidth = 600;
+    [ObservableProperty] private double _canvasHeight = 600;
     [ObservableProperty] private string _statusMessage = string.Empty;
 
     public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation)
@@ -313,6 +315,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 {
                     X = x ,
                     Y = y ,
+                    Width = 34 ,
+                    Height = 26 ,
                     Label = $"R{s.Row}C{s.Column} (桌{deskNum})" ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront
@@ -344,7 +348,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var layout = PolarLayoutBuilder.BuildPolar(meta);
             int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
 
-            double seatR = 5;  // 座位圆点半径
+            double seatR = 14;  // 座位圆点半径
             foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
             {
                 var (cx , cy) = SeatGeometryHelper.GetPosition(s , meta);
@@ -358,7 +362,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Label = $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})" ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront ,
-                    CornerRadius = new(5) ,
+                    CornerRadius = new(seatR) ,
                     IsCircle = true
                 });
             }
@@ -384,7 +388,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         }
         else if (SelectedLayoutType == LayoutType.Freeform)
         {
-            double seatSize = 12;
+            double seatSize = 18;
             foreach (var s in _freeformPreviewSeats)
             {
                 seats.Add(new SeatPreview
@@ -449,6 +453,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             foreach (var s in seats) { s.X += ox; s.Y += oy; }
             foreach (var o in overlays) { o.X += ox; o.Y += oy; }
         }
+
+        // 动态 Canvas 大小
+        double canvasW = 600, canvasH = 600;
+        if (seats.Count > 0 || overlays.Count > 0)
+        {
+            double cmaxX = 0, cmaxY = 0;
+            foreach (var s in seats) { cmaxX = Math.Max(cmaxX, s.X + s.Width); cmaxY = Math.Max(cmaxY, s.Y + s.Height); }
+            foreach (var o in overlays) { cmaxX = Math.Max(cmaxX, o.X + o.Width); cmaxY = Math.Max(cmaxY, o.Y + o.Height); }
+            canvasW = Math.Max(600, cmaxX + 40);
+            canvasH = Math.Max(600, cmaxY + 40);
+        }
+        _canvasWidth = canvasW;
+        _canvasHeight = canvasH;
 
         PreviewSeats = new ObservableCollection<SeatPreview>(seats);
         PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);

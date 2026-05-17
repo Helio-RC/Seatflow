@@ -564,7 +564,7 @@
                     <ItemsControl ItemsSource="{Binding PreviewSeats}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                          <Canvas Width="600" Height="600"/>
+                          <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
                         </ItemsPanelTemplate>
                       </ItemsControl.ItemsPanel>
                       <ItemsControl.Styles>
@@ -592,7 +592,7 @@
                     <ItemsControl ItemsSource="{Binding PreviewOverlays}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                          <Canvas Width="600" Height="600"/>
+                          <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
                         </ItemsPanelTemplate>
                       </ItemsControl.ItemsPanel>
                       <ItemsControl.Styles>

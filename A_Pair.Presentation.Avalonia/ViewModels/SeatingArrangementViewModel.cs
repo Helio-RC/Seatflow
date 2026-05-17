@@ -365,25 +365,24 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         if (metadata is GridLayoutMetadata gm)
         {
             double minGap = double.MaxValue;
-            // 取实际列间距（同桌用 intra，桌间用 inter）
-            double colGap = gm.SeatsPerDesk > 1
-                ? Math.Min(gm.IntraDeskSpacing > 0 ? gm.IntraDeskSpacing : 20, gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64)
-                : (gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64);
+            // 取实际列间距决定座宽（同桌 intra，桌间 inter，取较小值）
+            double intra = gm.IntraDeskSpacing > 0 ? gm.IntraDeskSpacing : 20;
+            double inter = gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64;
+            double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra, inter) : inter;
             double rowGap = gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 56;
-            double w = Math.Clamp(colGap * 0.82, 14, 60);
-            double h = Math.Clamp(rowGap * 0.75, 18, 50);
-            // 确保宽度不超过实际间距
-            w = Math.Min(w, colGap - 2);
-            h = Math.Min(h, rowGap - 4);
+            // 间距 ≤18 → 小座位，≤30 → 中等，>30 → 大座位
+            double ratio = colGap <= 18 ? 0.7 : colGap <= 30 ? 0.75 : 0.82;
+            double w = Math.Clamp(colGap * ratio, 20, 60);
+            double h = Math.Clamp(rowGap * 0.7, 18, 50);
             return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
         {
             double step = pm.RadiusStep > 0 ? pm.RadiusStep : 40;
-            double s = Math.Clamp(step * 0.55, 22, 40);
+            double s = Math.Clamp(step * 0.7, 24, 42);
             return (s, s);
         }
-        return (28, 22);
+        return (30, 24);
     }
 
     // ── 座位标签与行列判断 ──
