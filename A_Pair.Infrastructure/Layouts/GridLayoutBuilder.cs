@@ -38,9 +38,12 @@ namespace A_Pair.Infrastructure.Layouts
             var emptySet = new HashSet<(int Row , int Col)>(
                 (metadata.EmptyPositions ?? []).Select(p => (p.Row , p.Column)));
 
-            for (int r = 1; r <= metadata.Rows; r++)
+            for (int c = 1; c <= metadata.Columns; c++)
             {
-                for (int c = 1; c <= metadata.Columns; c++)
+                int rowsForCol = (metadata.ColumnRowCounts is { Count: > 0 } && c <= metadata.ColumnRowCounts.Count)
+                    ? metadata.ColumnRowCounts[c - 1] : metadata.Rows;
+
+                for (int r = 1; r <= rowsForCol; r++)
                 {
                     if (emptySet.Contains((r , c)))
                         continue;

@@ -366,6 +366,28 @@
               </StackPanel>
             </Border>
 
+            <!-- Grid 高级配置面板 -->
+            <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
+                    Padding="12" Margin="0,0,0,8"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    CornerRadius="4">
+              <StackPanel Spacing="8">
+                <TextBlock Text="高级配置" FontSize="13" FontWeight="SemiBold"/>
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto"
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="每列行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
+                           FontSize="13" PlaceholderText="如 8,7,8,7,8（逗号分隔，空=使用行数）"
+                           ToolTip.Tip="每列各自的行数（逗号分隔）。第1项=第1列，依次类推。留空则所有列使用行数设置。"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
+                           FontSize="13" PlaceholderText="如 1,3;2,5;3,1（分号分隔 Row,Col 对）"
+                           ToolTip.Tip="分号分隔的 (行,列) 对，指定不放置座位的网格位置。行和列从 1 开始。"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
             <!-- Polar 基础参数面板 -->
             <Border DockPanel.Dock="Top" IsVisible="{Binding IsPolarSelected}"
                     Padding="12" Margin="0,0,0,8"
@@ -403,7 +425,7 @@
                                  Minimum="0" Maximum="2000"
                                  ToolTip.Tip="圆心水平位置（像素）。"/>
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
@@ -414,6 +436,10 @@
                   <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 8,12,16"
                            ToolTip.Tip="逗号分隔每环座位数，空=使用均匀模式。如 8,12,16 表示3环依次8/12/16座。"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
+                           FontSize="13" PlaceholderText="如 1,0;2,90"
+                           ToolTip.Tip="分号分隔的 (环,角度) 对，指定要禁用的极坐标座位。环从 1（最内）开始，角度以度为单位。"/>
                 </Grid>
               </StackPanel>
             </Border>

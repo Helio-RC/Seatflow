@@ -54,6 +54,9 @@ namespace A_Pair.Core.Models
         /// <summary>不放置桌子的网格位置列表。每项包含行列号。</summary>
         public List<GridPosition> EmptyPositions { get; set; } = [];
 
+        /// <summary>每列各自的行数（索引 0 = 第 1 列）。非空时覆盖全局 <see cref="Rows"/> 用于各列的座位生成。</summary>
+        public List<int> ColumnRowCounts { get; set; } = [];
+
         /// <summary>前排的行数（从第 1 行开始计数），默认 1。</summary>
         public int FrontRowCount { get; set; } = 1;
 
@@ -119,6 +122,9 @@ namespace A_Pair.Core.Models
 
         /// <summary>前排环数（从最外层环向内计数），默认 1。</summary>
         public int FrontRowCount { get; set; } = 1;
+
+        /// <summary>极坐标布局中禁用的座位列表（按环 + 角度标识）。Builder 生成时会跳过这些座位。</summary>
+        public List<PolarRingAngle> EmptyPositions { get; set; } = [];
     }
 
     /// <summary>

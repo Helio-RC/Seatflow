@@ -119,6 +119,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private double _gridPodiumWidth = 60;
     [ObservableProperty] private double _gridPodiumHeight = 40;
 
+    // ── Grid 高级配置 ──
+    [ObservableProperty] private string _gridColumnRowCountsSpec = "";
+    [ObservableProperty] private string _gridEmptyPositionsSpec = "";
+
     // ── 门配置（支持多门、自定义位置）──
     [ObservableProperty] private ObservableCollection<DoorItem> _doorItems = [];
 
@@ -131,6 +135,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private double _polarOriginX = 200;
     [ObservableProperty] private double _polarOriginY = 200;
     [ObservableProperty] private string _polarRingSeatCountsSpec = "";   // 每环座位数逗号分隔，空=用均匀环
+    [ObservableProperty] private string _polarEmptyPositionsSpec = "";   // 禁用座位：分号分隔的 Ring,Angle 对
     [ObservableProperty] private bool _polarHasPodium = true;
     [ObservableProperty] private double _polarPodiumRadius = 30;
     [ObservableProperty] private string _polarAisleRadialAngles = "";
@@ -341,6 +346,23 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Label = "讲台"
                 });
             }
+
+            // 禁用座位标记（红色半透明）
+            foreach (var empty in meta.EmptyPositions ?? [])
+            {
+                var virtualSeat = new GridSeat { Row = empty.Row , Column = empty.Column };
+                var (ex , ey) = SeatGeometryHelper.GetPosition(virtualSeat , meta);
+                overlays.Add(new SeatPreview
+                {
+                    X = ex ,
+                    Y = ey ,
+                    Width = 34 ,
+                    Height = 26 ,
+                    Label = $"R{empty.Row}C{empty.Column} (禁用)" ,
+                    ElementType = PreviewElementType.Aisle ,
+                    BackgroundColor = "#80CC4444"
+                });
+            }
         }
         else if (SelectedLayoutType == LayoutType.Polar)
         {
@@ -383,6 +405,32 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     IsCircle = true ,
                     BackgroundColor = "#4080D0E0"
                 });
+            }
+
+            // 禁用座位标记（红色半透明圆点，复用上方 seatR 变量）
+            if (meta.EmptyPositions is { Count: > 0 })
+            {
+                var circularAisleSet = new HashSet<int>(meta.AisleCircularAfterRings ?? []);
+                foreach (var empty in meta.EmptyPositions)
+                {
+                    int aislesBefore = circularAisleSet.Count(r => r < empty.Ring);
+                    double radius = (empty.Ring * meta.RadiusStep) + (aislesBefore * meta.AisleCircularWidth);
+                    double rad = empty.AngleDegrees * Math.PI / 180.0;
+                    double cx = meta.OriginX + (radius * Math.Cos(rad));
+                    double cy = meta.OriginY + (radius * Math.Sin(rad));
+                    overlays.Add(new SeatPreview
+                    {
+                        X = cx - seatR ,
+                        Y = cy - seatR ,
+                        Width = seatR * 2 ,
+                        Height = seatR * 2 ,
+                        Label = $"R{empty.Ring} {empty.AngleDegrees:F0}° (禁用)" ,
+                        ElementType = PreviewElementType.Aisle ,
+                        CornerRadius = new(seatR) ,
+                        IsCircle = true ,
+                        BackgroundColor = "#80CC4444"
+                    });
+                }
             }
 
         }
@@ -625,7 +673,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             FrontRowCount = GridFrontRowCount ,
             HasPodium = GridHasPodium ,
             PodiumWidth = GridPodiumWidth ,
-            PodiumHeight = GridPodiumHeight
+            PodiumHeight = GridPodiumHeight ,
+            ColumnRowCounts = ParseIntList(GridColumnRowCountsSpec) ,
+            EmptyPositions = ParseGridEmptyPositions(GridEmptyPositionsSpec)
         };
     }
 
@@ -647,7 +697,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             AisleRadialWidthDegrees = PolarAisleRadialWidth ,
             AisleCircularAfterRings = ParseIntList(PolarAisleCircularRings) ,
             AisleCircularWidth = PolarAisleCircularWidth ,
-            FrontRowCount = PolarFrontRowCount
+            FrontRowCount = PolarFrontRowCount ,
+            EmptyPositions = ParsePolarEmptyPositions(PolarEmptyPositionsSpec)
         };
     }
 
@@ -679,6 +730,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridHasPodium = g.HasPodium;
         GridPodiumWidth = g.PodiumWidth > 0 ? g.PodiumWidth : 60;
         GridPodiumHeight = g.PodiumHeight > 0 ? g.PodiumHeight : 40;
+        GridColumnRowCountsSpec = g.ColumnRowCounts is { Count: > 0 } ? string.Join("," , g.ColumnRowCounts) : "";
+        GridEmptyPositionsSpec = g.EmptyPositions is { Count: > 0 }
+            ? string.Join(";" , g.EmptyPositions.Select(p => $"{p.Row},{p.Column}"))
+            : "";
 
         RegenerateAisleOptions();
     }
@@ -700,6 +755,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         PolarAisleCircularRings = p.AisleCircularAfterRings is { Count: > 0 } ? string.Join("," , p.AisleCircularAfterRings) : "";
         PolarAisleCircularWidth = p.AisleCircularWidth > 0 ? p.AisleCircularWidth : 20;
         PolarFrontRowCount = p.FrontRowCount > 0 ? p.FrontRowCount : 1;
+        PolarEmptyPositionsSpec = p.EmptyPositions is { Count: > 0 }
+            ? string.Join(";" , p.EmptyPositions.Select(e => $"{e.Ring},{e.AngleDegrees:F2}"))
+            : "";
     }
 
     private void ResetParameters ()
@@ -713,6 +771,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         GridAisleWidth = 60;
         GridFrontRowCount = 1;
         GridHasPodium = true; GridPodiumWidth = 100; GridPodiumHeight = 40;
+        GridColumnRowCountsSpec = ""; GridEmptyPositionsSpec = "";
         DoorItems.Clear();
         PolarRings = 3; PolarSeatsPerRing = 12;
         PolarRadiusStep = 40; PolarStartAngle = 0; PolarEndAngle = 360;
@@ -722,6 +781,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         PolarAisleRadialAngles = ""; PolarAisleRadialWidth = 5;
         PolarAisleCircularRings = ""; PolarAisleCircularWidth = 20;
         PolarFrontRowCount = 1;
+        PolarEmptyPositionsSpec = "";
     }
 
     private static List<int> ParseIntList (string csv)
@@ -739,6 +799,44 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         return csv.Split(',' , StringSplitOptions.RemoveEmptyEntries)
             .Select(s => double.TryParse(s.Trim() , out var n) ? n : -1)
             .Where(n => n >= 0)
+            .ToList();
+    }
+
+    private static List<GridPosition> ParseGridEmptyPositions (string spec)
+    {
+        if (string.IsNullOrWhiteSpace(spec)) return [];
+        return spec.Split(';' , StringSplitOptions.RemoveEmptyEntries)
+            .Select(part =>
+            {
+                var parts = part.Split(',');
+                if (parts.Length == 2
+                    && int.TryParse(parts[0].Trim() , out var row)
+                    && int.TryParse(parts[1].Trim() , out var col)
+                    && row > 0 && col > 0)
+                    return new GridPosition { Row = row , Column = col };
+                return null;
+            })
+            .Where(p => p != null)
+            .Cast<GridPosition>()
+            .ToList();
+    }
+
+    private static List<PolarRingAngle> ParsePolarEmptyPositions (string spec)
+    {
+        if (string.IsNullOrWhiteSpace(spec)) return [];
+        return spec.Split(';' , StringSplitOptions.RemoveEmptyEntries)
+            .Select(part =>
+            {
+                var parts = part.Split(',');
+                if (parts.Length == 2
+                    && int.TryParse(parts[0].Trim() , out var ring)
+                    && double.TryParse(parts[1].Trim() , out var angle)
+                    && ring > 0)
+                    return new PolarRingAngle { Ring = ring , AngleDegrees = angle };
+                return null;
+            })
+            .Where(p => p != null)
+            .Cast<PolarRingAngle>()
             .ToList();
     }
 

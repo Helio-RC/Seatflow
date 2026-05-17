@@ -150,4 +150,27 @@ public class PolarLayoutBuilderTests
         var layout = PolarLayoutBuilder.BuildPolar(meta);
         layout.Seats.Count.Should().Be(0);
     }
+
+    [Fact]
+    public void BuildPolar_WithEmptyPositions_ShouldSkipThem ()
+    {
+        var meta = new PolarLayoutMetadata
+        {
+            RingSeatCounts = new List<int> { 4, 4 },
+            RadiusStep = 40,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 360,
+            HasPodium = false,
+            EmptyPositions = new List<PolarRingAngle>
+            {
+                new() { Ring = 1, AngleDegrees = 45 },
+                new() { Ring = 2, AngleDegrees = 225 }
+            }
+        };
+        var layout = PolarLayoutBuilder.BuildPolar(meta);
+        // 2 rings * 4 seats = 8, minus 2 = 6
+        layout.Seats.Count.Should().Be(6);
+        layout.Seats.Cast<PolarSeat>().Any(s => s.Ring == 1 && Math.Abs(s.AngleDegrees - 45) < 1e-6).Should().BeFalse();
+        layout.Seats.Cast<PolarSeat>().Any(s => s.Ring == 2 && Math.Abs(s.AngleDegrees - 225) < 1e-6).Should().BeFalse();
+    }
 }
