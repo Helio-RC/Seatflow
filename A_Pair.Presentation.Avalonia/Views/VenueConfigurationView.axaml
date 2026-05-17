@@ -422,7 +422,7 @@
                                  Minimum="0" Maximum="2000"
                                  ToolTip.Tip="圆心水平位置（像素）。"/>
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
@@ -433,10 +433,21 @@
                   <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 8,12,16"
                            ToolTip.Tip="逗号分隔每环座位数，空=使用均匀模式。如 8,12,16 表示3环依次8/12/16座。"/>
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
-                  <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
+                </Grid>
+
+                <!-- 可选配置分隔条 -->
+                <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                  <TextBlock Text="可选" FontSize="11" Opacity="0.5"/>
+                </Border>
+
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 1,0;2,90"
-                           ToolTip.Tip="分号分隔的 (环,角度) 对，指定要禁用的极坐标座位。环从 1（最内）开始，角度以度为单位。"/>
+                           ToolTip.Tip="分号分隔的 (环,角度) 对，指定要禁用的极坐标座位。环从 1（最内）开始，角度以度为单位。不存在的环号将自动清除。"/>
                 </Grid>
               </StackPanel>
             </Border>
