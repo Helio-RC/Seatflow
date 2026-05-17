@@ -311,14 +311,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var meta = BuildGridMetadata();
             var layout = GridLayoutBuilder.BuildGrid(meta);
 
-            // 扩距系数（与座位安排页一致，增大列间距防重叠）
-            double spread = 3.2;
+            // 间距放大系数（以 Origin 为锚点相对缩放，只放大间距不移动原点）
+            double spread = 2.5;
+            double ox = meta.OriginX, oy = meta.OriginY;
             double seatW = 20, seatH = 14;
 
             foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
             {
                 var (x , y) = SeatGeometryHelper.GetPosition(s , meta);
-                x *= spread; y *= spread;
+                x = ox + (x - ox) * spread;
+                y = oy + (y - oy) * spread;
                 bool isFront = s.Row <= meta.FrontRowCount;
                 int deskNum = ((s.Column - 1) / meta.SeatsPerDesk) + 1;
                 seats.Add(new SeatPreview
@@ -341,7 +343,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 double podiumW = meta.PodiumWidth * spread;
                 double podiumH = meta.PodiumHeight * spread;
                 double podiumX = (gridLeft + gridRight) / 2 - podiumW / 2;
-                double podiumY = (meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing) * spread;
+                double podiumY = oy - (meta.PodiumHeight + meta.VerticalSpacing) * spread;
                 overlays.Add(new SeatPreview
                 {
                     X = podiumX ,
@@ -358,7 +360,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             {
                 var virtualSeat = new GridSeat { Row = empty.Row , Column = empty.Column };
                 var (ex , ey) = SeatGeometryHelper.GetPosition(virtualSeat , meta);
-                ex *= spread; ey *= spread;
+                ex = ox + (ex - ox) * spread;
+                ey = oy + (ey - oy) * spread;
                 overlays.Add(new SeatPreview
                 {
                     X = ex ,
@@ -377,7 +380,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var layout = PolarLayoutBuilder.BuildPolar(meta);
             int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
 
-            double seatR = 10;  // 座位圆点半径
+            double seatR = 7;  // 座位圆点半径
             foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
             {
                 var (cx , cy) = SeatGeometryHelper.GetPosition(s , meta);
