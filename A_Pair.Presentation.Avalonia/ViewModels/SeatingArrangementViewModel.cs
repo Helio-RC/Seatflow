@@ -365,12 +365,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         if (metadata is GridLayoutMetadata gm)
         {
             double minGap = double.MaxValue;
-            if (gm.HorizontalSpacing > 0) minGap = Math.Min(minGap, gm.HorizontalSpacing);
-            if (gm.VerticalSpacing > 0) minGap = Math.Min(minGap, gm.VerticalSpacing);
-            if (gm.InterDeskSpacing > 0 && gm.SeatsPerDesk <= 1) minGap = Math.Min(minGap, gm.InterDeskSpacing);
-            if (minGap > 1000) minGap = 52;
-            double w = Math.Clamp(minGap * 0.65, 32, 60);
-            double h = Math.Clamp((gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 48) * 0.7, 26, 50);
+            // 取实际列间距（同桌用 intra，桌间用 inter）
+            double colGap = gm.SeatsPerDesk > 1
+                ? Math.Min(gm.IntraDeskSpacing > 0 ? gm.IntraDeskSpacing : 20, gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64)
+                : (gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64);
+            double rowGap = gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 56;
+            double w = Math.Clamp(colGap * 0.82, 14, 60);
+            double h = Math.Clamp(rowGap * 0.75, 18, 50);
+            // 确保宽度不超过实际间距
+            w = Math.Min(w, colGap - 2);
+            h = Math.Min(h, rowGap - 4);
             return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
