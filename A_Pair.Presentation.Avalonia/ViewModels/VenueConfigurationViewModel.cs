@@ -311,16 +311,27 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var meta = BuildGridMetadata();
             var layout = GridLayoutBuilder.BuildGrid(meta);
 
-            // 间距放大系数（以 Origin 为锚点相对缩放，只放大间距不移动原点）
-            double spread = 2.5;
-            double ox = meta.OriginX, oy = meta.OriginY;
+            // 仅放大同桌间距（IntraDeskSpacing），桌间和行间保持原样
+            var previewMeta = new GridLayoutMetadata
+            {
+                Rows = meta.Rows, Columns = meta.Columns,
+                OriginX = meta.OriginX, OriginY = meta.OriginY,
+                SeatsPerDesk = meta.SeatsPerDesk,
+                IntraDeskSpacing = meta.IntraDeskSpacing * 4,
+                InterDeskSpacing = meta.InterDeskSpacing,
+                HorizontalSpacing = meta.HorizontalSpacing,
+                VerticalSpacing = meta.VerticalSpacing,
+                AisleAfterColumns = meta.AisleAfterColumns,
+                AisleAfterRows = meta.AisleAfterRows,
+                AisleWidth = meta.AisleWidth,
+                ColumnRowCounts = meta.ColumnRowCounts,
+                EmptyPositions = meta.EmptyPositions,
+            };
             double seatW = 20, seatH = 14;
 
             foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
             {
-                var (x , y) = SeatGeometryHelper.GetPosition(s , meta);
-                x = ox + (x - ox) * spread;
-                y = oy + (y - oy) * spread;
+                var (x , y) = SeatGeometryHelper.GetPosition(s , previewMeta);
                 bool isFront = s.Row <= meta.FrontRowCount;
                 int deskNum = ((s.Column - 1) / meta.SeatsPerDesk) + 1;
                 seats.Add(new SeatPreview
@@ -340,10 +351,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             {
                 double gridLeft = seats.Min(s => s.X);
                 double gridRight = seats.Max(s => s.X + s.Width);
-                double podiumW = meta.PodiumWidth * spread;
-                double podiumH = meta.PodiumHeight * spread;
+                double podiumW = meta.PodiumWidth;
+                double podiumH = meta.PodiumHeight;
                 double podiumX = (gridLeft + gridRight) / 2 - podiumW / 2;
-                double podiumY = oy - (meta.PodiumHeight + meta.VerticalSpacing) * spread;
+                double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
                 overlays.Add(new SeatPreview
                 {
                     X = podiumX ,
@@ -359,9 +370,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             foreach (var empty in meta.EmptyPositions ?? [])
             {
                 var virtualSeat = new GridSeat { Row = empty.Row , Column = empty.Column };
-                var (ex , ey) = SeatGeometryHelper.GetPosition(virtualSeat , meta);
-                ex = ox + (ex - ox) * spread;
-                ey = oy + (ey - oy) * spread;
+                var (ex , ey) = SeatGeometryHelper.GetPosition(virtualSeat , previewMeta);
                 overlays.Add(new SeatPreview
                 {
                     X = ex ,
