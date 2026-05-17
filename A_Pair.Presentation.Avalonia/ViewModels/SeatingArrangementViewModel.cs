@@ -357,9 +357,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         return metadata switch
         {
-            GridLayoutMetadata => (48, 36),
+            GridLayoutMetadata => (40, 30),
             PolarLayoutMetadata => (34, 34),
-            _ => (34, 28)
+            _ => (30, 24)
         };
     }
 

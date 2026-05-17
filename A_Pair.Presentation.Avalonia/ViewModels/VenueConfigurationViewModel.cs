@@ -313,8 +313,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 {
                     X = x ,
                     Y = y ,
-                    Width = 36 ,
-                    Height = 28 ,
                     Label = $"R{s.Row}C{s.Column} (桌{deskNum})" ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront
@@ -346,7 +344,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var layout = PolarLayoutBuilder.BuildPolar(meta);
             int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
 
-            double seatR = 12;  // 座位圆点半径
+            double seatR = 5;  // 座位圆点半径
             foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
             {
                 var (cx , cy) = SeatGeometryHelper.GetPosition(s , meta);
@@ -360,7 +358,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Label = $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})" ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront ,
-                    CornerRadius = new(seatR) ,
+                    CornerRadius = new(5) ,
                     IsCircle = true
                 });
             }
@@ -386,7 +384,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         }
         else if (SelectedLayoutType == LayoutType.Freeform)
         {
-            double seatSize = 16;
+            double seatSize = 12;
             foreach (var s in _freeformPreviewSeats)
             {
                 seats.Add(new SeatPreview
