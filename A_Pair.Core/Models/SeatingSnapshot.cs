@@ -9,8 +9,8 @@ namespace A_Pair.Core.Models
         /// <summary>快照唯一标识符。</summary>
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        /// <summary>快照创建时间（UTC）。</summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        /// <summary>快照创建时间（本地时区）。</summary>
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         /// <summary>快照描述（如"第3周排座""手动调整后"）。</summary>
         public string Description { get; set; } = string.Empty;

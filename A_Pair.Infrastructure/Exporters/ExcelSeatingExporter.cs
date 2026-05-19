@@ -79,7 +79,12 @@ namespace A_Pair.Infrastructure.Exporters
                     foreach (var cell in row.Cells)
                     {
                         ws.Cells[r , c].Value = cell.Text;
-                        if (cell.IsAisle || isFullAisleRow)
+                        if (cell.IsUnassigned)
+                        {
+                            ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkGray);
+                        }
+                        else if (cell.IsAisle || isFullAisleRow)
                         {
                             ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                             ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);

@@ -82,16 +82,20 @@ public class LayoutSeatingExportModel
                 }
                 else if (col.HasValue && seatMap.TryGetValue((r, col.Value), out var seat))
                 {
-                    string label = $"R{r}C{col.Value}";
                     string? studentName = null;
+                    bool isUnassigned = true;
                     if (assignments.TryGetValue(seat.Id, out var sid) &&
                         studentNames.TryGetValue(sid, out var name))
+                    {
                         studentName = name;
+                        isUnassigned = false;
+                    }
 
                     row.Cells.Add(new ExportCell
                     {
                         IsSeat = true,
-                        Text = studentName ?? label
+                        IsUnassigned = isUnassigned,
+                        Text = studentName ?? "未分配"
                     });
                 }
                 else
@@ -165,16 +169,20 @@ public class LayoutSeatingExportModel
 
             foreach (var seat in seatsInRing.Take(maxRingSeats))
             {
-                string label = $"环{seat.Ring} {seat.AngleDegrees:F0}°";
                 string? studentName = null;
+                bool isUnassigned = true;
                 if (assignments.TryGetValue(seat.Id, out var sid) &&
                     studentNames.TryGetValue(sid, out var name))
+                {
                     studentName = name;
+                    isUnassigned = false;
+                }
 
                 row.Cells.Add(new ExportCell
                 {
                     IsSeat = true,
-                    Text = studentName ?? label
+                    IsUnassigned = isUnassigned,
+                    Text = studentName ?? "未分配"
                 });
             }
 
@@ -212,14 +220,17 @@ public class LayoutSeatingExportModel
         foreach (var seat in freeSeats)
         {
             idx++;
-            string label = $"#{idx} ({seat.X:F0}, {seat.Y:F0})";
             string? studentName = null;
+            bool isUnassigned = true;
             if (assignments.TryGetValue(seat.Id, out var sid) &&
                 studentNames.TryGetValue(sid, out var name))
+            {
                 studentName = name;
+                isUnassigned = false;
+            }
 
             var row = new ExportRow();
-            row.Cells.Add(new ExportCell { IsSeat = true, Text = studentName ?? label });
+            row.Cells.Add(new ExportCell { IsSeat = true, IsUnassigned = isUnassigned, Text = studentName ?? "未分配" });
             model.Rows.Add(row);
         }
 
@@ -245,4 +256,5 @@ public class ExportCell
     public bool IsSeat { get; set; }
     public bool IsAisle { get; set; }
     public bool IsPodium { get; set; }
+    public bool IsUnassigned { get; set; }
 }

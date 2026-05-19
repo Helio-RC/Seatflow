@@ -317,7 +317,23 @@ namespace A_Pair.Application.Services
         {
             var snapshot = _snapshotRepository.Load(snapshotId) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
             if (_currentWorkspace == null)
-                throw new InvalidOperationException("当前没有活动的工作区");
+            {
+                // 自动构建最小工作区：从会场加载座位，从快照构造存根学生
+                ClassroomLayoutDefinition? layout = null;
+                if (!string.IsNullOrEmpty(snapshot.LayoutId) && snapshot.LayoutId != "unknown" && snapshot.LayoutId != "empty")
+                {
+                    try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
+                }
+
+                var seats = layout?.Seats ?? new List<Seat>();
+                var studentIds = snapshot.SeatAssignments.Values
+                    .Where(v => v != null)
+                    .Distinct()
+                    .ToList();
+                var stubStudents = studentIds.Select(id => new Student { Id = id , Name = id }).ToList();
+
+                _currentWorkspace = new SeatingWorkspace(stubStudents , seats);
+            }
 
             // 回滚前自动保存当前状态为备份快照，确保可撤销
             await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}");

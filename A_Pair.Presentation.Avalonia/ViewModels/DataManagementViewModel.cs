@@ -157,13 +157,13 @@ public partial class DataManagementViewModel : ViewModelBase
         try
         {
             var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
-            var uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
+            var uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
 
             if (!AssetLoader.Exists(uri))
             {
                 suffix = DefaultTemplateSuffix;
                 displayName = DefaultTemplateDisplayName;
-                uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
+                uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
             }
 
             if (!AssetLoader.Exists(uri))

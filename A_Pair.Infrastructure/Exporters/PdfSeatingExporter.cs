@@ -30,7 +30,7 @@ namespace A_Pair.Infrastructure.Exporters
                 {
                     container.Page(page =>
                     {
-                        page.Size(PageSizes.A4);
+                        page.Size(PageSizes.A4.Landscape());
                         page.Margin(2 , Unit.Centimetre);
                         page.PageColor(Colors.White);
                         page.DefaultTextStyle(x => x.FontSize(12));
@@ -117,7 +117,8 @@ namespace A_Pair.Infrastructure.Exporters
                                     {
                                         var cellElement = table.Cell()
                                             .Border(1).BorderColor(Colors.Grey.Lighten2)
-                                            .Background(cell.IsPodium ? Colors.Blue.Lighten4 :
+                                            .Background(cell.IsUnassigned ? Colors.Grey.Darken2 :
+                                                         cell.IsPodium ? Colors.Blue.Lighten4 :
                                                          cell.IsAisle || isFullAisleRow ? Colors.Grey.Lighten3 :
                                                          cell.IsSeat ? Colors.Green.Lighten5 :
                                                          Colors.White)
