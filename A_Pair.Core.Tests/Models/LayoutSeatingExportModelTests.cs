@@ -85,7 +85,8 @@ public class LayoutSeatingExportModelTests
             new Dictionary<string, string> { { "stu1", "张三" } });
 
         model.Rows[0].Cells[0].Text.Should().Be("张三");
-        model.Rows[0].Cells[1].Text.Should().Be("R1C2"); // no assignment, use label
+        model.Rows[0].Cells[1].Text.Should().Be("未分配"); // no assignment
+        model.Rows[0].Cells[1].IsUnassigned.Should().BeTrue();
     }
 
     [Fact]
