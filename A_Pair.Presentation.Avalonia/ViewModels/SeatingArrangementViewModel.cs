@@ -28,9 +28,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private ClassroomLayoutDefinition? _currentLayout;
     private SeatingPlan? _currentPlan;
     private SeatDisplayItem? _swapSourceSeat;
-    private int _undoCount;
-    private int _redoCount;
     private CancellationTokenSource? _generateCts;
+
+    // ── 操作历史 ──
+    private readonly ObservableCollection<HistoryEntry> _historyEntries = [];
+    private int _currentHistoryIndex = -1;
+    private int _lastSavedIndex = -1;
+    public IReadOnlyList<HistoryEntry> HistoryEntries => _historyEntries;
+    public bool HasUnsavedChanges => _currentHistoryIndex >= 0 && _currentHistoryIndex != _lastSavedIndex;
+    public bool HasHistory => _historyEntries.Count > 0;
 
     // ── 左侧面板 ──
     [ObservableProperty]
@@ -82,12 +88,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private bool _hasGenerated;
 
     [ObservableProperty]
-    private bool _canUndo;
-
-    [ObservableProperty]
-    private bool _canRedo;
+    [NotifyPropertyChangedFor(nameof(CanUndo))]
+    [NotifyPropertyChangedFor(nameof(CanRedo))]
+    [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
+    private bool _hasHistoryUnsaved;
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
+    public bool CanUndo => _currentHistoryIndex > 0;
+    public bool CanRedo => _currentHistoryIndex < _historyEntries.Count - 1;
 
     // ── 右侧面板 ──
     [ObservableProperty]
@@ -95,6 +103,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     [ObservableProperty]
     private ObservableCollection<Student> _unassignedStudents = [];
+
+    [ObservableProperty]
+    private bool _isStrategiesExpanded = true;
+
+    [ObservableProperty]
+    private bool _isUnassignedExpanded = true;
+
+    [ObservableProperty]
+    private bool _isHistoryExpanded = true;
 
     // ── 状态栏 ──
     [ObservableProperty]
@@ -243,15 +260,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 _workspace = await _facade.GenerateSeatingAsync(request, progress, ct);
                 _currentPlan = _workspace.BuildSeatingPlan();
 
-                // 4. 构建显示
+                // 4. 构建显示 + 初始化历史
                 BuildSeatDisplayItems();
                 await UpdateRightPanelAsync();
                 UpdateStats();
+                InitHistory("生成座位安排");
 
-                _undoCount = 0;
-                _redoCount = 0;
-                CanUndo = false;
-                CanRedo = false;
                 HasGenerated = true;
                 StatusMessage = $"座位安排已生成：{AssignedSeats}/{TotalSeats} 已分配";
             }
@@ -540,10 +554,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 RefreshSeatAssignments();
                 await UpdateRightPanelAsync();
                 UpdateStats();
-                _undoCount++;
-                _redoCount = 0;
-                CanUndo = _undoCount > 0;
-                CanRedo = false;
+                AddHistoryEntry($"交换：{source.StudentName ?? source.SeatLabel} ↔ {clickedSeat.StudentName ?? "(空位)"}");
                 StatusMessage = $"已交换：{source.StudentName} ↔ {clickedSeat.StudentName ?? "(空位)"}";
             }
         }, "座位交换失败");
@@ -563,53 +574,135 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         SwapHintText = string.Empty;
     }
 
-    // ── 撤销/重做 ──
+    // ── 撤销/重做（基于历史列表） ──
 
     [RelayCommand]
-    private async Task UndoAsync()
+    private void Undo()
     {
-        if (_workspace == null) return;
-
-        await SafeExecuteAsync(async () =>
-        {
-            var ok = await _facade.UndoAsync();
-            if (ok)
-            {
-                _currentPlan = _workspace.BuildSeatingPlan();
-                RefreshSeatAssignments();
-                await UpdateRightPanelAsync();
-                UpdateStats();
-                _undoCount--;
-                _redoCount++;
-                CanUndo = _undoCount > 0;
-                CanRedo = _redoCount > 0;
-                StatusMessage = "已撤销";
-            }
-        });
+        if (_workspace == null || _currentHistoryIndex <= 0) return;
+        RestoreToHistoryIndex(_currentHistoryIndex - 1);
     }
 
     [RelayCommand]
-    private async Task RedoAsync()
+    private void Redo()
     {
-        if (_workspace == null) return;
+        if (_workspace == null || _currentHistoryIndex >= _historyEntries.Count - 1) return;
+        RestoreToHistoryIndex(_currentHistoryIndex + 1);
+    }
+
+    [RelayCommand]
+    private void ClickHistoryEntry(HistoryEntry? entry)
+    {
+        if (entry == null || _workspace == null) return;
+        var idx = _historyEntries.IndexOf(entry);
+        if (idx < 0) return;
+        RestoreToHistoryIndex(idx);
+    }
+
+    // ── 历史管理 ──
+
+    private void InitHistory(string description)
+    {
+        _historyEntries.Clear();
+        var snapshot = CaptureSnapshot();
+        _historyEntries.Add(new HistoryEntry(description, snapshot));
+        _currentHistoryIndex = 0;
+        _lastSavedIndex = 0; // 生成时 facade 已自动保存快照
+        UpdateHistoryState();
+    }
+
+    private void AddHistoryEntry(string description)
+    {
+        // 删除当前位置之后的所有条目（新分支）
+        while (_historyEntries.Count > _currentHistoryIndex + 1)
+            _historyEntries.RemoveAt(_historyEntries.Count - 1);
+
+        var snapshot = CaptureSnapshot();
+        _historyEntries.Add(new HistoryEntry(description, snapshot));
+        _currentHistoryIndex = _historyEntries.Count - 1;
+        UpdateHistoryState();
+    }
+
+    private Dictionary<string, string> CaptureSnapshot()
+        => _currentPlan != null ? new Dictionary<string, string>(_currentPlan.Assignments) : [];
+
+    private void RestoreToHistoryIndex(int index)
+    {
+        if (_workspace == null || index < 0 || index >= _historyEntries.Count) return;
+
+        _workspace.ApplySnapshotAssignments(_historyEntries[index].Assignments);
+        _currentPlan = _workspace.BuildSeatingPlan();
+        _currentHistoryIndex = index;
+        UpdateHistoryState();
+
+        _ = UpdateRightPanelAsync();
+        RefreshSeatAssignments();
+        UpdateStats();
+        StatusMessage = $"已恢复至「{_historyEntries[index].Description}」";
+    }
+
+    private void UpdateHistoryState()
+    {
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
+        OnPropertyChanged(nameof(HasUnsavedChanges));
+        OnPropertyChanged(nameof(HasHistory));
+        // 更新各条目的 IsCurrent 标记
+        for (int i = 0; i < _historyEntries.Count; i++)
+            _historyEntries[i].IsCurrent = i == _currentHistoryIndex;
+    }
+
+    // ── 保存到快照 ──
+
+    [RelayCommand]
+    private async Task SaveToSnapshotAsync()
+    {
+        if (!HasUnsavedChanges) return;
 
         await SafeExecuteAsync(async () =>
         {
-            var ok = await _facade.RedoAsync();
-            if (ok)
+            var snapshot = await _facade.CreateSnapshotAsync($"手动保存 - {DateTime.Now:yyyy-MM-dd HH:mm}");
+            if (snapshot != null)
             {
-                _currentPlan = _workspace.BuildSeatingPlan();
-                RefreshSeatAssignments();
-                await UpdateRightPanelAsync();
-                UpdateStats();
-                _undoCount++;
-                _redoCount--;
-                CanUndo = _undoCount > 0;
-                CanRedo = _redoCount > 0;
-                StatusMessage = "已重做";
+                _lastSavedIndex = _currentHistoryIndex;
+                OnPropertyChanged(nameof(HasUnsavedChanges));
+                StatusMessage = "已保存到快照";
             }
-        });
+        }, "保存快照失败");
     }
+
+    // ── 页面离开拦截 ──
+
+    public override async Task<bool> CanLeaveAsync()
+    {
+        if (!HasUnsavedChanges) return true;
+
+        var result = await Dialog.ShowMultiOptionAsync("未保存的修改" ,
+            "当前座位安排有未保存的修改，是否保存后离开？" ,
+            "保存并离开" , "不保存直接离开" , "取消");
+
+        switch (result)
+        {
+            case 0: // 保存
+                await SaveToSnapshotAsync();
+                return true;
+            case 1: // 不保存
+                return true;
+            default: // 取消
+                return false;
+        }
+    }
+
+    // ── 折叠切换 ──
+
+    [RelayCommand]
+    private void ToggleStrategies() => IsStrategiesExpanded = !IsStrategiesExpanded;
+
+    [RelayCommand]
+    private void ToggleUnassigned() => IsUnassignedExpanded = !IsUnassignedExpanded;
+
+    [RelayCommand]
+    private void ToggleHistory() => IsHistoryExpanded = !IsHistoryExpanded;
 
     // ── 导出 ──
 
@@ -659,4 +752,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             StatusMessage = "导出超时，已取消";
         }
     }
+}
+
+public class HistoryEntry(string description, Dictionary<string, string> assignments)
+{
+    public string Description { get; set; } = description;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public Dictionary<string, string> Assignments { get; set; } = assignments;
+    public bool IsCurrent { get; set; }
 }

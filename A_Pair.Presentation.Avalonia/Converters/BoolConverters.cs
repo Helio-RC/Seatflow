@@ -11,6 +11,16 @@ public static class BoolConverters
     public static readonly IValueConverter Negate = new BoolInvertConverter();
     public static readonly IValueConverter CompactPanelWidth = new BoolToDoubleConverter(80 , double.NaN);
     public static readonly IValueConverter TrueWhenEqual = new EqualsConverter();
+    public static readonly IValueConverter TrueToBold = new BoolToFontWeightConverter();
+
+    private class BoolToFontWeightConverter : IValueConverter
+    {
+        public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
+            => value is true ? global::Avalonia.Media.FontWeight.Bold : global::Avalonia.Media.FontWeight.Normal;
+
+        public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
+            => throw new NotSupportedException();
+    }
 
     private class BoolToDoubleConverter (double trueValue , double falseValue) : IValueConverter
     {

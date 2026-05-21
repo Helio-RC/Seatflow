@@ -49,6 +49,16 @@
               <TextBlock Text="导出" FontSize="14" />
             </StackPanel>
           </Button>
+          <!-- 保存到快照 -->
+          <Button Command="{Binding SaveToSnapshotCommand}"
+                  IsEnabled="{Binding HasUnsavedChanges}"
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="保存到快照">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
+              <TextBlock Text="保存" FontSize="14" />
+            </StackPanel>
+          </Button>
           <!-- 撤销 -->
           <Button Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}"
                   HorizontalContentAlignment="Center"
@@ -287,51 +297,141 @@
                 Padding="8" Width="240"
                 Background="{DynamicResource SidebarBackgroundBrush}"
                 IsVisible="{Binding HasGenerated}">
-          <DockPanel>
-            <!-- 策略列表 -->
-            <TextBlock DockPanel.Dock="Top" Text="当前策略" Classes="sectionTitle"
-                       Margin="3,0,0,8" />
-            <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding ActiveStrategies}"
-                          MaxHeight="200" Margin="0,0,0,12">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="core:StrategyDisplayInfo">
-                  <Grid ColumnDefinitions="Auto,*" Margin="4,3">
-                    <Border Grid.Column="0" CornerRadius="3" Padding="4,1"
-                            Background="{DynamicResource SystemAccentColor}"
-                            Margin="0,0,8,0" VerticalAlignment="Center">
-                      <TextBlock Text="{Binding Priority}" FontSize="10"
-                                 Foreground="White" />
-                    </Border>
-                    <StackPanel Grid.Column="1">
-                      <TextBlock Text="{Binding DisplayName}" FontSize="13" />
-                      <TextBlock Text="{Binding Category}" FontSize="11"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                    </StackPanel>
-                  </Grid>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+          <ScrollViewer>
+            <StackPanel Spacing="8">
+              <!-- ── 策略列表 (可折叠) ── -->
+              <StackPanel>
+                <Button Command="{Binding ToggleStrategiesCommand}"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="0" HorizontalContentAlignment="Stretch"
+                        Cursor="Hand">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="当前策略" Classes="sectionTitle" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronUp}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsStrategiesExpanded}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronDown}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsStrategiesExpanded, Converter={x:Static conv:BoolConverters.Negate}}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </DockPanel>
+                </Button>
+                <ItemsControl ItemsSource="{Binding ActiveStrategies}"
+                              IsVisible="{Binding IsStrategiesExpanded}"
+                              MaxHeight="200">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="core:StrategyDisplayInfo">
+                      <Grid ColumnDefinitions="Auto,*" Margin="4,3">
+                        <Border Grid.Column="0" CornerRadius="3" Padding="4,1"
+                                Background="{DynamicResource SystemAccentColor}"
+                                Margin="0,0,8,0" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding Priority}" FontSize="10"
+                                     Foreground="White" />
+                        </Border>
+                        <StackPanel Grid.Column="1">
+                          <TextBlock Text="{Binding DisplayName}" FontSize="13" />
+                          <TextBlock Text="{Binding Category}" FontSize="11"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
 
-            <!-- 分隔线 -->
-            <Separator DockPanel.Dock="Top" Margin="4,4,4,12" />
+              <Separator />
 
-            <!-- 未分配学生 -->
-            <TextBlock DockPanel.Dock="Top" Margin="3,0,0,8">
-              <Run Text="未分配学生" FontSize="14" FontWeight="SemiBold" />
-              <Run Text="{Binding UnassignedStudentCount, StringFormat=' ({0})'}"
-                   FontSize="12"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            </TextBlock>
-            <ListBox ItemsSource="{Binding UnassignedStudents}"
-                     BorderThickness="0"
-                     Background="{DynamicResource SidebarBackgroundBrush}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="core:Student">
-                  <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,4" />
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </DockPanel>
+              <!-- ── 未分配学生 (可折叠) ── -->
+              <StackPanel>
+                <Button Command="{Binding ToggleUnassignedCommand}"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="0" HorizontalContentAlignment="Stretch"
+                        Cursor="Hand">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" FontSize="14" FontWeight="SemiBold">
+                      <Run Text="未分配学生" />
+                      <Run Text="{Binding UnassignedStudentCount, StringFormat=' ({0})'}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    </TextBlock>
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronUp}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsUnassignedExpanded}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronDown}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsUnassignedExpanded, Converter={x:Static conv:BoolConverters.Negate}}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </DockPanel>
+                </Button>
+                <ListBox ItemsSource="{Binding UnassignedStudents}"
+                         IsVisible="{Binding IsUnassignedExpanded}"
+                         BorderThickness="0"
+                         Background="{DynamicResource SidebarBackgroundBrush}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="core:Student">
+                      <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,4" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
+
+              <Separator IsVisible="{Binding HasHistory}" />
+
+              <!-- ── 修改记录 (可折叠) ── -->
+              <StackPanel IsVisible="{Binding HasHistory}">
+                <Button Command="{Binding ToggleHistoryCommand}"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="0" HorizontalContentAlignment="Stretch"
+                        Cursor="Hand">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="修改记录" Classes="sectionTitle" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronUp}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsHistoryExpanded}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronDown}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsHistoryExpanded, Converter={x:Static conv:BoolConverters.Negate}}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </DockPanel>
+                </Button>
+                <ListBox ItemsSource="{Binding HistoryEntries}"
+                         IsVisible="{Binding IsHistoryExpanded}"
+                         BorderThickness="0" MaxHeight="220"
+                         Background="{DynamicResource SidebarBackgroundBrush}">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="4,2" />
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HistoryEntry">
+                      <Button Background="Transparent" BorderThickness="0" Padding="0"
+                              HorizontalContentAlignment="Stretch" Cursor="Hand"
+                              Command="{Binding $parent[UserControl].DataContext.ClickHistoryEntryCommand}"
+                              CommandParameter="{Binding .}">
+                        <StackPanel Margin="0,2">
+                          <TextBlock Text="{Binding Description}" FontSize="13"
+                                     FontWeight="{Binding IsCurrent, Converter={x:Static conv:BoolConverters.TrueToBold}}" />
+                          <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                     FontSize="10"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
         </Border>
 
       </Grid>
