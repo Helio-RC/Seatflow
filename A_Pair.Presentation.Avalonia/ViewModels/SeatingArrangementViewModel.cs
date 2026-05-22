@@ -291,7 +291,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var (baseW, baseH) = GetSeatDimensions(metadata);
 
         // 网格布局扩距系数（增大间距防重叠）
-        double spread = metadata is GridLayoutMetadata ? 3.2 : 1.0;
+        double spread = metadata is GridLayoutMetadata ? 1.8 : 1.0;
 
         // 第一遍：收集原始坐标范围
         double minX0 = double.MaxValue, minY0 = double.MaxValue;
