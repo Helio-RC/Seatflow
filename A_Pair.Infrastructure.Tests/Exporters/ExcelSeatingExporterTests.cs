@@ -1,4 +1,7 @@
-﻿namespace A_Pair.Infrastructure.Tests.Exporters;
+﻿using Microsoft.Extensions.Logging;
+using NSubstitute;
+
+namespace A_Pair.Infrastructure.Tests.Exporters;
 
 public class ExcelSeatingExporterTests
 {
@@ -12,7 +15,7 @@ public class ExcelSeatingExporterTests
                 { "seat1", "student1" }
             }
         };
-        var exporter = new ExcelSeatingExporter();
+        var exporter = new ExcelSeatingExporter(Substitute.For<ILogger<ExcelSeatingExporter>>());
         var path = Path.GetTempFileName() + ".xlsx";
 
         try
@@ -36,7 +39,7 @@ public class ExcelSeatingExporterTests
                 { "seat1", "student1" }
             }
         };
-        var exporter = new ExcelSeatingExporter();
+        var exporter = new ExcelSeatingExporter(Substitute.For<ILogger<ExcelSeatingExporter>>());
         var path = Path.GetTempFileName() + ".xlsx";
 
         try

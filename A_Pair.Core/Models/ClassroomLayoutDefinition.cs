@@ -35,8 +35,8 @@ namespace A_Pair.Core.Models
         public LayoutMetadata Metadata { get; set; } = new GridLayoutMetadata();
 
         // 显式实现 IClassroomLayout 接口的只读成员
-        IReadOnlyList<Seat> IClassroomLayout.Seats => Seats;
-        IReadOnlyList<Obstacle> IClassroomLayout.Obstacles => Obstacles;
+        IReadOnlyList<Seat> IClassroomLayout.Seats => Seats.AsReadOnly();
+        IReadOnlyList<Obstacle> IClassroomLayout.Obstacles => Obstacles.AsReadOnly();
         LayoutMetadata IClassroomLayout.Metadata => Metadata;
     }
 }

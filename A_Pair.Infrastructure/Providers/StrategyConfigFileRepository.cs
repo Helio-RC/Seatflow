@@ -71,7 +71,13 @@ namespace A_Pair.Infrastructure.Providers
             return results;
         }
 
-        private string GetFilePath (string strategyId)
-            => Path.Combine(_configDir , $"{strategyId}.config.json");
+        private string GetFilePath(string strategyId)
+        {
+            if (strategyId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+                || strategyId.Contains(Path.DirectorySeparatorChar)
+                || strategyId.Contains(Path.AltDirectorySeparatorChar))
+                throw new ArgumentException($"策略 ID 含非法字符: {strategyId}");
+            return Path.Combine(_configDir, $"{strategyId}.config.json");
+        }
     }
 }

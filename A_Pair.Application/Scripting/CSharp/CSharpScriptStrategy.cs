@@ -135,9 +135,9 @@ namespace A_Pair.Application.Scripting.CSharp
     public class ScriptGlobals
     {
         /// <summary>
-        /// 获取或设置当前座位工作区实例。
+        /// 获取当前座位工作区实例。
         /// </summary>
-        public SeatingWorkspace? Workspace { get; set; }
+        public SeatingWorkspace? Workspace { get; init; }
     }
 
     /// <summary>

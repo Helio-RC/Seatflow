@@ -27,15 +27,15 @@ namespace A_Pair.Infrastructure.Exporters
             await csv.WriteRecordsAsync(records , cancellationToken);
         }
 
-        public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
+        public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
-            writer.WriteLine($"# {model.LayoutName}");
+            await using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
+            await writer.WriteLineAsync($"# {model.LayoutName}");
             foreach (var row in model.Rows)
-                writer.WriteLine(string.Join("," , row.Cells.Select(c => EscapeCsv(c.Text))));
-            return Task.CompletedTask;
+                await writer.WriteLineAsync(string.Join("," , row.Cells.Select(c => EscapeCsv(c.Text))));
+            await writer.FlushAsync(cancellationToken);
         }
 
         private static string EscapeCsv (string text)

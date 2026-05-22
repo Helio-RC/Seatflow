@@ -13,7 +13,7 @@ public class CompositeStudentProviderTests : IDisposable
     [Fact]
     public async Task LoadAsync_EmptySource_ReturnsEmptyList ()
     {
-        var provider = new CompositeStudentProvider();
+        var provider = new CompositeStudentProvider(new CsvStudentProvider(), new XlsxStudentProvider(), new JsonStudentProvider());
         var result = await provider.LoadAsync("" , TestContext.Current.CancellationToken);
         result.Should().BeEmpty();
     }
@@ -21,7 +21,7 @@ public class CompositeStudentProviderTests : IDisposable
     [Fact]
     public async Task LoadAsync_NonExistentFile_ReturnsEmptyList ()
     {
-        var provider = new CompositeStudentProvider();
+        var provider = new CompositeStudentProvider(new CsvStudentProvider(), new XlsxStudentProvider(), new JsonStudentProvider());
         var result = await provider.LoadAsync("/nonexistent/file.csv" , TestContext.Current.CancellationToken);
         result.Should().BeEmpty();
     }
@@ -31,7 +31,7 @@ public class CompositeStudentProviderTests : IDisposable
     {
         var path = Path.Combine(_tempDir , "test.xyz");
         await File.WriteAllTextAsync(path , "data" , TestContext.Current.CancellationToken);
-        var provider = new CompositeStudentProvider();
+        var provider = new CompositeStudentProvider(new CsvStudentProvider(), new XlsxStudentProvider(), new JsonStudentProvider());
         var result = await provider.LoadAsync(path , TestContext.Current.CancellationToken);
         result.Should().BeEmpty();
     }
@@ -42,7 +42,7 @@ public class CompositeStudentProviderTests : IDisposable
         var path = Path.Combine(_tempDir , "students.csv");
         await File.WriteAllTextAsync(path , "姓名\n\n张三\n李四" , TestContext.Current.CancellationToken);
 
-        var provider = new CompositeStudentProvider();
+        var provider = new CompositeStudentProvider(new CsvStudentProvider(), new XlsxStudentProvider(), new JsonStudentProvider());
         var result = await provider.LoadAsync(path , TestContext.Current.CancellationToken);
         result.Should().HaveCount(2);
         result[0].Name.Should().Be("张三");
@@ -56,7 +56,7 @@ public class CompositeStudentProviderTests : IDisposable
         var json = """{"version":"1.0","students":[{"id":"1","name":"Alice"},{"id":"2","name":"Bob"}]}""";
         await File.WriteAllTextAsync(path , json , TestContext.Current.CancellationToken);
 
-        var provider = new CompositeStudentProvider();
+        var provider = new CompositeStudentProvider(new CsvStudentProvider(), new XlsxStudentProvider(), new JsonStudentProvider());
         var result = await provider.LoadAsync(path , TestContext.Current.CancellationToken);
         result.Should().HaveCount(2);
         result[0].Name.Should().BeOneOf("Alice" , "Bob");

@@ -19,8 +19,9 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
 
     private readonly string _rostersPath;
 
-    public JsonStudentDatasetRepository (string rostersPath)
+    public JsonStudentDatasetRepository(string rostersPath)
     {
+        ArgumentNullException.ThrowIfNull(rostersPath);
         _rostersPath = rostersPath;
         Directory.CreateDirectory(_rostersPath);
     }

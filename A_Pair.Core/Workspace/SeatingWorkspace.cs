@@ -1,15 +1,16 @@
+using A_Pair.Contracts.Models;
 using A_Pair.Core.Models;
 
-namespace A_Pair.Core.Workspace
+namespace A_Pair.Core.Workspace;
+
+/// <summary>
+/// 座位安排工作区，是策略执行的核心数据容器。
+/// 包含学生列表和座位列表，提供座位分配、查询和快照恢复功能。
+/// 策略通过 <see cref="TryAssignSeat"/> 方法修改工作区状态。
+/// </summary>
+public class SeatingWorkspace : IPluginWorkspace
 {
-    /// <summary>
-    /// 座位安排工作区，是策略执行的核心数据容器。
-    /// 包含学生列表和座位列表，提供座位分配、查询和快照恢复功能。
-    /// 策略通过 <see cref="TryAssignSeat"/> 方法修改工作区状态。
-    /// </summary>
-    public class SeatingWorkspace
-    {
-        private readonly List<Student> _students = [];
+    private readonly List<Student> _students = [];
         private readonly List<Seat> _seats = [];
 
         /// <summary>学生列表（只读）。</summary>
@@ -108,27 +109,51 @@ namespace A_Pair.Core.Workspace
         /// <summary>
         /// 应用快照中的座位分配，恢复历史状态。
         /// 先清空所有当前分配，再按快照数据重新分配。
+        /// 固定座位（<see cref="Seat.IsFixed"/>）不会被清空或修改。
         /// </summary>
         /// <param name="seatAssignments">快照中的座位分配字典（座位 ID → 学生 ID）。</param>
-        public void ApplySnapshotAssignments (Dictionary<string , string> seatAssignments)
+        public void ApplySnapshotAssignments(Dictionary<string, string> seatAssignments)
         {
-            // 清空所有当前分配
+            // 清空所有非固定座位的当前分配
             foreach (var seat in _seats)
             {
-                seat.OccupantId = null;
-                seat.IsAvailable = true;
+                if (!seat.IsFixed)
+                {
+                    seat.OccupantId = null;
+                    seat.IsAvailable = true;
+                }
             }
 
             // 应用快照中的分配
             foreach (var kv in seatAssignments)
             {
                 var seat = _seats.FirstOrDefault(s => s.Id == kv.Key);
-                if (seat != null && _students.Any(st => st.Id == kv.Value))
+                if (seat == null || seat.IsFixed)
+                    continue;
+
+                var student = _students.FirstOrDefault(st => st.Id == kv.Value);
+                if (student != null)
                 {
                     seat.OccupantId = kv.Value;
                     seat.IsAvailable = false;
+                    student.RecentSeatHistory.Add(kv.Key);
                 }
             }
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, string> GetAssignments()
+        {
+            return BuildSeatingPlan().Assignments;
+        }
+
+        IReadOnlyList<IPluginStudent> IPluginWorkspace.Students => Students;
+
+        IEnumerable<IPluginSeat> IPluginWorkspace.GetEmptySeats() => GetEmptySeats();
+
+        IEnumerable<IPluginSeat> IPluginWorkspace.FindSeats(Func<IPluginSeat, bool> predicate)
+        {
+            return FindSeats(seat => predicate(seat));
         }
     }
 
@@ -139,6 +164,5 @@ namespace A_Pair.Core.Workspace
     public class SeatingPlan
     {
         /// <summary>座位分配字典，Key 为座位 ID，Value 为学生 ID。</summary>
-        public Dictionary<string , string> Assignments { get; set; } = [];
+        public Dictionary<string, string> Assignments { get; set; } = [];
     }
-}

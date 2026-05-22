@@ -291,12 +291,15 @@ namespace A_Pair.Core.Strategies
                 bool sameRing = Math.Abs(pa.Radius - pb.Radius) < 1e-6;
                 if (sameRing)
                 {
-                    double angleDiff = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
+                    double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
+                    double angleDiff = Math.Min(raw, 360.0 - raw);
                     if (angleDiff <= 45.0) return true;
                 }
                 else
                 {
-                    if (Math.Abs(pa.AngleDegrees - pb.AngleDegrees) < angleTolerance)
+                    double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
+                    double angleDiff = Math.Min(raw, 360.0 - raw);
+                    if (angleDiff < angleTolerance)
                         return true;
                 }
                 return false;

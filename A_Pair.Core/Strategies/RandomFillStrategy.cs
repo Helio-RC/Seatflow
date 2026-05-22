@@ -36,7 +36,8 @@ namespace A_Pair.Core.Strategies
             cancellationToken.ThrowIfCancellationRequested();   // <-- 新增修复
 
             var emptySeats = workspace.GetEmptySeats().ToList();
-            var students = workspace.Students.Where(s => !workspace.BuildSeatingPlan().Assignments.ContainsValue(s.Id)).ToList();
+            var assignedIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
+            var students = workspace.Students.Where(s => !assignedIds.Contains(s.Id)).ToList();
 
             // 使用 Fisher-Yates 洗牌算法打乱学生顺序
             for (int i = students.Count - 1; i > 0; i--)

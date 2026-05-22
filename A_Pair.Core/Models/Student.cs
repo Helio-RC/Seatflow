@@ -1,14 +1,15 @@
 using System.Text.Json.Serialization;
+using A_Pair.Contracts.Models;
 using A_Pair.Core.Enums;
 using A_Pair.Core.Utilities;
 
-namespace A_Pair.Core.Models
+namespace A_Pair.Core.Models;
+
+/// <summary>
+/// 表示一名学生，包含排座所需的基本信息与轮换辅助数据。
+/// </summary>
+public class Student : IPluginStudent
 {
-    /// <summary>
-    /// 表示一名学生，包含排座所需的基本信息与轮换辅助数据。
-    /// </summary>
-    public class Student
-    {
         /// <summary>
         /// 学生唯一标识符，默认自动生成 GUID。
         /// </summary>
@@ -52,4 +53,3 @@ namespace A_Pair.Core.Models
         [JsonIgnore]
         public AttributeBag Extensions { get; set; } = new();
     }
-}

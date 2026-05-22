@@ -1,5 +1,5 @@
 using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.Workspace;
+using A_Pair.Contracts.Models;
 using A_Pair.Plugins.Sdk.Attributes;
 
 namespace A_Pair.Plugins.Sdk.Abstractions;
@@ -43,6 +43,6 @@ public abstract class PluginStrategyBase : PluginBase, IPluginSeatingStrategy
 
     /// <inheritdoc />
     public abstract Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace,
+        IPluginWorkspace workspace,
         CancellationToken cancellationToken);
 }

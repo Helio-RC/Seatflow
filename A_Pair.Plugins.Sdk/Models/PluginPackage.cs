@@ -166,6 +166,9 @@ public class PluginManifestStub
     /// <summary>插件版本号。</summary>
     public string Version { get; set; } = string.Empty;
 
+    /// <summary>插件功能类别。</summary>
+    public string Category { get; set; } = "strategy";
+
     /// <summary>插件描述。</summary>
     public string Description { get; set; } = string.Empty;
 

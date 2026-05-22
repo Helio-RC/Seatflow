@@ -77,7 +77,14 @@ namespace A_Pair.Infrastructure.Providers
         /// </summary>
         /// <param name="venueId">会场 ID。</param>
         /// <returns>会场文件的完整路径。</returns>
-        private string GetFilePath (string venueId) => Path.Combine(_venuesFolder , $"{venueId}.venue.json");
+        private string GetFilePath(string venueId)
+        {
+            if (venueId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+                || venueId.Contains(Path.DirectorySeparatorChar)
+                || venueId.Contains(Path.AltDirectorySeparatorChar))
+                throw new ArgumentException($"会场 ID 含非法字符: {venueId}");
+            return Path.Combine(_venuesFolder, $"{venueId}.venue.json");
+        }
 
         /// <summary>
         /// 获取包含多态类型支持的 JSON 序列化选项。

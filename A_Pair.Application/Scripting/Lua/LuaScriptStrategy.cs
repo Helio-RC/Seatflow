@@ -49,7 +49,7 @@ namespace A_Pair.Application.Scripting.Lua
         public bool IsEnabled { get; set; }
 
         /// <inheritdoc />
-        public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
+        public async Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             if (workspace == null) throw new ArgumentNullException(nameof(workspace));
 
@@ -66,22 +66,21 @@ namespace A_Pair.Application.Scripting.Lua
                 lua["cancellationToken"] = cancellationToken;
 
                 // 执行脚本（在后台线程中，支持超时）
-                var task = Task.Run(() => lua.DoString(_scriptCode) , cts.Token);
-                task.Wait(cts.Token);
+                await Task.Run(() => lua.DoString(_scriptCode), cts.Token);
 
-                return Task.FromResult(new StrategyExecutionResult { Success = true });
+                return new StrategyExecutionResult { Success = true };
             }
             catch (OperationCanceledException)
             {
-                return Task.FromResult(new StrategyExecutionResult { Success = false , Message = "脚本执行超时" });
+                return new StrategyExecutionResult { Success = false , Message = "脚本执行超时" };
             }
             catch (LuaScriptException ex)
             {
-                return Task.FromResult(new StrategyExecutionResult { Success = false , Message = $"Lua 错误: {ex.Message}" });
+                return new StrategyExecutionResult { Success = false , Message = $"Lua 错误: {ex.Message}" };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" });
+                return new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" };
             }
         }
 

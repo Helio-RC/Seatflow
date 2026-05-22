@@ -206,7 +206,7 @@ namespace A_Pair.Application.Services
                 LayoutId = request.LayoutId ?? "unknown" ,
                 SeatAssignments = plan.Assignments
             };
-            await _snapshotRepository.SaveAsync(snapshot);
+            await _snapshotRepository.SaveAsync(snapshot, cancellationToken);
 
             // 9b. 保存会场摘要到快照目录
             if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
@@ -287,12 +287,12 @@ namespace A_Pair.Application.Services
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照
-            return await _snapshotRepository.ListByVenueAsync(venueId);
+            return await _snapshotRepository.ListByVenueAsync(venueId, cancellationToken);
         }
 
         /// <inheritdoc />
         public async Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
-            => await _snapshotRepository.DeleteAsync(snapshotId);
+            => await _snapshotRepository.DeleteAsync(snapshotId, cancellationToken);
 
         /// <inheritdoc />
         public bool HasActiveWorkspace => _currentWorkspace != null;
@@ -309,7 +309,7 @@ namespace A_Pair.Application.Services
                 LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
                 SeatAssignments = plan.Assignments
             };
-            await _snapshotRepository.SaveAsync(snapshot);
+            await _snapshotRepository.SaveAsync(snapshot, cancellationToken);
             return snapshot;
         }
 
@@ -384,9 +384,9 @@ namespace A_Pair.Application.Services
                     Id = pi.Manifest.Id ,
                     Name = pi.Manifest.Name ,
                     DisplayName = pi.Manifest.Name ,
-                    Version = pi.Manifest.Version ?? "1.0.0" ,
-                    Description = pi.Manifest.Description ?? string.Empty ,
-                    Author = pi.Manifest.Author ?? string.Empty ,
+                    Version = pi.Manifest.Version ,
+                    Description = pi.Manifest.Description ,
+                    Author = pi.Manifest.Author ,
                     Category = "plugin" ,
                     DefaultPriority = pi.Manifest.Priority ,
                     DefaultEnabled = pi.Manifest.Enabled

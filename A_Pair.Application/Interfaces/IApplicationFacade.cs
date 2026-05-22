@@ -183,7 +183,7 @@ namespace A_Pair.Application.Interfaces
         public string Version { get; set; } = string.Empty;
 
         /// <summary>插件功能类别："strategy"、"provider"（预留）、"exporter"（预留）。</summary>
-        public string Category { get; set; } = string.Empty;
+        public string Category { get; set; } = "strategy";
 
         /// <summary>插件加载方式标识："assembly"、"lua" 或 "csharp"。</summary>
         public string LoadKind { get; set; } = string.Empty;

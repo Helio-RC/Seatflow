@@ -44,7 +44,7 @@ namespace A_Pair.Application.Services
         }
 
         /// <summary>
-        /// 撤销最近一次执行的命令。
+        /// 撤销最近一次执行的命令。仅操作成功后才会从栈中移除命令。
         /// </summary>
         /// <param name="workspace">当前座位工作区。</param>
         /// <param name="cancellationToken">取消令牌。</param>
@@ -52,14 +52,18 @@ namespace A_Pair.Application.Services
         public async Task<bool> UndoAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)
         {
             if (!CanUndo) return false;
-            var cmd = _undo.Pop();
+            var cmd = _undo.Peek();
             var ok = await cmd.UndoAsync(workspace , cancellationToken);
-            if (ok) _redo.Push(cmd);
+            if (ok)
+            {
+                _undo.Pop();
+                _redo.Push(cmd);
+            }
             return ok;
         }
 
         /// <summary>
-        /// 重做最近一次撤销的命令。
+        /// 重做最近一次撤销的命令。仅操作成功后才会从栈中移除命令。
         /// </summary>
         /// <param name="workspace">当前座位工作区。</param>
         /// <param name="cancellationToken">取消令牌。</param>
@@ -67,9 +71,13 @@ namespace A_Pair.Application.Services
         public async Task<bool> RedoAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)
         {
             if (!CanRedo) return false;
-            var cmd = _redo.Pop();
+            var cmd = _redo.Peek();
             var ok = await cmd.ExecuteAsync(workspace , cancellationToken);
-            if (ok) _undo.Push(cmd);
+            if (ok)
+            {
+                _redo.Pop();
+                _undo.Push(cmd);
+            }
             return ok;
         }
     }

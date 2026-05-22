@@ -42,6 +42,9 @@ namespace A_Pair.Application.Services
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
             services.AddLogging();
+            services.AddSingleton<CsvStudentProvider>();
+            services.AddSingleton<XlsxStudentProvider>();
+            services.AddSingleton<JsonStudentProvider>();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
                 new SeatingSnapshotRepository(Path.Combine(snapshotBasePath, "Assignments")));

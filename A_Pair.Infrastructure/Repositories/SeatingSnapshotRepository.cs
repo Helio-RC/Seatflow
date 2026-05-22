@@ -20,23 +20,23 @@ namespace A_Pair.Infrastructure.Repositories
             => Path.Combine(venueId, date.ToString("yyyyMMdd"), id + ".json");
 
         /// <inheritdoc />
-        public async Task SaveAsync (SeatingSnapshot snapshot)
+        public async Task SaveAsync(SeatingSnapshot snapshot, CancellationToken ct = default)
         {
             var dir = Path.Combine(_basePath, snapshot.LayoutId, snapshot.CreatedAt.ToString("yyyyMMdd"));
             Directory.CreateDirectory(dir);
             var path = Path.Combine(_basePath, GetFilePath(snapshot.LayoutId, snapshot.CreatedAt, snapshot.Id));
             var json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(path, json);
+            await File.WriteAllTextAsync(path, json, ct);
         }
 
         /// <inheritdoc />
-        public async Task SaveVenueInfoAsync (string venueId, VenueSnapshotInfo info)
+        public async Task SaveVenueInfoAsync(string venueId, VenueSnapshotInfo info, CancellationToken ct = default)
         {
             var dir = Path.Combine(_basePath, venueId);
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, "_venue.json");
             var json = JsonSerializer.Serialize(info, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(path, json);
+            await File.WriteAllTextAsync(path, json, ct);
         }
 
         /// <inheritdoc />
@@ -55,8 +55,9 @@ namespace A_Pair.Infrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyList<SeatingSnapshot>> ListByVenueAsync (string venueId)
+        public Task<IReadOnlyList<SeatingSnapshot>> ListByVenueAsync(string venueId, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             var snapshots = LoadFromDir(Path.Combine(_basePath, venueId));
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
                 snapshots.OrderByDescending(s => s.CreatedAt).ToList());
@@ -73,8 +74,9 @@ namespace A_Pair.Infrastructure.Repositories
         }
 
         /// <inheritdoc />
-        public Task DeleteAsync (string id)
+        public Task DeleteAsync(string id, CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
             foreach (var venueDir in SafeEnumerateDirectories(_basePath))
             {
                 foreach (var dateDir in SafeEnumerateDirectories(venueDir))
