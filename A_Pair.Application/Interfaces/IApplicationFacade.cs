@@ -1,4 +1,5 @@
 using A_Pair.Application.Plugins;
+using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 
@@ -181,8 +182,11 @@ namespace A_Pair.Application.Interfaces
         /// <summary>插件版本号。</summary>
         public string Version { get; set; } = string.Empty;
 
-        /// <summary>插件类型标识："assembly"、"lua" 或 "csharp"。</summary>
-        public string PluginType { get; set; } = string.Empty;
+        /// <summary>插件功能类别："strategy"、"provider"（预留）、"exporter"（预留）。</summary>
+        public string Category { get; set; } = string.Empty;
+
+        /// <summary>插件加载方式标识："assembly"、"lua" 或 "csharp"。</summary>
+        public string LoadKind { get; set; } = string.Empty;
 
         /// <summary>插件是否已启用。</summary>
         public bool IsEnabled { get; set; }

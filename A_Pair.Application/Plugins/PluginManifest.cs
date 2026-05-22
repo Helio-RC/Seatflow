@@ -25,6 +25,12 @@ namespace A_Pair.Application.Plugins
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
+        /// 获取或设置插件功能类别。内置类别：<c>"strategy"</c>、<c>"provider"</c>（预留）、<c>"exporter"</c>（预留）。
+        /// </summary>
+        [JsonPropertyName("category")]
+        public string Category { get; set; } = "strategy";
+
+        /// <summary>
         /// 获取或设置插件版本号。
         /// </summary>
         [JsonPropertyName("version")]

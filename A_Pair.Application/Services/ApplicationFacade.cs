@@ -1,6 +1,7 @@
 ﻿using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
+using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
@@ -34,7 +35,7 @@ namespace A_Pair.Application.Services
         IServiceProvider serviceProvider ,
         ISeatingSnapshotRepository snapshotRepository ,
         IEnumerable<ISeatingPlanExporter> exporters ,
-        PluginManager pluginManager ,
+        IPluginManager pluginManager ,
         IPluginConfigurationService pluginConfigService ,
         IAppSettingsRepository appSettingsRepo ,
         IVenueRepository venueRepo ,
@@ -46,7 +47,7 @@ namespace A_Pair.Application.Services
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
         private readonly IEnumerable<ISeatingPlanExporter> _exporters = exporters ?? throw new ArgumentNullException(nameof(exporters));
-        private readonly PluginManager _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
+        private readonly IPluginManager _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
         private readonly IPluginConfigurationService _pluginConfigService = pluginConfigService ?? throw new ArgumentNullException(nameof(pluginConfigService));
         private readonly CommandHistory _history = new();
         private readonly IAppSettingsRepository _appSettingsRepo = appSettingsRepo ?? throw new ArgumentNullException(nameof(appSettingsRepo));
@@ -152,7 +153,7 @@ namespace A_Pair.Application.Services
             var strategies = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
 
             // 5. 加载插件策略并适配
-            var loadedPlugins = _pluginManager.LoadPlugins();
+            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(cancellationToken);
             foreach (var pluginInfo in loadedPlugins)
             {
                 if (pluginInfo.Strategy.IsEnabled)
@@ -375,7 +376,7 @@ namespace A_Pair.Application.Services
             }
 
             // 收集插件策略（PluginManifest → StrategyManifest + 运行时配置）
-            var loadedPlugins = _pluginManager.LoadPlugins();
+            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             foreach (var pi in loadedPlugins)
             {
                 var pluginManifest = new StrategyManifest
@@ -602,9 +603,9 @@ namespace A_Pair.Application.Services
         #region Plugin Management
 
         /// <inheritdoc />
-        public Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default)
+        public async Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default)
         {
-            var loadedPlugins = _pluginManager.LoadPlugins();
+            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             var result = new List<PluginDisplayInfo>();
             foreach (var pi in loadedPlugins)
             {
@@ -614,7 +615,8 @@ namespace A_Pair.Application.Services
                     Id = pi.Manifest.Id ,
                     Name = pi.Manifest.Name ,
                     Version = pi.Manifest.Version ,
-                    PluginType = GetPluginTypeLabel(pi.Manifest) ,
+                    Category = pi.Manifest.Category ,
+                    LoadKind = GetLoadKind(pi.Manifest) ,
                     IsEnabled = pi.Strategy.IsEnabled ,
                     Description = pi.Manifest.Description ,
                     Author = pi.Manifest.Author ,
@@ -624,7 +626,7 @@ namespace A_Pair.Application.Services
                     IconPath = File.Exists(iconPath) ? iconPath : null
                 });
             }
-            return Task.FromResult(result);
+            return result;
         }
 
         /// <inheritdoc />
@@ -635,8 +637,7 @@ namespace A_Pair.Application.Services
             if (string.IsNullOrEmpty(manifest.ScriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var loadedPlugins = _pluginManager.LoadPlugins();
-            var plugin = loadedPlugins.FirstOrDefault(p => p.Manifest.Id == pluginId)
+            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
                 ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
             var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
             return await File.ReadAllTextAsync(scriptPath , ct);
@@ -650,8 +651,7 @@ namespace A_Pair.Application.Services
             if (string.IsNullOrEmpty(manifest.ScriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var loadedPlugins = _pluginManager.LoadPlugins();
-            var plugin = loadedPlugins.FirstOrDefault(p => p.Manifest.Id == pluginId)
+            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
                 ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
             var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
             await File.WriteAllTextAsync(scriptPath , script , ct);
@@ -679,21 +679,17 @@ namespace A_Pair.Application.Services
             var manifest = _pluginManager.GetManifest(pluginId)
                 ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
 
-            var loadedPlugins = _pluginManager.LoadPlugins();
-            var plugin = loadedPlugins.FirstOrDefault(p => p.Manifest.Id == pluginId)
+            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
                 ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
 
-            // 更新运行时策略
+            // 更新运行时策略和内存中的清单
             plugin.Strategy.IsEnabled = enabled;
+            manifest.Enabled = enabled;
 
             // 持久化到 manifest 文件
             var manifestPath = Path.Combine(plugin.PluginPath , "plugin.manifest.json");
-            manifest.Enabled = enabled;
             var json = System.Text.Json.JsonSerializer.Serialize(manifest , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(manifestPath , json , ct);
-
-            // 重载所有插件以反映变更
-            _pluginManager.UnloadAll();
         }
 
         /// <inheritdoc />
@@ -703,7 +699,7 @@ namespace A_Pair.Application.Services
             return Task.FromResult(manifest);
         }
 
-        private static string GetPluginTypeLabel (PluginManifest manifest)
+        private static string GetLoadKind (PluginManifest manifest)
         {
             if (!string.IsNullOrEmpty(manifest.ScriptFile))
                 return manifest.ScriptType?.ToLowerInvariant() switch

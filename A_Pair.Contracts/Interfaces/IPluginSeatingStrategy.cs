@@ -4,17 +4,16 @@ namespace A_Pair.Contracts.Interfaces
 {
     /// <summary>
     /// 插件策略接口，供外部插件实现自定义排座逻辑。
-    /// 继承自 <see cref="A_Pair.Core.Strategies.ISeatingStrategy"/> 的核心契约，
-    /// 但独立定义以降低插件对内部类型的耦合。
-    /// 插件开发者实现此接口后，系统通过 <see cref="A_Pair.Application.Plugins.PluginStrategyAdapter"/> 适配到策略管道。
+    /// 继承自 <see cref="IPlugin"/> 提供基础元数据，并扩展策略执行相关的成员。
+    /// 系统通过 <see cref="A_Pair.Application.Plugins.PluginStrategyAdapter"/> 适配到策略管道。
     /// </summary>
-    public interface IPluginSeatingStrategy
+    public interface IPluginSeatingStrategy : IPlugin
     {
-        /// <summary>策略唯一标识符。</summary>
-        string Id { get; }
+        /// <inheritdoc cref="IPlugin.Category"/>
+        string IPlugin.Category => "strategy";
 
-        /// <summary>策略名称（用于日志和 UI 展示）。</summary>
-        string Name { get; }
+        /// <inheritdoc cref="IPlugin.Version"/>
+        string IPlugin.Version => "1.0.0";
 
         /// <summary>执行优先级，数值越小越先执行。</summary>
         int Priority { get; set; }
@@ -28,7 +27,7 @@ namespace A_Pair.Contracts.Interfaces
         /// <param name="workspace">当前工作区，包含学生和座位数据。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>执行结果。</returns>
-        Task<PluginStrategyResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken);
+        Task<PluginStrategyResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken);
     }
 
     /// <summary>

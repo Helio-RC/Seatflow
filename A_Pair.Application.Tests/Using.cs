@@ -2,6 +2,7 @@
 global using A_Pair.Application.Interfaces;
 global using A_Pair.Application.Plugins;
 global using A_Pair.Application.Services;
+global using A_Pair.Contracts.Interfaces;
 global using A_Pair.Core.Models;
 global using A_Pair.Core.Strategies;
 global using A_Pair.Core.Workspace;

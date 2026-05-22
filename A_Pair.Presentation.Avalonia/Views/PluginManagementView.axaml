@@ -87,7 +87,7 @@
                                    Opacity="0.6" />
                         <Border CornerRadius="3" Padding="4,1"
                                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
-                          <TextBlock Text="{Binding PluginType}" FontSize="10" Opacity="0.7" />
+                          <TextBlock Text="{Binding LoadKind}" FontSize="10" Opacity="0.7" />
                         </Border>
                       </StackPanel>
                     </StackPanel>

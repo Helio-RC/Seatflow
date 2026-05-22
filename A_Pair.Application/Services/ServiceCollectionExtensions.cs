@@ -1,6 +1,7 @@
 using System.IO;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
+using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
@@ -66,8 +67,9 @@ namespace A_Pair.Application.Services
             services.AddSingleton<IConflictResolver , DefaultConflictResolver>();
 
             // 注册插件管理器与配置服务
-            services.AddSingleton<PluginManager>(sp =>
+            services.AddSingleton<IPluginManager>(sp =>
                 new PluginManager(pluginsPath, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
+            services.AddSingleton<PluginManager>(sp => (PluginManager)sp.GetRequiredService<IPluginManager>());
             services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath));
 
             // 注册场地仓储（全局单例）

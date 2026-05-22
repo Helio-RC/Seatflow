@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using A_Pair.Contracts.Interfaces;
 
 namespace A_Pair.Application.Plugins
 {
@@ -45,6 +46,10 @@ namespace A_Pair.Application.Plugins
             if (!Directory.Exists(pluginDir))
                 return;
 
+            // 替换前释放旧监视器
+            if (_watchers.TryGetValue(pluginId, out var existing))
+                existing.Dispose();
+
             var watcher = new FileSystemWatcher(pluginDir , "config.json")
             {
                 NotifyFilter = NotifyFilters.LastWrite
@@ -52,6 +57,16 @@ namespace A_Pair.Application.Plugins
             watcher.Changed += (sender , e) => onChange(pluginId);
             watcher.EnableRaisingEvents = true;
             _watchers[pluginId] = watcher;
+        }
+
+        /// <inheritdoc />
+        public void StopWatching(string pluginId)
+        {
+            if (_watchers.TryGetValue(pluginId, out var watcher))
+            {
+                watcher.Dispose();
+                _watchers.Remove(pluginId);
+            }
         }
 
         /// <summary>

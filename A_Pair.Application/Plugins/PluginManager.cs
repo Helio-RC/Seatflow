@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -5,96 +6,131 @@ using Microsoft.Extensions.Logging;
 namespace A_Pair.Application.Plugins
 {
     /// <summary>
-    /// 插件管理器，负责从指定目录发现、加载和管理插件策略。
+    /// 插件管理器，负责从指定目录发现、加载和管理插件。
     /// </summary>
     /// <remarks>
-    /// 支持两种类型的插件：
+    /// 支持两种加载方式的插件：
     /// <list type="bullet">
     ///   <item><b>程序集插件（Assembly）</b> — 编译为 .dll 的程序集，通过 <see cref="PluginLoadContext"/> 隔离加载</item>
-    ///   <item><b>脚本插件（Script）</b> — Lua 或 C# 脚本文件，通过 <see cref="LuaScriptPluginAdapter"/> 或 <see cref="CSharpScriptPluginAdapter"/> 适配</item>
+    ///   <item><b>脚本插件（Script）</b> — Lua 或 C# 脚本文件，通过适配器加载。脚本适配器可通过 <see cref="RegisterScriptAdapter"/> 注册。</item>
     /// </list>
-    /// 每个插件目录必须包含 <c>plugin.manifest.json</c> 清单文件描述插件元数据和加载方式。
+    /// 加载时自动检测 <see cref="IPluginLifecycle"/> 并调用 <see cref="IPluginLifecycle.InitializeAsync"/>。
+    /// 卸载时调用 <see cref="IPluginLifecycle.DisposeAsync"/> 并强制垃圾回收释放程序集资源。
     /// </remarks>
     /// <param name="pluginsPath">插件根目录路径。</param>
     /// <param name="logger">日志记录器。</param>
-    public class PluginManager
+    public class PluginManager : IPluginManager
     {
         private readonly string _pluginsPath;
         private readonly ILogger<PluginManager> _logger;
         private readonly List<PluginLoadContext> _contexts = [];
-        private readonly Dictionary<string , PluginManifest> _loadedManifests = [];
+        private readonly Dictionary<string, PluginManifest> _loadedManifests = [];
+        private readonly Dictionary<string, LoadedPluginInfo> _loadedPlugins = [];
+        private readonly List<IPluginLifecycle> _lifecyclePlugins = [];
+        private readonly Dictionary<string, Func<string, PluginManifest, IPluginSeatingStrategy>> _scriptAdapters = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// 初始化插件管理器，确保插件目录存在。
+        /// 初始化插件管理器，确保插件目录存在并注册内置脚本适配器。
         /// </summary>
-        /// <param name="pluginsPath">插件根目录路径。</param>
-        /// <param name="logger">日志记录器。</param>
-        public PluginManager (string pluginsPath , ILogger<PluginManager> logger)
+        public PluginManager(string pluginsPath, ILogger<PluginManager> logger)
         {
             _pluginsPath = pluginsPath;
             _logger = logger;
             Directory.CreateDirectory(_pluginsPath);
+
+            _scriptAdapters["lua"] = (code, manifest) => new LuaScriptPluginAdapter(code, manifest);
+            _scriptAdapters["csharp"] = (code, manifest) => new CSharpScriptPluginAdapter(code, manifest);
         }
 
+        /// <inheritdoc />
+        public IReadOnlyDictionary<string, PluginManifest> LoadedManifests => _loadedManifests;
+
         /// <summary>
-        /// 扫描插件目录并加载所有有效的插件。
+        /// 注册脚本语言适配器。内置已注册 <c>"lua"</c> 和 <c>"csharp"</c>。
         /// </summary>
-        /// <returns>已加载的插件信息集合。</returns>
-        /// <remarks>
-        /// 遍历插件根目录下的每个子目录，查找 <c>plugin.manifest.json</c> 文件。
-        /// 根据清单中的 <see cref="PluginManifest.ScriptFile"/> 或 <see cref="PluginManifest.Assembly"/>
-        /// 字段决定加载方式。加载失败的插件会被跳过并记录调试信息。
-        /// </remarks>
-        public IEnumerable<LoadedPluginInfo> LoadPlugins ()
+        public void RegisterScriptAdapter(string scriptType, Func<string, PluginManifest, IPluginSeatingStrategy> factory)
         {
+            _scriptAdapters[scriptType] = factory;
+        }
+
+        /// <inheritdoc />
+        public Task<IEnumerable<LoadedPluginInfo>> LoadStrategyPluginsAsync(CancellationToken ct = default)
+        {
+            return LoadPluginsAsync("strategy", ct);
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<LoadedPluginInfo>> LoadPluginsAsync(string? category = null, CancellationToken ct = default)
+        {
+            await UnloadAllAsync();
             var loadedPlugins = new List<LoadedPluginInfo>();
+
+            if (!Directory.Exists(_pluginsPath))
+                return loadedPlugins;
 
             foreach (var pluginDir in Directory.EnumerateDirectories(_pluginsPath))
             {
-                var manifestPath = Path.Combine(pluginDir , "plugin.manifest.json");
+                ct.ThrowIfCancellationRequested();
+
+                var manifestPath = Path.Combine(pluginDir, "plugin.manifest.json");
                 if (!File.Exists(manifestPath))
                     continue;
 
                 try
                 {
-                    var manifestJson = File.ReadAllText(manifestPath);
-                    var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson , new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var manifestJson = await File.ReadAllTextAsync(manifestPath, ct);
+                    var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (manifest == null)
                         continue;
 
-                    // 验证清单
-                    if (string.IsNullOrEmpty(manifest.Id) || string.IsNullOrEmpty(manifest.Type))
+                    // 按类别过滤
+                    if (category != null && !string.Equals(manifest.Category, category, StringComparison.OrdinalIgnoreCase))
                         continue;
+
+                    if (string.IsNullOrEmpty(manifest.Id))
+                        continue;
+
+                    if (string.IsNullOrEmpty(manifest.Category))
+                        manifest.Category = "strategy";
 
                     _loadedManifests[manifest.Id] = manifest;
 
-                    // 根据插件类型加载
-                    IPluginSeatingStrategy? strategy = null;
-
-                    if (!string.IsNullOrEmpty(manifest.ScriptFile))
+                    // 根据类别加载插件
+                    IPluginSeatingStrategy? strategy = manifest.Category.ToLowerInvariant() switch
                     {
-                        strategy = LoadScriptPlugin(manifest , pluginDir);
-                    }
-                    else if (!string.IsNullOrEmpty(manifest.Assembly))
-                    {
-                        strategy = LoadAssemblyPlugin(manifest , pluginDir);
-                    }
+                        "strategy" => LoadPluginInternal(manifest, pluginDir),
+                        _ => null
+                    };
 
                     if (strategy != null)
                     {
                         strategy.Priority = manifest.Priority;
                         strategy.IsEnabled = manifest.Enabled;
+
+                        if (strategy is IPluginLifecycle lifecycle)
+                        {
+                            var host = new PluginHost(_pluginsPath, pluginDir);
+                            await lifecycle.InitializeAsync(host, ct);
+                            _lifecyclePlugins.Add(lifecycle);
+                        }
+
                         loadedPlugins.Add(new LoadedPluginInfo
                         {
-                            Manifest = manifest ,
-                            Strategy = strategy ,
+                            Manifest = manifest,
+                            Strategy = strategy,
                             PluginPath = pluginDir
                         });
+
+                        _loadedPlugins[manifest.Id] = loadedPlugins[^1];
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
-                    // 记录日志：加载插件失败
                     _logger.LogWarning(ex, "加载插件失败：{PluginDir}", pluginDir);
                 }
             }
@@ -102,15 +138,19 @@ namespace A_Pair.Application.Plugins
             return loadedPlugins;
         }
 
-        /// <summary>
-        /// 加载程序集类型的插件，使用独立的 <see cref="PluginLoadContext"/> 实现隔离。
-        /// </summary>
-        /// <param name="manifest">插件清单。</param>
-        /// <param name="pluginDir">插件目录路径。</param>
-        /// <returns>加载成功的插件策略实例；如果加载失败则返回 <c>null</c>。</returns>
-        private IPluginSeatingStrategy? LoadAssemblyPlugin (PluginManifest manifest , string pluginDir)
+        private IPluginSeatingStrategy? LoadPluginInternal(PluginManifest manifest, string pluginDir)
         {
-            var assemblyPath = Path.Combine(pluginDir , manifest.Assembly);
+            if (!string.IsNullOrEmpty(manifest.ScriptFile))
+                return LoadScriptPlugin(manifest, pluginDir);
+            else if (!string.IsNullOrEmpty(manifest.Assembly))
+                return LoadAssemblyPlugin(manifest, pluginDir);
+
+            return null;
+        }
+
+        private IPluginSeatingStrategy? LoadAssemblyPlugin(PluginManifest manifest, string pluginDir)
+        {
+            var assemblyPath = Path.Combine(pluginDir, manifest.Assembly);
             if (!File.Exists(assemblyPath))
                 return null;
 
@@ -125,61 +165,110 @@ namespace A_Pair.Application.Plugins
             return Activator.CreateInstance(type) as IPluginSeatingStrategy;
         }
 
-        /// <summary>
-        /// 加载脚本类型的插件（Lua 或 C#）。
-        /// </summary>
-        /// <param name="manifest">插件清单。</param>
-        /// <param name="pluginDir">插件目录路径。</param>
-        /// <returns>加载成功的插件策略实例；如果加载失败则返回 <c>null</c>。</returns>
-        private IPluginSeatingStrategy? LoadScriptPlugin (PluginManifest manifest , string pluginDir)
+        private IPluginSeatingStrategy? LoadScriptPlugin(PluginManifest manifest, string pluginDir)
         {
-            if (string.IsNullOrEmpty(manifest.ScriptFile))
+            if (string.IsNullOrEmpty(manifest.ScriptFile) || string.IsNullOrEmpty(manifest.ScriptType))
                 return null;
 
-            var scriptPath = Path.Combine(pluginDir , manifest.ScriptFile);
+            var scriptPath = Path.Combine(pluginDir, manifest.ScriptFile);
             if (!File.Exists(scriptPath))
                 return null;
 
+            // 同步读取：文件读取量小，且适配器工厂为同步委托
             var scriptCode = File.ReadAllText(scriptPath);
 
-            // 根据脚本类型创建对应策略
-            IPluginSeatingStrategy? strategy = manifest.ScriptType?.ToLowerInvariant() switch
-            {
-                "lua" => new LuaScriptPluginAdapter(scriptCode , manifest),
-                "csharp" => new CSharpScriptPluginAdapter(scriptCode , manifest),
-                _ => null
-            };
+            if (_scriptAdapters.TryGetValue(manifest.ScriptType, out var factory))
+                return factory(scriptCode, manifest);
 
-            return strategy;
+            _logger.LogWarning("未找到脚本适配器：{ScriptType}，插件：{PluginId}", manifest.ScriptType, manifest.Id);
+            return null;
         }
 
-        /// <summary>
-        /// 卸载所有已加载的插件程序集并释放资源。
-        /// </summary>
-        /// <remarks>
-        /// 调用每个 <see cref="PluginLoadContext.Unload"/> 方法卸载程序集，
-        /// 然后强制进行垃圾回收以释放插件占用的内存。
-        /// </remarks>
-        public void UnloadAll ()
+        /// <inheritdoc />
+        public async Task<string> InstallFromPackageAsync(string packagePath)
         {
+            if (!File.Exists(packagePath))
+                throw new FileNotFoundException($"插件包文件不存在：{packagePath}");
+
+            var tempDir = Path.Combine(Path.GetTempPath(), $"apair_plugin_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                ZipFile.ExtractToDirectory(packagePath, tempDir, overwriteFiles: true);
+
+                var manifestPath = Path.Combine(tempDir, "plugin.manifest.json");
+                if (!File.Exists(manifestPath))
+                    throw new InvalidDataException("插件包内缺少 plugin.manifest.json 文件");
+
+                var manifestJson = await File.ReadAllTextAsync(manifestPath);
+                var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (manifest is null || string.IsNullOrEmpty(manifest.Id))
+                    throw new InvalidDataException("plugin.manifest.json 格式无效：缺少 id 字段");
+
+                var targetDir = Path.Combine(_pluginsPath, manifest.Id);
+                if (Directory.Exists(targetDir))
+                    throw new InvalidDataException($"插件 \"{manifest.Id}\" 已存在，请先卸载后再安装");
+
+                Directory.CreateDirectory(targetDir);
+                foreach (var filePath in Directory.EnumerateFiles(tempDir))
+                {
+                    var fileName = Path.GetFileName(filePath);
+                    File.Copy(filePath, Path.Combine(targetDir, fileName), overwrite: false);
+                }
+
+                _logger.LogInformation("插件 \"{PluginId}\" 安装成功：{TargetDir}", manifest.Id, targetDir);
+                return targetDir;
+            }
+            finally
+            {
+                try { Directory.Delete(tempDir, recursive: true); }
+                catch { /* 忽略清理失败 */ }
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task UnloadAllAsync()
+        {
+            foreach (var lifecycle in _lifecyclePlugins)
+            {
+                try
+                {
+                    await lifecycle.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "插件 DisposeAsync 失败");
+                }
+            }
+            _lifecyclePlugins.Clear();
+
+            _loadedPlugins.Clear();
+
             foreach (var c in _contexts)
             {
                 c.Unload();
             }
             _contexts.Clear();
             _loadedManifests.Clear();
+
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
 
-        /// <summary>
-        /// 获取指定插件 ID 的清单信息。
-        /// </summary>
-        /// <param name="pluginId">插件唯一标识符。</param>
-        /// <returns>插件清单；如果未加载则返回 <c>null</c>。</returns>
-        public PluginManifest? GetManifest (string pluginId)
+        /// <inheritdoc />
+        public LoadedPluginInfo? GetLoadedPlugin(string pluginId)
         {
-            _loadedManifests.TryGetValue(pluginId , out var manifest);
+            _loadedPlugins.TryGetValue(pluginId, out var info);
+            return info;
+        }
+
+        /// <inheritdoc />
+        public PluginManifest? GetManifest(string pluginId)
+        {
+            _loadedManifests.TryGetValue(pluginId, out var manifest);
             return manifest;
         }
     }
@@ -189,19 +278,30 @@ namespace A_Pair.Application.Plugins
     /// </summary>
     public class LoadedPluginInfo
     {
-        /// <summary>
-        /// 获取或设置插件清单。
-        /// </summary>
         public PluginManifest Manifest { get; set; } = new();
 
-        /// <summary>
-        /// 获取或设置插件策略实例。
-        /// </summary>
         public IPluginSeatingStrategy Strategy { get; set; } = default!;
 
         /// <summary>
-        /// 获取或设置插件目录路径。
+        /// 获取插件通用接口实例。当前隐式派生自 <see cref="Strategy"/>。
         /// </summary>
+        public IPlugin Plugin => Strategy;
+
         public string PluginPath { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// 插件宿主的默认实现，在插件初始化时传递给 <see cref="IPluginLifecycle.InitializeAsync"/>。
+    /// </summary>
+    internal class PluginHost : IPluginHost
+    {
+        public PluginHost(string pluginsBasePath, string pluginDir)
+        {
+            PluginDirectory = pluginDir;
+            Configuration = new PluginConfigurationService(pluginsBasePath);
+        }
+
+        public IPluginConfigurationService Configuration { get; }
+        public string PluginDirectory { get; }
     }
 }
