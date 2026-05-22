@@ -55,7 +55,7 @@ public sealed class FileLoggerProvider : ILoggerProvider, IDisposable
     {
         if (level < _minLevel) return;
 
-        var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
         var levelStr = level switch
         {
             LogLevel.Debug => "DBG",

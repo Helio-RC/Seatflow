@@ -88,13 +88,12 @@ namespace A_Pair.Core.Strategies
 
             var studentScores = availableStudents.Select(s =>
             {
-                int frontRowHistoryCount = s.RecentSeatHistory.GetAll()
-                    .Count(seatId => frontSeatIds.Contains(seatId));
+                int frontRowHistoryCount = s.RecentSeatHistory.Count(seatId => frontSeatIds.Contains(seatId));
 
                 int score = (s.NeedsFrontRow ? _config.NeedsFrontRowBonus : 0)
             + s.FrontRowPreferenceScore
             - (frontRowHistoryCount * _config.HistoryWeight);
-                return new { Student = s , Score = score };
+                return (Student: s, Score: score);
             }).OrderByDescending(x => x.Score).ToList();
 
             int assignCount = Math.Min(frontRowSeats.Count , studentScores.Count);

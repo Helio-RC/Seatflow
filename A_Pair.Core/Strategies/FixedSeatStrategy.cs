@@ -64,7 +64,8 @@ namespace A_Pair.Core.Strategies
                 }
             }
 
-            // 确保所有标记为 IsFixed 的座位保持不变
+            // 确保管道中此前策略已标记的固定座位（非本策略新设）状态正确。
+            // TryAssignSeat 对本策略新分配已处理 IsAvailable，此处仅为已有固定座位做防御性修复。
             foreach (var seat in workspace.FindSeats(s => s.IsFixed))
             {
                 if (!string.IsNullOrEmpty(seat.OccupantId))

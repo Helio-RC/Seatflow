@@ -37,7 +37,7 @@ namespace A_Pair.Infrastructure.Providers
                 VenueId = venueId ,
                 Layout = layout
             };
-            var options = GetSerializerOptions();
+            var options = SerializerOptions;
             var json = JsonSerializer.Serialize(venueFile , options);
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
         }
@@ -50,7 +50,7 @@ namespace A_Pair.Infrastructure.Providers
                 return null;
 
             var json = await File.ReadAllTextAsync(filePath , cancellationToken);
-            var options = GetSerializerOptions();
+            var options = SerializerOptions;
             var venueFile = JsonSerializer.Deserialize<VenueFile>(json , options);
             return venueFile?.Layout;
         }
@@ -86,19 +86,15 @@ namespace A_Pair.Infrastructure.Providers
             return Path.Combine(_venuesFolder, $"{venueId}.venue.json");
         }
 
-        /// <summary>
-        /// 获取包含多态类型支持的 JSON 序列化选项。
-        /// </summary>
-        /// <returns>配置了 <see cref="SeatJsonConverter"/> 的序列化选项。</returns>
-        private static JsonSerializerOptions GetSerializerOptions ()
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true ,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            options.Converters.Add(new SeatJsonConverter());
-            return options;
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        static JsonVenueRepository()
+        {
+            SerializerOptions.Converters.Add(new SeatJsonConverter());
         }
     }
 }

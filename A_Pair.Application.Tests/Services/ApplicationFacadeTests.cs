@@ -112,7 +112,7 @@ public class ApplicationFacadeTests
         {
             SeatAssignments = new Dictionary<string , string> { { "seat1" , "s1" } , { "seat2" , "s2" } }
         };
-        snapRepo.Load(snapshot.Id).Returns(snapshot);
+        snapRepo.LoadAsync(snapshot.Id, Arg.Any<CancellationToken>()).Returns(snapshot);
 
         await facade.RollbackToSnapshotAsync(snapshot.Id , CancellationToken.None);
 

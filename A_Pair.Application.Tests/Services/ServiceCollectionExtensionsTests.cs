@@ -57,6 +57,10 @@ public class ServiceCollectionExtensionsTests : IDisposable
         provider.GetService<IVenueRepository>().Should().NotBeNull();
         // 应用设置仓储
         provider.GetService<IAppSettingsRepository>().Should().NotBeNull();
+        // 学生数据集仓储
+        provider.GetService<IStudentDatasetRepository>().Should().NotBeNull();
+        // 学生数据提供器
+        provider.GetService<IStudentProvider>().Should().NotBeNull();
     }
 
     [Fact]

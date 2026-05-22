@@ -56,6 +56,7 @@ namespace A_Pair.Application.Services
         private readonly StrategyManifestProvider _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private SeatingWorkspace? _currentWorkspace;
+        private List<ISeatingStrategy>? _cachedStrategies; // 策略为 Singleton，缓存避免重复物化
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -150,7 +151,7 @@ namespace A_Pair.Application.Services
             _currentWorkspace = workspace;
 
             // 4. 获取内置策略
-            var strategies = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var strategies = (_cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList());
 
             // 5. 加载插件策略并适配
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(cancellationToken);
@@ -259,8 +260,6 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default)
         {
-            if (_currentWorkspace == null)
-                await GenerateSeatingAsync(new SeatingRequest() , null , cancellationToken);
             if (_currentWorkspace == null) return false;
             return await _history.ExecuteAsync(command , _currentWorkspace , cancellationToken);
         }
@@ -316,7 +315,7 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
-            var snapshot = _snapshotRepository.Load(snapshotId) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
+            var snapshot = await _snapshotRepository.LoadAsync(snapshotId, cancellationToken) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
             if (_currentWorkspace == null)
             {
                 // 自动构建最小工作区：从会场加载座位，从快照构造存根学生
@@ -367,7 +366,7 @@ namespace A_Pair.Application.Services
 
             // 收集内置策略（Manifest + 运行时实例配置）
             var builtInManifests = _manifestProvider.GetBuiltInManifests();
-            var builtInInstances = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInInstances = (_cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList());
             foreach (var manifest in builtInManifests)
             {
                 var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
@@ -414,7 +413,7 @@ namespace A_Pair.Application.Services
             await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
 
             // 更新运行时内置策略实例
-            var builtInInstances = _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInInstances = (_cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList());
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
             {
