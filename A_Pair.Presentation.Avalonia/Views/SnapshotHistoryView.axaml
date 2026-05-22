@@ -37,10 +37,42 @@
           <Button Command="{Binding CreateSnapshotCommand}"
                   IsEnabled="{Binding CanCreateSnapshot}"
                   HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="创建快照">
+                  AutomationProperties.Name="创建快照"
+                  IsVisible="{Binding IsNotBatchMode}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14"/>
               <TextBlock Text="创建快照" FontSize="13"/>
+            </StackPanel>
+          </Button>
+          <!-- 批量删除按钮（非批量模式） -->
+          <Button Command="{Binding EnterBatchDeleteModeCommand}"
+                  IsEnabled="{Binding CanEnterBatchDelete}"
+                  IsVisible="{Binding IsNotBatchMode}"
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="批量删除">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
+              <TextBlock Text="批量删除" FontSize="13"/>
+            </StackPanel>
+          </Button>
+          <!-- 批量删除确认按钮（批量模式） -->
+          <Button Command="{Binding ConfirmBatchDeleteCommand}"
+                  IsVisible="{Binding IsBatchDeleteMode}"
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="确认删除">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"
+                              Foreground="{DynamicResource ErrorBrush}"/>
+              <TextBlock Text="确认删除" FontSize="13"
+                         Foreground="{DynamicResource ErrorBrush}"/>
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding ExitBatchDeleteModeCommand}"
+                  IsVisible="{Binding IsBatchDeleteMode}"
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="取消批量删除">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="取消" FontSize="13"/>
             </StackPanel>
           </Button>
         </StackPanel>
@@ -79,42 +111,75 @@
             </StackPanel>
           </Border>
 
-          <!-- 空列表 -->
-          <Border IsVisible="{Binding !HasSnapshots}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Padding="20">
-            <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                              HorizontalAlignment="Center" />
-              <TextBlock Text="{Binding SelectedVenue, StringFormat='{}{0} 暂无快照'}"
-                         FontSize="12" HorizontalAlignment="Center"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                         TextWrapping="Wrap" />
-            </StackPanel>
-          </Border>
+          <!-- 正常模式 -->
+          <Panel IsVisible="{Binding IsNotBatchMode}">
+            <!-- 空列表 -->
+            <Border IsVisible="{Binding !HasSnapshots}"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Padding="20">
+              <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
+                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding SelectedVenue, StringFormat='{}{0} 暂无快照'}"
+                           FontSize="12" HorizontalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+            <!-- 正常模式列表 -->
+            <ListBox ItemsSource="{Binding Snapshots}"
+                     SelectedItem="{Binding SelectedSnapshot, Mode=TwoWay}"
+                     IsVisible="{Binding HasSnapshots}"
+                     BorderThickness="0"
+                     Background="{DynamicResource SidebarBackgroundBrush}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="core:SeatingSnapshot">
+                  <StackPanel Margin="4,4">
+                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                               FontSize="13" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Description}"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap" MaxHeight="32"/>
+                    <TextBlock Text="{Binding SeatAssignments.Count, StringFormat='{}{0} 个座位'}"
+                               FontSize="10"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Panel>
 
-          <ListBox ItemsSource="{Binding Snapshots}"
-                   SelectedItem="{Binding SelectedSnapshot, Mode=TwoWay}"
-                   IsVisible="{Binding HasSnapshots}"
-                   BorderThickness="0"
-                   Background="{DynamicResource SidebarBackgroundBrush}">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="core:SeatingSnapshot">
-                <StackPanel Margin="4,4">
-                  <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                             FontSize="13" FontWeight="SemiBold"/>
-                  <TextBlock Text="{Binding Description}"
-                             FontSize="11"
-                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                             TextWrapping="Wrap" MaxHeight="32"/>
-                  <TextBlock Text="{Binding SeatAssignments.Count, StringFormat='{}{0} 个座位'}"
-                             FontSize="10"
-                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                </StackPanel>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+          <!-- 批量模式 -->
+          <StackPanel IsVisible="{Binding IsBatchDeleteMode}">
+            <CheckBox IsChecked="{Binding IsAllSelected, Mode=TwoWay}"
+                      Margin="4,4,4,8" FontSize="13">
+              <TextBlock Text="{Binding CheckableItems.Count, StringFormat='全选（共 {0} 项）'}"
+                         FontSize="13" />
+            </CheckBox>
+            <ListBox ItemsSource="{Binding CheckableItems}"
+                     BorderThickness="0"
+                     Background="{DynamicResource SidebarBackgroundBrush}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:SelectableItem">
+                  <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="4,4">
+                    <StackPanel>
+                      <TextBlock Text="{Binding Snapshot.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                 FontSize="13" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Snapshot.Description}"
+                                 FontSize="11"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                 TextWrapping="Wrap" MaxHeight="32"/>
+                      <TextBlock Text="{Binding Snapshot.SeatAssignments.Count, StringFormat='{}{0} 个座位'}"
+                                 FontSize="10"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                  </CheckBox>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
         </DockPanel>
       </Border>
 

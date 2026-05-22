@@ -26,6 +26,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSnapshots))]
+    [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
     private ObservableCollection<SeatingSnapshot> _snapshots = [];
 
     [ObservableProperty]
@@ -40,6 +41,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBatchMode))]
+    [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
     private bool _isBatchDeleteMode;
 
     public bool IsNotBatchMode => !IsBatchDeleteMode;
@@ -158,4 +160,66 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             StatusMessage = $"已删除，剩余 {Snapshots.Count} 个快照";
         }, "删除快照失败");
     }
+
+    // ── 批量删除 ──
+
+    [RelayCommand]
+    private void EnterBatchDeleteMode()
+    {
+        var items = Snapshots.Select(s => new SelectableItem(s)).ToArray();
+        CheckableItems = new ObservableCollection<SelectableItem>(items);
+        IsBatchDeleteMode = true;
+        IsAllSelected = false;
+        SelectedSnapshot = null;
+    }
+
+    [RelayCommand]
+    private void ExitBatchDeleteMode()
+    {
+        IsBatchDeleteMode = false;
+        CheckableItems.Clear();
+        IsAllSelected = false;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmBatchDeleteAsync()
+    {
+        var selected = CheckableItems.Where(c => c.IsSelected).Select(c => c.Snapshot).ToList();
+        if (selected.Count == 0)
+        {
+            await Dialog.ShowWarningAsync("批量删除" , "未选中任何快照。");
+            return;
+        }
+
+        var confirmed = await Dialog.ShowConfirmAsync("批量删除" ,
+            $"确定要删除选中的 {selected.Count} 个快照吗？\n此操作不可撤销。");
+        if (!confirmed) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            foreach (var snap in selected)
+            {
+                await _facade.DeleteSnapshotAsync(snap.Id);
+                Snapshots.Remove(snap);
+            }
+            ExitBatchDeleteMode();
+            SelectedSnapshot = Snapshots.FirstOrDefault();
+            StatusMessage = $"已删除 {selected.Count} 个快照，剩余 {Snapshots.Count} 个";
+            OnPropertyChanged(nameof(CanEnterBatchDelete));
+        }, "批量删除快照失败");
+    }
+
+    partial void OnIsAllSelectedChanged(bool value)
+    {
+        foreach (var item in CheckableItems)
+            item.IsSelected = value;
+    }
+}
+
+public partial class SelectableItem(SeatingSnapshot snapshot) : ObservableObject
+{
+    public SeatingSnapshot Snapshot { get; } = snapshot;
+
+    [ObservableProperty]
+    private bool _isSelected;
 }
