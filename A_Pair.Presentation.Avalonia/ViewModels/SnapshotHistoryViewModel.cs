@@ -38,10 +38,23 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = "请选择会场查看快照";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotBatchMode))]
+    private bool _isBatchDeleteMode;
+
+    public bool IsNotBatchMode => !IsBatchDeleteMode;
+
+    [ObservableProperty]
+    private ObservableCollection<SelectableItem> _checkableItems = [];
+
+    [ObservableProperty]
+    private bool _isAllSelected;
+
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedSnapshot => SelectedSnapshot != null;
     public bool HasSnapshots => Snapshots.Count > 0;
     public bool CanCreateSnapshot => _facade.HasActiveWorkspace;
+    public bool CanEnterBatchDelete => HasSnapshots && !IsBatchDeleteMode;
 
     public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation)
     {

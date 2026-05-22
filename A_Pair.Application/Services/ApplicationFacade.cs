@@ -598,5 +598,125 @@ namespace A_Pair.Application.Services
         }
 
         #endregion
+
+        #region Plugin Management
+
+        /// <inheritdoc />
+        public Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default)
+        {
+            var loadedPlugins = _pluginManager.LoadPlugins();
+            var result = new List<PluginDisplayInfo>();
+            foreach (var pi in loadedPlugins)
+            {
+                var iconPath = Path.Combine(pi.PluginPath , "icon.png");
+                result.Add(new PluginDisplayInfo
+                {
+                    Id = pi.Manifest.Id ,
+                    Name = pi.Manifest.Name ,
+                    Version = pi.Manifest.Version ,
+                    PluginType = GetPluginTypeLabel(pi.Manifest) ,
+                    IsEnabled = pi.Strategy.IsEnabled ,
+                    Description = pi.Manifest.Description ,
+                    Author = pi.Manifest.Author ,
+                    Priority = pi.Strategy.Priority ,
+                    ScriptType = pi.Manifest.ScriptType?.ToLowerInvariant() ,
+                    PluginPath = pi.PluginPath ,
+                    IconPath = File.Exists(iconPath) ? iconPath : null
+                });
+            }
+            return Task.FromResult(result);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetPluginScriptAsync (string pluginId , CancellationToken ct = default)
+        {
+            var manifest = _pluginManager.GetManifest(pluginId)
+                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
+            if (string.IsNullOrEmpty(manifest.ScriptFile))
+                throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
+
+            var loadedPlugins = _pluginManager.LoadPlugins();
+            var plugin = loadedPlugins.FirstOrDefault(p => p.Manifest.Id == pluginId)
+                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
+            var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
+            return await File.ReadAllTextAsync(scriptPath , ct);
+        }
+
+        /// <inheritdoc />
+        public async Task SavePluginScriptAsync (string pluginId , string script , CancellationToken ct = default)
+        {
+            var manifest = _pluginManager.GetManifest(pluginId)
+                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
+            if (string.IsNullOrEmpty(manifest.ScriptFile))
+                throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
+
+            var loadedPlugins = _pluginManager.LoadPlugins();
+            var plugin = loadedPlugins.FirstOrDefault(p => p.Manifest.Id == pluginId)
+                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
+            var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
+            await File.WriteAllTextAsync(scriptPath , script , ct);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetPluginConfigJsonAsync (string pluginId , CancellationToken ct = default)
+        {
+            var config = await _pluginConfigService.LoadConfigurationAsync<object>(pluginId , ct);
+            return System.Text.Json.JsonSerializer.Serialize(config , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        }
+
+        /// <inheritdoc />
+        public async Task SavePluginConfigJsonAsync (string pluginId , string json , CancellationToken ct = default)
+        {
+            // 验证 JSON 格式
+            var obj = System.Text.Json.JsonSerializer.Deserialize<object>(json)
+                ?? throw new ArgumentException("JSON 格式无效");
+            await _pluginConfigService.SaveConfigurationAsync(pluginId , obj , ct);
+        }
+
+        /// <inheritdoc />
+        public async Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default)
+        {
+            var manifest = _pluginManager.GetManifest(pluginId)
+                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
+
+            var loadedPlugins = _pluginManager.LoadPlugins();
+            var plugin = loadedPlugins.FirstOrDefault(p => p.Manifest.Id == pluginId)
+                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
+
+            // 更新运行时策略
+            plugin.Strategy.IsEnabled = enabled;
+
+            // 持久化到 manifest 文件
+            var manifestPath = Path.Combine(plugin.PluginPath , "plugin.manifest.json");
+            manifest.Enabled = enabled;
+            var json = System.Text.Json.JsonSerializer.Serialize(manifest , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(manifestPath , json , ct);
+
+            // 重载所有插件以反映变更
+            _pluginManager.UnloadAll();
+        }
+
+        /// <inheritdoc />
+        public Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default)
+        {
+            var manifest = _pluginManager.GetManifest(pluginId);
+            return Task.FromResult(manifest);
+        }
+
+        private static string GetPluginTypeLabel (PluginManifest manifest)
+        {
+            if (!string.IsNullOrEmpty(manifest.ScriptFile))
+                return manifest.ScriptType?.ToLowerInvariant() switch
+                {
+                    "lua" => "lua" ,
+                    "csharp" => "csharp" ,
+                    _ => "script"
+                };
+            if (!string.IsNullOrEmpty(manifest.Assembly))
+                return "assembly";
+            return "unknown";
+        }
+
+        #endregion
     }
 }

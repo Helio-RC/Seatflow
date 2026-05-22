@@ -1,9 +1,228 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:app="using:A_Pair.Application.Interfaces"
+             xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+             xmlns:fic="using:FluentIcons.Avalonia"
+             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
              x:Class="A_Pair.Presentation.Avalonia.Views.PluginManagementView"
              x:DataType="vm:PluginManagementViewModel">
-  <TextBlock Text="{Binding Title}"
-             HorizontalAlignment="Center" VerticalAlignment="Center"
-             FontSize="18"/>
+
+  <Design.DataContext>
+    <vm:PluginManagementViewModel />
+  </Design.DataContext>
+
+  <UserControl.Resources>
+    <conv:FilePathToBitmapConverter x:Key="IconConverter" />
+  </UserControl.Resources>
+
+  <DockPanel Margin="16">
+    <!-- 顶部标题 -->
+    <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Left" Text="插件管理" Classes="pageTitle"
+                   VerticalAlignment="Center" />
+        <Button DockPanel.Dock="Right" Command="{Binding RefreshPluginsCommand}"
+                AutomationProperties.Name="刷新插件列表"
+                HorizontalContentAlignment="Center" Padding="12,6">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
+            <TextBlock Text="刷新" FontSize="14" />
+          </StackPanel>
+        </Button>
+      </DockPanel>
+    </Border>
+
+    <!-- 底部状态栏 -->
+    <Border DockPanel.Dock="Bottom" Margin="0,8,0,0">
+      <TextBlock Text="{Binding StatusMessage}" FontSize="13"
+                 Opacity="0.7" />
+    </Border>
+
+    <!-- 主内容区 -->
+    <Grid ColumnDefinitions="280,*" ColumnSpacing="16">
+      <!-- ═══ 左侧：插件列表 ═══ -->
+      <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+              CornerRadius="8" Padding="0"
+              BoxShadow="{StaticResource CardShadowSmall}">
+        <DockPanel>
+          <Border DockPanel.Dock="Top" Padding="14,12">
+            <TextBlock Text="{Binding Plugins.Count, StringFormat='已发现插件（{0}）'}"
+                       FontSize="14" FontWeight="SemiBold" />
+          </Border>
+
+          <!-- 空列表提示 -->
+          <TextBlock Text="暂无插件&#x0a;请将插件放入 Plugins 目录"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     FontSize="14" Opacity="0.5"
+                     IsVisible="{Binding EmptyHintVisible}" />
+
+          <ListBox ItemsSource="{Binding Plugins}"
+                   SelectedItem="{Binding SelectedPlugin, Mode=TwoWay}"
+                   IsVisible="{Binding HasPlugins}"
+                   Background="Transparent"
+                   BorderThickness="0"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="app:PluginDisplayInfo">
+                <Border Padding="12,10" Margin="4,2" CornerRadius="6"
+                        Background="Transparent">
+                  <Grid ColumnDefinitions="40,*" ColumnSpacing="10">
+                    <!-- 图标 -->
+                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6"
+                            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                            ClipToBounds="True">
+                      <Image Source="{Binding IconPath, Converter={StaticResource IconConverter}}"
+                             Stretch="Uniform" />
+                    </Border>
+                    <!-- 信息 -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                      <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Version, StringFormat='v{0}'}" FontSize="11"
+                                   Opacity="0.6" />
+                        <Border CornerRadius="3" Padding="4,1"
+                                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+                          <TextBlock Text="{Binding PluginType}" FontSize="10" Opacity="0.7" />
+                        </Border>
+                      </StackPanel>
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- ═══ 右侧：详情面板 ═══ -->
+      <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}"
+              CornerRadius="8" Padding="20"
+              BoxShadow="{StaticResource CardShadowSmall}"
+              IsVisible="{Binding HasPluginSelected}">
+        <ScrollViewer>
+          <StackPanel Spacing="16">
+            <!-- 头部信息 -->
+            <Grid ColumnDefinitions="64,*" ColumnSpacing="14">
+              <Border Grid.Column="0" Width="64" Height="64" CornerRadius="12"
+                      Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                      ClipToBounds="True">
+                <Image Source="{Binding SelectedPlugin.IconPath, Converter={StaticResource IconConverter}}"
+                       Stretch="Uniform" />
+              </Border>
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                <TextBlock Text="{Binding SelectedPlugin.Name}" FontSize="20" FontWeight="Bold" />
+                <TextBlock Text="{Binding SelectedPlugin.Version, StringFormat='版本 v{0}'}"
+                           FontSize="13" Opacity="0.6" />
+                <TextBlock Text="{Binding SelectedPlugin.Author, StringFormat='作者：{0}'}"
+                           FontSize="13" Opacity="0.6"
+                           IsVisible="{Binding SelectedPlugin.Author.Length, Converter={x:Static conv:BoolConverters.TrueToVisible}}" />
+              </StackPanel>
+            </Grid>
+
+            <!-- 描述 -->
+            <Border Padding="12,10" CornerRadius="6"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              <TextBlock Text="{Binding SelectedPlugin.Description}" FontSize="13"
+                         TextWrapping="Wrap" Opacity="0.8" />
+            </Border>
+
+            <!-- 优先级 -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="优先级：" FontSize="13" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding SelectedPlugin.Priority}" FontSize="13"
+                         FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- 启用/禁用 ToggleSwitch -->
+            <Border Padding="14,10" CornerRadius="6"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="启用插件" FontSize="14"
+                           VerticalAlignment="Center" />
+                <ToggleSwitch DockPanel.Dock="Right"
+                              IsChecked="{Binding SelectedPlugin.IsEnabled, Mode=OneWay}"
+                              OffContent="已禁用" OnContent="已启用"
+                              Command="{Binding ToggleEnabledCommand}" />
+              </DockPanel>
+            </Border>
+
+            <Separator />
+
+            <!-- 脚本编辑器（仅脚本插件） -->
+            <StackPanel Spacing="8" IsVisible="{Binding ScriptEditorVisible}">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="脚本编辑" FontSize="15"
+                           FontWeight="SemiBold" VerticalAlignment="Center" />
+                <Button DockPanel.Dock="Right" Command="{Binding SaveScriptCommand}"
+                        IsEnabled="{Binding IsScriptDirty}"
+                        Padding="10,6" HorizontalContentAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
+                    <TextBlock Text="保存脚本" FontSize="13" />
+                  </StackPanel>
+                </Button>
+              </DockPanel>
+              <Border CornerRadius="6" Padding="2"
+                      Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+                <TextBox Text="{Binding ScriptEditorText, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         FontFamily="Cascadia Code,Consolas,monospace"
+                         FontSize="13" MinHeight="240"
+                         TextWrapping="NoWrap"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+              </Border>
+            </StackPanel>
+
+            <!-- 配置编辑器（所有插件） -->
+            <StackPanel Spacing="8" IsVisible="{Binding ConfigEditorVisible}">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="配置 JSON" FontSize="15"
+                           FontWeight="SemiBold" VerticalAlignment="Center" />
+                <Button DockPanel.Dock="Right" Command="{Binding SaveConfigCommand}"
+                        IsEnabled="{Binding IsConfigDirty}"
+                        Padding="10,6" HorizontalContentAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
+                    <TextBlock Text="保存配置" FontSize="13" />
+                  </StackPanel>
+                </Button>
+              </DockPanel>
+              <Border CornerRadius="6" Padding="2"
+                      Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+                <TextBox Text="{Binding ConfigEditorText, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         FontFamily="Cascadia Code,Consolas,monospace"
+                         FontSize="13" MinHeight="200"
+                         TextWrapping="NoWrap"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+              </Border>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <!-- 未选中时提示 -->
+      <Panel Grid.Column="1"
+             IsVisible="{Binding HasPluginSelected, Converter={x:Static conv:BoolConverters.Negate}}">
+        <Border Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="8" Padding="20"
+                BoxShadow="{StaticResource CardShadowSmall}">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="36"
+                            Opacity="0.3" HorizontalAlignment="Center" />
+            <TextBlock Text="从左侧列表选择一个插件" FontSize="15"
+                       Opacity="0.5" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </Panel>
+    </Grid>
+  </DockPanel>
 </UserControl>
