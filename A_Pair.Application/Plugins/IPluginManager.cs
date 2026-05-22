@@ -32,6 +32,15 @@ public interface IPluginManager
     Task UnloadAllAsync();
 
     /// <summary>
+    /// 强制刷新：先卸载所有已加载的插件，然后重新扫描并加载。
+    /// 与 <see cref="LoadPluginsAsync"/> 不同，此方法每次都会执行完整的卸载+重载。
+    /// </summary>
+    /// <param name="category">要加载的插件类别，为 <c>null</c> 时加载所有。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <returns>已加载的插件信息集合。</returns>
+    Task<IEnumerable<LoadedPluginInfo>> RefreshPluginsAsync(string? category = null, CancellationToken ct = default);
+
+    /// <summary>
     /// 获取指定插件 ID 的清单信息。
     /// </summary>
     PluginManifest? GetManifest(string pluginId);
@@ -54,4 +63,11 @@ public interface IPluginManager
     /// <param name="pluginId">插件唯一标识符。</param>
     /// <returns>已加载的插件信息；若未加载则返回 <c>null</c>。</returns>
     LoadedPluginInfo? GetLoadedPlugin(string pluginId);
+
+    /// <summary>
+    /// 注册脚本语言适配器。内置已注册 <c>"lua"</c> 和 <c>"csharp"</c>。
+    /// </summary>
+    /// <param name="scriptType">脚本类型标识符（如 "lua"、"csharp"）。</param>
+    /// <param name="factory">创建策略实例的工厂委托。</param>
+    void RegisterScriptAdapter(string scriptType, Func<string, PluginManifest, IPluginSeatingStrategy> factory);
 }

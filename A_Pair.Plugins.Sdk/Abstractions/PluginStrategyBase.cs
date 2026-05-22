@@ -1,4 +1,3 @@
-using System.Reflection;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Workspace;
 using A_Pair.Plugins.Sdk.Attributes;
@@ -19,10 +18,11 @@ public abstract class PluginStrategyBase : PluginBase, IPluginSeatingStrategy
 {
     /// <summary>
     /// 初始化基类，从 <see cref="PluginAttribute"/> 读取策略相关配置。
+    /// 复用 <see cref="PluginBase"/> 已反射的特性，避免重复反射。
     /// </summary>
-    protected PluginStrategyBase() : base()
+    protected PluginStrategyBase()
     {
-        var attr = GetType().GetCustomAttribute<PluginAttribute>(inherit: false);
+        var attr = ResolvedAttribute;
         if (attr is not null)
         {
             Priority = attr.Priority;

@@ -69,7 +69,6 @@ namespace A_Pair.Application.Services
             // 注册插件管理器与配置服务
             services.AddSingleton<IPluginManager>(sp =>
                 new PluginManager(pluginsPath, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
-            services.AddSingleton<PluginManager>(sp => (PluginManager)sp.GetRequiredService<IPluginManager>());
             services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath));
 
             // 注册场地仓储（全局单例）

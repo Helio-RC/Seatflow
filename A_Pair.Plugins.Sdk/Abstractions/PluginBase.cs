@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Plugins.Sdk.Attributes;
@@ -26,11 +27,17 @@ public abstract class PluginBase : IPlugin
     private readonly string _category;
 
     /// <summary>
+    /// 由构造函数设置的 <see cref="PluginAttribute"/>，供子类复用，避免重复反射。
+    /// </summary>
+    private protected PluginAttribute? ResolvedAttribute { get; }
+
+    /// <summary>
     /// 初始化基类，通过反射读取 <see cref="PluginAttribute"/>（若存在）。
     /// </summary>
     protected PluginBase()
     {
         var attr = GetType().GetCustomAttribute<PluginAttribute>(inherit: false);
+        ResolvedAttribute = attr;
 
         if (attr is not null)
         {
@@ -45,6 +52,7 @@ public abstract class PluginBase : IPlugin
             _name = GetType().Name;
             _version = "1.0.0";
             _category = "strategy";
+            Debug.WriteLine($"警告：{GetType().FullName} 未标记 [Plugin] 特性，使用随机 GUID 作为 ID。");
         }
     }
 

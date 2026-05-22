@@ -28,6 +28,7 @@ namespace A_Pair.Application.Plugins
         private readonly Dictionary<string, LoadedPluginInfo> _loadedPlugins = [];
         private readonly List<IPluginLifecycle> _lifecyclePlugins = [];
         private readonly Dictionary<string, Func<string, PluginManifest, IPluginSeatingStrategy>> _scriptAdapters = new(StringComparer.OrdinalIgnoreCase);
+        private bool _isLoaded;
 
         /// <summary>
         /// 初始化插件管理器，确保插件目录存在并注册内置脚本适配器。
@@ -62,7 +63,9 @@ namespace A_Pair.Application.Plugins
         /// <inheritdoc />
         public async Task<IEnumerable<LoadedPluginInfo>> LoadPluginsAsync(string? category = null, CancellationToken ct = default)
         {
-            await UnloadAllAsync();
+            if (_isLoaded)
+                return _loadedPlugins.Values;
+
             var loadedPlugins = new List<LoadedPluginInfo>();
 
             if (!Directory.Exists(_pluginsPath))
@@ -97,11 +100,9 @@ namespace A_Pair.Application.Plugins
                     _loadedManifests[manifest.Id] = manifest;
 
                     // 根据类别加载插件
-                    IPluginSeatingStrategy? strategy = manifest.Category.ToLowerInvariant() switch
-                    {
-                        "strategy" => LoadPluginInternal(manifest, pluginDir),
-                        _ => null
-                    };
+                    IPluginSeatingStrategy? strategy = null;
+                    if (string.Equals(manifest.Category, "strategy", StringComparison.OrdinalIgnoreCase))
+                        strategy = await LoadPluginInternalAsync(manifest, pluginDir, ct);
 
                     if (strategy != null)
                     {
@@ -135,13 +136,22 @@ namespace A_Pair.Application.Plugins
                 }
             }
 
+            _isLoaded = true;
             return loadedPlugins;
         }
 
-        private IPluginSeatingStrategy? LoadPluginInternal(PluginManifest manifest, string pluginDir)
+        /// <inheritdoc />
+        public async Task<IEnumerable<LoadedPluginInfo>> RefreshPluginsAsync(string? category = null, CancellationToken ct = default)
+        {
+            await UnloadAllAsync();
+            _isLoaded = false;
+            return await LoadPluginsAsync(category, ct);
+        }
+
+        private async Task<IPluginSeatingStrategy?> LoadPluginInternalAsync(PluginManifest manifest, string pluginDir, CancellationToken ct)
         {
             if (!string.IsNullOrEmpty(manifest.ScriptFile))
-                return LoadScriptPlugin(manifest, pluginDir);
+                return await LoadScriptPluginAsync(manifest, pluginDir, ct);
             else if (!string.IsNullOrEmpty(manifest.Assembly))
                 return LoadAssemblyPlugin(manifest, pluginDir);
 
@@ -165,7 +175,7 @@ namespace A_Pair.Application.Plugins
             return Activator.CreateInstance(type) as IPluginSeatingStrategy;
         }
 
-        private IPluginSeatingStrategy? LoadScriptPlugin(PluginManifest manifest, string pluginDir)
+        private async Task<IPluginSeatingStrategy?> LoadScriptPluginAsync(PluginManifest manifest, string pluginDir, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(manifest.ScriptFile) || string.IsNullOrEmpty(manifest.ScriptType))
                 return null;
@@ -174,8 +184,7 @@ namespace A_Pair.Application.Plugins
             if (!File.Exists(scriptPath))
                 return null;
 
-            // 同步读取：文件读取量小，且适配器工厂为同步委托
-            var scriptCode = File.ReadAllText(scriptPath);
+            var scriptCode = await File.ReadAllTextAsync(scriptPath, ct);
 
             if (_scriptAdapters.TryGetValue(manifest.ScriptType, out var factory))
                 return factory(scriptCode, manifest);
@@ -220,6 +229,7 @@ namespace A_Pair.Application.Plugins
                 }
 
                 _logger.LogInformation("插件 \"{PluginId}\" 安装成功：{TargetDir}", manifest.Id, targetDir);
+                _isLoaded = false;
                 return targetDir;
             }
             finally
@@ -253,6 +263,7 @@ namespace A_Pair.Application.Plugins
             }
             _contexts.Clear();
             _loadedManifests.Clear();
+            _isLoaded = false;
 
             GC.Collect();
             GC.WaitForPendingFinalizers();

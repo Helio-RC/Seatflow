@@ -12,7 +12,7 @@ public class ApplicationFacadeTests
         out IServiceProvider serviceProvider ,
         out ISeatingSnapshotRepository snapshotRepo ,
         out ISeatingPlanExporter exporter ,
-        out PluginManager pluginManager ,
+        out IPluginManager pluginManager ,
         out IPluginConfigurationService pluginConfigService ,
         out IAppSettingsRepository appSettingsRepo ,
         out IVenueRepository venueRepo ,
@@ -24,8 +24,7 @@ public class ApplicationFacadeTests
         serviceProvider = Substitute.For<IServiceProvider>();
         snapshotRepo = Substitute.For<ISeatingSnapshotRepository>();
         exporter = Substitute.For<ISeatingPlanExporter>();
-        pluginManager = Substitute.For<PluginManager>("dummyPath",
-            Substitute.For<ILogger<PluginManager>>());
+        pluginManager = Substitute.For<IPluginManager>();
         pluginConfigService = Substitute.For<IPluginConfigurationService>();
         appSettingsRepo = Substitute.For<IAppSettingsRepository>();
         venueRepo = Substitute.For<IVenueRepository>();

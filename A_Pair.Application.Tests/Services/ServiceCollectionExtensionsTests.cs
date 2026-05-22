@@ -50,7 +50,7 @@ public class ServiceCollectionExtensionsTests : IDisposable
         // 快照存储库（接口）
         provider.GetService<ISeatingSnapshotRepository>().Should().NotBeNull();
         // 插件管理器
-        provider.GetService<PluginManager>().Should().NotBeNull();
+        provider.GetService<IPluginManager>().Should().NotBeNull();
         // 插件配置服务
         provider.GetService<IPluginConfigurationService>().Should().NotBeNull();
         // 场地仓储
@@ -69,8 +69,8 @@ public class ServiceCollectionExtensionsTests : IDisposable
         services.AddA_PairApplication(snapshotBasePath , pluginsPath);
         var provider = services.BuildServiceProvider();
 
-        // 解析 PluginManager 以触发其构造函数创建目录
-        provider.GetService<PluginManager>();
+        // 解析 IPluginManager 以触发其构造函数创建目录
+        provider.GetService<IPluginManager>();
         Directory.Exists(pluginsPath).Should().BeTrue();
 
         // 快照目录由 Repository 在保存时按需创建
