@@ -226,13 +226,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                          ?? VenueItems.FirstOrDefault();
             _isRestoringWorkspace = false;
 
+            HasGenerated = true;
             BuildSeatDisplayItems();
         }
 
         await UpdateRightPanelAsync();
         UpdateStats();
         InitHistory("已恢复的工作区");
-        HasGenerated = true;
         StatusMessage = $"已恢复工作区：{AssignedSeats}/{TotalSeats} 已分配";
     }
 
