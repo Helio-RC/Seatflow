@@ -151,7 +151,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         if (_navigation.CurrentViewModel == this)
         {
-            _ = RefreshDataAsync();
+            // 推迟到 UI 布局完成后执行，确保 OnLoaded 已触发、SeatItems 绑定已建立
+            Dispatcher.UIThread.Post(() => _ = RefreshDataAsync());
         }
     }
 
