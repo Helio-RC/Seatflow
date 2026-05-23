@@ -385,47 +385,56 @@
 
               <!-- ── 修改记录 (可折叠) ── -->
               <StackPanel IsVisible="{Binding HasHistory}">
-                <Button Command="{Binding ToggleHistoryCommand}"
-                        Background="Transparent" BorderThickness="0"
-                        Padding="0" HorizontalContentAlignment="Stretch"
-                        Cursor="Hand">
-                  <DockPanel>
-                    <TextBlock DockPanel.Dock="Left" Text="修改记录" Classes="sectionTitle" />
-                    <fic:FluentIcon DockPanel.Dock="Right"
-                        Icon="{x:Static ficEnum:Icon.ChevronUp}" FontSize="14"
+                <DockPanel Margin="0,0,0,4">
+                  <Button DockPanel.Dock="Left" Command="{Binding ToggleHistoryCommand}"
+                          Background="Transparent" BorderThickness="0"
+                          Padding="0" Cursor="Hand">
+                    <TextBlock Text="修改记录" Classes="sectionTitle" />
+                  </Button>
+                  <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ChevronUp}" FontSize="14"
                         VerticalAlignment="Center"
                         IsVisible="{Binding IsHistoryExpanded}"
                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                    <fic:FluentIcon DockPanel.Dock="Right"
-                        Icon="{x:Static ficEnum:Icon.ChevronDown}" FontSize="14"
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ChevronDown}" FontSize="14"
                         VerticalAlignment="Center"
                         IsVisible="{Binding IsHistoryExpanded, Converter={x:Static conv:BoolConverters.Negate}}"
                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                  </DockPanel>
-                </Button>
+                    <Button Command="{Binding RestoreToSelectedCommand}"
+                            IsEnabled="{Binding HasSelectedHistory}"
+                            Padding="8,4" HorizontalContentAlignment="Center">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14" />
+                        <TextBlock Text="恢复" FontSize="13" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </DockPanel>
                 <ListBox ItemsSource="{Binding HistoryEntries}"
+                         SelectedItem="{Binding SelectedHistory, Mode=TwoWay}"
                          IsVisible="{Binding IsHistoryExpanded}"
                          BorderThickness="0" MaxHeight="220"
                          Background="{DynamicResource SidebarBackgroundBrush}">
                   <ListBox.Styles>
                     <Style Selector="ListBoxItem">
-                      <Setter Property="Padding" Value="4,2" />
+                      <Setter Property="Padding" Value="6,3" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ Border#PART_BackgroundBorder">
+                      <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+                      <Setter Property="BorderThickness" Value="1" />
+                      <Setter Property="CornerRadius" Value="4" />
                     </Style>
                   </ListBox.Styles>
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:HistoryEntry">
-                      <Button Background="Transparent" BorderThickness="0" Padding="0"
-                              HorizontalContentAlignment="Stretch" Cursor="Hand"
-                              Command="{Binding $parent[UserControl].DataContext.ClickHistoryEntryCommand}"
-                              CommandParameter="{Binding .}">
-                        <StackPanel Margin="0,2">
-                          <TextBlock Text="{Binding Description}" FontSize="13"
-                                     FontWeight="{Binding IsCurrent, Converter={x:Static conv:BoolConverters.TrueToBold}}" />
-                          <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
-                                     FontSize="10"
-                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                        </StackPanel>
-                      </Button>
+                      <StackPanel Margin="0,2">
+                        <TextBlock Text="{Binding Description}" FontSize="13"
+                                   FontWeight="{Binding IsCurrent, Converter={x:Static conv:BoolConverters.TrueToBold}}" />
+                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                   FontSize="10"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                      </StackPanel>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

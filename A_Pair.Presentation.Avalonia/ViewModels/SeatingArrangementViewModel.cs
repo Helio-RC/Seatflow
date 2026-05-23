@@ -637,13 +637,20 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         RestoreToHistoryIndex(_currentHistoryIndex + 1);
     }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedHistory))]
+    private HistoryEntry? _selectedHistory;
+
+    public bool HasSelectedHistory => SelectedHistory != null;
+
     [RelayCommand]
-    private void ClickHistoryEntry(HistoryEntry? entry)
+    private void RestoreToSelected()
     {
-        if (entry == null || _workspace == null) return;
-        var idx = _historyEntries.IndexOf(entry);
+        if (SelectedHistory == null || _workspace == null) return;
+        var idx = _historyEntries.IndexOf(SelectedHistory);
         if (idx < 0) return;
         RestoreToHistoryIndex(idx);
+        StatusMessage = $"已恢复至「{SelectedHistory.Description}」";
     }
 
     // ── 历史管理 ──
@@ -801,10 +808,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     }
 }
 
-public class HistoryEntry(string description, Dictionary<string, string> assignments)
+public partial class HistoryEntry(string description, Dictionary<string, string> assignments) : ObservableObject
 {
     public string Description { get; set; } = description;
     public DateTime Timestamp { get; set; } = DateTime.Now;
     public Dictionary<string, string> Assignments { get; set; } = assignments;
     public bool IsCurrent { get; set; }
+    [ObservableProperty]
+    private bool _isSelected;
 }
