@@ -38,13 +38,19 @@ namespace A_Pair.Infrastructure.Layouts
             var emptySet = new HashSet<(int Row , int Col)>(
                 (metadata.EmptyPositions ?? []).Select(p => (p.Row , p.Column)));
 
-            for (int c = 1; c <= metadata.Columns; c++)
-            {
-                int rowsForCol = (metadata.ColumnRowCounts is { Count: > 0 } && c <= metadata.ColumnRowCounts.Count)
-                    ? metadata.ColumnRowCounts[c - 1] : metadata.Rows;
+            int maxRows = metadata.ColumnRowCounts is { Count: > 0 }
+                ? metadata.ColumnRowCounts.Max()
+                : metadata.Rows;
 
-                for (int r = 1; r <= rowsForCol; r++)
+            for (int r = 1; r <= maxRows; r++)
+            {
+                for (int c = 1; c <= metadata.Columns; c++)
                 {
+                    int rowsForCol = (metadata.ColumnRowCounts is { Count: > 0 } && c <= metadata.ColumnRowCounts.Count)
+                        ? metadata.ColumnRowCounts[c - 1] : metadata.Rows;
+
+                    if (r > rowsForCol)
+                        continue;
                     if (emptySet.Contains((r , c)))
                         continue;
 

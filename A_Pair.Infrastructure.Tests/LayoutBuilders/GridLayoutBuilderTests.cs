@@ -19,13 +19,13 @@ public class GridLayoutBuilderTests
     {
         var layout = GridLayoutBuilder.BuildGrid(2 , 2);
         var seats = layout.Seats.Cast<GridSeat>().ToList();
-        // 列优先：第1列行1,行2; 第2列行1,行2
+        // 行优先：第1行列1,列2; 第2行列1,列2
         seats[0].Row.Should().Be(1);
         seats[0].Column.Should().Be(1);
-        seats[1].Row.Should().Be(2);
-        seats[1].Column.Should().Be(1);
-        seats[2].Row.Should().Be(1);
-        seats[2].Column.Should().Be(2);
+        seats[1].Row.Should().Be(1);
+        seats[1].Column.Should().Be(2);
+        seats[2].Row.Should().Be(2);
+        seats[2].Column.Should().Be(1);
         seats[3].Row.Should().Be(2);
         seats[3].Column.Should().Be(2);
     }
@@ -46,6 +46,19 @@ public class GridLayoutBuilderTests
         seats.Count(s => s.Column == 1).Should().Be(3);
         seats.Count(s => s.Column == 2).Should().Be(2);
         seats.Count(s => s.Column == 3).Should().Be(1);
+        // 行优先：r=1(c1,c2,c3), r=2(c1,c2), r=3(c1)
+        seats[0].Row.Should().Be(1);
+        seats[0].Column.Should().Be(1);
+        seats[1].Row.Should().Be(1);
+        seats[1].Column.Should().Be(2);
+        seats[2].Row.Should().Be(1);
+        seats[2].Column.Should().Be(3);
+        seats[3].Row.Should().Be(2);
+        seats[3].Column.Should().Be(1);
+        seats[4].Row.Should().Be(2);
+        seats[4].Column.Should().Be(2);
+        seats[5].Row.Should().Be(3);
+        seats[5].Column.Should().Be(1);
     }
 
     [Fact]
