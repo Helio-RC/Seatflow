@@ -47,9 +47,10 @@ namespace A_Pair.Application.Services
         /// <returns>服务集合，支持链式调用。</returns>
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
-            // 解析有效的数据目录：若用户已设置 DataDirectory 则使用自定义路径
+            // 解析有效数据目录 + 读取日志配置（单次 I/O）
             var defaultSettingsPath = Path.Combine(snapshotBasePath, "AppSettings.json");
             var effectiveDataPath = snapshotBasePath;
+            var logSettings = new LogSettings();
             try
             {
                 if (File.Exists(defaultSettingsPath))
@@ -59,36 +60,29 @@ namespace A_Pair.Application.Services
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
                         effectiveDataPath = customPath;
-                }
-            }
-            catch { /* 读取失败时使用默认路径 */ }
-
-            // 配置 Serilog 文件日志，从 AppSettings.LogSettings 读取配置
-            var logSettings = new LogSettings();
-            try
-            {
-                if (File.Exists(defaultSettingsPath))
-                {
-                    var json = File.ReadAllText(defaultSettingsPath);
-                    var existing = JsonSerializer.Deserialize<AppSettings>(json,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (existing?.Logging is { } ls)
                         logSettings = ls;
                 }
             }
-            catch { /* 读取失败使用默认值 */ }
+            catch { /* 读取失败时使用默认值 */ }
 
             var logLevel = ParseLogLevel(logSettings.MinimumLevel);
             var logDir = Path.Combine(effectiveDataPath, "Logs");
+            Directory.CreateDirectory(logDir);
+
+            // 清理超出保留数量的旧日志文件
+            PruneOldLogFiles(logDir, logSettings.RetainedFileCountLimit);
+
+            // 实例隔离：每次启动创建独立日志文件，避免多实例写入冲突
+            var instanceId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var logPath = Path.Combine(logDir, $"A_Pair_{instanceId}.log");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(logLevel)
                 .WriteTo.File(
-                    Path.Combine(logDir, "A_Pair_.log"),
-                    rollingInterval: RollingInterval.Day,
+                    logPath,
                     fileSizeLimitBytes: logSettings.FileSizeLimitBytes,
                     retainedFileCountLimit: logSettings.RetainedFileCountLimit,
                     rollOnFileSizeLimit: true,
-                    shared: true,
                     flushToDiskInterval: TimeSpan.FromSeconds(5))
                 .CreateLogger();
 
@@ -163,5 +157,28 @@ namespace A_Pair.Application.Services
             "fatal" => LogEventLevel.Fatal,
             _ => LogEventLevel.Information
         };
+
+        /// <summary>
+        /// 清理旧的日志文件，仅保留最近 <paramref name="retainCount"/> 个。
+        /// 文件按创建时间降序排列（最新的在前）。
+        /// </summary>
+        private static void PruneOldLogFiles (string logDir, int retainCount)
+        {
+            if (retainCount <= 0) return;
+            try
+            {
+                var files = Directory.GetFiles(logDir, "A_Pair_*.log")
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.CreationTimeUtc)
+                    .ToList();
+
+                for (int i = retainCount; i < files.Count; i++)
+                {
+                    try { files[i].Delete(); }
+                    catch { /* 删除失败忽略 */ }
+                }
+            }
+            catch { /* 枚举失败忽略 */ }
+        }
     }
 }
