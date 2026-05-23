@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Core.Providers;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
@@ -20,12 +21,14 @@ namespace A_Pair.Presentation.Avalonia
     public partial class App : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly bool _isFirstInstance;
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
-        public App (IServiceProvider serviceProvider)
+        public App (IServiceProvider serviceProvider, bool isFirstInstance = true)
         {
             _serviceProvider = serviceProvider;
+            _isFirstInstance = isFirstInstance;
         }
 
         public override void Initialize ()
@@ -99,6 +102,9 @@ namespace A_Pair.Presentation.Avalonia
                 ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
                 ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
 
+                // 启动检查
+                _ = RunStartupChecksAsync(desktop);
+
                 // 启动看门狗，防止 UI 卡死无法退出
                 WatchdogService.SetDialogService(_serviceProvider.GetRequiredService<IDialogService>());
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
@@ -117,6 +123,86 @@ namespace A_Pair.Presentation.Avalonia
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        private async Task RunStartupChecksAsync (IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var dialog = _serviceProvider.GetRequiredService<IDialogService>();
+
+            // 单实例检查
+            if (!_isFirstInstance)
+            {
+                await DialogServiceShim.ShowWarningAsync(dialog,
+                    "应用已在运行",
+                    "检测到 A_Pair 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。");
+                desktop.Shutdown();
+                return;
+            }
+
+            // 运行环境检查
+            var settingsRepo = _serviceProvider.GetRequiredService<IAppSettingsRepository>();
+            AppSettings settings;
+            try
+            {
+                settings = await settingsRepo.LoadAsync();
+            }
+            catch
+            {
+                settings = new AppSettings();
+            }
+
+            if (!settings.SuppressEnvironmentWarning)
+            {
+                var (hasWarning, envMessage) = StartupGuard.CheckEnvironment();
+                if (hasWarning)
+                {
+                    var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog, envMessage);
+                    if (result is 1) // "不再提醒" 按钮
+                    {
+                        settings.SuppressEnvironmentWarning = true;
+                        try
+                        {
+                            await settingsRepo.SaveAsync(settings);
+                        }
+                        catch
+                        {
+                            // 保存失败忽略
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    internal static class DialogServiceShim
+    {
+        public static async Task ShowWarningAsync (IDialogService dialog, string title, string message)
+        {
+            try
+            {
+                await dialog.ShowWarningAsync(title, message);
+            }
+            catch
+            {
+                // 对话框显示失败时静默处理
+            }
+        }
+
+        /// <returns>0=确定, 1=不再提醒, null=关闭窗口</returns>
+        public static async Task<int?> ShowEnvironmentWarningAsync (IDialogService dialog, string message)
+        {
+            try
+            {
+                return await dialog.ShowMultiOptionAsync(
+                    "运行环境警告",
+                    message,
+                    "确定",
+                    "不再提醒");
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

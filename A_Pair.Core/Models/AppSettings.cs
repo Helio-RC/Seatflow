@@ -37,6 +37,9 @@ namespace A_Pair.Core.Models
         /// <summary>座位图默认缩放比例。</summary>
         public double DefaultZoomLevel { get; set; } = 1.0;
 
+        /// <summary>是否已抑制运行环境警告（用户选择"不再提醒"）。</summary>
+        public bool SuppressEnvironmentWarning { get; set; }
+
         /// <summary>日志配置（不暴露到设置 UI）。</summary>
         public LogSettings Logging { get; set; } = new();
 
