@@ -135,12 +135,24 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     private string _swapHintText = string.Empty;
 
-    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, ILogger<SeatingArrangementViewModel>? logger = null)
+    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, INavigationService navigation, ILogger<SeatingArrangementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
+        _navigation = navigation;
         _logger = logger ?? NullLogger<SeatingArrangementViewModel>.Instance;
+        navigation.CurrentViewModelChanged += OnNavigationChanged;
         _ = LoadInitialDataAsync();
+    }
+
+    private readonly INavigationService _navigation;
+
+    private void OnNavigationChanged()
+    {
+        if (_navigation.CurrentViewModel == this)
+        {
+            _ = RefreshDataAsync();
+        }
     }
 
     /// <summary>用于抑制 <see cref="OnSelectedVenueChanged"/> 覆盖已恢复的布局。</summary>
