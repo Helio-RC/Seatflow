@@ -9,7 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="A_Pair.Presentation.Avalonia.Views.MainWindow"
         x:DataType="vm:MainShellViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/icon_with_background.ico"
         Title="A_Pair — 安排" Width="1200" Height="800"
         MinWidth="550" MinHeight="600"
         ExtendClientAreaToDecorationsHint="True"
