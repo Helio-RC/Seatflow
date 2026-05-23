@@ -56,6 +56,7 @@ namespace A_Pair.Application.Services
         private readonly StrategyManifestProvider _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private SeatingWorkspace? _currentWorkspace;
+        private ClassroomLayoutDefinition? _currentLayout;
         private List<ISeatingStrategy>? _cachedStrategies; // 策略为 Singleton，缓存避免重复物化
 
         /// <inheritdoc />
@@ -130,6 +131,7 @@ namespace A_Pair.Application.Services
             {
                 // 从已保存的会场加载布局
                 venueLayout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
+                _currentLayout = venueLayout;
                 if (venueLayout != null)
                 {
                     seats = venueLayout.Seats;
@@ -283,6 +285,10 @@ namespace A_Pair.Application.Services
             => Task.FromResult(_currentWorkspace);
 
         /// <inheritdoc />
+        public Task<ClassroomLayoutDefinition?> GetCurrentLayoutAsync (CancellationToken cancellationToken = default)
+            => Task.FromResult(_currentLayout);
+
+        /// <inheritdoc />
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照
@@ -324,6 +330,8 @@ namespace A_Pair.Application.Services
                 {
                     try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
                 }
+
+                _currentLayout = layout;
 
                 var seats = layout?.Seats ?? new List<Seat>();
                 var studentIds = snapshot.SeatAssignments.Values

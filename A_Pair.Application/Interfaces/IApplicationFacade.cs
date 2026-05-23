@@ -79,6 +79,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>当前是否有活跃的工作区（可用于创建快照或回滚）。</summary>
         bool HasActiveWorkspace { get; }
 
+        /// <summary>获取当前活跃工作区关联的会场布局，用于 UI 恢复显示。无活跃工作区时返回 null。</summary>
+        Task<ClassroomLayoutDefinition?> GetCurrentLayoutAsync (CancellationToken cancellationToken = default);
+
         /// <summary>保存学生数据集到托管存储。</summary>
         Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
 

@@ -161,6 +161,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     public async Task RefreshDataAsync()
     {
         await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync());
+        await TryRestoreWorkspaceAsync();
     }
 
     [RelayCommand]
@@ -187,6 +188,30 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             var datasets = await _facade.ListStudentDatasetsAsync();
             DatasetItems = new ObservableCollection<StudentDatasetInfo>(datasets);
         });
+    }
+
+    /// <summary>如果有活跃工作区（如快照回滚后），恢复座位图显示。</summary>
+    private async Task TryRestoreWorkspaceAsync()
+    {
+        _workspace = await _facade.GetCurrentWorkspaceAsync();
+        if (_workspace == null) return;
+
+        _currentLayout = await _facade.GetCurrentLayoutAsync();
+        _currentPlan = _workspace.BuildSeatingPlan();
+
+        if (_currentLayout != null)
+        {
+            // 同步会场选择
+            SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Name)
+                         ?? VenueItems.FirstOrDefault();
+            BuildSeatDisplayItems();
+        }
+
+        await UpdateRightPanelAsync();
+        UpdateStats();
+        InitHistory("已恢复的工作区");
+        HasGenerated = true;
+        StatusMessage = $"已恢复工作区：{AssignedSeats}/{TotalSeats} 已分配";
     }
 
     // ── 会场选择 ──
