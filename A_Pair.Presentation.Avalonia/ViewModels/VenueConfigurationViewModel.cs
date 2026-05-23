@@ -548,6 +548,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         StatusMessage = $"预览：{seats.Count} 个座位";
     }
 
+    /// <summary>不改变数据，仅重新绘制预览区域。</summary>
+    public void RefreshPreview () => RegeneratePreview();
+
     private void RegenerateAisleOptions ()
     {
         var prevCols = new HashSet<int>(ParseIntList(GridAisleAfterColumns));

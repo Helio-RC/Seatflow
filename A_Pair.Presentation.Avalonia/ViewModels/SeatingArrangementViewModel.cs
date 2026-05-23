@@ -82,6 +82,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     public Action<double> ZoomAction => delta => ApplyZoom(delta);
     public void ApplyZoom (double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta , 0.2 , 3.0); BuildSeatDisplayItems(); }
 
+    /// <summary>不改变数据，仅重新绘制预览区域。</summary>
+    public void RefreshPreview () => BuildSeatDisplayItems();
+
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
@@ -234,6 +237,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         UpdateStats();
         InitHistory("已恢复的工作区");
         StatusMessage = $"已恢复工作区：{AssignedSeats}/{TotalSeats} 已分配";
+        RefreshPreview();
     }
 
     // ── 会场选择 ──
