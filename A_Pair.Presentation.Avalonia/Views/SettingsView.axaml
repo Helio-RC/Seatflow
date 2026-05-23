@@ -120,15 +120,6 @@
             <TextBlock Text="行为" Classes="sectionTitle" />
             <Separator />
 
-            <!-- 自动保存间隔 -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="自动保存间隔" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <ComboBox ItemsSource="{Binding AutoSaveOptions}" AutomationProperties.Name="自动保存间隔"
-                        SelectedIndex="{Binding AutoSaveIndex, Mode=TwoWay}"
-                        MinWidth="160" FontSize="14" />
-            </DockPanel>
-
             <Separator />
 
             <!-- 清除确认 -->

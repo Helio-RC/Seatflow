@@ -19,9 +19,6 @@ namespace A_Pair.Core.Models
         /// <summary>用户数据目录路径，为空时使用默认位置。</summary>
         public string DataDirectory { get; set; } = string.Empty;
 
-        /// <summary>自动保存间隔（秒），0 表示禁用。</summary>
-        public int AutoSaveIntervalSeconds { get; set; } = 300;
-
         /// <summary>最近打开的文件列表。</summary>
         public List<string> RecentFiles { get; set; } = [];
 

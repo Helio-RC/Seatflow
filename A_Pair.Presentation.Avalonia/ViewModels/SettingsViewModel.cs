@@ -44,15 +44,6 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _dataDirectory = string.Empty;
 
-    // ---- 自动保存 ----
-
-    [ObservableProperty]
-    private int _autoSaveIndex;
-
-    public List<string> AutoSaveOptions { get; } = ["禁用" , "1 分钟" , "5 分钟" , "10 分钟"];
-
-    private int _autoSaveIntervalSeconds = 300;
-
     // ---- 清除确认 ----
 
     [ObservableProperty]
@@ -95,9 +86,6 @@ public partial class SettingsViewModel : ViewModelBase
             Language = settings.Language;
             DataDirectory = settings.DataDirectory;
 
-            _autoSaveIntervalSeconds = settings.AutoSaveIntervalSeconds;
-            AutoSaveIndex = _autoSaveIntervalSeconds switch { 0 => 0, 60 => 1, 300 => 2, 600 => 3, _ => 2 };
-
             ConfirmBeforeClear = settings.ConfirmBeforeClear;
 
             _defaultZoomLevel = settings.DefaultZoomLevel;
@@ -129,12 +117,6 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    partial void OnAutoSaveIndexChanged (int value)
-    {
-        var seconds = value switch { 0 => 0, 1 => 60, 2 => 300, 3 => 600, _ => 300 };
-        _autoSaveIntervalSeconds = seconds;
-    }
-
     partial void OnZoomIndexChanged (int value)
     {
         var zoom = value switch { 0 => 0.75, 1 => 1.0, 2 => 1.25, 3 => 1.5, _ => 1.0 };
@@ -160,7 +142,6 @@ public partial class SettingsViewModel : ViewModelBase
                 Theme = Theme ,
                 Language = Language ,
                 DataDirectory = DataDirectory ,
-                AutoSaveIntervalSeconds = _autoSaveIntervalSeconds ,
                 ConfirmBeforeClear = ConfirmBeforeClear ,
                 DefaultZoomLevel = _defaultZoomLevel
             };
@@ -188,7 +169,6 @@ public partial class SettingsViewModel : ViewModelBase
         ThemeIndex = 0;
         Language = string.Empty;
         DataDirectory = string.Empty;
-        AutoSaveIndex = 2;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
         StatusMessage = "已恢复默认值（尚未保存）";
