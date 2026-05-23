@@ -11,8 +11,8 @@
 | 层次 | 技术选型 | 版本 | 用途 |
 |------|----------|------|------|
 | 运行时 | .NET 10 | 10.0.x | 跨平台基础 |
-| UI 框架 | Avalonia UI | 11.2+ | 跨平台桌面界面 |
-| MVVM 框架 | ReactiveUI / CommunityToolkit.Mvvm | - | 响应式绑定、命令 |
+| UI 框架 | Avalonia UI | 12.0 | 跨平台桌面界面 |
+| MVVM 框架 | CommunityToolkit.Mvvm | 8.4 | 响应式绑定、命令 |
 | 依赖注入 | Microsoft.Extensions.DependencyInjection | 10.0.x | DI 容器 |
 | 配置管理 | Microsoft.Extensions.Configuration | 10.0.x | JSON 配置读取 |
 | 日志 | Serilog | 4.x | 结构化日志 |
@@ -40,10 +40,7 @@
 ```
 A_Pair/
 ├── A_Pair.slnx                          # 解决方案文件
-├── Directory.Build.props                # 公共编译属性
-├── Directory.Packages.props             # 集中包版本管理
-├── src/
-│   ├── A_Pair.Core/                     # 领域核心（无外部依赖）
+├── A_Pair.Core/                     # 领域核心（无外部依赖）
 │   │   ├── Entities/                    # Student, Classroom, Seat 等
 │   │   ├── ValueObjects/                # Position, Gender, SeatType 等
 │   │   ├── Interfaces/                  # 领域服务接口

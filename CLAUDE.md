@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Environment
 
-你处在无头环境中，无法使用 avdt。
+在执行需要 GUI 的操作前，先确认当前是否处于无头环境（检查 `DISPLAY` / `WAYLAND_DISPLAY` 等环境变量），以及是否安装了 .NET 10 SDK。avdt（Avalonia DevTools）仅在桌面环境下可用。
 
 ##  Build & Test
 
@@ -23,7 +23,7 @@ dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 
 **No `Directory.Build.props` or `Directory.Packages.props`** — package versions are managed directly in each `.csproj`.
 
-**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in repo-root `dotnet-tools.json`. 在无头环境中无法使用 avdt，但构建时无需此工具。
+**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in repo-root `dotnet-tools.json`. 使用前先确认当前环境是否有桌面显示支持，若无头则跳过 avdt。构建时无需此工具。
 
 ## Architecture
 
@@ -114,7 +114,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 
 ### Axaml Bindings
 - Always use `x:DataType` on the root element for compiled bindings
-- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `Fluent_Icons.md`)
+- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md`)
 - Converters: `BoolConverters.cs` (Negate, TrueWhenNull, etc.) and `ValueConverters.cs`
 
 ### Sidebar
@@ -123,9 +123,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - `MainShellViewModel.ToggleSidebar()` command for manual toggle
 
 ## Documents
-- `Goal.md` — Project goals & architecture design
+- `ARCHITECTURE.md` — Project goals & architecture design
 - `Phases.md` — Implementation phases & detailed planning
-- `A_Pair.Presentation.Avalonia/Develop handoff.md` — Developer handoff guide
-- `A_Pair.Presentation.Avalonia/How_to_Design_UI.md` — UI implementation guide (step by step, in Chinese)
-- `A_Pair.Presentation.Avalonia/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
-- `A_Pair.Presentation.Avalonia/Fluent_Icons.md` — All FluentUI icon names in use
+- `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
+- `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use

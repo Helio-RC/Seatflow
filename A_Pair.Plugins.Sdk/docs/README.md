@@ -811,5 +811,5 @@ public interface IPluginExporter : IPlugin
 
 - [A_Pair.Contracts](../A_Pair.Contracts/) — `IPlugin`、`IPluginSeatingStrategy` 等接口
 - [A_Pair.Core](../A_Pair.Core/) — 核心模型（Student、Seat、SeatingWorkspace）
-- [项目设计文档](../Goal.md) — 架构总览
+- [项目设计文档](../ARCHITECTURE.md) — 架构总览
 - [实现阶段规划](../Phases.md) — 各阶段详情

@@ -28,11 +28,11 @@
 
 ## 反馈与贡献
 
-- **Bug 反馈**：请在 GitHub Issues 提交，附上操作系统版本和复现步骤
+- **Bug 反馈**：请在 GitHub Issues 提交，附上操作系统版本和复现步骤,最好能附上日志。
 - **功能建议**：欢迎提交 Feature Request
-- **插件开发**：参见 [A_Pair.Plugins.Sdk/README.md](A_Pair.Plugins.Sdk/README.md) 插件开发指南
+- **插件开发**：参见 [A_Pair.Plugins.Sdk/docs/README.md](A_Pair.Plugins.Sdk/docs/README.md) 插件开发指南
 - **参与开发**：参见 [CONTRIBUTING.md](CONTRIBUTING.md) 了解构建环境、项目结构和编码规范
-- **AI 辅助开发**：本项目使用 Claude Code 辅助开发。项目级 AI 配置位于 [CLAUDE.md](CLAUDE.md)，包含架构约定、代码模式和开发命令。建议 AI 开发者先阅读此文件和 [docs/adr/](docs/adr/) 中的架构决策记录
+- **AI 辅助开发**：本项目使用 Claude Code & Deepseek V4 preview 辅助开发。项目级 AI 配置位于 [CLAUDE.md](CLAUDE.md)，包含架构约定、代码模式和开发命令。建议 AI 开发者先阅读此文件和 [docs/adr/](docs/adr/) 中的架构决策记录
 
 ## 技术概要
 
@@ -42,11 +42,11 @@
 
 | 文档 | 说明 |
 |------|------|
-| [Goal.md](Goal.md) | 项目目标与架构设计 |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 项目目标与架构设计 |
 | [Phases.md](Phases.md) | 实现阶段与详细规划 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发环境搭建与参与指南 |
 | [CLAUDE.md](CLAUDE.md) | AI 编码助手配置 |
 | [docs/adr/](docs/adr/) | 架构决策记录 |
-| [Design_Spec.md](A_Pair.Presentation.Avalonia/Design_Spec.md) | UI 设计规范 |
-| [Fluent_Icons.md](A_Pair.Presentation.Avalonia/Fluent_Icons.md) | 图标参考 |
-| [Plugins.Sdk/README.md](A_Pair.Plugins.Sdk/README.md) | 插件开发 SDK 文档 |
+| [Design_Spec.md](A_Pair.Presentation.Avalonia/docs/Design_Spec.md) | UI 设计规范 |
+| [Fluent_Icons.md](A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md) | 图标参考 |
+| [Plugins.Sdk/README.md](A_Pair.Plugins.Sdk/docs/README.md) | 插件开发 SDK 文档 |

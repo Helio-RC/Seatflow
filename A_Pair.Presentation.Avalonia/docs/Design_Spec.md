@@ -60,7 +60,7 @@ Font: Inter (Avalonia FluentTheme built-in)
 
 ## Icons
 
-See `Fluent Icons.md` for the complete icon reference.
+See [Fluent_Icons.md](Fluent_Icons.md) for the complete icon reference.
 
 Library: `FluentIcons.Avalonia` v2.1.325
 

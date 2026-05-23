@@ -44,7 +44,7 @@ A_Pair.slnx
 
 ## 架构要点
 
-参见 [Goal.md](Goal.md)（架构总览）、[Phases.md](Phases.md)（阶段划分）和 [docs/adr/](docs/adr/)（架构决策记录）。
+参见 [ARCHITECTURE.md](ARCHITECTURE.md)（架构总览）、[Phases.md](Phases.md)（阶段划分）和 [docs/adr/](docs/adr/)（架构决策记录）。
 
 关键模式：
 - **外观模式** — `IApplicationFacade` 是 UI 层唯一入口
