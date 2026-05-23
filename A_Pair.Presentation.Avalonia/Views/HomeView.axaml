@@ -12,7 +12,7 @@
 
   <DockPanel>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-      <Image Source="avares://A_Pair.Presentation.Avalonia/Assets/icon_with_background.ico"
+      <Svg Source="/Assets/icon_with_background.svg"
              Width="96" Height="96"
              HorizontalAlignment="Center" />
       <TextBlock Text="{Binding Greeting}" FontSize="28" FontWeight="Bold"

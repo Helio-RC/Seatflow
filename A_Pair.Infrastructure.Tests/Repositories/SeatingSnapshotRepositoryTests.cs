@@ -26,7 +26,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
             LayoutId = "venue1" ,
             SeatAssignments = new Dictionary<string , string> { { "s1" , "p1" } }
         };
-        await repo.SaveAsync(snapshot);
+        await repo.SaveAsync(snapshot , TestContext.Current.CancellationToken);
         var loaded = repo.Load(snapshot.Id);
         loaded.Should().NotBeNull();
         loaded!.Description.Should().Be("Test");
@@ -39,10 +39,10 @@ public class SeatingSnapshotRepositoryTests : IDisposable
         var repo = new SeatingSnapshotRepository(_testDir);
         var snap1 = new SeatingSnapshot { LayoutId = "venue1" };
         var snap2 = new SeatingSnapshot { LayoutId = "venue2" };
-        await repo.SaveAsync(snap1);
-        await repo.SaveAsync(snap2);
+        await repo.SaveAsync(snap1 , TestContext.Current.CancellationToken);
+        await repo.SaveAsync(snap2 , TestContext.Current.CancellationToken);
 
-        var list = await repo.ListByVenueAsync("venue1");
+        var list = await repo.ListByVenueAsync("venue1" , TestContext.Current.CancellationToken);
         list.Should().HaveCount(1);
         list[0].LayoutId.Should().Be("venue1");
     }
@@ -52,8 +52,8 @@ public class SeatingSnapshotRepositoryTests : IDisposable
     {
         var repo = new SeatingSnapshotRepository(_testDir);
         var snap = new SeatingSnapshot();
-        await repo.SaveAsync(snap);
-        await repo.DeleteAsync(snap.Id);
+        await repo.SaveAsync(snap , TestContext.Current.CancellationToken);
+        await repo.DeleteAsync(snap.Id , TestContext.Current.CancellationToken);
         repo.Load(snap.Id).Should().BeNull();
     }
 }

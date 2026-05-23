@@ -83,7 +83,7 @@ public class ServiceCollectionExtensionsTests : IDisposable
             Id = "test_snap" ,
             LayoutId = "venue1" ,
             CreatedAt = DateTime.Now
-        });
+        } , TestContext.Current.CancellationToken);
         Assert.True(Directory.Exists(Path.Combine(snapshotBasePath , "Assignments" , "venue1")));
     }
 }
