@@ -11,7 +11,7 @@ public class SeatingContextTests
         var ctx = new SeatingWorkspace.SeatingContext();
         ctx.Layout.Should().BeNull();
         ctx.RotationCycle.Should().BeNull();
-        ctx.EffectiveDate.Date.Should().Be(DateTime.UtcNow.Date);
+        ctx.EffectiveDate.Date.Should().Be(DateTime.Now.Date);
         ctx.Metadata.Should().BeEmpty();
     }
 

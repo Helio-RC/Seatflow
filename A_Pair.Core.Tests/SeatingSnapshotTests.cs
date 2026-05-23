@@ -7,7 +7,7 @@ public class SeatingSnapshotTests
     {
         var snap = new SeatingSnapshot();
         snap.Id.Should().NotBeNullOrEmpty();
-        snap.CreatedAt.Should().BeCloseTo(DateTime.UtcNow , TimeSpan.FromSeconds(1));
+        snap.CreatedAt.Should().BeCloseTo(DateTime.Now , TimeSpan.FromSeconds(1));
         snap.SeatAssignments.Should().BeEmpty();
     }
 }

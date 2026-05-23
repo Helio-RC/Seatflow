@@ -40,7 +40,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
             Students = students ,
             Metadata = new Dictionary<string , object>
             {
-                ["importedAt"] = DateTime.UtcNow.ToString("O") ,
+                ["importedAt"] = DateTime.Now.ToString("O") ,
                 ["studentCount"] = students.Count
             }
         };

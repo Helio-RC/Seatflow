@@ -83,7 +83,7 @@ public class ServiceCollectionExtensionsTests : IDisposable
         {
             Id = "test_snap",
             LayoutId = "venue1",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         });
         Assert.True(Directory.Exists(Path.Combine(snapshotBasePath, "Assignments", "venue1")));
     }

@@ -29,8 +29,8 @@ public class SeatingWorkspace : IPluginWorkspace
             /// <summary>当前轮换周期（如"第3周"）。</summary>
             public string? RotationCycle { get; set; }
 
-            /// <summary>座位安排生效日期。</summary>
-            public DateTime EffectiveDate { get; set; } = DateTime.UtcNow;
+            /// <summary>座位安排生效日期（本地时区）。</summary>
+            public DateTime EffectiveDate { get; set; } = DateTime.Now;
 
             /// <summary>
             /// 策略间共享的后备元数据字典。常用键应提取为 <see cref="SeatingContext"/> 的强类型属性，
