@@ -1,8 +1,9 @@
-using System.IO;
+using System.Text.Json;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Exporters;
+using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
 using A_Pair.Core.Strategies;
@@ -34,20 +35,38 @@ namespace A_Pair.Application.Services
     {
         /// <summary>
         /// 将 A_Pair 应用程序层的所有服务注册到依赖注入容器中。
+        /// 启动时读取默认位置的 AppSettings.json，若设置了 <c>DataDirectory</c>，
+        /// 则使用自定义路径作为所有数据的基目录。
         /// </summary>
         /// <param name="services">服务集合。</param>
-        /// <param name="snapshotBasePath">快照存储的基路径。</param>
+        /// <param name="snapshotBasePath">数据存储的默认基路径。</param>
         /// <param name="pluginsPath">插件目录的路径。</param>
         /// <returns>服务集合，支持链式调用。</returns>
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
+            // 解析有效的数据目录：若用户已设置 DataDirectory 则使用自定义路径
+            var defaultSettingsPath = Path.Combine(snapshotBasePath, "AppSettings.json");
+            var effectiveDataPath = snapshotBasePath;
+            try
+            {
+                if (File.Exists(defaultSettingsPath))
+                {
+                    var json = File.ReadAllText(defaultSettingsPath);
+                    var existing = JsonSerializer.Deserialize<AppSettings>(json,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
+                        effectiveDataPath = customPath;
+                }
+            }
+            catch { /* 读取失败时使用默认路径 */ }
+
             services.AddLogging();
             services.AddSingleton<CsvStudentProvider>();
             services.AddSingleton<XlsxStudentProvider>();
             services.AddSingleton<JsonStudentProvider>();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
-                new SeatingSnapshotRepository(Path.Combine(snapshotBasePath, "Assignments")));
+                new SeatingSnapshotRepository(Path.Combine(effectiveDataPath, "Assignments")));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 
@@ -74,24 +93,22 @@ namespace A_Pair.Application.Services
                 new PluginManager(pluginsPath, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
             services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath));
 
-            // 注册场地仓储（全局单例）
-            var venuesPath = Path.Combine(snapshotBasePath , "Venues");
+            // 注册场地仓储（全局单例，使用有效数据路径）
+            var venuesPath = Path.Combine(effectiveDataPath , "Venues");
             services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(venuesPath));
 
-            // 注册 AppSettings 仓储（全局单例）
-            var appDataDir = Path.GetDirectoryName(Path.GetFullPath(snapshotBasePath)) ?? snapshotBasePath;
-            var settingsPath = Path.Combine(appDataDir, "AppSettings.json");
-            services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(settingsPath));
+            // 注册 AppSettings 仓储（始终位于默认数据目录，避免查找自身的鸡生蛋问题）
+            services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(defaultSettingsPath));
 
             // 注册学生数据集仓储（全局单例）
-            var rostersPath = Path.Combine(snapshotBasePath , "Rosters");
+            var rostersPath = Path.Combine(effectiveDataPath , "Rosters");
             services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(rostersPath));
 
             // 注册策略 Manifest 提供器（全局单例）
             services.AddSingleton<StrategyManifestProvider>();
 
             // 注册策略运行时配置仓储（per-file，全局单例）
-            var strategyConfigDir = Path.Combine(appDataDir, "StrategyConfig");
+            var strategyConfigDir = Path.Combine(effectiveDataPath, "StrategyConfig");
             services.AddSingleton(sp => new StrategyConfigFileRepository(
                 strategyConfigDir, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 
