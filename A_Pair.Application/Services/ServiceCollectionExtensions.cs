@@ -79,7 +79,8 @@ namespace A_Pair.Application.Services
             services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(venuesPath));
 
             // 注册 AppSettings 仓储（全局单例）
-            var settingsPath = Path.Combine(snapshotBasePath , ".." , "AppSettings.json");
+            var appDataDir = Path.GetDirectoryName(Path.GetFullPath(snapshotBasePath)) ?? snapshotBasePath;
+            var settingsPath = Path.Combine(appDataDir, "AppSettings.json");
             services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(settingsPath));
 
             // 注册学生数据集仓储（全局单例）
@@ -90,7 +91,7 @@ namespace A_Pair.Application.Services
             services.AddSingleton<StrategyManifestProvider>();
 
             // 注册策略运行时配置仓储（per-file，全局单例）
-            var strategyConfigDir = Path.Combine(snapshotBasePath , ".." , "StrategyConfig");
+            var strategyConfigDir = Path.Combine(appDataDir, "StrategyConfig");
             services.AddSingleton(sp => new StrategyConfigFileRepository(
                 strategyConfigDir, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 

@@ -30,8 +30,11 @@ public class SeatingWorkspace : IPluginWorkspace
             /// <summary>座位安排生效日期。</summary>
             public DateTime EffectiveDate { get; set; } = DateTime.UtcNow;
 
-            /// <summary>用于策略间共享的元数据字典。</summary>
-            public Dictionary<string , object> Metadata { get; set; } = [];
+            /// <summary>
+            /// 策略间共享的后备元数据字典。常用键应提取为 <see cref="SeatingContext"/> 的强类型属性，
+            /// 此字典仅用于未规划的动态场景。
+            /// </summary>
+            public Dictionary<string, object> Metadata { get; set; } = [];
         }
 
         /// <summary>

@@ -88,10 +88,17 @@ public class ImageSeatingExporter : ISeatingPlanExporter
             y += rowH;
         }
 
-        using var image = SKImage.FromBitmap(bitmap);
-        using var data = image.Encode(SKEncodedImageFormat.Png , 90);
-        using var stream = System.IO.File.OpenWrite(path);
-        data.SaveTo(stream);
+        try
+        {
+            using var image = SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 90);
+            using var stream = File.OpenWrite(path);
+            data.SaveTo(stream);
+        }
+        catch (IOException ex)
+        {
+            throw new IOException($"无法写入图片文件，文件可能正在被其他程序占用: {path}", ex);
+        }
 
         return Task.CompletedTask;
     }

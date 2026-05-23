@@ -42,16 +42,13 @@ namespace A_Pair.Infrastructure.Serialization
         {
             writer.WriteStartObject();
 
-            // 1. 手动写入 Type 字段（用字符串形式，Read 方法已兼容两种格式）
             writer.WriteString("Type" , value.Type.ToString());
 
-            // 2. 写入其余属性（通过反射或直接按具体类型序列化后合并）
-            // 最简单的方法：序列化整个对象到一个临时文档，然后复制其属性（除 Type 外）
-            var tempJson = JsonSerializer.Serialize(value , value.GetType() , options);
-            using var tempDoc = JsonDocument.Parse(tempJson);
-            foreach (var prop in tempDoc.RootElement.EnumerateObject())
+            // 使用 SerializeToElement 直接序列化为 JsonElement，避免字符串往返
+            var tempElement = JsonSerializer.SerializeToElement(value, value.GetType(), options);
+            foreach (var prop in tempElement.EnumerateObject())
             {
-                if (prop.Name == "Type") continue; // 已手动写入
+                if (prop.Name == "Type") continue;
                 prop.WriteTo(writer);
             }
 
