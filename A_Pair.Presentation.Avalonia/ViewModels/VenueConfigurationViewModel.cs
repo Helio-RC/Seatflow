@@ -11,6 +11,8 @@ using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -18,6 +20,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly INavigationService _navigation;
+    private readonly ILogger<VenueConfigurationViewModel> _logger;
 
     public string Title { get; } = "会场配置";
 
@@ -151,10 +154,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private double _canvasHeight = 600;
     [ObservableProperty] private string _statusMessage = string.Empty;
 
-    public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation)
+    public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation, ILogger<VenueConfigurationViewModel>? logger = null)
     {
         _facade = facade;
         _navigation = navigation;
+        _logger = logger ?? NullLogger<VenueConfigurationViewModel>.Instance;
         _ = LoadVenueList();
         RegenerateAisleOptions();
     }

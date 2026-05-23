@@ -4,6 +4,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.Services;
 
@@ -16,23 +18,25 @@ public sealed class WatchdogService : IDisposable
     private readonly CancellationTokenSource _cts = new();
     private long _heartbeatTicks;
     private Task? _watchTask;
+    private readonly ILogger<WatchdogService> _logger;
     private static IDialogService? _dialog;
 
     public static void SetDialogService (IDialogService dialog) => _dialog = dialog;
 
-    public WatchdogService (int timeoutSeconds = 45)
+    public WatchdogService (int timeoutSeconds = 45, ILogger<WatchdogService>? logger = null)
     {
         _timeoutSeconds = timeoutSeconds;
         _heartbeatTicks = DateTime.UtcNow.Ticks;
+        _logger = logger ?? NullLogger<WatchdogService>.Instance;
     }
 
     /// <summary>启动看门狗（后台线程）。</summary>
     public void Start ()
     {
+        _logger.LogInformation("看门狗已启动（超时阈值 {Timeout}s）", _timeoutSeconds);
         _watchTask = Task.Run(WatchLoop);
     }
 
-    /// <summary>UI 线程定期调用此方法更新心跳。</summary>
     public void Ping ()
     {
         _heartbeatTicks = DateTime.UtcNow.Ticks;
@@ -54,6 +58,7 @@ public sealed class WatchdogService : IDisposable
             var elapsed = DateTime.UtcNow.Ticks - Interlocked.Read(ref _heartbeatTicks);
             if (new TimeSpan(elapsed).TotalSeconds >= _timeoutSeconds)
             {
+                _logger.LogWarning("UI 线程超过 {Timeout}s 无响应，触发诊断转储", _timeoutSeconds);
                 await DumpAndExit(_timeoutSeconds);
             }
         }

@@ -15,6 +15,8 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -22,6 +24,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
+    private readonly ILogger<SeatingArrangementViewModel> _logger;
 
     // ── 内部状态 ──
     private SeatingWorkspace? _workspace;
@@ -132,10 +135,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     private string _swapHintText = string.Empty;
 
-    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService)
+    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, ILogger<SeatingArrangementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
+        _logger = logger ?? NullLogger<SeatingArrangementViewModel>.Instance;
         _ = LoadInitialDataAsync();
     }
 

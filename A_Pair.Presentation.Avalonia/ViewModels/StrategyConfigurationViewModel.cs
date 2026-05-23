@@ -8,12 +8,15 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
 public partial class StrategyConfigurationViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
+    private readonly ILogger<StrategyConfigurationViewModel> _logger;
 
     // ═══════════════ 侧栏列表 ═══════════════
 
@@ -135,9 +138,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     // ═══════════════ 构造函数 ═══════════════
 
-    public StrategyConfigurationViewModel (IApplicationFacade facade)
+    public StrategyConfigurationViewModel (IApplicationFacade facade, ILogger<StrategyConfigurationViewModel>? logger = null)
     {
         _facade = facade;
+        _logger = logger ?? NullLogger<StrategyConfigurationViewModel>.Instance;
         _selectedDetail = new();
         _ = LoadAsync(CancellationToken.None);
     }

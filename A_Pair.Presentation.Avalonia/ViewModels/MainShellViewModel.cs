@@ -5,12 +5,15 @@ using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
 public partial class MainShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
+    private readonly ILogger<MainShellViewModel> _logger;
 
     [ObservableProperty]
     private ViewModelBase _currentViewModel = default!;
@@ -49,9 +52,10 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>内容切换后延迟显示进度条。</summary>
     private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
 
-    public MainShellViewModel (INavigationService navigation)
+    public MainShellViewModel (INavigationService navigation, ILogger<MainShellViewModel>? logger = null)
     {
         _navigation = navigation;
+        _logger = logger ?? NullLogger<MainShellViewModel>.Instance;
         _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;

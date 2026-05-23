@@ -12,6 +12,8 @@ using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
@@ -20,6 +22,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
+    private readonly ILogger<SettingsViewModel> _logger;
 
     // ---- 外观 ----
 
@@ -72,10 +75,11 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSaving;
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog, ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
+        _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
 

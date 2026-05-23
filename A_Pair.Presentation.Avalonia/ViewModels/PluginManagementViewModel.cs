@@ -7,16 +7,20 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
 public partial class PluginManagementViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
+    private readonly ILogger<PluginManagementViewModel> _logger;
 
-    public PluginManagementViewModel (IApplicationFacade facade)
+    public PluginManagementViewModel (IApplicationFacade facade, ILogger<PluginManagementViewModel>? logger = null)
     {
         _facade = facade;
+        _logger = logger ?? NullLogger<PluginManagementViewModel>.Instance;
     }
 
     /// <summary>页面标题。</summary>

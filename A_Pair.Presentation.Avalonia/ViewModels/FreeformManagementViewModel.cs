@@ -11,6 +11,8 @@ using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -18,6 +20,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
+    private readonly ILogger<FreeformManagementViewModel> _logger;
 
     public string Title { get; } = "自由点管理";
 
@@ -56,10 +59,11 @@ public partial class FreeformManagementViewModel : ViewModelBase
     public static string GetGroupColor (int? groupId)
         => groupId is >= 0 and < 8 ? GroupColors[groupId.Value] : "#4A90D9";
 
-    public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)
+    public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog, ILogger<FreeformManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
+        _logger = logger ?? NullLogger<FreeformManagementViewModel>.Instance;
         _ = LoadSavedLayouts();
     }
 

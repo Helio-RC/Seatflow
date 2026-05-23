@@ -7,6 +7,8 @@ using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -14,6 +16,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly INavigationService _navigation;
+    private readonly ILogger<SnapshotHistoryViewModel> _logger;
 
     public string Title { get; } = "历史快照";
 
@@ -58,10 +61,11 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public bool CanCreateSnapshot => _facade.HasActiveWorkspace;
     public bool CanEnterBatchDelete => HasSnapshots && !IsBatchDeleteMode;
 
-    public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation)
+    public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation, ILogger<SnapshotHistoryViewModel>? logger = null)
     {
         _facade = facade;
         _navigation = navigation;
+        _logger = logger ?? NullLogger<SnapshotHistoryViewModel>.Instance;
         _ = LoadVenuesAsync();
     }
 
