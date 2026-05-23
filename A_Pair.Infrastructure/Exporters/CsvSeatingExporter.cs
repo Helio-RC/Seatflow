@@ -12,7 +12,7 @@ namespace A_Pair.Infrastructure.Exporters
     {
         private readonly ILogger<CsvSeatingExporter> _logger;
 
-        public CsvSeatingExporter(ILogger<CsvSeatingExporter>? logger = null)
+        public CsvSeatingExporter (ILogger<CsvSeatingExporter>? logger = null)
         {
             _logger = logger ?? NullLogger<CsvSeatingExporter>.Instance;
         }
@@ -25,7 +25,7 @@ namespace A_Pair.Infrastructure.Exporters
 
         public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("CSV 座位导出开始：{Path}（{Count} 条记录）", path, plan.Assignments.Count);
+            _logger.LogInformation("CSV 座位导出开始：{Path}（{Count} 条记录）" , path , plan.Assignments.Count);
             var records = plan.Assignments.Select(kv => new SeatAssignmentRecord
             {
                 SeatId = kv.Key ,

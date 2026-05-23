@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using Microsoft.Extensions.Logging;
@@ -18,7 +18,7 @@ namespace A_Pair.Infrastructure.Providers
         private readonly string _filePath;
         private readonly ILogger<JsonAppSettingsRepository> _logger;
 
-        public JsonAppSettingsRepository(string filePath, ILogger<JsonAppSettingsRepository>? logger = null)
+        public JsonAppSettingsRepository (string filePath , ILogger<JsonAppSettingsRepository>? logger = null)
         {
             _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
@@ -34,7 +34,7 @@ namespace A_Pair.Infrastructure.Providers
         {
             if (!File.Exists(_filePath))
             {
-                _logger.LogDebug("AppSettings 文件不存在，使用默认设置：{Path}", _filePath);
+                _logger.LogDebug("AppSettings 文件不存在，使用默认设置：{Path}" , _filePath);
                 return new AppSettings();
             }
 
@@ -42,10 +42,10 @@ namespace A_Pair.Infrastructure.Providers
             var settings = JsonSerializer.Deserialize<AppSettings>(json);
             if (settings is null)
             {
-                _logger.LogWarning("AppSettings 反序列化结果为 null：{Path}", _filePath);
+                _logger.LogWarning("AppSettings 反序列化结果为 null：{Path}" , _filePath);
                 return new AppSettings();
             }
-            _logger.LogInformation("AppSettings 已加载：{Path}", _filePath);
+            _logger.LogInformation("AppSettings 已加载：{Path}" , _filePath);
             return settings;
         }
 
@@ -59,7 +59,7 @@ namespace A_Pair.Infrastructure.Providers
             var options = new JsonSerializerOptions { WriteIndented = true };
             var json = JsonSerializer.Serialize(settings , options);
             await File.WriteAllTextAsync(_filePath , json , cancellationToken);
-            _logger.LogInformation("AppSettings 已保存：{Path}", _filePath);
+            _logger.LogInformation("AppSettings 已保存：{Path}" , _filePath);
         }
     }
 }

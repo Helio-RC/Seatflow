@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using Avalonia.Controls;
@@ -22,7 +22,7 @@ namespace A_Pair.Presentation.Avalonia
             var fullName = param.GetType().FullName;
             if (fullName is null) return null;
 
-            var name = fullName.Replace("ViewModel", "View", StringComparison.Ordinal);
+            var name = fullName.Replace("ViewModel" , "View" , StringComparison.Ordinal);
             var type = Type.GetType(name);
 
             if (type != null && Activator.CreateInstance(type) is Control control)

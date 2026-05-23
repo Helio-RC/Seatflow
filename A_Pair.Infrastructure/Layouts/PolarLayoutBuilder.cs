@@ -31,8 +31,8 @@ namespace A_Pair.Infrastructure.Layouts
             }
 
             // 构建禁用座位集合（按环 + 角度舍入到 2 位小数匹配）
-            var emptySet = new HashSet<(int Ring, double AngleDegrees)>(
-                (metadata.EmptyPositions ?? []).Select(p => (p.Ring, Math.Round(p.AngleDegrees, 2))));
+            var emptySet = new HashSet<(int Ring , double AngleDegrees)>(
+                (metadata.EmptyPositions ?? []).Select(p => (p.Ring , Math.Round(p.AngleDegrees , 2))));
 
             // 构建段（segments）：将扫描角度范围按径向通道切分
             var segments = BuildSegments(metadata);
@@ -71,7 +71,7 @@ namespace A_Pair.Infrastructure.Layouts
                         // 规范化到 [0, 360)
                         angle = ((angle % 360) + 360) % 360;
 
-                        if (emptySet.Contains((ringNum, Math.Round(angle, 2))))
+                        if (emptySet.Contains((ringNum , Math.Round(angle , 2))))
                             continue;
 
                         layout.Seats.Add(new PolarSeat

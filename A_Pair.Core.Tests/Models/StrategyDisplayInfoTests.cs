@@ -1,5 +1,3 @@
-using A_Pair.Core.Models;
-
 namespace A_Pair.Core.Tests.Models;
 
 public class StrategyDisplayInfoTests
@@ -7,7 +5,7 @@ public class StrategyDisplayInfoTests
     [Fact]
     public void Default_IsBuiltIn ()
     {
-        var d = new StrategyDisplayInfo { Source = "builtin", IsEnabled = true, DefaultEnabled = true };
+        var d = new StrategyDisplayInfo { Source = "builtin" , IsEnabled = true , DefaultEnabled = true };
         d.IsBuiltIn.Should().BeTrue();
         d.IsModified.Should().BeFalse();
     }
@@ -17,7 +15,7 @@ public class StrategyDisplayInfoTests
     {
         var d = new StrategyDisplayInfo
         {
-            DefaultPriority = 10,
+            DefaultPriority = 10 ,
             Priority = 20
         };
         d.IsModified.Should().BeTrue();
@@ -28,7 +26,7 @@ public class StrategyDisplayInfoTests
     {
         var d = new StrategyDisplayInfo
         {
-            DefaultEnabled = true,
+            DefaultEnabled = true ,
             IsEnabled = false
         };
         d.IsModified.Should().BeTrue();
@@ -39,9 +37,9 @@ public class StrategyDisplayInfoTests
     {
         var d = new StrategyDisplayInfo
         {
-            DefaultPriority = 10,
-            Priority = 10,
-            DefaultEnabled = true,
+            DefaultPriority = 10 ,
+            Priority = 10 ,
+            DefaultEnabled = true ,
             IsEnabled = true
         };
         d.IsModified.Should().BeFalse();

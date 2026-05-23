@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Infrastructure.Tests.LayoutBuilders;
+namespace A_Pair.Infrastructure.Tests.LayoutBuilders;
 
 public class GridLayoutBuilderTests
 {
@@ -35,10 +35,10 @@ public class GridLayoutBuilderTests
     {
         var meta = new GridLayoutMetadata
         {
-            Rows = 10,
-            Columns = 3,
-            SeatsPerDesk = 1,
-            ColumnRowCounts = new List<int> { 3, 2, 1 }
+            Rows = 10 ,
+            Columns = 3 ,
+            SeatsPerDesk = 1 ,
+            ColumnRowCounts = new List<int> { 3 , 2 , 1 }
         };
         var layout = GridLayoutBuilder.BuildGrid(meta);
         layout.Seats.Count.Should().Be(6); // 3+2+1
@@ -53,9 +53,9 @@ public class GridLayoutBuilderTests
     {
         var meta = new GridLayoutMetadata
         {
-            Rows = 3,
-            Columns = 3,
-            SeatsPerDesk = 1,
+            Rows = 3 ,
+            Columns = 3 ,
+            SeatsPerDesk = 1 ,
             EmptyPositions = new List<GridPosition>
             {
                 new() { Row = 1, Column = 2 },
@@ -73,9 +73,9 @@ public class GridLayoutBuilderTests
     {
         var meta = new GridLayoutMetadata
         {
-            Rows = 4,
-            Columns = 3,
-            SeatsPerDesk = 1,
+            Rows = 4 ,
+            Columns = 3 ,
+            SeatsPerDesk = 1 ,
             ColumnRowCounts = [] // 空列表 -> 回退到 Rows
         };
         var layout = GridLayoutBuilder.BuildGrid(meta);

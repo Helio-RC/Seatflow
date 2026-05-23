@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -154,7 +154,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty] private double _canvasHeight = 600;
     [ObservableProperty] private string _statusMessage = string.Empty;
 
-    public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation, ILogger<VenueConfigurationViewModel>? logger = null)
+    public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation , ILogger<VenueConfigurationViewModel>? logger = null)
     {
         _facade = facade;
         _navigation = navigation;
@@ -704,7 +704,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             PodiumHeight = GridPodiumHeight ,
             ColumnRowCounts = ParseIntList(GridColumnRowCountsSpec) ,
             EmptyPositions = FilterGridEmptyPositions(
-                ParseGridEmptyPositions(GridEmptyPositionsSpec), GridColumns, GridRows,
+                ParseGridEmptyPositions(GridEmptyPositionsSpec) , GridColumns , GridRows ,
                 ParseIntList(GridColumnRowCountsSpec))
         };
     }
@@ -729,8 +729,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             AisleCircularWidth = PolarAisleCircularWidth ,
             FrontRowCount = PolarFrontRowCount ,
             EmptyPositions = FilterPolarEmptyPositions(
-                ParsePolarEmptyPositions(PolarEmptyPositionsSpec),
-                ParseIntList(PolarRingSeatCountsSpec), PolarRings)
+                ParsePolarEmptyPositions(PolarEmptyPositionsSpec) ,
+                ParseIntList(PolarRingSeatCountsSpec) , PolarRings)
         };
     }
 

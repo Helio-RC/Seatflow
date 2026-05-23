@@ -18,7 +18,7 @@ namespace A_Pair.Core.Strategies
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public DeskMateConfiguration Config => _config;
 
-        public DeskMateStrategy (DeskMateConfiguration config, ILogger<DeskMateStrategy>? logger = null)
+        public DeskMateStrategy (DeskMateConfiguration config , ILogger<DeskMateStrategy>? logger = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? NullLogger<DeskMateStrategy>.Instance;
@@ -48,8 +48,8 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
-            _logger.LogInformation("DeskMate 策略开始执行：学生 {StudentCount} 人，座位 {SeatCount} 个",
-                workspace.Students.Count, workspace.GetEmptySeats().Count());
+            _logger.LogInformation("DeskMate 策略开始执行：学生 {StudentCount} 人，座位 {SeatCount} 个" ,
+                workspace.Students.Count , workspace.GetEmptySeats().Count());
 
             // 获取所有未分配的学生ID
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
@@ -135,8 +135,8 @@ namespace A_Pair.Core.Strategies
             }
 
             var remaining = workspace.GetEmptySeats().Count();
-            _logger.LogInformation("DeskMate 策略完成：处理了 {GroupCount} 个同桌组，剩余 {Remaining} 个空座位",
-                validGroups.Count, remaining);
+            _logger.LogInformation("DeskMate 策略完成：处理了 {GroupCount} 个同桌组，剩余 {Remaining} 个空座位" ,
+                validGroups.Count , remaining);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 
@@ -309,13 +309,13 @@ namespace A_Pair.Core.Strategies
                 if (sameRing)
                 {
                     double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
-                    double angleDiff = Math.Min(raw, 360.0 - raw);
+                    double angleDiff = Math.Min(raw , 360.0 - raw);
                     if (angleDiff <= 45.0) return true;
                 }
                 else
                 {
                     double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
-                    double angleDiff = Math.Min(raw, 360.0 - raw);
+                    double angleDiff = Math.Min(raw , 360.0 - raw);
                     if (angleDiff < angleTolerance)
                         return true;
                 }

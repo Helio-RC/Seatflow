@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Tests.Strategies;
+namespace A_Pair.Core.Tests.Strategies;
 
 public class DeskMateStrategyTests
 {

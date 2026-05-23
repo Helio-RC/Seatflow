@@ -20,7 +20,7 @@ public abstract class PluginStrategyBase : PluginBase, IPluginSeatingStrategy
     /// 初始化基类，从 <see cref="PluginAttribute"/> 读取策略相关配置。
     /// 复用 <see cref="PluginBase"/> 已反射的特性，避免重复反射。
     /// </summary>
-    protected PluginStrategyBase()
+    protected PluginStrategyBase ()
     {
         var attr = ResolvedAttribute;
         if (attr is not null)
@@ -42,7 +42,7 @@ public abstract class PluginStrategyBase : PluginBase, IPluginSeatingStrategy
     public bool IsEnabled { get; set; }
 
     /// <inheritdoc />
-    public abstract Task<PluginStrategyResult> ExecuteAsync(
-        IPluginWorkspace workspace,
+    public abstract Task<PluginStrategyResult> ExecuteAsync (
+        IPluginWorkspace workspace ,
         CancellationToken cancellationToken);
 }

@@ -1,4 +1,4 @@
-﻿using A_Pair.Core.Exporters;
+using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
 using A_Pair.Infrastructure.Providers;
@@ -30,7 +30,7 @@ public class ApplicationFacadeTests
         venueRepo = Substitute.For<IVenueRepository>();
         datasetRepo = Substitute.For<IStudentDatasetRepository>();
         manifestProvider = Substitute.For<StrategyManifestProvider>();
-        strategyConfigRepo = Substitute.For<StrategyConfigFileRepository>("/tmp/dummy_config_dir",
+        strategyConfigRepo = Substitute.For<StrategyConfigFileRepository>("/tmp/dummy_config_dir" ,
             Substitute.For<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>());
         logger = Substitute.For<ILogger<ApplicationFacade>>();
 
@@ -110,7 +110,7 @@ public class ApplicationFacadeTests
             LayoutType = LayoutType.Grid ,
             Seats = [new GridSeat { Id = "seat1" } , new GridSeat { Id = "seat2" }]
         };
-        venueRepo.LoadAsync("test-venue", Arg.Any<CancellationToken>()).Returns(layout);
+        venueRepo.LoadAsync("test-venue" , Arg.Any<CancellationToken>()).Returns(layout);
 
         // 设置数据集仓库返回空（无匹配真实学生，使用存根）
         dr.ListAsync(Arg.Any<CancellationToken>()).Returns([]);
@@ -121,11 +121,11 @@ public class ApplicationFacadeTests
             LayoutId = "test-venue" ,
             SeatAssignments = new Dictionary<string , string> { { "seat1" , "s1" } , { "seat2" , "s2" } }
         };
-        snapRepo.LoadAsync(snapshot.Id, Arg.Any<CancellationToken>()).Returns(snapshot);
+        snapRepo.LoadAsync(snapshot.Id , Arg.Any<CancellationToken>()).Returns(snapshot);
 
         await facade.RollbackToSnapshotAsync(snapshot.Id , CancellationToken.None);
 
-        var workspace = await facade.GetCurrentWorkspaceAsync();
+        var workspace = await facade.GetCurrentWorkspaceAsync(TestContext.Current.CancellationToken);
         workspace.Should().NotBeNull();
         workspace!.FindSeats(s => s.Id == "seat1").First().OccupantId.Should().Be("s1");
         workspace.FindSeats(s => s.Id == "seat2").First().OccupantId.Should().Be("s2");

@@ -9,41 +9,41 @@ public class LayoutSeatingExportModel
     public LayoutType LayoutType { get; set; }
     public List<ExportRow> Rows { get; set; } = [];
 
-    public static LayoutSeatingExportModel FromLayout(
-        ClassroomLayoutDefinition layout,
-        Dictionary<string, string> assignments,
-        Dictionary<string, string> studentNames)
+    public static LayoutSeatingExportModel FromLayout (
+        ClassroomLayoutDefinition layout ,
+        Dictionary<string , string> assignments ,
+        Dictionary<string , string> studentNames)
     {
         return layout.LayoutType switch
         {
-            LayoutType.Grid => BuildGrid(layout, assignments, studentNames),
-            LayoutType.Polar => BuildPolar(layout, assignments, studentNames),
-            _ => BuildFreeform(layout, assignments, studentNames)
+            LayoutType.Grid => BuildGrid(layout , assignments , studentNames),
+            LayoutType.Polar => BuildPolar(layout , assignments , studentNames),
+            _ => BuildFreeform(layout , assignments , studentNames)
         };
     }
 
-    private static LayoutSeatingExportModel BuildGrid(
-        ClassroomLayoutDefinition layout,
-        Dictionary<string, string> assignments,
-        Dictionary<string, string> studentNames)
+    private static LayoutSeatingExportModel BuildGrid (
+        ClassroomLayoutDefinition layout ,
+        Dictionary<string , string> assignments ,
+        Dictionary<string , string> studentNames)
     {
-        var model = new LayoutSeatingExportModel { LayoutName = layout.Name, LayoutType = LayoutType.Grid };
+        var model = new LayoutSeatingExportModel { LayoutName = layout.Name , LayoutType = LayoutType.Grid };
         if (layout.Metadata is not GridLayoutMetadata meta) return model;
 
         var seatMap = layout.Seats.OfType<GridSeat>()
-            .ToDictionary(s => (s.Row, s.Column), s => s);
+            .ToDictionary(s => (s.Row , s.Column) , s => s);
         var aisleColSet = new HashSet<int>(meta.AisleAfterColumns);
         var aisleRowSet = new HashSet<int>(meta.AisleAfterRows);
-        var emptyPos = new HashSet<(int, int)>(
-            meta.EmptyPositions.Select(p => (p.Row, p.Column)));
+        var emptyPos = new HashSet<(int , int)>(
+            meta.EmptyPositions.Select(p => (p.Row , p.Column)));
 
         // 构建列计划: 每个槽位是 (列号, 是否过道)
-        var colPlan = new List<(int? Col, bool IsAisle)>();
+        var colPlan = new List<(int? Col , bool IsAisle)>();
         for (int c = 1; c <= meta.Columns; c++)
         {
-            colPlan.Add((c, false));
+            colPlan.Add((c , false));
             if (aisleColSet.Contains(c))
-                colPlan.Add((null, true));
+                colPlan.Add((null , true));
         }
 
         // 讲台行（居中）
@@ -54,7 +54,7 @@ public class LayoutSeatingExportModel
             for (int i = 0; i < colPlan.Count; i++)
             {
                 if (i == mid)
-                    podiumRow.Cells.Add(new ExportCell { IsPodium = true, Text = "讲台" });
+                    podiumRow.Cells.Add(new ExportCell { IsPodium = true , Text = "讲台" });
                 else
                     podiumRow.Cells.Add(new ExportCell { Text = "" });
             }
@@ -68,22 +68,22 @@ public class LayoutSeatingExportModel
         for (int r = 1; r <= maxRows; r++)
         {
             var row = new ExportRow();
-            foreach (var (col, isAisle) in colPlan)
+            foreach (var (col , isAisle) in colPlan)
             {
                 if (isAisle)
                 {
-                    row.Cells.Add(new ExportCell { IsAisle = true, Text = "" });
+                    row.Cells.Add(new ExportCell { IsAisle = true , Text = "" });
                 }
-                else if (col.HasValue && emptyPos.Contains((r, col.Value)))
+                else if (col.HasValue && emptyPos.Contains((r , col.Value)))
                 {
                     row.Cells.Add(new ExportCell { Text = "" });
                 }
-                else if (col.HasValue && seatMap.TryGetValue((r, col.Value), out var seat))
+                else if (col.HasValue && seatMap.TryGetValue((r , col.Value) , out var seat))
                 {
                     string? studentName = null;
                     bool isUnassigned = true;
-                    if (assignments.TryGetValue(seat.Id, out var sid) &&
-                        studentNames.TryGetValue(sid, out var name))
+                    if (assignments.TryGetValue(seat.Id , out var sid) &&
+                        studentNames.TryGetValue(sid , out var name))
                     {
                         studentName = name;
                         isUnassigned = false;
@@ -91,8 +91,8 @@ public class LayoutSeatingExportModel
 
                     row.Cells.Add(new ExportCell
                     {
-                        IsSeat = true,
-                        IsUnassigned = isUnassigned,
+                        IsSeat = true ,
+                        IsUnassigned = isUnassigned ,
                         Text = studentName ?? "未分配"
                     });
                 }
@@ -108,7 +108,7 @@ public class LayoutSeatingExportModel
             {
                 var aisleRow = new ExportRow();
                 for (int i = 0; i < colPlan.Count; i++)
-                    aisleRow.Cells.Add(new ExportCell { IsAisle = true, Text = "" });
+                    aisleRow.Cells.Add(new ExportCell { IsAisle = true , Text = "" });
                 model.Rows.Add(aisleRow);
             }
         }
@@ -126,12 +126,12 @@ public class LayoutSeatingExportModel
         return model;
     }
 
-    private static LayoutSeatingExportModel BuildPolar(
-        ClassroomLayoutDefinition layout,
-        Dictionary<string, string> assignments,
-        Dictionary<string, string> studentNames)
+    private static LayoutSeatingExportModel BuildPolar (
+        ClassroomLayoutDefinition layout ,
+        Dictionary<string , string> assignments ,
+        Dictionary<string , string> studentNames)
     {
-        var model = new LayoutSeatingExportModel { LayoutName = layout.Name, LayoutType = LayoutType.Polar };
+        var model = new LayoutSeatingExportModel { LayoutName = layout.Name , LayoutType = LayoutType.Polar };
         if (layout.Metadata is not PolarLayoutMetadata meta) return model;
 
         var polarSeats = layout.Seats.OfType<PolarSeat>().ToList();
@@ -139,7 +139,7 @@ public class LayoutSeatingExportModel
 
         if (rings.Count == 0) return model;
 
-        int maxRingSeats = Math.Min(rings.Max(g => g.Count()), 30);
+        int maxRingSeats = Math.Min(rings.Max(g => g.Count()) , 30);
 
         // 讲台行（居中）
         if (meta.HasPodium && meta.PodiumRadius > 0)
@@ -148,7 +148,7 @@ public class LayoutSeatingExportModel
             int padBefore = (maxRingSeats - 1) / 2;
             for (int i = 0; i < padBefore; i++)
                 podiumRow.Cells.Add(new ExportCell { Text = "" });
-            podiumRow.Cells.Add(new ExportCell { IsPodium = true, Text = "讲台" });
+            podiumRow.Cells.Add(new ExportCell { IsPodium = true , Text = "讲台" });
             while (podiumRow.Cells.Count < maxRingSeats)
                 podiumRow.Cells.Add(new ExportCell { Text = "" });
             model.Rows.Add(podiumRow);
@@ -159,7 +159,7 @@ public class LayoutSeatingExportModel
         {
             var row = new ExportRow();
             var seatsInRing = ringGroup.OrderBy(s => s.AngleDegrees).ToList();
-            int ringSeatCount = Math.Min(seatsInRing.Count, maxRingSeats);
+            int ringSeatCount = Math.Min(seatsInRing.Count , maxRingSeats);
 
             int padding = (maxRingSeats - ringSeatCount) / 2;
             for (int i = 0; i < padding; i++)
@@ -169,8 +169,8 @@ public class LayoutSeatingExportModel
             {
                 string? studentName = null;
                 bool isUnassigned = true;
-                if (assignments.TryGetValue(seat.Id, out var sid) &&
-                    studentNames.TryGetValue(sid, out var name))
+                if (assignments.TryGetValue(seat.Id , out var sid) &&
+                    studentNames.TryGetValue(sid , out var name))
                 {
                     studentName = name;
                     isUnassigned = false;
@@ -178,8 +178,8 @@ public class LayoutSeatingExportModel
 
                 row.Cells.Add(new ExportCell
                 {
-                    IsSeat = true,
-                    IsUnassigned = isUnassigned,
+                    IsSeat = true ,
+                    IsUnassigned = isUnassigned ,
                     Text = studentName ?? "未分配"
                 });
             }
@@ -206,12 +206,12 @@ public class LayoutSeatingExportModel
         return model;
     }
 
-    private static LayoutSeatingExportModel BuildFreeform(
-        ClassroomLayoutDefinition layout,
-        Dictionary<string, string> assignments,
-        Dictionary<string, string> studentNames)
+    private static LayoutSeatingExportModel BuildFreeform (
+        ClassroomLayoutDefinition layout ,
+        Dictionary<string , string> assignments ,
+        Dictionary<string , string> studentNames)
     {
-        var model = new LayoutSeatingExportModel { LayoutName = layout.Name, LayoutType = LayoutType.Freeform };
+        var model = new LayoutSeatingExportModel { LayoutName = layout.Name , LayoutType = LayoutType.Freeform };
         var freeSeats = layout.Seats.OfType<FreeformSeat>().ToList();
 
         int idx = 0;
@@ -220,15 +220,15 @@ public class LayoutSeatingExportModel
             idx++;
             string? studentName = null;
             bool isUnassigned = true;
-            if (assignments.TryGetValue(seat.Id, out var sid) &&
-                studentNames.TryGetValue(sid, out var name))
+            if (assignments.TryGetValue(seat.Id , out var sid) &&
+                studentNames.TryGetValue(sid , out var name))
             {
                 studentName = name;
                 isUnassigned = false;
             }
 
             var row = new ExportRow();
-            row.Cells.Add(new ExportCell { IsSeat = true, IsUnassigned = isUnassigned, Text = studentName ?? "未分配" });
+            row.Cells.Add(new ExportCell { IsSeat = true , IsUnassigned = isUnassigned , Text = studentName ?? "未分配" });
             model.Rows.Add(row);
         }
 

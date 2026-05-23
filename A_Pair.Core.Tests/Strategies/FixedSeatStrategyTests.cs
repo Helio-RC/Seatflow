@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Tests.Strategies;
+namespace A_Pair.Core.Tests.Strategies;
 
 public class FixedSeatStrategyTests
 {
@@ -40,7 +40,7 @@ public class FixedSeatStrategyTests
     {
         var config = new FixedSeatConfiguration
         {
-            FixedAssignments = new Dictionary<string, string> { { "s1", "student1" } }
+            FixedAssignments = new Dictionary<string , string> { { "s1" , "student1" } }
         };
         var strategy = new FixedSeatStrategy(config);
         var result = strategy.ValidateConfiguration();

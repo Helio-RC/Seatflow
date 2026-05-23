@@ -6,7 +6,7 @@ namespace A_Pair.Presentation.Avalonia.Services;
 
 internal static class StartupGuard
 {
-    public static (bool HasWarning, string Message) CheckEnvironment ()
+    public static (bool HasWarning , string Message) CheckEnvironment ()
     {
         var sb = new StringBuilder();
         var major = Environment.Version.Major;
@@ -24,7 +24,7 @@ internal static class StartupGuard
         }
 
         var message = sb.ToString().TrimEnd();
-        return (message.Length > 0, message);
+        return (message.Length > 0 , message);
     }
 
     private static bool IsSupportedOS ()

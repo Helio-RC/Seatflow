@@ -34,7 +34,7 @@ public abstract class PluginBase : IPlugin
     /// <summary>
     /// 初始化基类，通过反射读取 <see cref="PluginAttribute"/>（若存在）。
     /// </summary>
-    protected PluginBase()
+    protected PluginBase ()
     {
         var attr = GetType().GetCustomAttribute<PluginAttribute>(inherit: false);
         ResolvedAttribute = attr;

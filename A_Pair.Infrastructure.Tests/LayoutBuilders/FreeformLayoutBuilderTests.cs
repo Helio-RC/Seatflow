@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Infrastructure.Tests.LayoutBuilders;
+namespace A_Pair.Infrastructure.Tests.LayoutBuilders;
 
 public class FreeformLayoutBuilderTests
 {

@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Application.Tests.Plugins;
+namespace A_Pair.Application.Tests.Plugins;
 
 public class PluginConfigurationServiceTests : IDisposable
 {

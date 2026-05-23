@@ -15,46 +15,46 @@ public class SwapSeatCommand : IUndoableCommand
 {
     public string Id { get; } = Guid.NewGuid().ToString();
 
-    private readonly (string SeatId, string? StudentId) _seatA;
-    private readonly (string SeatId, string? StudentId) _seatB;
+    private readonly (string SeatId , string? StudentId) _seatA;
+    private readonly (string SeatId , string? StudentId) _seatB;
 
     /// <param name="seatA">源座位（SeatId, StudentId，StudentId为null表示空位）。</param>
     /// <param name="seatB">目标座位。</param>
-    public SwapSeatCommand(
-        (string SeatId, string? StudentId) seatA,
-        (string SeatId, string? StudentId) seatB)
+    public SwapSeatCommand (
+        (string SeatId , string? StudentId) seatA ,
+        (string SeatId , string? StudentId) seatB)
     {
         _seatA = seatA;
         _seatB = seatB;
     }
 
     /// <inheritdoc />
-    public Task<bool> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken = default)
+    public Task<bool> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)
     {
         if (!TryClearBoth(workspace)) return Task.FromResult(false);
 
         if (_seatA.StudentId != null)
-            workspace.TryAssignSeat(_seatB.SeatId, _seatA.StudentId, out _);
+            workspace.TryAssignSeat(_seatB.SeatId , _seatA.StudentId , out _);
         if (_seatB.StudentId != null)
-            workspace.TryAssignSeat(_seatA.SeatId, _seatB.StudentId, out _);
+            workspace.TryAssignSeat(_seatA.SeatId , _seatB.StudentId , out _);
 
         return Task.FromResult(true);
     }
 
     /// <inheritdoc />
-    public Task<bool> UndoAsync(SeatingWorkspace workspace, CancellationToken cancellationToken = default)
+    public Task<bool> UndoAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)
     {
         if (!TryClearBoth(workspace)) return Task.FromResult(false);
 
         if (_seatA.StudentId != null)
-            workspace.TryAssignSeat(_seatA.SeatId, _seatA.StudentId, out _);
+            workspace.TryAssignSeat(_seatA.SeatId , _seatA.StudentId , out _);
         if (_seatB.StudentId != null)
-            workspace.TryAssignSeat(_seatB.SeatId, _seatB.StudentId, out _);
+            workspace.TryAssignSeat(_seatB.SeatId , _seatB.StudentId , out _);
 
         return Task.FromResult(true);
     }
 
-    private bool TryClearBoth(SeatingWorkspace workspace)
+    private bool TryClearBoth (SeatingWorkspace workspace)
     {
         var seatA = workspace.FindSeats(s => s.Id == _seatA.SeatId).FirstOrDefault();
         var seatB = workspace.FindSeats(s => s.Id == _seatB.SeatId).FirstOrDefault();

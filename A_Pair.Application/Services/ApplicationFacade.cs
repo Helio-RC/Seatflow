@@ -1,4 +1,4 @@
-﻿using A_Pair.Application.Commands;
+using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Contracts.Interfaces;
@@ -153,7 +153,7 @@ namespace A_Pair.Application.Services
             _currentWorkspace = workspace;
 
             // 4. 获取内置策略
-            var strategies = (_cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList());
+            var strategies = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
 
             // 5. 加载插件策略并适配
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(cancellationToken);
@@ -209,16 +209,16 @@ namespace A_Pair.Application.Services
                 LayoutId = request.LayoutId ?? "unknown" ,
                 SeatAssignments = plan.Assignments
             };
-            await _snapshotRepository.SaveAsync(snapshot, cancellationToken);
+            await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
 
             // 9b. 保存会场摘要到快照目录
             if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
             {
-                await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId, new VenueSnapshotInfo
+                await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId , new VenueSnapshotInfo
                 {
-                    Name = venueLayout.Name,
-                    LayoutType = venueLayout.LayoutType,
-                    SeatCount = venueLayout.Seats.Count(s => s.IsAvailable),
+                    Name = venueLayout.Name ,
+                    LayoutType = venueLayout.LayoutType ,
+                    SeatCount = venueLayout.Seats.Count(s => s.IsAvailable) ,
                     ObstacleCount = venueLayout.Obstacles.Count
                 });
             }
@@ -248,14 +248,14 @@ namespace A_Pair.Application.Services
             if (layout != null)
             {
                 var assignments = workspace.BuildSeatingPlan().Assignments;
-                var studentNames = workspace.Students.ToDictionary(s => s.Id, s => s.Name);
-                var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames);
-                await exporter.ExportLayoutAsync(model, path, options, cancellationToken);
+                var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
+                var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
+                await exporter.ExportLayoutAsync(model , path , options , cancellationToken);
             }
             else
             {
                 var plan = workspace.BuildSeatingPlan();
-                await exporter.ExportAsync(plan, path, options, cancellationToken);
+                await exporter.ExportAsync(plan , path , options , cancellationToken);
             }
         }
 
@@ -292,12 +292,12 @@ namespace A_Pair.Application.Services
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照
-            return await _snapshotRepository.ListByVenueAsync(venueId, cancellationToken);
+            return await _snapshotRepository.ListByVenueAsync(venueId , cancellationToken);
         }
 
         /// <inheritdoc />
         public async Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
-            => await _snapshotRepository.DeleteAsync(snapshotId, cancellationToken);
+            => await _snapshotRepository.DeleteAsync(snapshotId , cancellationToken);
 
         /// <inheritdoc />
         public bool HasActiveWorkspace => _currentWorkspace != null;
@@ -314,14 +314,14 @@ namespace A_Pair.Application.Services
                 LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
                 SeatAssignments = plan.Assignments
             };
-            await _snapshotRepository.SaveAsync(snapshot, cancellationToken);
+            await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
             return snapshot;
         }
 
         /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
-            var snapshot = await _snapshotRepository.LoadAsync(snapshotId, cancellationToken) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
+            var snapshot = await _snapshotRepository.LoadAsync(snapshotId , cancellationToken) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
 
             // 回滚前自动保存当前状态为备份快照，确保可撤销
             if (_currentWorkspace != null)
@@ -411,7 +411,7 @@ namespace A_Pair.Application.Services
 
             // 收集内置策略（Manifest + 运行时实例配置）
             var builtInManifests = _manifestProvider.GetBuiltInManifests();
-            var builtInInstances = (_cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList());
+            var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
             foreach (var manifest in builtInManifests)
             {
                 var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
@@ -443,22 +443,22 @@ namespace A_Pair.Application.Services
             }
 
             var sorted = result.OrderBy(d => d.Priority).ToList();
-            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，共 {Total} 个",
-                builtInManifests.Count, loadedPlugins.Count(), sorted.Count);
+            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，共 {Total} 个" ,
+                builtInManifests.Count , loadedPlugins.Count() , sorted.Count);
             return sorted;
         }
 
         /// <inheritdoc />
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
-            logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}",
-                strategyId, config.Priority, config.IsEnabled);
+            logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}" ,
+                strategyId , config.Priority , config.IsEnabled);
 
             // 持久化到文件
             await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
 
             // 更新运行时内置策略实例
-            var builtInInstances = (_cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList());
+            var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
             {
@@ -748,8 +748,8 @@ namespace A_Pair.Application.Services
             if (!string.IsNullOrEmpty(manifest.ScriptFile))
                 return manifest.ScriptType?.ToLowerInvariant() switch
                 {
-                    "lua" => "lua" ,
-                    "csharp" => "csharp" ,
+                    "lua" => "lua",
+                    "csharp" => "csharp",
                     _ => "script"
                 };
             if (!string.IsNullOrEmpty(manifest.Assembly))

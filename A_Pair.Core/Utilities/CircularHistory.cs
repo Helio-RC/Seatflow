@@ -19,7 +19,7 @@ public class CircularHistory<T> : IEnumerable<T>
     /// </summary>
     /// <param name="capacity">容量，必须大于 0。</param>
     /// <exception cref="ArgumentOutOfRangeException">容量小于等于 0 时抛出。</exception>
-    public CircularHistory(int capacity)
+    public CircularHistory (int capacity)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
         _buffer = new T[capacity];
@@ -28,7 +28,7 @@ public class CircularHistory<T> : IEnumerable<T>
     /// <summary>
     /// 添加一个元素到缓冲区。如果已满，覆盖最旧的元素。
     /// </summary>
-    public void Add(T item)
+    public void Add (T item)
     {
         _buffer[_index] = item;
         _index = (_index + 1) % _buffer.Length;
@@ -38,13 +38,13 @@ public class CircularHistory<T> : IEnumerable<T>
     /// <summary>
     /// 获取所有历史记录，按从旧到新的顺序排列。
     /// </summary>
-    public IEnumerable<T> GetAll()
+    public IEnumerable<T> GetAll ()
     {
         return this;
     }
 
     /// <inheritdoc />
-    public IEnumerator<T> GetEnumerator()
+    public IEnumerator<T> GetEnumerator ()
     {
         for (int i = 0; i < _count; i++)
         {
@@ -54,5 +54,5 @@ public class CircularHistory<T> : IEnumerable<T>
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();
 }

@@ -61,7 +61,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public bool CanCreateSnapshot => _facade.HasActiveWorkspace;
     public bool CanEnterBatchDelete => HasSnapshots && !IsBatchDeleteMode;
 
-    public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation, ILogger<SnapshotHistoryViewModel>? logger = null)
+    public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation , ILogger<SnapshotHistoryViewModel>? logger = null)
     {
         _facade = facade;
         _navigation = navigation;
@@ -105,7 +105,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             if (SelectedVenue != null)
                 await LoadSnapshotsAsync();
             StatusMessage = "快照已创建";
-        }, "创建快照失败");
+        } , "创建快照失败");
     }
 
     partial void OnSelectedVenueChanged (VenueItem? value)
@@ -144,7 +144,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             await _facade.RollbackToSnapshotAsync(SelectedSnapshot.Id);
             StatusMessage = $"已回滚到 {SelectedSnapshot.CreatedAt:yyyy-MM-dd HH:mm}";
             await _navigation.NavigateToAsync(PageKey.SeatingArrangement);
-        }, "回滚失败");
+        } , "回滚失败");
     }
 
     [RelayCommand]
@@ -162,13 +162,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             Snapshots.Remove(snapshot);
             SelectedSnapshot = Snapshots.FirstOrDefault();
             StatusMessage = $"已删除，剩余 {Snapshots.Count} 个快照";
-        }, "删除快照失败");
+        } , "删除快照失败");
     }
 
     // ── 批量删除 ──
 
     [RelayCommand]
-    private void EnterBatchDeleteMode()
+    private void EnterBatchDeleteMode ()
     {
         var items = Snapshots.Select(s => new SelectableItem(s)).ToArray();
         CheckableItems = new ObservableCollection<SelectableItem>(items);
@@ -178,7 +178,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ExitBatchDeleteMode()
+    private void ExitBatchDeleteMode ()
     {
         IsBatchDeleteMode = false;
         CheckableItems.Clear();
@@ -186,7 +186,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ConfirmBatchDeleteAsync()
+    private async Task ConfirmBatchDeleteAsync ()
     {
         var selected = CheckableItems.Where(c => c.IsSelected).Select(c => c.Snapshot).ToList();
         if (selected.Count == 0)
@@ -210,17 +210,17 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             SelectedSnapshot = Snapshots.FirstOrDefault();
             StatusMessage = $"已删除 {selected.Count} 个快照，剩余 {Snapshots.Count} 个";
             OnPropertyChanged(nameof(CanEnterBatchDelete));
-        }, "批量删除快照失败");
+        } , "批量删除快照失败");
     }
 
-    partial void OnIsAllSelectedChanged(bool value)
+    partial void OnIsAllSelectedChanged (bool value)
     {
         foreach (var item in CheckableItems)
             item.IsSelected = value;
     }
 }
 
-public partial class SelectableItem(SeatingSnapshot snapshot) : ObservableObject
+public partial class SelectableItem (SeatingSnapshot snapshot) : ObservableObject
 {
     public SeatingSnapshot Snapshot { get; } = snapshot;
 

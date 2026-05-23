@@ -15,7 +15,7 @@ public class JsonStudentProvider : IStudentProvider
 
     private readonly ILogger<JsonStudentProvider> _logger;
 
-    public JsonStudentProvider(ILogger<JsonStudentProvider>? logger = null)
+    public JsonStudentProvider (ILogger<JsonStudentProvider>? logger = null)
     {
         _logger = logger ?? NullLogger<JsonStudentProvider>.Instance;
     }
@@ -28,13 +28,13 @@ public class JsonStudentProvider : IStudentProvider
         {
             await using var stream = File.OpenRead(source);
             var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream , Options , cancellationToken);
-            _logger.LogInformation("JSON 学生数据已加载：{Source}（{Count} 人）",
-                source, roster?.Students.Count ?? 0);
+            _logger.LogInformation("JSON 学生数据已加载：{Source}（{Count} 人）" ,
+                source , roster?.Students.Count ?? 0);
             return roster?.Students ?? [];
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "JSON 学生数据解析失败：{Source}", source);
+            _logger.LogWarning(ex , "JSON 学生数据解析失败：{Source}" , source);
             return [];
         }
     }

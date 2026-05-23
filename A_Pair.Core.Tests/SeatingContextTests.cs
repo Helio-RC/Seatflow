@@ -1,6 +1,3 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
-
 namespace A_Pair.Core.Tests;
 
 public class SeatingContextTests
@@ -33,7 +30,7 @@ public class SeatingContextTests
     [Fact]
     public void CanSetEffectiveDate ()
     {
-        var date = new DateTime(2026, 6, 1);
+        var date = new DateTime(2026 , 6 , 1);
         var ctx = new SeatingWorkspace.SeatingContext { EffectiveDate = date };
         ctx.EffectiveDate.Should().Be(date);
     }

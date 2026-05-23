@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using A_Pair.Core.Models;
 
@@ -45,7 +45,7 @@ namespace A_Pair.Infrastructure.Serialization
             writer.WriteString("Type" , value.Type.ToString());
 
             // 使用 SerializeToElement 直接序列化为 JsonElement，避免字符串往返
-            var tempElement = JsonSerializer.SerializeToElement(value, value.GetType(), options);
+            var tempElement = JsonSerializer.SerializeToElement(value , value.GetType() , options);
             foreach (var prop in tempElement.EnumerateObject())
             {
                 if (prop.Name == "Type") continue;

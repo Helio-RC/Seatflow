@@ -22,7 +22,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
     private readonly string _rostersPath;
     private readonly ILogger<JsonStudentDatasetRepository> _logger;
 
-    public JsonStudentDatasetRepository(string rostersPath, ILogger<JsonStudentDatasetRepository>? logger = null)
+    public JsonStudentDatasetRepository (string rostersPath , ILogger<JsonStudentDatasetRepository>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(rostersPath);
         _rostersPath = rostersPath;
@@ -50,7 +50,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         var path = GetFilePath(id);
         await using var stream = File.Create(path);
         await JsonSerializer.SerializeAsync(stream , roster , WriteOptions , ct);
-        _logger.LogInformation("学生数据集已保存：{Id}（{Count} 人）→ {Path}", id, students.Count, path);
+        _logger.LogInformation("学生数据集已保存：{Id}（{Count} 人）→ {Path}" , id , students.Count , path);
     }
 
     public async Task<List<Student>?> LoadAsync (string id , CancellationToken ct = default)
@@ -92,7 +92,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "跳过损坏的数据集文件：{File}", file);
+                _logger.LogWarning(ex , "跳过损坏的数据集文件：{File}" , file);
             }
         }
 

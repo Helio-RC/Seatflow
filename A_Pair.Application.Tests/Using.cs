@@ -1,4 +1,4 @@
-﻿global using A_Pair.Application.Commands;
+global using A_Pair.Application.Commands;
 global using A_Pair.Application.Interfaces;
 global using A_Pair.Application.Plugins;
 global using A_Pair.Application.Services;

@@ -1,5 +1,4 @@
-﻿using A_Pair.Core.Exporters;
-using A_Pair.Core.Models;
+using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -81,10 +80,10 @@ public class ServiceCollectionExtensionsTests : IDisposable
         var snapshotRepo = provider.GetRequiredService<ISeatingSnapshotRepository>();
         await snapshotRepo.SaveAsync(new SeatingSnapshot
         {
-            Id = "test_snap",
-            LayoutId = "venue1",
+            Id = "test_snap" ,
+            LayoutId = "venue1" ,
             CreatedAt = DateTime.Now
         });
-        Assert.True(Directory.Exists(Path.Combine(snapshotBasePath, "Assignments", "venue1")));
+        Assert.True(Directory.Exists(Path.Combine(snapshotBasePath , "Assignments" , "venue1")));
     }
 }

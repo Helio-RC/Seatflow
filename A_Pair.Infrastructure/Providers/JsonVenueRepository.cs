@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Serialization;
@@ -23,7 +23,7 @@ namespace A_Pair.Infrastructure.Providers
         /// 初始化 JSON 会场仓储，确保存储目录存在。
         /// </summary>
         /// <param name="venuesFolder">会场文件存储目录。</param>
-        public JsonVenueRepository (string venuesFolder, ILogger<JsonVenueRepository>? logger = null)
+        public JsonVenueRepository (string venuesFolder , ILogger<JsonVenueRepository>? logger = null)
         {
             _venuesFolder = venuesFolder ?? throw new ArgumentNullException(nameof(venuesFolder));
             _logger = logger ?? NullLogger<JsonVenueRepository>.Instance;
@@ -43,7 +43,7 @@ namespace A_Pair.Infrastructure.Providers
             var options = SerializerOptions;
             var json = JsonSerializer.Serialize(venueFile , options);
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
-            _logger.LogInformation("会场已保存：{VenueId} → {Path}", venueId, filePath);
+            _logger.LogInformation("会场已保存：{VenueId} → {Path}" , venueId , filePath);
         }
 
         /// <inheritdoc />
@@ -81,22 +81,22 @@ namespace A_Pair.Infrastructure.Providers
         /// </summary>
         /// <param name="venueId">会场 ID。</param>
         /// <returns>会场文件的完整路径。</returns>
-        private string GetFilePath(string venueId)
+        private string GetFilePath (string venueId)
         {
             if (venueId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
                 || venueId.Contains(Path.DirectorySeparatorChar)
                 || venueId.Contains(Path.AltDirectorySeparatorChar))
                 throw new ArgumentException($"会场 ID 含非法字符: {venueId}");
-            return Path.Combine(_venuesFolder, $"{venueId}.venue.json");
+            return Path.Combine(_venuesFolder , $"{venueId}.venue.json");
         }
 
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            WriteIndented = true,
+            WriteIndented = true ,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        static JsonVenueRepository()
+        static JsonVenueRepository ()
         {
             SerializerOptions.Converters.Add(new SeatJsonConverter());
         }

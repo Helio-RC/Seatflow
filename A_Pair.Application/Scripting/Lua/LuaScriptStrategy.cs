@@ -12,7 +12,7 @@ namespace A_Pair.Application.Scripting.Lua
         private readonly LuaScriptConfiguration _config;
         private readonly ILogger<LuaScriptStrategy> _logger;
 
-        public LuaScriptStrategy (string scriptCode , LuaScriptConfiguration? config = null, ILogger<LuaScriptStrategy>? logger = null)
+        public LuaScriptStrategy (string scriptCode , LuaScriptConfiguration? config = null , ILogger<LuaScriptStrategy>? logger = null)
         {
             _scriptCode = scriptCode ?? throw new ArgumentNullException(nameof(scriptCode));
             _config = config ?? new LuaScriptConfiguration();
@@ -45,30 +45,30 @@ namespace A_Pair.Application.Scripting.Lua
 
             try
             {
-                _logger.LogInformation("Lua 脚本策略开始执行：{Name}", Name);
+                _logger.LogInformation("Lua 脚本策略开始执行：{Name}" , Name);
                 using var lua = CreateRestrictedLuaState();
 
                 var api = new LuaWorkspaceAPI(workspace);
                 lua["workspace"] = api;
                 lua["cancellationToken"] = cancellationToken;
 
-                await Task.Run(() => lua.DoString(_scriptCode), cts.Token);
+                await Task.Run(() => lua.DoString(_scriptCode) , cts.Token);
 
                 return new StrategyExecutionResult { Success = true };
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Lua 脚本执行超时：{Name}（{Timeout}ms）", Name, _config.TimeoutMilliseconds);
+                _logger.LogWarning("Lua 脚本执行超时：{Name}（{Timeout}ms）" , Name , _config.TimeoutMilliseconds);
                 return new StrategyExecutionResult { Success = false , Message = "脚本执行超时" };
             }
             catch (LuaScriptException ex)
             {
-                _logger.LogWarning(ex, "Lua 脚本错误：{Name}", Name);
+                _logger.LogWarning(ex , "Lua 脚本错误：{Name}" , Name);
                 return new StrategyExecutionResult { Success = false , Message = $"Lua 错误: {ex.Message}" };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lua 脚本执行失败：{Name}", Name);
+                _logger.LogError(ex , "Lua 脚本执行失败：{Name}" , Name);
                 return new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" };
             }
         }

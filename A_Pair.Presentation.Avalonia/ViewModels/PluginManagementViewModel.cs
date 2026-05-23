@@ -17,7 +17,7 @@ public partial class PluginManagementViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly ILogger<PluginManagementViewModel> _logger;
 
-    public PluginManagementViewModel (IApplicationFacade facade, ILogger<PluginManagementViewModel>? logger = null)
+    public PluginManagementViewModel (IApplicationFacade facade , ILogger<PluginManagementViewModel>? logger = null)
     {
         _facade = facade;
         _logger = logger ?? NullLogger<PluginManagementViewModel>.Instance;
@@ -119,10 +119,10 @@ public partial class PluginManagementViewModel : ViewModelBase
         }
 
         _loadCts = new CancellationTokenSource();
-        _ = LoadPluginContentAsync(value, _loadCts.Token);
+        _ = LoadPluginContentAsync(value , _loadCts.Token);
     }
 
-    private async Task LoadPluginContentAsync (PluginDisplayInfo plugin, CancellationToken ct)
+    private async Task LoadPluginContentAsync (PluginDisplayInfo plugin , CancellationToken ct)
     {
         _isLoadingContent = true;
         try
@@ -132,10 +132,10 @@ public partial class PluginManagementViewModel : ViewModelBase
             {
                 await SafeExecuteAsync(async () =>
                 {
-                    var script = await _facade.GetPluginScriptAsync(plugin.Id, ct);
+                    var script = await _facade.GetPluginScriptAsync(plugin.Id , ct);
                     if (ct.IsCancellationRequested) return;
                     ScriptEditorText = script;
-                }, "加载脚本失败");
+                } , "加载脚本失败");
             }
             else
             {
@@ -147,10 +147,10 @@ public partial class PluginManagementViewModel : ViewModelBase
             // 加载配置 JSON
             await SafeExecuteAsync(async () =>
             {
-                var config = await _facade.GetPluginConfigJsonAsync(plugin.Id, ct);
+                var config = await _facade.GetPluginConfigJsonAsync(plugin.Id , ct);
                 if (ct.IsCancellationRequested) return;
                 ConfigEditorText = config;
-            }, "加载配置失败");
+            } , "加载配置失败");
         }
         finally
         {
@@ -171,7 +171,7 @@ public partial class PluginManagementViewModel : ViewModelBase
             await _facade.SetPluginEnabledAsync(SelectedPlugin.Id , newEnabled);
             SelectedPlugin.IsEnabled = newEnabled;
             StatusMessage = $"插件「{SelectedPlugin.Name}」已{(newEnabled ? "启用" : "禁用")}";
-        }, "切换插件状态失败");
+        } , "切换插件状态失败");
     }
 
     [RelayCommand]
@@ -184,7 +184,7 @@ public partial class PluginManagementViewModel : ViewModelBase
             await _facade.SavePluginScriptAsync(SelectedPlugin.Id , ScriptEditorText , ct);
             IsScriptDirty = false;
             StatusMessage = $"脚本「{SelectedPlugin.Name}」已保存";
-        }, TimeSpan.FromSeconds(30), "保存脚本失败");
+        } , TimeSpan.FromSeconds(30) , "保存脚本失败");
     }
 
     [RelayCommand]
@@ -208,7 +208,7 @@ public partial class PluginManagementViewModel : ViewModelBase
             await _facade.SavePluginConfigJsonAsync(SelectedPlugin.Id , ConfigEditorText , ct);
             IsConfigDirty = false;
             StatusMessage = $"配置「{SelectedPlugin.Name}」已保存";
-        }, TimeSpan.FromSeconds(30), "保存配置失败");
+        } , TimeSpan.FromSeconds(30) , "保存配置失败");
     }
 
     // ── 编辑器内容变更标记 ──

@@ -48,7 +48,7 @@ namespace A_Pair.Application.Services
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
             // 解析有效数据目录 + 读取日志配置（单次 I/O）
-            var defaultSettingsPath = Path.Combine(snapshotBasePath, "AppSettings.json");
+            var defaultSettingsPath = Path.Combine(snapshotBasePath , "AppSettings.json");
             var effectiveDataPath = snapshotBasePath;
             var logSettings = new LogSettings();
             try
@@ -56,7 +56,7 @@ namespace A_Pair.Application.Services
                 if (File.Exists(defaultSettingsPath))
                 {
                     var json = File.ReadAllText(defaultSettingsPath);
-                    var existing = JsonSerializer.Deserialize<AppSettings>(json,
+                    var existing = JsonSerializer.Deserialize<AppSettings>(json ,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
                         effectiveDataPath = customPath;
@@ -67,45 +67,45 @@ namespace A_Pair.Application.Services
             catch { /* 读取失败时使用默认值 */ }
 
             var logLevel = ParseLogLevel(logSettings.MinimumLevel);
-            var logDir = Path.Combine(effectiveDataPath, "Logs");
+            var logDir = Path.Combine(effectiveDataPath , "Logs");
             Directory.CreateDirectory(logDir);
 
             // 清理超出保留数量的旧日志文件
-            PruneOldLogFiles(logDir, logSettings.RetainedFileCountLimit);
+            PruneOldLogFiles(logDir , logSettings.RetainedFileCountLimit);
 
             // 实例隔离：每次启动创建独立日志文件，避免多实例写入冲突
             var instanceId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-            var logPath = Path.Combine(logDir, $"A_Pair_{instanceId}.log");
+            var logPath = Path.Combine(logDir , $"A_Pair_{instanceId}.log");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(logLevel)
                 .WriteTo.File(
-                    logPath,
-                    fileSizeLimitBytes: logSettings.FileSizeLimitBytes,
-                    retainedFileCountLimit: logSettings.RetainedFileCountLimit,
-                    rollOnFileSizeLimit: true,
+                    logPath ,
+                    fileSizeLimitBytes: logSettings.FileSizeLimitBytes ,
+                    retainedFileCountLimit: logSettings.RetainedFileCountLimit ,
+                    rollOnFileSizeLimit: true ,
                     flushToDiskInterval: TimeSpan.FromSeconds(5))
                 .CreateLogger();
 
-            services.AddLogging(builder => builder.AddSerilog(Log.Logger, dispose: true));
+            services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: true));
             services.AddSingleton<CsvStudentProvider>();
             services.AddSingleton<XlsxStudentProvider>();
             services.AddSingleton<JsonStudentProvider>();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
-                new SeatingSnapshotRepository(Path.Combine(effectiveDataPath, "Assignments"),
+                new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
                     sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 
             // 注册内置策略（工厂方法注入 ILogger<T>）
             services.AddSingleton<ISeatingStrategy>(sp => new FixedSeatStrategy(
-                new FixedSeatConfiguration(), sp.GetRequiredService<ILogger<FixedSeatStrategy>>()));
+                new FixedSeatConfiguration() , sp.GetRequiredService<ILogger<FixedSeatStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new RandomFillStrategy(
-                new Random(), sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
+                new Random() , sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
-                new FrontRowRotationStrategy.FrontRowRotationConfiguration(), sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
+                new FrontRowRotationStrategy.FrontRowRotationConfiguration() , sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new DeskMateStrategy(
-                new DeskMateConfiguration(), sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
+                new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
 
             // 注册导出器
             services.AddSingleton<ISeatingPlanExporter , ExcelSeatingExporter>();
@@ -121,8 +121,8 @@ namespace A_Pair.Application.Services
 
             // 注册插件管理器与配置服务
             services.AddSingleton<IPluginManager>(sp =>
-                new PluginManager(pluginsPath, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
-            services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath,
+                new PluginManager(pluginsPath , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
+            services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath ,
                 sp.GetRequiredService<ILogger<PluginConfigurationService>>()));
 
             // 注册场地仓储（全局单例，使用有效数据路径）
@@ -141,9 +141,9 @@ namespace A_Pair.Application.Services
                 sp.GetRequiredService<ILogger<StrategyManifestProvider>>()));
 
             // 注册策略运行时配置仓储（per-file，全局单例）
-            var strategyConfigDir = Path.Combine(effectiveDataPath, "StrategyConfig");
+            var strategyConfigDir = Path.Combine(effectiveDataPath , "StrategyConfig");
             services.AddSingleton(sp => new StrategyConfigFileRepository(
-                strategyConfigDir, sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
+                strategyConfigDir , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 
             return services;
         }
@@ -162,12 +162,12 @@ namespace A_Pair.Application.Services
         /// 清理旧的日志文件，仅保留最近 <paramref name="retainCount"/> 个。
         /// 文件按创建时间降序排列（最新的在前）。
         /// </summary>
-        private static void PruneOldLogFiles (string logDir, int retainCount)
+        private static void PruneOldLogFiles (string logDir , int retainCount)
         {
             if (retainCount <= 0) return;
             try
             {
-                var files = Directory.GetFiles(logDir, "A_Pair_*.log")
+                var files = Directory.GetFiles(logDir , "A_Pair_*.log")
                     .Select(f => new FileInfo(f))
                     .OrderByDescending(f => f.CreationTimeUtc)
                     .ToList();

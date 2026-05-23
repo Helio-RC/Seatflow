@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using A_Pair.Core.Models;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +10,7 @@ namespace A_Pair.Infrastructure.Providers
     /// </summary>
     /// <param name="configDir">配置目录路径，通常为 AppData/StrategyConfig。</param>
     /// <param name="logger">日志记录器。</param>
-    public class StrategyConfigFileRepository (string configDir, ILogger<StrategyConfigFileRepository> logger)
+    public class StrategyConfigFileRepository (string configDir , ILogger<StrategyConfigFileRepository> logger)
     {
         private readonly string _configDir = configDir ?? throw new ArgumentNullException(nameof(configDir));
 
@@ -44,7 +44,7 @@ namespace A_Pair.Infrastructure.Providers
             var filePath = GetFilePath(strategyId);
             var json = JsonSerializer.Serialize(config , JsonOptions);
             await File.WriteAllTextAsync(filePath , json , ct);
-            logger.LogDebug("策略配置已保存：{Id} → {Path}", strategyId, filePath);
+            logger.LogDebug("策略配置已保存：{Id} → {Path}" , strategyId , filePath);
         }
 
         /// <summary>
@@ -71,13 +71,13 @@ namespace A_Pair.Infrastructure.Providers
             return results;
         }
 
-        private string GetFilePath(string strategyId)
+        private string GetFilePath (string strategyId)
         {
             if (strategyId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
                 || strategyId.Contains(Path.DirectorySeparatorChar)
                 || strategyId.Contains(Path.AltDirectorySeparatorChar))
                 throw new ArgumentException($"策略 ID 含非法字符: {strategyId}");
-            return Path.Combine(_configDir, $"{strategyId}.config.json");
+            return Path.Combine(_configDir , $"{strategyId}.config.json");
         }
     }
 }

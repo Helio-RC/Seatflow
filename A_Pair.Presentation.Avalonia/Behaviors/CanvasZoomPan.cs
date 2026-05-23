@@ -9,23 +9,23 @@ namespace A_Pair.Presentation.Avalonia.Behaviors;
 public static class CanvasZoomPan
 {
     public static readonly AttachedProperty<bool> EnabledProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, bool>("Enabled",
-            typeof(CanvasZoomPan), defaultValue: false);
+        AvaloniaProperty.RegisterAttached<ScrollViewer , bool>("Enabled" ,
+            typeof(CanvasZoomPan) , defaultValue: false);
 
     private static readonly AttachedProperty<TranslateTransform> TranslateProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, TranslateTransform>("Translate", typeof(CanvasZoomPan));
+        AvaloniaProperty.RegisterAttached<ScrollViewer , TranslateTransform>("Translate" , typeof(CanvasZoomPan));
     private static readonly AttachedProperty<bool> IsPanningProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, bool>("IsPanning", typeof(CanvasZoomPan));
+        AvaloniaProperty.RegisterAttached<ScrollViewer , bool>("IsPanning" , typeof(CanvasZoomPan));
     private static readonly AttachedProperty<Point> PanOriginProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, Point>("PanOrigin", typeof(CanvasZoomPan));
+        AvaloniaProperty.RegisterAttached<ScrollViewer , Point>("PanOrigin" , typeof(CanvasZoomPan));
     private static readonly AttachedProperty<Point> OriginalTranslateProperty =
-        AvaloniaProperty.RegisterAttached<ScrollViewer, Point>("OriginalTranslate", typeof(CanvasZoomPan));
+        AvaloniaProperty.RegisterAttached<ScrollViewer , Point>("OriginalTranslate" , typeof(CanvasZoomPan));
 
-    public static void SetEnabled(ScrollViewer element, bool value)
+    public static void SetEnabled (ScrollViewer element , bool value)
     {
         bool old = element.GetValue(EnabledProperty);
         if (old == value) return;
-        element.SetValue(EnabledProperty, value);
+        element.SetValue(EnabledProperty , value);
         if (value)
         {
             element.PointerPressed += OnPointerPressed;
@@ -40,26 +40,26 @@ public static class CanvasZoomPan
         }
     }
 
-    private static void EnsureTransform(ScrollViewer sv)
+    private static void EnsureTransform (ScrollViewer sv)
     {
         if (sv.GetValue(TranslateProperty) != null) return;
         if (sv.Content is not Visual content) return;
-        var translate = new TranslateTransform(0, 0);
+        var translate = new TranslateTransform(0 , 0);
         content.RenderTransform = translate;
-        sv.SetValue(TranslateProperty, translate);
+        sv.SetValue(TranslateProperty , translate);
     }
 
-    private static void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    private static void OnPointerPressed (object? sender , PointerPressedEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
         if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
         EnsureTransform(sv);
-        sv.SetValue(PanOriginProperty, e.GetPosition(sv));
-        sv.SetValue(OriginalTranslateProperty,
-            new Point(sv.GetValue(TranslateProperty)!.X, sv.GetValue(TranslateProperty)!.Y));
+        sv.SetValue(PanOriginProperty , e.GetPosition(sv));
+        sv.SetValue(OriginalTranslateProperty ,
+            new Point(sv.GetValue(TranslateProperty)!.X , sv.GetValue(TranslateProperty)!.Y));
     }
 
-    private static void OnPointerMoved(object? sender, PointerEventArgs e)
+    private static void OnPointerMoved (object? sender , PointerEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
         if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
@@ -67,8 +67,8 @@ public static class CanvasZoomPan
         var origin = sv.GetValue(PanOriginProperty);
         if (!sv.GetValue(IsPanningProperty))
         {
-            if (Math.Sqrt((pos.X - origin.X) * (pos.X - origin.X) + (pos.Y - origin.Y) * (pos.Y - origin.Y)) < 4) return;
-            sv.SetValue(IsPanningProperty, true);
+            if (Math.Sqrt(((pos.X - origin.X) * (pos.X - origin.X)) + ((pos.Y - origin.Y) * (pos.Y - origin.Y))) < 4) return;
+            sv.SetValue(IsPanningProperty , true);
             e.Handled = true;
         }
         var origTrans = sv.GetValue(OriginalTranslateProperty);
@@ -77,9 +77,9 @@ public static class CanvasZoomPan
         translate.Y = origTrans.Y + (pos.Y - origin.Y);
     }
 
-    private static void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    private static void OnPointerReleased (object? sender , PointerReleasedEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
-        sv.SetValue(IsPanningProperty, false);
+        sv.SetValue(IsPanningProperty , false);
     }
 }

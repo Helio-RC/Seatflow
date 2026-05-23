@@ -17,7 +17,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
 
     private readonly ILogger<ImageSeatingExporter> _logger;
 
-    public ImageSeatingExporter(ILogger<ImageSeatingExporter>? logger = null)
+    public ImageSeatingExporter (ILogger<ImageSeatingExporter>? logger = null)
     {
         _logger = logger ?? NullLogger<ImageSeatingExporter>.Instance;
     }
@@ -25,7 +25,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
     /// <summary>跨平台 CJK 字体，通过 MatchCharacter 动态匹配系统可用字体。</summary>
     private static readonly SKTypeface CjkTypeface = ResolveCjkTypeface();
 
-    private static SKTypeface ResolveCjkTypeface()
+    private static SKTypeface ResolveCjkTypeface ()
     {
         var fm = SKFontManager.Default;
         return fm.MatchCharacter('中') ?? SKTypeface.Default;
@@ -42,13 +42,13 @@ public class ImageSeatingExporter : ISeatingPlanExporter
     public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _logger.LogInformation("图片座位布局导出开始：{Path}（{RowCount} 行）", path, model.Rows.Count);
+        _logger.LogInformation("图片座位布局导出开始：{Path}（{RowCount} 行）" , path , model.Rows.Count);
 
         if (model.Rows.Count == 0) return Task.CompletedTask;
 
         int maxCols = model.Rows.Max(r => r.Cells.Count);
-        int width = maxCols * CellWidth + Margin * 2;
-        int height = model.Rows.Count * CellHeight + Margin * 2;
+        int width = (maxCols * CellWidth) + (Margin * 2);
+        int height = (model.Rows.Count * CellHeight) + (Margin * 2);
 
         using var bitmap = new SKBitmap(width , height);
         using var canvas = new SKCanvas(bitmap);
@@ -56,7 +56,10 @@ public class ImageSeatingExporter : ISeatingPlanExporter
 
         using var borderPaint = new SKPaint
         {
-            Color = SKColors.LightGray , Style = SKPaintStyle.Stroke , StrokeWidth = 0.5f , IsAntialias = true
+            Color = SKColors.LightGray ,
+            Style = SKPaintStyle.Stroke ,
+            StrokeWidth = 0.5f ,
+            IsAntialias = true
         };
         using var seatFill = new SKPaint { Color = SKColors.White , Style = SKPaintStyle.Fill };
         using var aisleFill = new SKPaint { Color = new SKColor(0xE0 , 0xE0 , 0xE0) , Style = SKPaintStyle.Fill };
@@ -88,7 +91,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
 
                 if (!string.IsNullOrEmpty(cell.Text))
                 {
-                    float textY = y + rowH / 2 + TextSize / 3;
+                    float textY = y + (rowH / 2) + (TextSize / 3);
                     canvas.DrawText(cell.Text , x + 3 , textY , SKTextAlign.Left , font , textPaint);
                 }
 
@@ -101,13 +104,13 @@ public class ImageSeatingExporter : ISeatingPlanExporter
         try
         {
             using var image = SKImage.FromBitmap(bitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 90);
+            using var data = image.Encode(SKEncodedImageFormat.Png , 90);
             using var stream = File.OpenWrite(path);
             data.SaveTo(stream);
         }
         catch (IOException ex)
         {
-            throw new IOException($"无法写入图片文件，文件可能正在被其他程序占用: {path}", ex);
+            throw new IOException($"无法写入图片文件，文件可能正在被其他程序占用: {path}" , ex);
         }
 
         return Task.CompletedTask;

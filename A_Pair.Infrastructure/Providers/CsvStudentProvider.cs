@@ -20,14 +20,14 @@ public class CsvStudentProvider : IStudentProvider
         ShouldSkipRecord = args => args.Row.Context.Parser.Row == 2 // 跳过第 2 行（注释行）
     };
 
-    public Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
+    public Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
     {
         var list = new List<Student>();
         if (string.IsNullOrEmpty(source) || !File.Exists(source))
             return Task.FromResult(list);
 
         using var reader = new StreamReader(source);
-        using var csv = new CsvReader(reader, Config);
+        using var csv = new CsvReader(reader , Config);
 
         csv.Read();
         csv.ReadHeader();
@@ -35,7 +35,7 @@ public class CsvStudentProvider : IStudentProvider
         if (headers is null || headers.Length == 0)
             return Task.FromResult(list);
 
-        var columnMap = new Dictionary<int, string>();
+        var columnMap = new Dictionary<int , string>();
         for (int i = 0; i < headers.Length; i++)
         {
             var prop = StudentDataMapping.ResolveProperty(headers[i]);
@@ -47,10 +47,10 @@ public class CsvStudentProvider : IStudentProvider
         {
             cancellationToken.ThrowIfCancellationRequested();
             var student = new Student();
-            foreach (var (idx, prop) in columnMap)
+            foreach (var (idx , prop) in columnMap)
             {
-                var raw = csv.TryGetField(idx, out string? value) ? value : null;
-                StudentDataMapping.SetProperty(student, prop, raw);
+                var raw = csv.TryGetField(idx , out string? value) ? value : null;
+                StudentDataMapping.SetProperty(student , prop , raw);
             }
             if (!string.IsNullOrWhiteSpace(student.Name))
                 list.Add(student);

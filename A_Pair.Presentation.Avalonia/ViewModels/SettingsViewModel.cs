@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -75,7 +75,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSaving;
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog, ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;

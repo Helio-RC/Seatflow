@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -138,7 +138,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     // ═══════════════ 构造函数 ═══════════════
 
-    public StrategyConfigurationViewModel (IApplicationFacade facade, ILogger<StrategyConfigurationViewModel>? logger = null)
+    public StrategyConfigurationViewModel (IApplicationFacade facade , ILogger<StrategyConfigurationViewModel>? logger = null)
     {
         _facade = facade;
         _logger = logger ?? NullLogger<StrategyConfigurationViewModel>.Instance;

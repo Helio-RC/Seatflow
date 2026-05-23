@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,7 +11,7 @@ namespace A_Pair.Application.Plugins
         private readonly Dictionary<string , FileSystemWatcher> _watchers = [];
         private readonly ILogger<PluginConfigurationService> _logger;
 
-        public PluginConfigurationService(string pluginsBasePath, ILogger<PluginConfigurationService>? logger = null)
+        public PluginConfigurationService (string pluginsBasePath , ILogger<PluginConfigurationService>? logger = null)
         {
             _pluginsBasePath = pluginsBasePath;
             _logger = logger ?? NullLogger<PluginConfigurationService>.Instance;
@@ -23,12 +23,12 @@ namespace A_Pair.Application.Plugins
             var configPath = GetConfigPath(pluginId);
             if (!File.Exists(configPath))
             {
-                _logger.LogDebug("插件配置文件不存在：{PluginId}，返回默认配置", pluginId);
+                _logger.LogDebug("插件配置文件不存在：{PluginId}，返回默认配置" , pluginId);
                 return new T();
             }
 
             var json = await File.ReadAllTextAsync(configPath , cancellationToken);
-            _logger.LogInformation("插件配置已加载：{PluginId}", pluginId);
+            _logger.LogInformation("插件配置已加载：{PluginId}" , pluginId);
             return JsonSerializer.Deserialize<T>(json);
         }
 
@@ -42,7 +42,7 @@ namespace A_Pair.Application.Plugins
 
             var json = JsonSerializer.Serialize(configuration , new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(configPath , json , cancellationToken);
-            _logger.LogInformation("插件配置已保存：{PluginId}", pluginId);
+            _logger.LogInformation("插件配置已保存：{PluginId}" , pluginId);
         }
 
         /// <inheritdoc />
@@ -53,7 +53,7 @@ namespace A_Pair.Application.Plugins
                 return;
 
             // 替换前释放旧监视器
-            if (_watchers.TryGetValue(pluginId, out var existing))
+            if (_watchers.TryGetValue(pluginId , out var existing))
                 existing.Dispose();
 
             var watcher = new FileSystemWatcher(pluginDir , "config.json")
@@ -66,9 +66,9 @@ namespace A_Pair.Application.Plugins
         }
 
         /// <inheritdoc />
-        public void StopWatching(string pluginId)
+        public void StopWatching (string pluginId)
         {
-            if (_watchers.TryGetValue(pluginId, out var watcher))
+            if (_watchers.TryGetValue(pluginId , out var watcher))
             {
                 watcher.Dispose();
                 _watchers.Remove(pluginId);

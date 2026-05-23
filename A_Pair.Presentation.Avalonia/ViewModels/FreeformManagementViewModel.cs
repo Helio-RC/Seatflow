@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -59,7 +59,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     public static string GetGroupColor (int? groupId)
         => groupId is >= 0 and < 8 ? GroupColors[groupId.Value] : "#4A90D9";
 
-    public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog, ILogger<FreeformManagementViewModel>? logger = null)
+    public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<FreeformManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;

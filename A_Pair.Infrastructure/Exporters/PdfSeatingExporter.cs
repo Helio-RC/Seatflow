@@ -21,27 +21,27 @@ public class PdfSeatingExporter : ISeatingPlanExporter
 
     private readonly ILogger<PdfSeatingExporter> _logger;
 
-    public PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null)
+    public PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null)
     {
         _logger = logger ?? NullLogger<PdfSeatingExporter>.Instance;
     }
 
     public ExportFormat Format => ExportFormat.Pdf;
 
-    static PdfSeatingExporter()
+    static PdfSeatingExporter ()
     {
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
-    public Task ExportAsync(SeatingPlan plan, string path, CancellationToken cancellationToken = default)
+    public Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
     {
-        return ExportAsync(plan, path, new ExportOptions { Format = ExportFormat.Pdf }, cancellationToken);
+        return ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Pdf } , cancellationToken);
     }
 
-    public async Task ExportAsync(SeatingPlan plan, string path, ExportOptions options, CancellationToken cancellationToken = default)
+    public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _logger.LogInformation("PDF 座位表导出开始：{Path}（{Count} 条记录）", path, plan.Assignments.Count);
+        _logger.LogInformation("PDF 座位表导出开始：{Path}（{Count} 条记录）" , path , plan.Assignments.Count);
 
         await Task.Run(() =>
         {
@@ -50,7 +50,7 @@ public class PdfSeatingExporter : ISeatingPlanExporter
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4.Landscape());
-                    page.Margin(2, Unit.Centimetre);
+                    page.Margin(2 , Unit.Centimetre);
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(12));
 
@@ -89,23 +89,23 @@ public class PdfSeatingExporter : ISeatingPlanExporter
                         });
                 });
             }).GeneratePdf(path);
-        }, cancellationToken);
+        } , cancellationToken);
     }
 
-    public async Task ExportLayoutAsync(LayoutSeatingExportModel model, string path, ExportOptions options, CancellationToken cancellationToken = default)
+    public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _logger.LogInformation("PDF 座位布局导出开始：{Path}（{RowCount} 行）", path, model.Rows.Count);
+        _logger.LogInformation("PDF 座位布局导出开始：{Path}（{RowCount} 行）" , path , model.Rows.Count);
 
         int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
         int rowCount = model.Rows.Count;
 
         // 根据内容动态计算页面尺寸，不再硬限列数
-        float rowH = Math.Max(DataRowHeight, rowCount > 50 ? 7f : 10f);
-        float contentWidth = maxCols * CompactCellWidth + PageMargin * 2;
-        float contentHeight = rowCount * rowH + PageMargin * 2 + FooterHeight + HeaderRowHeight;
-        float pageWidth = Math.Clamp(contentWidth, 297f, 841f);  // A4 landscape ~ A0 portrait
-        float pageHeight = Math.Clamp(contentHeight, 210f, 1189f); // A4 landscape ~ A0
+        float rowH = Math.Max(DataRowHeight , rowCount > 50 ? 7f : 10f);
+        float contentWidth = (maxCols * CompactCellWidth) + (PageMargin * 2);
+        float contentHeight = (rowCount * rowH) + (PageMargin * 2) + FooterHeight + HeaderRowHeight;
+        float pageWidth = Math.Clamp(contentWidth , 297f , 841f);  // A4 landscape ~ A0 portrait
+        float pageHeight = Math.Clamp(contentHeight , 210f , 1189f); // A4 landscape ~ A0
 
         await Task.Run(() =>
         {
@@ -113,9 +113,9 @@ public class PdfSeatingExporter : ISeatingPlanExporter
             {
                 container.Page(page =>
                 {
-                    page.Size(pageWidth, pageHeight, Unit.Millimetre);
-                    page.MarginHorizontal(PageMargin, Unit.Millimetre);
-                    page.MarginVertical(PageMargin, Unit.Millimetre);
+                    page.Size(pageWidth , pageHeight , Unit.Millimetre);
+                    page.MarginHorizontal(PageMargin , Unit.Millimetre);
+                    page.MarginVertical(PageMargin , Unit.Millimetre);
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(8));
 
@@ -129,7 +129,7 @@ public class PdfSeatingExporter : ISeatingPlanExporter
                             table.ColumnsDefinition(columns =>
                             {
                                 for (int i = 0; i < maxCols; i++)
-                                    columns.ConstantColumn(CompactCellWidth, Unit.Millimetre);
+                                    columns.ConstantColumn(CompactCellWidth , Unit.Millimetre);
                             });
 
                             int rowIndex = 0;
@@ -150,7 +150,7 @@ public class PdfSeatingExporter : ISeatingPlanExporter
                                                      cell.IsSeat ? Colors.Green.Lighten5 :
                                                      Colors.White)
                                         .Padding(2)
-                                        .MinHeight(isFullAisleRow ? AisleRowHeight : rowH, Unit.Millimetre)
+                                        .MinHeight(isFullAisleRow ? AisleRowHeight : rowH , Unit.Millimetre)
                                         .AlignMiddle()
                                         .AlignCenter();
                                     cellElement.Text(cell.Text);
@@ -171,6 +171,6 @@ public class PdfSeatingExporter : ISeatingPlanExporter
                         });
                 });
             }).GeneratePdf(path);
-        }, cancellationToken);
+        } , cancellationToken);
     }
 }

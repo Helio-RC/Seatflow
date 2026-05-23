@@ -13,7 +13,7 @@ namespace A_Pair.Core.Strategies
         private readonly Random _random;
         private readonly ILogger<RandomFillStrategy> _logger;
 
-        public RandomFillStrategy (Random random, ILogger<RandomFillStrategy>? logger = null)
+        public RandomFillStrategy (Random random , ILogger<RandomFillStrategy>? logger = null)
         {
             _random = random ?? throw new ArgumentNullException(nameof(random));
             _logger = logger ?? NullLogger<RandomFillStrategy>.Instance;
@@ -48,8 +48,8 @@ namespace A_Pair.Core.Strategies
             var assignedIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
             var students = workspace.Students.Where(s => !assignedIds.Contains(s.Id)).ToList();
 
-            _logger.LogInformation("RandomFill 策略开始执行：{EmptySeats} 个空座位，{Unassigned} 名未分配学生",
-                emptySeats.Count, students.Count);
+            _logger.LogInformation("RandomFill 策略开始执行：{EmptySeats} 个空座位，{Unassigned} 名未分配学生" ,
+                emptySeats.Count , students.Count);
 
             // 使用 Fisher-Yates 洗牌算法打乱学生顺序
             for (int i = students.Count - 1; i > 0; i--)
@@ -66,8 +66,8 @@ namespace A_Pair.Core.Strategies
                 workspace.TryAssignSeat(seat.Id , student.Id , out _);
             }
 
-            _logger.LogInformation("RandomFill 策略完成：分配 {Assigned} 名学生，{Unfilled} 个座位空置",
-                assignCount, Math.Max(0, emptySeats.Count - assignCount));
+            _logger.LogInformation("RandomFill 策略完成：分配 {Assigned} 名学生，{Unfilled} 个座位空置" ,
+                assignCount , Math.Max(0 , emptySeats.Count - assignCount));
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace A_Pair.Infrastructure.Tests.Exporters;

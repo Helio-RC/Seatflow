@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Models
+namespace A_Pair.Core.Models
 {
     /// <summary>
     /// 人员名单文件 (.roster.json) 的数据结构。

@@ -10,14 +10,14 @@ public interface IPluginWorkspace
     IReadOnlyList<IPluginStudent> Students { get; }
 
     /// <summary>尝试将学生分配到座位。</summary>
-    bool TryAssignSeat(string seatId, string studentId, out string error);
+    bool TryAssignSeat (string seatId , string studentId , out string error);
 
     /// <summary>获取所有空座位。</summary>
-    IEnumerable<IPluginSeat> GetEmptySeats();
+    IEnumerable<IPluginSeat> GetEmptySeats ();
 
     /// <summary>按条件查找座位。</summary>
-    IEnumerable<IPluginSeat> FindSeats(Func<IPluginSeat, bool> predicate);
+    IEnumerable<IPluginSeat> FindSeats (Func<IPluginSeat , bool> predicate);
 
     /// <summary>获取当前座位分配（座位 ID → 学生 ID）。</summary>
-    IReadOnlyDictionary<string, string> GetAssignments();
+    IReadOnlyDictionary<string , string> GetAssignments ();
 }

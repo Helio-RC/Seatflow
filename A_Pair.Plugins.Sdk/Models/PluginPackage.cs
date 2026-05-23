@@ -30,19 +30,19 @@ public static class PluginPackage
     /// <param name="pluginDir">插件目录路径（须包含 <c>plugin.manifest.json</c>）。</param>
     /// <param name="outputPath">输出的 <c>.apairplugin</c> 文件路径。</param>
     /// <exception cref="FileNotFoundException">清单文件不存在。</exception>
-    public static void Create(string pluginDir, string outputPath)
+    public static void Create (string pluginDir , string outputPath)
     {
         if (!Directory.Exists(pluginDir))
             throw new DirectoryNotFoundException($"插件目录不存在：{pluginDir}");
 
-        var manifestPath = Path.Combine(pluginDir, "plugin.manifest.json");
+        var manifestPath = Path.Combine(pluginDir , "plugin.manifest.json");
         if (!File.Exists(manifestPath))
             throw new FileNotFoundException($"插件清单文件不存在：{manifestPath}");
 
         if (File.Exists(outputPath))
             File.Delete(outputPath);
 
-        ZipFile.CreateFromDirectory(pluginDir, outputPath, CompressionLevel.Optimal, includeBaseDirectory: false);
+        ZipFile.CreateFromDirectory(pluginDir , outputPath , CompressionLevel.Optimal , includeBaseDirectory: false);
     }
 
     /// <summary>
@@ -52,15 +52,15 @@ public static class PluginPackage
     /// <param name="targetDir">解包目标目录（不存在则自动创建）。</param>
     /// <exception cref="FileNotFoundException">包文件不存在。</exception>
     /// <exception cref="InvalidDataException">包内缺少 <c>plugin.manifest.json</c>。</exception>
-    public static void Extract(string packagePath, string targetDir)
+    public static void Extract (string packagePath , string targetDir)
     {
         if (!File.Exists(packagePath))
             throw new FileNotFoundException($"插件包文件不存在：{packagePath}");
 
         Directory.CreateDirectory(targetDir);
-        ZipFile.ExtractToDirectory(packagePath, targetDir, overwriteFiles: true);
+        ZipFile.ExtractToDirectory(packagePath , targetDir , overwriteFiles: true);
 
-        var manifestPath = Path.Combine(targetDir, "plugin.manifest.json");
+        var manifestPath = Path.Combine(targetDir , "plugin.manifest.json");
         if (!File.Exists(manifestPath))
             throw new InvalidDataException("插件包内缺少 plugin.manifest.json 文件");
     }
@@ -70,7 +70,7 @@ public static class PluginPackage
     /// </summary>
     /// <param name="packagePath"><c>.apairplugin</c> 文件路径。</param>
     /// <returns>验证结果：成功返回空字符串，失败返回错误描述。</returns>
-    public static async Task<string> ValidateAsync(string packagePath)
+    public static async Task<string> ValidateAsync (string packagePath)
     {
         if (!File.Exists(packagePath))
             return "插件包文件不存在";
@@ -80,13 +80,13 @@ public static class PluginPackage
             using var archive = ZipFile.OpenRead(packagePath);
 
             var hasManifest = archive.Entries.Any(e =>
-                string.Equals(e.Name, "plugin.manifest.json", StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Name , "plugin.manifest.json" , StringComparison.OrdinalIgnoreCase));
 
             if (!hasManifest)
                 return "插件包内缺少 plugin.manifest.json 文件";
 
             var manifestEntry = archive.Entries.First(e =>
-                string.Equals(e.Name, "plugin.manifest.json", StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Name , "plugin.manifest.json" , StringComparison.OrdinalIgnoreCase));
 
             await using var stream = manifestEntry.Open();
             var manifest = await JsonSerializer.DeserializeAsync<PluginManifestStub>(stream);
@@ -124,7 +124,7 @@ public static class PluginPackage
     /// </summary>
     /// <param name="packagePath"><c>.apairplugin</c> 文件路径。</param>
     /// <returns>插件清单信息；如果读取失败则返回 <c>null</c>。</returns>
-    public static async Task<PluginManifestStub?> GetManifestAsync(string packagePath)
+    public static async Task<PluginManifestStub?> GetManifestAsync (string packagePath)
     {
         if (!File.Exists(packagePath))
             return null;
@@ -134,13 +134,13 @@ public static class PluginPackage
             using var archive = ZipFile.OpenRead(packagePath);
 
             var manifestEntry = archive.Entries.FirstOrDefault(e =>
-                string.Equals(e.Name, "plugin.manifest.json", StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Name , "plugin.manifest.json" , StringComparison.OrdinalIgnoreCase));
 
             if (manifestEntry is null)
                 return null;
 
             await using var stream = manifestEntry.Open();
-            return await JsonSerializer.DeserializeAsync<PluginManifestStub>(stream,
+            return await JsonSerializer.DeserializeAsync<PluginManifestStub>(stream ,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
         catch

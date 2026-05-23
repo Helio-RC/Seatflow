@@ -11,7 +11,7 @@ namespace A_Pair.Application.Services
         private readonly Stack<IUndoableCommand> _redo = new();
         private readonly ILogger<CommandHistory> _logger;
 
-        public CommandHistory(ILogger<CommandHistory>? logger = null)
+        public CommandHistory (ILogger<CommandHistory>? logger = null)
         {
             _logger = logger ?? NullLogger<CommandHistory>.Instance;
         }
@@ -40,10 +40,10 @@ namespace A_Pair.Application.Services
             {
                 _undo.Push(command);
                 _redo.Clear();
-                _logger.LogDebug("命令已执行：{CommandId}（撤销栈 {UndoCount}）", command.Id, _undo.Count);
+                _logger.LogDebug("命令已执行：{CommandId}（撤销栈 {UndoCount}）" , command.Id , _undo.Count);
             }
             else
-                _logger.LogWarning("命令执行失败：{CommandId}", command.Id);
+                _logger.LogWarning("命令执行失败：{CommandId}" , command.Id);
             return ok;
         }
 

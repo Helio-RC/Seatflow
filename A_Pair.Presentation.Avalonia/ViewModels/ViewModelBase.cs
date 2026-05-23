@@ -36,7 +36,7 @@ public abstract class ViewModelBase : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
+            _logger?.LogError(ex , "ViewModel 操作失败：{Title}" , errorTitle);
             await Dialog.ShowErrorAsync(errorTitle , ex.Message);
             return false;
         }
@@ -58,14 +58,14 @@ public abstract class ViewModelBase : ObservableObject
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            _logger?.LogError("操作超时：{Title}（{Seconds} 秒）", errorTitle , timeout.TotalSeconds);
+            _logger?.LogError("操作超时：{Title}（{Seconds} 秒）" , errorTitle , timeout.TotalSeconds);
             await Dialog.ShowErrorAsync("操作超时" ,
                 $"「{errorTitle}」超过 {timeout.TotalSeconds:F0} 秒未完成，已自动取消。\n部分数据可能未写入，请重试。");
             return false;
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
+            _logger?.LogError(ex , "ViewModel 操作失败：{Title}" , errorTitle);
             await Dialog.ShowErrorAsync(errorTitle , ex.Message);
             return false;
         }

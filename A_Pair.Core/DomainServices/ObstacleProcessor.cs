@@ -1,4 +1,4 @@
-﻿using A_Pair.Core.Models;
+using A_Pair.Core.Models;
 
 namespace A_Pair.Core.DomainServices
 {

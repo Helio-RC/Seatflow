@@ -6,7 +6,7 @@ namespace A_Pair.Application.Commands;
 /// 分配座位命令，将指定学生分配到指定座位。
 /// 支持撤销操作，撤销时恢复座位原始状态。
 /// </summary>
-public class AssignSeatCommand(string seatId, string studentId) : IUndoableCommand
+public class AssignSeatCommand (string seatId , string studentId) : IUndoableCommand
 {
     private bool _originalIsAvailable;
 
@@ -23,13 +23,13 @@ public class AssignSeatCommand(string seatId, string studentId) : IUndoableComma
     /// 执行分配：调用 <see cref="SeatingWorkspace.TryAssignSeat"/> 进行分配。
     /// 执行前保存座位的原始可用状态，供撤销时恢复。
     /// </summary>
-    public Task<bool> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken = default)
+    public Task<bool> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)
     {
         var seat = workspace.FindSeats(s => s.Id == SeatId).FirstOrDefault();
         if (seat != null)
             _originalIsAvailable = seat.IsAvailable;
 
-        var ok = workspace.TryAssignSeat(SeatId, StudentId, out _);
+        var ok = workspace.TryAssignSeat(SeatId , StudentId , out _);
         return Task.FromResult(ok);
     }
 
@@ -37,7 +37,7 @@ public class AssignSeatCommand(string seatId, string studentId) : IUndoableComma
     /// 撤销分配：清除指定座位的占用者，恢复原始可用状态。
     /// 仅在当前占用者与命令记录的学生 ID 一致时执行撤销。
     /// </summary>
-    public Task<bool> UndoAsync(SeatingWorkspace workspace, CancellationToken cancellationToken = default)
+    public Task<bool> UndoAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)
     {
         var seat = workspace.FindSeats(s => s.Id == SeatId).FirstOrDefault();
         if (seat == null) return Task.FromResult(false);

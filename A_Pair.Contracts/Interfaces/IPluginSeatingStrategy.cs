@@ -26,5 +26,5 @@ public interface IPluginSeatingStrategy : IPlugin
     /// <param name="workspace">当前工作区，通过 <see cref="IPluginWorkspace"/> 提供受限 API。</param>
     /// <param name="ct">取消令牌。</param>
     /// <returns>执行结果。</returns>
-    Task<PluginStrategyResult> ExecuteAsync(IPluginWorkspace workspace, CancellationToken ct);
+    Task<PluginStrategyResult> ExecuteAsync (IPluginWorkspace workspace , CancellationToken ct);
 }

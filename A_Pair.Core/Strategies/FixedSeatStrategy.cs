@@ -14,7 +14,7 @@ namespace A_Pair.Core.Strategies
         private readonly FixedSeatConfiguration _config;
         private readonly ILogger<FixedSeatStrategy> _logger;
 
-        public FixedSeatStrategy (FixedSeatConfiguration config, ILogger<FixedSeatStrategy>? logger = null)
+        public FixedSeatStrategy (FixedSeatConfiguration config , ILogger<FixedSeatStrategy>? logger = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? NullLogger<FixedSeatStrategy>.Instance;
@@ -45,7 +45,7 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             if (workspace is null) throw new ArgumentNullException(nameof(workspace));
-            _logger.LogInformation("FixedSeat 策略开始执行：{AssignmentCount} 个固定分配",
+            _logger.LogInformation("FixedSeat 策略开始执行：{AssignmentCount} 个固定分配" ,
                 _config.FixedAssignments.Count);
 
             var assignedCount = 0;
@@ -54,7 +54,7 @@ namespace A_Pair.Core.Strategies
                 var seat = workspace.FindSeats(s => s.Id == kv.Key).FirstOrDefault();
                 if (seat == null)
                 {
-                    _logger.LogWarning("FixedSeat：座位 {SeatId} 不存在，跳过", kv.Key);
+                    _logger.LogWarning("FixedSeat：座位 {SeatId} 不存在，跳过" , kv.Key);
                     continue;
                 }
 
@@ -64,8 +64,8 @@ namespace A_Pair.Core.Strategies
                     // 如果座位已被其他人占用则清除（但不覆盖非固定？这里为了固定座位强制）
                     if (seat.OccupantId != null && seat.OccupantId != kv.Value)
                     {
-                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被 {OldStudent} 占用，清除后分配给 {NewStudent}",
-                            seat.Id, seat.OccupantId, kv.Value);
+                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被 {OldStudent} 占用，清除后分配给 {NewStudent}" ,
+                            seat.Id , seat.OccupantId , kv.Value);
                         seat.OccupantId = null;
                         seat.IsAvailable = true;
                     }
@@ -77,7 +77,7 @@ namespace A_Pair.Core.Strategies
                     }
                     else
                     {
-                        _logger.LogWarning("FixedSeat：分配座位 {SeatId} 给学生 {StudentId} 失败", kv.Key, kv.Value);
+                        _logger.LogWarning("FixedSeat：分配座位 {SeatId} 给学生 {StudentId} 失败" , kv.Key , kv.Value);
                     }
                 }
                 else
@@ -99,8 +99,8 @@ namespace A_Pair.Core.Strategies
                 }
             }
 
-            _logger.LogInformation("FixedSeat 策略完成：成功分配 {Assigned} 个，防御性修复 {Fixed} 个",
-                assignedCount, fixedCount);
+            _logger.LogInformation("FixedSeat 策略完成：成功分配 {Assigned} 个，防御性修复 {Fixed} 个" ,
+                assignedCount , fixedCount);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

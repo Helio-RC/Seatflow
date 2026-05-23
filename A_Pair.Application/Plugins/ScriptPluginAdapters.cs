@@ -1,4 +1,4 @@
-﻿using A_Pair.Application.Scripting.CSharp;
+using A_Pair.Application.Scripting.CSharp;
 using A_Pair.Application.Scripting.Lua;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Contracts.Models;
@@ -47,10 +47,10 @@ namespace A_Pair.Application.Plugins
         public bool IsEnabled { get => _innerStrategy.IsEnabled; set => _innerStrategy.IsEnabled = value; }
 
         /// <inheritdoc />
-        public async Task<PluginStrategyResult> ExecuteAsync(IPluginWorkspace workspace, CancellationToken cancellationToken)
+        public async Task<PluginStrategyResult> ExecuteAsync (IPluginWorkspace workspace , CancellationToken cancellationToken)
         {
-            var result = await _innerStrategy.ExecuteAsync((SeatingWorkspace)workspace, cancellationToken);
-            return new PluginStrategyResult { Success = result.Success, Message = result.Message };
+            var result = await _innerStrategy.ExecuteAsync((SeatingWorkspace)workspace , cancellationToken);
+            return new PluginStrategyResult { Success = result.Success , Message = result.Message };
         }
     }
 
@@ -95,10 +95,10 @@ namespace A_Pair.Application.Plugins
         public bool IsEnabled { get => _innerStrategy.IsEnabled; set => _innerStrategy.IsEnabled = value; }
 
         /// <inheritdoc />
-        public async Task<PluginStrategyResult> ExecuteAsync(IPluginWorkspace workspace, CancellationToken cancellationToken)
+        public async Task<PluginStrategyResult> ExecuteAsync (IPluginWorkspace workspace , CancellationToken cancellationToken)
         {
-            var result = await _innerStrategy.ExecuteAsync((SeatingWorkspace)workspace, cancellationToken);
-            return new PluginStrategyResult { Success = result.Success, Message = result.Message };
+            var result = await _innerStrategy.ExecuteAsync((SeatingWorkspace)workspace , cancellationToken);
+            return new PluginStrategyResult { Success = result.Success , Message = result.Message };
         }
     }
 }

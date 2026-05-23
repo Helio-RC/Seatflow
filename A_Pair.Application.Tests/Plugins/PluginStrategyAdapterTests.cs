@@ -1,4 +1,3 @@
-﻿using A_Pair.Contracts.Interfaces;
 using A_Pair.Contracts.Models;
 
 namespace A_Pair.Application.Tests.Plugins;

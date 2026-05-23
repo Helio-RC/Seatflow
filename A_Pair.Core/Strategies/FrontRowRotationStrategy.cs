@@ -15,7 +15,7 @@ namespace A_Pair.Core.Strategies
         private readonly FrontRowRotationConfiguration _config;
         private readonly ILogger<FrontRowRotationStrategy> _logger;
 
-        public FrontRowRotationStrategy (FrontRowRotationConfiguration config, ILogger<FrontRowRotationStrategy>? logger = null)
+        public FrontRowRotationStrategy (FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
@@ -53,7 +53,7 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
-            _logger.LogInformation("FrontRowRotation 策略开始执行：前排数 {FrontRowCount}",
+            _logger.LogInformation("FrontRowRotation 策略开始执行：前排数 {FrontRowCount}" ,
                 _config.FrontRowCount);
 
             var emptySeats = workspace.GetEmptySeats().ToList();
@@ -110,7 +110,7 @@ namespace A_Pair.Core.Strategies
                 int score = (s.NeedsFrontRow ? _config.NeedsFrontRowBonus : 0)
             + s.FrontRowPreferenceScore
             - (frontRowHistoryCount * _config.HistoryWeight);
-                return (Student: s, Score: score);
+                return (Student: s , Score: score);
             }).OrderByDescending(x => x.Score).ToList();
 
             int assignCount = Math.Min(frontRowSeats.Count , studentScores.Count);
@@ -119,8 +119,8 @@ namespace A_Pair.Core.Strategies
                 workspace.TryAssignSeat(frontRowSeats[i].Id , studentScores[i].Student.Id , out _);
             }
 
-            _logger.LogInformation("FrontRowRotation 策略完成：{FrontSeats} 个前排座位，分配 {Assigned} 名学生",
-                frontRowSeats.Count, assignCount);
+            _logger.LogInformation("FrontRowRotation 策略完成：{FrontSeats} 个前排座位，分配 {Assigned} 名学生" ,
+                frontRowSeats.Count , assignCount);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

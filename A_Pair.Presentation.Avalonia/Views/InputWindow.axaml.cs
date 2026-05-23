@@ -21,8 +21,8 @@ internal partial class InputWindow : Window
     {
         InitializeComponent();
 
-        OkButton.Click += (_, _) => Close(true);
-        CancelButton.Click += (_, _) => Close(false);
+        OkButton.Click += (_ , _) => Close(true);
+        CancelButton.Click += (_ , _) => Close(false);
     }
 
     protected override void OnLoaded (RoutedEventArgs e)

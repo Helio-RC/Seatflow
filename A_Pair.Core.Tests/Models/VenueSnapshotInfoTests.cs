@@ -1,5 +1,3 @@
-using A_Pair.Core.Models;
-
 namespace A_Pair.Core.Tests.Models;
 
 public class VenueSnapshotInfoTests
@@ -19,9 +17,9 @@ public class VenueSnapshotInfoTests
     {
         var v = new VenueSnapshotInfo
         {
-            Name = "教室A",
-            LayoutType = LayoutType.Grid,
-            SeatCount = 40,
+            Name = "教室A" ,
+            LayoutType = LayoutType.Grid ,
+            SeatCount = 40 ,
             ObstacleCount = 2
         };
         v.Name.Should().Be("教室A");

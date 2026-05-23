@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Models;
+namespace A_Pair.Core.Models;
 
 /// <summary>
 /// 策略的完整展示信息，合并了不可变的 Manifest 和用户可修改的 Config。

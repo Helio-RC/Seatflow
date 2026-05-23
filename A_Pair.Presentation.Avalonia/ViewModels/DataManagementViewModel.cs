@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -105,7 +105,7 @@ public partial class DataManagementViewModel : ViewModelBase
     }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
-    public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog, ILogger<DataManagementViewModel>? logger = null)
+    public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<DataManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;

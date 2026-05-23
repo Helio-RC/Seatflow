@@ -23,7 +23,7 @@ public sealed class WatchdogService : IDisposable
 
     public static void SetDialogService (IDialogService dialog) => _dialog = dialog;
 
-    public WatchdogService (int timeoutSeconds = 45, ILogger<WatchdogService>? logger = null)
+    public WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogService>? logger = null)
     {
         _timeoutSeconds = timeoutSeconds;
         _heartbeatTicks = DateTime.UtcNow.Ticks;
@@ -33,7 +33,7 @@ public sealed class WatchdogService : IDisposable
     /// <summary>启动看门狗（后台线程）。</summary>
     public void Start ()
     {
-        _logger.LogInformation("看门狗已启动（超时阈值 {Timeout}s）", _timeoutSeconds);
+        _logger.LogInformation("看门狗已启动（超时阈值 {Timeout}s）" , _timeoutSeconds);
         _watchTask = Task.Run(WatchLoop);
     }
 
@@ -48,7 +48,7 @@ public sealed class WatchdogService : IDisposable
         {
             try
             {
-                await Task.Delay(1000, _cts.Token).ConfigureAwait(false);
+                await Task.Delay(1000 , _cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -58,7 +58,7 @@ public sealed class WatchdogService : IDisposable
             var elapsed = DateTime.UtcNow.Ticks - Interlocked.Read(ref _heartbeatTicks);
             if (new TimeSpan(elapsed).TotalSeconds >= _timeoutSeconds)
             {
-                _logger.LogWarning("UI 线程超过 {Timeout}s 无响应，触发诊断转储", _timeoutSeconds);
+                _logger.LogWarning("UI 线程超过 {Timeout}s 无响应，触发诊断转储" , _timeoutSeconds);
                 await DumpAndExit(_timeoutSeconds);
             }
         }
@@ -67,7 +67,7 @@ public sealed class WatchdogService : IDisposable
     private static async Task DumpAndExit (int timeoutSeconds = 45)
     {
         var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        var logPath = Path.Combine(AppContext.BaseDirectory, $"err_{timestamp}.log");
+        var logPath = Path.Combine(AppContext.BaseDirectory , $"err_{timestamp}.log");
 
         try
         {
@@ -115,9 +115,9 @@ public sealed class WatchdogService : IDisposable
                 try
                 {
                     // 通过 MiniDump 或直接枚举线程来获取信息
-                    ThreadPool.GetAvailableThreads(out var worker, out var completion);
+                    ThreadPool.GetAvailableThreads(out var worker , out var completion);
                     sb.AppendLine($"线程池可用: Worker={worker}, Completion={completion}");
-                    ThreadPool.GetMaxThreads(out var maxWorker, out var maxCompletion);
+                    ThreadPool.GetMaxThreads(out var maxWorker , out var maxCompletion);
                     sb.AppendLine($"线程池上限: Worker={maxWorker}, Completion={maxCompletion}");
                 }
                 catch (Exception ex)
@@ -129,12 +129,12 @@ public sealed class WatchdogService : IDisposable
             sb.AppendLine();
             sb.AppendLine("--- 诊断结束 ---");
 
-            await File.WriteAllTextAsync(logPath, sb.ToString()).ConfigureAwait(false);
+            await File.WriteAllTextAsync(logPath , sb.ToString()).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             // 最后的兜底：尝试写入最简日志
-            try { File.WriteAllText(logPath, $"看门狗诊断失败: {ex.Message}"); } catch { }
+            try { File.WriteAllText(logPath , $"看门狗诊断失败: {ex.Message}"); } catch { }
         }
         finally
         {

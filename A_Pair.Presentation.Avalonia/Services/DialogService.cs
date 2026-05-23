@@ -65,7 +65,7 @@ public class DialogService : IDialogService
         if (_topLevel is not Window window)
         {
             System.Diagnostics.Debug.WriteLine("DialogService: ShowInputAsync called before SetTopLevel");
-            return (false, "");
+            return (false , "");
         }
 
         var dialog = new InputWindow

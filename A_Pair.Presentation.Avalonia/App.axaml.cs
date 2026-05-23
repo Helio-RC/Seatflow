@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
@@ -25,7 +25,7 @@ namespace A_Pair.Presentation.Avalonia
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
-        public App (IServiceProvider serviceProvider, bool isFirstInstance = true)
+        public App (IServiceProvider serviceProvider , bool isFirstInstance = true)
         {
             _serviceProvider = serviceProvider;
             _isFirstInstance = isFirstInstance;
@@ -60,7 +60,7 @@ namespace A_Pair.Presentation.Avalonia
                     }
 
                     // 始终恢复窗口位置，包括 (0,0)（它是合法的屏幕坐标）
-                    window.Position = new PixelPoint((int)ws.Left, (int)ws.Top);
+                    window.Position = new PixelPoint((int)ws.Left , (int)ws.Top);
                 }
 
                 // 仅在配置文件不存在时创建默认文件，防止覆盖已有设置
@@ -110,9 +110,9 @@ namespace A_Pair.Presentation.Avalonia
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
                 watchdog.Start();
                 var pingTimer = new global::Avalonia.Threading.DispatcherTimer(
-                    TimeSpan.FromSeconds(3),
-                    global::Avalonia.Threading.DispatcherPriority.Background,
-                    (_, _) => watchdog.Ping());
+                    TimeSpan.FromSeconds(3) ,
+                    global::Avalonia.Threading.DispatcherPriority.Background ,
+                    (_ , _) => watchdog.Ping());
                 pingTimer.Start();
 
                 // 全角字符输入转换（全角数字/符号 → 半角）
@@ -132,8 +132,8 @@ namespace A_Pair.Presentation.Avalonia
             // 单实例检查
             if (!_isFirstInstance)
             {
-                await DialogServiceShim.ShowWarningAsync(dialog,
-                    "应用已在运行",
+                await DialogServiceShim.ShowWarningAsync(dialog ,
+                    "应用已在运行" ,
                     "检测到 A_Pair 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。");
                 desktop.Shutdown();
                 return;
@@ -153,10 +153,10 @@ namespace A_Pair.Presentation.Avalonia
 
             if (!settings.SuppressEnvironmentWarning)
             {
-                var (hasWarning, envMessage) = StartupGuard.CheckEnvironment();
+                var (hasWarning , envMessage) = StartupGuard.CheckEnvironment();
                 if (hasWarning)
                 {
-                    var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog, envMessage);
+                    var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog , envMessage);
                     if (result is 1) // "不再提醒" 按钮
                     {
                         settings.SuppressEnvironmentWarning = true;
@@ -176,11 +176,11 @@ namespace A_Pair.Presentation.Avalonia
 
     internal static class DialogServiceShim
     {
-        public static async Task ShowWarningAsync (IDialogService dialog, string title, string message)
+        public static async Task ShowWarningAsync (IDialogService dialog , string title , string message)
         {
             try
             {
-                await dialog.ShowWarningAsync(title, message);
+                await dialog.ShowWarningAsync(title , message);
             }
             catch
             {
@@ -189,14 +189,14 @@ namespace A_Pair.Presentation.Avalonia
         }
 
         /// <returns>0=确定, 1=不再提醒, null=关闭窗口</returns>
-        public static async Task<int?> ShowEnvironmentWarningAsync (IDialogService dialog, string message)
+        public static async Task<int?> ShowEnvironmentWarningAsync (IDialogService dialog , string message)
         {
             try
             {
                 return await dialog.ShowMultiOptionAsync(
-                    "运行环境警告",
-                    message,
-                    "确定",
+                    "运行环境警告" ,
+                    message ,
+                    "确定" ,
                     "不再提醒");
             }
             catch

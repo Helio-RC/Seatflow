@@ -12,10 +12,10 @@ public interface IPluginLifecycle
     /// </summary>
     /// <param name="host">插件宿主，提供配置服务和插件目录信息。</param>
     /// <param name="ct">取消令牌。</param>
-    Task InitializeAsync(IPluginHost host, CancellationToken ct = default);
+    Task InitializeAsync (IPluginHost host , CancellationToken ct = default);
 
     /// <summary>
     /// 释放插件持有的资源（文件句柄、网络连接等）。由宿主在卸载时调用。
     /// </summary>
-    Task DisposeAsync();
+    Task DisposeAsync ();
 }

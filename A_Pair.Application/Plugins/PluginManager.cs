@@ -24,44 +24,44 @@ namespace A_Pair.Application.Plugins
         private readonly string _pluginsPath;
         private readonly ILogger<PluginManager> _logger;
         private readonly List<PluginLoadContext> _contexts = [];
-        private readonly Dictionary<string, PluginManifest> _loadedManifests = [];
-        private readonly Dictionary<string, LoadedPluginInfo> _loadedPlugins = [];
+        private readonly Dictionary<string , PluginManifest> _loadedManifests = [];
+        private readonly Dictionary<string , LoadedPluginInfo> _loadedPlugins = [];
         private readonly List<IPluginLifecycle> _lifecyclePlugins = [];
-        private readonly Dictionary<string, Func<string, PluginManifest, IPluginSeatingStrategy>> _scriptAdapters = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string , Func<string , PluginManifest , IPluginSeatingStrategy>> _scriptAdapters = new(StringComparer.OrdinalIgnoreCase);
         private bool _isLoaded;
 
         /// <summary>
         /// 初始化插件管理器，确保插件目录存在并注册内置脚本适配器。
         /// </summary>
-        public PluginManager(string pluginsPath, ILogger<PluginManager> logger)
+        public PluginManager (string pluginsPath , ILogger<PluginManager> logger)
         {
             _pluginsPath = pluginsPath;
             _logger = logger;
             Directory.CreateDirectory(_pluginsPath);
 
-            _scriptAdapters["lua"] = (code, manifest) => new LuaScriptPluginAdapter(code, manifest);
-            _scriptAdapters["csharp"] = (code, manifest) => new CSharpScriptPluginAdapter(code, manifest);
+            _scriptAdapters["lua"] = (code , manifest) => new LuaScriptPluginAdapter(code , manifest);
+            _scriptAdapters["csharp"] = (code , manifest) => new CSharpScriptPluginAdapter(code , manifest);
         }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<string, PluginManifest> LoadedManifests => _loadedManifests;
+        public IReadOnlyDictionary<string , PluginManifest> LoadedManifests => _loadedManifests;
 
         /// <summary>
         /// 注册脚本语言适配器。内置已注册 <c>"lua"</c> 和 <c>"csharp"</c>。
         /// </summary>
-        public void RegisterScriptAdapter(string scriptType, Func<string, PluginManifest, IPluginSeatingStrategy> factory)
+        public void RegisterScriptAdapter (string scriptType , Func<string , PluginManifest , IPluginSeatingStrategy> factory)
         {
             _scriptAdapters[scriptType] = factory;
         }
 
         /// <inheritdoc />
-        public Task<IEnumerable<LoadedPluginInfo>> LoadStrategyPluginsAsync(CancellationToken ct = default)
+        public Task<IEnumerable<LoadedPluginInfo>> LoadStrategyPluginsAsync (CancellationToken ct = default)
         {
-            return LoadPluginsAsync("strategy", ct);
+            return LoadPluginsAsync("strategy" , ct);
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<LoadedPluginInfo>> LoadPluginsAsync(string? category = null, CancellationToken ct = default)
+        public async Task<IEnumerable<LoadedPluginInfo>> LoadPluginsAsync (string? category = null , CancellationToken ct = default)
         {
             if (_isLoaded)
                 return _loadedPlugins.Values;
@@ -75,20 +75,20 @@ namespace A_Pair.Application.Plugins
             {
                 ct.ThrowIfCancellationRequested();
 
-                var manifestPath = Path.Combine(pluginDir, "plugin.manifest.json");
+                var manifestPath = Path.Combine(pluginDir , "plugin.manifest.json");
                 if (!File.Exists(manifestPath))
                     continue;
 
                 try
                 {
-                    var manifestJson = await File.ReadAllTextAsync(manifestPath, ct);
-                    var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson,
+                    var manifestJson = await File.ReadAllTextAsync(manifestPath , ct);
+                    var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson ,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (manifest == null)
                         continue;
 
                     // 按类别过滤
-                    if (category != null && !string.Equals(manifest.Category, category, StringComparison.OrdinalIgnoreCase))
+                    if (category != null && !string.Equals(manifest.Category , category , StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     if (string.IsNullOrEmpty(manifest.Id))
@@ -101,8 +101,8 @@ namespace A_Pair.Application.Plugins
 
                     // 根据类别加载插件
                     IPluginSeatingStrategy? strategy = null;
-                    if (string.Equals(manifest.Category, "strategy", StringComparison.OrdinalIgnoreCase))
-                        strategy = await LoadPluginInternalAsync(manifest, pluginDir, ct);
+                    if (string.Equals(manifest.Category , "strategy" , StringComparison.OrdinalIgnoreCase))
+                        strategy = await LoadPluginInternalAsync(manifest , pluginDir , ct);
 
                     if (strategy != null)
                     {
@@ -111,15 +111,15 @@ namespace A_Pair.Application.Plugins
 
                         if (strategy is IPluginLifecycle lifecycle)
                         {
-                            var host = new PluginHost(_pluginsPath, pluginDir);
-                            await lifecycle.InitializeAsync(host, ct);
+                            var host = new PluginHost(_pluginsPath , pluginDir);
+                            await lifecycle.InitializeAsync(host , ct);
                             _lifecyclePlugins.Add(lifecycle);
                         }
 
                         loadedPlugins.Add(new LoadedPluginInfo
                         {
-                            Manifest = manifest,
-                            Strategy = strategy,
+                            Manifest = manifest ,
+                            Strategy = strategy ,
                             PluginPath = pluginDir
                         });
 
@@ -132,7 +132,7 @@ namespace A_Pair.Application.Plugins
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "加载插件失败：{PluginDir}", pluginDir);
+                    _logger.LogWarning(ex , "加载插件失败：{PluginDir}" , pluginDir);
                 }
             }
 
@@ -141,26 +141,26 @@ namespace A_Pair.Application.Plugins
         }
 
         /// <inheritdoc />
-        public async Task<IEnumerable<LoadedPluginInfo>> RefreshPluginsAsync(string? category = null, CancellationToken ct = default)
+        public async Task<IEnumerable<LoadedPluginInfo>> RefreshPluginsAsync (string? category = null , CancellationToken ct = default)
         {
             await UnloadAllAsync();
             _isLoaded = false;
-            return await LoadPluginsAsync(category, ct);
+            return await LoadPluginsAsync(category , ct);
         }
 
-        private async Task<IPluginSeatingStrategy?> LoadPluginInternalAsync(PluginManifest manifest, string pluginDir, CancellationToken ct)
+        private async Task<IPluginSeatingStrategy?> LoadPluginInternalAsync (PluginManifest manifest , string pluginDir , CancellationToken ct)
         {
             if (!string.IsNullOrEmpty(manifest.ScriptFile))
-                return await LoadScriptPluginAsync(manifest, pluginDir, ct);
+                return await LoadScriptPluginAsync(manifest , pluginDir , ct);
             else if (!string.IsNullOrEmpty(manifest.Assembly))
-                return LoadAssemblyPlugin(manifest, pluginDir);
+                return LoadAssemblyPlugin(manifest , pluginDir);
 
             return null;
         }
 
-        private IPluginSeatingStrategy? LoadAssemblyPlugin(PluginManifest manifest, string pluginDir)
+        private IPluginSeatingStrategy? LoadAssemblyPlugin (PluginManifest manifest , string pluginDir)
         {
-            var assemblyPath = Path.Combine(pluginDir, manifest.Assembly);
+            var assemblyPath = Path.Combine(pluginDir , manifest.Assembly);
             if (!File.Exists(assemblyPath))
                 return null;
 
@@ -175,49 +175,49 @@ namespace A_Pair.Application.Plugins
             return Activator.CreateInstance(type) as IPluginSeatingStrategy;
         }
 
-        private async Task<IPluginSeatingStrategy?> LoadScriptPluginAsync(PluginManifest manifest, string pluginDir, CancellationToken ct)
+        private async Task<IPluginSeatingStrategy?> LoadScriptPluginAsync (PluginManifest manifest , string pluginDir , CancellationToken ct)
         {
             if (string.IsNullOrEmpty(manifest.ScriptFile) || string.IsNullOrEmpty(manifest.ScriptType))
                 return null;
 
-            var scriptPath = Path.Combine(pluginDir, manifest.ScriptFile);
+            var scriptPath = Path.Combine(pluginDir , manifest.ScriptFile);
             if (!File.Exists(scriptPath))
                 return null;
 
-            var scriptCode = await File.ReadAllTextAsync(scriptPath, ct);
+            var scriptCode = await File.ReadAllTextAsync(scriptPath , ct);
 
-            if (_scriptAdapters.TryGetValue(manifest.ScriptType, out var factory))
-                return factory(scriptCode, manifest);
+            if (_scriptAdapters.TryGetValue(manifest.ScriptType , out var factory))
+                return factory(scriptCode , manifest);
 
-            _logger.LogWarning("未找到脚本适配器：{ScriptType}，插件：{PluginId}", manifest.ScriptType, manifest.Id);
+            _logger.LogWarning("未找到脚本适配器：{ScriptType}，插件：{PluginId}" , manifest.ScriptType , manifest.Id);
             return null;
         }
 
         /// <inheritdoc />
-        public async Task<string> InstallFromPackageAsync(string packagePath)
+        public async Task<string> InstallFromPackageAsync (string packagePath)
         {
             if (!File.Exists(packagePath))
                 throw new FileNotFoundException($"插件包文件不存在：{packagePath}");
 
-            var tempDir = Path.Combine(Path.GetTempPath(), $"apair_plugin_{Guid.NewGuid():N}");
+            var tempDir = Path.Combine(Path.GetTempPath() , $"apair_plugin_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
 
             try
             {
-                ZipFile.ExtractToDirectory(packagePath, tempDir, overwriteFiles: true);
+                ZipFile.ExtractToDirectory(packagePath , tempDir , overwriteFiles: true);
 
-                var manifestPath = Path.Combine(tempDir, "plugin.manifest.json");
+                var manifestPath = Path.Combine(tempDir , "plugin.manifest.json");
                 if (!File.Exists(manifestPath))
                     throw new InvalidDataException("插件包内缺少 plugin.manifest.json 文件");
 
                 var manifestJson = await File.ReadAllTextAsync(manifestPath);
-                var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson,
+                var manifest = JsonSerializer.Deserialize<PluginManifest>(manifestJson ,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 if (manifest is null || string.IsNullOrEmpty(manifest.Id))
                     throw new InvalidDataException("plugin.manifest.json 格式无效：缺少 id 字段");
 
-                var targetDir = Path.Combine(_pluginsPath, manifest.Id);
+                var targetDir = Path.Combine(_pluginsPath , manifest.Id);
                 if (Directory.Exists(targetDir))
                     throw new InvalidDataException($"插件 \"{manifest.Id}\" 已存在，请先卸载后再安装");
 
@@ -225,22 +225,22 @@ namespace A_Pair.Application.Plugins
                 foreach (var filePath in Directory.EnumerateFiles(tempDir))
                 {
                     var fileName = Path.GetFileName(filePath);
-                    File.Copy(filePath, Path.Combine(targetDir, fileName), overwrite: false);
+                    File.Copy(filePath , Path.Combine(targetDir , fileName) , overwrite: false);
                 }
 
-                _logger.LogInformation("插件 \"{PluginId}\" 安装成功：{TargetDir}", manifest.Id, targetDir);
+                _logger.LogInformation("插件 \"{PluginId}\" 安装成功：{TargetDir}" , manifest.Id , targetDir);
                 _isLoaded = false;
                 return targetDir;
             }
             finally
             {
-                try { Directory.Delete(tempDir, recursive: true); }
+                try { Directory.Delete(tempDir , recursive: true); }
                 catch { /* 忽略清理失败 */ }
             }
         }
 
         /// <inheritdoc />
-        public async Task UnloadAllAsync()
+        public async Task UnloadAllAsync ()
         {
             foreach (var lifecycle in _lifecyclePlugins)
             {
@@ -250,7 +250,7 @@ namespace A_Pair.Application.Plugins
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "插件 DisposeAsync 失败");
+                    _logger.LogWarning(ex , "插件 DisposeAsync 失败");
                 }
             }
             _lifecyclePlugins.Clear();
@@ -270,16 +270,16 @@ namespace A_Pair.Application.Plugins
         }
 
         /// <inheritdoc />
-        public LoadedPluginInfo? GetLoadedPlugin(string pluginId)
+        public LoadedPluginInfo? GetLoadedPlugin (string pluginId)
         {
-            _loadedPlugins.TryGetValue(pluginId, out var info);
+            _loadedPlugins.TryGetValue(pluginId , out var info);
             return info;
         }
 
         /// <inheritdoc />
-        public PluginManifest? GetManifest(string pluginId)
+        public PluginManifest? GetManifest (string pluginId)
         {
-            _loadedManifests.TryGetValue(pluginId, out var manifest);
+            _loadedManifests.TryGetValue(pluginId , out var manifest);
             return manifest;
         }
     }
@@ -306,7 +306,7 @@ namespace A_Pair.Application.Plugins
     /// </summary>
     internal class PluginHost : IPluginHost
     {
-        public PluginHost(string pluginsBasePath, string pluginDir)
+        public PluginHost (string pluginsBasePath , string pluginDir)
         {
             PluginDirectory = pluginDir;
             Configuration = new PluginConfigurationService(pluginsBasePath);

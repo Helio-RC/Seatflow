@@ -3,19 +3,19 @@ namespace A_Pair.Core.Tests.Models;
 public class LayoutSeatingExportModelTests
 {
     [Fact]
-    public void FromLayout_Grid_Basic_ShouldBuildRows()
+    public void FromLayout_Grid_Basic_ShouldBuildRows ()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Name = "测试网格",
-            LayoutType = LayoutType.Grid,
-            Metadata = new GridLayoutMetadata { Rows = 3, Columns = 4, HasPodium = false }
+            Name = "测试网格" ,
+            LayoutType = LayoutType.Grid ,
+            Metadata = new GridLayoutMetadata { Rows = 3 , Columns = 4 , HasPodium = false }
         };
         for (int r = 1; r <= 3; r++)
             for (int c = 1; c <= 4; c++)
-                layout.Seats.Add(new GridSeat { Row = r, Column = c });
+                layout.Seats.Add(new GridSeat { Row = r , Column = c });
 
-        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
 
         model.LayoutType.Should().Be(LayoutType.Grid);
         model.Rows.Should().HaveCount(3);
@@ -23,43 +23,44 @@ public class LayoutSeatingExportModelTests
     }
 
     [Fact]
-    public void FromLayout_Grid_WithPodium_ShouldAddPodiumRow()
+    public void FromLayout_Grid_WithPodium_ShouldAddPodiumRow ()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Name = "有讲台",
-            LayoutType = LayoutType.Grid,
-            Metadata = new GridLayoutMetadata { Rows = 2, Columns = 3, HasPodium = true }
+            Name = "有讲台" ,
+            LayoutType = LayoutType.Grid ,
+            Metadata = new GridLayoutMetadata { Rows = 2 , Columns = 3 , HasPodium = true }
         };
         for (int r = 1; r <= 2; r++)
             for (int c = 1; c <= 3; c++)
-                layout.Seats.Add(new GridSeat { Row = r, Column = c });
+                layout.Seats.Add(new GridSeat { Row = r , Column = c });
 
-        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
 
         model.Rows.Should().HaveCount(3); // podium + 2 seat rows
         model.Rows[0].Cells.Any(c => c.IsPodium).Should().BeTrue();
     }
 
     [Fact]
-    public void FromLayout_Grid_WithAisleColumns_ShouldInsertAisleCells()
+    public void FromLayout_Grid_WithAisleColumns_ShouldInsertAisleCells ()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Name = "有过道",
-            LayoutType = LayoutType.Grid,
+            Name = "有过道" ,
+            LayoutType = LayoutType.Grid ,
             Metadata = new GridLayoutMetadata
             {
-                Rows = 2, Columns = 4,
-                AisleAfterColumns = [2],
+                Rows = 2 ,
+                Columns = 4 ,
+                AisleAfterColumns = [2] ,
                 HasPodium = false
             }
         };
         for (int r = 1; r <= 2; r++)
             for (int c = 1; c <= 4; c++)
-                layout.Seats.Add(new GridSeat { Row = r, Column = c });
+                layout.Seats.Add(new GridSeat { Row = r , Column = c });
 
-        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
 
         // col plan: C1, C2, aisle, C3, C4 = 5 cells
         model.Rows[0].Cells.Should().HaveCount(5);
@@ -67,22 +68,22 @@ public class LayoutSeatingExportModelTests
     }
 
     [Fact]
-    public void FromLayout_Grid_WithStudentNames_ShouldUseNames()
+    public void FromLayout_Grid_WithStudentNames_ShouldUseNames ()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Name = "测试",
-            LayoutType = LayoutType.Grid,
-            Metadata = new GridLayoutMetadata { Rows = 1, Columns = 2, HasPodium = false }
+            Name = "测试" ,
+            LayoutType = LayoutType.Grid ,
+            Metadata = new GridLayoutMetadata { Rows = 1 , Columns = 2 , HasPodium = false }
         };
-        var s1 = new GridSeat { Row = 1, Column = 1, Id = "s1" };
-        var s2 = new GridSeat { Row = 1, Column = 2, Id = "s2" };
+        var s1 = new GridSeat { Row = 1 , Column = 1 , Id = "s1" };
+        var s2 = new GridSeat { Row = 1 , Column = 2 , Id = "s2" };
         layout.Seats.Add(s1);
         layout.Seats.Add(s2);
 
-        var model = LayoutSeatingExportModel.FromLayout(layout,
-            new Dictionary<string, string> { { "s1", "stu1" } },
-            new Dictionary<string, string> { { "stu1", "张三" } });
+        var model = LayoutSeatingExportModel.FromLayout(layout ,
+            new Dictionary<string , string> { { "s1" , "stu1" } } ,
+            new Dictionary<string , string> { { "stu1" , "张三" } });
 
         model.Rows[0].Cells[0].Text.Should().Be("张三");
         model.Rows[0].Cells[1].Text.Should().Be("未分配"); // no assignment
@@ -90,16 +91,16 @@ public class LayoutSeatingExportModelTests
     }
 
     [Fact]
-    public void FromLayout_Polar_ShouldBuildRingRows()
+    public void FromLayout_Polar_ShouldBuildRingRows ()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Name = "极坐标",
-            LayoutType = LayoutType.Polar,
+            Name = "极坐标" ,
+            LayoutType = LayoutType.Polar ,
             Metadata = new PolarLayoutMetadata
             {
-                RingSeatCounts = [4, 6],
-                HasPodium = false,
+                RingSeatCounts = [4 , 6] ,
+                HasPodium = false ,
                 RadiusStep = 40
             }
         };
@@ -107,10 +108,10 @@ public class LayoutSeatingExportModelTests
         {
             int count = r == 1 ? 4 : 6;
             for (int s = 0; s < count; s++)
-                layout.Seats.Add(new PolarSeat { Ring = r, AngleDegrees = s * 360.0 / count });
+                layout.Seats.Add(new PolarSeat { Ring = r , AngleDegrees = s * 360.0 / count });
         }
 
-        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
 
         model.Rows.Should().HaveCount(2);
         // ring 1 has 4 seats, max is 6, so 1 padding on each side → 6 cells
@@ -122,17 +123,17 @@ public class LayoutSeatingExportModelTests
     }
 
     [Fact]
-    public void FromLayout_Freeform_ShouldListPoints()
+    public void FromLayout_Freeform_ShouldListPoints ()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            Name = "自由点",
+            Name = "自由点" ,
             LayoutType = LayoutType.Freeform
         };
-        layout.Seats.Add(new FreeformSeat { X = 100, Y = 200 });
-        layout.Obstacles.Add(new Obstacle { X = 300, Y = 100, Width = 60, Height = 40, Type = "Podium" });
+        layout.Seats.Add(new FreeformSeat { X = 100 , Y = 200 });
+        layout.Obstacles.Add(new Obstacle { X = 300 , Y = 100 , Width = 60 , Height = 40 , Type = "Podium" });
 
-        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
 
         model.Rows.Should().HaveCount(2); // seat + podium
         model.Rows[0].Cells[0].IsSeat.Should().BeTrue();

@@ -26,10 +26,10 @@ namespace A_Pair.Presentation.Avalonia.Views
         {
             var state = new WindowStateSettings
             {
-                Left = Position.X,
-                Top = Position.Y,
-                Width = Width,
-                Height = Height,
+                Left = Position.X ,
+                Top = Position.Y ,
+                Width = Width ,
+                Height = Height ,
                 IsMaximized = WindowState == WindowState.Maximized
             };
 

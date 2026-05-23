@@ -1,5 +1,3 @@
-using A_Pair.Core.Models;
-
 namespace A_Pair.Core.Tests.Models;
 
 public class StrategyManifestTests
@@ -21,14 +19,14 @@ public class StrategyManifestTests
     {
         var m = new StrategyManifest
         {
-            Id = "RandomFill",
-            Name = "Random Fill",
-            DisplayName = "随机填充",
-            Version = "1.0.0",
-            Description = "将剩余学生随机填入空位",
-            Author = "A_Pair",
-            Category = "fill",
-            DefaultPriority = 10,
+            Id = "RandomFill" ,
+            Name = "Random Fill" ,
+            DisplayName = "随机填充" ,
+            Version = "1.0.0" ,
+            Description = "将剩余学生随机填入空位" ,
+            Author = "A_Pair" ,
+            Category = "fill" ,
+            DefaultPriority = 10 ,
             DefaultEnabled = true
         };
         m.Id.Should().Be("RandomFill");

@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Models
+namespace A_Pair.Core.Models
 {
     /// <summary>
     /// 会场文件 (.venue.json) 的数据结构。

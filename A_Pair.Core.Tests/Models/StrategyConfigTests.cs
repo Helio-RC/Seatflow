@@ -1,5 +1,3 @@
-using A_Pair.Core.Models;
-
 namespace A_Pair.Core.Tests.Models;
 
 public class StrategyConfigTests
@@ -18,11 +16,11 @@ public class StrategyConfigTests
     {
         var c = new StrategyConfig
         {
-            Priority = 50,
-            IsEnabled = true,
-            Parameters = new Dictionary<string, object?>
+            Priority = 50 ,
+            IsEnabled = true ,
+            Parameters = new Dictionary<string , object?>
             {
-                ["group1"] = "Alice,Bob",
+                ["group1"] = "Alice,Bob" ,
                 ["maxDistance"] = 3
             }
         };

@@ -11,14 +11,14 @@ namespace A_Pair.Plugins.Sdk.Attributes;
 /// 当插件类同时继承 <see cref="A_Pair.Plugins.Sdk.Abstractions.PluginStrategyBase"/> 时，
 /// 基类会自动读取此特性来填充 <c>Id</c>、<c>Name</c>、<c>Priority</c>、<c>IsEnabled</c>。
 /// </remarks>
-[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class , Inherited = false , AllowMultiple = false)]
 public sealed class PluginAttribute : Attribute
 {
     /// <summary>
     /// 初始化插件特性，指定插件唯一标识符。
     /// </summary>
     /// <param name="id">插件唯一标识符，对应 <c>plugin.manifest.json</c> 中的 <c>id</c> 字段。</param>
-    public PluginAttribute(string id)
+    public PluginAttribute (string id)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
     }

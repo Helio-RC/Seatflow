@@ -34,7 +34,7 @@ public class NavigationService : INavigationService
 
         if (CurrentViewModel is not null && !await CurrentViewModel.CanLeaveAsync())
         {
-            _logger.LogInformation("导航被拦截：{From} → {To}，当前页面拒绝离开", CurrentPage, page);
+            _logger.LogInformation("导航被拦截：{From} → {To}，当前页面拒绝离开" , CurrentPage , page);
             return false;
         }
 
@@ -59,7 +59,7 @@ public class NavigationService : INavigationService
             PageKey.About => _serviceProvider.GetRequiredService<AboutViewModel>(),
             _ => throw new ArgumentOutOfRangeException(nameof(page))
         };
-        _logger.LogDebug("导航切换：{From} → {To}", CurrentPage, page);
+        _logger.LogDebug("导航切换：{From} → {To}" , CurrentPage , page);
         CurrentViewModelChanged?.Invoke();
     }
 }

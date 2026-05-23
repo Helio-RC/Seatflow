@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.Services;
@@ -52,7 +52,7 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>内容切换后延迟显示进度条。</summary>
     private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
 
-    public MainShellViewModel (INavigationService navigation, ILogger<MainShellViewModel>? logger = null)
+    public MainShellViewModel (INavigationService navigation , ILogger<MainShellViewModel>? logger = null)
     {
         _navigation = navigation;
         _logger = logger ?? NullLogger<MainShellViewModel>.Instance;

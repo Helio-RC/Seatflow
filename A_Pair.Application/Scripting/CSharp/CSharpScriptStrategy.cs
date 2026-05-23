@@ -17,7 +17,7 @@ namespace A_Pair.Application.Scripting.CSharp
         private readonly CSharpScriptConfiguration _config;
         private readonly ILogger<CSharpScriptStrategy> _logger;
 
-        public CSharpScriptStrategy (string code , CSharpScriptConfiguration? config = null, ILogger<CSharpScriptStrategy>? logger = null)
+        public CSharpScriptStrategy (string code , CSharpScriptConfiguration? config = null , ILogger<CSharpScriptStrategy>? logger = null)
         {
             _code = code ?? throw new ArgumentNullException(nameof(code));
             _config = config ?? new CSharpScriptConfiguration();
@@ -50,7 +50,7 @@ namespace A_Pair.Application.Scripting.CSharp
 
             try
             {
-                _logger.LogInformation("C# 脚本策略开始执行：{Name}", Name);
+                _logger.LogInformation("C# 脚本策略开始执行：{Name}" , Name);
                 var options = ScriptOptions.Default
                     .WithReferences(GetAllowedReferences())
                     .WithImports(GetAllowedImports());
@@ -65,17 +65,17 @@ namespace A_Pair.Application.Scripting.CSharp
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("C# 脚本执行超时：{Name}（{Timeout}ms）", Name, _config.TimeoutMilliseconds);
+                _logger.LogWarning("C# 脚本执行超时：{Name}（{Timeout}ms）" , Name , _config.TimeoutMilliseconds);
                 return new StrategyExecutionResult { Success = false , Message = "脚本执行超时" };
             }
             catch (CompilationErrorException ex)
             {
-                _logger.LogWarning(ex, "C# 脚本编译错误：{Name}", Name);
+                _logger.LogWarning(ex , "C# 脚本编译错误：{Name}" , Name);
                 return new StrategyExecutionResult { Success = false , Message = $"编译错误: {string.Join("\n" , ex.Diagnostics)}" };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "C# 脚本执行失败：{Name}", Name);
+                _logger.LogError(ex , "C# 脚本执行失败：{Name}" , Name);
                 return new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" };
             }
         }
