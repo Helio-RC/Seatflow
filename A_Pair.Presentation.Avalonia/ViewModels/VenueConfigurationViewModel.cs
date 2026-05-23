@@ -315,9 +315,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var meta = BuildGridMetadata();
             var layout = GridLayoutBuilder.BuildGrid(meta);
 
-            double SpacingTimes = 2.0;
+            double SpacingTimes = 0.8;
 
-            // 仅放大同桌间距（IntraDeskSpacing），桌间和行间保持原样
+            // 仅缩小同桌间距（IntraDeskSpacing），桌间和行间保持原样
 
             var previewMeta = new GridLayoutMetadata
             {

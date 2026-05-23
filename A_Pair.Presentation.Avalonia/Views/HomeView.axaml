@@ -12,7 +12,7 @@
   <DockPanel>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
       <svg:Svg Path="/Assets/icon_with_background.svg"
-               Width="96" Height="96"
+               Width="240" Height="240"
                HorizontalAlignment="Center"
                Stretch="Uniform" />
       <TextBlock Text="{Binding Greeting}" FontSize="28" FontWeight="Bold"
