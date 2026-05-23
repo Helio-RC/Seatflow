@@ -1,5 +1,7 @@
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Core.Strategies
 {
@@ -8,9 +10,16 @@ namespace A_Pair.Core.Strategies
     /// 分数计算公式：总分 = NeedsFrontRow加分 + FrontRowPreferenceScore - (历史前排次数 × HistoryWeight)。
     /// 分数越高的学生越优先分配到前排，确保轮换公平性。
     /// </summary>
-    public class FrontRowRotationStrategy (FrontRowRotationStrategy.FrontRowRotationConfiguration config) : ISeatingStrategy
+    public class FrontRowRotationStrategy : ISeatingStrategy
     {
-        private readonly FrontRowRotationConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly FrontRowRotationConfiguration _config;
+        private readonly ILogger<FrontRowRotationStrategy> _logger;
+
+        public FrontRowRotationStrategy (FrontRowRotationConfiguration config, ILogger<FrontRowRotationStrategy>? logger = null)
+        {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
+        }
 
         /// <summary>
         /// 使用默认配置创建实例。
@@ -44,10 +53,15 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
+            _logger.LogInformation("FrontRowRotation 策略开始执行：前排数 {FrontRowCount}",
+                _config.FrontRowCount);
 
             var emptySeats = workspace.GetEmptySeats().ToList();
             if (emptySeats.Count == 0)
+            {
+                _logger.LogDebug("FrontRowRotation：无空座位，跳过");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
+            }
 
             // 收集前排座位（Grid + Polar）
             var frontRowSeats = new List<Seat>();
@@ -77,7 +91,10 @@ namespace A_Pair.Core.Strategies
             }
 
             if (frontRowSeats.Count == 0)
+            {
+                _logger.LogDebug("FrontRowRotation：未识别到前排座位，跳过");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
+            }
 
             // 获取尚未分配的学生
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
@@ -102,6 +119,8 @@ namespace A_Pair.Core.Strategies
                 workspace.TryAssignSeat(frontRowSeats[i].Id , studentScores[i].Student.Id , out _);
             }
 
+            _logger.LogInformation("FrontRowRotation 策略完成：{FrontSeats} 个前排座位，分配 {Assigned} 名学生",
+                frontRowSeats.Count, assignCount);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

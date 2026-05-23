@@ -3,35 +3,25 @@ using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Scripting.CSharp
 {
     /// <summary>
     /// C# 脚本策略，使用 Roslyn 脚本引擎在运行时编译并执行 C# 代码作为座位分配策略。
     /// </summary>
-    /// <remarks>
-    /// 安全措施：
-    /// <list type="bullet">
-    ///   <item><b>程序集白名单</b> — 仅允许引用 System.Private.CoreLib、System.Linq、A_Pair.Core 和 A_Pair.Application</item>
-    ///   <item><b>命名空间白名单</b> — 仅允许导入 System、System.Linq、System.Collections.Generic、A_Pair.Core.Workspace 和 A_Pair.Core.Models</item>
-    ///   <item><b>执行超时</b> — 通过 <see cref="CSharpScriptConfiguration.TimeoutMilliseconds"/> 控制，默认 5 秒</item>
-    /// </list>
-    /// 脚本通过 <see cref="ScriptGlobals.Workspace"/> 全局对象访问 <see cref="SeatingWorkspace"/> API。
-    /// </remarks>
     public class CSharpScriptStrategy : ISeatingStrategy
     {
         private readonly string _code;
         private readonly CSharpScriptConfiguration _config;
+        private readonly ILogger<CSharpScriptStrategy> _logger;
 
-        /// <summary>
-        /// 初始化 C# 脚本策略。
-        /// </summary>
-        /// <param name="code">C# 脚本源代码。</param>
-        /// <param name="config">脚本配置，包括策略名称、优先级、启用状态和超时时间。</param>
-        public CSharpScriptStrategy (string code , CSharpScriptConfiguration? config = null)
+        public CSharpScriptStrategy (string code , CSharpScriptConfiguration? config = null, ILogger<CSharpScriptStrategy>? logger = null)
         {
             _code = code ?? throw new ArgumentNullException(nameof(code));
             _config = config ?? new CSharpScriptConfiguration();
+            _logger = logger ?? NullLogger<CSharpScriptStrategy>.Instance;
             Id = Guid.NewGuid().ToString();
             Name = _config.StrategyName ?? "CSharpScript";
             Priority = _config.Priority;
@@ -60,7 +50,7 @@ namespace A_Pair.Application.Scripting.CSharp
 
             try
             {
-                // 创建受限脚本选项
+                _logger.LogInformation("C# 脚本策略开始执行：{Name}", Name);
                 var options = ScriptOptions.Default
                     .WithReferences(GetAllowedReferences())
                     .WithImports(GetAllowedImports());
@@ -68,7 +58,6 @@ namespace A_Pair.Application.Scripting.CSharp
                 var globals = new ScriptGlobals { Workspace = workspace };
                 var script = CSharpScript.Create(_code , options , typeof(ScriptGlobals));
 
-                // 执行脚本，支持超时
                 var task = script.RunAsync(globals , cancellationToken: cts.Token);
                 await task.WaitAsync(cts.Token);
 
@@ -76,14 +65,17 @@ namespace A_Pair.Application.Scripting.CSharp
             }
             catch (OperationCanceledException)
             {
+                _logger.LogWarning("C# 脚本执行超时：{Name}（{Timeout}ms）", Name, _config.TimeoutMilliseconds);
                 return new StrategyExecutionResult { Success = false , Message = "脚本执行超时" };
             }
             catch (CompilationErrorException ex)
             {
+                _logger.LogWarning(ex, "C# 脚本编译错误：{Name}", Name);
                 return new StrategyExecutionResult { Success = false , Message = $"编译错误: {string.Join("\n" , ex.Diagnostics)}" };
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "C# 脚本执行失败：{Name}", Name);
                 return new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" };
             }
         }

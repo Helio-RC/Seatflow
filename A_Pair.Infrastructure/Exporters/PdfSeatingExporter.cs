@@ -1,6 +1,8 @@
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -9,7 +11,6 @@ namespace A_Pair.Infrastructure.Exporters;
 
 public class PdfSeatingExporter : ISeatingPlanExporter
 {
-    // 单元格尺寸常量（毫米）
     private const float DefaultCellWidth = 22f;
     private const float CompactCellWidth = 11f;
     private const float HeaderRowHeight = 16f;
@@ -17,6 +18,13 @@ public class PdfSeatingExporter : ISeatingPlanExporter
     private const float AisleRowHeight = 6f;
     private const float PageMargin = 10f;
     private const float FooterHeight = 10f;
+
+    private readonly ILogger<PdfSeatingExporter> _logger;
+
+    public PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null)
+    {
+        _logger = logger ?? NullLogger<PdfSeatingExporter>.Instance;
+    }
 
     public ExportFormat Format => ExportFormat.Pdf;
 
@@ -33,6 +41,7 @@ public class PdfSeatingExporter : ISeatingPlanExporter
     public async Task ExportAsync(SeatingPlan plan, string path, ExportOptions options, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        _logger.LogInformation("PDF 座位表导出开始：{Path}（{Count} 条记录）", path, plan.Assignments.Count);
 
         await Task.Run(() =>
         {
@@ -86,6 +95,7 @@ public class PdfSeatingExporter : ISeatingPlanExporter
     public async Task ExportLayoutAsync(LayoutSeatingExportModel model, string path, ExportOptions options, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        _logger.LogInformation("PDF 座位布局导出开始：{Path}（{RowCount} 行）", path, model.Rows.Count);
 
         int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
         int rowCount = model.Rows.Count;

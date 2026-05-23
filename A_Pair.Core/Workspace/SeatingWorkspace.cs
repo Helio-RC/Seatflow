@@ -1,5 +1,6 @@
 using A_Pair.Contracts.Models;
 using A_Pair.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Core.Workspace;
 
@@ -11,7 +12,8 @@ namespace A_Pair.Core.Workspace;
 public class SeatingWorkspace : IPluginWorkspace
 {
     private readonly List<Student> _students = [];
-        private readonly List<Seat> _seats = [];
+    private readonly List<Seat> _seats = [];
+    private readonly ILogger<SeatingWorkspace>? _logger;
 
         /// <summary>学生列表（只读）。</summary>
         public IReadOnlyList<Student> Students => _students;
@@ -42,10 +44,14 @@ public class SeatingWorkspace : IPluginWorkspace
         /// </summary>
         /// <param name="students">学生列表。</param>
         /// <param name="seats">座位列表。</param>
-        public SeatingWorkspace (IEnumerable<Student> students , IEnumerable<Seat> seats)
+        /// <param name="logger">日志记录器（可选）。</param>
+        public SeatingWorkspace (IEnumerable<Student> students , IEnumerable<Seat> seats, ILogger<SeatingWorkspace>? logger = null)
         {
             _students.AddRange(students ?? Enumerable.Empty<Student>());
             _seats.AddRange(seats ?? Enumerable.Empty<Seat>());
+            _logger = logger;
+            _logger?.LogDebug("创建工作区：{StudentCount} 名学生，{SeatCount} 个座位",
+                _students.Count, _seats.Count);
         }
 
         /// <summary>
@@ -66,16 +72,17 @@ public class SeatingWorkspace : IPluginWorkspace
             error = string.Empty;
             var seat = _seats.FirstOrDefault(s => s.Id == seatId);
             var student = _students.FirstOrDefault(s => s.Id == studentId);
-            if (seat == null) { error = "Seat not found"; return false; }
-            if (student == null) { error = "Student not found"; return false; }
-            if (!seat.IsAvailable) { error = "Seat not available"; return false; }
-            if (seat.IsFixed && seat.OccupantId != studentId) { error = "Seat is fixed by another student"; return false; }
+            if (seat == null) { error = "Seat not found"; _logger?.LogWarning("TryAssignSeat：座位 {SeatId} 不存在", seatId); return false; }
+            if (student == null) { error = "Student not found"; _logger?.LogWarning("TryAssignSeat：学生 {StudentId} 不存在", studentId); return false; }
+            if (!seat.IsAvailable) { error = "Seat not available"; _logger?.LogDebug("TryAssignSeat：座位 {SeatId} 不可用", seatId); return false; }
+            if (seat.IsFixed && seat.OccupantId != studentId) { error = "Seat is fixed by another student"; _logger?.LogWarning("TryAssignSeat：座位 {SeatId} 被固定给其他学生", seatId); return false; }
 
             // 防止同一学生分配到多个座位
             var alreadyAssignedSeat = _seats.FirstOrDefault(s => s.OccupantId == studentId && s.Id != seatId);
             if (alreadyAssignedSeat != null)
             {
                 error = "Student already assigned to another seat";
+                _logger?.LogWarning("TryAssignSeat：学生 {StudentId} 已分配到座位 {OtherSeat}", studentId, alreadyAssignedSeat.Id);
                 return false;
             }
 
@@ -117,6 +124,8 @@ public class SeatingWorkspace : IPluginWorkspace
         /// <param name="seatAssignments">快照中的座位分配字典（座位 ID → 学生 ID）。</param>
         public void ApplySnapshotAssignments(Dictionary<string, string> seatAssignments)
         {
+            _logger?.LogInformation("ApplySnapshotAssignments：应用 {Count} 条分配记录", seatAssignments.Count);
+
             // 清空所有非固定座位的当前分配
             foreach (var seat in _seats)
             {
@@ -127,6 +136,7 @@ public class SeatingWorkspace : IPluginWorkspace
                 }
             }
 
+            var applied = 0;
             // 应用快照中的分配
             foreach (var kv in seatAssignments)
             {
@@ -140,8 +150,10 @@ public class SeatingWorkspace : IPluginWorkspace
                     seat.OccupantId = kv.Value;
                     seat.IsAvailable = false;
                     student.RecentSeatHistory.Add(kv.Key);
+                    applied++;
                 }
             }
+            _logger?.LogInformation("ApplySnapshotAssignments：成功应用 {Applied} 条", applied);
         }
 
         /// <inheritdoc />

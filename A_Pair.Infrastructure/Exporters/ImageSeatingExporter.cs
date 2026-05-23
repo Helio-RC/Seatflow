@@ -1,6 +1,8 @@
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SkiaSharp;
 
 namespace A_Pair.Infrastructure.Exporters;
@@ -12,6 +14,13 @@ public class ImageSeatingExporter : ISeatingPlanExporter
     private const int AisleRowHeight = 16;
     private const int Margin = 20;
     private const float TextSize = 11;
+
+    private readonly ILogger<ImageSeatingExporter> _logger;
+
+    public ImageSeatingExporter(ILogger<ImageSeatingExporter>? logger = null)
+    {
+        _logger = logger ?? NullLogger<ImageSeatingExporter>.Instance;
+    }
 
     /// <summary>跨平台 CJK 字体，通过 MatchCharacter 动态匹配系统可用字体。</summary>
     private static readonly SKTypeface CjkTypeface = ResolveCjkTypeface();
@@ -33,6 +42,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
     public Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        _logger.LogInformation("图片座位布局导出开始：{Path}（{RowCount} 行）", path, model.Rows.Count);
 
         if (model.Rows.Count == 0) return Task.CompletedTask;
 

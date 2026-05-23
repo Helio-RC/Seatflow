@@ -1,4 +1,6 @@
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Core.Strategies
 {
@@ -7,9 +9,16 @@ namespace A_Pair.Core.Strategies
     /// 将指定学生强制分配到固定座位，不受其他策略影响。
     /// 适用于有特殊需求的学生（如残障学生固定前排座位）。
     /// </summary>
-    public class FixedSeatStrategy (FixedSeatConfiguration config) : ISeatingStrategy
+    public class FixedSeatStrategy : ISeatingStrategy
     {
-        private readonly FixedSeatConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly FixedSeatConfiguration _config;
+        private readonly ILogger<FixedSeatStrategy> _logger;
+
+        public FixedSeatStrategy (FixedSeatConfiguration config, ILogger<FixedSeatStrategy>? logger = null)
+        {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _logger = logger ?? NullLogger<FixedSeatStrategy>.Instance;
+        }
 
         /// <summary>
         /// 使用默认空配置创建实例。
@@ -36,11 +45,18 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             if (workspace is null) throw new ArgumentNullException(nameof(workspace));
+            _logger.LogInformation("FixedSeat 策略开始执行：{AssignmentCount} 个固定分配",
+                _config.FixedAssignments.Count);
 
+            var assignedCount = 0;
             foreach (var kv in _config.FixedAssignments)
             {
                 var seat = workspace.FindSeats(s => s.Id == kv.Key).FirstOrDefault();
-                if (seat == null) continue;
+                if (seat == null)
+                {
+                    _logger.LogWarning("FixedSeat：座位 {SeatId} 不存在，跳过", kv.Key);
+                    continue;
+                }
 
                 // 先分配再固定，避免 IsFixed 导致分配失败
                 if (!string.IsNullOrEmpty(kv.Value))
@@ -48,6 +64,8 @@ namespace A_Pair.Core.Strategies
                     // 如果座位已被其他人占用则清除（但不覆盖非固定？这里为了固定座位强制）
                     if (seat.OccupantId != null && seat.OccupantId != kv.Value)
                     {
+                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被 {OldStudent} 占用，清除后分配给 {NewStudent}",
+                            seat.Id, seat.OccupantId, kv.Value);
                         seat.OccupantId = null;
                         seat.IsAvailable = true;
                     }
@@ -55,6 +73,11 @@ namespace A_Pair.Core.Strategies
                     if (success)
                     {
                         seat.IsFixed = true;
+                        assignedCount++;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("FixedSeat：分配座位 {SeatId} 给学生 {StudentId} 失败", kv.Key, kv.Value);
                     }
                 }
                 else
@@ -66,14 +89,18 @@ namespace A_Pair.Core.Strategies
 
             // 确保管道中此前策略已标记的固定座位（非本策略新设）状态正确。
             // TryAssignSeat 对本策略新分配已处理 IsAvailable，此处仅为已有固定座位做防御性修复。
+            var fixedCount = 0;
             foreach (var seat in workspace.FindSeats(s => s.IsFixed))
             {
                 if (!string.IsNullOrEmpty(seat.OccupantId))
                 {
                     seat.IsAvailable = false;
+                    fixedCount++;
                 }
             }
 
+            _logger.LogInformation("FixedSeat 策略完成：成功分配 {Assigned} 个，防御性修复 {Fixed} 个",
+                assignedCount, fixedCount);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

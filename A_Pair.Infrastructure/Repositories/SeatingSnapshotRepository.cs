@@ -1,6 +1,8 @@
 using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Repositories
 {
@@ -13,10 +15,12 @@ namespace A_Pair.Infrastructure.Repositories
         private readonly string _basePath;
         private readonly Dictionary<string, string> _index = []; // snapshot ID → full file path
         private bool _indexBuilt;
+        private readonly ILogger<SeatingSnapshotRepository> _logger;
 
-        public SeatingSnapshotRepository(string basePath)
+        public SeatingSnapshotRepository(string basePath, ILogger<SeatingSnapshotRepository>? logger = null)
         {
             _basePath = basePath;
+            _logger = logger ?? NullLogger<SeatingSnapshotRepository>.Instance;
         }
 
         private static string GetFilePath(string venueId, DateTime date, string id)
@@ -50,6 +54,7 @@ namespace A_Pair.Infrastructure.Repositories
             await File.WriteAllTextAsync(path, json, ct);
             _index[snapshot.Id] = path;
             _indexBuilt = true;
+            _logger.LogInformation("快照已保存：{SnapshotId} → {Path}", snapshot.Id, path);
         }
 
         /// <inheritdoc />
@@ -111,11 +116,14 @@ namespace A_Pair.Infrastructure.Repositories
             {
                 File.Delete(path);
                 _index.Remove(id);
+                _logger.LogInformation("快照已删除：{SnapshotId}", id);
             }
+            else
+                _logger.LogDebug("删除快照未找到：{SnapshotId}", id);
             return Task.CompletedTask;
         }
 
-        private static List<SeatingSnapshot> LoadFromDir(string venueDir)
+        private List<SeatingSnapshot> LoadFromDir(string venueDir)
         {
             var snapshots = new List<SeatingSnapshot>();
             foreach (var dateDir in SafeEnumerateDirectories(venueDir))
@@ -127,16 +135,23 @@ namespace A_Pair.Infrastructure.Repositories
                         var snapshot = JsonSerializer.Deserialize<SeatingSnapshot>(File.ReadAllText(file));
                         if (snapshot is not null) snapshots.Add(snapshot);
                     }
-                    catch { }
+                    catch
+                    {
+                        // 跳过损坏/不兼容的快照文件
+                    }
                 }
             }
             return snapshots;
         }
 
-        private static string[] SafeEnumerateDirectories(string path)
+        private string[] SafeEnumerateDirectories(string path)
         {
             try { return Directory.GetDirectories(path); }
-            catch { return []; }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "枚举目录失败：{Path}", path);
+                return [];
+            }
         }
     }
 }

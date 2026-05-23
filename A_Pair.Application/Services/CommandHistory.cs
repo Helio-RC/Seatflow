@@ -1,19 +1,20 @@
 using A_Pair.Application.Commands;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Services
 {
-    /// <summary>
-    /// 命令历史记录管理器，支持撤销（Undo）和重做（Redo）操作。
-    /// </summary>
-    /// <remarks>
-    /// 内部维护两个栈：<see cref="_undo"/> 存储已执行的命令，<see cref="_redo"/> 存储已撤销的命令。
-    /// 执行新命令时会清空 <see cref="_redo"/> 栈，确保撤销/重做历史的一致性。
-    /// </remarks>
     public class CommandHistory
     {
         private readonly Stack<IUndoableCommand> _undo = new();
         private readonly Stack<IUndoableCommand> _redo = new();
+        private readonly ILogger<CommandHistory> _logger;
+
+        public CommandHistory(ILogger<CommandHistory>? logger = null)
+        {
+            _logger = logger ?? NullLogger<CommandHistory>.Instance;
+        }
 
         /// <summary>
         /// 获取一个值，指示当前是否有可撤销的命令。
@@ -39,7 +40,10 @@ namespace A_Pair.Application.Services
             {
                 _undo.Push(command);
                 _redo.Clear();
+                _logger.LogDebug("命令已执行：{CommandId}（撤销栈 {UndoCount}）", command.Id, _undo.Count);
             }
+            else
+                _logger.LogWarning("命令执行失败：{CommandId}", command.Id);
             return ok;
         }
 

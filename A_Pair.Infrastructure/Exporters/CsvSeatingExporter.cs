@@ -3,11 +3,20 @@ using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 using CsvHelper;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Exporters
 {
     public class CsvSeatingExporter : ISeatingPlanExporter
     {
+        private readonly ILogger<CsvSeatingExporter> _logger;
+
+        public CsvSeatingExporter(ILogger<CsvSeatingExporter>? logger = null)
+        {
+            _logger = logger ?? NullLogger<CsvSeatingExporter>.Instance;
+        }
+
         public ExportFormat Format => ExportFormat.Csv;
         public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
         {
@@ -16,6 +25,7 @@ namespace A_Pair.Infrastructure.Exporters
 
         public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("CSV 座位导出开始：{Path}（{Count} 条记录）", path, plan.Assignments.Count);
             var records = plan.Assignments.Select(kv => new SeatAssignmentRecord
             {
                 SeatId = kv.Key ,

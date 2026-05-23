@@ -1,5 +1,7 @@
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Core.Strategies
 {
@@ -8,12 +10,19 @@ namespace A_Pair.Core.Strategies
     /// 支持从配置和 <see cref="AttributeBag"/> 扩展属性中读取同桌组定义。
     /// 优先尝试水平相邻分配，其次垂直相邻，最后使用 BFS 寻找任意连通分量。
     /// </summary>
-    public class DeskMateStrategy (DeskMateConfiguration config) : ISeatingStrategy
+    public class DeskMateStrategy : ISeatingStrategy
     {
-        private readonly DeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly DeskMateConfiguration _config;
+        private readonly ILogger<DeskMateStrategy> _logger;
 
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public DeskMateConfiguration Config => _config;
+
+        public DeskMateStrategy (DeskMateConfiguration config, ILogger<DeskMateStrategy>? logger = null)
+        {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _logger = logger ?? NullLogger<DeskMateStrategy>.Instance;
+        }
 
         /// <summary>使用默认配置创建实例。</summary>
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
@@ -39,6 +48,8 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
+            _logger.LogInformation("DeskMate 策略开始执行：学生 {StudentCount} 人，座位 {SeatCount} 个",
+                workspace.Students.Count, workspace.GetEmptySeats().Count());
 
             // 获取所有未分配的学生ID
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
@@ -78,7 +89,10 @@ namespace A_Pair.Core.Strategies
                 .ToList();
 
             if (validGroups.Count == 0)
+            {
+                _logger.LogDebug("DeskMate：无有效同桌组（每组至少 2 名未分配学生）");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
+            }
 
             // 获取所有空座位
             var emptySeats = workspace.GetEmptySeats().ToList();
@@ -120,6 +134,9 @@ namespace A_Pair.Core.Strategies
                 }
             }
 
+            var remaining = workspace.GetEmptySeats().Count();
+            _logger.LogInformation("DeskMate 策略完成：处理了 {GroupCount} 个同桌组，剩余 {Remaining} 个空座位",
+                validGroups.Count, remaining);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

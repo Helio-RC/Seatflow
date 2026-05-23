@@ -2,6 +2,8 @@
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Serialization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Providers
 {
@@ -12,18 +14,19 @@ namespace A_Pair.Infrastructure.Providers
     /// 每个会场保存为独立的 <c>*.venue.json</c> 文件，文件名格式为 <c><venueId>.venue.json</c>。
     /// 使用 <see cref="SeatJsonConverter"/> 支持 <see cref="Seat"/> 派生类的多态序列化。
     /// </remarks>
-    /// <param name="venuesFolder">会场文件存储目录。</param>
     public class JsonVenueRepository : IVenueRepository
     {
         private readonly string _venuesFolder;
+        private readonly ILogger<JsonVenueRepository> _logger;
 
         /// <summary>
         /// 初始化 JSON 会场仓储，确保存储目录存在。
         /// </summary>
         /// <param name="venuesFolder">会场文件存储目录。</param>
-        public JsonVenueRepository (string venuesFolder)
+        public JsonVenueRepository (string venuesFolder, ILogger<JsonVenueRepository>? logger = null)
         {
             _venuesFolder = venuesFolder ?? throw new ArgumentNullException(nameof(venuesFolder));
+            _logger = logger ?? NullLogger<JsonVenueRepository>.Instance;
             Directory.CreateDirectory(_venuesFolder);
         }
 
@@ -40,6 +43,7 @@ namespace A_Pair.Infrastructure.Providers
             var options = SerializerOptions;
             var json = JsonSerializer.Serialize(venueFile , options);
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
+            _logger.LogInformation("会场已保存：{VenueId} → {Path}", venueId, filePath);
         }
 
         /// <inheritdoc />

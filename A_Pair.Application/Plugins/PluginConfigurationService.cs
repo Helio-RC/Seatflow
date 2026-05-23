@@ -1,29 +1,34 @@
 ﻿using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Plugins
 {
-    /// <summary>
-    /// 插件配置服务的默认实现，将插件配置以 JSON 格式存储在插件目录中。
-    /// </summary>
-    /// <remarks>
-    /// 每个插件的配置文件位于 <c><pluginsBasePath>/<pluginId>/config.json</c>。
-    /// 支持通过 <see cref="FileSystemWatcher"/> 监视配置文件变更。
-    /// </remarks>
-    /// <param name="pluginsBasePath">插件根目录路径。</param>
-    public class PluginConfigurationService (string pluginsBasePath) : IPluginConfigurationService
+    public class PluginConfigurationService : IPluginConfigurationService
     {
-        private readonly string _pluginsBasePath = pluginsBasePath;
+        private readonly string _pluginsBasePath;
         private readonly Dictionary<string , FileSystemWatcher> _watchers = [];
+        private readonly ILogger<PluginConfigurationService> _logger;
+
+        public PluginConfigurationService(string pluginsBasePath, ILogger<PluginConfigurationService>? logger = null)
+        {
+            _pluginsBasePath = pluginsBasePath;
+            _logger = logger ?? NullLogger<PluginConfigurationService>.Instance;
+        }
 
         /// <inheritdoc />
         public async Task<T?> LoadConfigurationAsync<T> (string pluginId , CancellationToken cancellationToken = default) where T : class, new()
         {
             var configPath = GetConfigPath(pluginId);
             if (!File.Exists(configPath))
+            {
+                _logger.LogDebug("插件配置文件不存在：{PluginId}，返回默认配置", pluginId);
                 return new T();
+            }
 
             var json = await File.ReadAllTextAsync(configPath , cancellationToken);
+            _logger.LogInformation("插件配置已加载：{PluginId}", pluginId);
             return JsonSerializer.Deserialize<T>(json);
         }
 
@@ -37,6 +42,7 @@ namespace A_Pair.Application.Plugins
 
             var json = JsonSerializer.Serialize(configuration , new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(configPath , json , cancellationToken);
+            _logger.LogInformation("插件配置已保存：{PluginId}", pluginId);
         }
 
         /// <inheritdoc />
