@@ -322,32 +322,69 @@ namespace A_Pair.Application.Services
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
             var snapshot = await _snapshotRepository.LoadAsync(snapshotId, cancellationToken) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
-            if (_currentWorkspace == null)
-            {
-                // 自动构建最小工作区：从会场加载座位，从快照构造存根学生
-                ClassroomLayoutDefinition? layout = null;
-                if (!string.IsNullOrEmpty(snapshot.LayoutId) && snapshot.LayoutId != "unknown" && snapshot.LayoutId != "empty")
-                {
-                    try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
-                }
-
-                _currentLayout = layout;
-
-                var seats = layout?.Seats ?? new List<Seat>();
-                var studentIds = snapshot.SeatAssignments.Values
-                    .Where(v => v != null)
-                    .Distinct()
-                    .ToList();
-                var stubStudents = studentIds.Select(id => new Student { Id = id , Name = id }).ToList();
-
-                _currentWorkspace = new SeatingWorkspace(stubStudents , seats);
-            }
 
             // 回滚前自动保存当前状态为备份快照，确保可撤销
-            await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}");
+            if (_currentWorkspace != null)
+            {
+                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}"); } catch { }
+            }
 
-            // 应用快照中的座位分配
+            // 加载快照对应的会场布局（无论是否已有工作区都重新加载，确保座位 ID 匹配）
+            ClassroomLayoutDefinition? layout = null;
+            if (!string.IsNullOrEmpty(snapshot.LayoutId)
+                && snapshot.LayoutId != "unknown"
+                && snapshot.LayoutId != "empty"
+                && snapshot.LayoutId != "current")
+            {
+                try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
+            }
+
+            _currentLayout = layout;
+
+            var seats = layout?.Seats ?? new List<Seat>();
+            var studentIds = snapshot.SeatAssignments.Values
+                .Where(v => v != null)
+                .Distinct()
+                .ToList();
+            var students = await BuildStudentsForSnapshotAsync(studentIds , cancellationToken);
+
+            _currentWorkspace = new SeatingWorkspace(students , seats);
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
+        }
+
+        /// <summary>
+        /// 从已保存的学生数据集中尽可能匹配真实学生信息，无法匹配的用 ID 作为名称的存根学生。
+        /// </summary>
+        private async Task<List<Student>> BuildStudentsForSnapshotAsync (List<string> studentIds , CancellationToken ct)
+        {
+            if (studentIds.Count == 0)
+                return [];
+
+            var idSet = new HashSet<string>(studentIds);
+            var studentMap = new Dictionary<string , Student>();
+
+            // 尝试从所有已保存的学生数据集加载真实数据
+            try
+            {
+                var datasets = await _datasetRepo.ListAsync(ct);
+                foreach (var ds in datasets)
+                {
+                    var loaded = await _datasetRepo.LoadAsync(ds.Id , ct);
+                    if (loaded != null)
+                    {
+                        foreach (var s in loaded)
+                        {
+                            if (idSet.Contains(s.Id) && !studentMap.ContainsKey(s.Id))
+                                studentMap[s.Id] = s;
+                        }
+                    }
+                }
+            }
+            catch { /* 数据集读取失败不影响回滚 */ }
+
+            return studentIds.Select(id =>
+                studentMap.TryGetValue(id , out var real) ? real : new Student { Id = id , Name = id }
+            ).ToList();
         }
 
         public async Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)

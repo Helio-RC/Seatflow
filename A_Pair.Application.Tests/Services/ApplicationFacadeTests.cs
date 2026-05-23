@@ -101,22 +101,33 @@ public class ApplicationFacadeTests
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
             out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var log);
-        var ws = new SeatingWorkspace(
-            new[] { new Student { Id = "s1" } , new Student { Id = "s2" } } ,
-            new Seat[] { new GridSeat { Id = "seat1" } , new GridSeat { Id = "seat2" } });
-        typeof(ApplicationFacade)
-            .GetField("_currentWorkspace" , System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-            ?.SetValue(facade , ws);
+
+        // 设置会场布局，确保回滚时座位 ID 匹配
+        var layout = new ClassroomLayoutDefinition
+        {
+            Id = "test-venue" ,
+            Name = "Test Venue" ,
+            LayoutType = LayoutType.Grid ,
+            Seats = [new GridSeat { Id = "seat1" } , new GridSeat { Id = "seat2" }]
+        };
+        venueRepo.LoadAsync("test-venue", Arg.Any<CancellationToken>()).Returns(layout);
+
+        // 设置数据集仓库返回空（无匹配真实学生，使用存根）
+        dr.ListAsync(Arg.Any<CancellationToken>()).Returns([]);
 
         var snapshot = new SeatingSnapshot
         {
+            Id = "snap-1" ,
+            LayoutId = "test-venue" ,
             SeatAssignments = new Dictionary<string , string> { { "seat1" , "s1" } , { "seat2" , "s2" } }
         };
         snapRepo.LoadAsync(snapshot.Id, Arg.Any<CancellationToken>()).Returns(snapshot);
 
         await facade.RollbackToSnapshotAsync(snapshot.Id , CancellationToken.None);
 
-        ws.FindSeats(s => s.Id == "seat1").First().OccupantId.Should().Be("s1");
-        ws.FindSeats(s => s.Id == "seat2").First().OccupantId.Should().Be("s2");
+        var workspace = await facade.GetCurrentWorkspaceAsync();
+        workspace.Should().NotBeNull();
+        workspace!.FindSeats(s => s.Id == "seat1").First().OccupantId.Should().Be("s1");
+        workspace.FindSeats(s => s.Id == "seat2").First().OccupantId.Should().Be("s2");
     }
 }
