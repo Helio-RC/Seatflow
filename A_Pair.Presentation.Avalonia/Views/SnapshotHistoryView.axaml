@@ -201,7 +201,7 @@
           </StackPanel>
         </Border>
 
-        <!-- 详情 -->
+        <!-- 详情（仅 SelectedSnapshot 非 null 时显示） -->
         <Border IsVisible="{Binding HasSelectedSnapshot}" Padding="16" CornerRadius="6"
                 Background="{DynamicResource SidebarBackgroundBrush}">
           <DockPanel>
@@ -225,37 +225,44 @@
               </Button>
             </StackPanel>
 
-            <StackPanel Spacing="12">
-              <TextBlock Text="快照详情" FontSize="16" FontWeight="SemiBold"/>
-              <StackPanel Spacing="6">
-                <TextBlock FontSize="13" FontWeight="SemiBold" Text="快照ID"/>
-                <TextBlock Text="{Binding SelectedSnapshot.Id}"
-                           FontSize="12" TextWrapping="Wrap"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-              </StackPanel>
-              <StackPanel Spacing="6">
-                <TextBlock FontSize="13" FontWeight="SemiBold" Text="创建时间"/>
-                <TextBlock Text="{Binding SelectedSnapshot.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
-                           FontSize="13"/>
-              </StackPanel>
-              <StackPanel Spacing="6">
-                <TextBlock FontSize="13" FontWeight="SemiBold" Text="描述"/>
-                <TextBlock Text="{Binding SelectedSnapshot.Description}"
-                           FontSize="13" TextWrapping="Wrap"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-              </StackPanel>
-              <StackPanel Spacing="6">
-                <TextBlock FontSize="13" FontWeight="SemiBold" Text="座位数"/>
-                <TextBlock Text="{Binding SelectedSnapshot.SeatAssignments.Count}"
-                           FontSize="13"/>
-              </StackPanel>
-              <StackPanel Spacing="6">
-                <TextBlock FontSize="13" FontWeight="SemiBold" Text="关联会场"/>
-                <TextBlock Text="{Binding SelectedSnapshot.LayoutId}"
-                           FontSize="12" TextWrapping="Wrap"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-              </StackPanel>
-            </StackPanel>
+            <!-- 用 ContentControl + DataTemplate 防止 SelectedSnapshot 为 null 时绑定报错 -->
+            <ContentControl Content="{Binding SelectedSnapshot}">
+              <ContentControl.ContentTemplate>
+                <DataTemplate x:DataType="core:SeatingSnapshot">
+                  <StackPanel Spacing="12">
+                    <TextBlock Text="快照详情" FontSize="16" FontWeight="SemiBold"/>
+                    <StackPanel Spacing="6">
+                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="快照ID"/>
+                      <TextBlock Text="{Binding Id}"
+                                 FontSize="12" TextWrapping="Wrap"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                    <StackPanel Spacing="6">
+                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="创建时间"/>
+                      <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                 FontSize="13"/>
+                    </StackPanel>
+                    <StackPanel Spacing="6">
+                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="描述"/>
+                      <TextBlock Text="{Binding Description}"
+                                 FontSize="13" TextWrapping="Wrap"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                    <StackPanel Spacing="6">
+                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="座位数"/>
+                      <TextBlock Text="{Binding SeatAssignments.Count}"
+                                 FontSize="13"/>
+                    </StackPanel>
+                    <StackPanel Spacing="6">
+                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="关联会场"/>
+                      <TextBlock Text="{Binding LayoutId}"
+                                 FontSize="12" TextWrapping="Wrap"
+                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                  </StackPanel>
+                </DataTemplate>
+              </ContentControl.ContentTemplate>
+            </ContentControl>
           </DockPanel>
         </Border>
       </Grid>

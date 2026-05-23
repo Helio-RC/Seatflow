@@ -139,6 +139,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _ = LoadInitialDataAsync();
     }
 
+    /// <summary>用于抑制 <see cref="OnSelectedVenueChanged"/> 覆盖已恢复的布局。</summary>
+    private bool _isRestoringWorkspace;
+
     // ── 初始化 ──
 
     private async Task LoadInitialDataAsync()
@@ -201,9 +204,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         if (_currentLayout != null)
         {
-            // 同步会场选择
-            SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Name)
+            _isRestoringWorkspace = true;
+            SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Id)
                          ?? VenueItems.FirstOrDefault();
+            _isRestoringWorkspace = false;
+
             BuildSeatDisplayItems();
         }
 
@@ -217,7 +222,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 会场选择 ──
     partial void OnSelectedVenueChanged(VenueItem? value)
     {
-        if (value == null) return;
+        if (value == null || _isRestoringWorkspace) return;
         _ = SafeExecuteAsync(async () =>
         {
             _currentLayout = await _facade.LoadVenueAsync(value.Id);
