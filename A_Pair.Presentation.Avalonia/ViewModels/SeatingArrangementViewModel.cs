@@ -230,14 +230,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             _isRestoringWorkspace = false;
 
             HasGenerated = true;
-            BuildSeatDisplayItems();
         }
 
         await UpdateRightPanelAsync();
         UpdateStats();
         InitHistory("已恢复的工作区");
         StatusMessage = $"已恢复工作区：{AssignedSeats}/{TotalSeats} 已分配";
-        RefreshPreview();
+
+        // 强制在 UI 线程上重绘，确保异步 continuation 未切到线程池时也能正确渲染
+        Dispatcher.UIThread.Post(RefreshPreview);
     }
 
     // ── 会场选择 ──
