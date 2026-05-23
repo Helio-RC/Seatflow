@@ -1,8 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
-             xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
              x:Class="A_Pair.Presentation.Avalonia.Views.HomeView"
              x:DataType="vm:HomeViewModel">
 
@@ -12,9 +11,10 @@
 
   <DockPanel>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-      <Svg Source="/Assets/icon_with_background.svg"
-             Width="96" Height="96"
-             HorizontalAlignment="Center" />
+      <svg:Svg Path="/Assets/icon_with_background.svg"
+               Width="96" Height="96"
+               HorizontalAlignment="Center"
+               Stretch="Uniform" />
       <TextBlock Text="{Binding Greeting}" FontSize="28" FontWeight="Bold"
                  HorizontalAlignment="Center" />
       <TextBlock Text="{Binding Subtitle}" FontSize="16"
