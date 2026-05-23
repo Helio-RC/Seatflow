@@ -16,7 +16,8 @@
       <DockPanel>
         <TextBlock DockPanel.Dock="Left" Text="设置" Classes="pageTitle"
                    VerticalAlignment="Center" />
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
           <Button Command="{Binding ResetDefaultsCommand}" AutomationProperties.Name="恢复默认设置"
                   HorizontalContentAlignment="Center" Padding="12,6">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -118,15 +119,6 @@
           <StackPanel Spacing="14">
             <TextBlock Text="行为" Classes="sectionTitle" />
             <Separator />
-
-            <!-- 自动保存间隔 -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="自动保存间隔" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <ComboBox ItemsSource="{Binding AutoSaveOptions}" AutomationProperties.Name="自动保存间隔"
-                        SelectedIndex="{Binding AutoSaveIndex, Mode=TwoWay}"
-                        MinWidth="160" FontSize="14" />
-            </DockPanel>
 
             <Separator />
 

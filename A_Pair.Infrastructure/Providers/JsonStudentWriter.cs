@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 

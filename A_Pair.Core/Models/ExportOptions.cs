@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Models
+namespace A_Pair.Core.Models
 {
     /// <summary>
     /// 导出选项，控制座位安排结果的导出格式和行为。
@@ -30,6 +30,8 @@
         /// <summary>PDF 文档</summary>
         Pdf,
         /// <summary>JSON 格式</summary>
-        Json
+        Json,
+        /// <summary>PNG 图片</summary>
+        Png
     }
 }

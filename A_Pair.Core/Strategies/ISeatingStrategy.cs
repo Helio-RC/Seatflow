@@ -41,24 +41,24 @@ namespace A_Pair.Core.Strategies
     /// <summary>
     /// 策略执行结果，包含成功状态和描述消息。
     /// </summary>
-    public class StrategyExecutionResult
+    public record StrategyExecutionResult
     {
         /// <summary>是否执行成功。</summary>
-        public bool Success { get; set; }
+        public bool Success { get; init; }
 
         /// <summary>执行结果描述消息。</summary>
-        public string Message { get; set; } = string.Empty;
+        public string Message { get; init; } = string.Empty;
     }
 
     /// <summary>
     /// 配置验证结果。
     /// </summary>
-    public class ValidationResult
+    public record ValidationResult
     {
         /// <summary>配置是否有效。</summary>
-        public bool IsValid { get; set; } = true;
+        public bool IsValid { get; init; } = true;
 
         /// <summary>验证失败时的错误描述。</summary>
-        public string? Error { get; set; }
+        public string? Error { get; init; }
     }
 }

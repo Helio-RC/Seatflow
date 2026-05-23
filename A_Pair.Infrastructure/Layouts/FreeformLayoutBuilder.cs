@@ -61,8 +61,10 @@ namespace A_Pair.Infrastructure.Layouts
                 {
                     layout.Obstacles.Add(new Obstacle
                     {
-                        X = x , Y = y ,
-                        Width = w , Height = h ,
+                        X = x ,
+                        Y = y ,
+                        Width = w ,
+                        Height = h ,
                         Type = type
                     });
                 }

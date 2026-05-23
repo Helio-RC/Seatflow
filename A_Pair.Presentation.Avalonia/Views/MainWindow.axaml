@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
         xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
@@ -226,12 +226,19 @@
     <!-- 内容区域 -->
     <Grid>
       <ContentControl x:Name="PageHost" Content="{Binding CurrentViewModel}"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                      Opacity="{Binding PageOpacity}"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ContentControl.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="CubicEaseInOut" />
+          </Transitions>
+        </ContentControl.Transitions>
+      </ContentControl>
 
       <!-- 加载遮罩：深色背景压暗旧页 + 浮层阴影 + 加载条 -->
       <Border IsVisible="{Binding IsPageLoading}"
               IsHitTestVisible="{Binding IsPageLoading}"
-              BoxShadow="0 8 24 0 #30000000, 0 2 8 0 #18000000"
+              BoxShadow="{StaticResource CardShadowLarge}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               Margin="1">
         <Border.Transitions>
@@ -242,7 +249,7 @@
 
         <Grid>
           <!-- 压暗底层 -->
-          <Border Background="#44000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+          <Border Background="{StaticResource OverlayBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
 
           <!-- 加载内容：在遮罩之后渐显 -->
           <Border Opacity="{Binding IsLoadingContentVisible, Converter={x:Static conv:BoolConverters.TrueToVisible}}"

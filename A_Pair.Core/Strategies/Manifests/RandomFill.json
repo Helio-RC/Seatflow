@@ -1,0 +1,11 @@
+{
+    "id": "RandomFill",
+    "name": "RandomFill",
+    "displayName": "随机填充",
+    "version": "1.0.0",
+    "description": "将尚未分配的学生随机填入剩余空座位。作为兜底策略通常最后执行，确保所有空座位都有学生。",
+    "author": "A_Pair Team",
+    "category": "fill",
+    "defaultPriority": 10,
+    "defaultEnabled": true
+}

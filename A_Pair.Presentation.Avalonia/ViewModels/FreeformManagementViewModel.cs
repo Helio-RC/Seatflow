@@ -11,6 +11,8 @@ using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -18,6 +20,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
+    private readonly ILogger<FreeformManagementViewModel> _logger;
 
     public string Title { get; } = "自由点管理";
 
@@ -51,15 +54,16 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private string _statusMessage = "就绪，请导入自由点数据或选择已有布局";
 
     private static readonly string[] GroupColors =
-        ["#4A90D9", "#E74C3C", "#2ECC71", "#F39C12", "#9B59B6", "#1ABC9C", "#E67E22", "#3498DB"];
+        ["#4A90D9" , "#E74C3C" , "#2ECC71" , "#F39C12" , "#9B59B6" , "#1ABC9C" , "#E67E22" , "#3498DB"];
 
     public static string GetGroupColor (int? groupId)
         => groupId is >= 0 and < 8 ? GroupColors[groupId.Value] : "#4A90D9";
 
-    public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)
+    public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<FreeformManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
+        _logger = logger ?? NullLogger<FreeformManagementViewModel>.Instance;
         _ = LoadSavedLayouts();
     }
 
@@ -97,7 +101,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             {
                 int? groupId = null;
                 if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
-                    && int.TryParse(s.LogicalGroup[1..], out var gid))
+                    && int.TryParse(s.LogicalGroup[1..] , out var gid))
                 {
                     groupId = gid;
                 }
@@ -115,7 +119,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             {
                 var et = obs.Type == "Podium" ? (int)FreeformElementType.Podium
                        : obs.Type == "Door" ? (int)FreeformElementType.Door
-                       : (int)FreeformElementType.Door;
+                       : (int)FreeformElementType.Seat;
                 pts.Add(new FreeformPoint(obs.X , obs.Y)
                 {
                     ElementType = et ,
@@ -125,6 +129,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             }
 
             Points = new ObservableCollection<FreeformPoint>(pts);
+            RefreshIndices();
             IsEmpty = Points.Count == 0;
             StatusMessage = $"已加载布局「{layout.Name}」，共 {pts.Count} 个元素";
         });
@@ -164,6 +169,22 @@ public partial class FreeformManagementViewModel : ViewModelBase
             [new("CSV 文件") { Patterns = ["*.csv"] }]);
         if (file == null) return;
 
+        var cleanImport = false;
+        if (Points.Count > 0)
+        {
+            var choice = await Dialog.ShowMultiOptionAsync("导入方式" ,
+                $"当前已有 {Points.Count} 个元素，请选择导入方式：" ,
+                "卸载后导入" , "直接覆盖" , "取消");
+            if (choice == null || choice == 2) return;
+            cleanImport = choice == 0;
+        }
+
+        if (cleanImport)
+        {
+            SelectedLayout = null;
+            LayoutName = string.Empty;
+        }
+
         await SafeExecuteAsync(async () =>
         {
             await using var stream = await file.OpenReadAsync();
@@ -184,8 +205,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
                     if (parts.Length >= 3)
                         pt.ElementType = parts[2].Trim() switch
                         {
-                            "Podium" => (int)FreeformElementType.Podium ,
-                            "Door" => (int)FreeformElementType.Door ,
+                            "Podium" => (int)FreeformElementType.Podium,
+                            "Door" => (int)FreeformElementType.Door,
                             _ => (int)FreeformElementType.Seat
                         };
                     if (parts.Length >= 4 && int.TryParse(parts[3].Trim() , out var gid))
@@ -198,6 +219,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 }
             }
             Points = new ObservableCollection<FreeformPoint>(pts);
+            RefreshIndices();
             IsEmpty = Points.Count == 0;
             LayoutName = file.Name.Replace(".csv" , "");
             StatusMessage = $"已导入 {pts.Count} 个点";
@@ -212,6 +234,22 @@ public partial class FreeformManagementViewModel : ViewModelBase
             [new("JSON 文件") { Patterns = ["*.json"] }]);
         if (file == null) return;
 
+        var cleanImport = false;
+        if (Points.Count > 0)
+        {
+            var choice = await Dialog.ShowMultiOptionAsync("导入方式" ,
+                $"当前已有 {Points.Count} 个元素，请选择导入方式：" ,
+                "卸载后导入" , "直接覆盖" , "取消");
+            if (choice == null || choice == 2) return;
+            cleanImport = choice == 0;
+        }
+
+        if (cleanImport)
+        {
+            SelectedLayout = null;
+            LayoutName = string.Empty;
+        }
+
         await SafeExecuteAsync(async () =>
         {
             await using var stream = await file.OpenReadAsync();
@@ -223,7 +261,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             {
                 int? groupId = null;
                 if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
-                    && int.TryParse(s.LogicalGroup[1..], out var gid))
+                    && int.TryParse(s.LogicalGroup[1..] , out var gid))
                     groupId = gid;
                 pts.Add(new FreeformPoint(s.X , s.Y , s.Id)
                 {
@@ -236,7 +274,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
             foreach (var obs in layout.Obstacles)
             {
                 var et = obs.Type == "Podium" ? (int)FreeformElementType.Podium
-                       : (int)FreeformElementType.Door;
+                       : obs.Type == "Door" ? (int)FreeformElementType.Door
+                       : (int)FreeformElementType.Seat;
                 pts.Add(new FreeformPoint(obs.X , obs.Y)
                 {
                     ElementType = et ,
@@ -246,6 +285,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             }
 
             Points = new ObservableCollection<FreeformPoint>(pts);
+            RefreshIndices();
             IsEmpty = Points.Count == 0;
             LayoutName = layout.Name;
             StatusMessage = $"已导入 {pts.Count} 个元素";
@@ -321,6 +361,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void AddPoint ()
     {
         Points.Add(new FreeformPoint(0 , 0));
+        RefreshIndices();
         IsEmpty = false;
         StatusMessage = $"已添加点，当前共 {Points.Count} 个点";
     }
@@ -329,6 +370,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void DeletePoint (FreeformPoint point)
     {
         Points.Remove(point);
+        RefreshIndices();
         IsEmpty = Points.Count == 0;
         StatusMessage = $"当前共 {Points.Count} 个点";
     }
@@ -339,6 +381,25 @@ public partial class FreeformManagementViewModel : ViewModelBase
         Points.Clear();
         IsEmpty = true;
         StatusMessage = "已清空所有点";
+    }
+
+    [RelayCommand]
+    private void Unload ()
+    {
+        Points.Clear();
+        IsEmpty = true;
+        LayoutName = string.Empty;
+        SelectedLayout = null;
+        StatusMessage = "已卸载，请导入数据或选择布局";
+    }
+
+    private void RefreshIndices ()
+    {
+        for (int i = 0; i < Points.Count; i++)
+            Points[i].DisplayIndex = i + 1;
+        // 强制刷新 UI（FreeformPoint 非 ObservableObject）
+        var copy = Points.ToList();
+        Points = new ObservableCollection<FreeformPoint>(copy);
     }
 
     private List<string> ValidatePoints ()
@@ -373,8 +434,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
 
 public enum FreeformElementType
 {
-    Seat ,
-    Podium ,
+    Seat,
+    Podium,
     Door
 }
 
@@ -392,6 +453,7 @@ public class FreeformPoint
     public int? Column { get; set; }
     public double Width { get; set; }
     public double Height { get; set; }
+    public int DisplayIndex { get; set; }
     public string GroupColor { get; set; } = "#4A90D9";
 
     public FreeformPoint () { }

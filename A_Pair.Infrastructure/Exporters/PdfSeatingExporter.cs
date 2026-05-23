@@ -1,45 +1,55 @@
-﻿using A_Pair.Core.Exporters;
+using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-namespace A_Pair.Infrastructure.Exporters
+namespace A_Pair.Infrastructure.Exporters;
+
+public class PdfSeatingExporter : ISeatingPlanExporter
 {
-    /// <summary>
-    /// PDF 格式的座位安排导出器，使用 QuestPDF 库生成 A4 格式的 PDF 文档。
-    /// </summary>
-    /// <remarks>
-    /// 生成包含标题、表格（座位 ID / 学生 ID）和页脚（生成时间）的 PDF 文档。
-    /// 使用 QuestPDF 社区版许可证。当 <see cref="ExportOptions.Anonymize"/> 为 true 时，
-    /// 标题和表格中的学生 ID 将被匿名化处理。
-    /// </remarks>
-    public class PdfSeatingExporter : ISeatingPlanExporter
+    private const float DefaultCellWidth = 22f;
+    private const float CompactCellWidth = 11f;
+    private const float HeaderRowHeight = 16f;
+    private const float DataRowHeight = 10f;
+    private const float AisleRowHeight = 6f;
+    private const float PageMargin = 10f;
+    private const float FooterHeight = 10f;
+
+    private readonly ILogger<PdfSeatingExporter> _logger;
+
+    public PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null)
     {
-        public ExportFormat Format => ExportFormat.Pdf;
-        /// <summary>
-        /// 静态构造函数，设置 QuestPDF 为社区版许可证。
-        /// </summary>
-        static PdfSeatingExporter ()
-        {
-            QuestPDF.Settings.License = LicenseType.Community;
-        }
+        _logger = logger ?? NullLogger<PdfSeatingExporter>.Instance;
+    }
 
-        /// <inheritdoc />
-        public Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
-        {
-            return ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Pdf } , cancellationToken);
-        }
+    public ExportFormat Format => ExportFormat.Pdf;
 
-        /// <inheritdoc />
-        public Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    static PdfSeatingExporter ()
+    {
+        QuestPDF.Settings.License = LicenseType.Community;
+    }
+
+    public Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
+    {
+        return ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Pdf } , cancellationToken);
+    }
+
+    public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _logger.LogInformation("PDF 座位表导出开始：{Path}（{Count} 条记录）" , path , plan.Assignments.Count);
+
+        await Task.Run(() =>
         {
             Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
+                    page.Size(PageSizes.A4.Landscape());
                     page.Margin(2 , Unit.Centimetre);
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(12));
@@ -79,8 +89,88 @@ namespace A_Pair.Infrastructure.Exporters
                         });
                 });
             }).GeneratePdf(path);
+        } , cancellationToken);
+    }
 
-            return Task.CompletedTask;
-        }
+    public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _logger.LogInformation("PDF 座位布局导出开始：{Path}（{RowCount} 行）" , path , model.Rows.Count);
+
+        int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
+        int rowCount = model.Rows.Count;
+
+        // 根据内容动态计算页面尺寸，不再硬限列数
+        float rowH = Math.Max(DataRowHeight , rowCount > 50 ? 7f : 10f);
+        float contentWidth = (maxCols * CompactCellWidth) + (PageMargin * 2);
+        float contentHeight = (rowCount * rowH) + (PageMargin * 2) + FooterHeight + HeaderRowHeight;
+        float pageWidth = Math.Clamp(contentWidth , 297f , 841f);  // A4 landscape ~ A0 portrait
+        float pageHeight = Math.Clamp(contentHeight , 210f , 1189f); // A4 landscape ~ A0
+
+        await Task.Run(() =>
+        {
+            Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(pageWidth , pageHeight , Unit.Millimetre);
+                    page.MarginHorizontal(PageMargin , Unit.Millimetre);
+                    page.MarginVertical(PageMargin , Unit.Millimetre);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(8));
+
+                    page.Header()
+                        .Text(model.LayoutName)
+                        .SemiBold().FontSize(16).AlignCenter();
+
+                    page.Content()
+                        .Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                for (int i = 0; i < maxCols; i++)
+                                    columns.ConstantColumn(CompactCellWidth , Unit.Millimetre);
+                            });
+
+                            int rowIndex = 0;
+                            foreach (var row in model.Rows)
+                            {
+                                if (++rowIndex % 30 == 0)
+                                    cancellationToken.ThrowIfCancellationRequested();
+
+                                bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(c => c.IsAisle);
+                                int colCount = 0;
+                                foreach (var cell in row.Cells)
+                                {
+                                    var cellElement = table.Cell()
+                                        .Border(1).BorderColor(Colors.Grey.Lighten2)
+                                        .Background(cell.IsUnassigned ? Colors.Grey.Darken2 :
+                                                     cell.IsPodium ? Colors.Blue.Lighten4 :
+                                                     cell.IsAisle || isFullAisleRow ? Colors.Grey.Lighten3 :
+                                                     cell.IsSeat ? Colors.Green.Lighten5 :
+                                                     Colors.White)
+                                        .Padding(2)
+                                        .MinHeight(isFullAisleRow ? AisleRowHeight : rowH , Unit.Millimetre)
+                                        .AlignMiddle()
+                                        .AlignCenter();
+                                    cellElement.Text(cell.Text);
+                                    colCount++;
+                                }
+                                // 补齐不足列
+                                for (int i = colCount; i < maxCols; i++)
+                                    table.Cell().Border(1).BorderColor(Colors.Grey.Lighten2).Padding(1).Text("");
+                            }
+                        });
+
+                    page.Footer()
+                        .AlignCenter()
+                        .Text(x =>
+                        {
+                            x.Span("生成时间: ");
+                            x.Span(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                        });
+                });
+            }).GeneratePdf(path);
+        } , cancellationToken);
     }
 }

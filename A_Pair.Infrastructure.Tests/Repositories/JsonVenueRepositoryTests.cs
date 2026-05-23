@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Infrastructure.Tests.Repositories;
+namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonVenueRepositoryTests
 {

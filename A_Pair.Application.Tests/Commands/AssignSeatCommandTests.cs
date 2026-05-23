@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Application.Tests.Commands;
+namespace A_Pair.Application.Tests.Commands;
 
 public class AssignSeatCommandTests
 {

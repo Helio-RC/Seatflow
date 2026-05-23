@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
@@ -13,6 +12,8 @@ using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
@@ -21,6 +22,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
+    private readonly ILogger<SettingsViewModel> _logger;
 
     // ---- 外观 ----
 
@@ -30,7 +32,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private int _themeIndex;
 
-    public List<string> ThemeOptions { get; } = ["跟随系统", "浅色", "深色"];
+    public List<string> ThemeOptions { get; } = ["跟随系统" , "浅色" , "深色"];
 
     // ---- 语言 ----
 
@@ -42,15 +44,6 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _dataDirectory = string.Empty;
 
-    // ---- 自动保存 ----
-
-    [ObservableProperty]
-    private int _autoSaveIndex;
-
-    public List<string> AutoSaveOptions { get; } = ["禁用", "1 分钟", "5 分钟", "10 分钟"];
-
-    private int _autoSaveIntervalSeconds = 300;
-
     // ---- 清除确认 ----
 
     [ObservableProperty]
@@ -61,7 +54,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private int _zoomIndex = 1;
 
-    public List<string> ZoomOptions { get; } = ["75%", "100%", "125%", "150%"];
+    public List<string> ZoomOptions { get; } = ["75%" , "100%" , "125%" , "150%"];
 
     private double _defaultZoomLevel = 1.0;
 
@@ -73,14 +66,15 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSaving;
 
-    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
+        _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
 
-    private async Task LoadAsync(CancellationToken ct)
+    private async Task LoadAsync (CancellationToken ct)
     {
         try
         {
@@ -91,9 +85,6 @@ public partial class SettingsViewModel : ViewModelBase
 
             Language = settings.Language;
             DataDirectory = settings.DataDirectory;
-
-            _autoSaveIntervalSeconds = settings.AutoSaveIntervalSeconds;
-            AutoSaveIndex = _autoSaveIntervalSeconds switch { 0 => 0, 60 => 1, 300 => 2, 600 => 3, _ => 2 };
 
             ConfirmBeforeClear = settings.ConfirmBeforeClear;
 
@@ -109,7 +100,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     // ---- Index → Value 映射 ----
 
-    partial void OnThemeIndexChanged(int value)
+    partial void OnThemeIndexChanged (int value)
     {
         var mode = value switch { 1 => ThemeMode.Light, 2 => ThemeMode.Dark, _ => ThemeMode.System };
         if (Theme == mode) return;
@@ -126,13 +117,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    partial void OnAutoSaveIndexChanged(int value)
-    {
-        var seconds = value switch { 0 => 0, 1 => 60, 2 => 300, 3 => 600, _ => 300 };
-        _autoSaveIntervalSeconds = seconds;
-    }
-
-    partial void OnZoomIndexChanged(int value)
+    partial void OnZoomIndexChanged (int value)
     {
         var zoom = value switch { 0 => 0.75, 1 => 1.0, 2 => 1.25, 3 => 1.5, _ => 1.0 };
         _defaultZoomLevel = zoom;
@@ -141,30 +126,33 @@ public partial class SettingsViewModel : ViewModelBase
     // ---- 命令 ----
 
     [RelayCommand]
-    private async Task SaveSettingsAsync(CancellationToken ct)
+    private async Task SaveSettingsAsync (CancellationToken ct)
     {
         try
         {
             IsSaving = true;
             StatusMessage = "正在保存...";
 
+            // 保留已有的窗口状态，避免覆盖
+            var existing = await _facade.LoadAppSettingsAsync(ct);
+
             var settings = new AppSettings
             {
-                Theme = Theme,
-                Language = Language,
-                DataDirectory = DataDirectory,
-                AutoSaveIntervalSeconds = _autoSaveIntervalSeconds,
-                ConfirmBeforeClear = ConfirmBeforeClear,
+                WindowState = existing.WindowState ,
+                Theme = Theme ,
+                Language = Language ,
+                DataDirectory = DataDirectory ,
+                ConfirmBeforeClear = ConfirmBeforeClear ,
                 DefaultZoomLevel = _defaultZoomLevel
             };
 
-            await _facade.SaveAppSettingsAsync(settings, ct);
+            await _facade.SaveAppSettingsAsync(settings , ct);
             StatusMessage = "设置已保存";
         }
         catch (Exception ex)
         {
             StatusMessage = "保存失败";
-            await _dialog.ShowErrorAsync("保存设置失败", ex.Message);
+            await _dialog.ShowErrorAsync("保存设置失败" , ex.Message);
         }
         finally
         {
@@ -173,22 +161,21 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ResetDefaultsAsync()
+    private async Task ResetDefaultsAsync ()
     {
-        var confirmed = await _dialog.ShowConfirmAsync("重置设置", "确定要恢复所有设置为默认值吗？");
+        var confirmed = await _dialog.ShowConfirmAsync("重置设置" , "确定要恢复所有设置为默认值吗？");
         if (!confirmed) return;
 
         ThemeIndex = 0;
         Language = string.Empty;
         DataDirectory = string.Empty;
-        AutoSaveIndex = 2;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
         StatusMessage = "已恢复默认值（尚未保存）";
     }
 
     [RelayCommand]
-    private async Task BrowseDataDirectoryAsync(CancellationToken ct)
+    private async Task BrowseDataDirectoryAsync (CancellationToken ct)
     {
         try
         {
@@ -200,7 +187,7 @@ public partial class SettingsViewModel : ViewModelBase
 
             var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "选择数据目录",
+                Title = "选择数据目录" ,
                 AllowMultiple = false
             });
 
@@ -209,15 +196,15 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("选择目录失败", ex.Message);
+            await _dialog.ShowErrorAsync("选择目录失败" , ex.Message);
         }
     }
 
     [RelayCommand]
-    private void OpenDataDirectory()
+    private void OpenDataDirectory ()
     {
         var path = string.IsNullOrWhiteSpace(DataDirectory)
-            ? Path.Combine(AppContext.BaseDirectory, "AppData")
+            ? Path.Combine(AppContext.BaseDirectory , "AppData")
             : DataDirectory;
 
         try
@@ -225,11 +212,11 @@ public partial class SettingsViewModel : ViewModelBase
             if (Directory.Exists(path))
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             else
-                _ = _dialog.ShowWarningAsync("目录不存在", $"数据目录不存在：\n{path}");
+                _ = _dialog.ShowWarningAsync("目录不存在" , $"数据目录不存在：\n{path}");
         }
         catch (Exception ex)
         {
-            _ = _dialog.ShowErrorAsync("打开目录失败", ex.Message);
+            _ = _dialog.ShowErrorAsync("打开目录失败" , ex.Message);
         }
     }
 }

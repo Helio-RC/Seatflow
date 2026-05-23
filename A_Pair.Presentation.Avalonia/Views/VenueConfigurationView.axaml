@@ -1,7 +1,8 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+             xmlns:behaviors="using:A_Pair.Presentation.Avalonia.Behaviors"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              x:Class="A_Pair.Presentation.Avalonia.Views.VenueConfigurationView"
@@ -11,11 +12,13 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="会场配置" Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="会场配置  " Classes="pageTitle" 
                    VerticalAlignment="Center" />
+        <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding DeleteVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
+                  AutomationProperties.Name="删除会场"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
@@ -24,6 +27,7 @@
           </Button>
           <Button Command="{Binding SaveVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
+                  AutomationProperties.Name="保存会场"
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
@@ -50,7 +54,7 @@
       <!-- 左侧：会场列表 -->
       <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
               ClipToBounds="True" HorizontalAlignment="Left"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              Background="{DynamicResource SidebarBackgroundBrush}">
         <Border.Transitions>
           <Transitions>
             <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
@@ -62,66 +66,75 @@
           <Border DockPanel.Dock="Bottom">
             <Panel>
               <!-- 展开状态 -->
-              <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                          IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
-                <StackPanel.Transitions>
+              <Border>
+                <Border.Transitions>
                   <Transitions>
                     <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseInOut" />
                   </Transitions>
-                </StackPanel.Transitions>
-
-                <Button Command="{Binding LoadVenueListCommand}" CommandParameter="DataManagement"
-                        HorizontalContentAlignment="Left" HorizontalAlignment="Left">
-                  <StackPanel Orientation="Horizontal">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
-                    <TextBlock Text="刷新会场" FontSize="13" VerticalAlignment="Center"/>
-                  </StackPanel>
-                </Button>
-                <Button Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
-                        HorizontalContentAlignment="Left" HorizontalAlignment="Left">
-                  <StackPanel Orientation="Horizontal">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
-                    <TextBlock Text="新建会场" FontSize="13" VerticalAlignment="Center"/>
-                  </StackPanel>
-                </Button>
-                <Button Command="{Binding ToggleSidebarCommand}"
-                        HorizontalContentAlignment="Left" HorizontalAlignment="Left">
-                  <StackPanel Orientation="Horizontal">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" Height="20"/>
-                    <TextBlock Text="收起侧栏" FontSize="13" VerticalAlignment="Center"/>
-                  </StackPanel>
-                </Button>
-              </StackPanel>
+                </Border.Transitions>
+                <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                            IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
+                  <Button Command="{Binding LoadVenueListCommand}" CommandParameter="DataManagement"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
+                      <TextBlock Text="刷新会场" FontSize="13" VerticalAlignment="Center"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
+                          AutomationProperties.Name="新建会场"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
+                      <TextBlock Text="新建会场" FontSize="13" VerticalAlignment="Center"/>
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding ToggleSidebarCommand}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" Height="20"/>
+                      <TextBlock Text="收起侧栏" FontSize="13" VerticalAlignment="Center"/>
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+              </Border>
 
               <!-- 折叠状态 -->
-              <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                          IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
-                <StackPanel.Transitions>
+              <Border>
+                <Border.Transitions>
                   <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
                   </Transitions>
-                </StackPanel.Transitions>
-                <Button HorizontalContentAlignment="Left"
-                        Command="{Binding LoadVenueListCommand}"
-                        ToolTip.Tip="刷新会场">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
-                </Button>
-                <Button HorizontalContentAlignment="Left"
-                        Command="{Binding NewVenueCommand}"
-                        ToolTip.Tip="新建会场">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
-                </Button>
-                <Button HorizontalContentAlignment="Left"
-                        Command="{Binding ToggleSidebarCommand}"
-                        ToolTip.Tip="展开列表">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" Height="20"/>
-                </Button>
-              </StackPanel>
+                </Border.Transitions>
+                <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                            IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                  <StackPanel.Transitions>
+                    <Transitions>
+                      <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="SineEaseInOut" />
+                    </Transitions>
+                  </StackPanel.Transitions>
+                  <Button HorizontalContentAlignment="Left"
+                          Command="{Binding LoadVenueListCommand}"
+                          ToolTip.Tip="刷新会场">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
+                  </Button>
+                  <Button HorizontalContentAlignment="Left"
+                          Command="{Binding NewVenueCommand}"
+                          ToolTip.Tip="新建会场">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
+                  </Button>
+                  <Button HorizontalContentAlignment="Left"
+                          Command="{Binding ToggleSidebarCommand}"
+                          ToolTip.Tip="展开列表">
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" Height="20"/>
+                  </Button>
+                </StackPanel>
+              </Border>
             </Panel>
           </Border>
           <ListBox DockPanel.Dock="Bottom" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}"
-                   BorderThickness="0">
+                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6"/>
@@ -132,7 +145,7 @@
       </Border>
 
       <!-- 分隔条 -->
-      <GridSplitter Grid.Column="1" Width="4" Background="Transparent"
+      <GridSplitter Grid.Column="1" Width="4" Background="Transparent" IsEnabled="False" IsVisible="False"
                     HorizontalAlignment="Stretch" />
 
       <!-- 右侧 -->
@@ -167,12 +180,15 @@
                 <TextBlock Text="布局类型" FontSize="14" FontWeight="SemiBold"/>
                 <StackPanel Orientation="Horizontal" Spacing="16">
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"
+                               IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Grid"
                                Content="网格 Grid"/>
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
+                               IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Polar"
                                Content="极坐标 Polar"/>
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
+                               IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Freeform"
                                Content="自由点 Freeform"/>
                 </StackPanel>
@@ -187,14 +203,15 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
                                  PlaceholderText="排数"
                                  ToolTip.Tip="座位行数，1-100。如教室有 6 排座位则填 6。"/>
                   <TextBlock Grid.Column="2" Grid.Row="0" Text="列数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridColumns, Mode=TwoWay}"
+                  <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridColumns, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
                                  PlaceholderText="每排座位数"
                                  ToolTip.Tip="座位列数（单排座位总数），1-100。如每排 8 个座位则填 8。"/>
@@ -205,7 +222,7 @@
                                  PlaceholderText="行内间距 px"
                                  ToolTip.Tip="行方向基准间距（像素），4-600。参考桌间距和过道宽度。"/>
                   <TextBlock Grid.Column="2" Grid.Row="1" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
+                  <NumericUpDown Grid.Column="3" Grid.Row="1" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
                                  PlaceholderText="列间距 px"
                                  ToolTip.Tip="列方向基准间距（像素），4-600。用于计算行间距离。"/>
@@ -216,10 +233,29 @@
                                  PlaceholderText="起始 X"
                                  ToolTip.Tip="首列座位的起始水平位置（像素），0-2000。"/>
                   <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding GridOriginY, Mode=TwoWay}"
+                  <NumericUpDown Grid.Column="3" Grid.Row="2" Value="{Binding GridOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  PlaceholderText="起始 Y"
                                  ToolTip.Tip="首行座位的起始垂直位置（像素），0-2000。"/>
+                </Grid>
+
+                <!-- 可选配置分隔条 -->
+                <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                  <TextBlock Text="可选" FontSize="11" Opacity="0.5"/>
+                </Border>
+
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="每列行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
+                           FontSize="13" PlaceholderText="空=使用行数"
+                           ToolTip.Tip="每列各自的行数（逗号分隔）。第1项=第1列，依次类推。留空则所有列使用行数设置。"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
+                           FontSize="13" PlaceholderText="如 1,3;2,5;3,1"
+                           ToolTip.Tip="分号分隔的 (行,列) 对，指定不放置座位的网格位置。行和列从 1 开始。不存在的座位将自动清除。"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -232,20 +268,22 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="桌面配置" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="每桌人数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridSeatsPerDesk, Mode=TwoWay}"
                                  Minimum="1" Maximum="6"
                                  PlaceholderText="2"
                                  ToolTip.Tip="每张桌子的座位数，1-6。通常为 2（同桌两人）。值为 1 时无桌面分组。"/>
                   <TextBlock Grid.Column="2" Grid.Row="0" Text="桌内间距" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}"
+                  <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="200"
                                  PlaceholderText="12 px"
                                  ToolTip.Tip="同桌内相邻座位间距（像素），4-200。较小值表示同桌座位靠近。"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="桌间距" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridInterDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="400"
@@ -316,7 +354,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
@@ -330,6 +369,7 @@
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left"
                       IsVisible="{Binding GridHasPodium}">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="讲台宽度" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridPodiumWidth, Mode=TwoWay}"
@@ -353,7 +393,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarRings, Mode=TwoWay}"
                                  Minimum="1" Maximum="20"
@@ -382,7 +423,8 @@
                                  ToolTip.Tip="圆心水平位置（像素）。"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
@@ -391,6 +433,21 @@
                   <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 8,12,16"
                            ToolTip.Tip="逗号分隔每环座位数，空=使用均匀模式。如 8,12,16 表示3环依次8/12/16座。"/>
+                </Grid>
+
+                <!-- 可选配置分隔条 -->
+                <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+                  <TextBlock Text="可选" FontSize="11" Opacity="0.5"/>
+                </Border>
+
+                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
+                           FontSize="13" PlaceholderText="如 1,0;2,90"
+                           ToolTip.Tip="分号分隔的 (环,角度) 对，指定要禁用的极坐标座位。环从 1（最内）开始，角度以度为单位。不存在的环号将自动清除。"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -403,14 +460,16 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
-                  <CheckBox Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
-                            IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
-                            Content="有讲台" FontSize="13"/>
-                  <TextBlock Grid.Column="1" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
+                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
                                  ToolTip.Tip="视作前排的最外层环数，影响前排轮换策略。"/>
+
+                  <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
+                            IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
+                            Content="有讲台" FontSize="13"/>
 
                   <TextBlock Grid.Column="0" Grid.Row="1" Text="讲台半径" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarPodiumRadius, Mode=TwoWay}"
@@ -428,7 +487,8 @@
               <StackPanel Spacing="8">
                 <TextBlock Text="通道配置" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12">
+                      RowSpacing="6" ColumnSpacing="12"
+                      HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="径向通道角度" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
                            FontSize="13" PlaceholderText="如 0,90,180,270"
@@ -471,16 +531,16 @@
                     <DataTemplate x:DataType="vm:DoorItem">
                       <Border Padding="4,2" BorderThickness="0,0,0,1" HorizontalAlignment="Stretch"
                               BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                              RowSpacing="6" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Left" VerticalAlignment="Center"
+                              RowSpacing="8" ColumnSpacing="16">
                           <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Label}" Classes="caption"
                                      VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Left"/>
-                          <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal">
-                            <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center"/>
+                          <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="1">
+                            <TextBlock Text="X :" FontSize="12" VerticalAlignment="Center"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" Classes="caption"
                                            ToolTip.Tip="门的水平位置（像素）"/>
-                            <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Y :" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
                             <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" Classes="caption"
                                            ToolTip.Tip="门的垂直位置（像素）"/>
@@ -532,74 +592,81 @@
 
               <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                       CornerRadius="4" MinHeight="300" Padding="8">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                  <Grid>
-                    <!-- 座位层 -->
-                    <ItemsControl ItemsSource="{Binding PreviewSeats}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <Canvas Width="600" Height="600"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
-                      <ItemsControl.Styles>
-                        <Style Selector="ContentPresenter">
-                          <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                          <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                        </Style>
-                      </ItemsControl.Styles>
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:SeatPreview">
-                          <Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-                                  CornerRadius="{ReflectionBinding CornerRadius}"
-                                  BorderThickness="{ReflectionBinding BorderThickness}"
-                                  BorderBrush="{StaticResource PreviewSeatBorderBrush}"
-                                  ToolTip.Tip="{Binding Label}">
-                            <Border.Background>
-                              <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
-                            </Border.Background>
-                          </Border>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- 覆盖层: 讲台/障碍物/门 -->
-                    <ItemsControl ItemsSource="{Binding PreviewOverlays}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <Canvas Width="600" Height="600"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
-                      <ItemsControl.Styles>
-                        <Style Selector="ContentPresenter">
-                          <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                          <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                        </Style>
-                      </ItemsControl.Styles>
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:SeatPreview">
-                          <Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-                                 RenderTransformOrigin="0,0"
-                                 ToolTip.Tip="{Binding Label}">
-                            <Border CornerRadius="1000"
+                <Grid>
+                  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                Background="{DynamicResource PreviewBackgroundBrush}"
+                                behaviors:CanvasZoomPan.Enabled="True">
+                    <Grid>
+                      <!-- 座位层 -->
+                      <ItemsControl ItemsSource="{Binding PreviewSeats}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                          <Style Selector="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                          </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:SeatPreview">
+                            <Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+                                    CornerRadius="{ReflectionBinding CornerRadius}"
                                     BorderThickness="{ReflectionBinding BorderThickness}"
-                                    Background="{ReflectionBinding BackgroundColor}"
-                                    BorderBrush="{ReflectionBinding BorderColor}"
+                                    BorderBrush="{StaticResource PreviewSeatBorderBrush}"
+                                    ToolTip.Tip="{Binding Label}">
+                              <Border.Background>
+                                <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
+                              </Border.Background>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <!-- 覆盖层: 讲台/障碍物/门 -->
+                      <ItemsControl ItemsSource="{Binding PreviewOverlays}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                          <Style Selector="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                          </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:SeatPreview">
+                            <Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
+                                   RenderTransformOrigin="0,0"
+                                   ToolTip.Tip="{Binding Label}">
+                              <Border CornerRadius="1000"
+                                      BorderThickness="{ReflectionBinding BorderThickness}"
+                                      Background="{ReflectionBinding BackgroundColor}"
+                                      BorderBrush="{ReflectionBinding BorderColor}"
+                                      Opacity="0.7"/>
+                              <Path Data="{ReflectionBinding PathGeometry}"
+                                    Fill="{StaticResource PreviewPodiumFillBrush}"
                                     Opacity="0.7"/>
-                            <Path Data="{ReflectionBinding PathGeometry}"
-                                  Fill="{StaticResource PreviewPodiumFillBrush}"
-                                  Opacity="0.7"/>
-                            <TextBlock Text="{Binding Label}" FontSize="11"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                            <Panel.RenderTransform>
-                              <RotateTransform Angle="{ReflectionBinding Rotation}"/>
-                            </Panel.RenderTransform>
-                          </Panel>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </Grid>
-                </ScrollViewer>
+                              <TextBlock Text="{Binding Label}" FontSize="11"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+                              <Panel.RenderTransform>
+                                <RotateTransform Angle="{ReflectionBinding Rotation}"/>
+                              </Panel.RenderTransform>
+                            </Panel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </Grid>
+                  </ScrollViewer>
+                  <TextBlock Text="左键拖动" FontSize="11" Opacity="0.4"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,12,8"/>
+                </Grid>
               </Border>
             </StackPanel>
           </DockPanel>

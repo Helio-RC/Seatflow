@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Models
+namespace A_Pair.Core.Models
 {
     /// <summary>
     /// 自由点布局中的座位，通过平面直角坐标 (X, Y) 定位。

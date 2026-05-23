@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using A_Pair.Application.Services;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
@@ -13,6 +14,8 @@ namespace A_Pair.Presentation.Avalonia
         [STAThread]
         public static void Main (string[] args)
         {
+            using var mutex = new Mutex(true , @"Global\A_Pair_SeatingArrangement" , out bool isFirstInstance);
+
             var services = new ServiceCollection();
             services.AddA_PairApplication("AppData" , "Plugins");
 
@@ -20,6 +23,7 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<INavigationService , NavigationService>();
             services.AddSingleton<IFileService , FileService>();
             services.AddSingleton<IDialogService , DialogService>();
+            services.AddSingleton<WatchdogService>();
 
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
@@ -36,12 +40,12 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<AboutViewModel>();
 
             var serviceProvider = services.BuildServiceProvider();
-            BuildAvaloniaApp(serviceProvider)
+            BuildAvaloniaApp(serviceProvider , isFirstInstance)
                 .StartWithClassicDesktopLifetime(args);
         }
 
-        public static AppBuilder BuildAvaloniaApp (IServiceProvider serviceProvider)
-            => AppBuilder.Configure(() => new App(serviceProvider))
+        public static AppBuilder BuildAvaloniaApp (IServiceProvider serviceProvider , bool isFirstInstance)
+            => AppBuilder.Configure(() => new App(serviceProvider , isFirstInstance))
                 .UsePlatformDetect()
 #if DEBUG
                 .WithDeveloperTools()

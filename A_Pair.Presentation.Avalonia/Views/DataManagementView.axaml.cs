@@ -43,6 +43,16 @@ public partial class DataManagementView : UserControl
             grid.ColumnDefinitions[0].Width = new GridLength(width);
     }
 
+    protected override void OnDetachedFromVisualTree (VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (_vm != null)
+        {
+            _vm.PropertyChanged -= OnSidebarWidthChanged;
+            _vm = null;
+        }
+    }
+
     protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);

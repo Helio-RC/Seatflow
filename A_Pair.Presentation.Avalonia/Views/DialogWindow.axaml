@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
@@ -26,6 +26,8 @@
                 x:Name="ButtonPanel">
       <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True" HorizontalContentAlignment="Center"
               x:CompileBindings="False">确定</Button>
+      <Button x:Name="ThirdButton" Classes="ActionButton" HorizontalContentAlignment="Center"
+              IsVisible="False" x:CompileBindings="False">选项2</Button>
       <Button x:Name="CancelButton" Classes="ActionButton" HorizontalContentAlignment="Center"
               IsVisible="False" x:CompileBindings="False">取消</Button>
     </StackPanel>

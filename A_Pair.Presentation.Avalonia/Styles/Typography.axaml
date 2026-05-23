@@ -1,5 +1,5 @@
-<Style xmlns="https://github.com/avaloniaui"
-       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- 页面标题：20px Bold -->
   <Style Selector="TextBlock.pageTitle">
@@ -37,4 +37,4 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
-</Style>
+</Styles>

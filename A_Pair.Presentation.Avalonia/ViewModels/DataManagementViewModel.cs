@@ -13,6 +13,8 @@ using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -21,6 +23,7 @@ public partial class DataManagementViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
     private readonly IDialogService _dialog;
+    private readonly ILogger<DataManagementViewModel> _logger;
 
     [ObservableProperty]
     private ObservableCollection<Student> _students = [];
@@ -84,8 +87,8 @@ public partial class DataManagementViewModel : ViewModelBase
 
     public void OnWindowWidthChanged (double windowWidth)
     {
-        IsCompact = windowWidth < 800;
-        if (windowWidth < 750)
+        IsCompact = windowWidth < 820;
+        if (windowWidth < 780)
             IsSidebarExpanded = false;
         else
             IsSidebarExpanded = _userWantsSidebarExpanded;
@@ -102,11 +105,12 @@ public partial class DataManagementViewModel : ViewModelBase
     }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
-    public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog)
+    public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<DataManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
         _dialog = dialog;
+        _logger = logger ?? NullLogger<DataManagementViewModel>.Instance;
         _ = RefreshDatasetsAsync(CancellationToken.None);
     }
 
@@ -157,13 +161,13 @@ public partial class DataManagementViewModel : ViewModelBase
         try
         {
             var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
-            var uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
+            var uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
 
             if (!AssetLoader.Exists(uri))
             {
                 suffix = DefaultTemplateSuffix;
                 displayName = DefaultTemplateDisplayName;
-                uri = new Uri($"avares://A_Pair.Presentation.Avalonia/Assets/Files/Sample_{suffix}.xlsx");
+                uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
             }
 
             if (!AssetLoader.Exists(uri))

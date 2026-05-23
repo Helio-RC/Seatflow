@@ -1,69 +1,127 @@
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
 
-namespace A_Pair.Infrastructure.Exporters
+namespace A_Pair.Infrastructure.Exporters;
+
+public class ExcelSeatingExporter : ISeatingPlanExporter
 {
-    /// <summary>
-    /// Excel 格式的座位安排导出器，使用 EPPlus 库生成 .xlsx 文件。
-    /// </summary>
-    /// <remarks>
-    /// 生成包含 "Seating" 工作表的 Excel 文件，列出座位 ID 和学生 ID 的对应关系。
-    /// 当 <see cref="ExportOptions.IncludeMetadata"/> 为 true 时，额外生成 "Metadata" 工作表
-    /// 包含导出时间和座位总数等元数据。
-    /// 如果 EPPlus 写入失败（例如缺少许可证），会自动降级为 CSV 格式输出。
-    /// </remarks>
-    public class ExcelSeatingExporter : ISeatingPlanExporter
+    private readonly ILogger<ExcelSeatingExporter> _logger;
+
+    public ExcelSeatingExporter (ILogger<ExcelSeatingExporter> logger)
     {
-        public ExportFormat Format => ExportFormat.Excel;
-        /// <inheritdoc />
-        public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
+        _logger = logger;
+        ExcelPackage.License.SetNonCommercialPersonal("A_Pair");
+    }
+
+    public ExportFormat Format => ExportFormat.Excel;
+
+    public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
+    {
+        await ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Excel } , cancellationToken);
+    }
+
+    public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    {
+        try
         {
-            await ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Excel } , cancellationToken);
+            using var p = new ExcelPackage();
+            var ws = p.Workbook.Worksheets.Add("Seating");
+            ws.Cells[1 , 1].Value = "SeatId";
+            ws.Cells[1 , 2].Value = options.Anonymize ? "StudentId (anonymized)" : "StudentId";
+            int r = 2;
+            foreach (var kv in plan.Assignments)
+            {
+                ws.Cells[r , 1].Value = kv.Key;
+                ws.Cells[r , 2].Value = options.Anonymize ? "***" : kv.Value;
+                r++;
+            }
+
+            if (options.IncludeMetadata)
+            {
+                var metaWs = p.Workbook.Worksheets.Add("Metadata");
+                metaWs.Cells[1 , 1].Value = "Property";
+                metaWs.Cells[1 , 2].Value = "Value";
+                metaWs.Cells[2 , 1].Value = "ExportTime";
+                metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
+                metaWs.Cells[3 , 1].Value = "SeatCount";
+                metaWs.Cells[3 , 2].Value = plan.Assignments.Count;
+            }
+
+            var fi = new FileInfo(path);
+            await p.SaveAsAsync(fi , cancellationToken);
         }
-
-        /// <inheritdoc />
-        public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
+        catch (Exception ex) when (ex is InvalidOperationException or IOException)
         {
-            try { ExcelPackage.License.SetNonCommercialPersonal("FullName"); } catch { }
+            _logger.LogError(ex , "Excel 导出失败，回退为 CSV: {Path}" , path);
+            var lines = new System.Collections.Generic.List<string> { "SeatId,StudentId" };
+            foreach (var kv in plan.Assignments)
+                lines.Add($"{kv.Key},{(options.Anonymize ? "***" : kv.Value)}");
+            await File.WriteAllLinesAsync(path , lines , cancellationToken);
+        }
+    }
 
-            try
+    public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var p = new ExcelPackage();
+            var ws = p.Workbook.Worksheets.Add("Seating");
+            ws.Cells[1 , 1].Value = model.LayoutName;
+            ws.Cells[1 , 1].Style.Font.Bold = true;
+            ws.Cells[1 , 1].Style.Font.Size = 14;
+
+            int r = 3;
+            int rowIndex = 0;
+            foreach (var row in model.Rows)
             {
-                using var p = new ExcelPackage();
-                var ws = p.Workbook.Worksheets.Add("Seating");
-                ws.Cells[1 , 1].Value = "SeatId";
-                ws.Cells[1 , 2].Value = options.Anonymize ? "StudentId (anonymized)" : "StudentId";
-                int r = 2;
-                foreach (var kv in plan.Assignments)
-                {
-                    ws.Cells[r , 1].Value = kv.Key;
-                    ws.Cells[r , 2].Value = options.Anonymize ? "***" : kv.Value;
-                    r++;
-                }
+                if (++rowIndex % 30 == 0)
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                if (options.IncludeMetadata)
+                int c = 1;
+                bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(cell => cell.IsAisle);
+                foreach (var cell in row.Cells)
                 {
-                    var metaWs = p.Workbook.Worksheets.Add("Metadata");
-                    metaWs.Cells[1 , 1].Value = "Property";
-                    metaWs.Cells[1 , 2].Value = "Value";
-                    metaWs.Cells[2 , 1].Value = "ExportTime";
-                    metaWs.Cells[2 , 2].Value = System.DateTime.Now.ToString("O");
-                    metaWs.Cells[3 , 1].Value = "SeatCount";
-                    metaWs.Cells[3 , 2].Value = plan.Assignments.Count;
+                    ws.Cells[r , c].Value = cell.Text;
+                    if (cell.IsUnassigned)
+                    {
+                        ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkGray);
+                    }
+                    else if (cell.IsAisle || isFullAisleRow)
+                    {
+                        ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    }
+                    c++;
                 }
-
-                var fi = new FileInfo(path);
-                await p.SaveAsAsync(fi , cancellationToken);
+                ws.Row(r).Height = isFullAisleRow ? 20 : 28;
+                r++;
             }
-            catch
+
+            if (options.IncludeMetadata)
             {
-                // EPPlus 写入失败时降级为 CSV 格式
-                var lines = new System.Collections.Generic.List<string> { "SeatId,StudentId" };
-                foreach (var kv in plan.Assignments)
-                    lines.Add($"{kv.Key},{(options.Anonymize ? "***" : kv.Value)}");
-                await System.IO.File.WriteAllLinesAsync(path , lines , cancellationToken);
+                var metaWs = p.Workbook.Worksheets.Add("Metadata");
+                metaWs.Cells[1 , 1].Value = "Property";
+                metaWs.Cells[1 , 2].Value = "Value";
+                metaWs.Cells[2 , 1].Value = "ExportTime";
+                metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
+                metaWs.Cells[3 , 1].Value = "LayoutName";
+                metaWs.Cells[3 , 2].Value = model.LayoutName;
             }
+
+            var fi = new FileInfo(path);
+            await p.SaveAsAsync(fi , cancellationToken);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException)
+        {
+            _logger.LogError(ex , "Excel 布局导出失败，回退为 CSV: {Path}" , path);
+            var lines = new System.Collections.Generic.List<string>();
+            foreach (var row in model.Rows)
+                lines.Add(string.Join("," , row.Cells.Select(c => c.Text)));
+            await File.WriteAllLinesAsync(path , lines , cancellationToken);
         }
     }
 }

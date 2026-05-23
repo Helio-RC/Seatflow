@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Application.Tests.Services;
+namespace A_Pair.Application.Tests.Services;
 
 public class CommandHistoryTests
 {

@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Tests.Strategies;
+namespace A_Pair.Core.Tests.Strategies;
 
 public class FixedSeatStrategyTests
 {
@@ -33,5 +33,26 @@ public class FixedSeatStrategyTests
 
         seats[0].IsFixed.Should().BeTrue();
         seats[0].OccupantId.Should().Be("s1"); // unchanged
+    }
+
+    [Fact]
+    public void ValidateConfiguration_Valid_ShouldPass ()
+    {
+        var config = new FixedSeatConfiguration
+        {
+            FixedAssignments = new Dictionary<string , string> { { "s1" , "student1" } }
+        };
+        var strategy = new FixedSeatStrategy(config);
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ValidateConfiguration_NullAssignments_ShouldFail ()
+    {
+        var config = new FixedSeatConfiguration { FixedAssignments = null! };
+        var strategy = new FixedSeatStrategy(config);
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeFalse();
     }
 }

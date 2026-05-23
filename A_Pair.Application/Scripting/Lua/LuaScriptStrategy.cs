@@ -1,35 +1,22 @@
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NLua.Exceptions;
 
 namespace A_Pair.Application.Scripting.Lua
 {
-    /// <summary>
-    /// Lua 脚本策略，使用 NLua 引擎在运行时执行 Lua 脚本作为座位分配策略。
-    /// </summary>
-    /// <remarks>
-    /// 安全措施：
-    /// <list type="bullet">
-    ///   <item><b>沙箱化 Lua 状态</b> — 移除 <c>io</c>、<c>os</c>、<c>package</c>、<c>debug</c> 等危险库</item>
-    ///   <item><b>受限 API</b> — 仅通过 <see cref="LuaWorkspaceAPI"/> 暴露有限的工作区操作方法</item>
-    ///   <item><b>执行超时</b> — 通过 <see cref="LuaScriptConfiguration.TimeoutMilliseconds"/> 控制，默认 5 秒</item>
-    /// </list>
-    /// Lua 脚本通过全局变量 <c>workspace</c> 访问 <see cref="LuaWorkspaceAPI"/> 提供的受限 API。
-    /// </remarks>
     public class LuaScriptStrategy : ISeatingStrategy
     {
         private readonly string _scriptCode;
         private readonly LuaScriptConfiguration _config;
+        private readonly ILogger<LuaScriptStrategy> _logger;
 
-        /// <summary>
-        /// 初始化 Lua 脚本策略。
-        /// </summary>
-        /// <param name="scriptCode">Lua 脚本源代码。</param>
-        /// <param name="config">脚本配置，包括策略名称、优先级、启用状态和超时时间。</param>
-        public LuaScriptStrategy (string scriptCode , LuaScriptConfiguration? config = null)
+        public LuaScriptStrategy (string scriptCode , LuaScriptConfiguration? config = null , ILogger<LuaScriptStrategy>? logger = null)
         {
             _scriptCode = scriptCode ?? throw new ArgumentNullException(nameof(scriptCode));
             _config = config ?? new LuaScriptConfiguration();
+            _logger = logger ?? NullLogger<LuaScriptStrategy>.Instance;
             Id = Guid.NewGuid().ToString();
             Name = _config.StrategyName ?? "LuaScript";
             Priority = _config.Priority;
@@ -49,7 +36,7 @@ namespace A_Pair.Application.Scripting.Lua
         public bool IsEnabled { get; set; }
 
         /// <inheritdoc />
-        public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
+        public async Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             if (workspace == null) throw new ArgumentNullException(nameof(workspace));
 
@@ -58,30 +45,31 @@ namespace A_Pair.Application.Scripting.Lua
 
             try
             {
+                _logger.LogInformation("Lua 脚本策略开始执行：{Name}" , Name);
                 using var lua = CreateRestrictedLuaState();
 
-                // 注入工作区 API
                 var api = new LuaWorkspaceAPI(workspace);
                 lua["workspace"] = api;
                 lua["cancellationToken"] = cancellationToken;
 
-                // 执行脚本（在后台线程中，支持超时）
-                var task = Task.Run(() => lua.DoString(_scriptCode) , cts.Token);
-                task.Wait(cts.Token);
+                await Task.Run(() => lua.DoString(_scriptCode) , cts.Token);
 
-                return Task.FromResult(new StrategyExecutionResult { Success = true });
+                return new StrategyExecutionResult { Success = true };
             }
             catch (OperationCanceledException)
             {
-                return Task.FromResult(new StrategyExecutionResult { Success = false , Message = "脚本执行超时" });
+                _logger.LogWarning("Lua 脚本执行超时：{Name}（{Timeout}ms）" , Name , _config.TimeoutMilliseconds);
+                return new StrategyExecutionResult { Success = false , Message = "脚本执行超时" };
             }
             catch (LuaScriptException ex)
             {
-                return Task.FromResult(new StrategyExecutionResult { Success = false , Message = $"Lua 错误: {ex.Message}" });
+                _logger.LogWarning(ex , "Lua 脚本错误：{Name}" , Name);
+                return new StrategyExecutionResult { Success = false , Message = $"Lua 错误: {ex.Message}" };
             }
             catch (Exception ex)
             {
-                return Task.FromResult(new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" });
+                _logger.LogError(ex , "Lua 脚本执行失败：{Name}" , Name);
+                return new StrategyExecutionResult { Success = false , Message = $"执行失败: {ex.Message}" };
             }
         }
 

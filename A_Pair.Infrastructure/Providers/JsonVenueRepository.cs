@@ -1,7 +1,9 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Serialization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Providers
 {
@@ -12,18 +14,19 @@ namespace A_Pair.Infrastructure.Providers
     /// 每个会场保存为独立的 <c>*.venue.json</c> 文件，文件名格式为 <c><venueId>.venue.json</c>。
     /// 使用 <see cref="SeatJsonConverter"/> 支持 <see cref="Seat"/> 派生类的多态序列化。
     /// </remarks>
-    /// <param name="venuesFolder">会场文件存储目录。</param>
     public class JsonVenueRepository : IVenueRepository
     {
         private readonly string _venuesFolder;
+        private readonly ILogger<JsonVenueRepository> _logger;
 
         /// <summary>
         /// 初始化 JSON 会场仓储，确保存储目录存在。
         /// </summary>
         /// <param name="venuesFolder">会场文件存储目录。</param>
-        public JsonVenueRepository (string venuesFolder)
+        public JsonVenueRepository (string venuesFolder , ILogger<JsonVenueRepository>? logger = null)
         {
             _venuesFolder = venuesFolder ?? throw new ArgumentNullException(nameof(venuesFolder));
+            _logger = logger ?? NullLogger<JsonVenueRepository>.Instance;
             Directory.CreateDirectory(_venuesFolder);
         }
 
@@ -37,9 +40,10 @@ namespace A_Pair.Infrastructure.Providers
                 VenueId = venueId ,
                 Layout = layout
             };
-            var options = GetSerializerOptions();
+            var options = SerializerOptions;
             var json = JsonSerializer.Serialize(venueFile , options);
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
+            _logger.LogInformation("会场已保存：{VenueId} → {Path}" , venueId , filePath);
         }
 
         /// <inheritdoc />
@@ -50,7 +54,7 @@ namespace A_Pair.Infrastructure.Providers
                 return null;
 
             var json = await File.ReadAllTextAsync(filePath , cancellationToken);
-            var options = GetSerializerOptions();
+            var options = SerializerOptions;
             var venueFile = JsonSerializer.Deserialize<VenueFile>(json , options);
             return venueFile?.Layout;
         }
@@ -77,21 +81,24 @@ namespace A_Pair.Infrastructure.Providers
         /// </summary>
         /// <param name="venueId">会场 ID。</param>
         /// <returns>会场文件的完整路径。</returns>
-        private string GetFilePath (string venueId) => Path.Combine(_venuesFolder , $"{venueId}.venue.json");
-
-        /// <summary>
-        /// 获取包含多态类型支持的 JSON 序列化选项。
-        /// </summary>
-        /// <returns>配置了 <see cref="SeatJsonConverter"/> 的序列化选项。</returns>
-        private static JsonSerializerOptions GetSerializerOptions ()
+        private string GetFilePath (string venueId)
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true ,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            options.Converters.Add(new SeatJsonConverter());
-            return options;
+            if (venueId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+                || venueId.Contains(Path.DirectorySeparatorChar)
+                || venueId.Contains(Path.AltDirectorySeparatorChar))
+                throw new ArgumentException($"会场 ID 含非法字符: {venueId}");
+            return Path.Combine(_venuesFolder , $"{venueId}.venue.json");
+        }
+
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            WriteIndented = true ,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        static JsonVenueRepository ()
+        {
+            SerializerOptions.Converters.Add(new SeatJsonConverter());
         }
     }
 }

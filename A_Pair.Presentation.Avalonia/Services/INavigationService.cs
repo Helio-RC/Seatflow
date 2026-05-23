@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using A_Pair.Presentation.Avalonia.ViewModels;
 
 namespace A_Pair.Presentation.Avalonia.Services;
@@ -23,4 +24,5 @@ public interface INavigationService
     PageKey CurrentPage { get; }
     event Action? CurrentViewModelChanged;
     void NavigateTo (PageKey page);
+    Task<bool> NavigateToAsync (PageKey page);
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using A_Pair.Contracts.Models;
 using A_Pair.Core.Utilities;
 
 namespace A_Pair.Core.Models
@@ -19,7 +20,7 @@ namespace A_Pair.Core.Models
     /// <summary>
     /// 座位抽象基类，定义所有座位类型的公共属性。
     /// </summary>
-    public abstract class Seat
+    public abstract class Seat : IPluginSeat
     {
         /// <summary>座位唯一标识符，默认自动生成 GUID。</summary>
         public string Id { get; set; } = Guid.NewGuid().ToString();

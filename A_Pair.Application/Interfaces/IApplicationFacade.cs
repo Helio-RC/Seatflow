@@ -1,3 +1,4 @@
+using A_Pair.Application.Plugins;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 
@@ -27,7 +28,7 @@ namespace A_Pair.Application.Interfaces
         Task<SeatingWorkspace> GenerateSeatingAsync (SeatingRequest request , IProgress<SeatingProgress>? progress = null , CancellationToken cancellationToken = default);
 
         /// <summary>导出座位安排计划到文件。</summary>
-        Task ExportSeatingPlanAsync (SeatingWorkspace workspace , string path , ExportOptions options , CancellationToken cancellationToken = default);
+        Task ExportSeatingPlanAsync (SeatingWorkspace workspace , ClassroomLayoutDefinition? layout , string path , ExportOptions options , CancellationToken cancellationToken = default);
 
         /// <summary>导出学生列表到文件。</summary>
         Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default);
@@ -68,6 +69,18 @@ namespace A_Pair.Application.Interfaces
         /// <summary>回滚到指定快照。</summary>
         Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default);
 
+        /// <summary>删除指定快照。</summary>
+        Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default);
+
+        /// <summary>从当前工作区手动创建快照。返回 null 表示无活跃工作区。</summary>
+        Task<SeatingSnapshot?> CreateSnapshotAsync (string description , CancellationToken cancellationToken = default);
+
+        /// <summary>当前是否有活跃的工作区（可用于创建快照或回滚）。</summary>
+        bool HasActiveWorkspace { get; }
+
+        /// <summary>获取当前活跃工作区关联的会场布局，用于 UI 恢复显示。无活跃工作区时返回 null。</summary>
+        Task<ClassroomLayoutDefinition?> GetCurrentLayoutAsync (CancellationToken cancellationToken = default);
+
         /// <summary>保存学生数据集到托管存储。</summary>
         Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
 
@@ -79,6 +92,35 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>删除指定学生数据集。</summary>
         Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default);
+
+        /// <summary>获取所有策略（内置 + 插件）的完整展示信息，合并 Manifest 和运行时 Config。</summary>
+        Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default);
+
+        /// <summary>保存单个策略的运行时配置（优先级、启用状态、参数），并更新运行时策略实例。</summary>
+        Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default);
+
+        // ── 插件管理 ──
+
+        /// <summary>获取所有已发现插件的展示信息列表。</summary>
+        Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default);
+
+        /// <summary>读取指定插件的脚本文件内容（仅脚本插件）。</summary>
+        Task<string> GetPluginScriptAsync (string pluginId , CancellationToken ct = default);
+
+        /// <summary>保存指定插件的脚本文件内容（仅脚本插件）。</summary>
+        Task SavePluginScriptAsync (string pluginId , string script , CancellationToken ct = default);
+
+        /// <summary>读取指定插件的 config.json 原始 JSON 字符串。</summary>
+        Task<string> GetPluginConfigJsonAsync (string pluginId , CancellationToken ct = default);
+
+        /// <summary>保存指定插件的 config.json（原始 JSON 字符串，服务端校验格式）。</summary>
+        Task SavePluginConfigJsonAsync (string pluginId , string json , CancellationToken ct = default);
+
+        /// <summary>设置插件的启用/禁用状态，并重载插件。</summary>
+        Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default);
+
+        /// <summary>获取指定插件的原始清单。</summary>
+        Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default);
     }
 
     /// <summary>
@@ -126,5 +168,47 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>状态描述消息。</summary>
         public string StatusMessage { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// 插件展示信息，用于插件管理界面展示。
+    /// </summary>
+    public class PluginDisplayInfo
+    {
+        /// <summary>插件唯一标识符。</summary>
+        public string Id { get; set; } = string.Empty;
+
+        /// <summary>插件显示名称。</summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>插件版本号。</summary>
+        public string Version { get; set; } = string.Empty;
+
+        /// <summary>插件功能类别："strategy"、"provider"（预留）、"exporter"（预留）。</summary>
+        public string Category { get; set; } = "strategy";
+
+        /// <summary>插件加载方式标识："assembly"、"lua" 或 "csharp"。</summary>
+        public string LoadKind { get; set; } = string.Empty;
+
+        /// <summary>插件是否已启用。</summary>
+        public bool IsEnabled { get; set; }
+
+        /// <summary>插件描述。</summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>插件作者。</summary>
+        public string Author { get; set; } = string.Empty;
+
+        /// <summary>执行优先级（数值越小优先）。</summary>
+        public int Priority { get; set; }
+
+        /// <summary>脚本语言类型（"lua" / "csharp"），仅脚本插件。</summary>
+        public string? ScriptType { get; set; }
+
+        /// <summary>插件目录路径。</summary>
+        public string PluginPath { get; set; } = string.Empty;
+
+        /// <summary>图标文件路径（icon.png），不存在则为 null。</summary>
+        public string? IconPath { get; set; }
     }
 }

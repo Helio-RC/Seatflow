@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Infrastructure.Tests.Exporters;
+namespace A_Pair.Infrastructure.Tests.Exporters;
 
 public class PdfSeatingExporterTests
 {

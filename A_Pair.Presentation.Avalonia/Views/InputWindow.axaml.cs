@@ -5,8 +5,6 @@ namespace A_Pair.Presentation.Avalonia.Views;
 
 internal partial class InputWindow : Window
 {
-    private bool _result;
-
     public string Prompt
     {
         get => PromptBlock.Text ?? "";
@@ -22,6 +20,9 @@ internal partial class InputWindow : Window
     public InputWindow ()
     {
         InitializeComponent();
+
+        OkButton.Click += (_ , _) => Close(true);
+        CancelButton.Click += (_ , _) => Close(false);
     }
 
     protected override void OnLoaded (RoutedEventArgs e)
@@ -29,8 +30,5 @@ internal partial class InputWindow : Window
         base.OnLoaded(e);
         InputBox.Focus();
         InputBox.SelectAll();
-
-        OkButton.Click += (_ , _) => { _result = true; Close(_result); };
-        CancelButton.Click += (_ , _) => { _result = false; Close(_result); };
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Tests.Strategies;
+namespace A_Pair.Core.Tests.Strategies;
 
 public class FrontRowRotationStrategyTests
 {
@@ -66,5 +66,21 @@ public class FrontRowRotationStrategyTests
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
         seats.First(s => s.Id == "f1").OccupantId.Should().Be("s2");
+    }
+
+    [Fact]
+    public void ValidateConfiguration_AlwaysValid ()
+    {
+        var strategy = new FrontRowRotationStrategy();
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SetFrontRowCount_DoesNotThrow ()
+    {
+        var strategy = new FrontRowRotationStrategy();
+        strategy.SetFrontRowCount(3);
+        strategy.ValidateConfiguration().IsValid.Should().BeTrue();
     }
 }

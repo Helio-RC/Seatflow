@@ -1,8 +1,8 @@
 using System;
 using System.Globalization;
 using A_Pair.Core.Enums;
-using Avalonia.Data;
 using Avalonia.Data.Converters;
+using Avalonia.Media.Imaging;
 
 namespace A_Pair.Presentation.Avalonia.Converters;
 
@@ -11,7 +11,7 @@ namespace A_Pair.Presentation.Avalonia.Converters;
 /// </summary>
 public class GenderIndexConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         return value switch
         {
@@ -22,7 +22,7 @@ public class GenderIndexConverter : IValueConverter
         };
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         if (value is int i)
         {
@@ -43,17 +43,36 @@ public class GenderIndexConverter : IValueConverter
 /// </summary>
 public class HeightConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         return value?.ToString() ?? "";
     }
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
     {
         var s = value as string;
         if (string.IsNullOrWhiteSpace(s))
             return null;
 
-        return float.TryParse(s, out var h) ? h : null;
+        return float.TryParse(s , out var h) ? h : null;
     }
+}
+
+/// <summary>
+/// 文件路径 → Bitmap 转换，null 或无效路径返回 null。
+/// </summary>
+public class FilePathToBitmapConverter : IValueConverter
+{
+    public object? Convert (object? value , Type targetType , object? parameter , CultureInfo culture)
+    {
+        if (value is string path && System.IO.File.Exists(path))
+        {
+            try { return new Bitmap(path); }
+            catch { return null; }
+        }
+        return null;
+    }
+
+    public object? ConvertBack (object? value , Type targetType , object? parameter , CultureInfo culture)
+        => throw new NotSupportedException();
 }

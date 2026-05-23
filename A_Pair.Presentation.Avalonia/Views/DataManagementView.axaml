@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:models="using:A_Pair.Core.Models"
@@ -48,19 +48,22 @@
                 <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
               </Transitions>
             </StackPanel.Transitions>
-            <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center" >
+            <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center"
+                    AutomationProperties.Name="导出模板" >
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-                <TextBlock Text="模板" FontSize="14" />
+                <TextBlock Text="获取模板" FontSize="14" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center">
+            <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center"
+                    AutomationProperties.Name="导入数据">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-                <TextBlock Text="导入" FontSize="14" />
+                <TextBlock Text="从文件导入" FontSize="14" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
+                    AutomationProperties.Name="保存数据集">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
                 <TextBlock Text="保存" FontSize="14" />
@@ -72,10 +75,11 @@
                 <TextBlock Text="另存为" FontSize="14" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center">
+            <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
+                    AutomationProperties.Name="卸载已加载数据">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
-                <TextBlock Text="清除" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="16" />
+                <TextBlock Text="卸载已加载数据" FontSize="14" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -96,7 +100,7 @@
             </StackPanel>
             <Button.Flyout>
               <Flyout>
-                <StackPanel Spacing="2" Width="90" HorizontalAlignment="Center">
+                <StackPanel Spacing="2" Width="120" HorizontalAlignment="Center">
                   <StackPanel.Transitions>
                     <Transitions>
                       <DoubleTransition Property="Opacity" Duration="0:0:0.1"
@@ -107,14 +111,14 @@
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                      <TextBlock Text="模板" FontSize="14" />
+                      <TextBlock Text="获取模板" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
-                      <TextBlock Text="导入" FontSize="14" />
+                      <TextBlock Text="从文件导入" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
@@ -134,8 +138,8 @@
                   <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left"  HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
-                      <TextBlock Text="清除" FontSize="14" />
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="14" />
+                      <TextBlock Text="卸载已加载数据" FontSize="14" />
                     </StackPanel>
                   </Button>
                 </StackPanel>
@@ -242,7 +246,7 @@
       <!-- 左侧：已保存数据集 -->
       <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
               ClipToBounds="True" HorizontalAlignment="Left"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+              Background="{DynamicResource SidebarBackgroundBrush}">
         <Border.Transitions>
           <Transitions>
             <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
@@ -340,7 +344,7 @@
 
           <ListBox ItemsSource="{Binding SavedDatasets}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
-                   BorderThickness="0">
+                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="models:StudentDatasetInfo">
                 <Border Padding="8,6" CornerRadius="4">

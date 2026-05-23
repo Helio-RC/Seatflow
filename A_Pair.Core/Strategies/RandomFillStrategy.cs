@@ -1,4 +1,6 @@
 using A_Pair.Core.Workspace;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Core.Strategies
 {
@@ -6,9 +8,16 @@ namespace A_Pair.Core.Strategies
     /// 随机填充策略，优先级最低（Priority=10）。
     /// 将尚未分配的学生随机填入空座位，作为兜底策略确保所有学生都有座位。
     /// </summary>
-    public class RandomFillStrategy (Random random) : ISeatingStrategy
+    public class RandomFillStrategy : ISeatingStrategy
     {
-        private readonly Random _random = random ?? throw new ArgumentNullException(nameof(random));
+        private readonly Random _random;
+        private readonly ILogger<RandomFillStrategy> _logger;
+
+        public RandomFillStrategy (Random random , ILogger<RandomFillStrategy>? logger = null)
+        {
+            _random = random ?? throw new ArgumentNullException(nameof(random));
+            _logger = logger ?? NullLogger<RandomFillStrategy>.Instance;
+        }
 
         /// <summary>
         /// 使用默认随机数种子创建实例。
@@ -33,10 +42,14 @@ namespace A_Pair.Core.Strategies
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
-            cancellationToken.ThrowIfCancellationRequested();   // <-- 新增修复
+            cancellationToken.ThrowIfCancellationRequested();
 
             var emptySeats = workspace.GetEmptySeats().ToList();
-            var students = workspace.Students.Where(s => !workspace.BuildSeatingPlan().Assignments.ContainsValue(s.Id)).ToList();
+            var assignedIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
+            var students = workspace.Students.Where(s => !assignedIds.Contains(s.Id)).ToList();
+
+            _logger.LogInformation("RandomFill 策略开始执行：{EmptySeats} 个空座位，{Unassigned} 名未分配学生" ,
+                emptySeats.Count , students.Count);
 
             // 使用 Fisher-Yates 洗牌算法打乱学生顺序
             for (int i = students.Count - 1; i > 0; i--)
@@ -53,6 +66,8 @@ namespace A_Pair.Core.Strategies
                 workspace.TryAssignSeat(seat.Id , student.Id , out _);
             }
 
+            _logger.LogInformation("RandomFill 策略完成：分配 {Assigned} 名学生，{Unfilled} 个座位空置" ,
+                assignCount , Math.Max(0 , emptySeats.Count - assignCount));
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 

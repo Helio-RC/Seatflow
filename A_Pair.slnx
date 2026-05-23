@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/解决方案项/">
+    <File Path=".editorconfig" />
     <File Path="Goal.md" />
     <File Path="Phases.md" />
   </Folder>

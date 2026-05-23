@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace A_Pair.Infrastructure.Tests.Writers;
 

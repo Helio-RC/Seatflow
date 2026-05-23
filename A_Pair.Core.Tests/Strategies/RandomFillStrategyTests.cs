@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Core.Tests.Strategies;
+namespace A_Pair.Core.Tests.Strategies;
 
 public class RandomFillStrategyTests
 {
@@ -56,5 +56,13 @@ public class RandomFillStrategyTests
         var strategy = new RandomFillStrategy();
         await strategy.Awaiting(s => s.ExecuteAsync(ws , cts.Token))
             .Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    [Fact]
+    public void ValidateConfiguration_AlwaysValid ()
+    {
+        var strategy = new RandomFillStrategy();
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeTrue();
     }
 }

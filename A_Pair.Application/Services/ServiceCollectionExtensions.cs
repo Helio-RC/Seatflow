@@ -1,13 +1,20 @@
+using System.Text.Json;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
+using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Exporters;
+using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Core.Services;
 using A_Pair.Core.Strategies;
 using A_Pair.Infrastructure.Exporters;
 using A_Pair.Infrastructure.Providers;
 using A_Pair.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 
 namespace A_Pair.Application.Services
 {
@@ -31,28 +38,80 @@ namespace A_Pair.Application.Services
     {
         /// <summary>
         /// 将 A_Pair 应用程序层的所有服务注册到依赖注入容器中。
+        /// 启动时读取默认位置的 AppSettings.json，若设置了 <c>DataDirectory</c>，
+        /// 则使用自定义路径作为所有数据的基目录。
         /// </summary>
         /// <param name="services">服务集合。</param>
-        /// <param name="snapshotBasePath">快照存储的基路径。</param>
+        /// <param name="snapshotBasePath">数据存储的默认基路径。</param>
         /// <param name="pluginsPath">插件目录的路径。</param>
         /// <returns>服务集合，支持链式调用。</returns>
         public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
+            // 解析有效数据目录 + 读取日志配置（单次 I/O）
+            var defaultSettingsPath = Path.Combine(snapshotBasePath , "AppSettings.json");
+            var effectiveDataPath = snapshotBasePath;
+            var logSettings = new LogSettings();
+            try
+            {
+                if (File.Exists(defaultSettingsPath))
+                {
+                    var json = File.ReadAllText(defaultSettingsPath);
+                    var existing = JsonSerializer.Deserialize<AppSettings>(json ,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
+                        effectiveDataPath = customPath;
+                    if (existing?.Logging is { } ls)
+                        logSettings = ls;
+                }
+            }
+            catch { /* 读取失败时使用默认值 */ }
+
+            var logLevel = ParseLogLevel(logSettings.MinimumLevel);
+            var logDir = Path.Combine(effectiveDataPath , "Logs");
+            Directory.CreateDirectory(logDir);
+
+            // 清理超出保留数量的旧日志文件
+            PruneOldLogFiles(logDir , logSettings.RetainedFileCountLimit);
+
+            // 实例隔离：每次启动创建独立日志文件，避免多实例写入冲突
+            var instanceId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+            var logPath = Path.Combine(logDir , $"A_Pair_{instanceId}.log");
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Is(logLevel)
+                .WriteTo.File(
+                    logPath ,
+                    fileSizeLimitBytes: logSettings.FileSizeLimitBytes ,
+                    retainedFileCountLimit: logSettings.RetainedFileCountLimit ,
+                    rollOnFileSizeLimit: true ,
+                    flushToDiskInterval: TimeSpan.FromSeconds(5))
+                .CreateLogger();
+
+            services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: true));
+            services.AddSingleton<CsvStudentProvider>();
+            services.AddSingleton<XlsxStudentProvider>();
+            services.AddSingleton<JsonStudentProvider>();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
-            services.AddSingleton<ISeatingSnapshotRepository>(sp => new SeatingSnapshotRepository(snapshotBasePath));
+            services.AddSingleton<ISeatingSnapshotRepository>(sp =>
+                new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
+                    sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 
-            // 注册内置策略
-            services.AddSingleton<ISeatingStrategy , FixedSeatStrategy>();
-            services.AddSingleton<ISeatingStrategy , RandomFillStrategy>();
-            services.AddSingleton<ISeatingStrategy , FrontRowRotationStrategy>();
-            services.AddSingleton<ISeatingStrategy , DeskMateStrategy>();
+            // 注册内置策略（工厂方法注入 ILogger<T>）
+            services.AddSingleton<ISeatingStrategy>(sp => new FixedSeatStrategy(
+                new FixedSeatConfiguration() , sp.GetRequiredService<ILogger<FixedSeatStrategy>>()));
+            services.AddSingleton<ISeatingStrategy>(sp => new RandomFillStrategy(
+                new Random() , sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
+            services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
+                new FrontRowRotationStrategy.FrontRowRotationConfiguration() , sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
+            services.AddSingleton<ISeatingStrategy>(sp => new DeskMateStrategy(
+                new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
 
             // 注册导出器
             services.AddSingleton<ISeatingPlanExporter , ExcelSeatingExporter>();
             services.AddSingleton<ISeatingPlanExporter , CsvSeatingExporter>();
             services.AddSingleton<ISeatingPlanExporter , PdfSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter , ImageSeatingExporter>();
             services.AddTransient<IStudentWriter , JsonStudentWriter>();
             services.AddTransient<IStudentWriter , CsvStudentWriter>();
             services.AddTransient<IStudentWriter , XlsxStudentWriter>();
@@ -61,21 +120,65 @@ namespace A_Pair.Application.Services
             services.AddSingleton<IConflictResolver , DefaultConflictResolver>();
 
             // 注册插件管理器与配置服务
-            services.AddSingleton<PluginManager>(sp => new PluginManager(pluginsPath));
-            services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath));
+            services.AddSingleton<IPluginManager>(sp =>
+                new PluginManager(pluginsPath , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
+            services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath ,
+                sp.GetRequiredService<ILogger<PluginConfigurationService>>()));
 
-            // 注册场地仓储（全局单例）
-            var venuesPath = Path.Combine(snapshotBasePath , "Venues");
+            // 注册场地仓储（全局单例，使用有效数据路径）
+            var venuesPath = Path.Combine(effectiveDataPath , "Venues");
             services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(venuesPath));
 
-            // 注册 AppSettings 仓储（全局单例）
-            var settingsPath = Path.Combine(snapshotBasePath , ".." , "AppSettings.json");
-            services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(settingsPath));
+            // 注册 AppSettings 仓储（始终位于默认数据目录，避免查找自身的鸡生蛋问题）
+            services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(defaultSettingsPath));
 
             // 注册学生数据集仓储（全局单例）
-            var rostersPath = Path.Combine(snapshotBasePath , "Rosters");
+            var rostersPath = Path.Combine(effectiveDataPath , "Rosters");
             services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(rostersPath));
+
+            // 注册策略 Manifest 提供器（全局单例）
+            services.AddSingleton(sp => new StrategyManifestProvider(
+                sp.GetRequiredService<ILogger<StrategyManifestProvider>>()));
+
+            // 注册策略运行时配置仓储（per-file，全局单例）
+            var strategyConfigDir = Path.Combine(effectiveDataPath , "StrategyConfig");
+            services.AddSingleton(sp => new StrategyConfigFileRepository(
+                strategyConfigDir , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
+
             return services;
+        }
+
+        private static LogEventLevel ParseLogLevel (string level) => level?.ToLowerInvariant() switch
+        {
+            "debug" => LogEventLevel.Debug,
+            "information" => LogEventLevel.Information,
+            "warning" => LogEventLevel.Warning,
+            "error" => LogEventLevel.Error,
+            "fatal" => LogEventLevel.Fatal,
+            _ => LogEventLevel.Information
+        };
+
+        /// <summary>
+        /// 清理旧的日志文件，仅保留最近 <paramref name="retainCount"/> 个。
+        /// 文件按创建时间降序排列（最新的在前）。
+        /// </summary>
+        private static void PruneOldLogFiles (string logDir , int retainCount)
+        {
+            if (retainCount <= 0) return;
+            try
+            {
+                var files = Directory.GetFiles(logDir , "A_Pair_*.log")
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.CreationTimeUtc)
+                    .ToList();
+
+                for (int i = retainCount; i < files.Count; i++)
+                {
+                    try { files[i].Delete(); }
+                    catch { /* 删除失败忽略 */ }
+                }
+            }
+            catch { /* 枚举失败忽略 */ }
         }
     }
 }

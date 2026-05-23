@@ -13,19 +13,16 @@ namespace A_Pair.Core.Exporters
         /// <summary>
         /// 使用默认选项导出座位安排计划（向后兼容）。
         /// </summary>
-        /// <param name="plan">座位安排计划。</param>
-        /// <param name="path">导出文件路径。</param>
-        /// <param name="cancellationToken">取消令牌。</param>
         Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 使用指定的导出选项导出座位安排计划。
-        /// 支持匿名化、包含元数据等高级选项。
         /// </summary>
-        /// <param name="plan">座位安排计划。</param>
-        /// <param name="path">导出文件路径。</param>
-        /// <param name="options">导出选项。</param>
-        /// <param name="cancellationToken">取消令牌。</param>
         Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// 使用结构化布局模型导出（保留行列/过道/环形结构，显示姓名而非 ID）。
+        /// </summary>
+        Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default);
     }
 }
