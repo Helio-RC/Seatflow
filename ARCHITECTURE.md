@@ -239,6 +239,9 @@ A_Pair/
 · 配置文件包含 `version` 字段（`VenueFile` v1.1、`RosterFile` v1.0、`SeatingSnapshot` v1.0、`AppSettings` v1.0、`StrategyConfig` v1.0、`VenueSnapshotInfo` v1.0）
 · 各文件类型当前版本号记录于 `A_Pair.Infrastructure/Migration/file_versions.json`（嵌入资源，随程序编译）
 · 加载时 `FileMigrationService` 读取文件版本号，链式执行注册的 `IFileMigrator` 实现完成向前迁移（不支持回退）
+· 迁移器按文件类型组织：`Migration/Migrators/{FileType}Migrators.cs`，每个版本步进为一个嵌套类（如 `VenueMigrators.Step_1_0_to_1_1`），DI 中以 `IFileMigrator` 注册
+· 反序列化前通过 `JsonNode` 操作完成迁移，避免目标类型 Schema 不一致
+· JSON 序列化约定：camelCase 命名字段；`layoutType` 为数字枚举、`layoutTypeString` 为字符串；Seat 多态通过 `SeatJsonConverter` 的 `Type` 鉴别器
 · 座位快照支持父子关系，便于追溯与回滚
 
 5.4 敏感数据保护

@@ -70,6 +70,36 @@ A_Pair.slnx
 
 `ViewLocator` 通过命名约定自动解析 `XXXViewModel` → `XXXView`。
 
+## 文件版本管理
+
+所有持久化 JSON 文件携带 `version` 字段，加载时通过 `FileMigrationService` 自动向前迁移。版本号定义在 `A_Pair.Infrastructure/Migration/file_versions.json`（嵌入资源）。
+
+### 添加新版本迁移
+
+1. 在 `Migration/Migrators/{FileType}Migrators.cs` 的容器类中新增嵌套类，实现 `IFileMigrator`：
+   ```csharp
+   public static class VenueMigrators
+   {
+       public sealed class Step_1_1_to_1_2 : IFileMigrator
+       {
+           public string FileType => "venue";
+           public string FromVersion => "1.1";
+           public string ToVersion => "1.2";
+           public JsonNode Migrate(JsonNode root) { /* 迁移逻辑 */ }
+       }
+   }
+   ```
+2. 在 `ServiceCollectionExtensions.cs` 注册：`services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_1_to_1_2>()`
+3. 在 `file_versions.json` 中提升版本号
+4. 在 `Core/Models/` 对应模型类中更新默认 `Version` 属性
+5. 在 `Infrastructure.Tests/Migration/{FileType}MigratorsTests.cs` 添加覆盖测试
+
+### JSON 字段约定
+
+- 序列化使用 `JsonNamingPolicy.CamelCase`，所有字段在 JSON 中为小写驼峰
+- `layoutType` 为数字枚举值，`layoutTypeString` 为对应字符串 — 迁移器中优先使用 `layoutTypeString`
+- `Seat` 多态序列化通过 `SeatJsonConverter` 写入 `Type`（大写）鉴别器字段
+
 ## 提交约定
 
 - 提交前确保 `dotnet build` 和 `dotnet test` 通过

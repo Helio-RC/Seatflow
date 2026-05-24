@@ -124,30 +124,60 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 
 ## File Versions & Migration
 
-All persisted JSON files carry a `version` field. Current versions are defined in `A_Pair.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly).
+All persisted JSON files carry a `version` field. Current versions are defined in `A_Pair.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly). `FileVersionInfo.GetCurrentVersion(fileType)` reads the latest version at runtime.
 
-| File type | Version | Location |
-|---|---|---|
-| Venue | `1.1` | `{data}/Venues/*.venue.json` |
-| Roster | `1.0` | `{data}/Rosters/*.roster.json` |
-| Snapshot | `1.0` | `{data}/Assignments/{venueId}/{date}/*.json` |
-| VenueInfo | `1.0` | `{data}/Assignments/{venueId}/_venue.json` |
-| AppSettings | `1.0` | `{data}/AppSettings.json` |
-| StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` |
+| File type | Version | Location | Wrapper class |
+|---|---|---|---|
+| Venue | `1.1` | `{data}/Venues/*.venue.json` | `VenueFile` |
+| Roster | `1.0` | `{data}/Rosters/*.roster.json` | `RosterFile` |
+| Snapshot | `1.0` | `{data}/Assignments/{venueId}/{date}/*.json` | `SeatingSnapshot` |
+| VenueInfo | `1.0` | `{data}/Assignments/{venueId}/_venue.json` | `VenueSnapshotInfo` |
+| AppSettings | `1.0` | `{data}/AppSettings.json` | `AppSettings` |
+| StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` | `StrategyConfig` |
 
-On load, `FileMigrationService` checks the file version and runs registered `IFileMigrator` implementations to migrate old formats forward. Migration is **forward-only** — no version rollback.
+### Migration pipeline
 
-To add a migration for a breaking format change:
-1. Implement `IFileMigrator` (`FileType`, `FromVersion`, `ToVersion`, `Migrate(JsonNode)`)
-2. Register in `ServiceCollectionExtensions.cs`
+On load, each repository reads the file as `JsonNode`, calls `FileMigrationService.Migrate(fileType, node, fileVersion, targetVersion)`, then deserializes. Migration is **forward-only** — no version rollback. The service finds registered `IFileMigrator` implementations and chains them by matching `FromVersion`/`ToVersion`.
+
+### Adding a migration
+
+1. Add a nested class in `Migration/Migrators/{FileType}Migrators.cs` (one file per file type):
+   ```csharp
+   public static class VenueMigrators
+   {
+       public sealed class Step_1_0_to_1_1 : IFileMigrator
+       {
+           public string FileType => "venue";
+           public string FromVersion => "1.0";
+           public string ToVersion => "1.1";
+           public JsonNode Migrate(JsonNode root) { ... }
+       }
+   }
+   ```
+2. Register in `ServiceCollectionExtensions.cs`: `services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>()`
 3. Bump the version in `file_versions.json`
-4. Update the model's default `Version` property
+4. Update the model's default `Version` property in Core
+5. Add tests in `Infrastructure.Tests/Migration/{FileType}MigratorsTests.cs`
 
-Existing migrators:
-- `VenueFileMigrator_1_0_to_1_1`: Reorders Grid layout seats from column-major to row-major
+### Existing migrators
+
+- `VenueMigrators.Step_1_0_to_1_1` — Reorders Grid layout seats from column-major to row-major (sorted by `Row` then `Column`)
+
+### JSON field conventions
+
+- Serialization uses `JsonNamingPolicy.CamelCase` — all fields are lowercase in JSON (`row`, `column`, `layoutTypeString`, `logicalGroup`)
+- `ClassroomLayoutDefinition.LayoutType` is serialized as **both** a number (`layoutType`: 0=Grid, 1=Polar, 2=Freeform) and a string (`layoutTypeString`: "Grid"/"Polar"/"Freeform"). Migrators should read `layoutTypeString` for clarity.
+- `Seat` polymorphic serialization uses `SeatJsonConverter` which writes a `Type` discriminator (capital T, string: "Grid"/"Polar"/"Freeform") alongside each seat object. The `type` field (lowercase, camelCase of `SeatType` enum) is a separate integer.
+- `SeatingSnapshot.Version` and `VenueSnapshotInfo.Version` were added in this migration round — old snapshots without the field default to `"1.0"`.
+
+### Grid seat ordering
+
+`GridLayoutBuilder.BuildGrid` creates seats in **row-major** order (outer loop: rows, inner loop: columns). This ensures `RandomFillStrategy` fills seats row-by-row (left-to-right, top-to-bottom). For irregular grids with `ColumnRowCounts`, `maxRows = ColumnRowCounts.Max()` and each column checks `r <= rowsForCol`.
 
 ## Documents
+- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
 - `ARCHITECTURE.md` — Project goals & architecture design
 - `Phases.md` — Implementation phases & detailed planning
+- `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
 - `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
 - `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use

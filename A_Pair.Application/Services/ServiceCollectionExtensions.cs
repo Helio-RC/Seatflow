@@ -94,7 +94,7 @@ namespace A_Pair.Application.Services
             services.AddSingleton<JsonStudentProvider>();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<FileMigrationService>();
-            services.AddSingleton<IFileMigrator , VenueFileMigrator_1_0_to_1_1>();
+            services.AddSingleton<IFileMigrator , VenueMigrators.Step_1_0_to_1_1>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
                 new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
                     sp.GetRequiredService<FileMigrationService>() ,

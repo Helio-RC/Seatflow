@@ -23,7 +23,7 @@
 | Phase 1-3 | 领域建模、数据导入导出、内置策略 | 已完成 |
 | Phase 4-5 | 插件系统、Lua/C# 脚本支持 | 已完成 |
 | Phase 6 | 高级布局可视化、拖拽交互 | 进行中 |
-| Phase 7 | CLI 工具 | 计划中 |
+| Phase 7 | 配置管理、存储、版本迁移 | 部分完成（版本号字段、迁移管线已完成；CLI 工具待启动） |
 | Phase 8 | 测试覆盖与用户文档 | 计划中 |
 
 ## 反馈与贡献
@@ -42,6 +42,7 @@
 
 | 文档 | 说明 |
 |------|------|
+| [docs/INDEX.md](docs/INDEX.md) | 文档导航地图（修改文档前先查阅联动规则） |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 项目目标与架构设计 |
 | [Phases.md](Phases.md) | 实现阶段与详细规划 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发环境搭建与参与指南 |

@@ -79,10 +79,15 @@ A_Pair/
 │   │   │   ├── ExcelExporter.cs
 │   │   │   ├── PdfExporter.cs
 │   │   │   └── CsvExporter.cs
-│   │   ├── Persistence/                 # 文件存储、快照管理
-│   │   │   ├── SnapshotRepository.cs
-│   │   │   ├── ConfigMigrationService.cs
-│   │   │   └── FileLockManager.cs
+│   │   ├── Migration/                  # 文件版本迁移（已完成）
+│   │   │   ├── FileMigrationService.cs
+│   │   │   ├── IFileMigrator.cs
+│   │   │   ├── FileVersionInfo.cs
+│   │   │   ├── file_versions.json       # 嵌入资源
+│   │   │   └── Migrators/{Type}Migrators.cs
+│   │   ├── Repositories/               # 文件存储、快照管理
+│   │   │   ├── SeatingSnapshotRepository.cs
+│   │   │   └── FileLockManager.cs（计划）
 │   │   ├── Encryption/                  # 加密服务
 │   │   ├── Logging/                     # Serilog 配置
 │   │   └── Plugins/                     # 插件管理器
@@ -364,16 +369,17 @@ A_Pair/
 
 **关键技术细节**：
 
-1. **配置迁移管线**：
+1. **配置迁移管线**（基础实现已完成）：
    ```csharp
-   public interface IConfigMigrator
+   public interface IFileMigrator
    {
-       int FromVersion { get; }
-       int ToVersion { get; }
-       JObject Migrate(JObject config);
+       string FileType { get; }
+       string FromVersion { get; }
+       string ToVersion { get; }
+       JsonNode Migrate(JsonNode root);
    }
    ```
-   按版本顺序依次执行迁移。
+   注册到 `FileMigrationService`，按版本号链式执行向前迁移。迁移器按文件类型组织在 `Migration/Migrators/{Type}Migrators.cs`。
 
 2. **字段级加密**：
    - 使用 `[SensitiveData]` 特性标记属性。

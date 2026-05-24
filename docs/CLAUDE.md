@@ -118,8 +118,61 @@ public virtual Task<bool> CanLeaveAsync()
 - 窗口宽度 < 750px 时自动折叠
 - `MainShellViewModel.ToggleSidebar()` 手动切换
 
+## 文件版本与迁移
+
+所有持久化 JSON 文件携带 `version` 字段，加载时通过 `FileMigrationService` 自动向前迁移。版本号定义在 `A_Pair.Infrastructure/Migration/file_versions.json`（嵌入资源，随程序编译）。`FileVersionInfo.GetCurrentVersion(fileType)` 在运行时读取最新版本。
+
+| 文件类型 | 版本 | 存储位置 | 包装类 |
+|---|---|---|---|
+| Venue | `1.1` | `{data}/Venues/*.venue.json` | `VenueFile` |
+| Roster | `1.0` | `{data}/Rosters/*.roster.json` | `RosterFile` |
+| Snapshot | `1.0` | `{data}/Assignments/{venueId}/{date}/*.json` | `SeatingSnapshot` |
+| VenueInfo | `1.0` | `{data}/Assignments/{venueId}/_venue.json` | `VenueSnapshotInfo` |
+| AppSettings | `1.0` | `{data}/AppSettings.json` | `AppSettings` |
+| StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` | `StrategyConfig` |
+
+### 迁移管线
+
+加载时，各仓储将文件读取为 `JsonNode`，调用 `FileMigrationService.Migrate(fileType, node, fileVersion, targetVersion)`，再反序列化。迁移仅支持向前，不支持版本回退。服务查找注册的 `IFileMigrator` 实现，按 `FromVersion`→`ToVersion` 匹配后链式执行。
+
+### 添加迁移的步骤
+
+1. 在 `Migration/Migrators/{FileType}Migrators.cs` 的容器类中添加嵌套类：
+   ```csharp
+   public static class VenueMigrators
+   {
+       public sealed class Step_1_0_to_1_1 : IFileMigrator
+       {
+           public string FileType => "venue";
+           public string FromVersion => "1.0";
+           public string ToVersion => "1.1";
+           public JsonNode Migrate(JsonNode root) { ... }
+       }
+   }
+   ```
+2. 在 `ServiceCollectionExtensions.cs` 中注册：`services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>()`
+3. 在 `file_versions.json` 中提升版本号
+4. 在 `Core/Models/` 对应模型类中更新默认 `Version` 属性
+5. 在 `Infrastructure.Tests/Migration/{FileType}MigratorsTests.cs` 添加覆盖测试
+
+### 已有迁移器
+
+- `VenueMigrators.Step_1_0_to_1_1` — 将 Grid 布局座位从列主序重排为行主序（按 `Row` → `Column` 排序）
+
+### JSON 字段约定
+
+- 序列化使用 `JsonNamingPolicy.CamelCase`，JSON 中所有字段为小写驼峰（`row`、`column`、`layoutTypeString`）
+- `ClassroomLayoutDefinition.LayoutType` 同时序列化为数字（`layoutType`: 0=Grid, 1=Polar, 2=Freeform）和字符串（`layoutTypeString`: "Grid"/"Polar"/"Freeform"）— 迁移器中优先使用 `layoutTypeString`
+- `Seat` 多态序列化通过 `SeatJsonConverter`，写入 `Type`（大写）鉴别器字段；`type`（小写）为 `SeatType` 枚举的独立整数字段
+- `SeatingSnapshot.Version` 和 `VenueSnapshotInfo.Version` 为本次新增字段，旧快照文件默认回退为 `"1.0"`
+
+### Grid 座位排序
+
+`GridLayoutBuilder.BuildGrid` 以**行主序**创建座位（外层行，内层列），确保 `RandomFillStrategy` 从左到右、从上到下一行行填充。对使用 `ColumnRowCounts` 的不规则网格，用 `maxRows = ColumnRowCounts.Max()` 并在每列检查 `r <= rowsForCol`。
+
 ## 项目文档
 
+- [INDEX.md](INDEX.md) — 文档导航地图（修改文档前先查阅）
 - [ARCHITECTURE.md](../ARCHITECTURE.md) — 项目目标与架构设计
 - [Phases.md](../Phases.md) — 实现阶段与详细规划
 - [README.md](../README.md) — 项目概览
