@@ -425,21 +425,10 @@ public partial class DataManagementViewModel : ViewModelBase
 
         try
         {
-            // 如果是当前数据集，用内存中的最新数据；否则从文件加载
-            var students = CurrentDatasetId == SelectedDataset.Id
-                ? Students.ToList()
-                : await _facade.LoadStudentDatasetAsync(SelectedDataset.Id , ct);
-
-            if (students is null) return;
-
-            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id , ct);
-            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , students , SelectedDataset.OriginalFileName , ct);
+            await _facade.RenameStudentDatasetAsync(SelectedDataset.Id , newName.Trim() , ct);
 
             if (CurrentDatasetId == SelectedDataset.Id)
-            {
-                CurrentDatasetId = newId;
                 CurrentDatasetName = newName.Trim();
-            }
 
             SelectedDataset = null;
             await RefreshDatasetsAsync(ct);

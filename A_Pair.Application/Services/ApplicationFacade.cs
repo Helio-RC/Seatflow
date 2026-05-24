@@ -203,11 +203,15 @@ namespace A_Pair.Application.Services
             }
 
             // 9. 保存快照
+            var studentNames = workspace.Students
+                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .ToDictionary(s => s.Id , s => s.Name);
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
                 LayoutId = request.LayoutId ?? "unknown" ,
-                SeatAssignments = plan.Assignments
+                SeatAssignments = plan.Assignments ,
+                Metadata = new Dictionary<string , object> { ["studentNames"] = studentNames }
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
 
@@ -315,11 +319,15 @@ namespace A_Pair.Application.Services
             if (_currentWorkspace == null) return null;
 
             var plan = _currentWorkspace.BuildSeatingPlan();
+            var studentNames = _currentWorkspace.Students
+                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .ToDictionary(s => s.Id , s => s.Name);
             var snapshot = new SeatingSnapshot
             {
                 Description = description ,
                 LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
-                SeatAssignments = plan.Assignments
+                SeatAssignments = plan.Assignments ,
+                Metadata = new Dictionary<string , object> { ["studentNames"] = studentNames }
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
             return snapshot;
@@ -409,6 +417,10 @@ namespace A_Pair.Application.Services
 
         public Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default)
             => _datasetRepo.DeleteAsync(id , ct);
+
+        /// <inheritdoc />
+        public Task RenameStudentDatasetAsync (string id , string newName , CancellationToken ct = default)
+            => _datasetRepo.RenameAsync(id , newName , ct);
 
         /// <inheritdoc />
         public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default)

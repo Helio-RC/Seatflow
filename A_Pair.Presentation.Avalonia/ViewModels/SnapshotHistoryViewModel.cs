@@ -163,6 +163,17 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
             var metadata = layout.Metadata!;
             var assignments = snapshot.SeatAssignments;
+
+            // 从 Metadata 中读取 studentNames 字典（studentId → studentName）
+            var studentNames = new Dictionary<string , string>();
+            if (snapshot.Metadata.TryGetValue("studentNames" , out var raw) &&
+                raw is System.Text.Json.JsonElement je &&
+                je.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                foreach (var prop in je.EnumerateObject())
+                    studentNames[prop.Name] = prop.Value.GetString() ?? prop.Name;
+            }
+
             var (baseW , baseH) = ComputeSeatSize(metadata);
 
             // 第一遍：收集原始坐标
@@ -189,6 +200,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             foreach (var (cx , cy , seat) in raw)
             {
                 bool occupied = assignments.TryGetValue(seat.Id , out var sid) && !string.IsNullOrEmpty(sid);
+                studentNames.TryGetValue(sid ?? "" , out var sname);
                 seats.Add(new SeatDisplayItem
                 {
                     X = (cx + offsetX) * scale ,
@@ -199,7 +211,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                     SeatLabel = BuildSeatLabel(seat) ,
                     IsOccupied = occupied ,
                     StudentId = occupied ? sid : null ,
-                    StudentName = occupied ? sid : null ,
+                    StudentName = occupied ? (sname ?? sid) : null ,
                     OccupancyStatus = occupied ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty ,
                     CornerRadius = new CornerRadius(2)
                 });

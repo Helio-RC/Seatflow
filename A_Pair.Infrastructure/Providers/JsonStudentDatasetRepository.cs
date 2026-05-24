@@ -115,6 +115,23 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         return Task.CompletedTask;
     }
 
+    public async Task RenameAsync (string id , string newName , CancellationToken ct = default)
+    {
+        var path = GetFilePath(id);
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"数据集文件不存在：{path}");
+
+        var json = await File.ReadAllTextAsync(path , ct);
+        var roster = DeserializeRoster(json);
+        if (roster == null)
+            throw new InvalidOperationException($"数据集文件损坏：{path}");
+
+        roster.Description = newName;
+        await using var stream = File.Create(path);
+        await JsonSerializer.SerializeAsync(stream , roster , WriteOptions , ct);
+        _logger.LogInformation("数据集已重命名：{Id} → {Name}" , id , newName);
+    }
+
     private RosterFile? DeserializeRoster (string json)
     {
         var node = JsonNode.Parse(json);

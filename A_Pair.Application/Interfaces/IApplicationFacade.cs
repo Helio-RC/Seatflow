@@ -93,6 +93,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>删除指定学生数据集。</summary>
         Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default);
 
+        /// <summary>原地重命名数据集，保持 ID 不变。</summary>
+        Task RenameStudentDatasetAsync (string id , string newName , CancellationToken ct = default);
+
         /// <summary>获取所有策略（内置 + 插件）的完整展示信息，合并 Manifest 和运行时 Config。</summary>
         Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default);
 
