@@ -1,6 +1,7 @@
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace A_Pair.Application.Tests.Services;
 
@@ -16,8 +17,23 @@ public class ServiceCollectionExtensionsTests : IDisposable
 
     public void Dispose ()
     {
+        Log.CloseAndFlush();
         if (Directory.Exists(_tempDir))
-            Directory.Delete(_tempDir , true);
+        {
+            // 重试几次，等待文件句柄释放
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    Directory.Delete(_tempDir , true);
+                    break;
+                }
+                catch (IOException) when (i < 2)
+                {
+                    Thread.Sleep(200);
+                }
+            }
+        }
     }
 
     [Fact]
