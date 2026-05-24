@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
+using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Services;
+using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -54,6 +57,23 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isAllSelected;
+
+    // ── 预览 ──
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPreview))]
+    private ObservableCollection<SeatDisplayItem> _previewSeats = [];
+
+    [ObservableProperty]
+    private ObservableCollection<SeatDisplayItem> _previewOverlays = [];
+
+    public bool HasPreview => PreviewSeats.Count > 0;
+
+    [ObservableProperty]
+    private double _previewCanvasWidth;
+
+    [ObservableProperty]
+    private double _previewCanvasHeight;
 
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedSnapshot => SelectedSnapshot != null;
@@ -113,6 +133,122 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         if (value != null)
             _ = LoadSnapshotsAsync();
     }
+
+    partial void OnSelectedSnapshotChanged (SeatingSnapshot? value)
+    {
+        if (value != null)
+            _ = BuildPreviewAsync(value);
+        else
+        {
+            PreviewSeats = [];
+            PreviewOverlays = [];
+            PreviewCanvasWidth = 0;
+            PreviewCanvasHeight = 0;
+        }
+    }
+
+    private async Task BuildPreviewAsync (SeatingSnapshot snapshot)
+    {
+        var seats = new ObservableCollection<SeatDisplayItem>();
+        var overlays = new ObservableCollection<SeatDisplayItem>();
+        try
+        {
+            var layout = await _facade.LoadVenueAsync(snapshot.LayoutId);
+            if (layout == null || layout.Seats.Count == 0)
+            {
+                PreviewSeats = seats;
+                PreviewOverlays = overlays;
+                return;
+            }
+
+            var metadata = layout.Metadata!;
+            var assignments = snapshot.SeatAssignments;
+            var (baseW , baseH) = ComputeSeatSize(metadata);
+
+            // 第一遍：收集原始坐标
+            double minX = double.MaxValue, minY = double.MaxValue, maxX = 0, maxY = 0;
+            var raw = new List<(double cx , double cy , Seat seat)>();
+            foreach (var seat in layout.Seats)
+            {
+                if (!seat.IsAvailable) continue;
+                var pos = SeatGeometryHelper.GetPosition(seat , metadata);
+                raw.Add((pos.X , pos.Y , seat));
+                var (cx , cy) = pos;
+                minX = Math.Min(minX , cx);
+                minY = Math.Min(minY , cy);
+                maxX = Math.Max(maxX , cx + baseW);
+                maxY = Math.Max(maxY , cy + baseH);
+            }
+
+            double canvasW = Math.Max(maxX - minX + 40 , 200);
+            double canvasH = Math.Max(maxY - minY + 40 , 150);
+            double offsetX = 20 - minX;
+            double offsetY = 20 - minY;
+            double scale = 0.55; // 缩略图缩放
+
+            foreach (var (cx , cy , seat) in raw)
+            {
+                bool occupied = assignments.TryGetValue(seat.Id , out var sid) && !string.IsNullOrEmpty(sid);
+                seats.Add(new SeatDisplayItem
+                {
+                    X = (cx + offsetX) * scale ,
+                    Y = (cy + offsetY) * scale ,
+                    Width = baseW * scale ,
+                    Height = baseH * scale ,
+                    SeatId = seat.Id ,
+                    SeatLabel = BuildSeatLabel(seat) ,
+                    IsOccupied = occupied ,
+                    StudentId = occupied ? sid : null ,
+                    StudentName = occupied ? sid : null ,
+                    OccupancyStatus = occupied ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty ,
+                    CornerRadius = new CornerRadius(2)
+                });
+            }
+
+            // 障碍物
+            foreach (var obs in layout.Obstacles)
+            {
+                overlays.Add(new SeatDisplayItem
+                {
+                    X = (obs.X + offsetX) * scale ,
+                    Y = (obs.Y + offsetY) * scale ,
+                    Width = (obs.Width > 0 ? obs.Width : 40) * scale ,
+                    Height = (obs.Height > 0 ? obs.Height : 30) * scale ,
+                    SeatLabel = obs.Type ,
+                    IsOccupied = true ,
+                    OccupancyStatus = SeatOccupancyStatus.Fixed
+                });
+            }
+
+            PreviewCanvasWidth = canvasW * scale;
+            PreviewCanvasHeight = canvasH * scale;
+        }
+        catch
+        {
+            // 预览失败不阻塞 UI
+        }
+
+        PreviewSeats = seats;
+        PreviewOverlays = overlays;
+    }
+
+    private static (double W , double H) ComputeSeatSize (LayoutMetadata metadata)
+    {
+        return metadata switch
+        {
+            GridLayoutMetadata g => (Math.Clamp(g.HorizontalSpacing * 0.8 , 44 , 72) , Math.Clamp(g.VerticalSpacing * 0.55 , 24 , 44)) ,
+            PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.75 , 28 , 48) , Math.Clamp(p.RadiusStep * 0.75 , 28 , 48)) ,
+            _ => (42 , 26)
+        };
+    }
+
+    private static string BuildSeatLabel (Seat seat) => seat switch
+    {
+        GridSeat g => $"R{g.Row}C{g.Column}" ,
+        PolarSeat p => $"环{p.Ring}" ,
+        FreeformSeat => $"#{seat.Id[..Math.Min(4 , seat.Id.Length)]}" ,
+        _ => seat.Id
+    };
 
     [RelayCommand]
     private async Task LoadSnapshotsAsync ()

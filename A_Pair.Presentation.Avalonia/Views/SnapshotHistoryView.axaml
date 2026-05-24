@@ -206,7 +206,7 @@
                 Background="{DynamicResource SidebarBackgroundBrush}">
           <DockPanel>
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
-                        HorizontalAlignment="Right" Margin="0,16,0,0">
+                        HorizontalAlignment="Right" Margin="0,12,0,0">
               <Button Command="{Binding DeleteSnapshotCommand}"
                       HorizontalContentAlignment="Center"
                       AutomationProperties.Name="删除快照">
@@ -225,44 +225,87 @@
               </Button>
             </StackPanel>
 
-            <!-- 用 ContentControl + DataTemplate 防止 SelectedSnapshot 为 null 时绑定报错 -->
-            <ContentControl Content="{Binding SelectedSnapshot}">
-              <ContentControl.ContentTemplate>
-                <DataTemplate x:DataType="core:SeatingSnapshot">
-                  <StackPanel Spacing="12">
-                    <TextBlock Text="快照详情" FontSize="16" FontWeight="SemiBold"/>
-                    <StackPanel Spacing="6">
-                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="快照ID"/>
-                      <TextBlock Text="{Binding Id}"
-                                 FontSize="12" TextWrapping="Wrap"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                    </StackPanel>
-                    <StackPanel Spacing="6">
-                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="创建时间"/>
-                      <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
-                                 FontSize="13"/>
-                    </StackPanel>
-                    <StackPanel Spacing="6">
-                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="描述"/>
-                      <TextBlock Text="{Binding Description}"
-                                 FontSize="13" TextWrapping="Wrap"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                    </StackPanel>
-                    <StackPanel Spacing="6">
-                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="座位数"/>
-                      <TextBlock Text="{Binding SeatAssignments.Count}"
-                                 FontSize="13"/>
-                    </StackPanel>
-                    <StackPanel Spacing="6">
-                      <TextBlock FontSize="13" FontWeight="SemiBold" Text="关联会场"/>
-                      <TextBlock Text="{Binding LayoutId}"
-                                 FontSize="12" TextWrapping="Wrap"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                    </StackPanel>
+            <ScrollViewer>
+              <StackPanel Spacing="14">
+                <!-- 用 ContentControl + DataTemplate 防止 SelectedSnapshot 为 null 时绑定报错 -->
+                <ContentControl Content="{Binding SelectedSnapshot}">
+                  <ContentControl.ContentTemplate>
+                    <DataTemplate x:DataType="core:SeatingSnapshot">
+                      <StackPanel Spacing="10">
+                        <TextBlock Text="快照详情" FontSize="16" FontWeight="SemiBold"/>
+                        <StackPanel Spacing="4">
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="快照ID"/>
+                          <TextBlock Text="{Binding Id}"
+                                     FontSize="11" TextWrapping="Wrap"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="创建时间"/>
+                          <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                     FontSize="12"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="描述"/>
+                          <TextBlock Text="{Binding Description}"
+                                     FontSize="12" TextWrapping="Wrap"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="座位数"/>
+                          <TextBlock Text="{Binding SeatAssignments.Count}"
+                                     FontSize="12"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="关联会场"/>
+                          <TextBlock Text="{Binding LayoutId}"
+                                     FontSize="11" TextWrapping="Wrap"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                        </StackPanel>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ContentControl.ContentTemplate>
+                </ContentControl>
+
+                <!-- 会场预览（绑定 ViewModel 属性，置于 ContentControl 外部避免 DataContext 错误） -->
+                <Border IsVisible="{Binding HasPreview}" Padding="8" CornerRadius="4"
+                        Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="会场预览" FontSize="13" FontWeight="SemiBold"/>
+                    <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Auto">
+                      <ItemsControl ItemsSource="{Binding PreviewSeats}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <Canvas Width="{Binding PreviewCanvasWidth}"
+                                    Height="{Binding PreviewCanvasHeight}"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                          <Style Selector="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                          </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:SeatDisplayItem">
+                            <Border Width="{Binding Width}" Height="{Binding Height}"
+                                    CornerRadius="{Binding CornerRadius}" BorderThickness="1"
+                                    Background="{Binding BackgroundBrush}"
+                                    BorderBrush="{Binding BorderBrush}"
+                                    ToolTip.Tip="{Binding TooltipText}">
+                              <TextBlock Text="{Binding DisplayText}"
+                                         FontSize="8" Margin="1"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
                   </StackPanel>
-                </DataTemplate>
-              </ContentControl.ContentTemplate>
-            </ContentControl>
+                </Border>
+              </StackPanel>
+            </ScrollViewer>
           </DockPanel>
         </Border>
       </Grid>
