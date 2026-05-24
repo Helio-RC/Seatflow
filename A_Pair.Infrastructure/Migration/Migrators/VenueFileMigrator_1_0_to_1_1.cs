@@ -23,10 +23,10 @@ public sealed class VenueFileMigrator_1_0_to_1_1 : IFileMigrator
 
     public JsonNode Migrate (JsonNode root)
     {
-        var layoutType = root["layout"]?["layoutType"]?.GetValue<string>();
-        if (layoutType != "Grid" && layoutType != "Grid")
+        // layoutTypeString 为 "Grid"/"Polar"/"Freeform"，layoutType 为数字枚举值
+        var layoutStr = root["layout"]?["layoutTypeString"]?.ToString();
+        if (layoutStr != "Grid")
         {
-            // 非 Grid 布局无需重排，仅更新版本号
             root["version"] = "1.1";
             return root;
         }
@@ -38,14 +38,17 @@ public sealed class VenueFileMigrator_1_0_to_1_1 : IFileMigrator
             return root;
         }
 
-        // 将 seats 数组转为列表，按 Row → Column 排序
+        // 辅助：安全读取整数值（字段名为 camelCase）
+        static int SafeInt (JsonNode? node , int fallback)
+            => node is JsonValue v && v.TryGetValue<int>(out var n) ? n : fallback;
+
         var sorted = seats
             .OfType<JsonObject>()
             .Select(s => new
             {
                 Node = s ,
-                Row = s["row"]?.GetValue<int>() ?? int.MaxValue ,
-                Column = s["column"]?.GetValue<int>() ?? int.MaxValue
+                Row = SafeInt(s["row"] , int.MaxValue) ,
+                Column = SafeInt(s["column"] , int.MaxValue)
             })
             .OrderBy(s => s.Row)
             .ThenBy(s => s.Column)
