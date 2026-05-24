@@ -289,6 +289,13 @@ namespace A_Pair.Application.Services
             => Task.FromResult(_currentLayout);
 
         /// <inheritdoc />
+        public void ClearWorkspace ()
+        {
+            _currentWorkspace = null;
+            _currentLayout = null;
+        }
+
+        /// <inheritdoc />
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照

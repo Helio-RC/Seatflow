@@ -740,7 +740,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     public override async Task<bool> CanLeaveAsync ()
     {
-        if (!HasUnsavedChanges) return true;
+        if (!HasUnsavedChanges)
+        {
+            _facade.ClearWorkspace();
+            return true;
+        }
 
         var result = await Dialog.ShowMultiOptionAsync("未保存的修改" ,
             "当前座位安排有未保存的修改，是否保存后离开？" ,
@@ -750,12 +754,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         {
             case 0: // 保存
                 await SaveToSnapshotAsync();
-                return true;
+                break;
             case 1: // 不保存
-                return true;
+                break;
             default: // 取消
                 return false;
         }
+
+        _facade.ClearWorkspace();
+        return true;
     }
 
     // ── 折叠切换 ──

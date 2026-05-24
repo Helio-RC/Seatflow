@@ -121,6 +121,9 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>获取指定插件的原始清单。</summary>
         Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default);
+
+        /// <summary>清除当前工作区和布局状态，用于页面离开时重置。</summary>
+        void ClearWorkspace ();
     }
 
     /// <summary>
