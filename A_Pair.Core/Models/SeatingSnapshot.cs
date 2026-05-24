@@ -6,6 +6,9 @@ namespace A_Pair.Core.Models
     /// </summary>
     public class SeatingSnapshot
     {
+        /// <summary>文件格式版本号。</summary>
+        public string Version { get; set; } = "1.0";
+
         /// <summary>快照唯一标识符。</summary>
         public string Id { get; set; } = Guid.NewGuid().ToString();
 

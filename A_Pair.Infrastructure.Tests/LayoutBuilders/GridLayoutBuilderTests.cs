@@ -94,4 +94,55 @@ public class GridLayoutBuilderTests
         var layout = GridLayoutBuilder.BuildGrid(meta);
         layout.Seats.Count.Should().Be(12); // 4*3
     }
+
+    [Fact]
+    public void BuildGrid_WithAlternatingColumnRowCounts_ShouldBeRowMajor ()
+    {
+        // 模拟不规则教室：8列，单数列4行，双数列5行
+        var meta = new GridLayoutMetadata
+        {
+            Rows = 5 ,
+            Columns = 8 ,
+            SeatsPerDesk = 1 ,
+            ColumnRowCounts = new List<int> { 4 , 5 , 4 , 5 , 4 , 5 , 4 , 5 }
+        };
+        var layout = GridLayoutBuilder.BuildGrid(meta);
+        layout.Seats.Count.Should().Be(36); // 4*4 + 5*4
+        var seats = layout.Seats.Cast<GridSeat>().ToList();
+
+        // 行优先：r=1 填满 8 列，r=2 填满 8 列，...，r=5 仅双数列
+        // r=1: c1..c8
+        for (int i = 0; i < 8; i++)
+        {
+            seats[i].Row.Should().Be(1);
+            seats[i].Column.Should().Be(i + 1);
+        }
+        // r=2: c1..c8
+        for (int i = 0; i < 8; i++)
+        {
+            seats[8 + i].Row.Should().Be(2);
+            seats[8 + i].Column.Should().Be(i + 1);
+        }
+        // r=3: c1..c8
+        for (int i = 0; i < 8; i++)
+        {
+            seats[16 + i].Row.Should().Be(3);
+            seats[16 + i].Column.Should().Be(i + 1);
+        }
+        // r=4: c1..c8
+        for (int i = 0; i < 8; i++)
+        {
+            seats[24 + i].Row.Should().Be(4);
+            seats[24 + i].Column.Should().Be(i + 1);
+        }
+        // r=5: 仅 c2, c4, c6, c8
+        seats[32].Row.Should().Be(5);
+        seats[32].Column.Should().Be(2);
+        seats[33].Row.Should().Be(5);
+        seats[33].Column.Should().Be(4);
+        seats[34].Row.Should().Be(5);
+        seats[34].Column.Should().Be(6);
+        seats[35].Row.Should().Be(5);
+        seats[35].Column.Should().Be(8);
+    }
 }

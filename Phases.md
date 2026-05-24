@@ -354,9 +354,9 @@ A_Pair/
 | 任务 | 产出 | 技术点 | 预估工时 |
 |------|------|--------|----------|
 | 实现 AppSettings 加载与监视 | 热重载配置 | `IOptionsMonitor` | 1d |
-| 实现 Venue/Roster 文件仓储 | 读取/保存 JSON 文件 | 文件 I/O | 1d |
+| 实现 Venue/Roster 文件仓储 | 读取/保存 JSON 文件 | 文件 I/O | 1d（已完成，含版本号字段）|
 | 实现 SnapshotRepository | 保存/加载座位快照 | JSON 序列化 | 1d |
-| 实现 ConfigMigrationService | 配置版本升级 | 迁移管线模式 | 1.5d |
+| 实现 ConfigMigrationService | 配置版本升级 | 迁移管线模式 | 1.5d（基础实现已完成：IFileMigrator + FileMigrationService）|
 | 实现文件锁机制 | 防止多人同时编辑同一文件 | `FileStream` 锁 | 0.5d |
 | 实现备份与恢复 | 自动备份损坏文件 | 文件复制 | 0.5d |
 | 实现敏感数据加密 | 字段级/文件级加密 | AES-256, DPAPI | 1.5d |

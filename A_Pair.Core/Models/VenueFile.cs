@@ -7,7 +7,7 @@ namespace A_Pair.Core.Models
     public class VenueFile
     {
         /// <summary>文件格式版本号。</summary>
-        public string Version { get; set; } = "1.0";
+        public string Version { get; set; } = "1.1";
 
         /// <summary>会场唯一标识符。</summary>
         public string VenueId { get; set; } = string.Empty;

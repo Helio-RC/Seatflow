@@ -122,6 +122,30 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - Auto-collapses when window width < 750px
 - `MainShellViewModel.ToggleSidebar()` command for manual toggle
 
+## File Versions & Migration
+
+All persisted JSON files carry a `version` field. Current versions are defined in `A_Pair.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly).
+
+| File type | Version | Location |
+|---|---|---|
+| Venue | `1.1` | `{data}/Venues/*.venue.json` |
+| Roster | `1.0` | `{data}/Rosters/*.roster.json` |
+| Snapshot | `1.0` | `{data}/Assignments/{venueId}/{date}/*.json` |
+| VenueInfo | `1.0` | `{data}/Assignments/{venueId}/_venue.json` |
+| AppSettings | `1.0` | `{data}/AppSettings.json` |
+| StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` |
+
+On load, `FileMigrationService` checks the file version and runs registered `IFileMigrator` implementations to migrate old formats forward. Migration is **forward-only** — no version rollback.
+
+To add a migration for a breaking format change:
+1. Implement `IFileMigrator` (`FileType`, `FromVersion`, `ToVersion`, `Migrate(JsonNode)`)
+2. Register in `ServiceCollectionExtensions.cs`
+3. Bump the version in `file_versions.json`
+4. Update the model's default `Version` property
+
+Existing migrators:
+- `VenueFileMigrator_1_0_to_1_1`: Reorders Grid layout seats from column-major to row-major
+
 ## Documents
 - `ARCHITECTURE.md` — Project goals & architecture design
 - `Phases.md` — Implementation phases & detailed planning

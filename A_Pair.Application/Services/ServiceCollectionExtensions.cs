@@ -8,6 +8,8 @@ using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
 using A_Pair.Core.Strategies;
 using A_Pair.Infrastructure.Exporters;
+using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Migration.Migrators;
 using A_Pair.Infrastructure.Providers;
 using A_Pair.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,8 +93,11 @@ namespace A_Pair.Application.Services
             services.AddSingleton<XlsxStudentProvider>();
             services.AddSingleton<JsonStudentProvider>();
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
+            services.AddSingleton<FileMigrationService>();
+            services.AddSingleton<IFileMigrator , VenueFileMigrator_1_0_to_1_1>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
                 new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
+                    sp.GetRequiredService<FileMigrationService>() ,
                     sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
@@ -127,14 +132,17 @@ namespace A_Pair.Application.Services
 
             // 注册场地仓储（全局单例，使用有效数据路径）
             var venuesPath = Path.Combine(effectiveDataPath , "Venues");
-            services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(venuesPath));
+            services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(venuesPath ,
+                sp.GetRequiredService<FileMigrationService>()));
 
             // 注册 AppSettings 仓储（始终位于默认数据目录，避免查找自身的鸡生蛋问题）
-            services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(defaultSettingsPath));
+            services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(defaultSettingsPath ,
+                sp.GetRequiredService<FileMigrationService>()));
 
             // 注册学生数据集仓储（全局单例）
             var rostersPath = Path.Combine(effectiveDataPath , "Rosters");
-            services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(rostersPath));
+            services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(rostersPath ,
+                sp.GetRequiredService<FileMigrationService>()));
 
             // 注册策略 Manifest 提供器（全局单例）
             services.AddSingleton(sp => new StrategyManifestProvider(
@@ -143,7 +151,9 @@ namespace A_Pair.Application.Services
             // 注册策略运行时配置仓储（per-file，全局单例）
             var strategyConfigDir = Path.Combine(effectiveDataPath , "StrategyConfig");
             services.AddSingleton(sp => new StrategyConfigFileRepository(
-                strategyConfigDir , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
+                strategyConfigDir ,
+                sp.GetRequiredService<FileMigrationService>() ,
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 
             return services;
         }

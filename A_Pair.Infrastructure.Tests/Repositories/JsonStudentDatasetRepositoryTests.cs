@@ -1,3 +1,4 @@
+using A_Pair.Infrastructure.Migration;
 namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonStudentDatasetRepositoryTests : IDisposable
@@ -8,7 +9,7 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
     public JsonStudentDatasetRepositoryTests ()
     {
         _tempDir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString("N"));
-        _repo = new JsonStudentDatasetRepository(_tempDir);
+        _repo = new JsonStudentDatasetRepository(_tempDir, new FileMigrationService([]));
     }
 
     [Fact]

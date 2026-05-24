@@ -1,6 +1,8 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,12 +22,17 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
     };
 
     private readonly string _rostersPath;
+    private readonly FileMigrationService _migration;
     private readonly ILogger<JsonStudentDatasetRepository> _logger;
 
-    public JsonStudentDatasetRepository (string rostersPath , ILogger<JsonStudentDatasetRepository>? logger = null)
+    public JsonStudentDatasetRepository (
+        string rostersPath ,
+        FileMigrationService migration ,
+        ILogger<JsonStudentDatasetRepository>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(rostersPath);
         _rostersPath = rostersPath;
+        _migration = migration ?? throw new ArgumentNullException(nameof(migration));
         _logger = logger ?? NullLogger<JsonStudentDatasetRepository>.Instance;
         Directory.CreateDirectory(_rostersPath);
     }
@@ -35,7 +42,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
     {
         var roster = new RosterFile
         {
-            Version = "1.0" ,
+            Version = FileVersionInfo.GetCurrentVersion("roster") ,
             Description = name ,
             Students = students ,
             Metadata = new Dictionary<string , object>
@@ -58,8 +65,8 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         var path = GetFilePath(id);
         if (!File.Exists(path)) return null;
 
-        await using var stream = File.OpenRead(path);
-        var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream , ReadOptions , ct);
+        var json = await File.ReadAllTextAsync(path , ct);
+        var roster = DeserializeRoster(json);
         return roster?.Students;
     }
 
@@ -73,8 +80,8 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         {
             try
             {
-                using var stream = File.OpenRead(file);
-                var roster = JsonSerializer.Deserialize<RosterFile>(stream , ReadOptions);
+                var json = File.ReadAllText(file);
+                var roster = DeserializeRoster(json);
                 if (roster is null) continue;
 
                 var info = new StudentDatasetInfo
@@ -106,6 +113,18 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         if (File.Exists(path))
             File.Delete(path);
         return Task.CompletedTask;
+    }
+
+    private RosterFile? DeserializeRoster (string json)
+    {
+        var node = JsonNode.Parse(json);
+        if (node is not null)
+        {
+            var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+            node = _migration.Migrate("roster" , node , fileVersion , FileVersionInfo.GetCurrentVersion("roster"));
+            json = node.ToJsonString();
+        }
+        return JsonSerializer.Deserialize<RosterFile>(json , ReadOptions);
     }
 
     private string GetFilePath (string id) => Path.Combine(_rostersPath , $"{id}.roster.json");

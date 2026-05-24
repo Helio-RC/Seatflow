@@ -236,8 +236,10 @@ A_Pair/
 
 5.3 版本管理与升级
 
-· 配置文件包含 version 字段，启动时通过 ConfigMigrationService 执行迁移管线。
-· 座位快照支持父子关系，便于追溯与回滚。
+· 配置文件包含 `version` 字段（`VenueFile` v1.1、`RosterFile` v1.0、`SeatingSnapshot` v1.0、`AppSettings` v1.0、`StrategyConfig` v1.0、`VenueSnapshotInfo` v1.0）
+· 各文件类型当前版本号记录于 `A_Pair.Infrastructure/Migration/file_versions.json`（嵌入资源，随程序编译）
+· 加载时 `FileMigrationService` 读取文件版本号，链式执行注册的 `IFileMigrator` 实现完成向前迁移（不支持回退）
+· 座位快照支持父子关系，便于追溯与回滚
 
 5.4 敏感数据保护
 
@@ -354,6 +356,6 @@ IPluginManager Application 插件发现与加载
 
 ---
 
-文档版本：1.1
+文档版本：1.2
 最后更新：2026-05-24
 适用项目：座位安排/轮换系统（跨平台桌面版 .NET 10 + Avalonia 12）

@@ -1,3 +1,4 @@
+using A_Pair.Infrastructure.Migration;
 namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class SeatingSnapshotRepositoryTests : IDisposable
@@ -19,7 +20,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
     [Fact]
     public async Task SaveAndLoad_ShouldRoundTrip ()
     {
-        var repo = new SeatingSnapshotRepository(_testDir);
+        var repo = new SeatingSnapshotRepository(_testDir, new FileMigrationService([]));
         var snapshot = new SeatingSnapshot
         {
             Description = "Test" ,
@@ -36,7 +37,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
     [Fact]
     public async Task ListByVenueAsync_ShouldFilterCorrectly ()
     {
-        var repo = new SeatingSnapshotRepository(_testDir);
+        var repo = new SeatingSnapshotRepository(_testDir, new FileMigrationService([]));
         var snap1 = new SeatingSnapshot { LayoutId = "venue1" };
         var snap2 = new SeatingSnapshot { LayoutId = "venue2" };
         await repo.SaveAsync(snap1 , TestContext.Current.CancellationToken);
@@ -50,7 +51,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
     [Fact]
     public async Task DeleteAsync_ShouldRemoveFile ()
     {
-        var repo = new SeatingSnapshotRepository(_testDir);
+        var repo = new SeatingSnapshotRepository(_testDir, new FileMigrationService([]));
         var snap = new SeatingSnapshot();
         await repo.SaveAsync(snap , TestContext.Current.CancellationToken);
         await repo.DeleteAsync(snap.Id , TestContext.Current.CancellationToken);

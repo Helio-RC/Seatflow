@@ -1,6 +1,8 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Migration;
 using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -17,15 +19,19 @@ namespace A_Pair.Infrastructure.Providers
     public class JsonVenueRepository : IVenueRepository
     {
         private readonly string _venuesFolder;
+        private readonly FileMigrationService _migration;
         private readonly ILogger<JsonVenueRepository> _logger;
 
         /// <summary>
         /// 初始化 JSON 会场仓储，确保存储目录存在。
         /// </summary>
-        /// <param name="venuesFolder">会场文件存储目录。</param>
-        public JsonVenueRepository (string venuesFolder , ILogger<JsonVenueRepository>? logger = null)
+        public JsonVenueRepository (
+            string venuesFolder ,
+            FileMigrationService migration ,
+            ILogger<JsonVenueRepository>? logger = null)
         {
             _venuesFolder = venuesFolder ?? throw new ArgumentNullException(nameof(venuesFolder));
+            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
             _logger = logger ?? NullLogger<JsonVenueRepository>.Instance;
             Directory.CreateDirectory(_venuesFolder);
         }
@@ -36,7 +42,7 @@ namespace A_Pair.Infrastructure.Providers
             var filePath = GetFilePath(venueId);
             var venueFile = new VenueFile
             {
-                Version = "1.0" ,
+                Version = FileVersionInfo.GetCurrentVersion("venue") ,
                 VenueId = venueId ,
                 Layout = layout
             };
@@ -54,6 +60,13 @@ namespace A_Pair.Infrastructure.Providers
                 return null;
 
             var json = await File.ReadAllTextAsync(filePath , cancellationToken);
+            var node = JsonNode.Parse(json);
+            if (node is not null)
+            {
+                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+                node = _migration.Migrate("venue" , node , fileVersion , FileVersionInfo.GetCurrentVersion("venue"));
+                json = node.ToJsonString();
+            }
             var options = SerializerOptions;
             var venueFile = JsonSerializer.Deserialize<VenueFile>(json , options);
             return venueFile?.Layout;
