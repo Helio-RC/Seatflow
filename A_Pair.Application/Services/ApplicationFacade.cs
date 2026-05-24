@@ -581,7 +581,28 @@ namespace A_Pair.Application.Services
         {
             int rows = GetParameter(parameters , "Rows" , 3);
             int columns = GetParameter(parameters , "Columns" , 3);
-            return GridLayoutBuilder.BuildGrid(rows , columns);
+            var meta = new GridLayoutMetadata
+            {
+                Rows = rows ,
+                Columns = columns ,
+                SeatsPerDesk = GetParameter(parameters , "SeatsPerDesk" , 1) ,
+                HorizontalSpacing = GetParameter(parameters , "HorizontalSpacing" , 1.0) ,
+                VerticalSpacing = GetParameter(parameters , "VerticalSpacing" , 1.0) ,
+                IntraDeskSpacing = GetParameter(parameters , "IntraDeskSpacing" , 0.0) ,
+                InterDeskSpacing = GetParameter(parameters , "InterDeskSpacing" , 10.0) ,
+                OriginX = GetParameter(parameters , "OriginX" , 0.0) ,
+                OriginY = GetParameter(parameters , "OriginY" , 0.0) ,
+                ColumnRowCounts = GetParameter<List<int>>(parameters , "ColumnRowCounts" , []) ,
+                AisleAfterColumns = GetParameter<List<int>>(parameters , "AisleAfterColumns" , []) ,
+                AisleAfterRows = GetParameter<List<int>>(parameters , "AisleAfterRows" , []) ,
+                AisleWidth = GetParameter(parameters , "AisleWidth" , 0.0) ,
+                FrontRowCount = GetParameter(parameters , "FrontRowCount" , 1) ,
+                HasPodium = GetParameter(parameters , "HasPodium" , false) ,
+                PodiumWidth = GetParameter(parameters , "PodiumWidth" , 0.0) ,
+                PodiumHeight = GetParameter(parameters , "PodiumHeight" , 0.0) ,
+                EmptyPositions = GetParameter<List<GridPosition>>(parameters , "EmptyPositions" , [])
+            };
+            return GridLayoutBuilder.BuildGrid(meta);
         }
 
         /// <summary>
@@ -591,10 +612,17 @@ namespace A_Pair.Application.Services
         /// <returns>极坐标布局定义。</returns>
         private ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
         {
-            double radiusStep = GetParameter(parameters , "RadiusStep" , 1.0);
-            int rings = GetParameter(parameters , "Rings" , 2);
-            int seatsPerRing = GetParameter(parameters , "SeatsPerRing" , 8);
-            return PolarLayoutBuilder.BuildPolar(radiusStep , rings , seatsPerRing);
+            var meta = new PolarLayoutMetadata
+            {
+                RadiusStep = GetParameter(parameters , "RadiusStep" , 1.0) ,
+                Rings = GetParameter(parameters , "Rings" , 2) ,
+                SeatsPerRing = GetParameter(parameters , "SeatsPerRing" , 8) ,
+                RingSeatCounts = GetParameter<List<int>>(parameters , "RingSeatCounts" , []) ,
+                StartAngleDegrees = GetParameter(parameters , "StartAngleDegrees" , 0.0) ,
+                EndAngleDegrees = GetParameter(parameters , "EndAngleDegrees" , 180.0) ,
+                EmptyPositions = GetParameter<List<PolarRingAngle>>(parameters , "EmptyPositions" , [])
+            };
+            return PolarLayoutBuilder.BuildPolar(meta);
         }
 
         /// <summary>
@@ -604,7 +632,7 @@ namespace A_Pair.Application.Services
         /// <returns>自由形式布局定义。</returns>
         private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
-            var points = new List<(double X , double Y)>();
+            var points = new List<(double X , double Y , int? Row , int? Column , int? GroupId)>();
             if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
             {
                 foreach (var item in list)
@@ -613,7 +641,10 @@ namespace A_Pair.Application.Services
                     {
                         double x = GetParameter(dict , "X" , 0.0);
                         double y = GetParameter(dict , "Y" , 0.0);
-                        points.Add((x , y));
+                        int? row = dict.ContainsKey("Row") ? GetParameter<int>(dict , "Row" , 0) : null;
+                        int? col = dict.ContainsKey("Column") ? GetParameter<int>(dict , "Column" , 0) : null;
+                        int? groupId = dict.ContainsKey("GroupId") ? GetParameter<int>(dict , "GroupId" , 0) : null;
+                        points.Add((x , y , row , col , groupId));
                     }
                 }
             }

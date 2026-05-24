@@ -334,6 +334,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 AisleAfterRows = meta.AisleAfterRows ,
                 AisleWidth = meta.AisleWidth ,
                 ColumnRowCounts = meta.ColumnRowCounts ,
+                FrontRowCount = meta.FrontRowCount ,
+                HasPodium = meta.HasPodium ,
+                PodiumWidth = meta.PodiumWidth ,
+                PodiumHeight = meta.PodiumHeight ,
+                HasFrontDoor = meta.HasFrontDoor ,
                 EmptyPositions = meta.EmptyPositions ,
             };
             double seatW = 20, seatH = 14;
@@ -706,6 +711,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             PodiumWidth = GridPodiumWidth ,
             PodiumHeight = GridPodiumHeight ,
             ColumnRowCounts = ParseIntList(GridColumnRowCountsSpec) ,
+            HasFrontDoor = GridHasFrontDoor ,
             EmptyPositions = FilterGridEmptyPositions(
                 ParseGridEmptyPositions(GridEmptyPositionsSpec) , GridColumns , GridRows ,
                 ParseIntList(GridColumnRowCountsSpec))
