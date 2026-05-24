@@ -281,8 +281,8 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.Styles>
                           <Style Selector="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
-                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
                           </Style>
                         </ItemsControl.Styles>
                         <ItemsControl.ItemTemplate>
