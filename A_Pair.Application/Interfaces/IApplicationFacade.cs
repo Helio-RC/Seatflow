@@ -57,6 +57,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>加载会场布局。</summary>
         Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default);
 
+        /// <summary>获取会场的 ContentHash（不反序列化全量布局）。</summary>
+        Task<string?> GetVenueHashAsync (string venueId , CancellationToken ct = default);
+
         /// <summary>获取所有会场 ID 列表。</summary>
         Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default);
 

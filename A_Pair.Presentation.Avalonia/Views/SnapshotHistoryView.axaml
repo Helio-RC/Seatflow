@@ -217,6 +217,7 @@
               </Button>
               <Button Command="{Binding RollbackCommand}" Classes="accent"
                       HorizontalContentAlignment="Center"
+                      IsEnabled="{Binding !HasRollbackDisabled}"
                       AutomationProperties.Name="回滚到此快照">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14"/>
@@ -265,6 +266,38 @@
                     </DataTemplate>
                   </ContentControl.ContentTemplate>
                 </ContentControl>
+
+                <!-- 警告横幅 -->
+                <Border IsVisible="{Binding IsVenueDeleted}" Padding="10" CornerRadius="4"
+                        Background="#20E81123">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="会场已删除，无法预览" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource ErrorBrush}"/>
+                    <TextBlock Text="该快照关联的会场文件已被删除，无法加载座位布局。" FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Border>
+                <Border IsVisible="{Binding IsVenueChanged}" Padding="10" CornerRadius="4"
+                        Background="#20F9A825">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding VenueWarningText}" FontSize="13" FontWeight="SemiBold"
+                               Foreground="#F9A825"/>
+                    <TextBlock Text="当前会场布局与生成快照时不一致，回滚可能无法正确恢复座位。" FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Border>
+                <Border IsVisible="{Binding IsDataChanged}" Padding="10" CornerRadius="4"
+                        Background="#20F9A825">
+                  <StackPanel Spacing="4">
+                    <TextBlock Text="数据已更改" FontSize="13" FontWeight="SemiBold"
+                               Foreground="#F9A825"/>
+                    <TextBlock Text="部分学生已从数据集中删除，受影响的座位以黄色标记。" FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Border>
 
                 <!-- 会场预览（绑定 ViewModel 属性，置于 ContentControl 外部避免 DataContext 错误） -->
                 <Border IsVisible="{Binding HasPreview}" Padding="8" CornerRadius="4"

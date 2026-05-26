@@ -11,4 +11,6 @@ public interface IStudentDatasetRepository
     Task DeleteAsync (string id , CancellationToken ct = default);
     /// <summary>原地重命名数据集，保持 ID 不变。</summary>
     Task RenameAsync (string id , string newName , CancellationToken ct = default);
+    /// <summary>获取数据集的 ContentHash（轻量读取）。</summary>
+    Task<string?> GetContentHashAsync (string id , CancellationToken ct = default);
 }

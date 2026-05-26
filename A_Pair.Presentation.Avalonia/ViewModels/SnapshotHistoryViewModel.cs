@@ -75,6 +75,23 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     [ObservableProperty]
     private double _previewCanvasHeight;
 
+    // ── 完整性状态 ──
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRollbackDisabled))]
+    private bool _isVenueDeleted;
+
+    [ObservableProperty]
+    private bool _isVenueChanged;
+
+    [ObservableProperty]
+    private bool _isDataChanged;
+
+    [ObservableProperty]
+    private string _venueWarningText = string.Empty;
+
+    public bool HasRollbackDisabled => IsVenueDeleted;
+
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedSnapshot => SelectedSnapshot != null;
     public bool HasSnapshots => Snapshots.Count > 0;
@@ -151,23 +168,65 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     {
         var seats = new ObservableCollection<SeatDisplayItem>();
         var overlays = new ObservableCollection<SeatDisplayItem>();
+
+        // 重置完整性状态
+        IsVenueDeleted = false;
+        IsVenueChanged = false;
+        IsDataChanged = false;
+        VenueWarningText = string.Empty;
+
         try
         {
             var layout = await _facade.LoadVenueAsync(snapshot.LayoutId);
             if (layout == null || layout.Seats.Count == 0)
             {
+                IsVenueDeleted = true;
+                VenueWarningText = "会场已删除，无法预览";
                 PreviewSeats = seats;
                 PreviewOverlays = overlays;
                 return;
             }
 
-            var metadata = layout.Metadata!;
+            // 检测会场是否变更（对比哈希）
+            if (snapshot.Metadata.TryGetValue("venueHash" , out var snapHash) &&
+                snapHash is string sh && !string.IsNullOrEmpty(sh))
+            {
+                var curHash = await _facade.GetVenueHashAsync(snapshot.LayoutId);
+                if (curHash != null && curHash != sh)
+                {
+                    IsVenueChanged = true;
+                    VenueWarningText = "会场布局已更改，回滚可能失败";
+                }
+            }
+
+            // 收集当前所有数据集中的学生 ID 和姓名
+            var datasets = await _facade.ListStudentDatasetsAsync();
+            var foundIds = new HashSet<string>();
+            foreach (var ds in datasets)
+            {
+                var students = await _facade.LoadStudentDatasetAsync(ds.Id);
+                if (students != null)
+                    foreach (var s in students)
+                        foundIds.Add(s.Id);
+            }
+
+            // 检测数据变更：快照中学生 ID 是否在当前数据集中仍存在
             var assignments = snapshot.SeatAssignments;
+            var snapshotStudentIds = assignments.Values.Where(v => !string.IsNullOrEmpty(v)).ToHashSet();
+            var missingIds = snapshotStudentIds.Where(id => !foundIds.Contains(id)).ToHashSet();
+            if (missingIds.Count > 0)
+            {
+                IsDataChanged = true;
+                VenueWarningText = string.IsNullOrEmpty(VenueWarningText)
+                    ? "数据已更改" : VenueWarningText;
+            }
+
+            var metadata = layout.Metadata!;
 
             // 从 Metadata 中读取 studentNames 字典（studentId → studentName）
             var studentNames = new Dictionary<string , string>();
-            if (snapshot.Metadata.TryGetValue("studentNames" , out var raw) &&
-                raw is System.Text.Json.JsonElement je &&
+            if (snapshot.Metadata.TryGetValue("studentNames" , out var rawNames) &&
+                rawNames is System.Text.Json.JsonElement je &&
                 je.ValueKind == System.Text.Json.JsonValueKind.Object)
             {
                 foreach (var prop in je.EnumerateObject())
@@ -201,6 +260,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             {
                 bool occupied = assignments.TryGetValue(seat.Id , out var sid) && !string.IsNullOrEmpty(sid);
                 studentNames.TryGetValue(sid ?? "" , out var sname);
+                bool isDataStale = occupied && missingIds.Contains(sid!);
                 seats.Add(new SeatDisplayItem
                 {
                     X = (cx + offsetX) * scale ,
@@ -213,6 +273,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                     StudentId = occupied ? sid : null ,
                     StudentName = occupied ? (sname ?? sid) : null ,
                     OccupancyStatus = occupied ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty ,
+                    IsDataStale = isDataStale ,
                     CornerRadius = new CornerRadius(2)
                 });
             }

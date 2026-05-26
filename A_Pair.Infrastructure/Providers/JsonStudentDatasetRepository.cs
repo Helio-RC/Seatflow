@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -53,6 +54,13 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         };
         if (originalFileName != null)
             roster.Metadata["originalFileName"] = originalFileName;
+
+        // 首次序列化（不含哈希）用于计算内容哈希
+        using var ms = new MemoryStream();
+        await JsonSerializer.SerializeAsync(ms , roster , WriteOptions , ct);
+        ms.Position = 0;
+        var json = await new StreamReader(ms).ReadToEndAsync(ct);
+        roster.ContentHash = ContentHashHelper.ComputeSha256(json);
 
         var path = GetFilePath(id);
         await using var stream = File.Create(path);
@@ -130,6 +138,15 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         await using var stream = File.Create(path);
         await JsonSerializer.SerializeAsync(stream , roster , WriteOptions , ct);
         _logger.LogInformation("数据集已重命名：{Id} → {Name}" , id , newName);
+    }
+
+    public async Task<string?> GetContentHashAsync (string id , CancellationToken ct = default)
+    {
+        var path = GetFilePath(id);
+        if (!File.Exists(path)) return null;
+        var json = await File.ReadAllTextAsync(path , ct);
+        using var doc = JsonDocument.Parse(json);
+        return doc.RootElement.TryGetProperty("contentHash" , out var h) ? h.GetString() : null;
     }
 
     private RosterFile? DeserializeRoster (string json)

@@ -80,6 +80,10 @@ namespace A_Pair.Application.Services
             => _venueRepo.LoadAsync(venueId , cancellationToken);
 
         /// <inheritdoc />
+        public Task<string?> GetVenueHashAsync (string venueId , CancellationToken ct = default)
+            => _venueRepo.GetContentHashAsync(venueId , ct);
+
+        /// <inheritdoc />
         public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
             => _venueRepo.ListVenueIdsAsync(cancellationToken);
 
@@ -202,16 +206,24 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 9. 保存快照
+            // 9. 保存快照（含内容哈希用于完整性检测）
             var studentNames = workspace.Students
                 .Where(s => plan.Assignments.Values.Contains(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
+            var venueHash = request.LayoutId != null
+                ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
+                : null;
+            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+                string.Concat(workspace.Students.OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
+            if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
+            snapshotMeta["studentHash"] = studentHash;
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
                 LayoutId = request.LayoutId ?? "unknown" ,
                 SeatAssignments = plan.Assignments ,
-                Metadata = new Dictionary<string , object> { ["studentNames"] = studentNames }
+                Metadata = snapshotMeta
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
 
@@ -322,12 +334,21 @@ namespace A_Pair.Application.Services
             var studentNames = _currentWorkspace.Students
                 .Where(s => plan.Assignments.Values.Contains(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
+            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+                string.Concat(_currentWorkspace.Students.OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
+            var venueId = _currentLayout?.Id;
+            if (!string.IsNullOrEmpty(venueId))
+            {
+                var vh = await _venueRepo.GetContentHashAsync(venueId , cancellationToken);
+                if (vh != null) snapshotMeta["venueHash"] = vh;
+            }
             var snapshot = new SeatingSnapshot
             {
                 Description = description ,
                 LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
                 SeatAssignments = plan.Assignments ,
-                Metadata = new Dictionary<string , object> { ["studentNames"] = studentNames }
+                Metadata = snapshotMeta
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
             return snapshot;

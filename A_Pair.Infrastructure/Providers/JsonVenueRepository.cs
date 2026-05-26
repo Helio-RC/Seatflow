@@ -4,6 +4,7 @@ using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Migration;
 using A_Pair.Infrastructure.Serialization;
+using A_Pair.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -47,7 +48,11 @@ namespace A_Pair.Infrastructure.Providers
                 Layout = layout
             };
             var options = SerializerOptions;
+            // 首次序列化（不含哈希）用于计算内容哈希
             var json = JsonSerializer.Serialize(venueFile , options);
+            venueFile.ContentHash = ContentHashHelper.ComputeSha256(json);
+            // 二次序列化（含哈希）用于保存
+            json = JsonSerializer.Serialize(venueFile , options);
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
             _logger.LogInformation("会场已保存：{VenueId} → {Path}" , venueId , filePath);
         }
@@ -70,6 +75,16 @@ namespace A_Pair.Infrastructure.Providers
             var options = SerializerOptions;
             var venueFile = JsonSerializer.Deserialize<VenueFile>(json , options);
             return venueFile?.Layout;
+        }
+
+        /// <inheritdoc />
+        public async Task<string?> GetContentHashAsync (string venueId , CancellationToken ct = default)
+        {
+            var filePath = GetFilePath(venueId);
+            if (!File.Exists(filePath)) return null;
+            var json = await File.ReadAllTextAsync(filePath , ct);
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("contentHash" , out var h) ? h.GetString() : null;
         }
 
         /// <inheritdoc />
