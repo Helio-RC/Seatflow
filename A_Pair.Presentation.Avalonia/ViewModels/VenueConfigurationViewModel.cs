@@ -30,6 +30,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private bool _suppressAutoLoad;
     private CancellationTokenSource? _selectVenueCts;
 
+    /// <summary>已加载会场的座位位置→ID 映射，用于保存时保留旧 ID 避免快照失效。</summary>
+    private Dictionary<(int Row , int Col) , string>? _existingGridSeatMap;
+
+    /// <summary>Polar 会场的 (环号, 角度) → ID 映射。</summary>
+    private Dictionary<(int Ring , double Angle) , string>? _existingPolarSeatMap;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(SelectedVenueId))]
@@ -193,6 +199,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         LayoutName = item.Name;
         IsFreeformVenue = false;
         SelectedLayoutType = LayoutType.Grid;
+        _existingGridSeatMap = null;
+        _existingPolarSeatMap = null;
         ResetParameters();
         VenueItems.Add(item);
         SelectedVenueItem = item;
@@ -236,12 +244,20 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             switch (layout.Metadata)
             {
                 case GridLayoutMetadata g:
+                    _existingGridSeatMap = layout.Seats.OfType<GridSeat>()
+                        .ToDictionary(s => (s.Row , s.Column) , s => s.Id);
+                    _existingPolarSeatMap = null;
                     PopulateGridFromMetadata(g);
                     break;
                 case PolarLayoutMetadata p:
+                    _existingPolarSeatMap = layout.Seats.OfType<PolarSeat>()
+                        .ToDictionary(s => (s.Ring , Math.Round(s.AngleDegrees , 2)) , s => s.Id);
+                    _existingGridSeatMap = null;
                     PopulatePolarFromMetadata(p);
                     break;
                 case FreeformLayoutMetadata:
+                    _existingGridSeatMap = null;
+                    _existingPolarSeatMap = null;
                     _freeformPreviewSeats = layout.Seats.OfType<FreeformSeat>().ToList();
                     _freeformPreviewObstacles = layout.Obstacles.ToList();
                     break;
@@ -612,6 +628,15 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             case LayoutType.Grid:
                 var meta = BuildGridMetadata();
                 layout = GridLayoutBuilder.BuildGrid(meta);
+                // 按位置匹配旧座位 ID，避免快照中 assignment 引用失效
+                if (_existingGridSeatMap is { Count: > 0 } map)
+                {
+                    foreach (var s in layout.Seats.OfType<GridSeat>())
+                    {
+                        if (map.TryGetValue((s.Row , s.Column) , out var oldId))
+                            s.Id = oldId;
+                    }
+                }
                 layout.Name = LayoutName;
                 layout.Id = SelectedVenueItem?.Id ?? "";
                 // 将讲台/前门作为 Obstacle 写入（讲台居中于网格）
@@ -647,6 +672,14 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             case LayoutType.Polar:
                 var polarMeta = BuildPolarMetadata();
                 layout = PolarLayoutBuilder.BuildPolar(polarMeta);
+                if (_existingPolarSeatMap is { Count: > 0 } polarMap)
+                {
+                    foreach (var s in layout.Seats.OfType<PolarSeat>())
+                    {
+                        if (polarMap.TryGetValue((s.Ring , Math.Round(s.AngleDegrees , 2)) , out var oldId))
+                            s.Id = oldId;
+                    }
+                }
                 layout.Name = LayoutName;
                 layout.Id = SelectedVenueItem?.Id ?? "";
                 foreach (var door in DoorItems)
