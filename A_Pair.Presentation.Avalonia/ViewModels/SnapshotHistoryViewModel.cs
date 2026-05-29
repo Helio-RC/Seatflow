@@ -109,6 +109,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadVenuesAsync ()
     {
+        var previousVenueId = SelectedVenue?.Id;
+
         // 清空所有已加载数据
         Snapshots = [];
         PreviewSeats = [];
@@ -132,7 +134,31 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             }
             Venues = items;
             StatusMessage = $"已加载 {items.Count} 个会场";
+
+            // 重新选中之前的会场
+            if (previousVenueId != null)
+                SelectedVenue = items.FirstOrDefault(v => v.Id == previousVenueId);
         });
+    }
+
+    public override async Task<bool> CanLeaveAsync ()
+    {
+        ClearAllData();
+        return await Task.FromResult(true);
+    }
+
+    private void ClearAllData ()
+    {
+        Snapshots = [];
+        PreviewSeats = [];
+        PreviewOverlays = [];
+        IsVenueDeleted = false;
+        IsVenueChanged = false;
+        IsDataChanged = false;
+        VenueWarningText = string.Empty;
+        SelectedSnapshot = null;
+        SelectedVenue = null;
+        Venues = [];
     }
 
     [RelayCommand]
