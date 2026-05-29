@@ -55,12 +55,19 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         if (originalFileName != null)
             roster.Metadata["originalFileName"] = originalFileName;
 
-        // 首次序列化（不含哈希）用于计算内容哈希
+        // 计算内容哈希（排除不稳定的时间戳字段）
+        var savedImportedAt = roster.Metadata.TryGetValue("importedAt" , out var ia) ? ia : null;
+        var savedOrigFile = roster.Metadata.TryGetValue("originalFileName" , out var of) ? of : null;
+        roster.Metadata.Remove("importedAt");
+        roster.Metadata.Remove("originalFileName");
         using var ms = new MemoryStream();
         await JsonSerializer.SerializeAsync(ms , roster , WriteOptions , ct);
         ms.Position = 0;
         var json = await new StreamReader(ms).ReadToEndAsync(ct);
         roster.ContentHash = ContentHashHelper.ComputeSha256(json);
+        // 恢复临时清除的字段
+        if (savedImportedAt != null) roster.Metadata["importedAt"] = savedImportedAt;
+        if (savedOrigFile != null) roster.Metadata["originalFileName"] = savedOrigFile;
 
         var path = GetFilePath(id);
         await using var stream = File.Create(path);
