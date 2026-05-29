@@ -109,6 +109,17 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadVenuesAsync ()
     {
+        // 清空所有已加载数据
+        Snapshots = [];
+        PreviewSeats = [];
+        PreviewOverlays = [];
+        IsVenueDeleted = false;
+        IsVenueChanged = false;
+        IsDataChanged = false;
+        VenueWarningText = string.Empty;
+        SelectedSnapshot = null;
+        SelectedVenue = null;
+
         await SafeExecuteAsync(async () =>
         {
             var ids = (await _facade.ListVenueIdsAsync()).ToList();
