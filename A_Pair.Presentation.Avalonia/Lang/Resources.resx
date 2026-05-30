@@ -340,7 +340,7 @@
   <data name="Member_NoImport" xml:space="preserve">
     <value>未导入任何数据</value>
   </data>
-  <data name="Member_NoValidStudents" xml:space="preserve">
+  <data name="Member_NoValidMembers" xml:space="preserve">
     <value>文件中没有读取到有效的数据，请检查文件格式是否正确。</value>
   </data>
   <data name="Member_Operations" xml:space="preserve">
@@ -397,10 +397,10 @@
   <data name="Member_SavedFmt" xml:space="preserve">
     <value>已保存「{0}」</value>
   </data>
-  <data name="Member_StudentCountFmt" xml:space="preserve">
+  <data name="Member_MemberCountFmt" xml:space="preserve">
     <value>共 {0} 名人员</value>
   </data>
-  <data name="Member_StudentDataFile" xml:space="preserve">
+  <data name="Member_MemberDataFile" xml:space="preserve">
     <value>数据文件</value>
   </data>
   <data name="Member_TemplateMissing" xml:space="preserve">

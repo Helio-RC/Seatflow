@@ -179,10 +179,10 @@
   <data name="Member_DataSourceFmt" xml:space="preserve">
     <value>Source: {0}</value>
   </data>
-  <data name="Member_Member SetNotFound" xml:space="preserve">
+  <data name="Member_DatasetNotFound" xml:space="preserve">
     <value>Member Set file not found</value>
   </data>
-  <data name="Data_Member SetNotFoundMsg" xml:space="preserve">
+  <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
     <value>Member Set file "{0}" not found.</value>
   </data>
   <data name="Data_DeleteConfirm" xml:space="preserve">
@@ -198,7 +198,7 @@ This cannot be undone.</value>
   <data name="Member_Deleted" xml:space="preserve">
     <value>Member Set deleted</value>
   </data>
-  <data name="Member_EmptyMember Set" xml:space="preserve">
+  <data name="Member_EmptyDataset" xml:space="preserve">
     <value>Member Set is empty</value>
   </data>
   <data name="Member_EmptyHint" xml:space="preserve">
@@ -382,7 +382,7 @@ This cannot be undone.</value>
   <data name="Member_SaveConfirmMsg" xml:space="preserve">
     <value>Overwrite member set "{0}" ({1} students)?</value>
   </data>
-  <data name="Member_SaveMember Set" xml:space="preserve">
+  <data name="Member_SaveDataset" xml:space="preserve">
     <value>Save member set</value>
   </data>
   <data name="Data_SaveFailed" xml:space="preserve">
@@ -391,7 +391,7 @@ This cannot be undone.</value>
   <data name="Member_SavedAsFmt" xml:space="preserve">
     <value>Saved as "{0}"</value>
   </data>
-  <data name="Member_SavedMember Sets" xml:space="preserve">
+  <data name="Member_SavedDatasets" xml:space="preserve">
     <value>Saved member sets</value>
   </data>
   <data name="Member_SavedFmt" xml:space="preserve">
@@ -400,7 +400,7 @@ This cannot be undone.</value>
   <data name="Member_PersonCountFmt" xml:space="preserve">
     <value>{0} students</value>
   </data>
-  <data name="Member_PersonDataFile" xml:space="preserve">
+  <data name="Member_MemberDataFile" xml:space="preserve">
     <value>Person data files</value>
   </data>
   <data name="Member_TemplateMissing" xml:space="preserve">
@@ -843,7 +843,7 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_ManualSnapshotFmt" xml:space="preserve">
     <value>Manual save - {0}</value>
   </data>
-  <data name="Seating_NoPeople" xml:space="preserve">
+  <data name="Seating_NoStudents" xml:space="preserve">
     <value>No people in member set</value>
   </data>
   <data name="Seating_NotGenerated" xml:space="preserve">
@@ -921,10 +921,10 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_SnapshotSaved" xml:space="preserve">
     <value>Saved to snapshot</value>
   </data>
-  <data name="Seating_PersonData" xml:space="preserve">
+  <data name="Seating_StudentData" xml:space="preserve">
     <value>Person data</value>
   </data>
-  <data name="Seating_PersonMember SetList" xml:space="preserve">
+  <data name="Seating_StudentDatasetList" xml:space="preserve">
     <value>Person member set list</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
@@ -942,7 +942,7 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_Unassigned" xml:space="preserve">
     <value>Unassigned: </value>
   </data>
-  <data name="Seating_UnassignedPeople" xml:space="preserve">
+  <data name="Seating_UnassignedStudents" xml:space="preserve">
     <value>Unassigned students</value>
   </data>
   <data name="Seating_Undo" xml:space="preserve">
@@ -966,7 +966,7 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_Venue" xml:space="preserve">
     <value>Venue</value>
   </data>
-  <data name="Seating_VenueMember SetDesc" xml:space="preserve">
+  <data name="Seating_VenueDatasetDesc" xml:space="preserve">
     <value>Venue "{0}" × member set "{1}"</value>
   </data>
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
@@ -1836,4 +1836,4 @@ Diagnostics saved to: {1}</value>
   <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
     <value>Choose a venue</value>
   </data>
-</root>
+<data name="Member_MemberCountFmt" xml:space="preserve"><value>{0} members total</value></data></root>

@@ -107,7 +107,7 @@ public partial class MemberManagementViewModel : ViewModelBase
     public bool HasSelectedDataset => SelectedDataset is not null;
 
 
-    public string StudentCountDisplay => string.Format(Resources.Member_StudentCountFmt , StudentCount);
+    public string StudentCountDisplay => string.Format(Resources.Member_MemberCountFmt , StudentCount);
     public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt , FilePath);
     public string StudentCountDisplay2 => string.Format(Resources.Member_PersonCountFmt , StudentCount);
 
@@ -136,7 +136,7 @@ public partial class MemberManagementViewModel : ViewModelBase
     private int _dialogLock;
     private static readonly FilePickerFileType[] StudentFileTypes =
     [
-        new(Resources.Member_StudentDataFile) { Patterns = ["*.csv", "*.xlsx", "*.json"] },
+        new(Resources.Member_MemberDataFile) { Patterns = ["*.csv", "*.xlsx", "*.json"] },
         new(Resources.Data_CSVFile) { Patterns = ["*.csv"] },
         new(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] },
         new(Resources.Data_JSONFile) { Patterns = ["*.json"] },
@@ -275,7 +275,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                 if (IsEmpty)
                 {
                     errorTitle = Resources.Member_ImportResult;
-                    errorMsg = Resources.Member_NoValidStudents;
+                    errorMsg = Resources.Member_NoValidMembers;
                 }
             }
             catch (Exception ex)
