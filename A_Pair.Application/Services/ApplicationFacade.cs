@@ -1,3 +1,4 @@
+using System.Text.Json;
 using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
@@ -11,6 +12,7 @@ using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Infrastructure.Providers;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -57,7 +59,23 @@ namespace A_Pair.Application.Services
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private SeatingWorkspace? _currentWorkspace;
         private ClassroomLayoutDefinition? _currentLayout;
-        private List<ISeatingStrategy>? _cachedStrategies; // 策略为 Singleton，缓存避免重复物化
+        private List<ISeatingStrategy>? _cachedStrategies;
+
+        private static readonly JsonSerializerOptions VenueLayoutOptions = new()
+        {
+            WriteIndented = false ,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        static ApplicationFacade ()
+        {
+            VenueLayoutOptions.Converters.Add(new SeatJsonConverter());
+        }
+
+        private static string SerializeVenueLayout (ClassroomLayoutDefinition layout)
+            => JsonSerializer.Serialize(layout , VenueLayoutOptions);
+
+        private static ClassroomLayoutDefinition? DeserializeVenueLayout (string json)
+            => JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueLayoutOptions);
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -218,6 +236,9 @@ namespace A_Pair.Application.Services
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
             if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
             snapshotMeta["studentHash"] = studentHash;
+            // 嵌入会场布局：预览和回滚不依赖外部会场文件
+            if (venueLayout != null)
+                snapshotMeta["venueLayout"] = SerializeVenueLayout(venueLayout);
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
@@ -227,7 +248,11 @@ namespace A_Pair.Application.Services
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
 
-            // 9b. 保存会场摘要到快照目录
+            // 9b. 轮转旧快照
+            if (!string.IsNullOrEmpty(request.LayoutId))
+                await RotateSnapshotsAsync(request.LayoutId , cancellationToken);
+
+            // 9c. 保存会场摘要到快照目录
             if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
             {
                 await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId , new VenueSnapshotInfo
@@ -311,6 +336,45 @@ namespace A_Pair.Application.Services
             _currentLayout = null;
         }
 
+        /// <summary>轮转旧快照：超出上限删除最旧的。</summary>
+        private async Task RotateSnapshotsAsync (string venueId , CancellationToken ct)
+        {
+            var settings = await _appSettingsRepo.LoadAsync(ct);
+            int max = settings.MaxSnapshotsPerVenue;
+            if (max <= 0) return;
+
+            var snapshots = (await _snapshotRepository.ListByVenueAsync(venueId , ct))
+                .OrderBy(s => s.CreatedAt).ToList();
+            while (snapshots.Count > max)
+            {
+                await _snapshotRepository.DeleteAsync(snapshots[0].Id , ct);
+                snapshots.RemoveAt(0);
+            }
+        }
+
+        /// <summary>检查快照关联会场的完整性。返回 (exists, hashMatch)。</summary>
+        public async Task<(bool Exists , bool HashMatch)> CheckVenueIntegrityAsync (
+            string venueId , string? snapshotVenueHash , CancellationToken ct = default)
+        {
+            var curHash = await _venueRepo.GetContentHashAsync(venueId , ct);
+            if (curHash == null) return (false , false); // 会场文件不存在
+            if (snapshotVenueHash == null) return (true , true); // 旧快照无哈希，默认匹配
+            return (true , curHash == snapshotVenueHash);
+        }
+
+        /// <summary>将快照中嵌入的会场布局恢复/导入为会场文件。</summary>
+        public async Task<string> ImportVenueFromSnapshotAsync (
+            string venueLayoutJson , string? newName = null , CancellationToken ct = default)
+        {
+            var layout = DeserializeVenueLayout(venueLayoutJson)
+                ?? throw new InvalidOperationException("无法反序列化快照中的会场布局");
+            var venueId = Guid.NewGuid().ToString("N")[..8];
+            layout.Id = venueId;
+            if (newName != null) layout.Name = newName;
+            await _venueRepo.SaveAsync(venueId , layout , ct);
+            return venueId;
+        }
+
         /// <inheritdoc />
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
@@ -342,6 +406,8 @@ namespace A_Pair.Application.Services
             {
                 var vh = await _venueRepo.GetContentHashAsync(venueId , cancellationToken);
                 if (vh != null) snapshotMeta["venueHash"] = vh;
+                if (_currentLayout != null)
+                    snapshotMeta["venueLayout"] = SerializeVenueLayout(_currentLayout);
             }
             var snapshot = new SeatingSnapshot
             {
@@ -351,6 +417,8 @@ namespace A_Pair.Application.Services
                 Metadata = snapshotMeta
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
+            if (!string.IsNullOrEmpty(venueId))
+                await RotateSnapshotsAsync(venueId , cancellationToken);
             return snapshot;
         }
 

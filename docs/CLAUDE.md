@@ -196,11 +196,37 @@ StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
 - 序列化使用 `JsonNamingPolicy.CamelCase`，JSON 中所有字段为小写驼峰（`row`、`column`、`layoutTypeString`）
 - `ClassroomLayoutDefinition.LayoutType` 同时序列化为数字（`layoutType`: 0=Grid, 1=Polar, 2=Freeform）和字符串（`layoutTypeString`: "Grid"/"Polar"/"Freeform"）— 迁移器中优先使用 `layoutTypeString`
 - `Seat` 多态序列化通过 `SeatJsonConverter`，写入 `Type`（大写）鉴别器字段；`type`（小写）为 `SeatType` 枚举的独立整数字段
-- `SeatingSnapshot.Version` 和 `VenueSnapshotInfo.Version` 为本次新增字段，旧快照文件默认回退为 `"1.0"`
+- `SeatingSnapshot.Version` 和 `VenueSnapshotInfo.Version` 为新增字段，旧快照文件默认回退为 `"1.0"`
+- `VenueFile.ContentHash` 和 `RosterFile.ContentHash` — 保存时计算 SHA256；学生数据集哈希排除 `importedAt`/`originalFileName` 时间戳
 
 ### Grid 座位排序
 
-`GridLayoutBuilder.BuildGrid` 以**行主序**创建座位（外层行，内层列），确保 `RandomFillStrategy` 从左到右、从上到下一行行填充。对使用 `ColumnRowCounts` 的不规则网格，用 `maxRows = ColumnRowCounts.Max()` 并在每列检查 `r <= rowsForCol`。
+`GridLayoutBuilder.BuildGrid` 以**行主序**创建座位（外层行，内层列）。不规则网格用 `maxRows = ColumnRowCounts.Max()` + `r <= rowsForCol` 检查。
+
+### 快照会场布局嵌入
+
+快照创建时将完整 `ClassroomLayoutDefinition`（通过 `SeatJsonConverter` JSON 序列化）存入 `Metadata["venueLayout"]`。预览优先从嵌入数据读取；旧快照回退加载会场文件。确保编辑/删除会场不影响已有快照预览。
+
+### 快照完整性检测
+
+`BuildPreviewAsync` 对比 `Metadata["venueHash"]` 与当前会场文件哈希：
+- 会场删除 → 红色警告 "会场已删除，无法预览"，禁用回滚
+- 会场更改 → 黄色警告 "会场布局已更改，回滚可能失败"
+- 数据更改（学生 ID 缺失）→ 黄色警告 "数据已更改"，受影响的座位标黄
+
+`RollbackAsync` 回滚前检查完整性：会场删除→提示恢复，会场更改→提示导入新会场。
+
+### 快照轮转
+
+`AppSettings.MaxSnapshotsPerVenue`（默认 30，0=不限）。保存后超出上限自动删除最旧快照。侧栏底部显示 `"{n}/{max}"`。
+
+### 会场编辑与座位 ID 保留
+
+加载会场时记录 `(Row, Column) → Id` 映射；保存时新座位按位置匹配旧 ID 并复用，避免快照失效。
+
+### 学生数据集重命名
+
+`RenameStudentDatasetAsync` 原地修改 `RosterFile.Description`，保持 ID 不变（原子操作，无需删除+新建）。
 
 ## 项目文档
 

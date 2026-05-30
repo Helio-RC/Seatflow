@@ -82,7 +82,7 @@
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding SnapshotCountDisplay}"
+        <TextBlock DockPanel.Dock="Right" Text="{Binding SnapshotQuotaDisplay}"
                    Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         <TextBlock Text="{Binding StatusMessage}"
                    Classes="caption"

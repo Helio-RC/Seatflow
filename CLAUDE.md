@@ -211,10 +211,38 @@ On load, each repository reads the file as `JsonNode`, calls `FileMigrationServi
 - `ClassroomLayoutDefinition.LayoutType` is serialized as **both** a number (`layoutType`: 0=Grid, 1=Polar, 2=Freeform) and a string (`layoutTypeString`: "Grid"/"Polar"/"Freeform"). Migrators should read `layoutTypeString` for clarity.
 - `Seat` polymorphic serialization uses `SeatJsonConverter` which writes a `Type` discriminator (capital T, string: "Grid"/"Polar"/"Freeform") alongside each seat object. The `type` field (lowercase, camelCase of `SeatType` enum) is a separate integer.
 - `SeatingSnapshot.Version` and `VenueSnapshotInfo.Version` were added in this migration round — old snapshots without the field default to `"1.0"`.
+- `VenueFile.ContentHash` and `RosterFile.ContentHash` — SHA256 hashes computed on save (ContentHash null → serialize → hash → set → re-serialize). Student dataset hash excludes `importedAt`/`originalFileName` (unstable timestamps).
 
 ### Grid seat ordering
 
 `GridLayoutBuilder.BuildGrid` creates seats in **row-major** order (outer loop: rows, inner loop: columns). This ensures `RandomFillStrategy` fills seats row-by-row (left-to-right, top-to-bottom). For irregular grids with `ColumnRowCounts`, `maxRows = ColumnRowCounts.Max()` and each column checks `r <= rowsForCol`.
+
+### Snapshot venue layout embedding
+
+Snapshots store the full `ClassroomLayoutDefinition` (JSON-serialized via `SeatJsonConverter`) in `Metadata["venueLayout"]` at creation time. The snapshot preview (`BuildPreviewAsync`) reads this embedded layout first; old snapshots without it fall back to loading the venue file. This ensures snapshots are self-contained — editing or deleting the venue file doesn't break existing snapshot previews.
+
+### Snapshot integrity detection
+
+`BuildPreviewAsync` compares `Metadata["venueHash"]` with the current venue file's `ContentHash`:
+- **Venue deleted** → red warning bar "会场已删除，无法预览", rollback button disabled
+- **Venue changed** → yellow warning bar "会场布局已更改，回滚可能失败"
+- **Data changed** (student IDs missing from current datasets) → yellow bar "数据已更改", affected seats highlighted in yellow
+
+`RollbackAsync` checks venue integrity before rolling back:
+- Venue deleted → dialog → restore venue from snapshot's `venueLayout`
+- Venue changed → dialog → import snapshot's venue as new venue
+
+### Snapshot rotation
+
+`AppSettings.MaxSnapshotsPerVenue` (default 30, 0=unlimited). After saving a snapshot, `RotateSnapshotsAsync` deletes the oldest snapshots if the count exceeds the limit. Sidebar status bar shows `"{n}/{max}"` via `SnapshotQuotaDisplay`.
+
+### Venue editing & seat ID preservation
+
+`VenueConfigurationViewModel` preserves seat IDs across edits: on load, records `(Row, Column) → Id` and `(Ring, Angle) → Id` maps; on save, newly-built seats match old seats by position and reuse their IDs. This prevents snapshot `SeatAssignments` from breaking after venue edits.
+
+### Student dataset rename
+
+`RenameStudentDatasetAsync` renames in-place (updates `RosterFile.Description` only, preserves ID). Previously it deleted the old file and created a new one with a new ID.
 
 ## Documents
 - `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)

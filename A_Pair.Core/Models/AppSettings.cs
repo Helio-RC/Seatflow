@@ -37,6 +37,9 @@ namespace A_Pair.Core.Models
         /// <summary>座位图默认缩放比例。</summary>
         public double DefaultZoomLevel { get; set; } = 1.0;
 
+        /// <summary>每个会场最大快照保存数（默认 30，0=不限）。</summary>
+        public int MaxSnapshotsPerVenue { get; set; } = 30;
+
         /// <summary>是否已抑制运行环境警告（用户选择"不再提醒"）。</summary>
         public bool SuppressEnvironmentWarning { get; set; }
 

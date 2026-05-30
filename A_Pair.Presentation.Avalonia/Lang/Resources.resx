@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- ═══ App ═══ -->
+  
 
   <data name="About_Dependencies" xml:space="preserve">
     <value>核心依赖</value>
@@ -2353,4 +2353,4 @@
   <data name="Seating_CsvDefault" xml:space="preserve">
     <value>座位安排.csv</value>
   </data>
-</root>
+<data name="Snapshot_QuotaFmt" xml:space="preserve"><value>{0}/{1} 个快照</value></data><data name="Snapshot_VenueChangedTitle" xml:space="preserve"><value>会场已更改</value></data><data name="Snapshot_VenueDeletedPreview" xml:space="preserve"><value>会场已删除，无法预览</value></data><data name="Snapshot_VenueImportMsg" xml:space="preserve"><value>快照关联的会场已被修改。是否从快照导入会场配置（以新名称保存）？</value></data><data name="Snapshot_VenueRestoreMsg" xml:space="preserve"><value>快照关联的会场已被删除。是否从快照恢复会场配置？</value></data><data name="Snapshot_VenueRestoreTitle" xml:space="preserve"><value>恢复会场</value></data></root>

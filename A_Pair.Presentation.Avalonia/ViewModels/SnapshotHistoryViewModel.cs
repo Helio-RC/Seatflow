@@ -108,6 +108,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public string SelectAllDisplay => string.Format(Resources.Snapshot_SelectAllFmt, CheckableItems.Count);
     public string PreviewSeatCountDisplay => SelectedSnapshot?.SeatAssignments?.Count > 0 ? string.Format(Resources.Snapshot_SeatCountFmt, SelectedSnapshot.SeatAssignments.Count) : "";
     public string SnapshotSeatCountDisplay => string.Format(Resources.Snapshot_SeatCountFmt, (SelectedSnapshot?.SeatAssignments?.Count ?? 0));
+    public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt, Snapshots.Count);
 
     public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation , ILogger<SnapshotHistoryViewModel>? logger = null)
     {
@@ -199,7 +200,6 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         var seats = new ObservableCollection<SeatDisplayItem>();
         var overlays = new ObservableCollection<SeatDisplayItem>();
 
-        // 重置完整性状态
         IsVenueDeleted = false;
         IsVenueChanged = false;
         IsDataChanged = false;
@@ -207,7 +207,18 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
         try
         {
-            var layout = await _facade.LoadVenueAsync(snapshot.LayoutId);
+            // 优先使用快照中嵌入的会场布局，旧快照回退到加载会场文件
+            ClassroomLayoutDefinition? layout = null;
+            if (snapshot.Metadata.TryGetValue("venueLayout" , out var rawLayout) &&
+                rawLayout is string layoutJson && !string.IsNullOrEmpty(layoutJson))
+            {
+                layout = DeserializeLayout(layoutJson);
+            }
+            else
+            {
+                layout = await _facade.LoadVenueAsync(snapshot.LayoutId);
+            }
+
             if (layout == null || layout.Seats.Count == 0)
             {
                 IsVenueDeleted = true;
@@ -217,12 +228,17 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 return;
             }
 
-            // 检测会场是否变更（对比哈希）
+            // 检测会场是否变更（对比哈希——仅当从外部文件加载时有效）
             if (snapshot.Metadata.TryGetValue("venueHash" , out var snapHash) &&
                 snapHash is string sh && !string.IsNullOrEmpty(sh))
             {
-                var curHash = await _facade.GetVenueHashAsync(snapshot.LayoutId);
-                if (curHash != null && curHash != sh)
+                var (exists , hashMatch) = await _facade.CheckVenueIntegrityAsync(snapshot.LayoutId , sh);
+                if (!exists)
+                {
+                    IsVenueChanged = true;
+                    VenueWarningText = Resources.Snapshot_VenueChangedWarning;
+                }
+                else if (!hashMatch)
                 {
                     IsVenueChanged = true;
                     VenueWarningText = Resources.Snapshot_VenueChangedWarning;
@@ -345,6 +361,16 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         };
     }
 
+    private static ClassroomLayoutDefinition? DeserializeLayout (string json)
+    {
+        var options = new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        options.Converters.Add(new A_Pair.Infrastructure.Serialization.SeatJsonConverter());
+        return System.Text.Json.JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , options);
+    }
+
     private static string BuildSeatLabel (Seat seat) => seat switch
     {
         GridSeat g => $"R{g.Row}C{g.Column}" ,
@@ -374,14 +400,49 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private async Task RollbackAsync ()
     {
         if (SelectedSnapshot == null) return;
+        var snapshot = SelectedSnapshot;
+
         var confirmed = await Dialog.ShowConfirmAsync(Resources.Snapshot_RollbackTitle ,
-            string.Format(Resources.Snapshot_RollbackMsgFmt, SelectedSnapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
+            string.Format(Resources.Snapshot_RollbackMsgFmt, snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
         {
-            await _facade.RollbackToSnapshotAsync(SelectedSnapshot.Id);
-            StatusMessage = string.Format(Resources.Snapshot_RollbackDoneFmt, SelectedSnapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
+            // 检查会场完整性
+            snapshot.Metadata.TryGetValue("venueHash" , out var hashObj);
+            var snapHash = hashObj as string;
+            var (exists , hashMatch) = await _facade.CheckVenueIntegrityAsync(snapshot.LayoutId , snapHash);
+
+            if (!exists)
+            {
+                // 会场已删除——尝试从快照恢复
+                if (!snapshot.Metadata.TryGetValue("venueLayout" , out var rawLayout) || rawLayout is not string layoutJson)
+                {
+                    await Dialog.ShowWarningAsync(Resources.Snapshot_RollbackFailed , Resources.Snapshot_VenueDeletedPreview);
+                    return;
+                }
+                var restore = await Dialog.ShowConfirmAsync(Resources.Snapshot_VenueRestoreTitle ,
+                    Resources.Snapshot_VenueRestoreMsg);
+                if (restore)
+                    await _facade.ImportVenueFromSnapshotAsync(layoutJson , snapshot.Description);
+                else
+                    return;
+            }
+            else if (!hashMatch)
+            {
+                // 会场已更改——询问是否导入新会场
+                var import = await Dialog.ShowConfirmAsync(Resources.Snapshot_VenueChangedTitle ,
+                    Resources.Snapshot_VenueImportMsg);
+                if (import && snapshot.Metadata.TryGetValue("venueLayout" , out var rawImport) && rawImport is string importJson)
+                {
+                    var newName = $"{snapshot.Description}_{snapshot.CreatedAt:yyyyMMddHHmm}";
+                    await _facade.ImportVenueFromSnapshotAsync(importJson , newName);
+                    await LoadVenuesAsync();
+                }
+            }
+
+            await _facade.RollbackToSnapshotAsync(snapshot.Id);
+            StatusMessage = string.Format(Resources.Snapshot_RollbackDoneFmt, snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
             await _navigation.NavigateToAsync(PageKey.SeatingArrangement);
         } , Resources.Snapshot_RollbackFailed);
     }

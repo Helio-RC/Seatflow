@@ -76,6 +76,9 @@ public partial class SettingsViewModel : ViewModelBase
     private string _statusMessage = string.Empty;
 
     [ObservableProperty]
+    private int _maxSnapshotsPerVenue = 30;
+
+    [ObservableProperty]
     private bool _isSaving;
 
     public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , ILogger<SettingsViewModel>? logger = null)
@@ -106,6 +109,8 @@ public partial class SettingsViewModel : ViewModelBase
 
             _defaultZoomLevel = settings.DefaultZoomLevel;
             ZoomIndex = _defaultZoomLevel switch { 0.75 => 0, 1.0 => 1, 1.25 => 2, 1.5 => 3, _ => 1 };
+
+            MaxSnapshotsPerVenue = settings.MaxSnapshotsPerVenue;
 
         }
         catch
@@ -164,7 +169,8 @@ public partial class SettingsViewModel : ViewModelBase
                 Language = Language ,
                 DataDirectory = DataDirectory ,
                 ConfirmBeforeClear = ConfirmBeforeClear ,
-                DefaultZoomLevel = _defaultZoomLevel
+                DefaultZoomLevel = _defaultZoomLevel ,
+                MaxSnapshotsPerVenue = MaxSnapshotsPerVenue
             };
 
             await _facade.SaveAppSettingsAsync(settings , ct);

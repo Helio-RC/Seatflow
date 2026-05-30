@@ -607,3 +607,10 @@ public class Resources
     public static string Seating_ExcelDefault => ResourceManager.GetString("Seating_ExcelDefault", Culture)!;
     public static string Seating_CsvDefault => ResourceManager.GetString("Seating_CsvDefault", Culture)!;
 }
+    public static string Snapshot_QuotaFmt => ResourceManager.GetString("Snapshot_QuotaFmt", Culture)!;
+    public static string Snapshot_VenueChangedTitle => ResourceManager.GetString("Snapshot_VenueChangedTitle", Culture)!;
+    public static string Snapshot_VenueDeletedPreview => ResourceManager.GetString("Snapshot_VenueDeletedPreview", Culture)!;
+    public static string Snapshot_VenueImportMsg => ResourceManager.GetString("Snapshot_VenueImportMsg", Culture)!;
+    public static string Snapshot_VenueRestoreMsg => ResourceManager.GetString("Snapshot_VenueRestoreMsg", Culture)!;
+    public static string Snapshot_VenueRestoreTitle => ResourceManager.GetString("Snapshot_VenueRestoreTitle", Culture)!;
+

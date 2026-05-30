@@ -103,6 +103,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 新增页面 | CLAUDE.md（导航枚举值 + Patterns）、Design_Spec.md（如有新图标） |
 | 修改数据模型 | ARCHITECTURE.md（3.x 节）、Phases.md |
 | 修改 JSON 序列化格式 | CLAUDE.md（JSON 约定）、docs/CLAUDE.md、CONTRIBUTING.md（字段约定） |
+| 修改快照/完整性检测逻辑 | CLAUDE.md（快照完整性检测/轮转/嵌入）、docs/CLAUDE.md、ARCHITECTURE.md（5.3 节） |
 | 修改构建/测试流程 | CLAUDE.md、CONTRIBUTING.md、README.md |
 | 新增/修改插件 API | Plugins.Sdk README、ARCHITECTURE.md（4.5 节） |
 | 推进开发阶段 | README.md（状态表）、Phases.md |

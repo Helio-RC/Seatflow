@@ -130,6 +130,12 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>清除当前工作区和布局状态，用于页面离开时重置。</summary>
         void ClearWorkspace ();
+
+        /// <summary>检查快照关联会场的完整性。返回 (文件是否存在, 哈希是否匹配)。</summary>
+        Task<(bool Exists , bool HashMatch)> CheckVenueIntegrityAsync (string venueId , string? snapshotVenueHash , CancellationToken ct = default);
+
+        /// <summary>将快照中嵌入的会场布局 JSON 导入为新的会场文件，返回新会场 ID。</summary>
+        Task<string> ImportVenueFromSnapshotAsync (string venueLayoutJson , string? newName = null , CancellationToken ct = default);
     }
 
     /// <summary>
