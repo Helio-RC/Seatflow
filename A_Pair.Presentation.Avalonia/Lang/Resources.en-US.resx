@@ -561,6 +561,10 @@ This cannot be undone.</value>
     <value>Enter layout name</value>
   </data>
 
+  <data name="Freeform_GroupTooltip" xml:space="preserve">
+    <value>Desk group number (0-7)</value>
+  </data>
+
   <data name="Freeform_Group_Label" xml:space="preserve">
     <value>Group:</value>
   </data>
@@ -669,6 +673,10 @@ This cannot be undone.</value>
     <value>Save failed</value>
   </data>
 
+  <data name="Freeform_SaveLayout" xml:space="preserve">
+    <value>Save layout</value>
+  </data>
+
   <data name="Freeform_SaveLayoutFailed" xml:space="preserve">
     <value>Failed to save layout</value>
   </data>
@@ -713,6 +721,10 @@ This cannot be undone.</value>
     <value>Type:</value>
   </data>
 
+  <data name="Freeform_TypeTooltip" xml:space="preserve">
+    <value>Element type: Seat / Podium / Door</value>
+  </data>
+
   <data name="Freeform_Unload" xml:space="preserve">
     <value>Unload data</value>
   </data>
@@ -733,8 +745,16 @@ This cannot be undone.</value>
     <value>X coordinate</value>
   </data>
 
+  <data name="Freeform_XTooltip" xml:space="preserve">
+    <value>X coordinate (px)</value>
+  </data>
+
   <data name="Freeform_YCoord" xml:space="preserve">
     <value>Y coordinate</value>
+  </data>
+
+  <data name="Freeform_YTooltip" xml:space="preserve">
+    <value>Y coordinate (px)</value>
   </data>
 
   <data name="Gender_Female" xml:space="preserve">
@@ -841,6 +861,10 @@ This cannot be undone.</value>
     <value>Config "{0}" saved</value>
   </data>
 
+  <data name="Plugin_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+
   <data name="Plugin_Enable" xml:space="preserve">
     <value>Enable plugin</value>
   </data>
@@ -932,6 +956,10 @@ Place plugins in the Plugins directory</value>
 
   <data name="Seating_EmptySeatFmt" xml:space="preserve">
     <value>Empty seat - {0}</value>
+  </data>
+
+  <data name="Seating_Export" xml:space="preserve">
+    <value>Export</value>
   </data>
 
   <data name="Seating_ExportPNG" xml:space="preserve">
@@ -1034,6 +1062,10 @@ Place plugins in the Plugins directory</value>
     <value>Redo</value>
   </data>
 
+  <data name="Seating_RedoSwap" xml:space="preserve">
+    <value>Redo swap</value>
+  </data>
+
   <data name="Seating_Restore" xml:space="preserve">
     <value>Restore</value>
   </data>
@@ -1052,6 +1084,10 @@ Place plugins in the Plugins directory</value>
 
   <data name="Seating_SaveAndLeave" xml:space="preserve">
     <value>Save and leave</value>
+  </data>
+
+  <data name="Seating_SaveSnapshot" xml:space="preserve">
+    <value>Save to snapshot</value>
   </data>
 
   <data name="Seating_Seats" xml:space="preserve">
@@ -1104,6 +1140,10 @@ Place plugins in the Plugins directory</value>
 
   <data name="Seating_Undo" xml:space="preserve">
     <value>Undo</value>
+  </data>
+
+  <data name="Seating_UndoSwap" xml:space="preserve">
+    <value>Undo swap</value>
   </data>
 
   <data name="Seating_UnsavedChanges" xml:space="preserve">
@@ -1344,6 +1384,10 @@ This cannot be undone.</value>
     <value>Failed to delete snapshot</value>
   </data>
 
+  <data name="Snapshot_DeleteHint" xml:space="preserve">
+    <value>Delete snapshot</value>
+  </data>
+
   <data name="Snapshot_DeleteMsg" xml:space="preserve">
     <value>Delete snapshot from {0}?</value>
   </data>
@@ -1418,6 +1462,10 @@ This cannot be undone.</value>
 
   <data name="Snapshot_RollbackFailed" xml:space="preserve">
     <value>Rollback failed</value>
+  </data>
+
+  <data name="Snapshot_RollbackHint" xml:space="preserve">
+    <value>Rollback to this snapshot</value>
   </data>
 
   <data name="Snapshot_RollbackMsg" xml:space="preserve">
@@ -1632,6 +1680,10 @@ Current seating will be overwritten.</value>
 
   <data name="Strategy_SaveChanges" xml:space="preserve">
     <value>Save changes</value>
+  </data>
+
+  <data name="Strategy_SaveChangesHint" xml:space="preserve">
+    <value>Save strategy changes</value>
   </data>
 
   <data name="Strategy_SaveConfig" xml:space="preserve">

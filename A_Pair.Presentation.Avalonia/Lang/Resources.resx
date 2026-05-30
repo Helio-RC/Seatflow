@@ -561,6 +561,10 @@
     <value>请输入布局名称</value>
   </data>
 
+  <data name="Freeform_GroupTooltip" xml:space="preserve">
+    <value>同桌组号（0-7）</value>
+  </data>
+
   <data name="Freeform_Group_Label" xml:space="preserve">
     <value>组:</value>
   </data>
@@ -669,6 +673,10 @@
     <value>保存失败</value>
   </data>
 
+  <data name="Freeform_SaveLayout" xml:space="preserve">
+    <value>保存布局</value>
+  </data>
+
   <data name="Freeform_SaveLayoutFailed" xml:space="preserve">
     <value>保存布局失败</value>
   </data>
@@ -713,6 +721,10 @@
     <value>类型:</value>
   </data>
 
+  <data name="Freeform_TypeTooltip" xml:space="preserve">
+    <value>元素类型：座位 / 讲台 / 门</value>
+  </data>
+
   <data name="Freeform_Unload" xml:space="preserve">
     <value>卸载已加载数据</value>
   </data>
@@ -733,8 +745,16 @@
     <value>X 坐标</value>
   </data>
 
+  <data name="Freeform_XTooltip" xml:space="preserve">
+    <value>X 坐标（像素）</value>
+  </data>
+
   <data name="Freeform_YCoord" xml:space="preserve">
     <value>Y 坐标</value>
+  </data>
+
+  <data name="Freeform_YTooltip" xml:space="preserve">
+    <value>Y 坐标（像素）</value>
   </data>
 
   <data name="Gender_Female" xml:space="preserve">
@@ -841,6 +861,10 @@
     <value>配置「{0}」已保存</value>
   </data>
 
+  <data name="Plugin_Disabled" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+
   <data name="Plugin_Enable" xml:space="preserve">
     <value>启用插件</value>
   </data>
@@ -932,6 +956,10 @@
 
   <data name="Seating_EmptySeatFmt" xml:space="preserve">
     <value>空座位 - {0}</value>
+  </data>
+
+  <data name="Seating_Export" xml:space="preserve">
+    <value>导出</value>
   </data>
 
   <data name="Seating_ExportPNG" xml:space="preserve">
@@ -1034,6 +1062,10 @@
     <value>重做</value>
   </data>
 
+  <data name="Seating_RedoSwap" xml:space="preserve">
+    <value>重做交换</value>
+  </data>
+
   <data name="Seating_Restore" xml:space="preserve">
     <value>恢复</value>
   </data>
@@ -1052,6 +1084,10 @@
 
   <data name="Seating_SaveAndLeave" xml:space="preserve">
     <value>保存并离开</value>
+  </data>
+
+  <data name="Seating_SaveSnapshot" xml:space="preserve">
+    <value>保存到快照</value>
   </data>
 
   <data name="Seating_Seats" xml:space="preserve">
@@ -1104,6 +1140,10 @@
 
   <data name="Seating_Undo" xml:space="preserve">
     <value>撤销</value>
+  </data>
+
+  <data name="Seating_UndoSwap" xml:space="preserve">
+    <value>撤销交换</value>
   </data>
 
   <data name="Seating_UnsavedChanges" xml:space="preserve">
@@ -1344,6 +1384,10 @@
     <value>删除快照失败</value>
   </data>
 
+  <data name="Snapshot_DeleteHint" xml:space="preserve">
+    <value>删除快照</value>
+  </data>
+
   <data name="Snapshot_DeleteMsg" xml:space="preserve">
     <value>确定要删除 {0} 的快照？</value>
   </data>
@@ -1418,6 +1462,10 @@
 
   <data name="Snapshot_RollbackFailed" xml:space="preserve">
     <value>回滚失败</value>
+  </data>
+
+  <data name="Snapshot_RollbackHint" xml:space="preserve">
+    <value>回滚到此快照</value>
   </data>
 
   <data name="Snapshot_RollbackMsg" xml:space="preserve">
@@ -1636,6 +1684,10 @@
 
   <data name="Strategy_SaveChanges" xml:space="preserve">
     <value>保存更改</value>
+  </data>
+
+  <data name="Strategy_SaveChangesHint" xml:space="preserve">
+    <value>保存策略更改</value>
   </data>
 
   <data name="Strategy_SaveConfig" xml:space="preserve">

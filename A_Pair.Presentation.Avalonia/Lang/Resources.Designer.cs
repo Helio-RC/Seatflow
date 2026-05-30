@@ -549,4 +549,17 @@ public class Resources
     public static string Zoom_125 => ResourceManager.GetString("Zoom_125", Culture)!;
     public static string Zoom_150 => ResourceManager.GetString("Zoom_150", Culture)!;
     public static string Zoom_75 => ResourceManager.GetString("Zoom_75", Culture)!;
+    public static string Seating_RedoSwap => ResourceManager.GetString("Seating_RedoSwap", Culture)!;
+    public static string Seating_UndoSwap => ResourceManager.GetString("Seating_UndoSwap", Culture)!;
+    public static string Seating_SaveSnapshot => ResourceManager.GetString("Seating_SaveSnapshot", Culture)!;
+    public static string Freeform_XTooltip => ResourceManager.GetString("Freeform_XTooltip", Culture)!;
+    public static string Freeform_YTooltip => ResourceManager.GetString("Freeform_YTooltip", Culture)!;
+    public static string Freeform_TypeTooltip => ResourceManager.GetString("Freeform_TypeTooltip", Culture)!;
+    public static string Freeform_GroupTooltip => ResourceManager.GetString("Freeform_GroupTooltip", Culture)!;
+    public static string Plugin_Disabled => ResourceManager.GetString("Plugin_Disabled", Culture)!;
+    public static string Snapshot_DeleteHint => ResourceManager.GetString("Snapshot_DeleteHint", Culture)!;
+    public static string Snapshot_RollbackHint => ResourceManager.GetString("Snapshot_RollbackHint", Culture)!;
+    public static string Strategy_SaveChangesHint => ResourceManager.GetString("Strategy_SaveChangesHint", Culture)!;
+    public static string Freeform_SaveLayout => ResourceManager.GetString("Freeform_SaveLayout", Culture)!;
+    public static string Seating_Export => ResourceManager.GetString("Seating_Export", Culture)!;
 }
