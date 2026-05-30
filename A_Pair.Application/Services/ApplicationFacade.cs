@@ -559,13 +559,18 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
+            // 如果 Parameters 为 null（仅保存优先级/开关），保留已有参数
+            if (config.Parameters == null)
+            {
+                var existing = await _strategyConfigRepo.LoadAsync(strategyId , ct);
+                config.Parameters = existing?.Parameters ?? [];
+            }
+
             logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}" ,
                 strategyId , config.Priority , config.IsEnabled);
 
-            // 持久化到文件
             await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
 
-            // 更新运行时内置策略实例
             var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
@@ -640,21 +645,33 @@ namespace A_Pair.Application.Services
             switch (strategy)
             {
                 case FrontRowRotationStrategy fr:
-                    if (parameters.TryGetValue("HistoryWeight" , out var hw) && hw is int hwi)
-                        fr.Config.HistoryWeight = hwi;
-                    if (parameters.TryGetValue("NeedsFrontRowBonus" , out var nb) && nb is int nbi)
-                        fr.Config.NeedsFrontRowBonus = nbi;
-                    if (parameters.TryGetValue("FrontRowCount" , out var fc) && fc is int fci)
-                        fr.Config.FrontRowCount = fci;
+                    fr.Config.HistoryWeight = GetParamInt(parameters , "HistoryWeight");
+                    fr.Config.NeedsFrontRowBonus = GetParamInt(parameters , "NeedsFrontRowBonus");
+                    fr.Config.FrontRowCount = GetParamInt(parameters , "FrontRowCount");
                     break;
 
                 case DeskMateStrategy d:
-                    if (parameters.TryGetValue("PreferHorizontal" , out var ph) && ph is bool phb)
-                        d.Config.PreferHorizontal = phb;
-                    if (parameters.TryGetValue("AllowVertical" , out var av) && av is bool avb)
-                        d.Config.AllowVertical = avb;
+                    d.Config.PreferHorizontal = GetParamBool(parameters , "PreferHorizontal");
+                    d.Config.AllowVertical = GetParamBool(parameters , "AllowVertical");
                     break;
             }
+        }
+
+        private static int GetParamInt (Dictionary<string , object?> p , string key)
+        {
+            if (!p.TryGetValue(key , out var v) || v is null) return 0;
+            if (v is int i) return i;
+            if (v is JsonElement je && je.ValueKind == JsonValueKind.Number) return je.GetInt32();
+            return 0;
+        }
+
+        private static bool GetParamBool (Dictionary<string , object?> p , string key)
+        {
+            if (!p.TryGetValue(key , out var v) || v is null) return false;
+            if (v is bool b) return b;
+            if (v is JsonElement je)
+                return je.ValueKind == JsonValueKind.True;
+            return false;
         }
 
         #endregion

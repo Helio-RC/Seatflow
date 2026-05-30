@@ -207,6 +207,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             SelectedDetail = new();
             return;
         }
+        if (_hasDetailChanges)
+        {
+            // 有未保存的详情变更，先自动保存再切换
+            _ = SaveCurrentConfigAsync();
+        }
         _ = LoadDetailAsync(value);
     }
 
@@ -569,7 +574,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             {
                 var parameters = item.Id == SelectedDetail?.Id && _hasDetailChanges
                     ? CollectDetailParameters()
-                    : [];
+                    : null;
                 var config = new StrategyConfig
                 {
                     Source = item.Source ,
@@ -647,13 +652,22 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private static int GetParamInt (Dictionary<string , object?> parameters , string key)
     {
-        if (parameters.TryGetValue(key , out var v) && v is int i) return i;
+        if (!parameters.TryGetValue(key , out var v) || v is null) return 0;
+        if (v is int i) return i;
+        if (v is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Number)
+            return je.GetInt32();
         return 0;
     }
 
     private static bool GetParamBool (Dictionary<string , object?> parameters , string key)
     {
-        if (parameters.TryGetValue(key , out var v) && v is bool b) return b;
+        if (!parameters.TryGetValue(key , out var v) || v is null) return false;
+        if (v is bool b) return b;
+        if (v is System.Text.Json.JsonElement je)
+        {
+            if (je.ValueKind == System.Text.Json.JsonValueKind.True) return true;
+            if (je.ValueKind == System.Text.Json.JsonValueKind.False) return false;
+        }
         return false;
     }
 }
