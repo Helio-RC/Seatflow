@@ -36,6 +36,7 @@ namespace A_Pair.Presentation.Avalonia
 
         public override void Initialize ()
         {
+            ApplyLanguageFromSettings();
             AvaloniaXamlLoader.Load(this);
         }
 
@@ -81,7 +82,21 @@ namespace A_Pair.Presentation.Avalonia
             }
         }
 
-        private void ApplyLanguage (string language)
+        private void ApplyLanguageFromSettings ()
+        {
+            try
+            {
+                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+                var settings = facade.LoadAppSettingsAsync().GetAwaiter().GetResult();
+                ApplyLanguage(settings.Language);
+            }
+            catch
+            {
+                // 加载失败保持默认
+            }
+        }
+
+        private static void ApplyLanguage (string language)
         {
             try
             {
@@ -93,6 +108,7 @@ namespace A_Pair.Presentation.Avalonia
                 CultureInfo.CurrentUICulture = culture;
                 CultureInfo.DefaultThreadCurrentCulture = culture;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
+                Lang.Resources.Culture = culture;
             }
             catch (CultureNotFoundException)
             {
