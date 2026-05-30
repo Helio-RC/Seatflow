@@ -10,9 +10,9 @@
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8">
       <Button x:Name="CancelButton" MinWidth="80" Padding="12,6"
-              FontSize="14">{x:Static lang:Resources.Common_Cancel}</Button>
+              FontSize="14" Content="{x:Static lang:Resources.Common_Cancel}"/>
       <Button x:Name="OkButton" MinWidth="80" Padding="12,6"
-              FontSize="14" IsDefault="True">{x:Static lang:Resources.Common_OK}</Button>
+              FontSize="14" IsDefault="True" Content="{x:Static lang:Resources.Common_OK}"/>
     </StackPanel>
 
     <StackPanel Spacing="8">

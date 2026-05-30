@@ -62,8 +62,6 @@ internal partial class DialogWindow : Window
 
         if (Kind == DialogKind.Confirm)
         {
-            OkButton.Content = Lang.Resources.Common_OK;
-            CancelButton.Content = Lang.Resources.Common_Cancel;
             CancelButton.IsVisible = true;
         }
         else if (Kind == DialogKind.MultiOption)
@@ -73,10 +71,6 @@ internal partial class DialogWindow : Window
             CancelButton.Content = Button3Text ?? Lang.Resources.Common_Cancel;
             ThirdButton.IsVisible = true;
             CancelButton.IsVisible = true;
-        }
-        else
-        {
-            OkButton.Content = Lang.Resources.Common_OK;
         }
     }
 

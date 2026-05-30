@@ -26,11 +26,11 @@
                 HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
                 x:Name="ButtonPanel">
       <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True" HorizontalContentAlignment="Center"
-              x:CompileBindings="False">{x:Static lang:Resources.Common_OK}</Button>
+              Content="{x:Static lang:Resources.Common_OK}"/>
       <Button x:Name="ThirdButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" x:CompileBindings="False">{x:Static lang:Resources.Common_OK}</Button>
+              IsVisible="False" Content="{x:Static lang:Resources.Common_OK}"/>
       <Button x:Name="CancelButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" x:CompileBindings="False">{x:Static lang:Resources.Common_Cancel}</Button>
+              IsVisible="False" Content="{x:Static lang:Resources.Common_Cancel}"/>
     </StackPanel>
 
     <DockPanel>
