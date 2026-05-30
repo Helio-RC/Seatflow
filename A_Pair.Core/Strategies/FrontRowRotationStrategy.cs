@@ -46,7 +46,7 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>
         /// 执行前排轮换：
-        /// 1. 识别网格布局最前行 / 极坐标布局最外层环。
+        /// 1. 识别网格布局最前行 / 极坐标布局最内层环（Ring=1 靠近讲台）。
         /// 2. 计算每个未分配学生的前排需求分数。
         /// 3. 按分数从高到低分配前排座位。
         /// </summary>
@@ -77,9 +77,9 @@ namespace A_Pair.Core.Strategies
             var polarSeats = emptySeats.OfType<PolarSeat>().ToList();
             if (polarSeats.Count > 0)
             {
-                int maxRing = polarSeats.Max(s => s.Ring);
-                int frontRingMin = maxRing - _config.FrontRowCount + 1;
-                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring >= frontRingMin));
+                // Ring=1 为最内环（靠近讲台），即前排
+                int frontRingMax = _config.FrontRowCount;
+                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring <= frontRingMax));
             }
 
             var freeformSeats = emptySeats.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();
