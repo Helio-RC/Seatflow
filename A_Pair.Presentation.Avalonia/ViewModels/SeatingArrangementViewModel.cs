@@ -795,7 +795,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task ExportImageAsync () => await ExportAsync(ExportFormat.Png ,
-        [new FilePickerFileType(Resources.Seating_ExportPNG) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault);
+        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault);
 
     private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName)
     {
@@ -808,7 +808,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             return;
         }
 
-        var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , suggestedName);
+        IStorageFile? file;
+        try
+        {
+            file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , suggestedName);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex , "导出：保存文件对话框失败");
+            return;
+        }
         if (file == null) return;
 
         var filePath = file.Path.LocalPath;
