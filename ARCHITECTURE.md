@@ -176,19 +176,20 @@ public class SeatingWorkspace
 
 4.3 执行管道
 
-管道采用 **"基线 → 优化 → 最终裁决"** 三层执行模型。所有策略按 Priority 升序操作同一个
-`SeatingWorkspace` 实例，后执行的策略可通过清空 `OccupantId` + 重新 `TryAssignSeat` 覆盖前序结果。
+管道采用 **"按优先级填空"（Fill-in-Order）** 模型。所有策略操作同一个
+`SeatingWorkspace` 实例，按 Priority 升序依次执行。每个策略在空座中操作，
+后执行的策略在剩余空座中择优。不存在"覆盖"语义。
 
 ```
 Priority 升序 →
-  RandomFill(10)        ← 基线阶段：建立全量初始分配
-  FrontRowRotation(30)  ← 优化阶段：重新分配前排
-  DeskMate(50)          ← 优化阶段：重组同桌组
-  FixedSeat(100)        ← 裁决阶段：最终强制覆盖
+  FixedSeat(10)         ← 最先执行：锁定固定座位（IsFixed=true 自动保护）
+  FrontRowRotation(20)  ← 第二执行：在非固定空座中填前排
+  DeskMate(30)          ← 第三执行：在剩余空座中拼连续块
+  RandomFill(100)       ← 最后执行：填满所有剩余空座
 ```
 
-> **关键设计决策**：低 Priority = 先执行 = 被覆盖权；高 Priority = 后执行 = 覆盖权。
-> FixedSeat(100) 最后执行，确保固定座位不受任何策略影响。
+> **关键设计决策**：低 Priority = 先执行 = 优先挑选座位。冲突解决 = Priority 数值（先到先得）。
+> 该模型是妥协方案——"后可覆盖"模型因 Workspace API 限制不可行，详见 docs/adr/ADR-006.md。
 
 ```csharp
 public class StrategyExecutionPipeline
@@ -198,7 +199,6 @@ public class StrategyExecutionPipeline
         foreach (var strategy in _strategies.OrderBy(s => s.Priority).Where(s => s.IsEnabled))
         {
             var result = await strategy.ExecuteAsync(workspace, cancellationToken);
-            // 后执行的策略覆盖前序结果——这是有意设计
         }
         return workspace.BuildSeatingPlan();
     }
@@ -207,12 +207,12 @@ public class StrategyExecutionPipeline
 
 4.4 内置策略
 
-| 策略 | Priority | 阶段 | 职责 |
-|------|----------|------|------|
-| RandomFillStrategy | 10 | 基线 | 最先执行，建立全量初始分配。将学生随机填入所有空位 |
-| FrontRowRotationStrategy | 30 | 优化 | 覆盖前排座位，将最需要的学生分配到前排 |
-| DeskMateStrategy | 50 | 优化 | 覆盖同桌组成员位置，使其彼此相邻 |
-| FixedSeatStrategy | 100 | 裁决 | 最后执行，强制应用固定座位。可覆盖所有前序分配
+| 策略 | Priority | 执行顺序 | 职责 |
+|------|----------|----------|------|
+| FixedSeatStrategy | 10 | 第1 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
+| FrontRowRotationStrategy | 20 | 第2 | 在非固定空座中识别前排，按需求分数分配 |
+| DeskMateStrategy | 30 | 第3 | 在剩余空座中寻找连续块，组合同桌组 |
+| RandomFillStrategy | 100 | 最后 | 兜底策略，将剩余未分配学生随机填入剩余空座 |
 
 4.5 插件化策略
 

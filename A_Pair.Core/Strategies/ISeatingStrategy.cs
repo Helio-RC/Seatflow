@@ -6,20 +6,21 @@ namespace A_Pair.Core.Strategies
     /// 座位安排策略接口，定义所有排座策略的通用契约。
     /// </summary>
     /// <remarks>
-    /// <b>执行顺序与覆盖规则</b>
+    /// <b>执行模型："按优先级填空"（Fill-in-Order）</b>
     /// <para>
-    /// 策略按 <see cref="Priority"/> 升序执行（数值越小越先执行）。
-    /// 管道采用 <b>"基线 → 优化 → 最终裁决"</b>模式：
+    /// 所有策略操作同一个 <see cref="Workspace.SeatingWorkspace"/> 实例，
+    /// 按 <see cref="Priority"/> 升序依次执行（数值越小越先执行）。
+    /// 先执行的策略从空座中选择，后执行的策略在剩余空座中择优。
+    /// 不存在"覆盖"——先占的座不会被推翻。
     /// </para>
     /// <list type="bullet">
-    /// <item>低 Priority（先执行）= 建立基线分配，为后续策略提供初始状态</item>
-    /// <item>中 Priority（中期执行）= 对特定维度进行优化调整，可覆盖先前分配</item>
-    /// <item>高 Priority（最后执行）= 最终裁决，强制覆盖以保证不可妥协的约束</item>
+    /// <item>低 Priority（先执行）= 优先挑选座位。IsFixed=true 的座位被 GetEmptySeats() 自动排除，形成天然保护</item>
+    /// <item>高 Priority（后执行）= 在剩余空座中工作。最终兜底策略确保全场填满</item>
     /// </list>
     /// <para>
-    /// 内置策略执行顺序：RandomFill(10) → FrontRowRotation(30) → DeskMate(50) → FixedSeat(100)。
-    /// 后执行的策略可直接修改 <see cref="Workspace.SeatingWorkspace"/> 中的座位状态（包括清空 OccupantId 后重新分配），
-    /// 因此高优先级策略具有对低优先级策略结果的<b>覆盖权</b>。
+    /// 内置策略：FixedSeat(10) → FrontRowRotation(20) → DeskMate(30) → RandomFill(100)。
+    /// 策略间的冲突解决 = Priority 数值本身——先到先得。
+    /// 参见 docs/adr/ADR-006.md。
     /// </para>
     /// </remarks>
     public interface ISeatingStrategy
@@ -32,9 +33,9 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>
         /// 执行优先级，数值越小越先执行（升序）。
-        /// 注意：低 Priority 先执行建立基线，高 Priority 后执行具有覆盖权。
-        /// 内置策略：RandomFill=10（基线填充）, FrontRowRotation=30（前排优化）,
-        /// DeskMate=50（同桌优化）, FixedSeat=100（最终固定）。
+        /// 管道采用"按优先级填空"模型：先执行的策略先占用座位，后执行的在剩余空座中择优。
+        /// 内置策略：FixedSeat=10（锁定固定座）, FrontRowRotation=20（填前排）,
+        /// DeskMate=30（拼连续块）, RandomFill=100（最终兜底）。
         /// </summary>
         int Priority { get; set; }
 

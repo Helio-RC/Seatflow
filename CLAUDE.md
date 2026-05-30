@@ -43,16 +43,16 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 
 **Project dependency chain**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`). `Plugins.Sdk` is referenced only by external plugins. `Application` orchestrates; `Infrastructure` implements providers/exporters/layouts/repos; `Core` owns entities, strategy interfaces, and the workspace.
 
-**Strategy pipeline**: All four built-in strategies operate on the same `SeatingWorkspace` instance. They execute in **ascending Priority order** — lower Priority runs first as a baseline, higher Priority runs later and can override prior assignments. The pipeline follows a **baseline → optimize → finalize** pattern:
+**Strategy pipeline**: Uses a **fill-in-order** model — all four strategies operate on the same `SeatingWorkspace`. They execute in **ascending Priority order** (lower = earlier = dibs on empty seats). No "override" semantics; first to fill a seat keeps it. `IsFixed=true` (set by FixedSeat) causes `GetEmptySeats()` to exclude those seats, providing natural protection.
 
-| Order | Strategy | Priority | Phase |
-|-------|----------|----------|-------|
-| 1st | `RandomFillStrategy` | 10 | Baseline — fills all empty seats |
-| 2nd | `FrontRowRotationStrategy` | 30 | Optimize — reassigns front-row seats |
-| 3rd | `DeskMateStrategy` | 50 | Optimize — reorganizes desk-mate groups |
-| 4th | `FixedSeatStrategy` | 100 | Finalize — enforces fixed seats, overrides all |
+| Order | Strategy | Priority | Role |
+|-------|----------|----------|------|
+| 1st | `FixedSeatStrategy` | 10 | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
+| 2nd | `FrontRowRotationStrategy` | 20 | Fills front-row seats from remaining empty non-fixed seats |
+| 3rd | `DeskMateStrategy` | 30 | Finds contiguous blocks in remaining seats for desk-mate groups |
+| 4th | `RandomFillStrategy` | 100 | Final fallback — fills all remaining empty seats with unassigned students |
 
-Later strategies can clear `OccupantId` and call `TryAssignSeat` to override earlier results. This is intentional: higher Priority = final say.
+Conflict resolution = Priority number (first-come-first-served). This is a known compromise — the override model was abandoned because GetEmptySeats + TryAssignSeat only support fill semantics. See `docs/adr/ADR-006.md`.
 
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
 

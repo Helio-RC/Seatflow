@@ -6,25 +6,25 @@ using Microsoft.Extensions.Logging;
 namespace A_Pair.Application.Services
 {
     /// <summary>
-    /// 策略执行管道，按优先级升序依次执行多个座位分配策略。
+    /// 策略执行管道，按优先级升序依次执行座位分配策略。
     /// </summary>
     /// <remarks>
-    /// <b>执行模型：基线 → 优化 → 最终裁决</b>
+    /// <b>执行模型："按优先级填空"（Fill-in-Order）</b>
     /// <para>
-    /// 策略按 <see cref="ISeatingStrategy.Priority"/> 升序执行：
+    /// 所有策略操作同一个 <see cref="SeatingWorkspace"/> 实例。
+    /// 按 <see cref="ISeatingStrategy.Priority"/> 升序执行：数值越小的策略越先执行，
+    /// 从空座中优先挑选。后执行的策略在剩余空座中择优。不存在"覆盖"——先占的座不会被推翻。
     /// </para>
     /// <list type="number">
-    /// <item><b>基线阶段</b>（低 Priority）：建立初始全量分配（如 RandomFill=10）</item>
-    /// <item><b>优化阶段</b>（中 Priority）：对特定维度进行调整（如 FrontRowRotation=30、DeskMate=50）</item>
-    /// <item><b>裁决阶段</b>（高 Priority）：强制执行不可妥协的约束（如 FixedSeat=100）</item>
+    /// <item><b>FixedSeat(10)</b>：锁定固定座位，标记 IsFixed=true。后续策略的 GetEmptySeats() 自动排除</item>
+    /// <item><b>FrontRowRotation(20)</b>：在非固定空座中填前排</item>
+    /// <item><b>DeskMate(30)</b>：在剩余空座中拼连续块</item>
+    /// <item><b>RandomFill(100)</b>：最终兜底，填满所有剩余空座</item>
     /// </list>
     /// <para>
-    /// 所有策略操作同一个 <see cref="SeatingWorkspace"/> 实例，后执行的策略可以通过
-    /// 清空 OccupantId + TryAssignSeat 覆盖前序策略的结果。这意味着 <b>高 Priority 策略
-    /// 具有最终决定权</b>——这是有意设计，不是 bug。
-    /// </para>
-    /// <para>
-    /// 执行过程中通过 <see cref="IProgress{T}"/> 报告进度。
+    /// 策略间冲突解决 = Priority 数值（先到先得）。该设计是一个有意妥协——"后可覆盖"模型
+    /// 因 Workspace API 限制（GetEmptySeats+TryAssignSeat 仅支持填空语义）无法实现。
+    /// 详见 docs/adr/ADR-006.md。
     /// </para>
     /// </remarks>
     public class StrategyExecutionPipeline

@@ -6,11 +6,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 同桌组策略（Priority=50，中期执行，覆盖基线填充的同桌部分）。
-    /// 将指定的学生组分配到相邻座位。在 RandomFill 和 FrontRowRotation 之后执行，
-    /// 重新组织同桌组成员的位置使其彼此靠近，被替换的学生自动移至其他座位。
+    /// 同桌组策略（Priority=30，第三执行，在剩余空座中拼连续块）。
+    /// 在 FixedSeat 和 FrontRowRotation 之后执行，从剩余空座中寻找连续座位块分配给同桌组。
+    /// 优先尝试水平相邻，其次垂直相邻，最后降级为顺序分配。
     /// 支持从配置和 <see cref="AttributeBag"/> 扩展属性中读取同桌组定义。
-    /// 优先尝试水平相邻分配，其次垂直相邻，最后使用 BFS 寻找任意连通分量。
     /// </summary>
     public class DeskMateStrategy : ISeatingStrategy
     {
@@ -35,8 +34,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："DeskMate"。</summary>
         public string Name { get; } = "DeskMate";
 
-        /// <summary>执行优先级：50。</summary>
-        public int Priority { get; set; } = 50;
+        /// <summary>执行优先级：30（第三执行，在剩余空座中拼连续块）。</summary>
+        public int Priority { get; set; } = 30;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;

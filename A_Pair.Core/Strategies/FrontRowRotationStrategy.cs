@@ -6,10 +6,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 前排轮换策略（Priority=30，中期执行，覆盖基线填充的前排部分）。
-    /// 基于累计分数公平分配前排座位。在 RandomFill 建立基线后执行，
-    /// 将前排座位重新分配给最需要的学生，被替换的学生自动移至后排。
-    /// 分数计算公式：总分 = NeedsFrontRow加分 + FrontRowPreferenceScore - (历史前排次数 × HistoryWeight)。
+    /// 前排轮换策略（Priority=20，第二执行，在非固定空座中填前排）。
+    /// 在 FixedSeat 锁定固定座位后执行，从剩余空座中识别前排座位，
+    /// 按需求分数分配给最需要的学生。分数公式与前相同。
     /// </summary>
     public class FrontRowRotationStrategy : ISeatingStrategy
     {
@@ -39,8 +38,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："FrontRowRotation"。</summary>
         public string Name { get; } = "FrontRowRotation";
 
-        /// <summary>执行优先级：30。</summary>
-        public int Priority { get; set; } = 30;
+        /// <summary>执行优先级：20（第二执行，在非固定空座中填前排）。</summary>
+        public int Priority { get; set; } = 20;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;
