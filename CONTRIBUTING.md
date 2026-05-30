@@ -60,6 +60,32 @@ A_Pair.slnx
 - 异步操作通过 `SafeExecuteAsync` 包装，自动处理异常和超时
 - 无头环境中无法使用 Avalonia DevTools
 
+## 国际化 (i18n)
+
+使用 .NET `.resx` 资源文件，位于 `A_Pair.Presentation.Avalonia/Lang/`：
+
+- `Resources.resx` — 中性语言 (zh-CN)，~570 键
+- `Resources.en-US.resx` — 英文卫星资源
+- `Resources.Designer.cs` — 手动维护的强类型访问器类
+
+**XAML 用法**（仅属性语法，元素内容不解析）：
+```xml
+<TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
+<Button Content="{x:Static lang:Resources.Common_OK}" />
+```
+
+**C# 用法**：
+```csharp
+StatusMessage = Resources.Settings_Saved;
+StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
+```
+
+**键命名**: `{Page}_{Element}`，如 `Settings_Title`、`Nav_Home`、`Common_OK`。格式化字符串用 `{0}` 占位符。
+
+**新增语言**: 在 `Lang/` 下创建 `Resources.xx-XX.resx`，翻译所有键即可，无需代码变更。
+
+**语言切换**: 在 `AppSettings.Language` 中设置语言代码（如 `en-US`），重启后生效。
+
 ## 添加新页面
 
 1. 在 `INavigationService.cs` 的 `PageKey` 枚举中添加新值

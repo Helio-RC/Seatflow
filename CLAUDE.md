@@ -45,13 +45,14 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
 
-**App startup sequence** (`App.axaml.cs` `OnFrameworkInitializationCompleted`):
-1. Resolve `MainShellViewModel` and `MainWindow` from DI, wire DataContext
-2. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
-3. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
-4. Start `WatchdogService` (prevents UI freeze from blocking exit) with a 3s DispatcherTimer ping
-5. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
-6. Restore saved settings (theme, window position/size) via `RestoreSettingsAsync()`
+**App startup sequence**:
+1. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
+2. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
+3. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
+4. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
+5. Start `WatchdogService` with a 3s DispatcherTimer ping
+6. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
+7. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
 
 ## Key Patterns
 
@@ -66,11 +67,11 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 Two overloads:
 
 ```csharp
-// Simple: try-catch, auto error dialog
-protected async Task<bool> SafeExecuteAsync(Func<Task> action, string errorTitle = "操作失败")
+// Simple: try-catch, auto error dialog. errorTitle defaults to localized Resources.Common_OperationFailed
+protected async Task<bool> SafeExecuteAsync(Func<Task> action, string? errorTitle = null)
 
 // With timeout: auto-cancels via CancellationTokenSource, shows timeout dialog
-protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string errorTitle = "操作失败")
+protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string? errorTitle = null)
 ```
 
 The timeout overload aborts the operation when exceeded — prefer it for long-running exports or imports. Keep the timeout well under the WatchdogService threshold (45s).
@@ -121,6 +122,47 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - Width: 140px expanded / 64px collapsed (controlled by `MainShellViewModel.SidebarWidth`)
 - Auto-collapses when window width < 750px
 - `MainShellViewModel.ToggleSidebar()` command for manual toggle
+
+### i18n / Localization (`Lang/`)
+
+Uses standard .NET `.resx` resource files in `A_Pair.Presentation.Avalonia/Lang/`:
+- `Resources.resx` — neutral language (zh-CN), ~570 keys
+- `Resources.en-US.resx` — English satellite
+- `Resources.Designer.cs` — hand-maintained typed accessor class (Visual Studio's `PublicResXFileCodeGenerator` doesn't work with `dotnet build`)
+
+**Adding a new language**: create `Resources.xx-XX.resx` with translations, no code changes needed.
+
+**Usage in XAML** (attribute syntax only — element content won't resolve):
+```xml
+<TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
+<Button Content="{x:Static lang:Resources.Common_OK}" />
+```
+Namespace: `xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"`
+
+**Usage in C#**:
+```csharp
+StatusMessage = Resources.Settings_Saved;
+StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
+```
+**Important**: In classes inheriting from `Window` (DialogWindow, InputWindow), `Resources` resolves to `Window.Resources` (IResourceDictionary). Use fully-qualified `Lang.Resources.xxx` in those files.
+
+**Key naming**: `{Page}_{Element}` with PascalCase, e.g. `Settings_Title`, `Nav_Home`, `Common_OK`. Format strings use `{0}` placeholders.
+
+**Language switching**: `App.ApplyLanguageFromSettings()` (called in `Initialize()` before XAML loading). Sets `CultureInfo.CurrentUICulture` and `Resources.Culture`.
+
+### About Page Data (`Data/about.json`)
+
+Multi-language JSON with top-level culture keys:
+```json
+{ "zh-CN": { "description": "...", "dependencies": [...] },
+  "en-US": { "description": "...", "dependencies": [...] } }
+```
+`AboutViewModel.LoadAboutData()` selects by `CultureInfo.CurrentUICulture.Name`, falls back to `"zh-CN"`.
+
+### Dialog Windows
+
+- `DialogWindow` — Confirm/Error/Warning/Info/MultiOption dialogs. Buttons use `Content="{x:Static}"` attribute syntax. Code-behind only controls visibility and MultiOption custom text. **Never** use `{x:Static}` as element content inside `<Button>...</Button>`.
+- `InputWindow` — Text input dialog. Same button pattern.
 
 ## File Versions & Migration
 

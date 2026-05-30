@@ -41,13 +41,13 @@ A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的
 
 **项目配置**: Avalonia 项目的 `AvaloniaUseCompiledBindingsByDefault` 为 `true`，所有绑定默认编译，除非显式退出。
 
-**应用启动顺序** (`App.axaml.cs` `OnFrameworkInitializationCompleted`):
-1. 从 DI 解析 `MainShellViewModel` 和 `MainWindow`，绑定 DataContext
-2. 调用 `IFileService.SetTopLevel()` 和 `IDialogService.SetTopLevel()`，传入 MainWindow
-3. 初始化 `ViewModelBase.Dialog`（静态）和 `ViewModelBase` 的 Logger
-4. 启动 `WatchdogService`（3 秒 DispatcherTimer ping，防止 UI 冻结阻塞退出）
-5. 挂载 `ChineseInputNormalizer` 行为（全角数字/符号 → 半角）
-6. 通过 `RestoreSettingsAsync()` 恢复已保存的设置
+**应用启动顺序**:
+1. `App.Initialize()` — `ApplyLanguageFromSettings()` 设置 `CurrentUICulture` + `Resources.Culture`，然后加载 XAML
+2. `OnFrameworkInitializationCompleted` — 从 DI 解析 `MainShellViewModel`/`MainWindow`，绑定 DataContext
+3. 调用 `IFileService.SetTopLevel()` 和 `IDialogService.SetTopLevel()`
+4. 初始化 `ViewModelBase.Dialog`（静态）和 Logger
+5. 启动 `WatchdogService`，挂载 `ChineseInputNormalizer` 行为
+6. `RestoreSettingsAsync()` — 恢复主题、窗口位置/大小（语言已在步骤 1 应用）
 
 ## 关键模式
 
@@ -62,11 +62,11 @@ A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的
 两个重载：
 
 ```csharp
-// 简单版：try-catch，自动弹错误对话框
-protected async Task<bool> SafeExecuteAsync(Func<Task> action, string errorTitle = "操作失败")
+// 简单版：try-catch，自动弹错误对话框。errorTitle 默认取 Resources.Common_OperationFailed
+protected async Task<bool> SafeExecuteAsync(Func<Task> action, string? errorTitle = null)
 
 // 超时版：通过 CancellationTokenSource 自动取消，超时弹提示
-protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string errorTitle = "操作失败")
+protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string? errorTitle = null)
 ```
 
 超时重载适合长时间运行的导出/导入操作。超时应远小于 WatchdogService 阈值（45s）。
@@ -117,6 +117,38 @@ public virtual Task<bool> CanLeaveAsync()
 - 宽度：展开 140px / 折叠 64px（由 `MainShellViewModel.SidebarWidth` 控制）
 - 窗口宽度 < 750px 时自动折叠
 - `MainShellViewModel.ToggleSidebar()` 手动切换
+
+### 国际化 (i18n) — `Lang/`
+
+使用 .NET `.resx` 资源文件，位于 `A_Pair.Presentation.Avalonia/Lang/`：
+- `Resources.resx` — 中性语言 (zh-CN)，~570 键
+- `Resources.en-US.resx` — 英文卫星资源
+- `Resources.Designer.cs` — 手工维护的强类型访问器
+
+**XAML 用法**（仅属性语法）：
+```xml
+<TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
+<Button Content="{x:Static lang:Resources.Common_OK}" />
+```
+**C# 用法**：
+```csharp
+StatusMessage = Resources.Settings_Saved;
+StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
+```
+**键命名**: `{Page}_{Element}` 如 `Settings_Title`、`Nav_Home`。格式字符串用 `{0}` 占位符。
+
+**语言切换**: `App.ApplyLanguageFromSettings()` 在 `Initialize()` 中 XAML 加载前调用，设置 `CurrentUICulture` + `Resources.Culture`。
+
+**注意**: `Window` 子类中 `Resources` 指 `Window.Resources`，需用 `Lang.Resources.xxx` 全限定名。
+
+### 关于页面数据 (`Data/about.json`)
+
+多语言 JSON：顶层 `"zh-CN"` / `"en-US"` 各自含完整数据。`AboutViewModel.LoadAboutData()` 按 `CurrentUICulture.Name` 选择，回退 `"zh-CN"`。
+
+### 对话框窗口
+
+- `DialogWindow` — 按钮用 `Content="{x:Static}"` 属性语法（禁止元素内容写法）。代码仅控制可见性和 MultiOption 自定义文字。
+- `InputWindow` — 同上按钮模式。
 
 ## 文件版本与迁移
 

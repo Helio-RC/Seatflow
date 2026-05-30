@@ -291,7 +291,7 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 性能 高效数据结构、并行执行无冲突策略、进度刷新限频
 并发 文件锁机制，可选 SQLite 支持多人编辑
 日志 Serilog 分级输出，审计关键操作
-国际化 .resx 资源文件 + IStringLocalizer
+国际化 .resx 资源文件（Lang/Resources.resx + 卫星资源），CultureInfo 切换
 内存管理 快照文件化，内存仅保留索引，实现 IDisposable
 
 7.2 业务流程闭环
