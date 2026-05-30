@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -61,7 +62,18 @@ public partial class AboutViewModel : ViewModelBase
         const string resourceName = "A_Pair.Presentation.Avalonia.Data.about.json";
         using var stream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidDataException($"Embedded resource not found: {resourceName}");
-        return JsonSerializer.Deserialize<AboutData>(stream , _jsonOptions) ?? new AboutData();
+
+        var all = JsonSerializer.Deserialize<Dictionary<string , AboutData>>(stream , _jsonOptions)
+                  ?? new Dictionary<string , AboutData>();
+
+        // 按当前语言查找，回退到 zh-CN
+        var culture = CultureInfo.CurrentUICulture;
+        if (all.TryGetValue(culture.Name , out var match)) return match;
+        if (all.TryGetValue(culture.TwoLetterISOLanguageName , out match)) return match;
+        if (all.TryGetValue("zh-CN" , out match)) return match;
+
+        // 最后一个回退：取第一个可用语言
+        return all.Values.FirstOrDefault() ?? new AboutData();
     }
 
     private sealed class AboutData

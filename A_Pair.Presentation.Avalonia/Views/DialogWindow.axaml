@@ -13,11 +13,13 @@
       <Setter Property="MinWidth" Value="80" />
       <Setter Property="Padding" Value="12,6" />
       <Setter Property="FontSize" Value="14" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.ActionCancel">
       <Setter Property="MinWidth" Value="80" />
       <Setter Property="Padding" Value="12,6" />
       <Setter Property="FontSize" Value="14" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
   </Window.Styles>
 
