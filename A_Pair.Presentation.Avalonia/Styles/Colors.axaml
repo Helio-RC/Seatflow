@@ -23,12 +23,26 @@
     <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
   </Style>
 
+  <!-- ═══ 语义背景色样式类 ═══ -->
+
+  <Style Selector="Border.bgError">
+    <Setter Property="Background" Value="{DynamicResource ErrorBgBrush}" />
+  </Style>
+  <Style Selector="Border.bgWarning">
+    <Setter Property="Background" Value="{DynamicResource WarningBgBrush}" />
+  </Style>
+
   <!-- ═══ Surface 样式类 ═══ -->
 
   <!-- 卡片容器 -->
   <Style Selector="Border.surfaceCard">
     <Setter Property="Background" Value="{DynamicResource SurfaceCardBrush}" />
     <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <!-- 加载遮罩 -->
+  <Style Selector="Border.loadingOverlay">
+    <Setter Property="Background" Value="{DynamicResource LoadingOverlayBrush}" />
   </Style>
 
 </Styles>

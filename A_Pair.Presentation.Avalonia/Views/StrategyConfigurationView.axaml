@@ -217,9 +217,9 @@
                          Classes="body" TextWrapping="Wrap"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
               <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Classes="caption" Text="{Binding DetailAuthorDisplay}" FontSize="13" Margin="0,4,0,0" />
-                <TextBlock Classes="caption" Text="{Binding DetailCategoryDisplay}" FontSize="13" Margin="0,4,0,0" />
-                <TextBlock Classes="caption" Text="{Binding DetailDefaultPriorityDisplay}" FontSize="13" Margin="0,4,0,0" />
+                <TextBlock Classes="bodySmall" Text="{Binding DetailAuthorDisplay}" Margin="0,4,0,0" />
+                <TextBlock Classes="bodySmall" Text="{Binding DetailCategoryDisplay}" Margin="0,4,0,0" />
+                <TextBlock Classes="bodySmall" Text="{Binding DetailDefaultPriorityDisplay}" Margin="0,4,0,0" />
               </StackPanel>
             </StackPanel>
           </Border>

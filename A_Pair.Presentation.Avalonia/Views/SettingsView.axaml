@@ -11,36 +11,6 @@
     <vm:SettingsViewModel />
   </Design.DataContext>
 
-  <UserControl.Styles>
-    <Style Selector="Border.settingRow">
-      <Setter Property="Padding" Value="0,12,0,12" />
-      <Setter Property="BorderThickness" Value="0,0,0,1" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundChromeHighBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="Transitions">
-        <Setter.Value>
-          <Transitions>
-            <BrushTransition Property="Background" Duration="0:0:0.12" />
-          </Transitions>
-        </Setter.Value>
-      </Setter>
-    </Style>
-    <Style Selector="Border.settingRow:pointerover">
-      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
-    </Style>
-
-    <Style Selector="Button.linkButton">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-      <Setter Property="Cursor" Value="Hand" />
-      <Setter Property="Padding" Value="8,4" />
-    </Style>
-    <Style Selector="Button.linkButton:pointerover">
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark2}" />
-    </Style>
-  </UserControl.Styles>
-
   <DockPanel Margin="16">
     <!-- 顶部标题栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,24">

@@ -8,21 +8,6 @@
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-  <Window.Styles>
-    <Style Selector="Button.ActionButton">
-      <Setter Property="MinWidth" Value="80" />
-      <Setter Property="Padding" Value="12,6" />
-      <Setter Property="FontSize" Value="14" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="Button.ActionCancel">
-      <Setter Property="MinWidth" Value="80" />
-      <Setter Property="Padding" Value="12,6" />
-      <Setter Property="FontSize" Value="14" />
-      <Setter Property="HorizontalContentAlignment" Value="Center" />
-    </Style>
-  </Window.Styles>
-
   <DockPanel Margin="20,16">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
