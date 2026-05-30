@@ -29,11 +29,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
+    [NotifyPropertyChangedFor(nameof(NoSnapshotDisplay))]
     private VenueItem? _selectedVenue;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSnapshots))]
     [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
+    [NotifyPropertyChangedFor(nameof(SnapshotCountDisplay))]
     private ObservableCollection<SeatingSnapshot> _snapshots = [];
 
     [ObservableProperty]
@@ -54,6 +56,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public bool IsNotBatchMode => !IsBatchDeleteMode;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectAllDisplay))]
     private ObservableCollection<SelectableItem> _checkableItems = [];
 
     [ObservableProperty]

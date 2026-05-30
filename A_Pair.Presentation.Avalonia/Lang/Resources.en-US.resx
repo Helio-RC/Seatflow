@@ -2340,4 +2340,10 @@ Diagnostics saved to: {1}</value>
   <data name="Startup_UnsupportedOS" xml:space="preserve">
     <value>The current operating system {0} has not been fully tested and may have compatibility issues.</value>
   </data>
+  <data name="Seating_ExcelDefault" xml:space="preserve">
+    <value>Seating.xlsx</value>
+  </data>
+  <data name="Seating_CsvDefault" xml:space="preserve">
+    <value>Seating.csv</value>
+  </data>
 </root>

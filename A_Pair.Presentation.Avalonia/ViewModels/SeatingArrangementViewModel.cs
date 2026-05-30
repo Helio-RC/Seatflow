@@ -783,11 +783,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task ExportExcelAsync () => await ExportAsync(ExportFormat.Excel ,
-        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , "座位安排.xlsx");
+        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , Resources.Seating_ExcelDefault);
 
     [RelayCommand]
     private async Task ExportCsvAsync () => await ExportAsync(ExportFormat.Csv ,
-        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , "座位安排.csv");
+        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , Resources.Seating_CsvDefault);
 
     [RelayCommand]
     private async Task ExportPdfAsync () => await ExportAsync(ExportFormat.Pdf ,

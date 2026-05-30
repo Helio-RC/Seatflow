@@ -27,6 +27,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyPropertyChangedFor(nameof(PriorityDisplay))]
+    [NotifyPropertyChangedFor(nameof(EnableTooltipDisplay))]
     private StrategyItemViewModel? _selectedStrategy;
 
     public bool HasSelection => SelectedStrategy is not null;
@@ -48,6 +50,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDetail))]
+    [NotifyPropertyChangedFor(nameof(DetailSourceDisplay))]
+    [NotifyPropertyChangedFor(nameof(DetailAuthorDisplay))]
+    [NotifyPropertyChangedFor(nameof(DetailCategoryDisplay))]
+    [NotifyPropertyChangedFor(nameof(DetailDefaultPriorityDisplay))]
     private StrategyDisplayInfo? _selectedDetail;
 
     public bool HasDetail => SelectedDetail is not null && !string.IsNullOrEmpty(SelectedDetail.Id);

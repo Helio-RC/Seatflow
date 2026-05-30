@@ -604,4 +604,6 @@ public class Resources
     public static string About_Avalonia => ResourceManager.GetString("About_Avalonia", Culture)!;
     public static string Startup_DotNetVersion => ResourceManager.GetString("Startup_DotNetVersion", Culture)!;
     public static string Startup_UnsupportedOS => ResourceManager.GetString("Startup_UnsupportedOS", Culture)!;
+    public static string Seating_ExcelDefault => ResourceManager.GetString("Seating_ExcelDefault", Culture)!;
+    public static string Seating_CsvDefault => ResourceManager.GetString("Seating_CsvDefault", Culture)!;
 }

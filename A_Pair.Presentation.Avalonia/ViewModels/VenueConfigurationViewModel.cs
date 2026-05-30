@@ -215,7 +215,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         if (SelectedVenueItem == null) return;
         var item = SelectedVenueItem;
-        var confirmed = await Dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm , $"确定要删除会场「{item.Name}」吗？此操作不可恢复。");
+        var confirmed = await Dialog.ShowConfirmAsync(Resources.Venue_DeleteConfirm ,
+            string.Format(Resources.Venue_DeleteConfirmMsgFmt , item.Name));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
