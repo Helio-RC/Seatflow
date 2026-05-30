@@ -3,7 +3,7 @@
     "name": "DeskMate",
     "displayName": "同桌分组",
     "version": "1.0.0",
-    "description": "将同组学生分配到相邻座位。支持同行或同列相邻，组内学生坐在一起。",
+    "description": "将同组人员分配到相邻座位。支持同行或同列相邻，组内学生坐在一起。",
     "author": "A_Pair Team",
     "category": "grouping",
     "defaultPriority": 50,

@@ -3,7 +3,7 @@
     "name": "FrontRowRotation",
     "displayName": "前排轮换",
     "version": "1.0.0",
-    "description": "按优先级自动分配前排座位。有视力需求的学生优先坐前排，坐过前排的学生下次排座自动后移，确保轮流公平。",
+    "description": "按优先级自动分配前排座位。有视力需求的人员优先坐前排，坐过前排的人员下次排座自动后移，确保轮流公平。",
     "author": "A_Pair Team",
     "category": "rotation",
     "defaultPriority": 30,

@@ -3,7 +3,7 @@
     "name": "FixedSeat",
     "displayName": "固定座位",
     "version": "1.0.0",
-    "description": "将指定学生强制分配到固定座位。优先级最高，其他策略无法覆盖。",
+    "description": "将指定人员强制分配到固定座位。优先级最高，其他策略无法覆盖。",
     "author": "A_Pair Team",
     "category": "assignment",
     "defaultPriority": 100,

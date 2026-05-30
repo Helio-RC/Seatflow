@@ -223,8 +223,6 @@
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding StudentCountDisplay}"
-                   FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         <TextBlock Text="{Binding StatusMessage}" Classes="caption"
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
       </DockPanel>
