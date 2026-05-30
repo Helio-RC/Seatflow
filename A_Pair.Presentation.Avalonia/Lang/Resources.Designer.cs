@@ -396,7 +396,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 确认清除 的本地化字符串。
         /// </summary>
-        public static string Data_ClearConfirm {
+        public static string Member_ClearConfirm {
             get {
                 return ResourceManager.GetString("Member_ClearConfirm", resourceCulture);
             }
@@ -405,7 +405,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 确定要清除当前导入的 {0} 名学生数据吗？ 的本地化字符串。
         /// </summary>
-        public static string Data_ClearConfirmMsg {
+        public static string Member_ClearConfirmMsg {
             get {
                 return ResourceManager.GetString("Member_ClearConfirmMsg", resourceCulture);
             }
@@ -423,7 +423,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据集文件不存在 的本地化字符串。
         /// </summary>
-        public static string Data_DatasetNotFound {
+        public static string Member_DatasetNotFound {
             get {
                 return ResourceManager.GetString("Member_DatasetNotFound", resourceCulture);
             }
@@ -441,7 +441,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据源: {0} 的本地化字符串。
         /// </summary>
-        public static string Data_DataSourceFmt {
+        public static string Member_DataSourceFmt {
             get {
                 return ResourceManager.GetString("Member_DataSourceFmt", resourceCulture);
             }
@@ -460,7 +460,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         ///   查找类似 确定要删除数据集「{0}」吗？
         ///此操作不可撤销。 的本地化字符串。
         /// </summary>
-        public static string Data_DeleteConfirmMsg {
+        public static string Member_DeleteConfirmMsg {
             get {
                 return ResourceManager.GetString("Member_DeleteConfirmMsg", resourceCulture);
             }
@@ -469,7 +469,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据集已删除 的本地化字符串。
         /// </summary>
-        public static string Data_Deleted {
+        public static string Member_Deleted {
             get {
                 return ResourceManager.GetString("Member_Deleted", resourceCulture);
             }
@@ -478,7 +478,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 删除失败 的本地化字符串。
         /// </summary>
-        public static string Data_DeleteFailed {
+        public static string Member_DeleteFailed {
             get {
                 return ResourceManager.GetString("Member_DeleteFailed", resourceCulture);
             }
@@ -487,7 +487,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据集为空 的本地化字符串。
         /// </summary>
-        public static string Data_EmptyDataset {
+        public static string Member_EmptyDataset {
             get {
                 return ResourceManager.GetString("Member_EmptyDataset", resourceCulture);
             }
@@ -496,7 +496,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 点击「导入」或从左侧加载已保存的数据集 的本地化字符串。
         /// </summary>
-        public static string Data_EmptyHint {
+        public static string Member_EmptyHint {
             get {
                 return ResourceManager.GetString("Member_EmptyHint", resourceCulture);
             }
@@ -523,7 +523,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导出 CSV 的本地化字符串。
         /// </summary>
-        public static string Data_ExportCSV {
+        public static string Member_ExportCSV {
             get {
                 return ResourceManager.GetString("Member_ExportCSV", resourceCulture);
             }
@@ -532,7 +532,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导出完成 的本地化字符串。
         /// </summary>
-        public static string Data_ExportDone {
+        public static string Member_ExportDone {
             get {
                 return ResourceManager.GetString("Member_ExportDone", resourceCulture);
             }
@@ -552,7 +552,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         ///   查找类似 无法导出学生数据。
         ///{0} 的本地化字符串。
         /// </summary>
-        public static string Data_ExportErrorFmt {
+        public static string Member_ExportErrorFmt {
             get {
                 return ResourceManager.GetString("Member_ExportErrorFmt", resourceCulture);
             }
@@ -561,7 +561,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导出 Excel 的本地化字符串。
         /// </summary>
-        public static string Data_ExportExcel {
+        public static string Member_ExportExcel {
             get {
                 return ResourceManager.GetString("Member_ExportExcel", resourceCulture);
             }
@@ -570,7 +570,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导出失败 的本地化字符串。
         /// </summary>
-        public static string Data_ExportFailed {
+        public static string Member_ExportFailed {
             get {
                 return ResourceManager.GetString("Member_ExportFailed", resourceCulture);
             }
@@ -579,7 +579,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 正在导出... 的本地化字符串。
         /// </summary>
-        public static string Data_Exporting {
+        public static string Member_Exporting {
             get {
                 return ResourceManager.GetString("Member_Exporting", resourceCulture);
             }
@@ -588,7 +588,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导出 JSON 的本地化字符串。
         /// </summary>
-        public static string Data_ExportJSON {
+        public static string Member_ExportJSON {
             get {
                 return ResourceManager.GetString("Member_ExportJSON", resourceCulture);
             }
@@ -597,7 +597,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导出: 的本地化字符串。
         /// </summary>
-        public static string Data_ExportLabel {
+        public static string Member_ExportLabel {
             get {
                 return ResourceManager.GetString("Member_ExportLabel", resourceCulture);
             }
@@ -624,7 +624,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 找不到文件：{0} 的本地化字符串。
         /// </summary>
-        public static string Data_FileNotFoundFmt {
+        public static string Member_FileNotFoundFmt {
             get {
                 return ResourceManager.GetString("Member_FileNotFoundFmt", resourceCulture);
             }
@@ -633,7 +633,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 需要前排 的本地化字符串。
         /// </summary>
-        public static string Data_FrontRow {
+        public static string Member_FrontRow {
             get {
                 return ResourceManager.GetString("Member_FrontRow", resourceCulture);
             }
@@ -642,7 +642,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 需要前排座位（如视力不佳等特殊应用） 的本地化字符串。
         /// </summary>
-        public static string Data_FrontRowTooltip {
+        public static string Member_FrontRowTooltip {
             get {
                 return ResourceManager.GetString("Member_FrontRowTooltip", resourceCulture);
             }
@@ -651,7 +651,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 性别 的本地化字符串。
         /// </summary>
-        public static string Data_Gender {
+        public static string Member_Gender {
             get {
                 return ResourceManager.GetString("Member_Gender", resourceCulture);
             }
@@ -660,7 +660,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 第 {0} 行 &quot;{1}&quot;：性别值无效 的本地化字符串。
         /// </summary>
-        public static string Data_GenderInvalidFmt {
+        public static string Member_GenderInvalidFmt {
             get {
                 return ResourceManager.GetString("Member_GenderInvalidFmt", resourceCulture);
             }
@@ -669,7 +669,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 性别：男、女 或 其他。留空表示未知。 的本地化字符串。
         /// </summary>
-        public static string Data_GenderTooltip {
+        public static string Member_GenderTooltip {
             get {
                 return ResourceManager.GetString("Member_GenderTooltip", resourceCulture);
             }
@@ -678,7 +678,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 获取模板 的本地化字符串。
         /// </summary>
-        public static string Data_GetTemplate {
+        public static string Member_GetTemplate {
             get {
                 return ResourceManager.GetString("Member_GetTemplate", resourceCulture);
             }
@@ -687,7 +687,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 身高 (cm) 的本地化字符串。
         /// </summary>
-        public static string Data_Height {
+        public static string Member_Height {
             get {
                 return ResourceManager.GetString("Member_Height", resourceCulture);
             }
@@ -696,7 +696,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 第 {0} 行 &quot;{1}&quot;：身高必须为正数 的本地化字符串。
         /// </summary>
-        public static string Data_HeightInvalidFmt {
+        public static string Member_HeightInvalidFmt {
             get {
                 return ResourceManager.GetString("Member_HeightInvalidFmt", resourceCulture);
             }
@@ -705,7 +705,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 身高 cm 的本地化字符串。
         /// </summary>
-        public static string Data_HeightPH {
+        public static string Member_HeightPH {
             get {
                 return ResourceManager.GetString("Member_HeightPH", resourceCulture);
             }
@@ -714,7 +714,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 身高（厘米），如 170.5。留空表示未知。 的本地化字符串。
         /// </summary>
-        public static string Data_HeightTooltip {
+        public static string Member_HeightTooltip {
             get {
                 return ResourceManager.GetString("Member_HeightTooltip", resourceCulture);
             }
@@ -732,7 +732,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导入数据 的本地化字符串。
         /// </summary>
-        public static string Data_ImportData {
+        public static string Member_ImportData {
             get {
                 return ResourceManager.GetString("Member_ImportData", resourceCulture);
             }
@@ -770,7 +770,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         ///   查找类似 无法导入学生数据。
         ///{0} 的本地化字符串。
         /// </summary>
-        public static string Data_ImportErrorFmt {
+        public static string Member_ImportErrorFmt {
             get {
                 return ResourceManager.GetString("Member_ImportErrorFmt", resourceCulture);
             }
@@ -779,7 +779,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导入失败 的本地化字符串。
         /// </summary>
-        public static string Data_ImportFailed {
+        public static string Member_ImportFailed {
             get {
                 return ResourceManager.GetString("Member_ImportFailed", resourceCulture);
             }
@@ -788,7 +788,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 从文件导入 的本地化字符串。
         /// </summary>
-        public static string Data_ImportFromFile {
+        public static string Member_ImportFromFile {
             get {
                 return ResourceManager.GetString("Member_ImportFromFile", resourceCulture);
             }
@@ -797,7 +797,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 正在导入... 的本地化字符串。
         /// </summary>
-        public static string Data_Importing {
+        public static string Member_Importing {
             get {
                 return ResourceManager.GetString("Member_Importing", resourceCulture);
             }
@@ -806,7 +806,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 导入结果 的本地化字符串。
         /// </summary>
-        public static string Data_ImportResult {
+        public static string Member_ImportResult {
             get {
                 return ResourceManager.GetString("Member_ImportResult", resourceCulture);
             }
@@ -824,7 +824,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 已加载 {0} 名学生 的本地化字符串。
         /// </summary>
-        public static string Data_LoadedFmt {
+        public static string Member_LoadedFmt {
             get {
                 return ResourceManager.GetString("Member_LoadedFmt", resourceCulture);
             }
@@ -842,7 +842,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 正在加载... 的本地化字符串。
         /// </summary>
-        public static string Data_Loading {
+        public static string Member_Loading {
             get {
                 return ResourceManager.GetString("Member_Loading", resourceCulture);
             }
@@ -851,7 +851,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 姓名 的本地化字符串。
         /// </summary>
-        public static string Data_Name {
+        public static string Member_Name {
             get {
                 return ResourceManager.GetString("Member_Name", resourceCulture);
             }
@@ -860,7 +860,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 第 {0} 行：姓名不能为空 的本地化字符串。
         /// </summary>
-        public static string Data_NameEmptyFmt {
+        public static string Member_NameEmptyFmt {
             get {
                 return ResourceManager.GetString("Member_NameEmptyFmt", resourceCulture);
             }
@@ -869,7 +869,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 必填，姓名 的本地化字符串。
         /// </summary>
-        public static string Data_NamePlaceholder {
+        public static string Member_NamePlaceholder {
             get {
                 return ResourceManager.GetString("Member_NamePlaceholder", resourceCulture);
             }
@@ -878,7 +878,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 必填。学生姓名，不能为空。 的本地化字符串。
         /// </summary>
-        public static string Data_NameTooltip {
+        public static string Member_NameTooltip {
             get {
                 return ResourceManager.GetString("Member_NameTooltip", resourceCulture);
             }
@@ -887,7 +887,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 当前没有可导出的学生数据。 的本地化字符串。
         /// </summary>
-        public static string Data_NoDataToExport {
+        public static string Member_NoDataToExport {
             get {
                 return ResourceManager.GetString("Member_NoDataToExport", resourceCulture);
             }
@@ -896,7 +896,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 未导入任何学生数据 的本地化字符串。
         /// </summary>
-        public static string Data_NoImport {
+        public static string Member_NoImport {
             get {
                 return ResourceManager.GetString("Member_NoImport", resourceCulture);
             }
@@ -905,7 +905,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 文件中没有读取到有效的学生数据，请检查文件格式是否正确。 的本地化字符串。
         /// </summary>
-        public static string Data_NoValidStudents {
+        public static string Member_NoValidStudents {
             get {
                 return ResourceManager.GetString("Member_NoValidStudents", resourceCulture);
             }
@@ -914,7 +914,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 操作 的本地化字符串。
         /// </summary>
-        public static string Data_Operations {
+        public static string Member_Operations {
             get {
                 return ResourceManager.GetString("Member_Operations", resourceCulture);
             }
@@ -932,7 +932,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 {0} 人 的本地化字符串。
         /// </summary>
-        public static string Data_PersonCountFmt {
+        public static string Member_PersonCountFmt {
             get {
                 return ResourceManager.GetString("Member_PersonCountFmt", resourceCulture);
             }
@@ -941,7 +941,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 就绪，请导入学生数据 的本地化字符串。
         /// </summary>
-        public static string Data_Ready {
+        public static string Member_Ready {
             get {
                 return ResourceManager.GetString("Member_Ready", resourceCulture);
             }
@@ -950,7 +950,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据集已重命名 的本地化字符串。
         /// </summary>
-        public static string Data_Renamed {
+        public static string Member_Renamed {
             get {
                 return ResourceManager.GetString("Member_Renamed", resourceCulture);
             }
@@ -959,7 +959,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 重命名失败 的本地化字符串。
         /// </summary>
-        public static string Data_RenameFailed {
+        public static string Member_RenameFailed {
             get {
                 return ResourceManager.GetString("Member_RenameFailed", resourceCulture);
             }
@@ -968,7 +968,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 请输入「{0}」的新名称： 的本地化字符串。
         /// </summary>
-        public static string Data_RenamePrompt {
+        public static string Member_RenamePrompt {
             get {
                 return ResourceManager.GetString("Member_RenamePrompt", resourceCulture);
             }
@@ -977,7 +977,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 重命名数据集 的本地化字符串。
         /// </summary>
-        public static string Data_RenameTitle {
+        public static string Member_RenameTitle {
             get {
                 return ResourceManager.GetString("Member_RenameTitle", resourceCulture);
             }
@@ -986,7 +986,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 学生导入模板.xlsx 的本地化字符串。
         /// </summary>
-        public static string Data_SampleFileCN {
+        public static string Member_SampleFileCN {
             get {
                 return ResourceManager.GetString("Member_SampleFileCN", resourceCulture);
             }
@@ -995,7 +995,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 输入新数据集名称，原数据集不会被修改： 的本地化字符串。
         /// </summary>
-        public static string Data_SaveAsPrompt {
+        public static string Member_SaveAsPrompt {
             get {
                 return ResourceManager.GetString("Member_SaveAsPrompt", resourceCulture);
             }
@@ -1004,7 +1004,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 另存为 的本地化字符串。
         /// </summary>
-        public static string Data_SaveAsTitle {
+        public static string Member_SaveAsTitle {
             get {
                 return ResourceManager.GetString("Member_SaveAsTitle", resourceCulture);
             }
@@ -1013,7 +1013,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 确认保存 的本地化字符串。
         /// </summary>
-        public static string Data_SaveConfirm {
+        public static string Member_SaveConfirm {
             get {
                 return ResourceManager.GetString("Member_SaveConfirm", resourceCulture);
             }
@@ -1022,7 +1022,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 将覆盖数据集「{0}」（{1} 名学生），确定继续？ 的本地化字符串。
         /// </summary>
-        public static string Data_SaveConfirmMsg {
+        public static string Member_SaveConfirmMsg {
             get {
                 return ResourceManager.GetString("Member_SaveConfirmMsg", resourceCulture);
             }
@@ -1031,7 +1031,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 已保存为「{0}」 的本地化字符串。
         /// </summary>
-        public static string Data_SavedAsFmt {
+        public static string Member_SavedAsFmt {
             get {
                 return ResourceManager.GetString("Member_SavedAsFmt", resourceCulture);
             }
@@ -1040,7 +1040,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 保存数据集 的本地化字符串。
         /// </summary>
-        public static string Data_SaveDataset {
+        public static string Member_SaveDataset {
             get {
                 return ResourceManager.GetString("Member_SaveDataset", resourceCulture);
             }
@@ -1049,7 +1049,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 已保存数据集 的本地化字符串。
         /// </summary>
-        public static string Data_SavedDatasets {
+        public static string Member_SavedDatasets {
             get {
                 return ResourceManager.GetString("Member_SavedDatasets", resourceCulture);
             }
@@ -1058,7 +1058,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 已保存「{0}」 的本地化字符串。
         /// </summary>
-        public static string Data_SavedFmt {
+        public static string Member_SavedFmt {
             get {
                 return ResourceManager.GetString("Member_SavedFmt", resourceCulture);
             }
@@ -1076,7 +1076,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 共 {0} 名学生 的本地化字符串。
         /// </summary>
-        public static string Data_StudentCountFmt {
+        public static string Member_StudentCountFmt {
             get {
                 return ResourceManager.GetString("Member_StudentCountFmt", resourceCulture);
             }
@@ -1085,7 +1085,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 学生数据文件 的本地化字符串。
         /// </summary>
-        public static string Data_StudentDataFile {
+        public static string Member_StudentDataFile {
             get {
                 return ResourceManager.GetString("Member_StudentDataFile", resourceCulture);
             }
@@ -1094,7 +1094,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 模板缺失 的本地化字符串。
         /// </summary>
-        public static string Data_TemplateMissing {
+        public static string Member_TemplateMissing {
             get {
                 return ResourceManager.GetString("Member_TemplateMissing", resourceCulture);
             }
@@ -1103,7 +1103,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 未找到内置模板文件，请将模板放入 Assets/Files/ 目录。 的本地化字符串。
         /// </summary>
-        public static string Data_TemplateMissingMsg {
+        public static string Member_TemplateMissingMsg {
             get {
                 return ResourceManager.GetString("Member_TemplateMissingMsg", resourceCulture);
             }
@@ -1122,7 +1122,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         ///   查找类似 无法保存模板文件。
         ///{0} 的本地化字符串。
         /// </summary>
-        public static string Data_TemplateSaveError {
+        public static string Member_TemplateSaveError {
             get {
                 return ResourceManager.GetString("Member_TemplateSaveError", resourceCulture);
             }
@@ -1140,7 +1140,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据管理 的本地化字符串。
         /// </summary>
-        public static string Data_Title {
+        public static string Member_Title {
             get {
                 return ResourceManager.GetString("Member_Title", resourceCulture);
             }
@@ -1158,7 +1158,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 未命名 的本地化字符串。
         /// </summary>
-        public static string Data_Unnamed {
+        public static string Member_Unnamed {
             get {
                 return ResourceManager.GetString("Member_Unnamed", resourceCulture);
             }

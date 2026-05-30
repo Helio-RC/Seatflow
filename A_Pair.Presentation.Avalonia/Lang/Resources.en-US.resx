@@ -174,35 +174,35 @@
     <value>Confirm clear</value>
   </data>
   <data name="Member_ClearConfirmMsg" xml:space="preserve">
-    <value>Clear {0} imported students?</value>
+    <value>Clear {0} imported members?</value>
   </data>
   <data name="Member_DataSourceFmt" xml:space="preserve">
     <value>Source: {0}</value>
   </data>
-  <data name="Member_DatasetNotFound" xml:space="preserve">
-    <value>Dataset file not found</value>
+  <data name="Member_Member SetNotFound" xml:space="preserve">
+    <value>Member Set file not found</value>
   </data>
-  <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
-    <value>Dataset file "{0}" not found.</value>
+  <data name="Data_Member SetNotFoundMsg" xml:space="preserve">
+    <value>Member Set file "{0}" not found.</value>
   </data>
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>Confirm delete</value>
   </data>
   <data name="Member_DeleteConfirmMsg" xml:space="preserve">
-    <value>Delete dataset "{0}"?
+    <value>Delete member set "{0}"?
 This cannot be undone.</value>
   </data>
   <data name="Member_DeleteFailed" xml:space="preserve">
     <value>Delete failed</value>
   </data>
   <data name="Member_Deleted" xml:space="preserve">
-    <value>Dataset deleted</value>
+    <value>Member Set deleted</value>
   </data>
-  <data name="Member_EmptyDataset" xml:space="preserve">
-    <value>Dataset is empty</value>
+  <data name="Member_EmptyMember Set" xml:space="preserve">
+    <value>Member Set is empty</value>
   </data>
   <data name="Member_EmptyHint" xml:space="preserve">
-    <value>Click Import or load a saved dataset</value>
+    <value>Click Import or load a saved member set</value>
   </data>
   <data name="Data_ExcelFile" xml:space="preserve">
     <value>Excel file</value>
@@ -217,11 +217,11 @@ This cannot be undone.</value>
     <value>Export complete</value>
   </data>
   <data name="Data_ExportError" xml:space="preserve">
-    <value>Cannot export student data.
+    <value>Cannot export member data.
 {0}</value>
   </data>
   <data name="Member_ExportErrorFmt" xml:space="preserve">
-    <value>Cannot export student data.
+    <value>Cannot export member data.
 {0}</value>
   </data>
   <data name="Member_ExportExcel" xml:space="preserve">
@@ -285,11 +285,11 @@ This cannot be undone.</value>
     <value>Import data</value>
   </data>
   <data name="Data_ImportError" xml:space="preserve">
-    <value>Cannot import student data.
+    <value>Cannot import member data.
 {0}</value>
   </data>
   <data name="Member_ImportErrorFmt" xml:space="preserve">
-    <value>Cannot import student data.
+    <value>Cannot import member data.
 {0}</value>
   </data>
   <data name="Member_ImportFailed" xml:space="preserve">
@@ -302,10 +302,10 @@ This cannot be undone.</value>
     <value>Import result</value>
   </data>
   <data name="Data_ImportedCountFmt" xml:space="preserve">
-    <value>{0} students imported</value>
+    <value>{0} members imported</value>
   </data>
   <data name="Data_ImportedFmt" xml:space="preserve">
-    <value>{0} students imported</value>
+    <value>{0} members imported</value>
   </data>
   <data name="Member_Importing" xml:space="preserve">
     <value>Importing...</value>
@@ -317,7 +317,7 @@ This cannot be undone.</value>
     <value>Load failed</value>
   </data>
   <data name="Member_LoadedFmt" xml:space="preserve">
-    <value>{0} students loaded</value>
+    <value>{0} members loaded</value>
   </data>
   <data name="Member_Loading" xml:space="preserve">
     <value>Loading...</value>
@@ -332,16 +332,16 @@ This cannot be undone.</value>
     <value>Required, name</value>
   </data>
   <data name="Member_NameTooltip" xml:space="preserve">
-    <value>Required. Student name, cannot be empty.</value>
+    <value>Required. Member name, cannot be empty.</value>
   </data>
   <data name="Member_NoDataToExport" xml:space="preserve">
-    <value>No student data to export.</value>
+    <value>No member data to export.</value>
   </data>
   <data name="Member_NoImport" xml:space="preserve">
-    <value>No student data imported</value>
+    <value>No member data imported</value>
   </data>
-  <data name="Member_NoValidStudents" xml:space="preserve">
-    <value>No valid student data found in file.</value>
+  <data name="Member_NoValidMembers" xml:space="preserve">
+    <value>No valid member data found in file.</value>
   </data>
   <data name="Member_Operations" xml:space="preserve">
     <value>Actions</value>
@@ -353,7 +353,7 @@ This cannot be undone.</value>
     <value>{0}</value>
   </data>
   <data name="Member_Ready" xml:space="preserve">
-    <value>Ready. Import student data</value>
+    <value>Ready. Import person data</value>
   </data>
   <data name="Member_RenameFailed" xml:space="preserve">
     <value>Rename failed</value>
@@ -362,16 +362,16 @@ This cannot be undone.</value>
     <value>Enter new name for "{0}":</value>
   </data>
   <data name="Member_RenameTitle" xml:space="preserve">
-    <value>Rename dataset</value>
+    <value>Rename member set</value>
   </data>
   <data name="Member_Renamed" xml:space="preserve">
-    <value>Dataset renamed</value>
+    <value>Member Set renamed</value>
   </data>
   <data name="Member_SampleFileCN" xml:space="preserve">
-    <value>Student import template.xlsx</value>
+    <value>Person import template.xlsx</value>
   </data>
   <data name="Member_SaveAsPrompt" xml:space="preserve">
-    <value>Enter new dataset name:</value>
+    <value>Enter new member set name:</value>
   </data>
   <data name="Member_SaveAsTitle" xml:space="preserve">
     <value>Save as</value>
@@ -380,10 +380,10 @@ This cannot be undone.</value>
     <value>Confirm save</value>
   </data>
   <data name="Member_SaveConfirmMsg" xml:space="preserve">
-    <value>Overwrite dataset "{0}" ({1} students)?</value>
+    <value>Overwrite member set "{0}" ({1} students)?</value>
   </data>
-  <data name="Member_SaveDataset" xml:space="preserve">
-    <value>Save dataset</value>
+  <data name="Member_SaveMember Set" xml:space="preserve">
+    <value>Save member set</value>
   </data>
   <data name="Data_SaveFailed" xml:space="preserve">
     <value>Save failed</value>
@@ -391,17 +391,17 @@ This cannot be undone.</value>
   <data name="Member_SavedAsFmt" xml:space="preserve">
     <value>Saved as "{0}"</value>
   </data>
-  <data name="Member_SavedDatasets" xml:space="preserve">
-    <value>Saved datasets</value>
+  <data name="Member_SavedMember Sets" xml:space="preserve">
+    <value>Saved member sets</value>
   </data>
   <data name="Member_SavedFmt" xml:space="preserve">
     <value>"{0}" saved</value>
   </data>
-  <data name="Member_StudentCountFmt" xml:space="preserve">
+  <data name="Member_PersonCountFmt" xml:space="preserve">
     <value>{0} students</value>
   </data>
-  <data name="Member_StudentDataFile" xml:space="preserve">
-    <value>Student data files</value>
+  <data name="Member_PersonDataFile" xml:space="preserve">
+    <value>Person data files</value>
   </data>
   <data name="Member_TemplateMissing" xml:space="preserve">
     <value>Template missing</value>
@@ -843,14 +843,14 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_ManualSnapshotFmt" xml:space="preserve">
     <value>Manual save - {0}</value>
   </data>
-  <data name="Seating_NoStudents" xml:space="preserve">
-    <value>No students in dataset</value>
+  <data name="Seating_NoPeople" xml:space="preserve">
+    <value>No people in member set</value>
   </data>
   <data name="Seating_NotGenerated" xml:space="preserve">
     <value>No seating generated yet</value>
   </data>
   <data name="Seating_NotGeneratedHint" xml:space="preserve">
-    <value>Select a venue and dataset from the left panel, then click Generate</value>
+    <value>Select a venue and member set from the left panel, then click Generate</value>
   </data>
   <data name="Seating_Obstacle" xml:space="preserve">
     <value>Obstacle</value>
@@ -877,7 +877,7 @@ Place plugins in the Plugins directory</value>
     <value>Ready</value>
   </data>
   <data name="Seating_ReadyHint" xml:space="preserve">
-    <value>Ready. Select a venue and dataset to generate seating</value>
+    <value>Ready. Select a venue and member set to generate seating</value>
   </data>
   <data name="Seating_Redo" xml:space="preserve">
     <value>Redo</value>
@@ -921,11 +921,11 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_SnapshotSaved" xml:space="preserve">
     <value>Saved to snapshot</value>
   </data>
-  <data name="Seating_StudentData" xml:space="preserve">
-    <value>Student data</value>
+  <data name="Seating_PersonData" xml:space="preserve">
+    <value>Person data</value>
   </data>
-  <data name="Seating_StudentDatasetList" xml:space="preserve">
-    <value>Student dataset list</value>
+  <data name="Seating_PersonMember SetList" xml:space="preserve">
+    <value>Person member set list</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
     <value>Swap: {0} ↔ {1}</value>
@@ -942,7 +942,7 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_Unassigned" xml:space="preserve">
     <value>Unassigned: </value>
   </data>
-  <data name="Seating_UnassignedStudents" xml:space="preserve">
+  <data name="Seating_UnassignedPeople" xml:space="preserve">
     <value>Unassigned students</value>
   </data>
   <data name="Seating_Undo" xml:space="preserve">
@@ -966,8 +966,8 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_Venue" xml:space="preserve">
     <value>Venue</value>
   </data>
-  <data name="Seating_VenueDatasetDesc" xml:space="preserve">
-    <value>Venue "{0}" × dataset "{1}"</value>
+  <data name="Seating_VenueMember SetDesc" xml:space="preserve">
+    <value>Venue "{0}" × member set "{1}"</value>
   </data>
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
     <value>Venue "{0}" selected, {1} seats</value>
@@ -1119,7 +1119,7 @@ This cannot be undone.</value>
     <value>Data changed</value>
   </data>
   <data name="Snapshot_DataChangedMsg" xml:space="preserve">
-    <value>Some students have been removed from the dataset.</value>
+    <value>Some people have been removed from the member set.</value>
   </data>
   <data name="Snapshot_DataChangedText" xml:space="preserve">
     <value>Data changed</value>
@@ -1497,7 +1497,7 @@ Current seating will be overwritten.</value>
     <value>Inner-desk spacing (px), 4-200.</value>
   </data>
   <data name="Venue_DeskSize" xml:space="preserve">
-    <value>Students per desk</value>
+    <value>People per desk</value>
   </data>
   <data name="Venue_DeskSizeTooltip" xml:space="preserve">
     <value>Seats per desk, 1-6. Usually 2.</value>

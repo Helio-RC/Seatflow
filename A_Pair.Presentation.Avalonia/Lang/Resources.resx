@@ -174,7 +174,7 @@
     <value>确认清除</value>
   </data>
   <data name="Member_ClearConfirmMsg" xml:space="preserve">
-    <value>确定要清除当前导入的 {0} 名学生数据吗？</value>
+    <value>确定要清除当前导入的 {0} 名人员数据吗？</value>
   </data>
   <data name="Member_DataSourceFmt" xml:space="preserve">
     <value>数据源: {0}</value>
@@ -217,11 +217,11 @@
     <value>导出完成</value>
   </data>
   <data name="Data_ExportError" xml:space="preserve">
-    <value>无法导出学生数据。
+    <value>无法导出数据。
 {0}</value>
   </data>
   <data name="Member_ExportErrorFmt" xml:space="preserve">
-    <value>无法导出学生数据。
+    <value>无法导出数据。
 {0}</value>
   </data>
   <data name="Member_ExportExcel" xml:space="preserve">
@@ -285,11 +285,11 @@
     <value>导入数据</value>
   </data>
   <data name="Data_ImportError" xml:space="preserve">
-    <value>无法导入学生数据。
+    <value>无法导入数据。
 {0}</value>
   </data>
   <data name="Member_ImportErrorFmt" xml:space="preserve">
-    <value>无法导入学生数据。
+    <value>无法导入数据。
 {0}</value>
   </data>
   <data name="Member_ImportFailed" xml:space="preserve">
@@ -302,10 +302,10 @@
     <value>导入结果</value>
   </data>
   <data name="Data_ImportedCountFmt" xml:space="preserve">
-    <value>已导入 {0} 名学生</value>
+    <value>已导入 {0} 名人员</value>
   </data>
   <data name="Data_ImportedFmt" xml:space="preserve">
-    <value>已导入 {0} 名学生</value>
+    <value>已导入 {0} 名人员</value>
   </data>
   <data name="Member_Importing" xml:space="preserve">
     <value>正在导入...</value>
@@ -317,7 +317,7 @@
     <value>加载失败</value>
   </data>
   <data name="Member_LoadedFmt" xml:space="preserve">
-    <value>已加载 {0} 名学生</value>
+    <value>已加载 {0} 名人员</value>
   </data>
   <data name="Member_Loading" xml:space="preserve">
     <value>正在加载...</value>
@@ -332,16 +332,16 @@
     <value>必填，姓名</value>
   </data>
   <data name="Member_NameTooltip" xml:space="preserve">
-    <value>必填。学生姓名，不能为空。</value>
+    <value>必填。姓名，不能为空。</value>
   </data>
   <data name="Member_NoDataToExport" xml:space="preserve">
-    <value>当前没有可导出的学生数据。</value>
+    <value>当前没有可导出的数据。</value>
   </data>
   <data name="Member_NoImport" xml:space="preserve">
-    <value>未导入任何学生数据</value>
+    <value>未导入任何数据</value>
   </data>
   <data name="Member_NoValidStudents" xml:space="preserve">
-    <value>文件中没有读取到有效的学生数据，请检查文件格式是否正确。</value>
+    <value>文件中没有读取到有效的数据，请检查文件格式是否正确。</value>
   </data>
   <data name="Member_Operations" xml:space="preserve">
     <value>操作</value>
@@ -353,7 +353,7 @@
     <value>{0} 人</value>
   </data>
   <data name="Member_Ready" xml:space="preserve">
-    <value>就绪，请导入学生数据</value>
+    <value>就绪，请导入数据</value>
   </data>
   <data name="Member_RenameFailed" xml:space="preserve">
     <value>重命名失败</value>
@@ -368,7 +368,7 @@
     <value>数据集已重命名</value>
   </data>
   <data name="Member_SampleFileCN" xml:space="preserve">
-    <value>学生导入模板.xlsx</value>
+    <value>人员导入模板.xlsx</value>
   </data>
   <data name="Member_SaveAsPrompt" xml:space="preserve">
     <value>输入新数据集名称，原数据集不会被修改：</value>
@@ -380,7 +380,7 @@
     <value>确认保存</value>
   </data>
   <data name="Member_SaveConfirmMsg" xml:space="preserve">
-    <value>将覆盖数据集「{0}」（{1} 名学生），确定继续？</value>
+    <value>将覆盖数据集「{0}」（{1} 名人员），确定继续？</value>
   </data>
   <data name="Member_SaveDataset" xml:space="preserve">
     <value>保存数据集</value>
@@ -398,10 +398,10 @@
     <value>已保存「{0}」</value>
   </data>
   <data name="Member_StudentCountFmt" xml:space="preserve">
-    <value>共 {0} 名学生</value>
+    <value>共 {0} 名人员</value>
   </data>
   <data name="Member_StudentDataFile" xml:space="preserve">
-    <value>学生数据文件</value>
+    <value>数据文件</value>
   </data>
   <data name="Member_TemplateMissing" xml:space="preserve">
     <value>模板缺失</value>
@@ -844,7 +844,7 @@
     <value>手动保存 - {0}</value>
   </data>
   <data name="Seating_NoStudents" xml:space="preserve">
-    <value>数据集中没有学生数据</value>
+    <value>数据集中没有数据</value>
   </data>
   <data name="Seating_NotGenerated" xml:space="preserve">
     <value>尚未生成座位安排</value>
@@ -877,7 +877,7 @@
     <value>就绪</value>
   </data>
   <data name="Seating_ReadyHint" xml:space="preserve">
-    <value>就绪，请选择会场和学生数据集后生成座位安排</value>
+    <value>就绪，请选择会场和数据集后生成座位安排</value>
   </data>
   <data name="Seating_Redo" xml:space="preserve">
     <value>重做</value>
@@ -922,10 +922,10 @@
     <value>已保存到快照</value>
   </data>
   <data name="Seating_StudentData" xml:space="preserve">
-    <value>学生数据</value>
+    <value>数据</value>
   </data>
   <data name="Seating_StudentDatasetList" xml:space="preserve">
-    <value>学生数据集列表</value>
+    <value>数据集列表</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
     <value>交换：{0} ↔ {1}</value>
