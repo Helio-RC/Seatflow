@@ -21,6 +21,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly INavigationService _navigation;
     private readonly ILogger<SnapshotHistoryViewModel> _logger;
+    private int _maxSnapshotsPerVenue = 30;
 
     public string Title { get; } = Resources.Snapshot_Title;
 
@@ -36,6 +37,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSnapshots))]
     [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
     [NotifyPropertyChangedFor(nameof(SnapshotCountDisplay))]
+    [NotifyPropertyChangedFor(nameof(SnapshotQuotaDisplay))]
     private ObservableCollection<SeatingSnapshot> _snapshots = [];
 
     [ObservableProperty]
@@ -108,7 +110,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public string SelectAllDisplay => string.Format(Resources.Snapshot_SelectAllFmt, CheckableItems.Count);
     public string PreviewSeatCountDisplay => SelectedSnapshot?.SeatAssignments?.Count > 0 ? string.Format(Resources.Snapshot_SeatCountFmt, SelectedSnapshot.SeatAssignments.Count) : "";
     public string SnapshotSeatCountDisplay => string.Format(Resources.Snapshot_SeatCountFmt, (SelectedSnapshot?.SeatAssignments?.Count ?? 0));
-    public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt, Snapshots.Count);
+    public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt, Snapshots.Count, _maxSnapshotsPerVenue);
 
     public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation , ILogger<SnapshotHistoryViewModel>? logger = null)
     {
@@ -133,6 +135,15 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         VenueWarningText = string.Empty;
         SelectedSnapshot = null;
         SelectedVenue = null;
+
+        // 加载快照配额设置
+        try
+        {
+            var settings = await _facade.LoadAppSettingsAsync();
+            _maxSnapshotsPerVenue = settings.MaxSnapshotsPerVenue;
+            OnPropertyChanged(nameof(SnapshotQuotaDisplay));
+        }
+        catch { /* 加载失败使用默认值 */ }
 
         await SafeExecuteAsync(async () =>
         {

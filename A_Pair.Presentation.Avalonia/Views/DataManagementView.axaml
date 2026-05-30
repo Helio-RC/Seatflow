@@ -101,7 +101,7 @@
             </StackPanel>
             <Button.Flyout>
               <Flyout>
-                <StackPanel Spacing="2" Width="120" HorizontalAlignment="Center">
+                <StackPanel Spacing="2" Width="130" HorizontalAlignment="Center">
                   <StackPanel.Transitions>
                     <Transitions>
                       <DoubleTransition Property="Opacity" Duration="0:0:0.1"

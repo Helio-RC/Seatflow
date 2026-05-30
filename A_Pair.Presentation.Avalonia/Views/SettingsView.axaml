@@ -141,6 +141,16 @@
                           HorizontalAlignment="Right" />
           </DockPanel>
         </Border>
+
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_MaxSnapshots}"
+                       Classes="body" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding MaxSnapshotsPerVenue, Mode=TwoWay}"
+                           Minimum="0" Maximum="999" Increment="1"
+                           Width="100" HorizontalAlignment="Right" />
+          </DockPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

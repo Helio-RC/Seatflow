@@ -25,7 +25,6 @@ public class Resources
 
     [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Advanced)]
     public static global::System.Globalization.CultureInfo Culture { get; set; } = global::System.Globalization.CultureInfo.CurrentUICulture;
-
     public static string About_Avalonia => ResourceManager.GetString("About_Avalonia", Culture)!;
     public static string About_Dependencies => ResourceManager.GetString("About_Dependencies", Culture)!;
     public static string About_Framework => ResourceManager.GetString("About_Framework", Culture)!;
@@ -350,6 +349,7 @@ public class Resources
     public static string Settings_LanguagePlaceholder => ResourceManager.GetString("Settings_LanguagePlaceholder", Culture)!;
     public static string Settings_LanguageTooltip => ResourceManager.GetString("Settings_LanguageTooltip", Culture)!;
     public static string Settings_LoadFailed => ResourceManager.GetString("Settings_LoadFailed", Culture)!;
+    public static string Settings_MaxSnapshots => ResourceManager.GetString("Settings_MaxSnapshots", Culture)!;
     public static string Settings_OpenDataDir => ResourceManager.GetString("Settings_OpenDataDir", Culture)!;
     public static string Settings_OpenDirFailed => ResourceManager.GetString("Settings_OpenDirFailed", Culture)!;
     public static string Settings_ResetConfirm => ResourceManager.GetString("Settings_ResetConfirm", Culture)!;
