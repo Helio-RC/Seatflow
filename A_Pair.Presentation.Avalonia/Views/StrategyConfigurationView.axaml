@@ -267,10 +267,10 @@
                   Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
             <StackPanel Spacing="14">
-              <TextBlock Text="参数配置：前排轮换" Classes="sectionTitle" />
+              <TextBlock Text="{x:Static lang:Resources.Strategy_FrontRowRotation}" Classes="sectionTitle" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="历史权重 (HistoryWeight)"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_HistoryWeight}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <NumericUpDown Value="{Binding EditHistoryWeight, Mode=TwoWay}"
                                Minimum="0" Maximum="100" Increment="1"
@@ -278,7 +278,7 @@
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="前排需求加分"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_FrontRowBonus}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <NumericUpDown Value="{Binding EditNeedsFrontRowBonus, Mode=TwoWay}"
                                Minimum="0" Maximum="10000" Increment="100"
@@ -300,17 +300,17 @@
                   Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
             <StackPanel Spacing="14">
-              <TextBlock Text="参数配置：同桌分组" Classes="sectionTitle" />
+              <TextBlock Text="{x:Static lang:Resources.Strategy_DeskMate}" Classes="sectionTitle" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="优先水平相邻"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PreferHorizontal}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <ToggleSwitch IsChecked="{Binding EditPreferHorizontal, Mode=TwoWay}"
                               HorizontalAlignment="Right" />
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="允许垂直相邻"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_AllowVertical}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <ToggleSwitch IsChecked="{Binding EditAllowVertical, Mode=TwoWay}"
                               HorizontalAlignment="Right" />

@@ -23,7 +23,7 @@
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
-              <TextBlock Text="删除" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Delete}" FontSize="14" />
             </StackPanel>
           </Button>
           <Button Command="{Binding SaveVenueCommand}"
@@ -32,7 +32,7 @@
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="保存" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -206,37 +206,37 @@
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Rows}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
-                                 PlaceholderText="排数"
+                                 PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="列数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Cols}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridColumns, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
-                                 PlaceholderText="每排座位数"
+                                 PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_HSpacing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
-                                 PlaceholderText="行内间距 px"
+                                 PlaceholderText="{x:Static lang:Resources.Venue_HSpacingPH}"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_HSpacingTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_VSpacing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="1" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
-                                 PlaceholderText="列间距 px"
+                                 PlaceholderText="{x:Static lang:Resources.Venue_VSpacingPH}"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginX}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding GridOriginX, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
-                                 PlaceholderText="起始 X"
+                                 PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginY}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="2" Value="{Binding GridOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
-                                 PlaceholderText="起始 Y"
+                                 PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"/>
                 </Grid>
 
@@ -251,11 +251,11 @@
                       HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="空=使用行数"
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
                            ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}"/>
                   <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DisabledSeats}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 1,3;2,5;3,1"
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
                            ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}"/>
                 </Grid>
               </StackPanel>
@@ -418,7 +418,7 @@
                   <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding PolarEndAngle, Mode=TwoWay}"
                                  Minimum="10" Maximum="360"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_EndAngleTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="2" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginX}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginX, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginXTooltip}"/>
@@ -426,13 +426,13 @@
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_OriginY}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
                                  ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginYTooltip}"/>
                   <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RingSeats}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 8,12,16"
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RingSeatsPH}"
                            ToolTip.Tip="{x:Static lang:Resources.Venue_RingSeatsTooltip}"/>
                 </Grid>
 
@@ -447,7 +447,7 @@
                       HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DisabledSeats}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 1,0;2,90"
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_PolarDisabledPH}"
                            ToolTip.Tip="{x:Static lang:Resources.Venue_PolarDisabledTooltip}"/>
                 </Grid>
               </StackPanel>
@@ -492,7 +492,7 @@
                       HorizontalAlignment="Left">
                   <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RadialAisleAngles}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 0,90,180,270"
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RadialAislePH}"
                            ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleAnglesTooltip}"/>
                   <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RadialAisleWidth}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}"
@@ -501,7 +501,7 @@
 
                   <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RingAislePositions}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 1,3"
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RingAislePH}"
                            ToolTip.Tip="{x:Static lang:Resources.Venue_RingAislePositionsTooltip}"/>
                   <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RingAisleWidth}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}"
@@ -518,7 +518,7 @@
                     CornerRadius="4">
               <StackPanel Spacing="4">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <TextBlock Text="门" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  <TextBlock Text="{x:Static lang:Resources.Venue_DoorSection}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                   <Button Command="{Binding AddDoorCommand}" Padding="8,2" Classes="caption"
                           ToolTip.Tip="{x:Static lang:Resources.Venue_AddDoorTooltip}">
                     <StackPanel Orientation="Horizontal" Spacing="4">

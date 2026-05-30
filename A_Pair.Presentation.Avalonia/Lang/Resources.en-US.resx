@@ -171,6 +171,10 @@
     <value>Clear {0} imported students?</value>
   </data>
 
+  <data name="Data_DataSourceFmt" xml:space="preserve">
+    <value>Source: {0}</value>
+  </data>
+
   <data name="Data_DatasetNotFound" xml:space="preserve">
     <value>Dataset file not found</value>
   </data>
@@ -294,6 +298,10 @@ This cannot be undone.</value>
     <value>Row {0} "{1}": height must be positive</value>
   </data>
 
+  <data name="Data_HeightPH" xml:space="preserve">
+    <value>Height cm</value>
+  </data>
+
   <data name="Data_HeightTooltip" xml:space="preserve">
     <value>Height in cm, e.g. 170.5. Blank for unknown.</value>
   </data>
@@ -390,6 +398,10 @@ This cannot be undone.</value>
 
   <data name="Data_PersonCount" xml:space="preserve">
     <value>{0} students</value>
+  </data>
+
+  <data name="Data_PersonCountFmt" xml:space="preserve">
+    <value>{0}</value>
   </data>
 
   <data name="Data_Ready" xml:space="preserve">
@@ -509,6 +521,14 @@ This cannot be undone.</value>
     <value>Clear data</value>
   </data>
 
+  <data name="Freeform_ColLabel" xml:space="preserve">
+    <value>Col:</value>
+  </data>
+
+  <data name="Freeform_ColPH" xml:space="preserve">
+    <value>Col</value>
+  </data>
+
   <data name="Freeform_Column_Label" xml:space="preserve">
     <value>Column:</value>
   </data>
@@ -559,6 +579,14 @@ This cannot be undone.</value>
 
   <data name="Freeform_EnterLayoutName" xml:space="preserve">
     <value>Enter layout name</value>
+  </data>
+
+  <data name="Freeform_GroupLabel" xml:space="preserve">
+    <value>Grp:</value>
+  </data>
+
+  <data name="Freeform_GroupPH" xml:space="preserve">
+    <value>Group</value>
   </data>
 
   <data name="Freeform_GroupTooltip" xml:space="preserve">
@@ -647,6 +675,14 @@ This cannot be undone.</value>
 
   <data name="Freeform_ReadyHint" xml:space="preserve">
     <value>Ready. Import freeform data or select a layout</value>
+  </data>
+
+  <data name="Freeform_RowLabel" xml:space="preserve">
+    <value>Row:</value>
+  </data>
+
+  <data name="Freeform_RowPH" xml:space="preserve">
+    <value>Row</value>
   </data>
 
   <data name="Freeform_RowXInvalidFmt" xml:space="preserve">
@@ -797,6 +833,10 @@ This cannot be undone.</value>
     <value>About</value>
   </data>
 
+  <data name="Nav_AppShort" xml:space="preserve">
+    <value>A_Pair</value>
+  </data>
+
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>Collapse sidebar</value>
   </data>
@@ -835,6 +875,10 @@ This cannot be undone.</value>
 
   <data name="Nav_StrategyConfig" xml:space="preserve">
     <value>Strategy</value>
+  </data>
+
+  <data name="Nav_ToggleSidebar" xml:space="preserve">
+    <value>Toggle sidebar</value>
   </data>
 
   <data name="Nav_VenueConfig" xml:space="preserve">
@@ -936,6 +980,10 @@ Place plugins in the Plugins directory</value>
 
   <data name="Plugin_VersionFmt" xml:space="preserve">
     <value>Version v{0}</value>
+  </data>
+
+  <data name="Seating_Cancel" xml:space="preserve">
+    <value>Cancel</value>
   </data>
 
   <data name="Seating_CancelSwap" xml:space="preserve">
@@ -1082,6 +1130,10 @@ Place plugins in the Plugins directory</value>
     <value>Restored workspace: {0}/{1} assigned</value>
   </data>
 
+  <data name="Seating_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+
   <data name="Seating_SaveAndLeave" xml:space="preserve">
     <value>Save and leave</value>
   </data>
@@ -1112,6 +1164,10 @@ Place plugins in the Plugins directory</value>
 
   <data name="Seating_StudentData" xml:space="preserve">
     <value>Student data</value>
+  </data>
+
+  <data name="Seating_StudentDatasetList" xml:space="preserve">
+    <value>Student dataset list</value>
   </data>
 
   <data name="Seating_SwapDescFmt" xml:space="preserve">
@@ -1542,6 +1598,10 @@ Current seating will be overwritten.</value>
     <value>{0} venues loaded</value>
   </data>
 
+  <data name="Strategy_AllowVertical" xml:space="preserve">
+    <value>Allow Vertical</value>
+  </data>
+
   <data name="Strategy_AuthorFmt" xml:space="preserve">
     <value>Author: {0}</value>
   </data>
@@ -1556,6 +1616,10 @@ Current seating will be overwritten.</value>
 
   <data name="Strategy_DefaultPriorityFmt" xml:space="preserve">
     <value>Default priority: {0}</value>
+  </data>
+
+  <data name="Strategy_DeskMate" xml:space="preserve">
+    <value>Config: Desk Mate</value>
   </data>
 
   <data name="Strategy_DetailLoadFailed" xml:space="preserve">
@@ -1578,6 +1642,18 @@ Current seating will be overwritten.</value>
 
   <data name="Strategy_EnableLabel" xml:space="preserve">
     <value>Enabled</value>
+  </data>
+
+  <data name="Strategy_FrontRowBonus" xml:space="preserve">
+    <value>Front Row Bonus</value>
+  </data>
+
+  <data name="Strategy_FrontRowRotation" xml:space="preserve">
+    <value>Config: Front Row Rotation</value>
+  </data>
+
+  <data name="Strategy_HistoryWeight" xml:space="preserve">
+    <value>History Weight</value>
   </data>
 
   <data name="Strategy_List" xml:space="preserve">
@@ -1622,6 +1698,10 @@ Current seating will be overwritten.</value>
 
   <data name="Strategy_Plugin" xml:space="preserve">
     <value>Plugin</value>
+  </data>
+
+  <data name="Strategy_PreferHorizontal" xml:space="preserve">
+    <value>Prefer Horizontal</value>
   </data>
 
   <data name="Strategy_PriorityConflict" xml:space="preserve">
@@ -1786,6 +1866,14 @@ Current seating will be overwritten.</value>
     <value>{0}-{1} col ↔ {2}-{3} col</value>
   </data>
 
+  <data name="Venue_Cols" xml:space="preserve">
+    <value>Columns</value>
+  </data>
+
+  <data name="Venue_ColsPH" xml:space="preserve">
+    <value>Seats per row</value>
+  </data>
+
   <data name="Venue_ColsTooltip" xml:space="preserve">
     <value>Number of seat columns, 1-100.</value>
   </data>
@@ -1800,6 +1888,10 @@ Current seating will be overwritten.</value>
 
   <data name="Venue_ColumnRowCountsTooltip" xml:space="preserve">
     <value>Rows per column (comma separated).</value>
+  </data>
+
+  <data name="Venue_DefaultColumnRowCounts" xml:space="preserve">
+    <value>Empty=use rows</value>
   </data>
 
   <data name="Venue_DeleteConfirm" xml:space="preserve">
@@ -1854,12 +1946,20 @@ Current seating will be overwritten.</value>
     <value>Disabled seats</value>
   </data>
 
+  <data name="Venue_DisabledSeatsPH" xml:space="preserve">
+    <value>e.g. 1,3;2,5;3,1</value>
+  </data>
+
   <data name="Venue_DisabledSeatsTooltip" xml:space="preserve">
     <value>Semicolon-separated (row,col) pairs to disable.</value>
   </data>
 
   <data name="Venue_DoorFmt" xml:space="preserve">
     <value>Door {0}</value>
+  </data>
+
+  <data name="Venue_DoorSection" xml:space="preserve">
+    <value>Door</value>
   </data>
 
   <data name="Venue_DoorXTooltip" xml:space="preserve">
@@ -1914,6 +2014,14 @@ Current seating will be overwritten.</value>
     <value>Grid</value>
   </data>
 
+  <data name="Venue_HSpacing" xml:space="preserve">
+    <value>H. spacing</value>
+  </data>
+
+  <data name="Venue_HSpacingPH" xml:space="preserve">
+    <value>Inner spacing px</value>
+  </data>
+
   <data name="Venue_HSpacingTooltip" xml:space="preserve">
     <value>Horizontal base spacing (px), 4-600.</value>
   </data>
@@ -1966,8 +2074,24 @@ Current seating will be overwritten.</value>
     <value>Optional</value>
   </data>
 
+  <data name="Venue_OriginX" xml:space="preserve">
+    <value>Origin X</value>
+  </data>
+
+  <data name="Venue_OriginXPH" xml:space="preserve">
+    <value>Start X</value>
+  </data>
+
   <data name="Venue_OriginXTooltip" xml:space="preserve">
     <value>Starting X position of first column (px), 0-2000.</value>
+  </data>
+
+  <data name="Venue_OriginY" xml:space="preserve">
+    <value>Origin Y</value>
+  </data>
+
+  <data name="Venue_OriginYPH" xml:space="preserve">
+    <value>Start Y</value>
   </data>
 
   <data name="Venue_OriginYTooltip" xml:space="preserve">
@@ -2000,6 +2124,10 @@ Current seating will be overwritten.</value>
 
   <data name="Venue_PolarDisabledFmt" xml:space="preserve">
     <value>R{0} {1:F0}° (disabled)</value>
+  </data>
+
+  <data name="Venue_PolarDisabledPH" xml:space="preserve">
+    <value>e.g. 1,0;2,90</value>
   </data>
 
   <data name="Venue_PolarDisabledTooltip" xml:space="preserve">
@@ -2038,6 +2166,10 @@ Current seating will be overwritten.</value>
     <value>Comma-separated aisle center angles.</value>
   </data>
 
+  <data name="Venue_RadialAislePH" xml:space="preserve">
+    <value>e.g. 0,90,180,270</value>
+  </data>
+
   <data name="Venue_RadialAisleWidth" xml:space="preserve">
     <value>Radial aisle width</value>
   </data>
@@ -2062,6 +2194,10 @@ Current seating will be overwritten.</value>
     <value>Refresh preview</value>
   </data>
 
+  <data name="Venue_RingAislePH" xml:space="preserve">
+    <value>e.g. 1,3</value>
+  </data>
+
   <data name="Venue_RingAislePositions" xml:space="preserve">
     <value>Ring aisle positions</value>
   </data>
@@ -2082,6 +2218,10 @@ Current seating will be overwritten.</value>
     <value>Seats per ring list</value>
   </data>
 
+  <data name="Venue_RingSeatsPH" xml:space="preserve">
+    <value>e.g. 8,12,16</value>
+  </data>
+
   <data name="Venue_RingSeatsTooltip" xml:space="preserve">
     <value>Comma-separated seats per ring.</value>
   </data>
@@ -2100,6 +2240,14 @@ Current seating will be overwritten.</value>
 
   <data name="Venue_RowAisles" xml:space="preserve">
     <value>Row aisles (click to insert between rows):</value>
+  </data>
+
+  <data name="Venue_Rows" xml:space="preserve">
+    <value>Rows</value>
+  </data>
+
+  <data name="Venue_RowsPH" xml:space="preserve">
+    <value>Row count</value>
   </data>
 
   <data name="Venue_RowsTooltip" xml:space="preserve">
@@ -2142,6 +2290,14 @@ Current seating will be overwritten.</value>
     <value>Venue Configuration</value>
   </data>
 
+  <data name="Venue_VSpacing" xml:space="preserve">
+    <value>V. spacing</value>
+  </data>
+
+  <data name="Venue_VSpacingPH" xml:space="preserve">
+    <value>Column spacing px</value>
+  </data>
+
   <data name="Venue_VSpacingTooltip" xml:space="preserve">
     <value>Vertical base spacing (px), 4-600.</value>
   </data>
@@ -2175,4 +2331,7 @@ Diagnostics saved to: {1}</value>
     <value>75%</value>
   </data>
 
+  <data name="About_Avalonia" xml:space="preserve">
+    <value>Avalonia UI</value>
+  </data>
 </root>

@@ -72,7 +72,7 @@
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="取消" FontSize="13"/>
+              <TextBlock Text="{x:Static lang:Resources.Common_Cancel}" FontSize="13"/>
             </StackPanel>
           </Button>
         </StackPanel>
@@ -291,7 +291,7 @@
                 <Border IsVisible="{Binding IsDataChanged}" Padding="10" CornerRadius="4"
                         Background="#20F9A825">
                   <StackPanel Spacing="4">
-                    <TextBlock Text="数据已更改" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Text="{x:Static lang:Resources.Snapshot_DataChanged}" FontSize="13" FontWeight="SemiBold"
                                Foreground="#F9A825"/>
                     <TextBlock Text="{x:Static lang:Resources.Snapshot_DataChangedMsg}" FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"

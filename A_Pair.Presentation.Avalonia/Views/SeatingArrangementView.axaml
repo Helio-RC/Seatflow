@@ -57,7 +57,7 @@
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="保存" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
             </StackPanel>
           </Button>
           <!-- 撤销 -->
@@ -99,7 +99,7 @@
           <TextBlock Classes="caption">
             <Run Text="{x:Static lang:Resources.Seating_Unassigned}"/>
             <Run Text="{Binding UnassignedStudentCount}"/>
-            <Run Text="人"/>
+            <Run Text="{x:Static lang:Resources.Seating_People}"/>
           </TextBlock>
         </StackPanel>
       </Grid>
@@ -113,9 +113,9 @@
                    Foreground="{DynamicResource SystemAccentColor}"
                    VerticalAlignment="Center" />
         <Button Grid.Column="1" Command="{Binding CancelSwapCommand}"
-                AutomationProperties.Name="取消交换"
+                AutomationProperties.Name="{x:Static lang:Resources.Seating_CancelSwap}"
                 Padding="8,2" FontSize="12">
-          <TextBlock Text="取消"/>
+          <TextBlock Text="{x:Static lang:Resources.Common_Cancel}"/>
         </Button>
       </Grid>
     </Border>
@@ -153,7 +153,7 @@
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
-                   AutomationProperties.Name="学生数据集列表">
+                   AutomationProperties.Name="{x:Static lang:Resources.Seating_StudentDatasetList}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="core:StudentDatasetInfo">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6" />
