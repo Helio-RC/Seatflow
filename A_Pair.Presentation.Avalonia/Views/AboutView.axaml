@@ -65,9 +65,8 @@
           <TextBlock Text="{Binding AppName}" FontSize="22" FontWeight="Bold"
                      HorizontalAlignment="Center" />
           <TextBlock HorizontalAlignment="Center" FontSize="13"
-                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-            <Binding Path="Version" StringFormat="版本 {0}" />
-          </TextBlock>
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                     Text="{Binding Version, StringFormat='版本 {0}'}" />
         </StackPanel>
 
         <!-- 描述 -->
