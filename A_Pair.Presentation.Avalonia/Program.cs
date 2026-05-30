@@ -34,7 +34,7 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<FreeformManagementViewModel>();
             services.AddSingleton<StrategyConfigurationViewModel>();
             services.AddSingleton<SeatingArrangementViewModel>();
-            services.AddSingleton<SnapshotHistoryViewModel>();
+            services.AddTransient<SnapshotHistoryViewModel>();
             services.AddSingleton<PluginManagementViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<AboutViewModel>();

@@ -141,25 +141,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         });
     }
 
-    public override async Task<bool> CanLeaveAsync ()
-    {
-        ClearAllData();
-        return await Task.FromResult(true);
-    }
 
-    private void ClearAllData ()
-    {
-        Snapshots = [];
-        PreviewSeats = [];
-        PreviewOverlays = [];
-        IsVenueDeleted = false;
-        IsVenueChanged = false;
-        IsDataChanged = false;
-        VenueWarningText = string.Empty;
-        SelectedSnapshot = null;
-        SelectedVenue = null;
-        Venues = [];
-    }
 
     [RelayCommand]
     private async Task CreateSnapshotAsync ()
