@@ -180,7 +180,7 @@
     <value>Source: {0}</value>
   </data>
   <data name="Member_DatasetNotFound" xml:space="preserve">
-    <value>Member Set file not found</value>
+    <value>Dataset file not found</value>
   </data>
   <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
     <value>Member Set file "{0}" not found.</value>
@@ -189,20 +189,20 @@
     <value>Confirm delete</value>
   </data>
   <data name="Member_DeleteConfirmMsg" xml:space="preserve">
-    <value>Delete member set "{0}"?
+    <value>Delete dataset "{0}"?
 This cannot be undone.</value>
   </data>
   <data name="Member_DeleteFailed" xml:space="preserve">
     <value>Delete failed</value>
   </data>
   <data name="Member_Deleted" xml:space="preserve">
-    <value>Member Set deleted</value>
+    <value>Dataset deleted</value>
   </data>
   <data name="Member_EmptyDataset" xml:space="preserve">
-    <value>Member Set is empty</value>
+    <value>Dataset is empty</value>
   </data>
   <data name="Member_EmptyHint" xml:space="preserve">
-    <value>Click Import or load a saved member set</value>
+    <value>Click Import or load a saved dataset</value>
   </data>
   <data name="Data_ExcelFile" xml:space="preserve">
     <value>Excel file</value>
@@ -221,7 +221,7 @@ This cannot be undone.</value>
 {0}</value>
   </data>
   <data name="Member_ExportErrorFmt" xml:space="preserve">
-    <value>Cannot export member data.
+    <value>Cannot export data.
 {0}</value>
   </data>
   <data name="Member_ExportExcel" xml:space="preserve">
@@ -289,7 +289,7 @@ This cannot be undone.</value>
 {0}</value>
   </data>
   <data name="Member_ImportErrorFmt" xml:space="preserve">
-    <value>Cannot import member data.
+    <value>Cannot import data.
 {0}</value>
   </data>
   <data name="Member_ImportFailed" xml:space="preserve">
@@ -335,13 +335,13 @@ This cannot be undone.</value>
     <value>Required. Member name, cannot be empty.</value>
   </data>
   <data name="Member_NoDataToExport" xml:space="preserve">
-    <value>No member data to export.</value>
+    <value>No data to export.</value>
   </data>
   <data name="Member_NoImport" xml:space="preserve">
-    <value>No member data imported</value>
+    <value>No data imported</value>
   </data>
   <data name="Member_NoValidMembers" xml:space="preserve">
-    <value>No valid member data found in file.</value>
+    <value>No valid data found in file. Check the file format.</value>
   </data>
   <data name="Member_Operations" xml:space="preserve">
     <value>Actions</value>
@@ -350,7 +350,7 @@ This cannot be undone.</value>
     <value>{0} students</value>
   </data>
   <data name="Member_PersonCountFmt" xml:space="preserve">
-    <value>{0}</value>
+    <value>{0} members</value>
   </data>
   <data name="Member_Ready" xml:space="preserve">
     <value>Ready. Import person data</value>
@@ -362,16 +362,16 @@ This cannot be undone.</value>
     <value>Enter new name for "{0}":</value>
   </data>
   <data name="Member_RenameTitle" xml:space="preserve">
-    <value>Rename member set</value>
+    <value>Rename Dataset</value>
   </data>
   <data name="Member_Renamed" xml:space="preserve">
-    <value>Member Set renamed</value>
+    <value>Dataset renamed</value>
   </data>
   <data name="Member_SampleFileCN" xml:space="preserve">
     <value>Person import template.xlsx</value>
   </data>
   <data name="Member_SaveAsPrompt" xml:space="preserve">
-    <value>Enter new member set name:</value>
+    <value>Enter new dataset name (original unchanged):</value>
   </data>
   <data name="Member_SaveAsTitle" xml:space="preserve">
     <value>Save as</value>
@@ -380,10 +380,10 @@ This cannot be undone.</value>
     <value>Confirm save</value>
   </data>
   <data name="Member_SaveConfirmMsg" xml:space="preserve">
-    <value>Overwrite member set "{0}" ({1} students)?</value>
+    <value>Overwrite dataset "{0}" ({1} members)?</value>
   </data>
   <data name="Member_SaveDataset" xml:space="preserve">
-    <value>Save member set</value>
+    <value>Save Dataset</value>
   </data>
   <data name="Data_SaveFailed" xml:space="preserve">
     <value>Save failed</value>
@@ -392,13 +392,13 @@ This cannot be undone.</value>
     <value>Saved as "{0}"</value>
   </data>
   <data name="Member_SavedDatasets" xml:space="preserve">
-    <value>Saved member sets</value>
+    <value>Saved Datasets</value>
   </data>
   <data name="Member_SavedFmt" xml:space="preserve">
     <value>"{0}" saved</value>
   </data>
   <data name="Member_PersonCountFmt" xml:space="preserve">
-    <value>{0} students</value>
+    <value>{0} members</value>
   </data>
   <data name="Member_MemberDataFile" xml:space="preserve">
     <value>Person data files</value>
