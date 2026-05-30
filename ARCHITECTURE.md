@@ -176,7 +176,19 @@ public class SeatingWorkspace
 
 4.3 执行管道
 
-按优先级升序依次执行策略，后执行的策略可覆盖先前分配。
+管道采用 **"基线 → 优化 → 最终裁决"** 三层执行模型。所有策略按 Priority 升序操作同一个
+`SeatingWorkspace` 实例，后执行的策略可通过清空 `OccupantId` + 重新 `TryAssignSeat` 覆盖前序结果。
+
+```
+Priority 升序 →
+  RandomFill(10)        ← 基线阶段：建立全量初始分配
+  FrontRowRotation(30)  ← 优化阶段：重新分配前排
+  DeskMate(50)          ← 优化阶段：重组同桌组
+  FixedSeat(100)        ← 裁决阶段：最终强制覆盖
+```
+
+> **关键设计决策**：低 Priority = 先执行 = 被覆盖权；高 Priority = 后执行 = 覆盖权。
+> FixedSeat(100) 最后执行，确保固定座位不受任何策略影响。
 
 ```csharp
 public class StrategyExecutionPipeline
@@ -186,20 +198,21 @@ public class StrategyExecutionPipeline
         foreach (var strategy in _strategies.OrderBy(s => s.Priority).Where(s => s.IsEnabled))
         {
             var result = await strategy.ExecuteAsync(workspace, cancellationToken);
-            // 记录修改与日志
+            // 后执行的策略覆盖前序结果——这是有意设计
         }
         return workspace.BuildSeatingPlan();
     }
 }
 ```
 
-4.4 内置策略示例
+4.4 内置策略
 
-策略 优先级 职责
-RandomFillStrategy 10 最不优先，将剩余学生随机填入空位
-FrontRowRotationStrategy 30 基于累计分数轮换前排座位
-DeskMateStrategy 50 安排同桌组彼此靠近
-FixedSeatStrategy 100 最优先（最后执行），强制应用固定座位
+| 策略 | Priority | 阶段 | 职责 |
+|------|----------|------|------|
+| RandomFillStrategy | 10 | 基线 | 最先执行，建立全量初始分配。将学生随机填入所有空位 |
+| FrontRowRotationStrategy | 30 | 优化 | 覆盖前排座位，将最需要的学生分配到前排 |
+| DeskMateStrategy | 50 | 优化 | 覆盖同桌组成员位置，使其彼此相邻 |
+| FixedSeatStrategy | 100 | 裁决 | 最后执行，强制应用固定座位。可覆盖所有前序分配
 
 4.5 插件化策略
 

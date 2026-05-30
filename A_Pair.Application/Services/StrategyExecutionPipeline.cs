@@ -6,12 +6,26 @@ using Microsoft.Extensions.Logging;
 namespace A_Pair.Application.Services
 {
     /// <summary>
-    /// 策略执行管道，按优先级顺序依次执行多个座位分配策略。
+    /// 策略执行管道，按优先级升序依次执行多个座位分配策略。
     /// </summary>
     /// <remarks>
-    /// 策略按 <see cref="ISeatingStrategy.Priority"/> 升序执行（数值越小优先级越高）。
-    /// 每个策略在同一个 <see cref="SeatingWorkspace"/> 上操作，后执行的策略可以覆盖或补充
-    /// 先前策略的分配结果。执行过程中通过 <see cref="IProgress{T}"/> 报告进度。
+    /// <b>执行模型：基线 → 优化 → 最终裁决</b>
+    /// <para>
+    /// 策略按 <see cref="ISeatingStrategy.Priority"/> 升序执行：
+    /// </para>
+    /// <list type="number">
+    /// <item><b>基线阶段</b>（低 Priority）：建立初始全量分配（如 RandomFill=10）</item>
+    /// <item><b>优化阶段</b>（中 Priority）：对特定维度进行调整（如 FrontRowRotation=30、DeskMate=50）</item>
+    /// <item><b>裁决阶段</b>（高 Priority）：强制执行不可妥协的约束（如 FixedSeat=100）</item>
+    /// </list>
+    /// <para>
+    /// 所有策略操作同一个 <see cref="SeatingWorkspace"/> 实例，后执行的策略可以通过
+    /// 清空 OccupantId + TryAssignSeat 覆盖前序策略的结果。这意味着 <b>高 Priority 策略
+    /// 具有最终决定权</b>——这是有意设计，不是 bug。
+    /// </para>
+    /// <para>
+    /// 执行过程中通过 <see cref="IProgress{T}"/> 报告进度。
+    /// </para>
     /// </remarks>
     public class StrategyExecutionPipeline
     {

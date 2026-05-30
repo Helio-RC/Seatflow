@@ -6,7 +6,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 同桌组策略（Priority=50），将指定的学生组分配到相邻座位。
+    /// 同桌组策略（Priority=50，中期执行，覆盖基线填充的同桌部分）。
+    /// 将指定的学生组分配到相邻座位。在 RandomFill 和 FrontRowRotation 之后执行，
+    /// 重新组织同桌组成员的位置使其彼此靠近，被替换的学生自动移至其他座位。
     /// 支持从配置和 <see cref="AttributeBag"/> 扩展属性中读取同桌组定义。
     /// 优先尝试水平相邻分配，其次垂直相邻，最后使用 BFS 寻找任意连通分量。
     /// </summary>

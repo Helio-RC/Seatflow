@@ -6,9 +6,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 前排轮换策略（Priority=30），基于累计分数公平分配前排座位。
+    /// 前排轮换策略（Priority=30，中期执行，覆盖基线填充的前排部分）。
+    /// 基于累计分数公平分配前排座位。在 RandomFill 建立基线后执行，
+    /// 将前排座位重新分配给最需要的学生，被替换的学生自动移至后排。
     /// 分数计算公式：总分 = NeedsFrontRow加分 + FrontRowPreferenceScore - (历史前排次数 × HistoryWeight)。
-    /// 分数越高的学生越优先分配到前排，确保轮换公平性。
     /// </summary>
     public class FrontRowRotationStrategy : ISeatingStrategy
     {

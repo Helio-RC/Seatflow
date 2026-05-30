@@ -43,6 +43,17 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 
 **Project dependency chain**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`). `Plugins.Sdk` is referenced only by external plugins. `Application` orchestrates; `Infrastructure` implements providers/exporters/layouts/repos; `Core` owns entities, strategy interfaces, and the workspace.
 
+**Strategy pipeline**: All four built-in strategies operate on the same `SeatingWorkspace` instance. They execute in **ascending Priority order** — lower Priority runs first as a baseline, higher Priority runs later and can override prior assignments. The pipeline follows a **baseline → optimize → finalize** pattern:
+
+| Order | Strategy | Priority | Phase |
+|-------|----------|----------|-------|
+| 1st | `RandomFillStrategy` | 10 | Baseline — fills all empty seats |
+| 2nd | `FrontRowRotationStrategy` | 30 | Optimize — reassigns front-row seats |
+| 3rd | `DeskMateStrategy` | 50 | Optimize — reorganizes desk-mate groups |
+| 4th | `FixedSeatStrategy` | 100 | Finalize — enforces fixed seats, overrides all |
+
+Later strategies can clear `OccupantId` and call `TryAssignSeat` to override earlier results. This is intentional: higher Priority = final say.
+
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
 
 **App startup sequence**:

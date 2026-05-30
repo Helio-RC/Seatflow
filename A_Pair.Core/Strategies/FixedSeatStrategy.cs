@@ -5,8 +5,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 固定座位策略，优先级最高（Priority=100，最后执行）。
-    /// 将指定学生强制分配到固定座位，不受其他策略影响。
+    /// 固定座位策略（Priority=100，最后执行，具有最终覆盖权）。
+    /// 将指定学生强制分配到固定座位。作为管道中最后执行的策略，
+    /// 它可以覆盖所有先前策略的分配结果，确保固定座位分配不被任何策略改变。
     /// 适用于有特殊需求的学生（如残障学生固定前排座位）。
     /// </summary>
     public class FixedSeatStrategy : ISeatingStrategy
