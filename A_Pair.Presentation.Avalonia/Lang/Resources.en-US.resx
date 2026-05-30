@@ -680,7 +680,7 @@ This cannot be undone.</value>
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>Collapse sidebar</value>
   </data>
-  <data name="Nav_DataManagement" xml:space="preserve">
+  <data name="Nav_MemberManagement" xml:space="preserve">
     <value>Data</value>
   </data>
   <data name="Nav_ExpandSidebar" xml:space="preserve">

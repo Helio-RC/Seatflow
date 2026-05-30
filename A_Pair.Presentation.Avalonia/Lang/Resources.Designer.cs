@@ -1923,9 +1923,9 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// <summary>
         ///   查找类似 数据管理 的本地化字符串。
         /// </summary>
-        public static string Nav_DataManagement {
+        public static string Nav_MemberManagement {
             get {
-                return ResourceManager.GetString("Nav_DataManagement", resourceCulture);
+                return ResourceManager.GetString("Nav_MemberManagement", resourceCulture);
             }
         }
         

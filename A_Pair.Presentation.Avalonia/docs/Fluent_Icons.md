@@ -14,7 +14,7 @@ Usage: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>`
 
 | Icon Name | Fluent UI Name | Usage |
 |-----------|---------------|-------|
-| `DataUsage` | 📊 Data Usage | 数据管理 / Data Management |
+| `DataUsage` | 📊 Data Usage | 人员管理 / Data Management |
 | `Building` | 🏗️ Building | 会场配置 / Venue Configuration |
 | `Options` | ⚙️ Options | 策略配置 / Strategy Configuration |
 | `Grid` | 📐 Grid | 座位安排 / Seating Arrangement |

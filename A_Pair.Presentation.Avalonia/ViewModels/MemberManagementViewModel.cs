@@ -19,12 +19,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
-public partial class DataManagementViewModel : ViewModelBase
+public partial class MemberManagementViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
     private readonly IDialogService _dialog;
-    private readonly ILogger<DataManagementViewModel> _logger;
+    private readonly ILogger<MemberManagementViewModel> _logger;
 
     [ObservableProperty]
     private ObservableCollection<Student> _students = [];
@@ -111,12 +111,12 @@ public partial class DataManagementViewModel : ViewModelBase
     public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Data_DataSourceFmt , FilePath);
     public string StudentCountDisplay2 => string.Format(Resources.Data_PersonCountFmt , StudentCount);
 
-    public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<DataManagementViewModel>? logger = null)
+    public MemberManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<MemberManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
         _dialog = dialog;
-        _logger = logger ?? NullLogger<DataManagementViewModel>.Instance;
+        _logger = logger ?? NullLogger<MemberManagementViewModel>.Instance;
         _ = RefreshDatasetsAsync(CancellationToken.None);
     }
 

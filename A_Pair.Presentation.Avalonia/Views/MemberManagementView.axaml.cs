@@ -5,11 +5,11 @@ using Avalonia.Controls;
 
 namespace A_Pair.Presentation.Avalonia.Views;
 
-public partial class DataManagementView : UserControl
+public partial class MemberManagementView : UserControl
 {
-    private ViewModels.DataManagementViewModel? _vm;
+    private ViewModels.MemberManagementViewModel? _vm;
 
-    public DataManagementView ()
+    public MemberManagementView ()
     {
         InitializeComponent();
     }
@@ -19,7 +19,7 @@ public partial class DataManagementView : UserControl
         base.OnDataContextChanged(e);
         if (_vm != null)
             _vm.PropertyChanged -= OnSidebarWidthChanged;
-        _vm = DataContext as ViewModels.DataManagementViewModel;
+        _vm = DataContext as ViewModels.MemberManagementViewModel;
         if (_vm != null)
         {
             _vm.PropertyChanged += OnSidebarWidthChanged;
@@ -29,8 +29,8 @@ public partial class DataManagementView : UserControl
 
     private void OnSidebarWidthChanged (object? sender , PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ViewModels.DataManagementViewModel.SidebarListWidth)
-            && sender is ViewModels.DataManagementViewModel vm)
+        if (e.PropertyName == nameof(ViewModels.MemberManagementViewModel.SidebarListWidth)
+            && sender is ViewModels.MemberManagementViewModel vm)
         {
             SyncSidebar(vm.SidebarListWidth);
         }
@@ -57,7 +57,7 @@ public partial class DataManagementView : UserControl
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == BoundsProperty && DataContext is ViewModels.DataManagementViewModel vm)
+        if (change.Property == BoundsProperty && DataContext is ViewModels.MemberManagementViewModel vm)
         {
             vm.OnWindowWidthChanged(Bounds.Width);
         }

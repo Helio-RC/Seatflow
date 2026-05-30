@@ -420,7 +420,7 @@
     <value>模板已保存</value>
   </data>
   <data name="Data_Title" xml:space="preserve">
-    <value>数据管理</value>
+    <value>人员管理</value>
   </data>
   <data name="Data_UnloadData" xml:space="preserve">
     <value>卸载数据</value>
@@ -680,8 +680,8 @@
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>收起侧栏</value>
   </data>
-  <data name="Nav_DataManagement" xml:space="preserve">
-    <value>数据管理</value>
+  <data name="Nav_MemberManagement" xml:space="preserve">
+    <value>人员管理</value>
   </data>
   <data name="Nav_ExpandSidebar" xml:space="preserve">
     <value>展开侧栏</value>

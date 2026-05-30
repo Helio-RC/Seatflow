@@ -31,7 +31,7 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<HomeViewModel>();
-            services.AddSingleton<DataManagementViewModel>();
+            services.AddSingleton<MemberManagementViewModel>();
             services.AddSingleton<VenueConfigurationViewModel>();
             services.AddSingleton<FreeformManagementViewModel>();
             services.AddSingleton<StrategyConfigurationViewModel>();

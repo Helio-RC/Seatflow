@@ -75,7 +75,7 @@
                 </Border.Transitions>
                 <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                             IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
-                  <Button Command="{Binding LoadVenueListCommand}" CommandParameter="DataManagement"
+                  <Button Command="{Binding LoadVenueListCommand}" CommandParameter="MemberManagement"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
