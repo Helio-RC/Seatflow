@@ -170,16 +170,16 @@
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV 文件</value>
   </data>
-  <data name="Data_ClearConfirm" xml:space="preserve">
+  <data name="Member_ClearConfirm" xml:space="preserve">
     <value>确认清除</value>
   </data>
-  <data name="Data_ClearConfirmMsg" xml:space="preserve">
+  <data name="Member_ClearConfirmMsg" xml:space="preserve">
     <value>确定要清除当前导入的 {0} 名学生数据吗？</value>
   </data>
-  <data name="Data_DataSourceFmt" xml:space="preserve">
+  <data name="Member_DataSourceFmt" xml:space="preserve">
     <value>数据源: {0}</value>
   </data>
-  <data name="Data_DatasetNotFound" xml:space="preserve">
+  <data name="Member_DatasetNotFound" xml:space="preserve">
     <value>数据集文件不存在</value>
   </data>
   <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
@@ -188,20 +188,20 @@
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>确认删除</value>
   </data>
-  <data name="Data_DeleteConfirmMsg" xml:space="preserve">
+  <data name="Member_DeleteConfirmMsg" xml:space="preserve">
     <value>确定要删除数据集「{0}」吗？
 此操作不可撤销。</value>
   </data>
-  <data name="Data_DeleteFailed" xml:space="preserve">
+  <data name="Member_DeleteFailed" xml:space="preserve">
     <value>删除失败</value>
   </data>
-  <data name="Data_Deleted" xml:space="preserve">
+  <data name="Member_Deleted" xml:space="preserve">
     <value>数据集已删除</value>
   </data>
-  <data name="Data_EmptyDataset" xml:space="preserve">
+  <data name="Member_EmptyDataset" xml:space="preserve">
     <value>数据集为空</value>
   </data>
-  <data name="Data_EmptyHint" xml:space="preserve">
+  <data name="Member_EmptyHint" xml:space="preserve">
     <value>点击「导入」或从左侧加载已保存的数据集</value>
   </data>
   <data name="Data_ExcelFile" xml:space="preserve">
@@ -210,95 +210,95 @@
   <data name="Data_Export" xml:space="preserve">
     <value>导出</value>
   </data>
-  <data name="Data_ExportCSV" xml:space="preserve">
+  <data name="Member_ExportCSV" xml:space="preserve">
     <value>导出 CSV</value>
   </data>
-  <data name="Data_ExportDone" xml:space="preserve">
+  <data name="Member_ExportDone" xml:space="preserve">
     <value>导出完成</value>
   </data>
   <data name="Data_ExportError" xml:space="preserve">
     <value>无法导出学生数据。
 {0}</value>
   </data>
-  <data name="Data_ExportErrorFmt" xml:space="preserve">
+  <data name="Member_ExportErrorFmt" xml:space="preserve">
     <value>无法导出学生数据。
 {0}</value>
   </data>
-  <data name="Data_ExportExcel" xml:space="preserve">
+  <data name="Member_ExportExcel" xml:space="preserve">
     <value>导出 Excel</value>
   </data>
-  <data name="Data_ExportFailed" xml:space="preserve">
+  <data name="Member_ExportFailed" xml:space="preserve">
     <value>导出失败</value>
   </data>
-  <data name="Data_ExportJSON" xml:space="preserve">
+  <data name="Member_ExportJSON" xml:space="preserve">
     <value>导出 JSON</value>
   </data>
-  <data name="Data_ExportLabel" xml:space="preserve">
+  <data name="Member_ExportLabel" xml:space="preserve">
     <value>导出:</value>
   </data>
   <data name="Data_ExportTemplate" xml:space="preserve">
     <value>导出模板</value>
   </data>
-  <data name="Data_Exporting" xml:space="preserve">
+  <data name="Member_Exporting" xml:space="preserve">
     <value>正在导出...</value>
   </data>
   <data name="Data_FileNotFound" xml:space="preserve">
     <value>找不到文件：{0}</value>
   </data>
-  <data name="Data_FileNotFoundFmt" xml:space="preserve">
+  <data name="Member_FileNotFoundFmt" xml:space="preserve">
     <value>找不到文件：{0}</value>
   </data>
-  <data name="Data_FrontRow" xml:space="preserve">
+  <data name="Member_FrontRow" xml:space="preserve">
     <value>需要前排</value>
   </data>
-  <data name="Data_FrontRowTooltip" xml:space="preserve">
+  <data name="Member_FrontRowTooltip" xml:space="preserve">
     <value>需要前排座位（如视力不佳等特殊应用）</value>
   </data>
-  <data name="Data_Gender" xml:space="preserve">
+  <data name="Member_Gender" xml:space="preserve">
     <value>性别</value>
   </data>
-  <data name="Data_GenderInvalidFmt" xml:space="preserve">
+  <data name="Member_GenderInvalidFmt" xml:space="preserve">
     <value>第 {0} 行 "{1}"：性别值无效</value>
   </data>
-  <data name="Data_GenderTooltip" xml:space="preserve">
+  <data name="Member_GenderTooltip" xml:space="preserve">
     <value>性别：男、女 或 其他。留空表示未知。</value>
   </data>
-  <data name="Data_GetTemplate" xml:space="preserve">
+  <data name="Member_GetTemplate" xml:space="preserve">
     <value>获取模板</value>
   </data>
-  <data name="Data_Height" xml:space="preserve">
+  <data name="Member_Height" xml:space="preserve">
     <value>身高 (cm)</value>
   </data>
-  <data name="Data_HeightInvalidFmt" xml:space="preserve">
+  <data name="Member_HeightInvalidFmt" xml:space="preserve">
     <value>第 {0} 行 "{1}"：身高必须为正数</value>
   </data>
-  <data name="Data_HeightPH" xml:space="preserve">
+  <data name="Member_HeightPH" xml:space="preserve">
     <value>身高 cm</value>
   </data>
-  <data name="Data_HeightTooltip" xml:space="preserve">
+  <data name="Member_HeightTooltip" xml:space="preserve">
     <value>身高（厘米），如 170.5。留空表示未知。</value>
   </data>
   <data name="Data_Import" xml:space="preserve">
     <value>导入</value>
   </data>
-  <data name="Data_ImportData" xml:space="preserve">
+  <data name="Member_ImportData" xml:space="preserve">
     <value>导入数据</value>
   </data>
   <data name="Data_ImportError" xml:space="preserve">
     <value>无法导入学生数据。
 {0}</value>
   </data>
-  <data name="Data_ImportErrorFmt" xml:space="preserve">
+  <data name="Member_ImportErrorFmt" xml:space="preserve">
     <value>无法导入学生数据。
 {0}</value>
   </data>
-  <data name="Data_ImportFailed" xml:space="preserve">
+  <data name="Member_ImportFailed" xml:space="preserve">
     <value>导入失败</value>
   </data>
-  <data name="Data_ImportFromFile" xml:space="preserve">
+  <data name="Member_ImportFromFile" xml:space="preserve">
     <value>从文件导入</value>
   </data>
-  <data name="Data_ImportResult" xml:space="preserve">
+  <data name="Member_ImportResult" xml:space="preserve">
     <value>导入结果</value>
   </data>
   <data name="Data_ImportedCountFmt" xml:space="preserve">
@@ -307,7 +307,7 @@
   <data name="Data_ImportedFmt" xml:space="preserve">
     <value>已导入 {0} 名学生</value>
   </data>
-  <data name="Data_Importing" xml:space="preserve">
+  <data name="Member_Importing" xml:space="preserve">
     <value>正在导入...</value>
   </data>
   <data name="Data_JSONFile" xml:space="preserve">
@@ -316,100 +316,100 @@
   <data name="Data_LoadFailed" xml:space="preserve">
     <value>加载失败</value>
   </data>
-  <data name="Data_LoadedFmt" xml:space="preserve">
+  <data name="Member_LoadedFmt" xml:space="preserve">
     <value>已加载 {0} 名学生</value>
   </data>
-  <data name="Data_Loading" xml:space="preserve">
+  <data name="Member_Loading" xml:space="preserve">
     <value>正在加载...</value>
   </data>
-  <data name="Data_Name" xml:space="preserve">
+  <data name="Member_Name" xml:space="preserve">
     <value>姓名</value>
   </data>
-  <data name="Data_NameEmptyFmt" xml:space="preserve">
+  <data name="Member_NameEmptyFmt" xml:space="preserve">
     <value>第 {0} 行：姓名不能为空</value>
   </data>
-  <data name="Data_NamePlaceholder" xml:space="preserve">
+  <data name="Member_NamePlaceholder" xml:space="preserve">
     <value>必填，姓名</value>
   </data>
-  <data name="Data_NameTooltip" xml:space="preserve">
+  <data name="Member_NameTooltip" xml:space="preserve">
     <value>必填。学生姓名，不能为空。</value>
   </data>
-  <data name="Data_NoDataToExport" xml:space="preserve">
+  <data name="Member_NoDataToExport" xml:space="preserve">
     <value>当前没有可导出的学生数据。</value>
   </data>
-  <data name="Data_NoImport" xml:space="preserve">
+  <data name="Member_NoImport" xml:space="preserve">
     <value>未导入任何学生数据</value>
   </data>
-  <data name="Data_NoValidStudents" xml:space="preserve">
+  <data name="Member_NoValidStudents" xml:space="preserve">
     <value>文件中没有读取到有效的学生数据，请检查文件格式是否正确。</value>
   </data>
-  <data name="Data_Operations" xml:space="preserve">
+  <data name="Member_Operations" xml:space="preserve">
     <value>操作</value>
   </data>
   <data name="Data_PersonCount" xml:space="preserve">
     <value>{0} 人</value>
   </data>
-  <data name="Data_PersonCountFmt" xml:space="preserve">
+  <data name="Member_PersonCountFmt" xml:space="preserve">
     <value>{0} 人</value>
   </data>
-  <data name="Data_Ready" xml:space="preserve">
+  <data name="Member_Ready" xml:space="preserve">
     <value>就绪，请导入学生数据</value>
   </data>
-  <data name="Data_RenameFailed" xml:space="preserve">
+  <data name="Member_RenameFailed" xml:space="preserve">
     <value>重命名失败</value>
   </data>
-  <data name="Data_RenamePrompt" xml:space="preserve">
+  <data name="Member_RenamePrompt" xml:space="preserve">
     <value>请输入「{0}」的新名称：</value>
   </data>
-  <data name="Data_RenameTitle" xml:space="preserve">
+  <data name="Member_RenameTitle" xml:space="preserve">
     <value>重命名数据集</value>
   </data>
-  <data name="Data_Renamed" xml:space="preserve">
+  <data name="Member_Renamed" xml:space="preserve">
     <value>数据集已重命名</value>
   </data>
-  <data name="Data_SampleFileCN" xml:space="preserve">
+  <data name="Member_SampleFileCN" xml:space="preserve">
     <value>学生导入模板.xlsx</value>
   </data>
-  <data name="Data_SaveAsPrompt" xml:space="preserve">
+  <data name="Member_SaveAsPrompt" xml:space="preserve">
     <value>输入新数据集名称，原数据集不会被修改：</value>
   </data>
-  <data name="Data_SaveAsTitle" xml:space="preserve">
+  <data name="Member_SaveAsTitle" xml:space="preserve">
     <value>另存为</value>
   </data>
-  <data name="Data_SaveConfirm" xml:space="preserve">
+  <data name="Member_SaveConfirm" xml:space="preserve">
     <value>确认保存</value>
   </data>
-  <data name="Data_SaveConfirmMsg" xml:space="preserve">
+  <data name="Member_SaveConfirmMsg" xml:space="preserve">
     <value>将覆盖数据集「{0}」（{1} 名学生），确定继续？</value>
   </data>
-  <data name="Data_SaveDataset" xml:space="preserve">
+  <data name="Member_SaveDataset" xml:space="preserve">
     <value>保存数据集</value>
   </data>
   <data name="Data_SaveFailed" xml:space="preserve">
     <value>保存失败</value>
   </data>
-  <data name="Data_SavedAsFmt" xml:space="preserve">
+  <data name="Member_SavedAsFmt" xml:space="preserve">
     <value>已保存为「{0}」</value>
   </data>
-  <data name="Data_SavedDatasets" xml:space="preserve">
+  <data name="Member_SavedDatasets" xml:space="preserve">
     <value>已保存数据集</value>
   </data>
-  <data name="Data_SavedFmt" xml:space="preserve">
+  <data name="Member_SavedFmt" xml:space="preserve">
     <value>已保存「{0}」</value>
   </data>
-  <data name="Data_StudentCountFmt" xml:space="preserve">
+  <data name="Member_StudentCountFmt" xml:space="preserve">
     <value>共 {0} 名学生</value>
   </data>
-  <data name="Data_StudentDataFile" xml:space="preserve">
+  <data name="Member_StudentDataFile" xml:space="preserve">
     <value>学生数据文件</value>
   </data>
-  <data name="Data_TemplateMissing" xml:space="preserve">
+  <data name="Member_TemplateMissing" xml:space="preserve">
     <value>模板缺失</value>
   </data>
-  <data name="Data_TemplateMissingMsg" xml:space="preserve">
+  <data name="Member_TemplateMissingMsg" xml:space="preserve">
     <value>未找到内置模板文件，请将模板放入 Assets/Files/ 目录。</value>
   </data>
-  <data name="Data_TemplateSaveError" xml:space="preserve">
+  <data name="Member_TemplateSaveError" xml:space="preserve">
     <value>无法保存模板文件。
 {0}</value>
   </data>
@@ -419,13 +419,13 @@
   <data name="Data_TemplateSaved" xml:space="preserve">
     <value>模板已保存</value>
   </data>
-  <data name="Data_Title" xml:space="preserve">
+  <data name="Member_Title" xml:space="preserve">
     <value>人员管理</value>
   </data>
   <data name="Data_UnloadData" xml:space="preserve">
     <value>卸载数据</value>
   </data>
-  <data name="Data_Unnamed" xml:space="preserve">
+  <data name="Member_Unnamed" xml:space="preserve">
     <value>未命名</value>
   </data>
   <data name="Data_ValidationFailed" xml:space="preserve">

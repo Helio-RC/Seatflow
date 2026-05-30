@@ -45,7 +45,7 @@ public partial class MemberManagementViewModel : ViewModelBase
     public bool HasData => !IsEmpty;
 
     [ObservableProperty]
-    private string _statusMessage = Resources.Data_Ready;
+    private string _statusMessage = Resources.Member_Ready;
 
     [ObservableProperty]
     private string _errorMessage = string.Empty;
@@ -107,9 +107,9 @@ public partial class MemberManagementViewModel : ViewModelBase
     public bool HasSelectedDataset => SelectedDataset is not null;
 
 
-    public string StudentCountDisplay => string.Format(Resources.Data_StudentCountFmt , StudentCount);
-    public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Data_DataSourceFmt , FilePath);
-    public string StudentCountDisplay2 => string.Format(Resources.Data_PersonCountFmt , StudentCount);
+    public string StudentCountDisplay => string.Format(Resources.Member_StudentCountFmt , StudentCount);
+    public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt , FilePath);
+    public string StudentCountDisplay2 => string.Format(Resources.Member_PersonCountFmt , StudentCount);
 
     public MemberManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<MemberManagementViewModel>? logger = null)
     {
@@ -136,7 +136,7 @@ public partial class MemberManagementViewModel : ViewModelBase
     private int _dialogLock;
     private static readonly FilePickerFileType[] StudentFileTypes =
     [
-        new(Resources.Data_StudentDataFile) { Patterns = ["*.csv", "*.xlsx", "*.json"] },
+        new(Resources.Member_StudentDataFile) { Patterns = ["*.csv", "*.xlsx", "*.json"] },
         new(Resources.Data_CSVFile) { Patterns = ["*.csv"] },
         new(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] },
         new(Resources.Data_JSONFile) { Patterns = ["*.json"] },
@@ -150,7 +150,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
     private static readonly Dictionary<string , (string Suffix , string DisplayName)> TemplateLocales = new()
     {
-        ["zh_cn"] = ("zh_cn" , Resources.Data_SampleFileCN) ,
+        ["zh_cn"] = ("zh_cn" , Resources.Member_SampleFileCN) ,
         ["zh_tw"] = ("zh_tw" , "學生匯入範本.xlsx") ,
         ["ja_jp"] = ("ja_jp" , "学生インポートテンプレート.xlsx") ,
         ["ko_kr"] = ("ko_kr" , "학생가져오기템플릿.xlsx") ,
@@ -182,8 +182,8 @@ public partial class MemberManagementViewModel : ViewModelBase
 
                 if (!AssetLoader.Exists(uri))
                 {
-                    errorTitle = Resources.Data_TemplateMissing;
-                    errorMsg = string.Format(Resources.Data_TemplateMissingMsg);
+                    errorTitle = Resources.Member_TemplateMissing;
+                    errorMsg = string.Format(Resources.Member_TemplateMissingMsg);
                     return;
                 }
 
@@ -201,7 +201,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             catch (Exception ex)
             {
                 errorTitle = Resources.Data_TemplateSaveFailed;
-                errorMsg = string.Format(Resources.Data_TemplateSaveError) + "\n" + ex.Message;
+                errorMsg = string.Format(Resources.Member_TemplateSaveError) + "\n" + ex.Message;
             }
             finally
             {
@@ -246,7 +246,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             try
             {
                 IStorageFile? importFile;
-                try { importFile = await _fileService.OpenFileAsync(Resources.Data_ImportData , StudentFileTypes); }
+                try { importFile = await _fileService.OpenFileAsync(Resources.Member_ImportData , StudentFileTypes); }
                 catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
                 if (importFile is null) return;
                 var file = importFile;
@@ -254,14 +254,14 @@ public partial class MemberManagementViewModel : ViewModelBase
                 FilePath = file.Path.LocalPath;
                 IsLoading = true;
                 ErrorMessage = string.Empty;
-                StatusMessage = Resources.Data_Importing;
+                StatusMessage = Resources.Member_Importing;
 
                 var students = await _facade.LoadStudentsAsync(FilePath , ct);
 
                 Students = new ObservableCollection<Student>(students);
                 StudentCount = Students.Count;
                 IsEmpty = StudentCount == 0;
-                StatusMessage = IsEmpty ? Resources.Data_NoImport : $"已导入 {StudentCount} 名学生";
+                StatusMessage = IsEmpty ? Resources.Member_NoImport : $"已导入 {StudentCount} 名学生";
 
                 // 自动保存到托管存储
                 if (!IsEmpty)
@@ -274,17 +274,17 @@ public partial class MemberManagementViewModel : ViewModelBase
 
                 if (IsEmpty)
                 {
-                    errorTitle = Resources.Data_ImportResult;
-                    errorMsg = Resources.Data_NoValidStudents;
+                    errorTitle = Resources.Member_ImportResult;
+                    errorMsg = Resources.Member_NoValidStudents;
                 }
             }
             catch (Exception ex)
             {
-                errorTitle = Resources.Data_ImportFailed;
+                errorTitle = Resources.Member_ImportFailed;
                 errorMsg = ex is FileNotFoundException
-                    ? string.Format(Resources.Data_FileNotFoundFmt , FilePath)
-                    : string.Format(Resources.Data_ImportErrorFmt , ex.Message);
-                StatusMessage = Resources.Data_ImportFailed;
+                    ? string.Format(Resources.Member_FileNotFoundFmt , FilePath)
+                    : string.Format(Resources.Member_ImportErrorFmt , ex.Message);
+                StatusMessage = Resources.Member_ImportFailed;
             }
             finally
             {
@@ -324,7 +324,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
             if (Students.Count == 0)
             {
-                await _dialog.ShowWarningAsync("无数据" , Resources.Data_NoDataToExport);
+                await _dialog.ShowWarningAsync("无数据" , Resources.Member_NoDataToExport);
                 return;
             }
 
@@ -338,17 +338,17 @@ public partial class MemberManagementViewModel : ViewModelBase
 
                 IsLoading = true;
                 ErrorMessage = string.Empty;
-                StatusMessage = Resources.Data_Exporting;
+                StatusMessage = Resources.Member_Exporting;
 
                 await _facade.ExportStudentsAsync(file.Path.LocalPath , Students , format , ct);
 
-                StatusMessage = Resources.Data_ExportDone;
+                StatusMessage = Resources.Member_ExportDone;
             }
             catch (Exception ex)
             {
-                errorTitle = Resources.Data_ExportFailed;
-                errorMsg = string.Format(Resources.Data_ExportErrorFmt , ex.Message);
-                StatusMessage = Resources.Data_ExportFailed;
+                errorTitle = Resources.Member_ExportFailed;
+                errorMsg = string.Format(Resources.Member_ExportErrorFmt , ex.Message);
+                StatusMessage = Resources.Member_ExportFailed;
             }
             finally
             {
@@ -365,8 +365,8 @@ public partial class MemberManagementViewModel : ViewModelBase
     {
         if (!IsEmpty)
         {
-            var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_ClearConfirm ,
-                string.Format(Resources.Data_ClearConfirmMsg , StudentCount));
+            var confirmed = await _dialog.ShowConfirmAsync(Resources.Member_ClearConfirm ,
+                string.Format(Resources.Member_ClearConfirmMsg , StudentCount));
             if (!confirmed) return;
         }
 
@@ -377,7 +377,7 @@ public partial class MemberManagementViewModel : ViewModelBase
         CurrentDatasetName = null;
         FilePath = string.Empty;
         ErrorMessage = string.Empty;
-        StatusMessage = Resources.Data_Ready;
+        StatusMessage = Resources.Member_Ready;
     }
 
     [RelayCommand]
@@ -387,7 +387,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
         IsLoading = true;
         ErrorMessage = string.Empty;
-        StatusMessage = Resources.Data_Loading;
+        StatusMessage = Resources.Member_Loading;
 
         try
         {
@@ -401,12 +401,12 @@ public partial class MemberManagementViewModel : ViewModelBase
                 IsEmpty = StudentCount == 0;
                 FilePath = SelectedDataset.OriginalFileName ?? SelectedDataset.Name;
                 StatusMessage = StudentCount > 0
-                    ? string.Format(Resources.Data_LoadedFmt , StudentCount)
-                    : Resources.Data_EmptyDataset;
+                    ? string.Format(Resources.Member_LoadedFmt , StudentCount)
+                    : Resources.Member_EmptyDataset;
             }
             else
             {
-                StatusMessage = Resources.Data_DatasetNotFound;
+                StatusMessage = Resources.Member_DatasetNotFound;
                 await _dialog.ShowErrorAsync(Resources.Data_LoadFailed , $"找不到数据集「{SelectedDataset.Name}」的文件。");
                 await RefreshDatasetsAsync(ct);
             }
@@ -428,7 +428,7 @@ public partial class MemberManagementViewModel : ViewModelBase
         if (SelectedDataset is null) return;
 
         var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm ,
-            string.Format(Resources.Data_DeleteConfirmMsg , SelectedDataset.Name));
+            string.Format(Resources.Member_DeleteConfirmMsg , SelectedDataset.Name));
         if (!confirmed) return;
 
         try
@@ -436,11 +436,11 @@ public partial class MemberManagementViewModel : ViewModelBase
             await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id , ct);
             SelectedDataset = null;
             await RefreshDatasetsAsync(ct);
-            StatusMessage = Resources.Data_Deleted;
+            StatusMessage = Resources.Member_Deleted;
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(Resources.Data_DeleteFailed , ex.Message);
+            await _dialog.ShowErrorAsync(Resources.Member_DeleteFailed , ex.Message);
         }
     }
 
@@ -449,8 +449,8 @@ public partial class MemberManagementViewModel : ViewModelBase
     {
         if (SelectedDataset is null) return;
 
-        var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Data_RenameTitle ,
-            string.Format(Resources.Data_RenamePrompt , SelectedDataset.Name) , SelectedDataset.Name);
+        var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Member_RenameTitle ,
+            string.Format(Resources.Member_RenamePrompt , SelectedDataset.Name) , SelectedDataset.Name);
         if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
 
         try
@@ -462,11 +462,11 @@ public partial class MemberManagementViewModel : ViewModelBase
 
             SelectedDataset = null;
             await RefreshDatasetsAsync(ct);
-            StatusMessage = Resources.Data_Renamed;
+            StatusMessage = Resources.Member_Renamed;
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync(Resources.Data_RenameFailed , ex.Message);
+            await _dialog.ShowErrorAsync(Resources.Member_RenameFailed , ex.Message);
         }
     }
 
@@ -483,10 +483,10 @@ public partial class MemberManagementViewModel : ViewModelBase
             return;
         }
 
-        var datasetName = CurrentDatasetName ?? Resources.Data_Unnamed;
+        var datasetName = CurrentDatasetName ?? Resources.Member_Unnamed;
 
-        var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_SaveConfirm ,
-            string.Format(Resources.Data_SaveConfirmMsg , datasetName , StudentCount));
+        var confirmed = await _dialog.ShowConfirmAsync(Resources.Member_SaveConfirm ,
+            string.Format(Resources.Member_SaveConfirmMsg , datasetName , StudentCount));
         if (!confirmed) return;
 
         try
@@ -497,7 +497,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
             CurrentDatasetName = datasetName;
             await RefreshDatasetsAsync(ct);
-            StatusMessage = string.Format(Resources.Data_SavedFmt , datasetName);
+            StatusMessage = string.Format(Resources.Member_SavedFmt , datasetName);
         }
         catch (Exception ex)
         {
@@ -515,13 +515,13 @@ public partial class MemberManagementViewModel : ViewModelBase
             var row = i + 1;
 
             if (string.IsNullOrWhiteSpace(s.Name))
-                errors.Add(string.Format(Resources.Data_NameEmptyFmt , row));
+                errors.Add(string.Format(Resources.Member_NameEmptyFmt , row));
 
             if (s.Height.HasValue && s.Height.Value <= 0)
-                errors.Add(string.Format(Resources.Data_HeightInvalidFmt , row , s.Name));
+                errors.Add(string.Format(Resources.Member_HeightInvalidFmt , row , s.Name));
 
             if (s.Gender.HasValue && !Enum.IsDefined(s.Gender.Value))
-                errors.Add(string.Format(Resources.Data_GenderInvalidFmt , row , s.Name));
+                errors.Add(string.Format(Resources.Member_GenderInvalidFmt , row , s.Name));
         }
 
         return errors;
@@ -532,8 +532,8 @@ public partial class MemberManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task RenameSaveAsync (CancellationToken ct)
     {
-        var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Data_SaveAsTitle ,
-            Resources.Data_SaveAsPrompt , "");
+        var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Member_SaveAsTitle ,
+            Resources.Member_SaveAsPrompt , "");
         if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
 
         try
@@ -542,7 +542,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             CurrentDatasetId = newId;
             CurrentDatasetName = newName.Trim();
             await RefreshDatasetsAsync(ct);
-            StatusMessage = string.Format(Resources.Data_SavedAsFmt , newName.Trim());
+            StatusMessage = string.Format(Resources.Member_SavedAsFmt , newName.Trim());
         }
         catch (Exception ex)
         {

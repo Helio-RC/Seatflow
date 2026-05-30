@@ -170,16 +170,16 @@
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV file</value>
   </data>
-  <data name="Data_ClearConfirm" xml:space="preserve">
+  <data name="Member_ClearConfirm" xml:space="preserve">
     <value>Confirm clear</value>
   </data>
-  <data name="Data_ClearConfirmMsg" xml:space="preserve">
+  <data name="Member_ClearConfirmMsg" xml:space="preserve">
     <value>Clear {0} imported students?</value>
   </data>
-  <data name="Data_DataSourceFmt" xml:space="preserve">
+  <data name="Member_DataSourceFmt" xml:space="preserve">
     <value>Source: {0}</value>
   </data>
-  <data name="Data_DatasetNotFound" xml:space="preserve">
+  <data name="Member_DatasetNotFound" xml:space="preserve">
     <value>Dataset file not found</value>
   </data>
   <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
@@ -188,20 +188,20 @@
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>Confirm delete</value>
   </data>
-  <data name="Data_DeleteConfirmMsg" xml:space="preserve">
+  <data name="Member_DeleteConfirmMsg" xml:space="preserve">
     <value>Delete dataset "{0}"?
 This cannot be undone.</value>
   </data>
-  <data name="Data_DeleteFailed" xml:space="preserve">
+  <data name="Member_DeleteFailed" xml:space="preserve">
     <value>Delete failed</value>
   </data>
-  <data name="Data_Deleted" xml:space="preserve">
+  <data name="Member_Deleted" xml:space="preserve">
     <value>Dataset deleted</value>
   </data>
-  <data name="Data_EmptyDataset" xml:space="preserve">
+  <data name="Member_EmptyDataset" xml:space="preserve">
     <value>Dataset is empty</value>
   </data>
-  <data name="Data_EmptyHint" xml:space="preserve">
+  <data name="Member_EmptyHint" xml:space="preserve">
     <value>Click Import or load a saved dataset</value>
   </data>
   <data name="Data_ExcelFile" xml:space="preserve">
@@ -210,95 +210,95 @@ This cannot be undone.</value>
   <data name="Data_Export" xml:space="preserve">
     <value>Export</value>
   </data>
-  <data name="Data_ExportCSV" xml:space="preserve">
+  <data name="Member_ExportCSV" xml:space="preserve">
     <value>Export CSV</value>
   </data>
-  <data name="Data_ExportDone" xml:space="preserve">
+  <data name="Member_ExportDone" xml:space="preserve">
     <value>Export complete</value>
   </data>
   <data name="Data_ExportError" xml:space="preserve">
     <value>Cannot export student data.
 {0}</value>
   </data>
-  <data name="Data_ExportErrorFmt" xml:space="preserve">
+  <data name="Member_ExportErrorFmt" xml:space="preserve">
     <value>Cannot export student data.
 {0}</value>
   </data>
-  <data name="Data_ExportExcel" xml:space="preserve">
+  <data name="Member_ExportExcel" xml:space="preserve">
     <value>Export Excel</value>
   </data>
-  <data name="Data_ExportFailed" xml:space="preserve">
+  <data name="Member_ExportFailed" xml:space="preserve">
     <value>Export failed</value>
   </data>
-  <data name="Data_ExportJSON" xml:space="preserve">
+  <data name="Member_ExportJSON" xml:space="preserve">
     <value>Export JSON</value>
   </data>
-  <data name="Data_ExportLabel" xml:space="preserve">
+  <data name="Member_ExportLabel" xml:space="preserve">
     <value>Export:</value>
   </data>
   <data name="Data_ExportTemplate" xml:space="preserve">
     <value>Export template</value>
   </data>
-  <data name="Data_Exporting" xml:space="preserve">
+  <data name="Member_Exporting" xml:space="preserve">
     <value>Exporting...</value>
   </data>
   <data name="Data_FileNotFound" xml:space="preserve">
     <value>File not found: {0}</value>
   </data>
-  <data name="Data_FileNotFoundFmt" xml:space="preserve">
+  <data name="Member_FileNotFoundFmt" xml:space="preserve">
     <value>File not found: {0}</value>
   </data>
-  <data name="Data_FrontRow" xml:space="preserve">
+  <data name="Member_FrontRow" xml:space="preserve">
     <value>Needs front row</value>
   </data>
-  <data name="Data_FrontRowTooltip" xml:space="preserve">
+  <data name="Member_FrontRowTooltip" xml:space="preserve">
     <value>Needs front row seat (e.g. vision needs)</value>
   </data>
-  <data name="Data_Gender" xml:space="preserve">
+  <data name="Member_Gender" xml:space="preserve">
     <value>Gender</value>
   </data>
-  <data name="Data_GenderInvalidFmt" xml:space="preserve">
+  <data name="Member_GenderInvalidFmt" xml:space="preserve">
     <value>Row {0} "{1}": invalid gender value</value>
   </data>
-  <data name="Data_GenderTooltip" xml:space="preserve">
+  <data name="Member_GenderTooltip" xml:space="preserve">
     <value>Gender: Male, Female, or Other. Blank for unknown.</value>
   </data>
-  <data name="Data_GetTemplate" xml:space="preserve">
+  <data name="Member_GetTemplate" xml:space="preserve">
     <value>Get template</value>
   </data>
-  <data name="Data_Height" xml:space="preserve">
+  <data name="Member_Height" xml:space="preserve">
     <value>Height (cm)</value>
   </data>
-  <data name="Data_HeightInvalidFmt" xml:space="preserve">
+  <data name="Member_HeightInvalidFmt" xml:space="preserve">
     <value>Row {0} "{1}": height must be positive</value>
   </data>
-  <data name="Data_HeightPH" xml:space="preserve">
+  <data name="Member_HeightPH" xml:space="preserve">
     <value>Height cm</value>
   </data>
-  <data name="Data_HeightTooltip" xml:space="preserve">
+  <data name="Member_HeightTooltip" xml:space="preserve">
     <value>Height in cm, e.g. 170.5. Blank for unknown.</value>
   </data>
   <data name="Data_Import" xml:space="preserve">
     <value>Import</value>
   </data>
-  <data name="Data_ImportData" xml:space="preserve">
+  <data name="Member_ImportData" xml:space="preserve">
     <value>Import data</value>
   </data>
   <data name="Data_ImportError" xml:space="preserve">
     <value>Cannot import student data.
 {0}</value>
   </data>
-  <data name="Data_ImportErrorFmt" xml:space="preserve">
+  <data name="Member_ImportErrorFmt" xml:space="preserve">
     <value>Cannot import student data.
 {0}</value>
   </data>
-  <data name="Data_ImportFailed" xml:space="preserve">
+  <data name="Member_ImportFailed" xml:space="preserve">
     <value>Import failed</value>
   </data>
-  <data name="Data_ImportFromFile" xml:space="preserve">
+  <data name="Member_ImportFromFile" xml:space="preserve">
     <value>Import from...</value>
   </data>
-  <data name="Data_ImportResult" xml:space="preserve">
+  <data name="Member_ImportResult" xml:space="preserve">
     <value>Import result</value>
   </data>
   <data name="Data_ImportedCountFmt" xml:space="preserve">
@@ -307,7 +307,7 @@ This cannot be undone.</value>
   <data name="Data_ImportedFmt" xml:space="preserve">
     <value>{0} students imported</value>
   </data>
-  <data name="Data_Importing" xml:space="preserve">
+  <data name="Member_Importing" xml:space="preserve">
     <value>Importing...</value>
   </data>
   <data name="Data_JSONFile" xml:space="preserve">
@@ -316,100 +316,100 @@ This cannot be undone.</value>
   <data name="Data_LoadFailed" xml:space="preserve">
     <value>Load failed</value>
   </data>
-  <data name="Data_LoadedFmt" xml:space="preserve">
+  <data name="Member_LoadedFmt" xml:space="preserve">
     <value>{0} students loaded</value>
   </data>
-  <data name="Data_Loading" xml:space="preserve">
+  <data name="Member_Loading" xml:space="preserve">
     <value>Loading...</value>
   </data>
-  <data name="Data_Name" xml:space="preserve">
+  <data name="Member_Name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="Data_NameEmptyFmt" xml:space="preserve">
+  <data name="Member_NameEmptyFmt" xml:space="preserve">
     <value>Row {0}: name cannot be empty</value>
   </data>
-  <data name="Data_NamePlaceholder" xml:space="preserve">
+  <data name="Member_NamePlaceholder" xml:space="preserve">
     <value>Required, name</value>
   </data>
-  <data name="Data_NameTooltip" xml:space="preserve">
+  <data name="Member_NameTooltip" xml:space="preserve">
     <value>Required. Student name, cannot be empty.</value>
   </data>
-  <data name="Data_NoDataToExport" xml:space="preserve">
+  <data name="Member_NoDataToExport" xml:space="preserve">
     <value>No student data to export.</value>
   </data>
-  <data name="Data_NoImport" xml:space="preserve">
+  <data name="Member_NoImport" xml:space="preserve">
     <value>No student data imported</value>
   </data>
-  <data name="Data_NoValidStudents" xml:space="preserve">
+  <data name="Member_NoValidStudents" xml:space="preserve">
     <value>No valid student data found in file.</value>
   </data>
-  <data name="Data_Operations" xml:space="preserve">
+  <data name="Member_Operations" xml:space="preserve">
     <value>Actions</value>
   </data>
   <data name="Data_PersonCount" xml:space="preserve">
     <value>{0} students</value>
   </data>
-  <data name="Data_PersonCountFmt" xml:space="preserve">
+  <data name="Member_PersonCountFmt" xml:space="preserve">
     <value>{0}</value>
   </data>
-  <data name="Data_Ready" xml:space="preserve">
+  <data name="Member_Ready" xml:space="preserve">
     <value>Ready. Import student data</value>
   </data>
-  <data name="Data_RenameFailed" xml:space="preserve">
+  <data name="Member_RenameFailed" xml:space="preserve">
     <value>Rename failed</value>
   </data>
-  <data name="Data_RenamePrompt" xml:space="preserve">
+  <data name="Member_RenamePrompt" xml:space="preserve">
     <value>Enter new name for "{0}":</value>
   </data>
-  <data name="Data_RenameTitle" xml:space="preserve">
+  <data name="Member_RenameTitle" xml:space="preserve">
     <value>Rename dataset</value>
   </data>
-  <data name="Data_Renamed" xml:space="preserve">
+  <data name="Member_Renamed" xml:space="preserve">
     <value>Dataset renamed</value>
   </data>
-  <data name="Data_SampleFileCN" xml:space="preserve">
+  <data name="Member_SampleFileCN" xml:space="preserve">
     <value>Student import template.xlsx</value>
   </data>
-  <data name="Data_SaveAsPrompt" xml:space="preserve">
+  <data name="Member_SaveAsPrompt" xml:space="preserve">
     <value>Enter new dataset name:</value>
   </data>
-  <data name="Data_SaveAsTitle" xml:space="preserve">
+  <data name="Member_SaveAsTitle" xml:space="preserve">
     <value>Save as</value>
   </data>
-  <data name="Data_SaveConfirm" xml:space="preserve">
+  <data name="Member_SaveConfirm" xml:space="preserve">
     <value>Confirm save</value>
   </data>
-  <data name="Data_SaveConfirmMsg" xml:space="preserve">
+  <data name="Member_SaveConfirmMsg" xml:space="preserve">
     <value>Overwrite dataset "{0}" ({1} students)?</value>
   </data>
-  <data name="Data_SaveDataset" xml:space="preserve">
+  <data name="Member_SaveDataset" xml:space="preserve">
     <value>Save dataset</value>
   </data>
   <data name="Data_SaveFailed" xml:space="preserve">
     <value>Save failed</value>
   </data>
-  <data name="Data_SavedAsFmt" xml:space="preserve">
+  <data name="Member_SavedAsFmt" xml:space="preserve">
     <value>Saved as "{0}"</value>
   </data>
-  <data name="Data_SavedDatasets" xml:space="preserve">
+  <data name="Member_SavedDatasets" xml:space="preserve">
     <value>Saved datasets</value>
   </data>
-  <data name="Data_SavedFmt" xml:space="preserve">
+  <data name="Member_SavedFmt" xml:space="preserve">
     <value>"{0}" saved</value>
   </data>
-  <data name="Data_StudentCountFmt" xml:space="preserve">
+  <data name="Member_StudentCountFmt" xml:space="preserve">
     <value>{0} students</value>
   </data>
-  <data name="Data_StudentDataFile" xml:space="preserve">
+  <data name="Member_StudentDataFile" xml:space="preserve">
     <value>Student data files</value>
   </data>
-  <data name="Data_TemplateMissing" xml:space="preserve">
+  <data name="Member_TemplateMissing" xml:space="preserve">
     <value>Template missing</value>
   </data>
-  <data name="Data_TemplateMissingMsg" xml:space="preserve">
+  <data name="Member_TemplateMissingMsg" xml:space="preserve">
     <value>Built-in template file not found.</value>
   </data>
-  <data name="Data_TemplateSaveError" xml:space="preserve">
+  <data name="Member_TemplateSaveError" xml:space="preserve">
     <value>Cannot save template file.
 {0}</value>
   </data>
@@ -419,13 +419,13 @@ This cannot be undone.</value>
   <data name="Data_TemplateSaved" xml:space="preserve">
     <value>Template saved</value>
   </data>
-  <data name="Data_Title" xml:space="preserve">
+  <data name="Member_Title" xml:space="preserve">
     <value>Data management</value>
   </data>
   <data name="Data_UnloadData" xml:space="preserve">
     <value>Unload data</value>
   </data>
-  <data name="Data_Unnamed" xml:space="preserve">
+  <data name="Member_Unnamed" xml:space="preserve">
     <value>Unnamed</value>
   </data>
   <data name="Data_ValidationFailed" xml:space="preserve">

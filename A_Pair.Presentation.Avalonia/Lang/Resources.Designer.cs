@@ -398,7 +398,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ClearConfirm {
             get {
-                return ResourceManager.GetString("Data_ClearConfirm", resourceCulture);
+                return ResourceManager.GetString("Member_ClearConfirm", resourceCulture);
             }
         }
         
@@ -407,7 +407,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ClearConfirmMsg {
             get {
-                return ResourceManager.GetString("Data_ClearConfirmMsg", resourceCulture);
+                return ResourceManager.GetString("Member_ClearConfirmMsg", resourceCulture);
             }
         }
         
@@ -425,7 +425,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_DatasetNotFound {
             get {
-                return ResourceManager.GetString("Data_DatasetNotFound", resourceCulture);
+                return ResourceManager.GetString("Member_DatasetNotFound", resourceCulture);
             }
         }
         
@@ -443,7 +443,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_DataSourceFmt {
             get {
-                return ResourceManager.GetString("Data_DataSourceFmt", resourceCulture);
+                return ResourceManager.GetString("Member_DataSourceFmt", resourceCulture);
             }
         }
         
@@ -462,7 +462,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_DeleteConfirmMsg {
             get {
-                return ResourceManager.GetString("Data_DeleteConfirmMsg", resourceCulture);
+                return ResourceManager.GetString("Member_DeleteConfirmMsg", resourceCulture);
             }
         }
         
@@ -471,7 +471,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Deleted {
             get {
-                return ResourceManager.GetString("Data_Deleted", resourceCulture);
+                return ResourceManager.GetString("Member_Deleted", resourceCulture);
             }
         }
         
@@ -480,7 +480,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_DeleteFailed {
             get {
-                return ResourceManager.GetString("Data_DeleteFailed", resourceCulture);
+                return ResourceManager.GetString("Member_DeleteFailed", resourceCulture);
             }
         }
         
@@ -489,7 +489,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_EmptyDataset {
             get {
-                return ResourceManager.GetString("Data_EmptyDataset", resourceCulture);
+                return ResourceManager.GetString("Member_EmptyDataset", resourceCulture);
             }
         }
         
@@ -498,7 +498,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_EmptyHint {
             get {
-                return ResourceManager.GetString("Data_EmptyHint", resourceCulture);
+                return ResourceManager.GetString("Member_EmptyHint", resourceCulture);
             }
         }
         
@@ -525,7 +525,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportCSV {
             get {
-                return ResourceManager.GetString("Data_ExportCSV", resourceCulture);
+                return ResourceManager.GetString("Member_ExportCSV", resourceCulture);
             }
         }
         
@@ -534,7 +534,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportDone {
             get {
-                return ResourceManager.GetString("Data_ExportDone", resourceCulture);
+                return ResourceManager.GetString("Member_ExportDone", resourceCulture);
             }
         }
         
@@ -554,7 +554,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportErrorFmt {
             get {
-                return ResourceManager.GetString("Data_ExportErrorFmt", resourceCulture);
+                return ResourceManager.GetString("Member_ExportErrorFmt", resourceCulture);
             }
         }
         
@@ -563,7 +563,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportExcel {
             get {
-                return ResourceManager.GetString("Data_ExportExcel", resourceCulture);
+                return ResourceManager.GetString("Member_ExportExcel", resourceCulture);
             }
         }
         
@@ -572,7 +572,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportFailed {
             get {
-                return ResourceManager.GetString("Data_ExportFailed", resourceCulture);
+                return ResourceManager.GetString("Member_ExportFailed", resourceCulture);
             }
         }
         
@@ -581,7 +581,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Exporting {
             get {
-                return ResourceManager.GetString("Data_Exporting", resourceCulture);
+                return ResourceManager.GetString("Member_Exporting", resourceCulture);
             }
         }
         
@@ -590,7 +590,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportJSON {
             get {
-                return ResourceManager.GetString("Data_ExportJSON", resourceCulture);
+                return ResourceManager.GetString("Member_ExportJSON", resourceCulture);
             }
         }
         
@@ -599,7 +599,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ExportLabel {
             get {
-                return ResourceManager.GetString("Data_ExportLabel", resourceCulture);
+                return ResourceManager.GetString("Member_ExportLabel", resourceCulture);
             }
         }
         
@@ -626,7 +626,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_FileNotFoundFmt {
             get {
-                return ResourceManager.GetString("Data_FileNotFoundFmt", resourceCulture);
+                return ResourceManager.GetString("Member_FileNotFoundFmt", resourceCulture);
             }
         }
         
@@ -635,7 +635,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_FrontRow {
             get {
-                return ResourceManager.GetString("Data_FrontRow", resourceCulture);
+                return ResourceManager.GetString("Member_FrontRow", resourceCulture);
             }
         }
         
@@ -644,7 +644,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_FrontRowTooltip {
             get {
-                return ResourceManager.GetString("Data_FrontRowTooltip", resourceCulture);
+                return ResourceManager.GetString("Member_FrontRowTooltip", resourceCulture);
             }
         }
         
@@ -653,7 +653,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Gender {
             get {
-                return ResourceManager.GetString("Data_Gender", resourceCulture);
+                return ResourceManager.GetString("Member_Gender", resourceCulture);
             }
         }
         
@@ -662,7 +662,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_GenderInvalidFmt {
             get {
-                return ResourceManager.GetString("Data_GenderInvalidFmt", resourceCulture);
+                return ResourceManager.GetString("Member_GenderInvalidFmt", resourceCulture);
             }
         }
         
@@ -671,7 +671,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_GenderTooltip {
             get {
-                return ResourceManager.GetString("Data_GenderTooltip", resourceCulture);
+                return ResourceManager.GetString("Member_GenderTooltip", resourceCulture);
             }
         }
         
@@ -680,7 +680,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_GetTemplate {
             get {
-                return ResourceManager.GetString("Data_GetTemplate", resourceCulture);
+                return ResourceManager.GetString("Member_GetTemplate", resourceCulture);
             }
         }
         
@@ -689,7 +689,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Height {
             get {
-                return ResourceManager.GetString("Data_Height", resourceCulture);
+                return ResourceManager.GetString("Member_Height", resourceCulture);
             }
         }
         
@@ -698,7 +698,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_HeightInvalidFmt {
             get {
-                return ResourceManager.GetString("Data_HeightInvalidFmt", resourceCulture);
+                return ResourceManager.GetString("Member_HeightInvalidFmt", resourceCulture);
             }
         }
         
@@ -707,7 +707,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_HeightPH {
             get {
-                return ResourceManager.GetString("Data_HeightPH", resourceCulture);
+                return ResourceManager.GetString("Member_HeightPH", resourceCulture);
             }
         }
         
@@ -716,7 +716,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_HeightTooltip {
             get {
-                return ResourceManager.GetString("Data_HeightTooltip", resourceCulture);
+                return ResourceManager.GetString("Member_HeightTooltip", resourceCulture);
             }
         }
         
@@ -734,7 +734,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ImportData {
             get {
-                return ResourceManager.GetString("Data_ImportData", resourceCulture);
+                return ResourceManager.GetString("Member_ImportData", resourceCulture);
             }
         }
         
@@ -772,7 +772,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ImportErrorFmt {
             get {
-                return ResourceManager.GetString("Data_ImportErrorFmt", resourceCulture);
+                return ResourceManager.GetString("Member_ImportErrorFmt", resourceCulture);
             }
         }
         
@@ -781,7 +781,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ImportFailed {
             get {
-                return ResourceManager.GetString("Data_ImportFailed", resourceCulture);
+                return ResourceManager.GetString("Member_ImportFailed", resourceCulture);
             }
         }
         
@@ -790,7 +790,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ImportFromFile {
             get {
-                return ResourceManager.GetString("Data_ImportFromFile", resourceCulture);
+                return ResourceManager.GetString("Member_ImportFromFile", resourceCulture);
             }
         }
         
@@ -799,7 +799,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Importing {
             get {
-                return ResourceManager.GetString("Data_Importing", resourceCulture);
+                return ResourceManager.GetString("Member_Importing", resourceCulture);
             }
         }
         
@@ -808,7 +808,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_ImportResult {
             get {
-                return ResourceManager.GetString("Data_ImportResult", resourceCulture);
+                return ResourceManager.GetString("Member_ImportResult", resourceCulture);
             }
         }
         
@@ -826,7 +826,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_LoadedFmt {
             get {
-                return ResourceManager.GetString("Data_LoadedFmt", resourceCulture);
+                return ResourceManager.GetString("Member_LoadedFmt", resourceCulture);
             }
         }
         
@@ -844,7 +844,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Loading {
             get {
-                return ResourceManager.GetString("Data_Loading", resourceCulture);
+                return ResourceManager.GetString("Member_Loading", resourceCulture);
             }
         }
         
@@ -853,7 +853,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Name {
             get {
-                return ResourceManager.GetString("Data_Name", resourceCulture);
+                return ResourceManager.GetString("Member_Name", resourceCulture);
             }
         }
         
@@ -862,7 +862,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_NameEmptyFmt {
             get {
-                return ResourceManager.GetString("Data_NameEmptyFmt", resourceCulture);
+                return ResourceManager.GetString("Member_NameEmptyFmt", resourceCulture);
             }
         }
         
@@ -871,7 +871,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_NamePlaceholder {
             get {
-                return ResourceManager.GetString("Data_NamePlaceholder", resourceCulture);
+                return ResourceManager.GetString("Member_NamePlaceholder", resourceCulture);
             }
         }
         
@@ -880,7 +880,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_NameTooltip {
             get {
-                return ResourceManager.GetString("Data_NameTooltip", resourceCulture);
+                return ResourceManager.GetString("Member_NameTooltip", resourceCulture);
             }
         }
         
@@ -889,7 +889,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_NoDataToExport {
             get {
-                return ResourceManager.GetString("Data_NoDataToExport", resourceCulture);
+                return ResourceManager.GetString("Member_NoDataToExport", resourceCulture);
             }
         }
         
@@ -898,7 +898,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_NoImport {
             get {
-                return ResourceManager.GetString("Data_NoImport", resourceCulture);
+                return ResourceManager.GetString("Member_NoImport", resourceCulture);
             }
         }
         
@@ -907,7 +907,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_NoValidStudents {
             get {
-                return ResourceManager.GetString("Data_NoValidStudents", resourceCulture);
+                return ResourceManager.GetString("Member_NoValidStudents", resourceCulture);
             }
         }
         
@@ -916,7 +916,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Operations {
             get {
-                return ResourceManager.GetString("Data_Operations", resourceCulture);
+                return ResourceManager.GetString("Member_Operations", resourceCulture);
             }
         }
         
@@ -934,7 +934,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_PersonCountFmt {
             get {
-                return ResourceManager.GetString("Data_PersonCountFmt", resourceCulture);
+                return ResourceManager.GetString("Member_PersonCountFmt", resourceCulture);
             }
         }
         
@@ -943,7 +943,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Ready {
             get {
-                return ResourceManager.GetString("Data_Ready", resourceCulture);
+                return ResourceManager.GetString("Member_Ready", resourceCulture);
             }
         }
         
@@ -952,7 +952,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Renamed {
             get {
-                return ResourceManager.GetString("Data_Renamed", resourceCulture);
+                return ResourceManager.GetString("Member_Renamed", resourceCulture);
             }
         }
         
@@ -961,7 +961,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_RenameFailed {
             get {
-                return ResourceManager.GetString("Data_RenameFailed", resourceCulture);
+                return ResourceManager.GetString("Member_RenameFailed", resourceCulture);
             }
         }
         
@@ -970,7 +970,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_RenamePrompt {
             get {
-                return ResourceManager.GetString("Data_RenamePrompt", resourceCulture);
+                return ResourceManager.GetString("Member_RenamePrompt", resourceCulture);
             }
         }
         
@@ -979,7 +979,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_RenameTitle {
             get {
-                return ResourceManager.GetString("Data_RenameTitle", resourceCulture);
+                return ResourceManager.GetString("Member_RenameTitle", resourceCulture);
             }
         }
         
@@ -988,7 +988,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SampleFileCN {
             get {
-                return ResourceManager.GetString("Data_SampleFileCN", resourceCulture);
+                return ResourceManager.GetString("Member_SampleFileCN", resourceCulture);
             }
         }
         
@@ -997,7 +997,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SaveAsPrompt {
             get {
-                return ResourceManager.GetString("Data_SaveAsPrompt", resourceCulture);
+                return ResourceManager.GetString("Member_SaveAsPrompt", resourceCulture);
             }
         }
         
@@ -1006,7 +1006,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SaveAsTitle {
             get {
-                return ResourceManager.GetString("Data_SaveAsTitle", resourceCulture);
+                return ResourceManager.GetString("Member_SaveAsTitle", resourceCulture);
             }
         }
         
@@ -1015,7 +1015,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SaveConfirm {
             get {
-                return ResourceManager.GetString("Data_SaveConfirm", resourceCulture);
+                return ResourceManager.GetString("Member_SaveConfirm", resourceCulture);
             }
         }
         
@@ -1024,7 +1024,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SaveConfirmMsg {
             get {
-                return ResourceManager.GetString("Data_SaveConfirmMsg", resourceCulture);
+                return ResourceManager.GetString("Member_SaveConfirmMsg", resourceCulture);
             }
         }
         
@@ -1033,7 +1033,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SavedAsFmt {
             get {
-                return ResourceManager.GetString("Data_SavedAsFmt", resourceCulture);
+                return ResourceManager.GetString("Member_SavedAsFmt", resourceCulture);
             }
         }
         
@@ -1042,7 +1042,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SaveDataset {
             get {
-                return ResourceManager.GetString("Data_SaveDataset", resourceCulture);
+                return ResourceManager.GetString("Member_SaveDataset", resourceCulture);
             }
         }
         
@@ -1051,7 +1051,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SavedDatasets {
             get {
-                return ResourceManager.GetString("Data_SavedDatasets", resourceCulture);
+                return ResourceManager.GetString("Member_SavedDatasets", resourceCulture);
             }
         }
         
@@ -1060,7 +1060,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_SavedFmt {
             get {
-                return ResourceManager.GetString("Data_SavedFmt", resourceCulture);
+                return ResourceManager.GetString("Member_SavedFmt", resourceCulture);
             }
         }
         
@@ -1078,7 +1078,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_StudentCountFmt {
             get {
-                return ResourceManager.GetString("Data_StudentCountFmt", resourceCulture);
+                return ResourceManager.GetString("Member_StudentCountFmt", resourceCulture);
             }
         }
         
@@ -1087,7 +1087,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_StudentDataFile {
             get {
-                return ResourceManager.GetString("Data_StudentDataFile", resourceCulture);
+                return ResourceManager.GetString("Member_StudentDataFile", resourceCulture);
             }
         }
         
@@ -1096,7 +1096,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_TemplateMissing {
             get {
-                return ResourceManager.GetString("Data_TemplateMissing", resourceCulture);
+                return ResourceManager.GetString("Member_TemplateMissing", resourceCulture);
             }
         }
         
@@ -1105,7 +1105,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_TemplateMissingMsg {
             get {
-                return ResourceManager.GetString("Data_TemplateMissingMsg", resourceCulture);
+                return ResourceManager.GetString("Member_TemplateMissingMsg", resourceCulture);
             }
         }
         
@@ -1124,7 +1124,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_TemplateSaveError {
             get {
-                return ResourceManager.GetString("Data_TemplateSaveError", resourceCulture);
+                return ResourceManager.GetString("Member_TemplateSaveError", resourceCulture);
             }
         }
         
@@ -1142,7 +1142,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Title {
             get {
-                return ResourceManager.GetString("Data_Title", resourceCulture);
+                return ResourceManager.GetString("Member_Title", resourceCulture);
             }
         }
         
@@ -1160,7 +1160,7 @@ namespace A_Pair.Presentation.Avalonia.Lang {
         /// </summary>
         public static string Data_Unnamed {
             get {
-                return ResourceManager.GetString("Data_Unnamed", resourceCulture);
+                return ResourceManager.GetString("Member_Unnamed", resourceCulture);
             }
         }
         

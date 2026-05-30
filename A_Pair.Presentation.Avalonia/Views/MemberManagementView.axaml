@@ -25,7 +25,7 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Data_Title}" Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Member_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
 
         <!-- === 右侧操作按钮 === -->
@@ -53,18 +53,18 @@
                     AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}" >
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Data_GetTemplate}" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Member_GetTemplate}" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="{x:Static lang:Resources.Data_ImportData}">
+                    AutomationProperties.Name="{x:Static lang:Resources.Member_ImportData}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Data_ImportFromFile}" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Member_ImportFromFile}" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="{x:Static lang:Resources.Data_SaveDataset}">
+                    AutomationProperties.Name="{x:Static lang:Resources.Member_SaveDataset}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
                 <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
@@ -97,7 +97,7 @@
             </Button.Transitions>
             <StackPanel Orientation="Horizontal" Spacing="4">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.MoreHorizontal}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Data_Operations}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Member_Operations}" FontSize="14" />
             </StackPanel>
             <Button.Flyout>
               <Flyout>
@@ -112,14 +112,14 @@
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                      <TextBlock Text="{x:Static lang:Resources.Data_GetTemplate}" FontSize="14" />
+                      <TextBlock Text="{x:Static lang:Resources.Member_GetTemplate}" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
-                      <TextBlock Text="{x:Static lang:Resources.Data_ImportFromFile}" FontSize="14" />
+                      <TextBlock Text="{x:Static lang:Resources.Member_ImportFromFile}" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
@@ -168,7 +168,7 @@
                 <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
               </Transitions>
             </StackPanel.Transitions>
-            <TextBlock Text="{x:Static lang:Resources.Data_ExportLabel}" FontSize="12" VerticalAlignment="Center"
+            <TextBlock Text="{x:Static lang:Resources.Member_ExportLabel}" FontSize="12" VerticalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
                     Padding="8,4" FontSize="12">CSV</Button>
@@ -202,15 +202,15 @@
                   </StackPanel.Transitions>
                   <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="{x:Static lang:Resources.Data_ExportCSV}" FontSize="14" />
+                    <TextBlock Text="{x:Static lang:Resources.Member_ExportCSV}" FontSize="14" />
                   </Button>
                   <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="{x:Static lang:Resources.Data_ExportExcel}" FontSize="14" />
+                    <TextBlock Text="{x:Static lang:Resources.Member_ExportExcel}" FontSize="14" />
                   </Button>
                   <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="{x:Static lang:Resources.Data_ExportJSON}" FontSize="14" />
+                    <TextBlock Text="{x:Static lang:Resources.Member_ExportJSON}" FontSize="14" />
                   </Button>
                 </StackPanel>
               </Flyout>
@@ -254,7 +254,7 @@
           </Transitions>
         </Border.Transitions>
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Data_SavedDatasets}"
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Member_SavedDatasets}"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
           <Border DockPanel.Dock="Bottom">
@@ -387,7 +387,7 @@
             <TextBlock Text="{x:Static lang:Resources.Common_NoData}" Classes="sectionTitle"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="{x:Static lang:Resources.Data_EmptyHint}"
+            <TextBlock Text="{x:Static lang:Resources.Member_EmptyHint}"
                        FontSize="12" HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
           </StackPanel>
@@ -398,10 +398,10 @@
           <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                   Padding="12,8" CornerRadius="4,4,0,0">
             <Grid ColumnDefinitions="2*,*,*,*">
-              <TextBlock Grid.Column="0" Text="{x:Static lang:Resources.Data_Name}" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="1" Text="{x:Static lang:Resources.Data_Height}" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="2" Text="{x:Static lang:Resources.Data_Gender}" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="3" Text="{x:Static lang:Resources.Data_FrontRow}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="0" Text="{x:Static lang:Resources.Member_Name}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="1" Text="{x:Static lang:Resources.Member_Height}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="2" Text="{x:Static lang:Resources.Member_Gender}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="3" Text="{x:Static lang:Resources.Member_FrontRow}" FontSize="14" FontWeight="SemiBold" />
             </Grid>
           </Border>
 
@@ -416,19 +416,19 @@
                                FontSize="14" VerticalAlignment="Center"
                                BorderThickness="0" Background="Transparent"
                                Padding="4,2"
-                               PlaceholderText="{x:Static lang:Resources.Data_NamePlaceholder}"
-                               ToolTip.Tip="{x:Static lang:Resources.Data_NameTooltip}" />
+                               PlaceholderText="{x:Static lang:Resources.Member_NamePlaceholder}"
+                               ToolTip.Tip="{x:Static lang:Resources.Member_NameTooltip}" />
                       <TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
                                FontSize="14" VerticalAlignment="Center"
                                BorderThickness="0" Background="Transparent"
                                Padding="4,2"
-                               PlaceholderText="{x:Static lang:Resources.Data_HeightPH}"
-                               ToolTip.Tip="{x:Static lang:Resources.Data_HeightTooltip}" />
+                               PlaceholderText="{x:Static lang:Resources.Member_HeightPH}"
+                               ToolTip.Tip="{x:Static lang:Resources.Member_HeightTooltip}" />
                       <ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
                                 FontSize="14" VerticalAlignment="Center"
                                 BorderThickness="0" Background="Transparent"
                                 Padding="0,2"
-                                ToolTip.Tip="{x:Static lang:Resources.Data_GenderTooltip}">
+                                ToolTip.Tip="{x:Static lang:Resources.Member_GenderTooltip}">
                         <ComboBoxItem Content=""/>
                         <ComboBoxItem Content="{x:Static lang:Resources.Gender_Male}"/>
                         <ComboBoxItem Content="{x:Static lang:Resources.Gender_Female}"/>
@@ -437,7 +437,7 @@
                       <CheckBox Grid.Column="3" IsChecked="{Binding NeedsFrontRow, Mode=TwoWay}"
                                 FontSize="14" VerticalAlignment="Center"
                                 HorizontalAlignment="Center"
-                                ToolTip.Tip="{x:Static lang:Resources.Data_FrontRowTooltip}" />
+                                ToolTip.Tip="{x:Static lang:Resources.Member_FrontRowTooltip}" />
                     </Grid>
                   </Border>
                 </DataTemplate>
