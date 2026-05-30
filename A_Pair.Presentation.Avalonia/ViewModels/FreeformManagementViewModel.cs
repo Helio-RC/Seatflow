@@ -148,7 +148,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             Resources.Freeform_SaveTemplate ,
             [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] ,
             Resources.Freeform_CSVTemplate); }
-        catch (TaskCanceledException) { return; }
+        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
         if (tmplFile == null) return;
         var file = tmplFile;
 
@@ -176,7 +176,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
         try { csvFile = await _fileService.OpenFileAsync(
             Resources.Freeform_ImportCSV ,
             [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }]); }
-        catch (TaskCanceledException) { return; }
+        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
         if (csvFile == null) return;
         var file = csvFile;
 
@@ -244,7 +244,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
         try { jsonFile = await _fileService.OpenFileAsync(
             Resources.Freeform_ImportJSON ,
             [new(Resources.Data_JSONFile) { Patterns = ["*.json"] }]); }
-        catch (TaskCanceledException) { return; }
+        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
         if (jsonFile == null) return;
         var file = jsonFile;
 

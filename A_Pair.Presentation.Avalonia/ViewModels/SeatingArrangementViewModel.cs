@@ -827,13 +827,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 StatusMessage = Resources.Seating_ExportTimeout;
             }
         }
-        catch (TaskCanceledException)
+        catch (Exception ex)
         {
-            // 用户取消文件对话框，忽略
-        }
-        catch (Exception ex) when (ex.Message?.Contains("cancel", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            // 某些平台取消对话框会抛异常
+            _logger?.LogDebug(ex, "导出文件对话框取消或异常");
         }
     }
 }

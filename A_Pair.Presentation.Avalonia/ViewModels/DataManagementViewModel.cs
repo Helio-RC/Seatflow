@@ -185,7 +185,7 @@ public partial class DataManagementViewModel : ViewModelBase
 
             IStorageFile? tmplFile;
             try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
-            catch (TaskCanceledException) { return; }
+            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
             if (tmplFile is null) return;
 
             using var source = AssetLoader.Open(uri);
@@ -238,7 +238,7 @@ public partial class DataManagementViewModel : ViewModelBase
         {
             IStorageFile? importFile;
             try { importFile = await _fileService.OpenFileAsync(Resources.Data_ImportData , StudentFileTypes); }
-            catch (TaskCanceledException) { return; }
+            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
             if (importFile is null) return;
             var file = importFile;
 
@@ -318,7 +318,7 @@ public partial class DataManagementViewModel : ViewModelBase
         {
             IStorageFile? exportFile;
             try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export , types); }
-            catch (TaskCanceledException) { return; }
+            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
             if (exportFile is null) return;
             var file = exportFile;
 
