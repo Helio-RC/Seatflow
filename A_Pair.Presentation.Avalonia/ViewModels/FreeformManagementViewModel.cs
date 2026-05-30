@@ -376,7 +376,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     {
         if (SelectedLayout == null) return;
         var item = SelectedLayout;
-        var confirmed = await Dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm , $"确定要删除布局「{item.Name}」吗？");
+        var confirmed = await Dialog.ShowConfirmAsync(Resources.Freeform_DeleteConfirm , string.Format(Resources.Freeform_DeleteConfirmMsg, item.Name));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
