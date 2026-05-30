@@ -207,11 +207,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             SelectedDetail = new();
             return;
         }
-        if (_hasDetailChanges)
-        {
-            // 有未保存的详情变更，先自动保存再切换
-            _ = SaveCurrentConfigAsync(CancellationToken.None);
-        }
+        // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
+        _hasDetailChanges = false;
         _ = LoadDetailAsync(value);
     }
 
