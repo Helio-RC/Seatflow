@@ -142,7 +142,7 @@ public sealed class WatchdogService : IDisposable
             // 尝试弹窗通知用户
             try
             {
-                var msg = string.Format(Resources.Watchdog_MessageFmt, timeoutSeconds, logPath);
+                var msg = string.Format(Resources.Watchdog_MessageFmt , timeoutSeconds , logPath);
                 _dialog?.ShowErrorAsync(Resources.Watchdog_Title , msg).Wait(3000);
             }
             catch { /* UI 可能已死锁，弹窗无法显示 */ }

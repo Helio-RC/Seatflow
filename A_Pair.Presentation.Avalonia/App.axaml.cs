@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
-using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
@@ -159,7 +158,7 @@ namespace A_Pair.Presentation.Avalonia
                 Behaviors.ChineseInputNormalizer.Attach(mainWindow);
 
                 // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
-                desktop.ShutdownRequested += (_, _) =>
+                desktop.ShutdownRequested += (_ , _) =>
                 {
                     var exitLogger = _serviceProvider.GetRequiredService<ILogger<App>>();
                     Task.Run(async () =>

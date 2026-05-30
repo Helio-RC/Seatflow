@@ -32,7 +32,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private int _themeIndex;
 
-    public List<string> ThemeOptions { get; } = [Resources.Theme_System, Resources.Theme_Light, Resources.Theme_Dark];
+    public List<string> ThemeOptions { get; } = [Resources.Theme_System , Resources.Theme_Light , Resources.Theme_Dark];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedLanguage))]
@@ -52,7 +52,7 @@ public partial class SettingsViewModel : ViewModelBase
         get => _selectedLanguage ?? LanguageOptions.Find(static o => o.Code == "");
         set
         {
-            if (SetProperty(ref _selectedLanguage, value))
+            if (SetProperty(ref _selectedLanguage , value))
                 Language = value?.Code ?? "";
         }
     }
@@ -66,7 +66,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private int _zoomIndex = 1;
 
-    public List<string> ZoomOptions { get; } = [Resources.Zoom_75, Resources.Zoom_100, Resources.Zoom_125, Resources.Zoom_150];
+    public List<string> ZoomOptions { get; } = [Resources.Zoom_75 , Resources.Zoom_100 , Resources.Zoom_125 , Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
     private int _dialogLock;
@@ -224,33 +224,33 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task BrowseDataDirectoryAsync (CancellationToken ct)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
         {
-        try
-        {
-            if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                return;
-
-            var storageProvider = desktop.MainWindow?.StorageProvider;
-            if (storageProvider is null) return;
-
-            var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            try
             {
-                Title = Resources.Settings_FolderTitle ,
-                AllowMultiple = false
-            });
+                if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
 
-            if (folders.Count > 0)
-                DataDirectory = folders[0].Path.LocalPath;
+                var storageProvider = desktop.MainWindow?.StorageProvider;
+                if (storageProvider is null) return;
+
+                var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = Resources.Settings_FolderTitle ,
+                    AllowMultiple = false
+                });
+
+                if (folders.Count > 0)
+                    DataDirectory = folders[0].Path.LocalPath;
+            }
+            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger?.LogDebug(ex , "目录选择取消"); }
+            catch (Exception ex)
+            {
+                await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
+            }
         }
-        catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger?.LogDebug(ex, "目录选择取消"); }
-        catch (Exception ex)
-        {
-            await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
-        }
-        }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]

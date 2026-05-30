@@ -5,8 +5,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
-using CommunityToolkit.Mvvm.ComponentModel;
 using A_Pair.Presentation.Avalonia.Lang;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,10 +18,10 @@ public partial class PluginManagementViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly ILogger<PluginManagementViewModel> _logger;
 
-    
-    public string PluginCountDisplay => string.Format(Resources.Plugin_FoundFmt, Plugins.Count);
-    public string SelectedPluginVersionDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_VersionFmt, SelectedPlugin.Version) : "";
-    public string SelectedPluginAuthorDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_AuthorFmt, SelectedPlugin.Author) : "";
+
+    public string PluginCountDisplay => string.Format(Resources.Plugin_FoundFmt , Plugins.Count);
+    public string SelectedPluginVersionDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_VersionFmt , SelectedPlugin.Version) : "";
+    public string SelectedPluginAuthorDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_AuthorFmt , SelectedPlugin.Author) : "";
 
     public PluginManagementViewModel (IApplicationFacade facade , ILogger<PluginManagementViewModel>? logger = null)
     {
@@ -176,7 +176,7 @@ public partial class PluginManagementViewModel : ViewModelBase
             var newEnabled = !SelectedPlugin.IsEnabled;
             await _facade.SetPluginEnabledAsync(SelectedPlugin.Id , newEnabled);
             SelectedPlugin.IsEnabled = newEnabled;
-            StatusMessage = string.Format(Resources.Plugin_ToggledFmt, SelectedPlugin.Name, newEnabled ? Resources.Common_Enabled : Resources.Common_Disabled);
+            StatusMessage = string.Format(Resources.Plugin_ToggledFmt , SelectedPlugin.Name , newEnabled ? Resources.Common_Enabled : Resources.Common_Disabled);
         } , Resources.Plugin_ToggleFailed);
     }
 
@@ -189,7 +189,7 @@ public partial class PluginManagementViewModel : ViewModelBase
         {
             await _facade.SavePluginScriptAsync(SelectedPlugin.Id , ScriptEditorText , ct);
             IsScriptDirty = false;
-            StatusMessage = string.Format(Resources.Plugin_ScriptSavedFmt, SelectedPlugin.Name);
+            StatusMessage = string.Format(Resources.Plugin_ScriptSavedFmt , SelectedPlugin.Name);
         } , TimeSpan.FromSeconds(30) , Resources.Plugin_ScriptSaveFailed);
     }
 
@@ -207,13 +207,13 @@ public partial class PluginManagementViewModel : ViewModelBase
             }
             catch (JsonException ex)
             {
-                StatusMessage = string.Format(Resources.Plugin_JSONErrorFmt, ex.Message);
+                StatusMessage = string.Format(Resources.Plugin_JSONErrorFmt , ex.Message);
                 return;
             }
 
             await _facade.SavePluginConfigJsonAsync(SelectedPlugin.Id , ConfigEditorText , ct);
             IsConfigDirty = false;
-            StatusMessage = string.Format(Resources.Plugin_ConfigSavedFmt, SelectedPlugin.Name);
+            StatusMessage = string.Format(Resources.Plugin_ConfigSavedFmt , SelectedPlugin.Name);
         } , TimeSpan.FromSeconds(30) , Resources.Plugin_ConfigSaveFailed);
     }
 

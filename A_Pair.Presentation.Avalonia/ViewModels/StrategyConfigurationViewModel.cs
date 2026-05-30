@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
-using CommunityToolkit.Mvvm.ComponentModel;
 using A_Pair.Presentation.Avalonia.Lang;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -145,13 +145,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     // ═══════════════ 构造函数 ═══════════════
 
-    
-    public string PriorityDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_PriorityFmt, SelectedStrategy.Priority) : "";
-    public string EnableTooltipDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_EnableFmt, SelectedStrategy.DisplayName) : "";
-    public string DetailSourceDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_SourceFmt, SelectedDetail.Source) : "";
-    public string DetailAuthorDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_AuthorFmt, SelectedDetail.Author) : "";
-    public string DetailCategoryDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_CategoryFmt, SelectedDetail.Category) : "";
-    public string DetailDefaultPriorityDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_DefaultPriorityFmt, SelectedDetail.DefaultPriority) : "";
+
+    public string PriorityDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_PriorityFmt , SelectedStrategy.Priority) : "";
+    public string EnableTooltipDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_EnableFmt , SelectedStrategy.DisplayName) : "";
+    public string DetailSourceDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_SourceFmt , SelectedDetail.Source) : "";
+    public string DetailAuthorDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_AuthorFmt , SelectedDetail.Author) : "";
+    public string DetailCategoryDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_CategoryFmt , SelectedDetail.Category) : "";
+    public string DetailDefaultPriorityDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_DefaultPriorityFmt , SelectedDetail.DefaultPriority) : "";
 
     public StrategyConfigurationViewModel (IApplicationFacade facade , ILogger<StrategyConfigurationViewModel>? logger = null)
     {
@@ -210,7 +210,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (_hasDetailChanges)
         {
             // 有未保存的详情变更，先自动保存再切换
-            _ = SaveCurrentConfigAsync();
+            _ = SaveCurrentConfigAsync(CancellationToken.None);
         }
         _ = LoadDetailAsync(value);
     }
@@ -254,12 +254,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 var names = string.Join("\n" , fixedList.Select(n => $"• {n}"));
                 await Dialog.ShowWarningAsync(
                     Resources.Strategy_PriorityConflictAutoFixed ,
-                    string.Format(Resources.Strategy_PriorityConflictMsgFmt, names));
+                    string.Format(Resources.Strategy_PriorityConflictMsgFmt , names));
                 ReSort();
-                StatusMessage = string.Format(Resources.Strategy_LoadedFixedFmt, Strategies.Count, fixedList.Count);
+                StatusMessage = string.Format(Resources.Strategy_LoadedFixedFmt , Strategies.Count , fixedList.Count);
             }
             else
-                StatusMessage = string.Format(Resources.Strategy_LoadedFmt, Strategies.Count);
+                StatusMessage = string.Format(Resources.Strategy_LoadedFmt , Strategies.Count);
         }
         catch (Exception ex)
         {
@@ -339,7 +339,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         var neighbor = sorted[idx - 1];
         await ResolveAndSwapPriorityAsync(item , neighbor);
         ReSort();
-        StatusMessage = string.Format(Resources.Strategy_MovedUpFmt, item.DisplayName, item.Priority);
+        StatusMessage = string.Format(Resources.Strategy_MovedUpFmt , item.DisplayName , item.Priority);
     }
 
     [RelayCommand]
@@ -353,7 +353,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         var neighbor = sorted[idx + 1];
         await ResolveAndSwapPriorityAsync(neighbor , item);
         ReSort();
-        StatusMessage = string.Format(Resources.Strategy_MovedDownFmt, item.DisplayName, item.Priority);
+        StatusMessage = string.Format(Resources.Strategy_MovedDownFmt , item.DisplayName , item.Priority);
     }
 
     private async Task ResolveAndSwapPriorityAsync (
@@ -370,9 +370,9 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         {
             var choice = await Dialog.ShowConfirmAsync(
                 Resources.Strategy_PriorityConflict ,
-                string.Format(Resources.Strategy_PriorityConflictMsg, first.DisplayName, second.DisplayName, first.Priority) + "\n\n" +
-                string.Format(Resources.Strategy_PriorityConflictChoice1, first.DisplayName) + "\n" +
-                string.Format(Resources.Strategy_PriorityConflictChoice2, second.DisplayName));
+                string.Format(Resources.Strategy_PriorityConflictMsg , first.DisplayName , second.DisplayName , first.Priority) + "\n\n" +
+                string.Format(Resources.Strategy_PriorityConflictChoice1 , first.DisplayName) + "\n" +
+                string.Format(Resources.Strategy_PriorityConflictChoice2 , second.DisplayName));
             if (choice)
                 AssignWithCascade(first , second);
             else
@@ -404,7 +404,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
         await Dialog.ShowWarningAsync(
             Resources.Strategy_PriorityConflict ,
-            string.Format(Resources.Strategy_PriorityTakenFmt, newPriority, conflict.DisplayName));
+            string.Format(Resources.Strategy_PriorityTakenFmt , newPriority , conflict.DisplayName));
         return false;
     }
 
@@ -434,14 +434,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         for (int i = 1; i < snapshot.Count; i++)
         {
             if (snapshot[i].Priority <= snapshot[i - 1].Priority)
-                duplicates.Add(string.Format(Resources.Strategy_DuplicateEntryFmt, snapshot[i].DisplayName, snapshot[i].Priority));
+                duplicates.Add(string.Format(Resources.Strategy_DuplicateEntryFmt , snapshot[i].DisplayName , snapshot[i].Priority));
         }
 
         if (duplicates.Count == 0) return true;
 
         await Dialog.ShowWarningAsync(
             Resources.Strategy_PriorityConflict ,
-            string.Format(Resources.Strategy_DuplicateWarningFmt, string.Join("\n" , duplicates)));
+            string.Format(Resources.Strategy_DuplicateWarningFmt , string.Join("\n" , duplicates)));
         return false;
     }
 
@@ -520,7 +520,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             _hasDetailChanges = false;
             ReSort();
             OnPropertyChanged(nameof(HasChanges));
-            StatusMessage = string.Format(Resources.Strategy_SavedFmt, savedName);
+            StatusMessage = string.Format(Resources.Strategy_SavedFmt , savedName);
         }
         catch (Exception ex)
         {
@@ -589,7 +589,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             _hasDetailChanges = false;
             ReSort();
             OnPropertyChanged(nameof(HasChanges));
-            StatusMessage = string.Format(Resources.Strategy_SavedCountFmt, dirtyItems.Count);
+            StatusMessage = string.Format(Resources.Strategy_SavedCountFmt , dirtyItems.Count);
         }
         catch (Exception ex)
         {
@@ -608,7 +608,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (SelectedDetail is null) return;
 
         var confirmed = await Dialog.ShowConfirmAsync(Resources.Strategy_RestoreDefaults ,
-            string.Format(Resources.Strategy_RestoreDefaultConfirmFmt, SelectedDetail.DisplayName));
+            string.Format(Resources.Strategy_RestoreDefaultConfirmFmt , SelectedDetail.DisplayName));
         if (!confirmed) return;
 
         EditPriority = SelectedDetail.DefaultPriority;

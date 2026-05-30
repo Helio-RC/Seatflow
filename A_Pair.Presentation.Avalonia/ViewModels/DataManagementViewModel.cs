@@ -106,10 +106,10 @@ public partial class DataManagementViewModel : ViewModelBase
     }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
-    
-    public string StudentCountDisplay => string.Format(Resources.Data_StudentCountFmt, StudentCount);
-    public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Data_DataSourceFmt, FilePath);
-    public string StudentCountDisplay2 => string.Format(Resources.Data_PersonCountFmt, StudentCount);
+
+    public string StudentCountDisplay => string.Format(Resources.Data_StudentCountFmt , StudentCount);
+    public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Data_DataSourceFmt , FilePath);
+    public string StudentCountDisplay2 => string.Format(Resources.Data_PersonCountFmt , StudentCount);
 
     public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<DataManagementViewModel>? logger = null)
     {
@@ -162,54 +162,54 @@ public partial class DataManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportTemplateAsync (CancellationToken ct)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
         {
-        string? errorTitle = null;
-        string? errorMsg = null;
+            string? errorTitle = null;
+            string? errorMsg = null;
 
-        try
-        {
-            var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
-            var uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
-
-            if (!AssetLoader.Exists(uri))
+            try
             {
-                suffix = DefaultTemplateSuffix;
-                displayName = DefaultTemplateDisplayName;
-                uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
-            }
+                var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
+                var uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
 
-            if (!AssetLoader.Exists(uri))
+                if (!AssetLoader.Exists(uri))
+                {
+                    suffix = DefaultTemplateSuffix;
+                    displayName = DefaultTemplateDisplayName;
+                    uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
+                }
+
+                if (!AssetLoader.Exists(uri))
+                {
+                    errorTitle = Resources.Data_TemplateMissing;
+                    errorMsg = string.Format(Resources.Data_TemplateMissingMsg);
+                    return;
+                }
+
+                IStorageFile? tmplFile;
+                try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (tmplFile is null) return;
+
+                using var source = AssetLoader.Open(uri);
+                await using var destination = File.Create(tmplFile.Path.LocalPath);
+                await source.CopyToAsync(destination , ct);
+
+                StatusMessage = Resources.Data_TemplateSaved;
+            }
+            catch (Exception ex)
             {
-                errorTitle = Resources.Data_TemplateMissing;
-                errorMsg = string.Format(Resources.Data_TemplateMissingMsg);
-                return;
+                errorTitle = Resources.Data_TemplateSaveFailed;
+                errorMsg = string.Format(Resources.Data_TemplateSaveError) + "\n" + ex.Message;
             }
-
-            IStorageFile? tmplFile;
-            try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
-            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
-            if (tmplFile is null) return;
-
-            using var source = AssetLoader.Open(uri);
-            await using var destination = File.Create(tmplFile.Path.LocalPath);
-            await source.CopyToAsync(destination , ct);
-
-            StatusMessage = Resources.Data_TemplateSaved;
+            finally
+            {
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
+            }
         }
-        catch (Exception ex)
-        {
-            errorTitle = Resources.Data_TemplateSaveFailed;
-            errorMsg = string.Format(Resources.Data_TemplateSaveError) + "\n" + ex.Message;
-        }
-        finally
-        {
-            if (errorTitle != null)
-                await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
-        }
-        }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
@@ -237,63 +237,63 @@ public partial class DataManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportAsync (CancellationToken ct)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
         {
-        string? errorTitle = null;
-        string? errorMsg = null;
+            string? errorTitle = null;
+            string? errorMsg = null;
 
-        try
-        {
-            IStorageFile? importFile;
-            try { importFile = await _fileService.OpenFileAsync(Resources.Data_ImportData , StudentFileTypes); }
-            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
-            if (importFile is null) return;
-            var file = importFile;
-
-            FilePath = file.Path.LocalPath;
-            IsLoading = true;
-            ErrorMessage = string.Empty;
-            StatusMessage = Resources.Data_Importing;
-
-            var students = await _facade.LoadStudentsAsync(FilePath , ct);
-
-            Students = new ObservableCollection<Student>(students);
-            StudentCount = Students.Count;
-            IsEmpty = StudentCount == 0;
-            StatusMessage = IsEmpty ? Resources.Data_NoImport : $"已导入 {StudentCount} 名学生";
-
-            // 自动保存到托管存储
-            if (!IsEmpty)
+            try
             {
-                var name = Path.GetFileNameWithoutExtension(FilePath);
-                CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name , students , Path.GetFileName(FilePath) , ct);
-                CurrentDatasetName = name;
-                _ = RefreshDatasetsAsync(ct);
-            }
+                IStorageFile? importFile;
+                try { importFile = await _fileService.OpenFileAsync(Resources.Data_ImportData , StudentFileTypes); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (importFile is null) return;
+                var file = importFile;
 
-            if (IsEmpty)
+                FilePath = file.Path.LocalPath;
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                StatusMessage = Resources.Data_Importing;
+
+                var students = await _facade.LoadStudentsAsync(FilePath , ct);
+
+                Students = new ObservableCollection<Student>(students);
+                StudentCount = Students.Count;
+                IsEmpty = StudentCount == 0;
+                StatusMessage = IsEmpty ? Resources.Data_NoImport : $"已导入 {StudentCount} 名学生";
+
+                // 自动保存到托管存储
+                if (!IsEmpty)
+                {
+                    var name = Path.GetFileNameWithoutExtension(FilePath);
+                    CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name , students , Path.GetFileName(FilePath) , ct);
+                    CurrentDatasetName = name;
+                    _ = RefreshDatasetsAsync(ct);
+                }
+
+                if (IsEmpty)
+                {
+                    errorTitle = Resources.Data_ImportResult;
+                    errorMsg = Resources.Data_NoValidStudents;
+                }
+            }
+            catch (Exception ex)
             {
-                errorTitle = Resources.Data_ImportResult;
-                errorMsg = Resources.Data_NoValidStudents;
+                errorTitle = Resources.Data_ImportFailed;
+                errorMsg = ex is FileNotFoundException
+                    ? string.Format(Resources.Data_FileNotFoundFmt , FilePath)
+                    : string.Format(Resources.Data_ImportErrorFmt , ex.Message);
+                StatusMessage = Resources.Data_ImportFailed;
+            }
+            finally
+            {
+                IsLoading = false;
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        catch (Exception ex)
-        {
-            errorTitle = Resources.Data_ImportFailed;
-            errorMsg = ex is FileNotFoundException
-                ? string.Format(Resources.Data_FileNotFoundFmt, FilePath)
-                : string.Format(Resources.Data_ImportErrorFmt, ex.Message);
-            StatusMessage = Resources.Data_ImportFailed;
-        }
-        finally
-        {
-            IsLoading = false;
-            if (errorTitle != null)
-                await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
-        }
-        }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]
@@ -316,48 +316,48 @@ public partial class DataManagementViewModel : ViewModelBase
 
     private async Task ExportAsync (ExportFormat format , FilePickerFileType[] types , CancellationToken ct)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
         {
-        string? errorTitle = null;
-        string? errorMsg = null;
+            string? errorTitle = null;
+            string? errorMsg = null;
 
-        if (Students.Count == 0)
-        {
-            await _dialog.ShowWarningAsync("无数据" , Resources.Data_NoDataToExport);
-            return;
-        }
+            if (Students.Count == 0)
+            {
+                await _dialog.ShowWarningAsync("无数据" , Resources.Data_NoDataToExport);
+                return;
+            }
 
-        try
-        {
-            IStorageFile? exportFile;
-            try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export , types); }
-            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
-            if (exportFile is null) return;
-            var file = exportFile;
+            try
+            {
+                IStorageFile? exportFile;
+                try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export , types); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (exportFile is null) return;
+                var file = exportFile;
 
-            IsLoading = true;
-            ErrorMessage = string.Empty;
-            StatusMessage = Resources.Data_Exporting;
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                StatusMessage = Resources.Data_Exporting;
 
-            await _facade.ExportStudentsAsync(file.Path.LocalPath , Students , format , ct);
+                await _facade.ExportStudentsAsync(file.Path.LocalPath , Students , format , ct);
 
-            StatusMessage = Resources.Data_ExportDone;
+                StatusMessage = Resources.Data_ExportDone;
+            }
+            catch (Exception ex)
+            {
+                errorTitle = Resources.Data_ExportFailed;
+                errorMsg = string.Format(Resources.Data_ExportErrorFmt , ex.Message);
+                StatusMessage = Resources.Data_ExportFailed;
+            }
+            finally
+            {
+                IsLoading = false;
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
+            }
         }
-        catch (Exception ex)
-        {
-            errorTitle = Resources.Data_ExportFailed;
-            errorMsg = string.Format(Resources.Data_ExportErrorFmt, ex.Message);
-            StatusMessage = Resources.Data_ExportFailed;
-        }
-        finally
-        {
-            IsLoading = false;
-            if (errorTitle != null)
-                await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
-        }
-        }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]
@@ -366,7 +366,7 @@ public partial class DataManagementViewModel : ViewModelBase
         if (!IsEmpty)
         {
             var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_ClearConfirm ,
-                string.Format(Resources.Data_ClearConfirmMsg, StudentCount));
+                string.Format(Resources.Data_ClearConfirmMsg , StudentCount));
             if (!confirmed) return;
         }
 
@@ -401,7 +401,7 @@ public partial class DataManagementViewModel : ViewModelBase
                 IsEmpty = StudentCount == 0;
                 FilePath = SelectedDataset.OriginalFileName ?? SelectedDataset.Name;
                 StatusMessage = StudentCount > 0
-                    ? string.Format(Resources.Data_LoadedFmt, StudentCount)
+                    ? string.Format(Resources.Data_LoadedFmt , StudentCount)
                     : Resources.Data_EmptyDataset;
             }
             else
@@ -428,7 +428,7 @@ public partial class DataManagementViewModel : ViewModelBase
         if (SelectedDataset is null) return;
 
         var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm ,
-            string.Format(Resources.Data_DeleteConfirmMsg, SelectedDataset.Name));
+            string.Format(Resources.Data_DeleteConfirmMsg , SelectedDataset.Name));
         if (!confirmed) return;
 
         try
@@ -450,7 +450,7 @@ public partial class DataManagementViewModel : ViewModelBase
         if (SelectedDataset is null) return;
 
         var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Data_RenameTitle ,
-            string.Format(Resources.Data_RenamePrompt, SelectedDataset.Name) , SelectedDataset.Name);
+            string.Format(Resources.Data_RenamePrompt , SelectedDataset.Name) , SelectedDataset.Name);
         if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
 
         try
@@ -486,7 +486,7 @@ public partial class DataManagementViewModel : ViewModelBase
         var datasetName = CurrentDatasetName ?? Resources.Data_Unnamed;
 
         var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_SaveConfirm ,
-            string.Format(Resources.Data_SaveConfirmMsg, datasetName, StudentCount));
+            string.Format(Resources.Data_SaveConfirmMsg , datasetName , StudentCount));
         if (!confirmed) return;
 
         try
@@ -497,7 +497,7 @@ public partial class DataManagementViewModel : ViewModelBase
             CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
             CurrentDatasetName = datasetName;
             await RefreshDatasetsAsync(ct);
-            StatusMessage = string.Format(Resources.Data_SavedFmt, datasetName);
+            StatusMessage = string.Format(Resources.Data_SavedFmt , datasetName);
         }
         catch (Exception ex)
         {
@@ -515,13 +515,13 @@ public partial class DataManagementViewModel : ViewModelBase
             var row = i + 1;
 
             if (string.IsNullOrWhiteSpace(s.Name))
-                errors.Add(string.Format(Resources.Data_NameEmptyFmt, row));
+                errors.Add(string.Format(Resources.Data_NameEmptyFmt , row));
 
             if (s.Height.HasValue && s.Height.Value <= 0)
-                errors.Add(string.Format(Resources.Data_HeightInvalidFmt, row, s.Name));
+                errors.Add(string.Format(Resources.Data_HeightInvalidFmt , row , s.Name));
 
             if (s.Gender.HasValue && !Enum.IsDefined(s.Gender.Value))
-                errors.Add(string.Format(Resources.Data_GenderInvalidFmt, row, s.Name));
+                errors.Add(string.Format(Resources.Data_GenderInvalidFmt , row , s.Name));
         }
 
         return errors;
@@ -542,7 +542,7 @@ public partial class DataManagementViewModel : ViewModelBase
             CurrentDatasetId = newId;
             CurrentDatasetName = newName.Trim();
             await RefreshDatasetsAsync(ct);
-            StatusMessage = string.Format(Resources.Data_SavedAsFmt, newName.Trim());
+            StatusMessage = string.Format(Resources.Data_SavedAsFmt , newName.Trim());
         }
         catch (Exception ex)
         {

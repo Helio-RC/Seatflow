@@ -43,7 +43,7 @@ public partial class AboutViewModel : ViewModelBase
         License = data.License;
         Copyright = data.Copyright;
         Dependencies = data.Dependencies
-            .Select(d => new DependencyInfo(d.Name, d.Version, d.Purpose, d.License, d.Url))
+            .Select(d => new DependencyInfo(d.Name , d.Version , d.Purpose , d.License , d.Url))
             .ToList();
     }
 

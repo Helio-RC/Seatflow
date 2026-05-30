@@ -236,7 +236,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await UpdateRightPanelAsync();
         UpdateStats();
         InitHistory(Resources.Seating_RestoredWorkspace);
-        StatusMessage = string.Format(Resources.Seating_RestoredWorkspaceFmt, AssignedSeats, TotalSeats);
+        StatusMessage = string.Format(Resources.Seating_RestoredWorkspaceFmt , AssignedSeats , TotalSeats);
 
         // 强制在 UI 线程上重绘，确保异步 continuation 未切到线程池时也能正确渲染
         Dispatcher.UIThread.Post(RefreshPreview);
@@ -252,7 +252,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (_currentLayout != null)
             {
                 ObstacleProcessor.ApplyObstacles(_currentLayout);
-                StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt, _currentLayout.Name, _currentLayout.Seats.Count);
+                StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt , _currentLayout.Name , _currentLayout.Seats.Count);
             }
         });
     }
@@ -307,7 +307,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 {
                     LayoutId = SelectedVenue!.Id ,
                     StudentDataSource = tempPath ,
-                    Description = string.Format(Resources.Seating_VenueDatasetDesc, SelectedVenue.Name, SelectedDataset.Name)
+                    Description = string.Format(Resources.Seating_VenueDatasetDesc , SelectedVenue.Name , SelectedDataset.Name)
                 };
 
                 _workspace = await _facade.GenerateSeatingAsync(request , progress , ct);
@@ -320,7 +320,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 InitHistory(Resources.Seating_GenerateDesc);
 
                 HasGenerated = true;
-                StatusMessage = string.Format(Resources.Seating_GeneratedFmt, AssignedSeats, TotalSeats);
+                StatusMessage = string.Format(Resources.Seating_GeneratedFmt , AssignedSeats , TotalSeats);
             }
             finally
             {
@@ -503,7 +503,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         return seat switch
         {
             GridSeat g => $"R{g.Row}C{g.Column}",
-            PolarSeat p => string.Format(Resources.Seating_PolarLabelFmt, p.Ring, p.AngleDegrees),
+            PolarSeat p => string.Format(Resources.Seating_PolarLabelFmt , p.Ring , p.AngleDegrees),
             FreeformSeat => $"#{counter}",
             _ => $"#{counter}"
         };
@@ -586,7 +586,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             _swapSourceSeat = clickedSeat;
             clickedSeat.IsSelectedForSwap = true;
             IsSwapMode = true;
-            SwapHintText = string.Format(Resources.Seating_SelectTargetFmt, clickedSeat.StudentName ?? clickedSeat.SeatLabel);
+            SwapHintText = string.Format(Resources.Seating_SelectTargetFmt , clickedSeat.StudentName ?? clickedSeat.SeatLabel);
             return;
         }
 
@@ -613,8 +613,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 RefreshSeatAssignments();
                 await UpdateRightPanelAsync();
                 UpdateStats();
-                AddHistoryEntry(string.Format(Resources.Seating_SwapDescFmt, source.StudentName ?? source.SeatLabel, clickedSeat.StudentName ?? Resources.Common_Cancel));
-                StatusMessage = string.Format(Resources.Seating_SwappedFmt, source.StudentName, clickedSeat.StudentName ?? Resources.Common_Cancel);
+                AddHistoryEntry(string.Format(Resources.Seating_SwapDescFmt , source.StudentName ?? source.SeatLabel , clickedSeat.StudentName ?? Resources.Common_Cancel));
+                StatusMessage = string.Format(Resources.Seating_SwappedFmt , source.StudentName , clickedSeat.StudentName ?? Resources.Common_Cancel);
             }
         } , Resources.Seating_SwapFailed);
 
@@ -662,7 +662,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var idx = _historyEntries.IndexOf(SelectedHistory);
         if (idx < 0) return;
         RestoreToHistoryIndex(idx);
-        StatusMessage = string.Format(Resources.Seating_RestoredToFmt, SelectedHistory.Description);
+        StatusMessage = string.Format(Resources.Seating_RestoredToFmt , SelectedHistory.Description);
     }
 
     // ── 历史管理 ──
@@ -704,7 +704,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _ = UpdateRightPanelAsync();
         RefreshSeatAssignments();
         UpdateStats();
-        StatusMessage = string.Format(Resources.Seating_RestoredToFmt, _historyEntries[index].Description);
+        StatusMessage = string.Format(Resources.Seating_RestoredToFmt , _historyEntries[index].Description);
     }
 
     private void UpdateHistoryState ()
@@ -727,7 +727,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         await SafeExecuteAsync(async () =>
         {
-            var snapshot = await _facade.CreateSnapshotAsync(string.Format(Resources.Seating_ManualSnapshotFmt, DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
+            var snapshot = await _facade.CreateSnapshotAsync(string.Format(Resources.Seating_ManualSnapshotFmt , DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
             if (snapshot != null)
             {
                 _lastSavedIndex = _currentHistoryIndex;
@@ -800,7 +800,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
         {
             if (_workspace == null) return;
@@ -820,7 +820,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             {
                 var options = new ExportOptions { Format = format , IncludeMetadata = true };
                 await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
-                StatusMessage = string.Format(Resources.Seating_ExportedFmt, file.Name);
+                StatusMessage = string.Format(Resources.Seating_ExportedFmt , file.Name);
             } , ExportTimeout , Resources.Seating_ExportTitle);
 
             if (!ok)
@@ -831,12 +831,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _logger?.LogDebug(ex, "导出文件对话框取消或异常");
+            _logger?.LogDebug(ex , "导出文件对话框取消或异常");
         }
         finally
         {
             await Task.Delay(150);
-            Interlocked.Exchange(ref _dialogLock, 0);
+            Interlocked.Exchange(ref _dialogLock , 0);
         }
     }
 }

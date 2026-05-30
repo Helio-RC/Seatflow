@@ -104,13 +104,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public bool CanCreateSnapshot => _facade.HasActiveWorkspace;
     public bool CanEnterBatchDelete => HasSnapshots && !IsBatchDeleteMode;
 
-    
-    public string SnapshotCountDisplay => string.Format(Resources.Snapshot_CountFmt, Snapshots.Count);
-    public string NoSnapshotDisplay => SelectedVenue != null ? string.Format(Resources.Snapshot_NoSnapshotsFmt, SelectedVenue.Name) : "";
-    public string SelectAllDisplay => string.Format(Resources.Snapshot_SelectAllFmt, CheckableItems.Count);
-    public string PreviewSeatCountDisplay => SelectedSnapshot?.SeatAssignments?.Count > 0 ? string.Format(Resources.Snapshot_SeatCountFmt, SelectedSnapshot.SeatAssignments.Count) : "";
-    public string SnapshotSeatCountDisplay => string.Format(Resources.Snapshot_SeatCountFmt, (SelectedSnapshot?.SeatAssignments?.Count ?? 0));
-    public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt, Snapshots.Count, _maxSnapshotsPerVenue);
+
+    public string SnapshotCountDisplay => string.Format(Resources.Snapshot_CountFmt , Snapshots.Count);
+    public string NoSnapshotDisplay => SelectedVenue != null ? string.Format(Resources.Snapshot_NoSnapshotsFmt , SelectedVenue.Name) : "";
+    public string SelectAllDisplay => string.Format(Resources.Snapshot_SelectAllFmt , CheckableItems.Count);
+    public string PreviewSeatCountDisplay => SelectedSnapshot?.SeatAssignments?.Count > 0 ? string.Format(Resources.Snapshot_SeatCountFmt , SelectedSnapshot.SeatAssignments.Count) : "";
+    public string SnapshotSeatCountDisplay => string.Format(Resources.Snapshot_SeatCountFmt , SelectedSnapshot?.SeatAssignments?.Count ?? 0);
+    public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt , Snapshots.Count , _maxSnapshotsPerVenue);
 
     public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation , ILogger<SnapshotHistoryViewModel>? logger = null)
     {
@@ -156,7 +156,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                     items.Add(new VenueItem(id , layout.Name));
             }
             Venues = items;
-            StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, items.Count);
+            StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt , items.Count);
 
             // 重新选中之前的会场
             if (previousVenueId != null)
@@ -170,7 +170,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private async Task CreateSnapshotAsync ()
     {
         var (confirmed , description) = await Dialog.ShowInputAsync(
-            Resources.Snapshot_CreateTitle , Resources.Snapshot_CreatePrompt , string.Format(Resources.Snapshot_ManualSnapshotFmt, DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
+            Resources.Snapshot_CreateTitle , Resources.Snapshot_CreatePrompt , string.Format(Resources.Snapshot_ManualSnapshotFmt , DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed || string.IsNullOrWhiteSpace(description)) return;
 
         await SafeExecuteAsync(async () =>
@@ -366,8 +366,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     {
         return metadata switch
         {
-            GridLayoutMetadata g => (Math.Clamp(g.HorizontalSpacing * 0.8 , 44 , 72) , Math.Clamp(g.VerticalSpacing * 0.55 , 24 , 44)) ,
-            PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.75 , 28 , 48) , Math.Clamp(p.RadiusStep * 0.75 , 28 , 48)) ,
+            GridLayoutMetadata g => (Math.Clamp(g.HorizontalSpacing * 0.8 , 44 , 72) , Math.Clamp(g.VerticalSpacing * 0.55 , 24 , 44)),
+            PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.75 , 28 , 48) , Math.Clamp(p.RadiusStep * 0.75 , 28 , 48)),
             _ => (42 , 26)
         };
     }
@@ -384,9 +384,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
     private static string BuildSeatLabel (Seat seat) => seat switch
     {
-        GridSeat g => $"R{g.Row}C{g.Column}" ,
-        PolarSeat p => string.Format(Resources.Snapshot_PolarLabelFmt, p.Ring) ,
-        FreeformSeat => $"#{seat.Id[..Math.Min(4 , seat.Id.Length)]}" ,
+        GridSeat g => $"R{g.Row}C{g.Column}",
+        PolarSeat p => string.Format(Resources.Snapshot_PolarLabelFmt , p.Ring),
+        FreeformSeat => $"#{seat.Id[..Math.Min(4 , seat.Id.Length)]}",
         _ => seat.Id
     };
 
@@ -401,8 +401,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             Snapshots = new ObservableCollection<SeatingSnapshot>(list);
             SelectedSnapshot = Snapshots.FirstOrDefault();
             StatusMessage = Snapshots.Count > 0
-                ? string.Format(Resources.Snapshot_VenueHintFmt, SelectedVenue.Name, Snapshots.Count)
-                : string.Format(Resources.Snapshot_VenueEmptyFmt, SelectedVenue.Name);
+                ? string.Format(Resources.Snapshot_VenueHintFmt , SelectedVenue.Name , Snapshots.Count)
+                : string.Format(Resources.Snapshot_VenueEmptyFmt , SelectedVenue.Name);
         });
         IsLoading = false;
     }
@@ -414,7 +414,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         var snapshot = SelectedSnapshot;
 
         var confirmed = await Dialog.ShowConfirmAsync(Resources.Snapshot_RollbackTitle ,
-            string.Format(Resources.Snapshot_RollbackMsgFmt, snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
+            string.Format(Resources.Snapshot_RollbackMsgFmt , snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
@@ -453,7 +453,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             }
 
             await _facade.RollbackToSnapshotAsync(snapshot.Id);
-            StatusMessage = string.Format(Resources.Snapshot_RollbackDoneFmt, snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
+            StatusMessage = string.Format(Resources.Snapshot_RollbackDoneFmt , snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
             await _navigation.NavigateToAsync(PageKey.SeatingArrangement);
         } , Resources.Snapshot_RollbackFailed);
     }
@@ -464,7 +464,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         if (SelectedSnapshot == null) return;
         var snapshot = SelectedSnapshot;
         var confirmed = await Dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm ,
-            string.Format(Resources.Snapshot_DeleteMsgFmt, snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
+            string.Format(Resources.Snapshot_DeleteMsgFmt , snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
@@ -472,7 +472,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             await _facade.DeleteSnapshotAsync(snapshot.Id);
             Snapshots.Remove(snapshot);
             SelectedSnapshot = Snapshots.FirstOrDefault();
-            StatusMessage = string.Format(Resources.Snapshot_DeletedFmt, Snapshots.Count);
+            StatusMessage = string.Format(Resources.Snapshot_DeletedFmt , Snapshots.Count);
         } , Resources.Snapshot_DeleteFailed);
     }
 
@@ -507,7 +507,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         }
 
         var confirmed = await Dialog.ShowConfirmAsync(Resources.Snapshot_BatchDeleteTitle ,
-            string.Format(Resources.Snapshot_BatchDeleteMsgFmt, selected.Count));
+            string.Format(Resources.Snapshot_BatchDeleteMsgFmt , selected.Count));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
@@ -519,7 +519,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             }
             ExitBatchDeleteMode();
             SelectedSnapshot = Snapshots.FirstOrDefault();
-            StatusMessage = string.Format(Resources.Snapshot_BatchDeletedFmt, selected.Count, Snapshots.Count);
+            StatusMessage = string.Format(Resources.Snapshot_BatchDeletedFmt , selected.Count , Snapshots.Count);
             OnPropertyChanged(nameof(CanEnterBatchDelete));
         } , Resources.Snapshot_BatchDeleteFailed);
     }

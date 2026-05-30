@@ -1,4 +1,3 @@
-using A_Pair.Presentation.Avalonia.Lang;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;

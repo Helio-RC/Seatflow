@@ -9,7 +9,7 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
     public JsonStudentDatasetRepositoryTests ()
     {
         _tempDir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString("N"));
-        _repo = new JsonStudentDatasetRepository(_tempDir, new FileMigrationService([]));
+        _repo = new JsonStudentDatasetRepository(_tempDir , new FileMigrationService([]));
     }
 
     [Fact]

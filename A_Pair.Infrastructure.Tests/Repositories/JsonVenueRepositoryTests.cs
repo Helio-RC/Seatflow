@@ -16,7 +16,7 @@ public class JsonVenueRepositoryTests
         var dir = CreateTempDirectory();
         try
         {
-            var repo = new JsonVenueRepository(dir, new FileMigrationService([]));
+            var repo = new JsonVenueRepository(dir , new FileMigrationService([]));
             var layout = new ClassroomLayoutDefinition
             {
                 LayoutType = LayoutType.Grid ,
@@ -44,7 +44,7 @@ public class JsonVenueRepositoryTests
         var dir = CreateTempDirectory();
         try
         {
-            var repo = new JsonVenueRepository(dir, new FileMigrationService([]));
+            var repo = new JsonVenueRepository(dir , new FileMigrationService([]));
             var layout = new ClassroomLayoutDefinition
             {
                 LayoutType = LayoutType.Polar ,
@@ -69,7 +69,7 @@ public class JsonVenueRepositoryTests
         var dir = CreateTempDirectory();
         try
         {
-            var repo = new JsonVenueRepository(dir, new FileMigrationService([]));
+            var repo = new JsonVenueRepository(dir , new FileMigrationService([]));
             await repo.SaveAsync("v1" , new ClassroomLayoutDefinition() , CancellationToken.None);
             await repo.SaveAsync("v2" , new ClassroomLayoutDefinition() , CancellationToken.None);
 
@@ -85,7 +85,7 @@ public class JsonVenueRepositoryTests
     [Fact]
     public async Task LoadAsync_NonExistent_ShouldReturnNull ()
     {
-        var repo = new JsonVenueRepository(CreateTempDirectory(), new FileMigrationService([]));
+        var repo = new JsonVenueRepository(CreateTempDirectory() , new FileMigrationService([]));
         var loaded = await repo.LoadAsync("missing" , CancellationToken.None);
         loaded.Should().BeNull();
     }

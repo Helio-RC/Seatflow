@@ -187,7 +187,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 items.Add(new VenueItem(id , layout?.Name ?? id));
             }
             VenueItems = new ObservableCollection<VenueItem>(items);
-            StatusMessage = string.Format(Resources.Venue_VenuesLoadedFmt, items.Count);
+            StatusMessage = string.Format(Resources.Venue_VenuesLoadedFmt , items.Count);
         });
     }
 
@@ -196,7 +196,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         _suppressAutoLoad = true;
         var id = Guid.NewGuid().ToString("N")[..8];
-        var item = new VenueItem(id , string.Format(Resources.Venue_NewVenueFmt, id));
+        var item = new VenueItem(id , string.Format(Resources.Venue_NewVenueFmt , id));
         LayoutName = item.Name;
         IsFreeformVenue = false;
         SelectedLayoutType = LayoutType.Grid;
@@ -227,7 +227,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             PreviewOverlays.Clear();
             LayoutName = string.Empty;
             await LoadVenueList();
-            StatusMessage = string.Format(Resources.Venue_DeletedFmt, item.Name);
+            StatusMessage = string.Format(Resources.Venue_DeletedFmt , item.Name);
         } , Resources.Venue_DeleteFailed);
     }
 
@@ -237,7 +237,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var layout = await _facade.LoadVenueAsync(item.Id);
-            if (layout == null) { StatusMessage = string.Format(Resources.Venue_LoadFailedFmt, item.Name); return; }
+            if (layout == null) { StatusMessage = string.Format(Resources.Venue_LoadFailedFmt , item.Name); return; }
 
             LayoutName = layout.Name;
             SelectedLayoutType = layout.LayoutType;
@@ -269,7 +269,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             RestoreObstaclesFromLayout(layout);
 
             RegeneratePreview();
-            StatusMessage = string.Format(Resources.Venue_LoadedFmt, layout.Name, layout.Seats.Count);
+            StatusMessage = string.Format(Resources.Venue_LoadedFmt , layout.Name , layout.Seats.Count);
         });
     }
 
@@ -285,7 +285,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             await _facade.SaveVenueAsync(item.Id , layout);
             await LoadVenueList();
             SelectedVenueItem = VenueItems.FirstOrDefault(v => v.Id == item.Id);
-            StatusMessage = string.Format(Resources.Venue_SavedFmt, layout.Name, layout.Seats.Count);
+            StatusMessage = string.Format(Resources.Venue_SavedFmt , layout.Name , layout.Seats.Count);
         } , Resources.Venue_SaveFailed);
     }
 
@@ -306,7 +306,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         double dx = GridOriginX - 50;
         double dy = GridOriginY - 20;
-        DoorItems.Add(new DoorItem(dx , dy , string.Format(Resources.Venue_DoorFmt, DoorItems.Count + 1)));
+        DoorItems.Add(new DoorItem(dx , dy , string.Format(Resources.Venue_DoorFmt , DoorItems.Count + 1)));
     }
 
     [RelayCommand]
@@ -372,7 +372,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Y = y ,
                     Width = seatW ,
                     Height = seatH ,
-                    Label = string.Format(Resources.Venue_GridLabelFmt, s.Row, s.Column, deskNum) ,
+                    Label = string.Format(Resources.Venue_GridLabelFmt , s.Row , s.Column , deskNum) ,
                     ElementType = PreviewElementType.Seat ,
                     IsFrontRow = isFront
                 });
@@ -409,7 +409,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Y = ey ,
                     Width = seatW ,
                     Height = seatH ,
-                    Label = string.Format(Resources.Venue_GridDisabledFmt, empty.Row, empty.Column) ,
+                    Label = string.Format(Resources.Venue_GridDisabledFmt , empty.Row , empty.Column) ,
                     ElementType = PreviewElementType.Aisle ,
                     BackgroundColor = "#80CC4444"
                 });
@@ -475,7 +475,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                         Y = cy - seatR ,
                         Width = seatR * 2 ,
                         Height = seatR * 2 ,
-                        Label = string.Format(Resources.Venue_PolarDisabledFmt, empty.Ring, empty.AngleDegrees) ,
+                        Label = string.Format(Resources.Venue_PolarDisabledFmt , empty.Ring , empty.AngleDegrees) ,
                         ElementType = PreviewElementType.Aisle ,
                         CornerRadius = new(seatR) ,
                         IsCircle = true ,
@@ -568,7 +568,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
         PreviewSeats = new ObservableCollection<SeatPreview>(seats);
         PreviewOverlays = new ObservableCollection<SeatPreview>(overlays);
-        StatusMessage = string.Format(Resources.Venue_PreviewSeatsFmt, seats.Count);
+        StatusMessage = string.Format(Resources.Venue_PreviewSeatsFmt , seats.Count);
     }
 
     /// <summary>不改变数据，仅重新绘制预览区域。</summary>
@@ -590,7 +590,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             int leftEnd = d * spd;
             int rightStart = (d * spd) + 1;
             int rightEnd = Math.Min((d + 1) * spd , GridColumns);
-            string label = string.Format(Resources.Venue_ColAisleFmt, leftStart, leftEnd, rightStart, rightEnd);
+            string label = string.Format(Resources.Venue_ColAisleFmt , leftStart , leftEnd , rightStart , rightEnd);
             colOptions.Add(new AisleOption(label , seatCol , prevCols.Contains(seatCol)));
         }
         AisleColumnOptions = new ObservableCollection<AisleOption>(colOptions);
@@ -601,7 +601,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         var rowOptions = new List<AisleOption>();
         for (int r = 1; r < GridRows; r++)
         {
-            string label = string.Format(Resources.Venue_RowAisleFmt, r, r + 1);
+            string label = string.Format(Resources.Venue_RowAisleFmt , r , r + 1);
             rowOptions.Add(new AisleOption(label , r , prevRows.Contains(r)));
         }
         AisleRowOptions = new ObservableCollection<AisleOption>(rowOptions);
@@ -782,7 +782,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         var doors = layout.Obstacles.Where(o => o.Type == "Door").ToList();
         DoorItems = new ObservableCollection<DoorItem>(
-            doors.Select((d , i) => new DoorItem(d.X , d.Y , string.Format(Resources.Venue_DoorFmt, i + 1))));
+            doors.Select((d , i) => new DoorItem(d.X , d.Y , string.Format(Resources.Venue_DoorFmt , i + 1))));
 
         if (layout.Metadata is GridLayoutMetadata gridMeta)
             GridHasFrontDoor = gridMeta.HasFrontDoor;

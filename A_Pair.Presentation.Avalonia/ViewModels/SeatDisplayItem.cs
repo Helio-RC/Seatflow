@@ -60,7 +60,7 @@ public partial class SeatDisplayItem : ObservableObject
     // ── Tooltip ──
     public string TooltipText => IsOccupied
         ? $"{StudentName} - {SeatLabel}"
-        : string.Format(Resources.Seating_EmptySeatFmt, SeatLabel);
+        : string.Format(Resources.Seating_EmptySeatFmt , SeatLabel);
 
     // ── 颜色 ──
     private static readonly SolidColorBrush EmptyBg = new(Color.FromArgb(0x20 , 0xA0 , 0xA0 , 0xA0));
@@ -76,19 +76,19 @@ public partial class SeatDisplayItem : ObservableObject
 
     public IBrush BackgroundBrush => IsSelectedForSwap ? SwapBg :
         IsDataStale ? StaleBg : OccupancyStatus switch
-    {
-        SeatOccupancyStatus.Occupied => OccupiedBg,
-        SeatOccupancyStatus.Fixed => FixedBg,
-        _ => EmptyBg
-    };
+        {
+            SeatOccupancyStatus.Occupied => OccupiedBg,
+            SeatOccupancyStatus.Fixed => FixedBg,
+            _ => EmptyBg
+        };
 
     public IBrush BorderBrush => IsSelectedForSwap ? SwapBorder :
         IsDataStale ? StaleBorder : OccupancyStatus switch
-    {
-        SeatOccupancyStatus.Occupied => OccupiedBorder,
-        SeatOccupancyStatus.Fixed => FixedBorder,
-        _ => EmptyBorder
-    };
+        {
+            SeatOccupancyStatus.Occupied => OccupiedBorder,
+            SeatOccupancyStatus.Fixed => FixedBorder,
+            _ => EmptyBorder
+        };
 }
 
 public enum SeatOccupancyStatus

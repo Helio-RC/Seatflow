@@ -11,7 +11,7 @@ public class StrategyConfigFileRepositoryTests : IDisposable
     public StrategyConfigFileRepositoryTests ()
     {
         _tempDir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString("N"));
-        _repo = new StrategyConfigFileRepository(_tempDir, new FileMigrationService([]), NullLogger<StrategyConfigFileRepository>.Instance);
+        _repo = new StrategyConfigFileRepository(_tempDir , new FileMigrationService([]) , NullLogger<StrategyConfigFileRepository>.Instance);
     }
 
     [Fact]

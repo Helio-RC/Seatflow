@@ -25,7 +25,7 @@ namespace A_Pair.Core.Providers
 
         /// <summary>删除指定会场。</summary>
         Task DeleteAsync (string venueId , CancellationToken cancellationToken = default);
-    /// <summary>获取会场文件的 ContentHash（轻量读取，不反序列化全量布局）。</summary>
-    Task<string?> GetContentHashAsync (string venueId , CancellationToken ct = default);
+        /// <summary>获取会场文件的 ContentHash（轻量读取，不反序列化全量布局）。</summary>
+        Task<string?> GetContentHashAsync (string venueId , CancellationToken ct = default);
     }
 }

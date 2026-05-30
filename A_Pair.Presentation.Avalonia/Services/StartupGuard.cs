@@ -14,12 +14,12 @@ internal static class StartupGuard
 
         if (major < 10)
         {
-            sb.AppendLine(string.Format(Resources.Startup_DotNetVersion, Environment.Version));
+            sb.AppendLine(string.Format(Resources.Startup_DotNetVersion , Environment.Version));
         }
 
         if (!IsSupportedOS())
         {
-            sb.Append(string.Format(Resources.Startup_UnsupportedOS, RuntimeInformation.OSDescription));
+            sb.Append(string.Format(Resources.Startup_UnsupportedOS , RuntimeInformation.OSDescription));
         }
 
         var message = sb.ToString().TrimEnd();

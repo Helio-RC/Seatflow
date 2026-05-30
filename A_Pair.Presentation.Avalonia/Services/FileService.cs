@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ public class FileService : IFileService
     public async Task<IStorageFile?> OpenFileAsync (string title , IReadOnlyList<FilePickerFileType> types)
     {
         if (_topLevel is null) return null;
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return null;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return null;
         try
         {
             var files = await Dispatcher.UIThread.InvokeAsync(() =>
@@ -33,14 +32,14 @@ public class FileService : IFileService
         finally
         {
             await Task.Delay(150);
-            Interlocked.Exchange(ref _dialogLock, 0);
+            Interlocked.Exchange(ref _dialogLock , 0);
         }
     }
 
     public async Task<IStorageFile?> SaveFileAsync (string title , IReadOnlyList<FilePickerFileType> types , string? suggestedFileName = null)
     {
         if (_topLevel is null) return null;
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return null;
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return null;
         try
         {
             return await Dispatcher.UIThread.InvokeAsync(() =>
@@ -54,7 +53,7 @@ public class FileService : IFileService
         finally
         {
             await Task.Delay(150);
-            Interlocked.Exchange(ref _dialogLock, 0);
+            Interlocked.Exchange(ref _dialogLock , 0);
         }
     }
 }
