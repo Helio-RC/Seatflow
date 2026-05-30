@@ -186,18 +186,18 @@ public class FrontRowRotationStrategyTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_PolarSeats_ShouldTreatOutermostRingAsFrontRow ()
+    public async Task ExecuteAsync_PolarSeats_ShouldTreatInnermostRingAsFrontRow ()
     {
         var students = new[]
         {
             new Student { Id = "s1", FrontRowPreferenceScore = 100 },
             new Student { Id = "s2", FrontRowPreferenceScore = 0 },
         };
-        // Ring=3 is outermost; FrontRowCount=1 should target Ring=3
+        // Ring=1 为最内环（靠近讲台），即前排
         var seats = new Seat[]
         {
-            new PolarSeat { Id = "p_outer", Ring = 3, Radius = 3, AngleDegrees = 0 },
             new PolarSeat { Id = "p_inner", Ring = 1, Radius = 1, AngleDegrees = 0 },
+            new PolarSeat { Id = "p_outer", Ring = 3, Radius = 3, AngleDegrees = 0 },
         };
         var ws = new SeatingWorkspace(students , seats);
 
@@ -205,7 +205,7 @@ public class FrontRowRotationStrategyTests
         strategy.SetFrontRowCount(1);
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
-        seats.First(s => s.Id == "p_outer").OccupantId.Should().Be("s1");
+        seats.First(s => s.Id == "p_inner").OccupantId.Should().Be("s1");
     }
 
     [Fact]
