@@ -114,9 +114,10 @@
           <!-- 正常模式 -->
           <Grid IsVisible="{Binding IsNotBatchMode}">
             <!-- 空列表 -->
-            <Border IsVisible="{Binding !HasSnapshots}"
-                    Padding="20">
-              <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border IsVisible="{Binding !HasSnapshots}">
+              <StackPanel Spacing="8"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Margin="20">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                 HorizontalAlignment="Center" />

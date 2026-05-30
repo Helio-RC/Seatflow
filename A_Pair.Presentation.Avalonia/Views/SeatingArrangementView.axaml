@@ -132,10 +132,10 @@
       <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
               ClipToBounds="True"
               Background="{DynamicResource SidebarBackgroundBrush}">
-        <DockPanel Margin="8">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="8">
           <!-- 会场选择 -->
-          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Seating_Venue}" Classes="sectionTitle" Margin="3,0,0,8" />
-          <ListBox DockPanel.Dock="Top" ItemsSource="{Binding VenueItems}"
+          <TextBlock Grid.Row="0" Text="{x:Static lang:Resources.Seating_Venue}" Classes="sectionTitle" Margin="3,0,0,8" />
+          <ListBox Grid.Row="1" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
@@ -147,11 +147,11 @@
             </ListBox.ItemTemplate>
           </ListBox>
 
-          <Separator DockPanel.Dock="Top" Margin="4,10" />
+          <Separator Grid.Row="2" Margin="4,10" />
 
           <!-- 数据集选择 -->
-          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Seating_StudentData}" Classes="sectionTitle" Margin="3,0,0,8" />
-          <ListBox ItemsSource="{Binding DatasetItems}"
+          <TextBlock Grid.Row="3" Text="{x:Static lang:Resources.Seating_StudentData}" Classes="sectionTitle" Margin="3,0,0,8" />
+          <ListBox Grid.Row="4" ItemsSource="{Binding DatasetItems}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
@@ -163,20 +163,23 @@
             </ListBox.ItemTemplate>
           </ListBox>
 
+          <!-- 填充 spacer -->
+          <Panel Grid.Row="5" />
+
           <!-- 生成按钮 -->
-          <Button DockPanel.Dock="Bottom"
+          <Button Grid.Row="6"
                   Command="{Binding GenerateSeatingCommand}"
                   IsEnabled="{Binding CanGenerate}"
                   HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
-                  Margin="4,8" Classes="accent" Height="36">
+                  Margin="0,8" Classes="accent" Height="36">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />
               <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
             </StackPanel>
           </Button>
-        </DockPanel>
+        </Grid>
       </Border>
 
       <!-- GridSplitter -->
