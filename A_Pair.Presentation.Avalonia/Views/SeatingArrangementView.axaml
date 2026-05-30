@@ -150,12 +150,12 @@
           <Separator Grid.Row="2" Margin="4,10" />
 
           <!-- 数据集选择 -->
-          <TextBlock Grid.Row="3" Text="{x:Static lang:Resources.Seating_StudentData}" Classes="sectionTitle" Margin="3,0,0,8" />
+          <TextBlock Grid.Row="3" Text="{x:Static lang:Resources.Seating_MemberData}" Classes="sectionTitle" Margin="3,0,0,8" />
           <ListBox Grid.Row="4" ItemsSource="{Binding DatasetItems}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
-                   AutomationProperties.Name="{x:Static lang:Resources.Seating_StudentDatasetList}">
+                   AutomationProperties.Name="{x:Static lang:Resources.Seating_MemberDatasetList}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="core:StudentDatasetInfo">
                 <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6" />
@@ -359,7 +359,7 @@
                         Cursor="Hand">
                   <DockPanel>
                     <TextBlock DockPanel.Dock="Left" FontSize="14" FontWeight="SemiBold">
-                      <Run Text="{x:Static lang:Resources.Seating_UnassignedStudents}" />
+                      <Run Text="{x:Static lang:Resources.Seating_UnassignedMembers}" />
                       <Run Text="{Binding UnassignedStudentCount, StringFormat=' ({0})'}"
                            FontSize="12"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />

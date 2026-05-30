@@ -182,9 +182,6 @@
   <data name="Member_DatasetNotFound" xml:space="preserve">
     <value>数据集文件不存在</value>
   </data>
-  <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
-    <value>找不到数据集「{0}」的文件。</value>
-  </data>
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>确认删除</value>
   </data>
@@ -216,10 +213,6 @@
   <data name="Member_ExportDone" xml:space="preserve">
     <value>导出完成</value>
   </data>
-  <data name="Data_ExportError" xml:space="preserve">
-    <value>无法导出数据。
-{0}</value>
-  </data>
   <data name="Member_ExportErrorFmt" xml:space="preserve">
     <value>无法导出数据。
 {0}</value>
@@ -241,9 +234,6 @@
   </data>
   <data name="Member_Exporting" xml:space="preserve">
     <value>正在导出...</value>
-  </data>
-  <data name="Data_FileNotFound" xml:space="preserve">
-    <value>找不到文件：{0}</value>
   </data>
   <data name="Member_FileNotFoundFmt" xml:space="preserve">
     <value>找不到文件：{0}</value>
@@ -284,10 +274,6 @@
   <data name="Member_ImportData" xml:space="preserve">
     <value>导入数据</value>
   </data>
-  <data name="Data_ImportError" xml:space="preserve">
-    <value>无法导入数据。
-{0}</value>
-  </data>
   <data name="Member_ImportErrorFmt" xml:space="preserve">
     <value>无法导入数据。
 {0}</value>
@@ -300,12 +286,6 @@
   </data>
   <data name="Member_ImportResult" xml:space="preserve">
     <value>导入结果</value>
-  </data>
-  <data name="Data_ImportedCountFmt" xml:space="preserve">
-    <value>已导入 {0} 名人员</value>
-  </data>
-  <data name="Data_ImportedFmt" xml:space="preserve">
-    <value>已导入 {0} 名人员</value>
   </data>
   <data name="Member_Importing" xml:space="preserve">
     <value>正在导入...</value>
@@ -345,9 +325,6 @@
   </data>
   <data name="Member_Operations" xml:space="preserve">
     <value>操作</value>
-  </data>
-  <data name="Data_PersonCount" xml:space="preserve">
-    <value>{0} 人</value>
   </data>
   <data name="Member_PersonCountFmt" xml:space="preserve">
     <value>{0} 人</value>
@@ -843,7 +820,7 @@
   <data name="Seating_ManualSnapshotFmt" xml:space="preserve">
     <value>手动保存 - {0}</value>
   </data>
-  <data name="Seating_NoStudents" xml:space="preserve">
+  <data name="Seating_NoMembers" xml:space="preserve">
     <value>数据集中没有数据</value>
   </data>
   <data name="Seating_NotGenerated" xml:space="preserve">
@@ -921,10 +898,10 @@
   <data name="Seating_SnapshotSaved" xml:space="preserve">
     <value>已保存到快照</value>
   </data>
-  <data name="Seating_StudentData" xml:space="preserve">
+  <data name="Seating_MemberData" xml:space="preserve">
     <value>数据</value>
   </data>
-  <data name="Seating_StudentDatasetList" xml:space="preserve">
+  <data name="Seating_MemberDatasetList" xml:space="preserve">
     <value>数据集列表</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
@@ -942,8 +919,8 @@
   <data name="Seating_Unassigned" xml:space="preserve">
     <value>未分配：</value>
   </data>
-  <data name="Seating_UnassignedStudents" xml:space="preserve">
-    <value>未分配学生</value>
+  <data name="Seating_UnassignedMembers" xml:space="preserve">
+    <value>未分配人员</value>
   </data>
   <data name="Seating_Undo" xml:space="preserve">
     <value>撤销</value>
@@ -1119,7 +1096,7 @@
     <value>数据已更改</value>
   </data>
   <data name="Snapshot_DataChangedMsg" xml:space="preserve">
-    <value>部分学生已从数据集中删除，受影响的座位以黄色标记。</value>
+    <value>部分人员已从数据集中删除，受影响的座位以黄色标记。</value>
   </data>
   <data name="Snapshot_DataChangedText" xml:space="preserve">
     <value>数据已更改</value>

@@ -278,7 +278,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id , ct);
             if (students == null || students.Count == 0)
             {
-                StatusMessage = Resources.Seating_NoStudents;
+                StatusMessage = Resources.Seating_NoMembers;
                 return;
             }
 

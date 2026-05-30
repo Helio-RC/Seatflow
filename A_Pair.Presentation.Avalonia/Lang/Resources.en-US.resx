@@ -182,9 +182,6 @@
   <data name="Member_DatasetNotFound" xml:space="preserve">
     <value>Dataset file not found</value>
   </data>
-  <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
-    <value>Member Set file "{0}" not found.</value>
-  </data>
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>Confirm delete</value>
   </data>
@@ -216,10 +213,6 @@ This cannot be undone.</value>
   <data name="Member_ExportDone" xml:space="preserve">
     <value>Export complete</value>
   </data>
-  <data name="Data_ExportError" xml:space="preserve">
-    <value>Cannot export member data.
-{0}</value>
-  </data>
   <data name="Member_ExportErrorFmt" xml:space="preserve">
     <value>Cannot export data.
 {0}</value>
@@ -241,9 +234,6 @@ This cannot be undone.</value>
   </data>
   <data name="Member_Exporting" xml:space="preserve">
     <value>Exporting...</value>
-  </data>
-  <data name="Data_FileNotFound" xml:space="preserve">
-    <value>File not found: {0}</value>
   </data>
   <data name="Member_FileNotFoundFmt" xml:space="preserve">
     <value>File not found: {0}</value>
@@ -284,10 +274,6 @@ This cannot be undone.</value>
   <data name="Member_ImportData" xml:space="preserve">
     <value>Import data</value>
   </data>
-  <data name="Data_ImportError" xml:space="preserve">
-    <value>Cannot import member data.
-{0}</value>
-  </data>
   <data name="Member_ImportErrorFmt" xml:space="preserve">
     <value>Cannot import data.
 {0}</value>
@@ -300,12 +286,6 @@ This cannot be undone.</value>
   </data>
   <data name="Member_ImportResult" xml:space="preserve">
     <value>Import result</value>
-  </data>
-  <data name="Data_ImportedCountFmt" xml:space="preserve">
-    <value>{0} members imported</value>
-  </data>
-  <data name="Data_ImportedFmt" xml:space="preserve">
-    <value>{0} members imported</value>
   </data>
   <data name="Member_Importing" xml:space="preserve">
     <value>Importing...</value>
@@ -345,9 +325,6 @@ This cannot be undone.</value>
   </data>
   <data name="Member_Operations" xml:space="preserve">
     <value>Actions</value>
-  </data>
-  <data name="Data_PersonCount" xml:space="preserve">
-    <value>{0} members</value>
   </data>
   <data name="Member_PersonCountFmt" xml:space="preserve">
     <value>{0} members</value>
@@ -420,7 +397,7 @@ This cannot be undone.</value>
     <value>Template saved</value>
   </data>
   <data name="Member_Title" xml:space="preserve">
-    <value>Data management</value>
+    <value>Members</value>
   </data>
   <data name="Data_UnloadData" xml:space="preserve">
     <value>Unload data</value>
@@ -843,7 +820,7 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_ManualSnapshotFmt" xml:space="preserve">
     <value>Manual save - {0}</value>
   </data>
-  <data name="Seating_NoStudents" xml:space="preserve">
+  <data name="Seating_NoMembers" xml:space="preserve">
     <value>No people in member set</value>
   </data>
   <data name="Seating_NotGenerated" xml:space="preserve">
@@ -868,7 +845,7 @@ Place plugins in the Plugins directory</value>
     <value>PNG image</value>
   </data>
   <data name="Seating_People" xml:space="preserve">
-    <value>menber</value>
+    <value>member</value>
   </data>
   <data name="Seating_PolarLabelFmt" xml:space="preserve">
     <value>Ring {0}-{1:F0}°</value>
@@ -921,11 +898,11 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_SnapshotSaved" xml:space="preserve">
     <value>Saved to snapshot</value>
   </data>
-  <data name="Seating_StudentData" xml:space="preserve">
-    <value>Menber data</value>
+  <data name="Seating_MemberData" xml:space="preserve">
+    <value>Member data</value>
   </data>
-  <data name="Seating_StudentDatasetList" xml:space="preserve">
-    <value>Member member set list</value>
+  <data name="Seating_MemberDatasetList" xml:space="preserve">
+    <value>Member dataset list</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
     <value>Swap: {0} ↔ {1}</value>
@@ -942,7 +919,7 @@ Place plugins in the Plugins directory</value>
   <data name="Seating_Unassigned" xml:space="preserve">
     <value>Unassigned: </value>
   </data>
-  <data name="Seating_UnassignedStudents" xml:space="preserve">
+  <data name="Seating_UnassignedMembers" xml:space="preserve">
     <value>Unassigned Members</value>
   </data>
   <data name="Seating_Undo" xml:space="preserve">
