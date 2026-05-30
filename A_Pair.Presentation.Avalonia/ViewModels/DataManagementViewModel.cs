@@ -133,6 +133,7 @@ public partial class DataManagementViewModel : ViewModelBase
         }
     }
 
+    private int _dialogLock;
     private static readonly FilePickerFileType[] StudentFileTypes =
     [
         new(Resources.Data_StudentDataFile) { Patterns = ["*.csv", "*.xlsx", "*.json"] },
@@ -161,6 +162,9 @@ public partial class DataManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportTemplateAsync (CancellationToken ct)
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         string? errorTitle = null;
         string? errorMsg = null;
 
@@ -204,6 +208,8 @@ public partial class DataManagementViewModel : ViewModelBase
             if (errorTitle != null)
                 await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
@@ -231,6 +237,9 @@ public partial class DataManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportAsync (CancellationToken ct)
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         string? errorTitle = null;
         string? errorMsg = null;
 
@@ -283,6 +292,8 @@ public partial class DataManagementViewModel : ViewModelBase
             if (errorTitle != null)
                 await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
@@ -305,6 +316,9 @@ public partial class DataManagementViewModel : ViewModelBase
 
     private async Task ExportAsync (ExportFormat format , FilePickerFileType[] types , CancellationToken ct)
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         string? errorTitle = null;
         string? errorMsg = null;
 
@@ -342,6 +356,8 @@ public partial class DataManagementViewModel : ViewModelBase
             if (errorTitle != null)
                 await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]

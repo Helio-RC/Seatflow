@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
@@ -55,6 +56,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = Resources.Freeform_ReadyHint;
 
+    private int _dialogLock;
     private static readonly string[] GroupColors =
         ["#4A90D9" , "#E74C3C" , "#2ECC71" , "#F39C12" , "#9B59B6" , "#1ABC9C" , "#E67E22" , "#3498DB"];
 
@@ -143,6 +145,9 @@ public partial class FreeformManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportTemplate ()
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         IStorageFile? tmplFile;
         try { tmplFile = await _fileService.SaveFileAsync(
             Resources.Freeform_SaveTemplate ,
@@ -167,11 +172,16 @@ public partial class FreeformManagementViewModel : ViewModelBase
             await writer.WriteLineAsync("400,150,Door,,,");
             StatusMessage = Resources.Data_TemplateSaved;
         } , Resources.Data_TemplateSaveFailed);
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
     private async Task ImportCsv ()
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         IStorageFile? csvFile;
         try { csvFile = await _fileService.OpenFileAsync(
             Resources.Freeform_ImportCSV ,
@@ -235,11 +245,16 @@ public partial class FreeformManagementViewModel : ViewModelBase
             LayoutName = file.Name.Replace(".csv" , "");
             StatusMessage = string.Format(Resources.Freeform_ImportedPtsFmt, pts.Count);
         } , Resources.Freeform_ImportFailed);
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
     private async Task ImportJson ()
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         IStorageFile? jsonFile;
         try { jsonFile = await _fileService.OpenFileAsync(
             Resources.Freeform_ImportJSON ,
@@ -304,6 +319,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
             LayoutName = layout.Name;
             StatusMessage = string.Format(Resources.Freeform_ImportedFmt, pts.Count);
         } , Resources.Freeform_ImportFailed);
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]

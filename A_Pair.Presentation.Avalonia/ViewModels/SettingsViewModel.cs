@@ -69,6 +69,7 @@ public partial class SettingsViewModel : ViewModelBase
     public List<string> ZoomOptions { get; } = [Resources.Zoom_75, Resources.Zoom_100, Resources.Zoom_125, Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
+    private int _dialogLock;
     private string _originalLanguage = string.Empty;
 
     [ObservableProperty]
@@ -217,6 +218,9 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task BrowseDataDirectoryAsync (CancellationToken ct)
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
+        try
+        {
         try
         {
             if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -239,6 +243,8 @@ public partial class SettingsViewModel : ViewModelBase
         {
             await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
         }
+        }
+        finally { Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]

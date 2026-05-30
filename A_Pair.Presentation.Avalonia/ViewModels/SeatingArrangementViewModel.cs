@@ -779,6 +779,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 导出 ──
 
+    private int _dialogLock;
     private static readonly TimeSpan ExportTimeout = TimeSpan.FromSeconds(30);
 
     [RelayCommand]
@@ -799,6 +800,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName)
     {
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
         try
         {
             if (_workspace == null) return;
@@ -830,6 +832,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         catch (Exception ex)
         {
             _logger?.LogDebug(ex, "导出文件对话框取消或异常");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _dialogLock, 0);
         }
     }
 }
