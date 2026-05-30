@@ -157,7 +157,7 @@ public partial class MemberManagementViewModel : ViewModelBase
     };
 
     private const string DefaultTemplateSuffix = "en_us";
-    private const string DefaultTemplateDisplayName = "StudentImportTemplate.xlsx";
+    private const string DefaultTemplateDisplayName = "MemberImportTemplate.xlsx";
 
     [RelayCommand]
     private async Task ExportTemplateAsync (CancellationToken ct)
