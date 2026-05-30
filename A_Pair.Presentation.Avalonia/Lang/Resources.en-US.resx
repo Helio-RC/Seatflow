@@ -14,230 +14,2113 @@
   </resheader>
 
   <!-- ═══ App ═══ -->
-  <data name="App_Title" xml:space="preserve">
-    <value>A_Pair — Seating</value>
+
+  <data name="About_Dependencies" xml:space="preserve">
+    <value>Dependencies</value>
   </data>
 
-  <!-- ═══ App ═══ -->
+  <data name="About_Framework" xml:space="preserve">
+    <value>Framework</value>
+  </data>
+
+  <data name="About_License" xml:space="preserve">
+    <value>License</value>
+  </data>
+
+  <data name="About_OpenLink" xml:space="preserve">
+    <value>Open {0} project page</value>
+  </data>
+
+  <data name="About_Runtime" xml:space="preserve">
+    <value>Runtime environment</value>
+  </data>
+
+  <data name="About_Title" xml:space="preserve">
+    <value>About</value>
+  </data>
+
+  <data name="About_Version" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+
   <data name="App_AlreadyRunning" xml:space="preserve">
     <value>Application Already Running</value>
   </data>
+
   <data name="App_AlreadyRunningMessage" xml:space="preserve">
     <value>Another instance of A_Pair is already running. To avoid data conflicts, this instance will exit automatically.</value>
   </data>
+
   <data name="App_EnvironmentWarning" xml:space="preserve">
     <value>Environment Warning</value>
   </data>
 
-  <!-- ═══ Common ═══ -->
-  <data name="Common_OK" xml:space="preserve">
-    <value>OK</value>
+  <data name="App_Title" xml:space="preserve">
+    <value>A_Pair — Seating</value>
   </data>
+
+  <data name="Common_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+
+  <data name="Common_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+
+  <data name="Common_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+
   <data name="Common_DontRemind" xml:space="preserve">
     <value>Don't remind again</value>
   </data>
+
+  <data name="Common_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+
+  <data name="Common_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+
+  <data name="Common_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+
   <data name="Common_Later" xml:space="preserve">
     <value>Later</value>
   </data>
+
+  <data name="Common_Load" xml:space="preserve">
+    <value>Load</value>
+  </data>
+
   <data name="Common_Loading" xml:space="preserve">
     <value>Loading...</value>
   </data>
 
-  <!-- ═══ Language Options ═══ -->
+  <data name="Common_NoData" xml:space="preserve">
+    <value>No data</value>
+  </data>
+
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+
+  <data name="Common_OperationFailed" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+
+  <data name="Common_OperationTimeout" xml:space="preserve">
+    <value>Operation timed out</value>
+  </data>
+
+  <data name="Common_Processing" xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+
+  <data name="Common_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+
+  <data name="Common_Rename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+
+  <data name="Common_SaveAs" xml:space="preserve">
+    <value>Save As</value>
+  </data>
+
+  <data name="Common_TimeoutFormat" xml:space="preserve">
+    <value>"{0}" did not complete within {1} seconds and was cancelled.\nSome data may not have been written. Please try again.</value>
+  </data>
+
+  <data name="Common_Unload" xml:space="preserve">
+    <value>Unload</value>
+  </data>
+
+  <data name="Data_CSVFile" xml:space="preserve">
+    <value>CSV file</value>
+  </data>
+
+  <data name="Data_ClearConfirm" xml:space="preserve">
+    <value>Confirm clear</value>
+  </data>
+
+  <data name="Data_ClearConfirmMsg" xml:space="preserve">
+    <value>Clear {0} imported students?</value>
+  </data>
+
+  <data name="Data_DatasetNotFound" xml:space="preserve">
+    <value>Dataset file not found</value>
+  </data>
+
+  <data name="Data_DatasetNotFoundMsg" xml:space="preserve">
+    <value>Dataset file "{0}" not found.</value>
+  </data>
+
+  <data name="Data_DeleteConfirm" xml:space="preserve">
+    <value>Confirm delete</value>
+  </data>
+
+  <data name="Data_DeleteConfirmMsg" xml:space="preserve">
+    <value>Delete dataset "{0}"?
+This cannot be undone.</value>
+  </data>
+
+  <data name="Data_DeleteFailed" xml:space="preserve">
+    <value>Delete failed</value>
+  </data>
+
+  <data name="Data_Deleted" xml:space="preserve">
+    <value>Dataset deleted</value>
+  </data>
+
+  <data name="Data_EmptyDataset" xml:space="preserve">
+    <value>Dataset is empty</value>
+  </data>
+
+  <data name="Data_EmptyHint" xml:space="preserve">
+    <value>Click Import or load a saved dataset</value>
+  </data>
+
+  <data name="Data_ExcelFile" xml:space="preserve">
+    <value>Excel file</value>
+  </data>
+
+  <data name="Data_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+
+  <data name="Data_ExportCSV" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+
+  <data name="Data_ExportDone" xml:space="preserve">
+    <value>Export complete</value>
+  </data>
+
+  <data name="Data_ExportError" xml:space="preserve">
+    <value>Cannot export student data.
+{0}</value>
+  </data>
+
+  <data name="Data_ExportErrorFmt" xml:space="preserve">
+    <value>Cannot export student data.
+{0}</value>
+  </data>
+
+  <data name="Data_ExportExcel" xml:space="preserve">
+    <value>Export Excel</value>
+  </data>
+
+  <data name="Data_ExportFailed" xml:space="preserve">
+    <value>Export failed</value>
+  </data>
+
+  <data name="Data_ExportJSON" xml:space="preserve">
+    <value>Export JSON</value>
+  </data>
+
+  <data name="Data_ExportLabel" xml:space="preserve">
+    <value>Export:</value>
+  </data>
+
+  <data name="Data_ExportTemplate" xml:space="preserve">
+    <value>Export template</value>
+  </data>
+
+  <data name="Data_Exporting" xml:space="preserve">
+    <value>Exporting...</value>
+  </data>
+
+  <data name="Data_FileNotFound" xml:space="preserve">
+    <value>File not found: {0}</value>
+  </data>
+
+  <data name="Data_FileNotFoundFmt" xml:space="preserve">
+    <value>File not found: {0}</value>
+  </data>
+
+  <data name="Data_FrontRow" xml:space="preserve">
+    <value>Needs front row</value>
+  </data>
+
+  <data name="Data_FrontRowTooltip" xml:space="preserve">
+    <value>Needs front row seat (e.g. vision needs)</value>
+  </data>
+
+  <data name="Data_Gender" xml:space="preserve">
+    <value>Gender</value>
+  </data>
+
+  <data name="Data_GenderInvalidFmt" xml:space="preserve">
+    <value>Row {0} "{1}": invalid gender value</value>
+  </data>
+
+  <data name="Data_GenderTooltip" xml:space="preserve">
+    <value>Gender: Male, Female, or Other. Blank for unknown.</value>
+  </data>
+
+  <data name="Data_GetTemplate" xml:space="preserve">
+    <value>Get template</value>
+  </data>
+
+  <data name="Data_Height" xml:space="preserve">
+    <value>Height (cm)</value>
+  </data>
+
+  <data name="Data_HeightInvalidFmt" xml:space="preserve">
+    <value>Row {0} "{1}": height must be positive</value>
+  </data>
+
+  <data name="Data_HeightTooltip" xml:space="preserve">
+    <value>Height in cm, e.g. 170.5. Blank for unknown.</value>
+  </data>
+
+  <data name="Data_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
+
+  <data name="Data_ImportData" xml:space="preserve">
+    <value>Import data</value>
+  </data>
+
+  <data name="Data_ImportError" xml:space="preserve">
+    <value>Cannot import student data.
+{0}</value>
+  </data>
+
+  <data name="Data_ImportErrorFmt" xml:space="preserve">
+    <value>Cannot import student data.
+{0}</value>
+  </data>
+
+  <data name="Data_ImportFailed" xml:space="preserve">
+    <value>Import failed</value>
+  </data>
+
+  <data name="Data_ImportFromFile" xml:space="preserve">
+    <value>Import from file</value>
+  </data>
+
+  <data name="Data_ImportResult" xml:space="preserve">
+    <value>Import result</value>
+  </data>
+
+  <data name="Data_ImportedCountFmt" xml:space="preserve">
+    <value>{0} students imported</value>
+  </data>
+
+  <data name="Data_ImportedFmt" xml:space="preserve">
+    <value>{0} students imported</value>
+  </data>
+
+  <data name="Data_Importing" xml:space="preserve">
+    <value>Importing...</value>
+  </data>
+
+  <data name="Data_JSONFile" xml:space="preserve">
+    <value>JSON file</value>
+  </data>
+
+  <data name="Data_LoadFailed" xml:space="preserve">
+    <value>Load failed</value>
+  </data>
+
+  <data name="Data_LoadedFmt" xml:space="preserve">
+    <value>{0} students loaded</value>
+  </data>
+
+  <data name="Data_Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+
+  <data name="Data_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+
+  <data name="Data_NameEmptyFmt" xml:space="preserve">
+    <value>Row {0}: name cannot be empty</value>
+  </data>
+
+  <data name="Data_NamePlaceholder" xml:space="preserve">
+    <value>Required, name</value>
+  </data>
+
+  <data name="Data_NameTooltip" xml:space="preserve">
+    <value>Required. Student name, cannot be empty.</value>
+  </data>
+
+  <data name="Data_NoDataToExport" xml:space="preserve">
+    <value>No student data to export.</value>
+  </data>
+
+  <data name="Data_NoImport" xml:space="preserve">
+    <value>No student data imported</value>
+  </data>
+
+  <data name="Data_NoValidStudents" xml:space="preserve">
+    <value>No valid student data found in file.</value>
+  </data>
+
+  <data name="Data_Operations" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+
+  <data name="Data_PersonCount" xml:space="preserve">
+    <value>{0} students</value>
+  </data>
+
+  <data name="Data_Ready" xml:space="preserve">
+    <value>Ready. Import student data</value>
+  </data>
+
+  <data name="Data_RenameFailed" xml:space="preserve">
+    <value>Rename failed</value>
+  </data>
+
+  <data name="Data_RenamePrompt" xml:space="preserve">
+    <value>Enter new name for "{0}":</value>
+  </data>
+
+  <data name="Data_RenameTitle" xml:space="preserve">
+    <value>Rename dataset</value>
+  </data>
+
+  <data name="Data_Renamed" xml:space="preserve">
+    <value>Dataset renamed</value>
+  </data>
+
+  <data name="Data_SampleFileCN" xml:space="preserve">
+    <value>Student import template.xlsx</value>
+  </data>
+
+  <data name="Data_SaveAsPrompt" xml:space="preserve">
+    <value>Enter new dataset name:</value>
+  </data>
+
+  <data name="Data_SaveAsTitle" xml:space="preserve">
+    <value>Save as</value>
+  </data>
+
+  <data name="Data_SaveConfirm" xml:space="preserve">
+    <value>Confirm save</value>
+  </data>
+
+  <data name="Data_SaveConfirmMsg" xml:space="preserve">
+    <value>Overwrite dataset "{0}" ({1} students)?</value>
+  </data>
+
+  <data name="Data_SaveDataset" xml:space="preserve">
+    <value>Save dataset</value>
+  </data>
+
+  <data name="Data_SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+
+  <data name="Data_SavedAsFmt" xml:space="preserve">
+    <value>Saved as "{0}"</value>
+  </data>
+
+  <data name="Data_SavedDatasets" xml:space="preserve">
+    <value>Saved datasets</value>
+  </data>
+
+  <data name="Data_SavedFmt" xml:space="preserve">
+    <value>"{0}" saved</value>
+  </data>
+
+  <data name="Data_StudentCountFmt" xml:space="preserve">
+    <value>{0} students</value>
+  </data>
+
+  <data name="Data_StudentDataFile" xml:space="preserve">
+    <value>Student data files</value>
+  </data>
+
+  <data name="Data_TemplateMissing" xml:space="preserve">
+    <value>Template missing</value>
+  </data>
+
+  <data name="Data_TemplateMissingMsg" xml:space="preserve">
+    <value>Built-in template file not found.</value>
+  </data>
+
+  <data name="Data_TemplateSaveError" xml:space="preserve">
+    <value>Cannot save template file.
+{0}</value>
+  </data>
+
+  <data name="Data_TemplateSaveFailed" xml:space="preserve">
+    <value>Failed to save template</value>
+  </data>
+
+  <data name="Data_TemplateSaved" xml:space="preserve">
+    <value>Template saved</value>
+  </data>
+
+  <data name="Data_Title" xml:space="preserve">
+    <value>Data management</value>
+  </data>
+
+  <data name="Data_UnloadData" xml:space="preserve">
+    <value>Unload loaded data</value>
+  </data>
+
+  <data name="Data_Unnamed" xml:space="preserve">
+    <value>Unnamed</value>
+  </data>
+
+  <data name="Data_ValidationFailed" xml:space="preserve">
+    <value>Validation failed</value>
+  </data>
+
+  <data name="Freeform_AddPoint" xml:space="preserve">
+    <value>Add point</value>
+  </data>
+
+  <data name="Freeform_CSVTemplate" xml:space="preserve">
+    <value>Freeform import template.csv</value>
+  </data>
+
+  <data name="Freeform_ClearData" xml:space="preserve">
+    <value>Clear data</value>
+  </data>
+
+  <data name="Freeform_Column_Label" xml:space="preserve">
+    <value>Column:</value>
+  </data>
+
+  <data name="Freeform_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+
+  <data name="Freeform_DeleteConfirm" xml:space="preserve">
+    <value>Confirm delete</value>
+  </data>
+
+  <data name="Freeform_DeleteConfirmMsg" xml:space="preserve">
+    <value>Delete layout "{0}"?</value>
+  </data>
+
+  <data name="Freeform_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete layout</value>
+  </data>
+
+  <data name="Freeform_DeletePoint" xml:space="preserve">
+    <value>Delete this point</value>
+  </data>
+
+  <data name="Freeform_DeletedFmt" xml:space="preserve">
+    <value>Layout "{0}" deleted</value>
+  </data>
+
+  <data name="Freeform_Door" xml:space="preserve">
+    <value>Door</value>
+  </data>
+
+  <data name="Freeform_DoorFmt" xml:space="preserve">
+    <value>Door #{0}</value>
+  </data>
+
+  <data name="Freeform_DragHint" xml:space="preserve">
+    <value>Drag to pan</value>
+  </data>
+
+  <data name="Freeform_DuplicatePointFmt" xml:space="preserve">
+    <value>Row {0}: point ({1:F1}, {2:F1}) duplicates earlier point</value>
+  </data>
+
+  <data name="Freeform_ElementCountFmt" xml:space="preserve">
+    <value>{0} elements</value>
+  </data>
+
+  <data name="Freeform_EnterLayoutName" xml:space="preserve">
+    <value>Enter layout name</value>
+  </data>
+
+  <data name="Freeform_Group_Label" xml:space="preserve">
+    <value>Group:</value>
+  </data>
+
+  <data name="Freeform_ImportCSV" xml:space="preserve">
+    <value>Import CSV</value>
+  </data>
+
+  <data name="Freeform_ImportFailed" xml:space="preserve">
+    <value>Import failed</value>
+  </data>
+
+  <data name="Freeform_ImportJSON" xml:space="preserve">
+    <value>Import JSON</value>
+  </data>
+
+  <data name="Freeform_ImportMsg" xml:space="preserve">
+    <value>{0} elements exist. Choose import method:</value>
+  </data>
+
+  <data name="Freeform_ImportMsgFmt" xml:space="preserve">
+    <value>{0} elements exist. Choose import method:</value>
+  </data>
+
+  <data name="Freeform_ImportTitle" xml:space="preserve">
+    <value>Import method</value>
+  </data>
+
+  <data name="Freeform_ImportedFmt" xml:space="preserve">
+    <value>{0} elements imported</value>
+  </data>
+
+  <data name="Freeform_ImportedPtsFmt" xml:space="preserve">
+    <value>{0} points imported</value>
+  </data>
+
+  <data name="Freeform_LayoutLoadedFmt" xml:space="preserve">
+    <value>Layout "{0}" loaded, {1} elements</value>
+  </data>
+
+  <data name="Freeform_LayoutName" xml:space="preserve">
+    <value>Layout name</value>
+  </data>
+
+  <data name="Freeform_LayoutsLoadedFmt" xml:space="preserve">
+    <value>{0} freeform layouts loaded</value>
+  </data>
+
+  <data name="Freeform_NoData" xml:space="preserve">
+    <value>No data</value>
+  </data>
+
+  <data name="Freeform_NoDataHint" xml:space="preserve">
+    <value>Download a CSV template, edit it, then import or load a saved layout</value>
+  </data>
+
+  <data name="Freeform_Overwrite" xml:space="preserve">
+    <value>Overwrite</value>
+  </data>
+
+  <data name="Freeform_Podium" xml:space="preserve">
+    <value>Podium</value>
+  </data>
+
+  <data name="Freeform_PodiumFmt" xml:space="preserve">
+    <value>Podium #{0}</value>
+  </data>
+
+  <data name="Freeform_PointAddedFmt" xml:space="preserve">
+    <value>Point added, {0} points total</value>
+  </data>
+
+  <data name="Freeform_PointCountFmt" xml:space="preserve">
+    <value>{0} points total</value>
+  </data>
+
+  <data name="Freeform_PointsCleared" xml:space="preserve">
+    <value>All points cleared</value>
+  </data>
+
+  <data name="Freeform_ReadyHint" xml:space="preserve">
+    <value>Ready. Import freeform data or select a layout</value>
+  </data>
+
+  <data name="Freeform_RowXInvalidFmt" xml:space="preserve">
+    <value>Row {0}: invalid X coordinate</value>
+  </data>
+
+  <data name="Freeform_RowYInvalidFmt" xml:space="preserve">
+    <value>Row {0}: invalid Y coordinate</value>
+  </data>
+
+  <data name="Freeform_RowYNegativeFmt" xml:space="preserve">
+    <value>Row {0}: Y coordinate is negative ({1:F1})</value>
+  </data>
+
+  <data name="Freeform_Row_Label" xml:space="preserve">
+    <value>Row:</value>
+  </data>
+
+  <data name="Freeform_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+
+  <data name="Freeform_SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+
+  <data name="Freeform_SaveLayoutFailed" xml:space="preserve">
+    <value>Failed to save layout</value>
+  </data>
+
+  <data name="Freeform_SaveTemplate" xml:space="preserve">
+    <value>Save CSV template</value>
+  </data>
+
+  <data name="Freeform_SavedFmt" xml:space="preserve">
+    <value>Layout "{0}" saved, {1} elements</value>
+  </data>
+
+  <data name="Freeform_SavedLayouts" xml:space="preserve">
+    <value>Saved layouts</value>
+  </data>
+
+  <data name="Freeform_Seat" xml:space="preserve">
+    <value>Seat</value>
+  </data>
+
+  <data name="Freeform_SeatFmt" xml:space="preserve">
+    <value>Seat #{0}</value>
+  </data>
+
+  <data name="Freeform_Template" xml:space="preserve">
+    <value>Template</value>
+  </data>
+
+  <data name="Freeform_TemplateSaveFailed" xml:space="preserve">
+    <value>Failed to save template</value>
+  </data>
+
+  <data name="Freeform_TemplateSaved" xml:space="preserve">
+    <value>Template saved</value>
+  </data>
+
+  <data name="Freeform_Title" xml:space="preserve">
+    <value>Freeform</value>
+  </data>
+
+  <data name="Freeform_Type" xml:space="preserve">
+    <value>Type:</value>
+  </data>
+
+  <data name="Freeform_Unload" xml:space="preserve">
+    <value>Unload data</value>
+  </data>
+
+  <data name="Freeform_UnloadAndImport" xml:space="preserve">
+    <value>Unload then import</value>
+  </data>
+
+  <data name="Freeform_UnloadedHint" xml:space="preserve">
+    <value>Unloaded. Import data or select a layout</value>
+  </data>
+
+  <data name="Freeform_ValidationFailed" xml:space="preserve">
+    <value>Validation failed</value>
+  </data>
+
+  <data name="Freeform_XCoord" xml:space="preserve">
+    <value>X coordinate</value>
+  </data>
+
+  <data name="Freeform_YCoord" xml:space="preserve">
+    <value>Y coordinate</value>
+  </data>
+
+  <data name="Gender_Female" xml:space="preserve">
+    <value>Female</value>
+  </data>
+
+  <data name="Gender_Male" xml:space="preserve">
+    <value>Male</value>
+  </data>
+
+  <data name="Gender_Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+
+  <data name="Home_Greeting" xml:space="preserve">
+    <value>Welcome to A_Pair</value>
+  </data>
+
+  <data name="Home_Hint" xml:space="preserve">
+    <value>Click a sidebar item to get started</value>
+  </data>
+
+  <data name="Home_Subtitle" xml:space="preserve">
+    <value>Cross-platform desktop seating arrangement system</value>
+  </data>
+
   <data name="Lang_System" xml:space="preserve">
     <value>System Default</value>
   </data>
-  <data name="Lang_zhCN" xml:space="preserve">
-    <value>中文 (简体)</value>
-  </data>
+
   <data name="Lang_enUS" xml:space="preserve">
     <value>English</value>
   </data>
 
-  <!-- ═══ Navigation ═══ -->
-  <data name="Nav_Home" xml:space="preserve">
-    <value>Home</value>
+  <data name="Lang_zhCN" xml:space="preserve">
+    <value>中文 (简体)</value>
   </data>
-  <data name="Nav_DataManagement" xml:space="preserve">
-    <value>Data</value>
-  </data>
-  <data name="Nav_VenueConfig" xml:space="preserve">
-    <value>Venue</value>
-  </data>
-  <data name="Nav_Freeform" xml:space="preserve">
-    <value>Freeform</value>
-  </data>
-  <data name="Nav_StrategyConfig" xml:space="preserve">
-    <value>Strategy</value>
-  </data>
-  <data name="Nav_Seating" xml:space="preserve">
-    <value>Seating</value>
-  </data>
-  <data name="Nav_SnapshotHistory" xml:space="preserve">
-    <value>Snapshots</value>
-  </data>
-  <data name="Nav_PluginManagement" xml:space="preserve">
-    <value>Plugins</value>
-  </data>
-  <data name="Nav_Settings" xml:space="preserve">
-    <value>Settings</value>
-  </data>
+
   <data name="Nav_About" xml:space="preserve">
     <value>About</value>
   </data>
+
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>Collapse sidebar</value>
   </data>
+
+  <data name="Nav_DataManagement" xml:space="preserve">
+    <value>Data</value>
+  </data>
+
   <data name="Nav_ExpandSidebar" xml:space="preserve">
     <value>Expand sidebar</value>
   </data>
 
-  <!-- ═══ Settings ═══ -->
-  <data name="Settings_Title" xml:space="preserve">
+  <data name="Nav_Freeform" xml:space="preserve">
+    <value>Freeform</value>
+  </data>
+
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+
+  <data name="Nav_PluginManagement" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+
+  <data name="Nav_Seating" xml:space="preserve">
+    <value>Seating</value>
+  </data>
+
+  <data name="Nav_Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
+
+  <data name="Nav_SnapshotHistory" xml:space="preserve">
+    <value>Snapshots</value>
+  </data>
+
+  <data name="Nav_StrategyConfig" xml:space="preserve">
+    <value>Strategy</value>
+  </data>
+
+  <data name="Nav_VenueConfig" xml:space="preserve">
+    <value>Venue</value>
+  </data>
+
+  <data name="Plugin_AuthorFmt" xml:space="preserve">
+    <value>Author: {0}</value>
+  </data>
+
+  <data name="Plugin_ConfigJSON" xml:space="preserve">
+    <value>Config JSON</value>
+  </data>
+
+  <data name="Plugin_ConfigSaveFailed" xml:space="preserve">
+    <value>Failed to save config</value>
+  </data>
+
+  <data name="Plugin_ConfigSaved" xml:space="preserve">
+    <value>Config "{0}" saved</value>
+  </data>
+
+  <data name="Plugin_ConfigSavedFmt" xml:space="preserve">
+    <value>Config "{0}" saved</value>
+  </data>
+
+  <data name="Plugin_Enable" xml:space="preserve">
+    <value>Enable plugin</value>
+  </data>
+
+  <data name="Plugin_FoundFmt" xml:space="preserve">
+    <value>Plugins found ({0})</value>
+  </data>
+
+  <data name="Plugin_JSONErrorFmt" xml:space="preserve">
+    <value>JSON format error: {0}</value>
+  </data>
+
+  <data name="Plugin_LoadConfigFailed" xml:space="preserve">
+    <value>Failed to load config</value>
+  </data>
+
+  <data name="Plugin_LoadScriptFailed" xml:space="preserve">
+    <value>Failed to load script</value>
+  </data>
+
+  <data name="Plugin_NoPlugins" xml:space="preserve">
+    <value>No plugins found
+Place plugins in the Plugins directory</value>
+  </data>
+
+  <data name="Plugin_Priority" xml:space="preserve">
+    <value>Priority: </value>
+  </data>
+
+  <data name="Plugin_SaveConfig" xml:space="preserve">
+    <value>Save config</value>
+  </data>
+
+  <data name="Plugin_SaveScript" xml:space="preserve">
+    <value>Save script</value>
+  </data>
+
+  <data name="Plugin_ScriptEdit" xml:space="preserve">
+    <value>Script editor</value>
+  </data>
+
+  <data name="Plugin_ScriptSaveFailed" xml:space="preserve">
+    <value>Failed to save script</value>
+  </data>
+
+  <data name="Plugin_ScriptSaved" xml:space="preserve">
+    <value>Script "{0}" saved</value>
+  </data>
+
+  <data name="Plugin_ScriptSavedFmt" xml:space="preserve">
+    <value>Script "{0}" saved</value>
+  </data>
+
+  <data name="Plugin_SelectHint" xml:space="preserve">
+    <value>Select a plugin from the list</value>
+  </data>
+
+  <data name="Plugin_Title" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+
+  <data name="Plugin_ToggleFailed" xml:space="preserve">
+    <value>Failed to toggle plugin</value>
+  </data>
+
+  <data name="Plugin_ToggledFmt" xml:space="preserve">
+    <value>Plugin "{0}" {1}</value>
+  </data>
+
+  <data name="Plugin_VersionFmt" xml:space="preserve">
+    <value>Version v{0}</value>
+  </data>
+
+  <data name="Seating_CancelSwap" xml:space="preserve">
+    <value>Cancel swap</value>
+  </data>
+
+  <data name="Seating_CanvasHint" xml:space="preserve">
+    <value>Drag to pan, scroll to zoom</value>
+  </data>
+
+  <data name="Seating_CurrentStrategy" xml:space="preserve">
+    <value>Current strategy</value>
+  </data>
+
+  <data name="Seating_DiscardAndLeave" xml:space="preserve">
+    <value>Discard and leave</value>
+  </data>
+
+  <data name="Seating_EmptySeatFmt" xml:space="preserve">
+    <value>Empty seat - {0}</value>
+  </data>
+
+  <data name="Seating_ExportPNG" xml:space="preserve">
+    <value>Preview image (.png)</value>
+  </data>
+
+  <data name="Seating_ExportTimeout" xml:space="preserve">
+    <value>Export timed out, cancelled</value>
+  </data>
+
+  <data name="Seating_ExportTitle" xml:space="preserve">
+    <value>Export seating</value>
+  </data>
+
+  <data name="Seating_ExportedFmt" xml:space="preserve">
+    <value>Exported to {0}</value>
+  </data>
+
+  <data name="Seating_Generate" xml:space="preserve">
+    <value>Generate seating</value>
+  </data>
+
+  <data name="Seating_GenerateDesc" xml:space="preserve">
+    <value>Generate seating</value>
+  </data>
+
+  <data name="Seating_GenerateFailed" xml:space="preserve">
+    <value>Failed to generate seating</value>
+  </data>
+
+  <data name="Seating_GeneratedFmt" xml:space="preserve">
+    <value>Seating generated: {0}/{1} assigned</value>
+  </data>
+
+  <data name="Seating_Generating" xml:space="preserve">
+    <value>Generating seating...</value>
+  </data>
+
+  <data name="Seating_History" xml:space="preserve">
+    <value>History</value>
+  </data>
+
+  <data name="Seating_ManualSnapshot" xml:space="preserve">
+    <value>Manual save - {0}</value>
+  </data>
+
+  <data name="Seating_ManualSnapshotFmt" xml:space="preserve">
+    <value>Manual save - {0}</value>
+  </data>
+
+  <data name="Seating_NoStudents" xml:space="preserve">
+    <value>No students in dataset</value>
+  </data>
+
+  <data name="Seating_NotGenerated" xml:space="preserve">
+    <value>No seating generated yet</value>
+  </data>
+
+  <data name="Seating_NotGeneratedHint" xml:space="preserve">
+    <value>Select a venue and dataset from the left panel, then click Generate</value>
+  </data>
+
+  <data name="Seating_Obstacle" xml:space="preserve">
+    <value>Obstacle</value>
+  </data>
+
+  <data name="Seating_PDFDefault" xml:space="preserve">
+    <value>Seating.pdf</value>
+  </data>
+
+  <data name="Seating_PDFFile" xml:space="preserve">
+    <value>PDF file</value>
+  </data>
+
+  <data name="Seating_PNGDefault" xml:space="preserve">
+    <value>Seating.png</value>
+  </data>
+
+  <data name="Seating_PNGFile" xml:space="preserve">
+    <value>PNG image</value>
+  </data>
+
+  <data name="Seating_People" xml:space="preserve">
+    <value></value>
+  </data>
+
+  <data name="Seating_PolarLabelFmt" xml:space="preserve">
+    <value>Ring {0}-{1:F0}°</value>
+  </data>
+
+  <data name="Seating_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+
+  <data name="Seating_ReadyHint" xml:space="preserve">
+    <value>Ready. Select a venue and dataset to generate seating</value>
+  </data>
+
+  <data name="Seating_Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+
+  <data name="Seating_Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+
+  <data name="Seating_RestoredToFmt" xml:space="preserve">
+    <value>Restored to "{0}"</value>
+  </data>
+
+  <data name="Seating_RestoredWorkspace" xml:space="preserve">
+    <value>Restored workspace</value>
+  </data>
+
+  <data name="Seating_RestoredWorkspaceFmt" xml:space="preserve">
+    <value>Restored workspace: {0}/{1} assigned</value>
+  </data>
+
+  <data name="Seating_SaveAndLeave" xml:space="preserve">
+    <value>Save and leave</value>
+  </data>
+
+  <data name="Seating_Seats" xml:space="preserve">
+    <value>Seats: </value>
+  </data>
+
+  <data name="Seating_SelectTarget" xml:space="preserve">
+    <value>Selected "{0}", click target seat to swap</value>
+  </data>
+
+  <data name="Seating_SelectTargetFmt" xml:space="preserve">
+    <value>Selected "{0}", click target seat to swap</value>
+  </data>
+
+  <data name="Seating_SnapshotFailed" xml:space="preserve">
+    <value>Failed to save snapshot</value>
+  </data>
+
+  <data name="Seating_SnapshotSaved" xml:space="preserve">
+    <value>Saved to snapshot</value>
+  </data>
+
+  <data name="Seating_StudentData" xml:space="preserve">
+    <value>Student data</value>
+  </data>
+
+  <data name="Seating_SwapDescFmt" xml:space="preserve">
+    <value>Swap: {0} ↔ {1}</value>
+  </data>
+
+  <data name="Seating_SwapFailed" xml:space="preserve">
+    <value>Failed to swap seats</value>
+  </data>
+
+  <data name="Seating_SwappedFmt" xml:space="preserve">
+    <value>Swapped: {0} ↔ {1}</value>
+  </data>
+
+  <data name="Seating_Title" xml:space="preserve">
+    <value>Seating</value>
+  </data>
+
+  <data name="Seating_Unassigned" xml:space="preserve">
+    <value>Unassigned: </value>
+  </data>
+
+  <data name="Seating_UnassignedStudents" xml:space="preserve">
+    <value>Unassigned students</value>
+  </data>
+
+  <data name="Seating_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+
+  <data name="Seating_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+
+  <data name="Seating_UnsavedChangesMsg" xml:space="preserve">
+    <value>There are unsaved changes. Save before leaving?</value>
+  </data>
+
+  <data name="Seating_UnsupportedExport" xml:space="preserve">
+    <value>Unsupported export format</value>
+  </data>
+
+  <data name="Seating_UnsupportedExportMsg" xml:space="preserve">
+    <value>Freeform layout does not support tabular export. Use Preview Image instead.</value>
+  </data>
+
+  <data name="Seating_Venue" xml:space="preserve">
+    <value>Venue</value>
+  </data>
+
+  <data name="Seating_VenueDatasetDesc" xml:space="preserve">
+    <value>Venue "{0}" × dataset "{1}"</value>
+  </data>
+
+  <data name="Seating_VenueLoadedFmt" xml:space="preserve">
+    <value>Venue "{0}" selected, {1} seats</value>
+  </data>
+
   <data name="Settings_Appearance" xml:space="preserve">
     <value>Appearance</value>
   </data>
-  <data name="Settings_ThemeMode" xml:space="preserve">
-    <value>Theme mode</value>
-  </data>
-  <data name="Settings_DefaultZoom" xml:space="preserve">
-    <value>Default zoom</value>
-  </data>
-  <data name="Settings_Language" xml:space="preserve">
-    <value>Language</value>
-  </data>
-  <data name="Settings_LanguageLabel" xml:space="preserve">
-    <value>Language</value>
-  </data>
-  <data name="Settings_LanguagePlaceholder" xml:space="preserve">
-    <value>Blank for system default</value>
-  </data>
-  <data name="Settings_LanguageTooltip" xml:space="preserve">
-    <value>Language code, e.g. en-US, zh-CN</value>
-  </data>
-  <data name="Settings_Storage" xml:space="preserve">
-    <value>Storage</value>
-  </data>
-  <data name="Settings_DataDir" xml:space="preserve">
-    <value>Data directory</value>
-  </data>
-  <data name="Settings_DataDirPlaceholder" xml:space="preserve">
-    <value>Blank for default location</value>
-  </data>
-  <data name="Settings_BrowseDataDir" xml:space="preserve">
-    <value>Browse data directory</value>
-  </data>
-  <data name="Settings_OpenDataDir" xml:space="preserve">
-    <value>Open current data directory</value>
-  </data>
+
   <data name="Settings_Behavior" xml:space="preserve">
     <value>Behavior</value>
   </data>
+
+  <data name="Settings_BrowseDataDir" xml:space="preserve">
+    <value>Browse data directory</value>
+  </data>
+
   <data name="Settings_ConfirmClear" xml:space="preserve">
     <value>Confirm before clear</value>
   </data>
-  <data name="Settings_Save" xml:space="preserve">
-    <value>Save settings</value>
+
+  <data name="Settings_DataDir" xml:space="preserve">
+    <value>Data directory</value>
   </data>
-  <data name="Settings_ResetDefaults" xml:space="preserve">
-    <value>Restore defaults</value>
+
+  <data name="Settings_DataDirPlaceholder" xml:space="preserve">
+    <value>Blank for default location</value>
   </data>
-  <data name="Settings_Saved" xml:space="preserve">
-    <value>Settings saved</value>
+
+  <data name="Settings_DefaultZoom" xml:space="preserve">
+    <value>Default zoom</value>
   </data>
-  <data name="Settings_Saving" xml:space="preserve">
-    <value>Saving...</value>
-  </data>
-  <data name="Settings_SaveFailed" xml:space="preserve">
-    <value>Save failed</value>
-  </data>
-  <data name="Settings_ResetTitle" xml:space="preserve">
-    <value>Reset settings</value>
-  </data>
-  <data name="Settings_ResetConfirm" xml:space="preserve">
-    <value>Are you sure you want to restore all settings to their defaults?</value>
-  </data>
-  <data name="Settings_ResetDone" xml:space="preserve">
-    <value>Defaults restored (not yet saved)</value>
-  </data>
-  <data name="Settings_LoadFailed" xml:space="preserve">
-    <value>Failed to load settings, using defaults</value>
-  </data>
-  <data name="Settings_FolderTitle" xml:space="preserve">
-    <value>Select data directory</value>
-  </data>
-  <data name="Settings_FolderFailed" xml:space="preserve">
-    <value>Failed to select directory</value>
-  </data>
+
   <data name="Settings_DirNotFound" xml:space="preserve">
     <value>Directory not found</value>
   </data>
+
   <data name="Settings_DirNotFoundFormat" xml:space="preserve">
     <value>Data directory does not exist:\n{0}</value>
   </data>
-  <data name="Settings_OpenDirFailed" xml:space="preserve">
-    <value>Failed to open directory</value>
+
+  <data name="Settings_FolderFailed" xml:space="preserve">
+    <value>Failed to select directory</value>
   </data>
-  <data name="Settings_LangChangedTitle" xml:space="preserve">
-    <value>Language Changed</value>
+
+  <data name="Settings_FolderTitle" xml:space="preserve">
+    <value>Select data directory</value>
   </data>
+
   <data name="Settings_LangChangedMessage" xml:space="preserve">
     <value>The interface language has been changed. Restart the application for the change to take effect.</value>
   </data>
+
   <data name="Settings_LangChangedRestart" xml:space="preserve">
     <value>Restart Now</value>
   </data>
 
-  <!-- ═══ Theme options ═══ -->
-  <data name="Theme_System" xml:space="preserve">
-    <value>System</value>
+  <data name="Settings_LangChangedTitle" xml:space="preserve">
+    <value>Language Changed</value>
   </data>
-  <data name="Theme_Light" xml:space="preserve">
-    <value>Light</value>
+
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
   </data>
+
+  <data name="Settings_LanguageLabel" xml:space="preserve">
+    <value>Language</value>
+  </data>
+
+  <data name="Settings_LanguagePlaceholder" xml:space="preserve">
+    <value>Blank for system default</value>
+  </data>
+
+  <data name="Settings_LanguageTooltip" xml:space="preserve">
+    <value>Language code, e.g. en-US, zh-CN</value>
+  </data>
+
+  <data name="Settings_LoadFailed" xml:space="preserve">
+    <value>Failed to load settings, using defaults</value>
+  </data>
+
+  <data name="Settings_OpenDataDir" xml:space="preserve">
+    <value>Open current data directory</value>
+  </data>
+
+  <data name="Settings_OpenDirFailed" xml:space="preserve">
+    <value>Failed to open directory</value>
+  </data>
+
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>Are you sure you want to restore all settings to their defaults?</value>
+  </data>
+
+  <data name="Settings_ResetDefaults" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+
+  <data name="Settings_ResetDone" xml:space="preserve">
+    <value>Defaults restored (not yet saved)</value>
+  </data>
+
+  <data name="Settings_ResetTitle" xml:space="preserve">
+    <value>Reset settings</value>
+  </data>
+
+  <data name="Settings_Save" xml:space="preserve">
+    <value>Save settings</value>
+  </data>
+
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+
+  <data name="Settings_Saved" xml:space="preserve">
+    <value>Settings saved</value>
+  </data>
+
+  <data name="Settings_Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+
+  <data name="Settings_Storage" xml:space="preserve">
+    <value>Storage</value>
+  </data>
+
+  <data name="Settings_ThemeMode" xml:space="preserve">
+    <value>Theme mode</value>
+  </data>
+
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+
+  <data name="Snapshot_BatchDelete" xml:space="preserve">
+    <value>Batch delete</value>
+  </data>
+
+  <data name="Snapshot_BatchDeleteFailed" xml:space="preserve">
+    <value>Failed to batch delete snapshots</value>
+  </data>
+
+  <data name="Snapshot_BatchDeleteMsg" xml:space="preserve">
+    <value>Delete {0} selected snapshots?
+This cannot be undone.</value>
+  </data>
+
+  <data name="Snapshot_BatchDeleteMsgFmt" xml:space="preserve">
+    <value>Delete {0} selected snapshots?
+This cannot be undone.</value>
+  </data>
+
+  <data name="Snapshot_BatchDeleteTitle" xml:space="preserve">
+    <value>Batch delete</value>
+  </data>
+
+  <data name="Snapshot_BatchDeletedFmt" xml:space="preserve">
+    <value>Deleted {0} snapshots, {1} remaining</value>
+  </data>
+
+  <data name="Snapshot_CancelBatch" xml:space="preserve">
+    <value>Cancel batch delete</value>
+  </data>
+
+  <data name="Snapshot_ConfirmDelete" xml:space="preserve">
+    <value>Confirm delete</value>
+  </data>
+
+  <data name="Snapshot_CountFmt" xml:space="preserve">
+    <value>{0} snapshots</value>
+  </data>
+
+  <data name="Snapshot_Create" xml:space="preserve">
+    <value>Create snapshot</value>
+  </data>
+
+  <data name="Snapshot_CreateFailed" xml:space="preserve">
+    <value>Failed to create snapshot</value>
+  </data>
+
+  <data name="Snapshot_CreatePrompt" xml:space="preserve">
+    <value>Enter snapshot description:</value>
+  </data>
+
+  <data name="Snapshot_CreateTitle" xml:space="preserve">
+    <value>Create snapshot</value>
+  </data>
+
+  <data name="Snapshot_Created" xml:space="preserve">
+    <value>Snapshot created</value>
+  </data>
+
+  <data name="Snapshot_CreatedAt" xml:space="preserve">
+    <value>Created at</value>
+  </data>
+
+  <data name="Snapshot_DataChanged" xml:space="preserve">
+    <value>Data changed</value>
+  </data>
+
+  <data name="Snapshot_DataChangedMsg" xml:space="preserve">
+    <value>Some students have been removed from the dataset.</value>
+  </data>
+
+  <data name="Snapshot_DataChangedText" xml:space="preserve">
+    <value>Data changed</value>
+  </data>
+
+  <data name="Snapshot_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+
+  <data name="Snapshot_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete snapshot</value>
+  </data>
+
+  <data name="Snapshot_DeleteMsg" xml:space="preserve">
+    <value>Delete snapshot from {0}?</value>
+  </data>
+
+  <data name="Snapshot_DeleteMsgFmt" xml:space="preserve">
+    <value>Delete snapshot from {0}?</value>
+  </data>
+
+  <data name="Snapshot_DeleteTitle" xml:space="preserve">
+    <value>Confirm delete</value>
+  </data>
+
+  <data name="Snapshot_DeletedFmt" xml:space="preserve">
+    <value>Deleted. {0} snapshots remaining</value>
+  </data>
+
+  <data name="Snapshot_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+
+  <data name="Snapshot_Detail" xml:space="preserve">
+    <value>Snapshot details</value>
+  </data>
+
+  <data name="Snapshot_Id" xml:space="preserve">
+    <value>Snapshot ID</value>
+  </data>
+
+  <data name="Snapshot_LinkedVenue" xml:space="preserve">
+    <value>Linked venue</value>
+  </data>
+
+  <data name="Snapshot_List" xml:space="preserve">
+    <value>Snapshot list</value>
+  </data>
+
+  <data name="Snapshot_ManualSnapshotFmt" xml:space="preserve">
+    <value>Manual snapshot - {0}</value>
+  </data>
+
+  <data name="Snapshot_NoSelection" xml:space="preserve">
+    <value>No snapshots selected.</value>
+  </data>
+
+  <data name="Snapshot_NoSnapshotsFmt" xml:space="preserve">
+    <value>{0} has no snapshots</value>
+  </data>
+
+  <data name="Snapshot_NoWorkspace" xml:space="preserve">
+    <value>No active workspace. Generate seating first.</value>
+  </data>
+
+  <data name="Snapshot_PolarLabelFmt" xml:space="preserve">
+    <value>Ring {0}</value>
+  </data>
+
+  <data name="Snapshot_Preview" xml:space="preserve">
+    <value>Venue preview</value>
+  </data>
+
+  <data name="Snapshot_Rollback" xml:space="preserve">
+    <value>Rollback to this state</value>
+  </data>
+
+  <data name="Snapshot_RollbackDone" xml:space="preserve">
+    <value>Rolled back to {0}</value>
+  </data>
+
+  <data name="Snapshot_RollbackDoneFmt" xml:space="preserve">
+    <value>Rolled back to {0}</value>
+  </data>
+
+  <data name="Snapshot_RollbackFailed" xml:space="preserve">
+    <value>Rollback failed</value>
+  </data>
+
+  <data name="Snapshot_RollbackMsg" xml:space="preserve">
+    <value>Rollback to snapshot from {0}?
+Current seating will be overwritten.</value>
+  </data>
+
+  <data name="Snapshot_RollbackMsgFmt" xml:space="preserve">
+    <value>Rollback to snapshot from {0}?
+Current seating will be overwritten.</value>
+  </data>
+
+  <data name="Snapshot_RollbackTitle" xml:space="preserve">
+    <value>Confirm rollback</value>
+  </data>
+
+  <data name="Snapshot_SeatCount" xml:space="preserve">
+    <value>Seat count</value>
+  </data>
+
+  <data name="Snapshot_SeatCountFmt" xml:space="preserve">
+    <value>{0} seats</value>
+  </data>
+
+  <data name="Snapshot_SelectAllFmt" xml:space="preserve">
+    <value>Select all ({0} items)</value>
+  </data>
+
+  <data name="Snapshot_SelectHint" xml:space="preserve">
+    <value>Select a snapshot to view details</value>
+  </data>
+
+  <data name="Snapshot_SelectVenue" xml:space="preserve">
+    <value>Select venue...</value>
+  </data>
+
+  <data name="Snapshot_Title" xml:space="preserve">
+    <value>Snapshots</value>
+  </data>
+
+  <data name="Snapshot_VenueChanged" xml:space="preserve">
+    <value>The venue layout has changed since this snapshot was created.</value>
+  </data>
+
+  <data name="Snapshot_VenueChangedWarning" xml:space="preserve">
+    <value>Venue layout changed, rollback may fail</value>
+  </data>
+
+  <data name="Snapshot_VenueDeletedMsg" xml:space="preserve">
+    <value>The venue file linked to this snapshot has been deleted.</value>
+  </data>
+
+  <data name="Snapshot_VenueDeletedPreview" xml:space="preserve">
+    <value>Venue deleted, preview unavailable</value>
+  </data>
+
+  <data name="Snapshot_VenueEmpty" xml:space="preserve">
+    <value>Venue "{0}" has no snapshots</value>
+  </data>
+
+  <data name="Snapshot_VenueEmptyFmt" xml:space="preserve">
+    <value>Venue "{0}" has no snapshots</value>
+  </data>
+
+  <data name="Snapshot_VenueHint" xml:space="preserve">
+    <value>Venue "{0}": {1} snapshots</value>
+  </data>
+
+  <data name="Snapshot_VenueHintFmt" xml:space="preserve">
+    <value>Venue "{0}": {1} snapshots</value>
+  </data>
+
+  <data name="Snapshot_VenuesLoadedFmt" xml:space="preserve">
+    <value>{0} venues loaded</value>
+  </data>
+
+  <data name="Strategy_AuthorFmt" xml:space="preserve">
+    <value>Author: {0}</value>
+  </data>
+
+  <data name="Strategy_BasicConfig" xml:space="preserve">
+    <value>Basic config</value>
+  </data>
+
+  <data name="Strategy_CategoryFmt" xml:space="preserve">
+    <value>Category: {0}</value>
+  </data>
+
+  <data name="Strategy_DefaultPriorityFmt" xml:space="preserve">
+    <value>Default priority: {0}</value>
+  </data>
+
+  <data name="Strategy_DetailLoadFailed" xml:space="preserve">
+    <value>Failed to load details</value>
+  </data>
+
+  <data name="Strategy_DuplicateEntryFmt" xml:space="preserve">
+    <value>• {0} (priority {1})</value>
+  </data>
+
+  <data name="Strategy_DuplicateWarningFmt" xml:space="preserve">
+    <value>These conflicts will occur after saving:
+
+{0}</value>
+  </data>
+
+  <data name="Strategy_EnableFmt" xml:space="preserve">
+    <value>Enable {0}</value>
+  </data>
+
+  <data name="Strategy_EnableLabel" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+
+  <data name="Strategy_List" xml:space="preserve">
+    <value>Strategy list</value>
+  </data>
+
+  <data name="Strategy_LoadFailed" xml:space="preserve">
+    <value>Failed to load strategies</value>
+  </data>
+
+  <data name="Strategy_LoadedFixedFmt" xml:space="preserve">
+    <value>{0} strategies loaded, {1} priority conflicts fixed</value>
+  </data>
+
+  <data name="Strategy_LoadedFmt" xml:space="preserve">
+    <value>{0} strategies loaded</value>
+  </data>
+
+  <data name="Strategy_Loading" xml:space="preserve">
+    <value>Loading strategies...</value>
+  </data>
+
+  <data name="Strategy_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+
+  <data name="Strategy_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+
+  <data name="Strategy_MovedDownFmt" xml:space="preserve">
+    <value>"{0}" moved down (priority {1})</value>
+  </data>
+
+  <data name="Strategy_MovedUpFmt" xml:space="preserve">
+    <value>"{0}" moved up (priority {1})</value>
+  </data>
+
+  <data name="Strategy_NoChanges" xml:space="preserve">
+    <value>No changes to save</value>
+  </data>
+
+  <data name="Strategy_Plugin" xml:space="preserve">
+    <value>Plugin</value>
+  </data>
+
+  <data name="Strategy_PriorityConflict" xml:space="preserve">
+    <value>Priority conflict</value>
+  </data>
+
+  <data name="Strategy_PriorityConflictAutoFixed" xml:space="preserve">
+    <value>Priority conflicts auto-fixed</value>
+  </data>
+
+  <data name="Strategy_PriorityConflictChoice1" xml:space="preserve">
+    <value>Select Yes — {0} runs first</value>
+  </data>
+
+  <data name="Strategy_PriorityConflictChoice2" xml:space="preserve">
+    <value>Select No — {0} runs first</value>
+  </data>
+
+  <data name="Strategy_PriorityConflictMsg" xml:space="preserve">
+    <value>"{0}" and "{1}" have the same priority ({2}).</value>
+  </data>
+
+  <data name="Strategy_PriorityConflictMsgFmt" xml:space="preserve">
+    <value>Priority conflicts detected and auto-resolved:
+
+{0}</value>
+  </data>
+
+  <data name="Strategy_PriorityFmt" xml:space="preserve">
+    <value>Priority: {0}</value>
+  </data>
+
+  <data name="Strategy_PriorityLabel" xml:space="preserve">
+    <value>Priority</value>
+  </data>
+
+  <data name="Strategy_PriorityTakenFmt" xml:space="preserve">
+    <value>Priority {0} is already used by "{1}".</value>
+  </data>
+
+  <data name="Strategy_RestoreDefaultConfirm" xml:space="preserve">
+    <value>Restore "{0}" to default configuration?</value>
+  </data>
+
+  <data name="Strategy_RestoreDefaultConfirmFmt" xml:space="preserve">
+    <value>Restore "{0}" to default?</value>
+  </data>
+
+  <data name="Strategy_RestoreDefaults" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+
+  <data name="Strategy_RestoredAndSaved" xml:space="preserve">
+    <value>Defaults restored and saved</value>
+  </data>
+
+  <data name="Strategy_SaveChanges" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+
+  <data name="Strategy_SaveConfig" xml:space="preserve">
+    <value>Save config</value>
+  </data>
+
+  <data name="Strategy_SaveConfigFailed" xml:space="preserve">
+    <value>Failed to save strategy config</value>
+  </data>
+
+  <data name="Strategy_SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+
+  <data name="Strategy_SavedCountFmt" xml:space="preserve">
+    <value>{0} strategies saved</value>
+  </data>
+
+  <data name="Strategy_SavedFmt" xml:space="preserve">
+    <value>{0} strategies saved</value>
+  </data>
+
+  <data name="Strategy_Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+
+  <data name="Strategy_SelectHint" xml:space="preserve">
+    <value>Select a strategy to view and edit</value>
+  </data>
+
+  <data name="Strategy_SelectHint2" xml:space="preserve">
+    <value>Select a strategy from the list</value>
+  </data>
+
+  <data name="Strategy_SourceFmt" xml:space="preserve">
+    <value>Source: {0}</value>
+  </data>
+
+  <data name="Strategy_Title" xml:space="preserve">
+    <value>Strategy</value>
+  </data>
+
+  <data name="Strategy_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+
+  <data name="Strategy_UnsavedChangesMsg" xml:space="preserve">
+    <value>Unsaved strategy changes. Save before leaving?</value>
+  </data>
+
   <data name="Theme_Dark" xml:space="preserve">
     <value>Dark</value>
   </data>
 
-  <!-- ═══ Zoom options ═══ -->
-  <data name="Zoom_75" xml:space="preserve">
-    <value>75%</value>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Light</value>
   </data>
+
+  <data name="Theme_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+
+  <data name="Venue_AddDoor" xml:space="preserve">
+    <value>Add door</value>
+  </data>
+
+  <data name="Venue_AddDoorTooltip" xml:space="preserve">
+    <value>Add a door to the preview</value>
+  </data>
+
+  <data name="Venue_AisleCheckTooltip" xml:space="preserve">
+    <value>Check to insert aisle here</value>
+  </data>
+
+  <data name="Venue_AisleConfig" xml:space="preserve">
+    <value>Aisle configuration</value>
+  </data>
+
+  <data name="Venue_AisleWidth" xml:space="preserve">
+    <value>Aisle width</value>
+  </data>
+
+  <data name="Venue_AisleWidthTooltip" xml:space="preserve">
+    <value>Aisle width (px), 12-300.</value>
+  </data>
+
+  <data name="Venue_BasicParams" xml:space="preserve">
+    <value>Basic parameters</value>
+  </data>
+
+  <data name="Venue_ChannelConfig" xml:space="preserve">
+    <value>Channel configuration</value>
+  </data>
+
+  <data name="Venue_ClassroomFeatures" xml:space="preserve">
+    <value>Classroom features</value>
+  </data>
+
+  <data name="Venue_ColAisleFmt" xml:space="preserve">
+    <value>{0}-{1} col ↔ {2}-{3} col</value>
+  </data>
+
+  <data name="Venue_ColsTooltip" xml:space="preserve">
+    <value>Number of seat columns, 1-100.</value>
+  </data>
+
+  <data name="Venue_ColumnAisles" xml:space="preserve">
+    <value>Column aisles (click to insert between columns):</value>
+  </data>
+
+  <data name="Venue_ColumnRowCounts" xml:space="preserve">
+    <value>Rows per column</value>
+  </data>
+
+  <data name="Venue_ColumnRowCountsTooltip" xml:space="preserve">
+    <value>Rows per column (comma separated).</value>
+  </data>
+
+  <data name="Venue_DeleteConfirm" xml:space="preserve">
+    <value>Confirm delete</value>
+  </data>
+
+  <data name="Venue_DeleteConfirmMsgFmt" xml:space="preserve">
+    <value>Delete venue "{0}"? This cannot be undone.</value>
+  </data>
+
+  <data name="Venue_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete venue</value>
+  </data>
+
+  <data name="Venue_DeleteVenue" xml:space="preserve">
+    <value>Delete venue</value>
+  </data>
+
+  <data name="Venue_DeletedFmt" xml:space="preserve">
+    <value>Venue "{0}" deleted</value>
+  </data>
+
+  <data name="Venue_DeskConfig" xml:space="preserve">
+    <value>Desk configuration</value>
+  </data>
+
+  <data name="Venue_DeskInnerSpacing" xml:space="preserve">
+    <value>Inner desk spacing</value>
+  </data>
+
+  <data name="Venue_DeskInnerSpacingTooltip" xml:space="preserve">
+    <value>Inner-desk spacing (px), 4-200.</value>
+  </data>
+
+  <data name="Venue_DeskSize" xml:space="preserve">
+    <value>Students per desk</value>
+  </data>
+
+  <data name="Venue_DeskSizeTooltip" xml:space="preserve">
+    <value>Seats per desk, 1-6. Usually 2.</value>
+  </data>
+
+  <data name="Venue_DeskSpacing" xml:space="preserve">
+    <value>Desk spacing</value>
+  </data>
+
+  <data name="Venue_DeskSpacingTooltip" xml:space="preserve">
+    <value>Desk-to-desk spacing (px), 4-400.</value>
+  </data>
+
+  <data name="Venue_DisabledSeats" xml:space="preserve">
+    <value>Disabled seats</value>
+  </data>
+
+  <data name="Venue_DisabledSeatsTooltip" xml:space="preserve">
+    <value>Semicolon-separated (row,col) pairs to disable.</value>
+  </data>
+
+  <data name="Venue_DoorFmt" xml:space="preserve">
+    <value>Door {0}</value>
+  </data>
+
+  <data name="Venue_DoorXTooltip" xml:space="preserve">
+    <value>Door X position (px)</value>
+  </data>
+
+  <data name="Venue_DoorYTooltip" xml:space="preserve">
+    <value>Door Y position (px)</value>
+  </data>
+
+  <data name="Venue_DragHint" xml:space="preserve">
+    <value>Drag to pan</value>
+  </data>
+
+  <data name="Venue_EndAngle" xml:space="preserve">
+    <value>End angle</value>
+  </data>
+
+  <data name="Venue_EndAngleTooltip" xml:space="preserve">
+    <value>End angle. 360=full circle.</value>
+  </data>
+
+  <data name="Venue_ExpandList" xml:space="preserve">
+    <value>Expand list</value>
+  </data>
+
+  <data name="Venue_FreeformHint" xml:space="preserve">
+    <value>Freeform layout defines seats via CSV/JSON coordinates.</value>
+  </data>
+
+  <data name="Venue_FreeformType" xml:space="preserve">
+    <value>Freeform</value>
+  </data>
+
+  <data name="Venue_FrontRows" xml:space="preserve">
+    <value>Front rows</value>
+  </data>
+
+  <data name="Venue_FrontRowsTooltip" xml:space="preserve">
+    <value>Number of front rows, 1-10.</value>
+  </data>
+
+  <data name="Venue_GridDisabledFmt" xml:space="preserve">
+    <value>R{0}C{1} (disabled)</value>
+  </data>
+
+  <data name="Venue_GridLabelFmt" xml:space="preserve">
+    <value>R{0}C{1} (desk {2})</value>
+  </data>
+
+  <data name="Venue_GridType" xml:space="preserve">
+    <value>Grid</value>
+  </data>
+
+  <data name="Venue_HSpacingTooltip" xml:space="preserve">
+    <value>Horizontal base spacing (px), 4-600.</value>
+  </data>
+
+  <data name="Venue_HasPodium" xml:space="preserve">
+    <value>Has podium</value>
+  </data>
+
+  <data name="Venue_HasPodiumTooltip" xml:space="preserve">
+    <value>Show a podium at the front of the classroom.</value>
+  </data>
+
+  <data name="Venue_LayoutType" xml:space="preserve">
+    <value>Layout type</value>
+  </data>
+
+  <data name="Venue_List" xml:space="preserve">
+    <value>Venue list</value>
+  </data>
+
+  <data name="Venue_LoadFailedFmt" xml:space="preserve">
+    <value>Failed to load venue "{0}"</value>
+  </data>
+
+  <data name="Venue_LoadedFmt" xml:space="preserve">
+    <value>Venue "{0}" loaded, {1} seats</value>
+  </data>
+
+  <data name="Venue_Name" xml:space="preserve">
+    <value>Venue name</value>
+  </data>
+
+  <data name="Venue_New" xml:space="preserve">
+    <value>New venue</value>
+  </data>
+
+  <data name="Venue_NewVenueFmt" xml:space="preserve">
+    <value>New venue {0}</value>
+  </data>
+
+  <data name="Venue_NoSelection" xml:space="preserve">
+    <value>No venue selected</value>
+  </data>
+
+  <data name="Venue_OpenFreeform" xml:space="preserve">
+    <value>Open freeform management</value>
+  </data>
+
+  <data name="Venue_Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+
+  <data name="Venue_OriginXTooltip" xml:space="preserve">
+    <value>Starting X position of first column (px), 0-2000.</value>
+  </data>
+
+  <data name="Venue_OriginYTooltip" xml:space="preserve">
+    <value>Starting Y position of first row (px), 0-2000.</value>
+  </data>
+
+  <data name="Venue_PodiumHeight" xml:space="preserve">
+    <value>Podium height</value>
+  </data>
+
+  <data name="Venue_PodiumHeightTooltip" xml:space="preserve">
+    <value>Podium height (px), 20-200.</value>
+  </data>
+
+  <data name="Venue_PodiumRadius" xml:space="preserve">
+    <value>Podium radius</value>
+  </data>
+
+  <data name="Venue_PodiumRadiusTooltip" xml:space="preserve">
+    <value>Podium circle radius (px).</value>
+  </data>
+
+  <data name="Venue_PodiumWidth" xml:space="preserve">
+    <value>Podium width</value>
+  </data>
+
+  <data name="Venue_PodiumWidthTooltip" xml:space="preserve">
+    <value>Podium width (px), 20-400.</value>
+  </data>
+
+  <data name="Venue_PolarDisabledFmt" xml:space="preserve">
+    <value>R{0} {1:F0}° (disabled)</value>
+  </data>
+
+  <data name="Venue_PolarDisabledTooltip" xml:space="preserve">
+    <value>Semicolon-separated (ring,angle) pairs to disable.</value>
+  </data>
+
+  <data name="Venue_PolarFrontRowsTooltip" xml:space="preserve">
+    <value>Number of outer rings treated as front rows.</value>
+  </data>
+
+  <data name="Venue_PolarOriginXTooltip" xml:space="preserve">
+    <value>Circle center X (px).</value>
+  </data>
+
+  <data name="Venue_PolarOriginYTooltip" xml:space="preserve">
+    <value>Circle center Y (px).</value>
+  </data>
+
+  <data name="Venue_PolarType" xml:space="preserve">
+    <value>Polar</value>
+  </data>
+
+  <data name="Venue_Preview" xml:space="preserve">
+    <value>Layout preview</value>
+  </data>
+
+  <data name="Venue_PreviewSeatsFmt" xml:space="preserve">
+    <value>Preview: {0} seats</value>
+  </data>
+
+  <data name="Venue_RadialAisleAngles" xml:space="preserve">
+    <value>Radial aisle angles</value>
+  </data>
+
+  <data name="Venue_RadialAisleAnglesTooltip" xml:space="preserve">
+    <value>Comma-separated aisle center angles.</value>
+  </data>
+
+  <data name="Venue_RadialAisleWidth" xml:space="preserve">
+    <value>Radial aisle width</value>
+  </data>
+
+  <data name="Venue_RadialAisleWidthTooltip" xml:space="preserve">
+    <value>Radial aisle angular width (deg), default 5.</value>
+  </data>
+
+  <data name="Venue_RadiusStep" xml:space="preserve">
+    <value>Radius step</value>
+  </data>
+
+  <data name="Venue_RadiusStepTooltip" xml:space="preserve">
+    <value>Radius increment between rings (px), 8-400.</value>
+  </data>
+
+  <data name="Venue_Refresh" xml:space="preserve">
+    <value>Refresh venues</value>
+  </data>
+
+  <data name="Venue_RefreshPreview" xml:space="preserve">
+    <value>Refresh preview</value>
+  </data>
+
+  <data name="Venue_RingAislePositions" xml:space="preserve">
+    <value>Ring aisle positions</value>
+  </data>
+
+  <data name="Venue_RingAislePositionsTooltip" xml:space="preserve">
+    <value>Comma-separated ring numbers to insert aisles after.</value>
+  </data>
+
+  <data name="Venue_RingAisleWidth" xml:space="preserve">
+    <value>Ring aisle width</value>
+  </data>
+
+  <data name="Venue_RingAisleWidthTooltip" xml:space="preserve">
+    <value>Ring aisle radial width (px), default 20.</value>
+  </data>
+
+  <data name="Venue_RingSeats" xml:space="preserve">
+    <value>Seats per ring list</value>
+  </data>
+
+  <data name="Venue_RingSeatsTooltip" xml:space="preserve">
+    <value>Comma-separated seats per ring.</value>
+  </data>
+
+  <data name="Venue_Rings" xml:space="preserve">
+    <value>Number of rings</value>
+  </data>
+
+  <data name="Venue_RingsTooltip" xml:space="preserve">
+    <value>Number of polar rings, 1-20.</value>
+  </data>
+
+  <data name="Venue_RowAisleFmt" xml:space="preserve">
+    <value>Row {0} ↔ Row {1}</value>
+  </data>
+
+  <data name="Venue_RowAisles" xml:space="preserve">
+    <value>Row aisles (click to insert between rows):</value>
+  </data>
+
+  <data name="Venue_RowsTooltip" xml:space="preserve">
+    <value>Number of seat rows, 1-100.</value>
+  </data>
+
+  <data name="Venue_SaveFailed" xml:space="preserve">
+    <value>Failed to save venue</value>
+  </data>
+
+  <data name="Venue_SaveVenue" xml:space="preserve">
+    <value>Save venue</value>
+  </data>
+
+  <data name="Venue_SavedFmt" xml:space="preserve">
+    <value>Venue "{0}" saved, {1} seats</value>
+  </data>
+
+  <data name="Venue_SeatsPerRing" xml:space="preserve">
+    <value>Seats per ring</value>
+  </data>
+
+  <data name="Venue_SeatsPerRingTooltip" xml:space="preserve">
+    <value>Seats per ring in uniform mode.</value>
+  </data>
+
+  <data name="Venue_SelectHint" xml:space="preserve">
+    <value>Select a venue or create a new one</value>
+  </data>
+
+  <data name="Venue_StartAngle" xml:space="preserve">
+    <value>Start angle</value>
+  </data>
+
+  <data name="Venue_StartAngleTooltip" xml:space="preserve">
+    <value>Start angle (degrees). 0=right.</value>
+  </data>
+
+  <data name="Venue_Title" xml:space="preserve">
+    <value>Venue Configuration</value>
+  </data>
+
+  <data name="Venue_VSpacingTooltip" xml:space="preserve">
+    <value>Vertical base spacing (px), 4-600.</value>
+  </data>
+
+  <data name="Venue_VenuesLoadedFmt" xml:space="preserve">
+    <value>{0} venues loaded</value>
+  </data>
+
+  <data name="Watchdog_MessageFmt" xml:space="preserve">
+    <value>UI thread unresponsive for {0}s. Application will exit.
+Diagnostics saved to: {1}</value>
+  </data>
+
+  <data name="Watchdog_Title" xml:space="preserve">
+    <value>Application not responding</value>
+  </data>
+
   <data name="Zoom_100" xml:space="preserve">
     <value>100%</value>
   </data>
+
   <data name="Zoom_125" xml:space="preserve">
     <value>125%</value>
   </data>
+
   <data name="Zoom_150" xml:space="preserve">
     <value>150%</value>
   </data>
 
-  <!-- ═══ About ═══ -->
-  <data name="About_Title" xml:space="preserve">
-    <value>About</value>
+  <data name="Zoom_75" xml:space="preserve">
+    <value>75%</value>
   </data>
-  <data name="About_Version" xml:space="preserve">
-    <value>Version {0}</value>
-  </data>
-  <data name="About_Runtime" xml:space="preserve">
-    <value>Runtime environment</value>
-  </data>
-  <data name="About_Framework" xml:space="preserve">
-    <value>Framework</value>
-  </data>
-  <data name="About_License" xml:space="preserve">
-    <value>License</value>
-  </data>
-  <data name="About_Dependencies" xml:space="preserve">
-    <value>Dependencies</value>
-  </data>
-  <data name="About_OpenLink" xml:space="preserve">
-    <value>Open {0} project page</value>
-  </data>
+
 </root>

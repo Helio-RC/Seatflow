@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:app="using:A_Pair.Application.Interfaces"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
@@ -23,14 +24,14 @@
     <!-- 顶部标题 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="插件管理" Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Plugin_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
         <Button DockPanel.Dock="Right" Command="{Binding RefreshPluginsCommand}"
-                AutomationProperties.Name="刷新插件列表"
+                AutomationProperties.Name="{x:Static lang:Resources.Strategy_Plugin}"
                 HorizontalContentAlignment="Center" Padding="12,6">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
-            <TextBlock Text="刷新" FontSize="14" />
+            <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" FontSize="14" />
           </StackPanel>
         </Button>
       </DockPanel>
@@ -55,7 +56,7 @@
           </Border>
 
           <!-- 空列表提示 -->
-          <TextBlock Text="暂无插件&#x0a;请将插件放入 Plugins 目录"
+          <TextBlock Text="{x:Static lang:Resources.Strategy_Plugin}"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
                      FontSize="14" Opacity="0.5"
                      IsVisible="{Binding EmptyHintVisible}" />
@@ -133,7 +134,7 @@
 
             <!-- 优先级 -->
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="优先级：" FontSize="13" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static lang:Resources.Strategy_PriorityLabel}" FontSize="13" VerticalAlignment="Center" />
               <TextBlock Text="{Binding SelectedPlugin.Priority}" FontSize="13"
                          FontWeight="SemiBold" VerticalAlignment="Center" />
             </StackPanel>
@@ -142,11 +143,11 @@
             <Border Padding="14,10" CornerRadius="6"
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="启用插件" FontSize="14"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_Plugin}" FontSize="14"
                            VerticalAlignment="Center" />
                 <ToggleSwitch DockPanel.Dock="Right"
                               IsChecked="{Binding SelectedPlugin.IsEnabled, Mode=OneWay}"
-                              OffContent="已禁用" OnContent="已启用"
+                              OffContent="{x:Static lang:Resources.Plugin_Disabled}" OnContent="{x:Static lang:Resources.Strategy_EnableLabel}"
                               Command="{Binding ToggleEnabledCommand}" />
               </DockPanel>
             </Border>
@@ -156,14 +157,14 @@
             <!-- 脚本编辑器（仅脚本插件） -->
             <StackPanel Spacing="8" IsVisible="{Binding ScriptEditorVisible}">
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="脚本编辑" FontSize="15"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Plugin_ScriptEdit}" FontSize="15"
                            FontWeight="SemiBold" VerticalAlignment="Center" />
                 <Button DockPanel.Dock="Right" Command="{Binding SaveScriptCommand}"
                         IsEnabled="{Binding IsScriptDirty}"
                         Padding="10,6" HorizontalContentAlignment="Center">
                   <StackPanel Orientation="Horizontal" Spacing="4">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
-                    <TextBlock Text="保存脚本" FontSize="13" />
+                    <TextBlock Text="{x:Static lang:Resources.Plugin_SaveScript}" FontSize="13" />
                   </StackPanel>
                 </Button>
               </DockPanel>
@@ -182,14 +183,14 @@
             <!-- 配置编辑器（所有插件） -->
             <StackPanel Spacing="8" IsVisible="{Binding ConfigEditorVisible}">
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="配置 JSON" FontSize="15"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Plugin_ConfigJSON}" FontSize="15"
                            FontWeight="SemiBold" VerticalAlignment="Center" />
                 <Button DockPanel.Dock="Right" Command="{Binding SaveConfigCommand}"
                         IsEnabled="{Binding IsConfigDirty}"
                         Padding="10,6" HorizontalContentAlignment="Center">
                   <StackPanel Orientation="Horizontal" Spacing="4">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
-                    <TextBlock Text="保存配置" FontSize="13" />
+                    <TextBlock Text="{x:Static lang:Resources.Plugin_SaveConfig}" FontSize="13" />
                   </StackPanel>
                 </Button>
               </DockPanel>
@@ -218,7 +219,7 @@
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="36"
                             Opacity="0.3" HorizontalAlignment="Center" />
-            <TextBlock Text="从左侧列表选择一个插件" FontSize="15"
+            <TextBlock Text="{x:Static lang:Resources.Plugin_SelectHint}" FontSize="15"
                        Opacity="0.5" HorizontalAlignment="Center" />
           </StackPanel>
         </Border>

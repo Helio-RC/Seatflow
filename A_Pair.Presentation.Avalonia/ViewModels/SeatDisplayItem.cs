@@ -1,3 +1,4 @@
+using A_Pair.Presentation.Avalonia.Lang;
 using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -59,7 +60,7 @@ public partial class SeatDisplayItem : ObservableObject
     // ── Tooltip ──
     public string TooltipText => IsOccupied
         ? $"{StudentName} - {SeatLabel}"
-        : $"空座位 - {SeatLabel}";
+        : string.Format(Resources.Seating_EmptySeatFmt, SeatLabel);
 
     // ── 颜色 ──
     private static readonly SolidColorBrush EmptyBg = new(Color.FromArgb(0x20 , 0xA0 , 0xA0 , 0xA0));

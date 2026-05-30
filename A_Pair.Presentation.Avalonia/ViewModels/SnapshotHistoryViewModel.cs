@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,7 +22,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private readonly INavigationService _navigation;
     private readonly ILogger<SnapshotHistoryViewModel> _logger;
 
-    public string Title { get; } = "历史快照";
+    public string Title { get; } = Resources.Snapshot_Title;
 
     [ObservableProperty]
     private ObservableCollection<VenueItem> _venues = [];
@@ -43,7 +44,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private bool _isLoading;
 
     [ObservableProperty]
-    private string _statusMessage = "请选择会场查看快照";
+    private string _statusMessage = Resources.Snapshot_VenueHint;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBatchMode))]
@@ -133,7 +134,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                     items.Add(new VenueItem(id , layout.Name));
             }
             Venues = items;
-            StatusMessage = $"已加载 {items.Count} 个会场";
+            StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, items.Count);
 
             // 重新选中之前的会场
             if (previousVenueId != null)
@@ -147,7 +148,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private async Task CreateSnapshotAsync ()
     {
         var (confirmed , description) = await Dialog.ShowInputAsync(
-            "创建快照" , "请输入快照描述：" , $"手动快照 - {DateTime.Now:yyyy-MM-dd HH:mm}");
+            Resources.Snapshot_CreateTitle , Resources.Snapshot_CreatePrompt , string.Format(Resources.Snapshot_ManualSnapshotFmt, DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed || string.IsNullOrWhiteSpace(description)) return;
 
         await SafeExecuteAsync(async () =>
@@ -155,13 +156,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             var snapshot = await _facade.CreateSnapshotAsync(description);
             if (snapshot == null)
             {
-                await Dialog.ShowWarningAsync("创建快照失败" , "当前没有活动的工作区，请先生成座位安排。");
+                await Dialog.ShowWarningAsync(Resources.Snapshot_CreateFailed , Resources.Snapshot_NoWorkspace);
                 return;
             }
             if (SelectedVenue != null)
                 await LoadSnapshotsAsync();
-            StatusMessage = "快照已创建";
-        } , "创建快照失败");
+            StatusMessage = Resources.Snapshot_Created;
+        } , Resources.Snapshot_CreateFailed);
     }
 
     partial void OnSelectedVenueChanged (VenueItem? value)
@@ -200,7 +201,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             if (layout == null || layout.Seats.Count == 0)
             {
                 IsVenueDeleted = true;
-                VenueWarningText = "会场已删除，无法预览";
+                VenueWarningText = Resources.Snapshot_VenueDeletedPreview;
                 PreviewSeats = seats;
                 PreviewOverlays = overlays;
                 return;
@@ -214,7 +215,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 if (curHash != null && curHash != sh)
                 {
                     IsVenueChanged = true;
-                    VenueWarningText = "会场布局已更改，回滚可能失败";
+                    VenueWarningText = Resources.Snapshot_VenueChangedWarning;
                 }
             }
 
@@ -237,7 +238,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             {
                 IsDataChanged = true;
                 VenueWarningText = string.IsNullOrEmpty(VenueWarningText)
-                    ? "数据已更改" : VenueWarningText;
+                    ? Resources.Snapshot_DataChangedText : VenueWarningText;
             }
 
             var metadata = layout.Metadata!;
@@ -337,7 +338,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private static string BuildSeatLabel (Seat seat) => seat switch
     {
         GridSeat g => $"R{g.Row}C{g.Column}" ,
-        PolarSeat p => $"环{p.Ring}" ,
+        PolarSeat p => string.Format(Resources.Snapshot_PolarLabelFmt, p.Ring) ,
         FreeformSeat => $"#{seat.Id[..Math.Min(4 , seat.Id.Length)]}" ,
         _ => seat.Id
     };
@@ -353,8 +354,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             Snapshots = new ObservableCollection<SeatingSnapshot>(list);
             SelectedSnapshot = Snapshots.FirstOrDefault();
             StatusMessage = Snapshots.Count > 0
-                ? $"会场「{SelectedVenue.Name}」共 {Snapshots.Count} 个快照"
-                : $"会场「{SelectedVenue.Name}」暂无快照";
+                ? string.Format(Resources.Snapshot_VenueHintFmt, SelectedVenue.Name, Snapshots.Count)
+                : string.Format(Resources.Snapshot_VenueEmptyFmt, SelectedVenue.Name);
         });
         IsLoading = false;
     }
@@ -363,16 +364,16 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     private async Task RollbackAsync ()
     {
         if (SelectedSnapshot == null) return;
-        var confirmed = await Dialog.ShowConfirmAsync("确认回滚" ,
-            $"确定要回滚到 {SelectedSnapshot.CreatedAt:yyyy-MM-dd HH:mm} 的快照？\n当前座位安排将被覆盖。");
+        var confirmed = await Dialog.ShowConfirmAsync(Resources.Snapshot_RollbackTitle ,
+            string.Format(Resources.Snapshot_RollbackMsgFmt, SelectedSnapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
         {
             await _facade.RollbackToSnapshotAsync(SelectedSnapshot.Id);
-            StatusMessage = $"已回滚到 {SelectedSnapshot.CreatedAt:yyyy-MM-dd HH:mm}";
+            StatusMessage = string.Format(Resources.Snapshot_RollbackDoneFmt, SelectedSnapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
             await _navigation.NavigateToAsync(PageKey.SeatingArrangement);
-        } , "回滚失败");
+        } , Resources.Snapshot_RollbackFailed);
     }
 
     [RelayCommand]
@@ -380,8 +381,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     {
         if (SelectedSnapshot == null) return;
         var snapshot = SelectedSnapshot;
-        var confirmed = await Dialog.ShowConfirmAsync("确认删除" ,
-            $"确定要删除 {snapshot.CreatedAt:yyyy-MM-dd HH:mm} 的快照？");
+        var confirmed = await Dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm ,
+            string.Format(Resources.Snapshot_DeleteMsgFmt, snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
@@ -389,8 +390,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             await _facade.DeleteSnapshotAsync(snapshot.Id);
             Snapshots.Remove(snapshot);
             SelectedSnapshot = Snapshots.FirstOrDefault();
-            StatusMessage = $"已删除，剩余 {Snapshots.Count} 个快照";
-        } , "删除快照失败");
+            StatusMessage = string.Format(Resources.Snapshot_DeletedFmt, Snapshots.Count);
+        } , Resources.Snapshot_DeleteFailed);
     }
 
     // ── 批量删除 ──
@@ -419,12 +420,12 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         var selected = CheckableItems.Where(c => c.IsSelected).Select(c => c.Snapshot).ToList();
         if (selected.Count == 0)
         {
-            await Dialog.ShowWarningAsync("批量删除" , "未选中任何快照。");
+            await Dialog.ShowWarningAsync(Resources.Snapshot_BatchDeleteTitle , Resources.Snapshot_NoSelection);
             return;
         }
 
-        var confirmed = await Dialog.ShowConfirmAsync("批量删除" ,
-            $"确定要删除选中的 {selected.Count} 个快照吗？\n此操作不可撤销。");
+        var confirmed = await Dialog.ShowConfirmAsync(Resources.Snapshot_BatchDeleteTitle ,
+            string.Format(Resources.Snapshot_BatchDeleteMsgFmt, selected.Count));
         if (!confirmed) return;
 
         await SafeExecuteAsync(async () =>
@@ -436,9 +437,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             }
             ExitBatchDeleteMode();
             SelectedSnapshot = Snapshots.FirstOrDefault();
-            StatusMessage = $"已删除 {selected.Count} 个快照，剩余 {Snapshots.Count} 个";
+            StatusMessage = string.Format(Resources.Snapshot_BatchDeletedFmt, selected.Count, Snapshots.Count);
             OnPropertyChanged(nameof(CanEnterBatchDelete));
-        } , "批量删除快照失败");
+        } , Resources.Snapshot_BatchDeleteFailed);
     }
 
     partial void OnIsAllSelectedChanged (bool value)

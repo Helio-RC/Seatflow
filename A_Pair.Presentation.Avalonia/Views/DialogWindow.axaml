@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+        xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
         x:Class="A_Pair.Presentation.Avalonia.Views.DialogWindow"
         Width="420" SizeToContent="Height" MinHeight="160"
         CanResize="False" ShowInTaskbar="False"
@@ -25,11 +26,11 @@
                 HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
                 x:Name="ButtonPanel">
       <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True" HorizontalContentAlignment="Center"
-              x:CompileBindings="False">确定</Button>
+              x:CompileBindings="False">{x:Static lang:Resources.Common_OK}</Button>
       <Button x:Name="ThirdButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" x:CompileBindings="False">选项2</Button>
+              IsVisible="False" x:CompileBindings="False">{x:Static lang:Resources.Common_OK}</Button>
       <Button x:Name="CancelButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" x:CompileBindings="False">取消</Button>
+              IsVisible="False" x:CompileBindings="False">{x:Static lang:Resources.Common_Cancel}</Button>
     </StackPanel>
 
     <DockPanel>

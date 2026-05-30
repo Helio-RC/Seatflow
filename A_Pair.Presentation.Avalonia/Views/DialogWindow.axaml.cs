@@ -1,3 +1,4 @@
+using A_Pair.Presentation.Avalonia.Lang;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -61,14 +62,14 @@ internal partial class DialogWindow : Window
 
         if (Kind == DialogKind.Confirm)
         {
-            OkButton.Content = "确定";
+            OkButton.Content = Lang.Resources.Common_OK;
             CancelButton.IsVisible = true;
         }
         else if (Kind == DialogKind.MultiOption)
         {
-            OkButton.Content = Button1Text ?? "选项1";
-            ThirdButton.Content = Button2Text ?? "选项2";
-            CancelButton.Content = Button3Text ?? "取消";
+            OkButton.Content = Button1Text ?? Lang.Resources.Common_OK;
+            ThirdButton.Content = Button2Text ?? Lang.Resources.Common_OK;
+            CancelButton.Content = Button3Text ?? Lang.Resources.Common_Cancel;
             ThirdButton.IsVisible = true;
             CancelButton.IsVisible = true;
         }

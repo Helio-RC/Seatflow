@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:models="using:A_Pair.Core.Models"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
@@ -24,7 +25,7 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="数据管理" Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Data_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
 
         <!-- === 右侧操作按钮 === -->
@@ -49,21 +50,21 @@
               </Transitions>
             </StackPanel.Transitions>
             <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="导出模板" >
+                    AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}" >
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-                <TextBlock Text="获取模板" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Data_GetTemplate}" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="导入数据">
+                    AutomationProperties.Name="{x:Static lang:Resources.Data_ImportData}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-                <TextBlock Text="从文件导入" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Data_ImportFromFile}" FontSize="14" />
               </StackPanel>
             </Button>
             <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="保存数据集">
+                    AutomationProperties.Name="{x:Static lang:Resources.Data_SaveDataset}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
                 <TextBlock Text="保存" FontSize="14" />
@@ -76,10 +77,10 @@
               </StackPanel>
             </Button>
             <Button Command="{Binding ClearDataCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
-                    AutomationProperties.Name="卸载已加载数据">
+                    AutomationProperties.Name="{x:Static lang:Resources.Data_UnloadData}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="16" />
-                <TextBlock Text="卸载已加载数据" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Data_UnloadData}" FontSize="14" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -96,7 +97,7 @@
             </Button.Transitions>
             <StackPanel Orientation="Horizontal" Spacing="4">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.MoreHorizontal}" FontSize="16" />
-              <TextBlock Text="操作" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Data_Operations}" FontSize="14" />
             </StackPanel>
             <Button.Flyout>
               <Flyout>
@@ -111,14 +112,14 @@
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                      <TextBlock Text="获取模板" FontSize="14" />
+                      <TextBlock Text="{x:Static lang:Resources.Data_GetTemplate}" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
-                      <TextBlock Text="从文件导入" FontSize="14" />
+                      <TextBlock Text="{x:Static lang:Resources.Data_ImportFromFile}" FontSize="14" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
@@ -139,7 +140,7 @@
                           HorizontalContentAlignment="Left"  HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="14" />
-                      <TextBlock Text="卸载已加载数据" FontSize="14" />
+                      <TextBlock Text="{x:Static lang:Resources.Data_UnloadData}" FontSize="14" />
                     </StackPanel>
                   </Button>
                 </StackPanel>
@@ -167,7 +168,7 @@
                 <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
               </Transitions>
             </StackPanel.Transitions>
-            <TextBlock Text="导出:" FontSize="12" VerticalAlignment="Center"
+            <TextBlock Text="{x:Static lang:Resources.Data_ExportLabel}" FontSize="12" VerticalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
             <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
                     Padding="8,4" FontSize="12">CSV</Button>
@@ -188,7 +189,7 @@
             </Button.Transitions>
             <StackPanel Orientation="Horizontal" Spacing="4">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
-              <TextBlock Text="导出" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Data_Export}" FontSize="14" />
             </StackPanel>
             <Button.Flyout>
               <Flyout>
@@ -201,15 +202,15 @@
                   </StackPanel.Transitions>
                   <Button Command="{Binding ExportCsvCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="导出 CSV" FontSize="14" />
+                    <TextBlock Text="{x:Static lang:Resources.Data_ExportCSV}" FontSize="14" />
                   </Button>
                   <Button Command="{Binding ExportExcelCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="导出 Excel" FontSize="14" />
+                    <TextBlock Text="{x:Static lang:Resources.Data_ExportExcel}" FontSize="14" />
                   </Button>
                   <Button Command="{Binding ExportJsonCommand}" IsEnabled="{Binding HasData}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
-                    <TextBlock Text="导出 JSON" FontSize="14" />
+                    <TextBlock Text="{x:Static lang:Resources.Data_ExportJSON}" FontSize="14" />
                   </Button>
                 </StackPanel>
               </Flyout>
@@ -253,7 +254,7 @@
           </Transitions>
         </Border.Transitions>
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="已保存数据集"
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Data_SavedDatasets}"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
           <Border DockPanel.Dock="Bottom">
@@ -300,7 +301,7 @@
                   <StackPanel Orientation="Horizontal" Spacing="6"
                               HorizontalAlignment="Center">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20"/>
-                    <TextBlock Text="收起侧栏" FontSize="13" />
+                    <TextBlock Text="{x:Static lang:Resources.Nav_CollapseSidebar}" FontSize="13" />
                   </StackPanel>
                 </Button>
               </StackPanel>
@@ -335,7 +336,7 @@
 
                 <Button Command="{Binding ToggleSidebarCommand}"
                         HorizontalContentAlignment="Stretch"
-                        ToolTip.Tip="展开侧栏">
+                        ToolTip.Tip="{x:Static lang:Resources.Nav_ExpandSidebar}">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20"/>
                 </Button>
               </StackPanel>
@@ -387,10 +388,10 @@
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="48"
                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                             HorizontalAlignment="Center" />
-            <TextBlock Text="暂无数据" Classes="sectionTitle"
+            <TextBlock Text="{x:Static lang:Resources.Common_NoData}" Classes="sectionTitle"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="点击「导入」或从左侧加载已保存的数据集"
+            <TextBlock Text="{x:Static lang:Resources.Data_EmptyHint}"
                        FontSize="12" HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
           </StackPanel>
@@ -401,10 +402,10 @@
           <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                   Padding="12,8" CornerRadius="4,4,0,0">
             <Grid ColumnDefinitions="2*,*,*,*">
-              <TextBlock Grid.Column="0" Text="姓名" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="1" Text="身高 (cm)" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="2" Text="性别" FontSize="14" FontWeight="SemiBold" />
-              <TextBlock Grid.Column="3" Text="需要前排" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="0" Text="{x:Static lang:Resources.Data_Name}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="1" Text="{x:Static lang:Resources.Data_Height}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="2" Text="{x:Static lang:Resources.Data_Gender}" FontSize="14" FontWeight="SemiBold" />
+              <TextBlock Grid.Column="3" Text="{x:Static lang:Resources.Data_FrontRow}" FontSize="14" FontWeight="SemiBold" />
             </Grid>
           </Border>
 
@@ -419,28 +420,28 @@
                                FontSize="14" VerticalAlignment="Center"
                                BorderThickness="0" Background="Transparent"
                                Padding="4,2"
-                               PlaceholderText="必填，姓名"
-                               ToolTip.Tip="必填。学生姓名，不能为空。" />
+                               PlaceholderText="{x:Static lang:Resources.Data_NamePlaceholder}"
+                               ToolTip.Tip="{x:Static lang:Resources.Data_NameTooltip}" />
                       <TextBox Grid.Column="1" Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
                                FontSize="14" VerticalAlignment="Center"
                                BorderThickness="0" Background="Transparent"
                                Padding="4,2"
                                PlaceholderText="身高 cm"
-                               ToolTip.Tip="身高（厘米），如 170.5。留空表示未知。" />
+                               ToolTip.Tip="{x:Static lang:Resources.Data_HeightTooltip}" />
                       <ComboBox Grid.Column="2" SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
                                 FontSize="14" VerticalAlignment="Center"
                                 BorderThickness="0" Background="Transparent"
                                 Padding="0,2"
-                                ToolTip.Tip="性别：男、女 或 其他。留空表示未知。">
+                                ToolTip.Tip="{x:Static lang:Resources.Data_GenderTooltip}">
                         <ComboBoxItem Content=""/>
-                        <ComboBoxItem Content="男"/>
-                        <ComboBoxItem Content="女"/>
-                        <ComboBoxItem Content="其他"/>
+                        <ComboBoxItem Content="{x:Static lang:Resources.Gender_Male}"/>
+                        <ComboBoxItem Content="{x:Static lang:Resources.Gender_Female}"/>
+                        <ComboBoxItem Content="{x:Static lang:Resources.Gender_Other}"/>
                       </ComboBox>
                       <CheckBox Grid.Column="3" IsChecked="{Binding NeedsFrontRow, Mode=TwoWay}"
                                 FontSize="14" VerticalAlignment="Center"
                                 HorizontalAlignment="Center"
-                                ToolTip.Tip="需要前排座位（如视力不佳等特殊应用）" />
+                                ToolTip.Tip="{x:Static lang:Resources.Data_FrontRowTooltip}" />
                     </Grid>
                   </Border>
                 </DataTemplate>
@@ -454,7 +455,7 @@
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
             <ProgressBar IsIndeterminate="True" Width="200" />
-            <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
+            <TextBlock Text="{x:Static lang:Resources.Common_Processing}" FontSize="14" HorizontalAlignment="Center" />
           </StackPanel>
         </Border>
       </Grid>

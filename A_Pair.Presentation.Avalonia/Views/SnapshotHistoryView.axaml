@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:core="using:A_Pair.Core.Models"
              xmlns:fic="using:FluentIcons.Avalonia"
@@ -11,7 +12,7 @@
     <!-- 顶部标题栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="历史快照  " Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Snapshot_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
         <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
@@ -19,7 +20,7 @@
           <ComboBox ItemsSource="{Binding Venues}"
                     SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
                     Width="200" FontSize="13"
-                    PlaceholderText="选择会场...">
+                    PlaceholderText="{x:Static lang:Resources.Snapshot_SelectVenue}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
                 <TextBlock Text="{Binding Name}" FontSize="13"/>
@@ -30,17 +31,17 @@
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14"/>
-              <TextBlock Text="刷新" FontSize="13"/>
+              <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" FontSize="13"/>
             </StackPanel>
           </Button>
           <Button Command="{Binding CreateSnapshotCommand}"
                   IsEnabled="{Binding CanCreateSnapshot}"
                   HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="创建快照"
+                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_Create}"
                   IsVisible="{Binding IsNotBatchMode}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14"/>
-              <TextBlock Text="创建快照" FontSize="13"/>
+              <TextBlock Text="{x:Static lang:Resources.Snapshot_Create}" FontSize="13"/>
             </StackPanel>
           </Button>
           <!-- 批量删除按钮（非批量模式） -->
@@ -48,28 +49,28 @@
                   IsEnabled="{Binding CanEnterBatchDelete}"
                   IsVisible="{Binding IsNotBatchMode}"
                   HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="批量删除">
+                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-              <TextBlock Text="批量删除" FontSize="13"/>
+              <TextBlock Text="{x:Static lang:Resources.Snapshot_BatchDelete}" FontSize="13"/>
             </StackPanel>
           </Button>
           <!-- 批量删除确认按钮（批量模式） -->
           <Button Command="{Binding ConfirmBatchDeleteCommand}"
                   IsVisible="{Binding IsBatchDeleteMode}"
                   HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="确认删除">
+                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_ConfirmDelete}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"
                               Foreground="{DynamicResource ErrorBrush}"/>
-              <TextBlock Text="确认删除" FontSize="13"
+              <TextBlock Text="{x:Static lang:Resources.Snapshot_ConfirmDelete}" FontSize="13"
                          Foreground="{DynamicResource ErrorBrush}"/>
             </StackPanel>
           </Button>
           <Button Command="{Binding ExitBatchDeleteModeCommand}"
                   IsVisible="{Binding IsBatchDeleteMode}"
                   HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="取消批量删除">
+                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <TextBlock Text="取消" FontSize="13"/>
             </StackPanel>
@@ -94,7 +95,7 @@
       <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
               Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="快照列表"
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Snapshot_List}"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
           <!-- 加载遮罩 -->
@@ -104,7 +105,7 @@
                   ZIndex="10">
             <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
               <ProgressBar IsIndeterminate="True" Width="160" Height="4" />
-              <TextBlock Text="正在加载..." FontSize="12"
+              <TextBlock Text="{x:Static lang:Resources.Common_Loading}" FontSize="12"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                          HorizontalAlignment="Center" />
             </StackPanel>
@@ -194,7 +195,7 @@
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="48"
                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                             HorizontalAlignment="Center" />
-            <TextBlock Text="选择左侧快照查看详情"
+            <TextBlock Text="{x:Static lang:Resources.Snapshot_SelectHint}"
                        FontSize="14" HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
           </StackPanel>
@@ -208,19 +209,19 @@
                         HorizontalAlignment="Right" Margin="0,12,0,0">
               <Button Command="{Binding DeleteSnapshotCommand}"
                       HorizontalContentAlignment="Center"
-                      AutomationProperties.Name="删除快照">
+                      AutomationProperties.Name="{x:Static lang:Resources.Snapshot_DeleteHint}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-                  <TextBlock Text="删除" FontSize="13"/>
+                  <TextBlock Text="{x:Static lang:Resources.Common_Delete}" FontSize="13"/>
                 </StackPanel>
               </Button>
               <Button Command="{Binding RollbackCommand}" Classes="accent"
                       HorizontalContentAlignment="Center"
                       IsEnabled="{Binding !HasRollbackDisabled}"
-                      AutomationProperties.Name="回滚到此快照">
+                      AutomationProperties.Name="{x:Static lang:Resources.Snapshot_RollbackHint}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14"/>
-                  <TextBlock Text="回滚到此状态" FontSize="13"/>
+                  <TextBlock Text="{x:Static lang:Resources.Snapshot_Rollback}" FontSize="13"/>
                 </StackPanel>
               </Button>
             </StackPanel>
@@ -232,31 +233,31 @@
                   <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="core:SeatingSnapshot">
                       <StackPanel Spacing="10">
-                        <TextBlock Text="快照详情" FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Text="{x:Static lang:Resources.Snapshot_Detail}" FontSize="16" FontWeight="SemiBold"/>
                         <StackPanel Spacing="4">
-                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="快照ID"/>
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="{x:Static lang:Resources.Snapshot_Id}"/>
                           <TextBlock Text="{Binding Id}"
                                      FontSize="11" TextWrapping="Wrap"
                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="创建时间"/>
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="{x:Static lang:Resources.Snapshot_CreatedAt}"/>
                           <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
                                      FontSize="12"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="描述"/>
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="{x:Static lang:Resources.Snapshot_Description}"/>
                           <TextBlock Text="{Binding Description}"
                                      FontSize="12" TextWrapping="Wrap"
                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="座位数"/>
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="{x:Static lang:Resources.Snapshot_SeatCount}"/>
                           <TextBlock Text="{Binding SeatAssignments.Count}"
                                      FontSize="12"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="关联会场"/>
+                          <TextBlock FontSize="13" FontWeight="SemiBold" Text="{x:Static lang:Resources.Snapshot_LinkedVenue}"/>
                           <TextBlock Text="{Binding LayoutId}"
                                      FontSize="11" TextWrapping="Wrap"
                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
@@ -270,9 +271,9 @@
                 <Border IsVisible="{Binding IsVenueDeleted}" Padding="10" CornerRadius="4"
                         Background="#20E81123">
                   <StackPanel Spacing="4">
-                    <TextBlock Text="会场已删除，无法预览" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Text="{x:Static lang:Resources.Snapshot_VenueDeletedPreview}" FontSize="13" FontWeight="SemiBold"
                                Foreground="{DynamicResource ErrorBrush}"/>
-                    <TextBlock Text="该快照关联的会场文件已被删除，无法加载座位布局。" FontSize="11"
+                    <TextBlock Text="{x:Static lang:Resources.Snapshot_VenueDeletedMsg}" FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                TextWrapping="Wrap"/>
                   </StackPanel>
@@ -282,7 +283,7 @@
                   <StackPanel Spacing="4">
                     <TextBlock Text="{Binding VenueWarningText}" FontSize="13" FontWeight="SemiBold"
                                Foreground="#F9A825"/>
-                    <TextBlock Text="当前会场布局与生成快照时不一致，回滚可能无法正确恢复座位。" FontSize="11"
+                    <TextBlock Text="{x:Static lang:Resources.Snapshot_VenueChanged}" FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                TextWrapping="Wrap"/>
                   </StackPanel>
@@ -292,7 +293,7 @@
                   <StackPanel Spacing="4">
                     <TextBlock Text="数据已更改" FontSize="13" FontWeight="SemiBold"
                                Foreground="#F9A825"/>
-                    <TextBlock Text="部分学生已从数据集中删除，受影响的座位以黄色标记。" FontSize="11"
+                    <TextBlock Text="{x:Static lang:Resources.Snapshot_DataChangedMsg}" FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                TextWrapping="Wrap"/>
                   </StackPanel>
@@ -302,7 +303,7 @@
                 <Border IsVisible="{Binding HasPreview}" Padding="8" CornerRadius="4"
                         Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
                   <StackPanel Spacing="8">
-                    <TextBlock Text="会场预览" FontSize="13" FontWeight="SemiBold"/>
+                    <TextBlock Text="{x:Static lang:Resources.Snapshot_Preview}" FontSize="13" FontWeight="SemiBold"/>
                     <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Auto">
                       <ItemsControl ItemsSource="{Binding PreviewSeats}">
                         <ItemsControl.ItemsPanel>
