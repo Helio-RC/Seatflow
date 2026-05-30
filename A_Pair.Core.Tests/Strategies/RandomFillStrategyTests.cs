@@ -65,4 +65,63 @@ public class RandomFillStrategyTests
         var result = strategy.ValidateConfiguration();
         result.IsValid.Should().BeTrue();
     }
+
+    [Fact]
+    public void Constructor_NullRandom_ShouldThrowArgumentNullException ()
+    {
+        var act = () => new RandomFillStrategy(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_NullWorkspace_ShouldThrowArgumentNullException ()
+    {
+        var strategy = new RandomFillStrategy();
+        var act = async () => await strategy.ExecuteAsync(null! , CancellationToken.None);
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_EmptyStudents_ShouldNotAssign ()
+    {
+        var seats = CreateGridSeats(2 , 3);
+        var ws = new SeatingWorkspace(Array.Empty<Student>() , seats);
+
+        var strategy = new RandomFillStrategy();
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        ws.BuildSeatingPlan().Assignments.Should().BeEmpty();
+        ws.GetEmptySeats().Should().HaveCount(6);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_EmptySeats_ShouldNotAssign ()
+    {
+        var students = CreateStudents(3);
+        var ws = new SeatingWorkspace(students , Array.Empty<Seat>());
+
+        var strategy = new RandomFillStrategy();
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        ws.BuildSeatingPlan().Assignments.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_PartiallyAssigned_ShouldOnlyFillRemaining ()
+    {
+        var students = CreateStudents(5);
+        var seats = CreateGridSeats(2 , 3); // 6 seats
+        var ws = new SeatingWorkspace(students , seats);
+
+        // Pre-assign 2 students
+        ws.TryAssignSeat(seats[0].Id , students[0].Id , out _);
+        ws.TryAssignSeat(seats[1].Id , students[1].Id , out _);
+
+        var strategy = new RandomFillStrategy();
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        // 2 pre-assigned + 3 remaining students = 5 total assigned
+        ws.BuildSeatingPlan().Assignments.Should().HaveCount(5);
+        ws.GetEmptySeats().Should().HaveCount(1);
+    }
 }

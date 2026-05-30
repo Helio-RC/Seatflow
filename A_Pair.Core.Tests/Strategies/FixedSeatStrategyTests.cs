@@ -55,4 +55,77 @@ public class FixedSeatStrategyTests
         var result = strategy.ValidateConfiguration();
         result.IsValid.Should().BeFalse();
     }
+
+    [Fact]
+    public void Constructor_NullConfig_ShouldThrowArgumentNullException ()
+    {
+        var act = () => new FixedSeatStrategy(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_NullWorkspace_ShouldThrowArgumentNullException ()
+    {
+        var strategy = new FixedSeatStrategy();
+        var act = async () => await strategy.ExecuteAsync(null! , CancellationToken.None);
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_SeatNotFound_ShouldSkipWithWarning ()
+    {
+        var config = new FixedSeatConfiguration
+        {
+            FixedAssignments = new Dictionary<string , string> { { "nonexistent" , "s1" } }
+        };
+        var students = new[] { new Student { Id = "s1" } };
+        var seats = new[] { new GridSeat { Id = "seat1" } };
+        var ws = new SeatingWorkspace(students , seats);
+
+        var strategy = new FixedSeatStrategy(config);
+        var result = await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        // Nonexistent seat skipped — no assignments made
+        ws.BuildSeatingPlan().Assignments.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_OccupiedNonFixedSeat_ShouldClearAndReassign ()
+    {
+        var config = new FixedSeatConfiguration
+        {
+            FixedAssignments = new Dictionary<string , string> { { "seat1" , "s2" } }
+        };
+        var students = new[] { new Student { Id = "s1" } , new Student { Id = "s2" } };
+        var seats = new[] { new GridSeat { Id = "seat1" } };
+        var ws = new SeatingWorkspace(students , seats);
+
+        // s1 already occupies seat1 (non-fixed)
+        ws.TryAssignSeat("seat1" , "s1" , out _);
+
+        var strategy = new FixedSeatStrategy(config);
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        seats[0].OccupantId.Should().Be("s2");
+        seats[0].IsFixed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_EmptyStudentId_ShouldOnlyMarkFixed ()
+    {
+        var config = new FixedSeatConfiguration
+        {
+            FixedAssignments = new Dictionary<string , string> { { "seat1" , "" } }
+        };
+        var students = new[] { new Student { Id = "s1" } };
+        var seats = new[] { new GridSeat { Id = "seat1" } };
+        var ws = new SeatingWorkspace(students , seats);
+
+        var strategy = new FixedSeatStrategy(config);
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        seats[0].IsFixed.Should().BeTrue();
+        seats[0].OccupantId.Should().BeNull();
+    }
 }
