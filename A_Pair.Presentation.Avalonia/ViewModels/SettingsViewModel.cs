@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
@@ -34,7 +35,27 @@ public partial class SettingsViewModel : ViewModelBase
     public List<string> ThemeOptions { get; } = [Resources.Theme_System, Resources.Theme_Light, Resources.Theme_Dark];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedLanguage))]
     private string _language = string.Empty;
+
+    public List<LanguageOption> LanguageOptions { get; } =
+    [
+        new("", () => Resources.Lang_System) ,
+        new("zh-CN", () => Resources.Lang_zhCN) ,
+        new("en-US", () => Resources.Lang_enUS) ,
+    ];
+
+    private LanguageOption? _selectedLanguage;
+
+    public LanguageOption? SelectedLanguage
+    {
+        get => _selectedLanguage ?? LanguageOptions.Find(static o => o.Code == "");
+        set
+        {
+            if (SetProperty(ref _selectedLanguage, value))
+                Language = value?.Code ?? "";
+        }
+    }
 
     [ObservableProperty]
     private string _dataDirectory = string.Empty;
@@ -75,6 +96,9 @@ public partial class SettingsViewModel : ViewModelBase
 
             Language = settings.Language;
             _originalLanguage = settings.Language;
+            _selectedLanguage = LanguageOptions.FirstOrDefault(o => o.Code == Language);
+            OnPropertyChanged(nameof(SelectedLanguage));
+
             DataDirectory = settings.DataDirectory;
 
             ConfirmBeforeClear = settings.ConfirmBeforeClear;
@@ -86,6 +110,16 @@ public partial class SettingsViewModel : ViewModelBase
         catch
         {
             StatusMessage = Resources.Settings_LoadFailed;
+        }
+    }
+
+    partial void OnLanguageChanged (string value)
+    {
+        var option = LanguageOptions.FirstOrDefault(o => o.Code == value);
+        if (option != null && !ReferenceEquals(option , _selectedLanguage))
+        {
+            _selectedLanguage = option;
+            OnPropertyChanged(nameof(SelectedLanguage));
         }
     }
 
@@ -173,7 +207,7 @@ public partial class SettingsViewModel : ViewModelBase
         if (!confirmed) return;
 
         ThemeIndex = 0;
-        Language = string.Empty;
+        Language = "";
         DataDirectory = string.Empty;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
@@ -226,4 +260,23 @@ public partial class SettingsViewModel : ViewModelBase
             _ = _dialog.ShowErrorAsync(Resources.Settings_OpenDirFailed , ex.Message);
         }
     }
+}
+
+public sealed record LanguageOption
+{
+    private readonly Func<string> _displayNameProvider;
+
+    public string Code { get; }
+    public string DisplayName => _displayNameProvider();
+
+    public LanguageOption (string code , Func<string> displayNameProvider)
+    {
+        Code = code;
+        _displayNameProvider = displayNameProvider;
+    }
+
+    public override string ToString () => DisplayName;
+
+    public bool Equals (LanguageOption? other) => other is not null && Code == other.Code;
+    public override int GetHashCode () => Code.GetHashCode();
 }

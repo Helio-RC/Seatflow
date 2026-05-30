@@ -46,6 +46,17 @@
     <value>正在加载...</value>
   </data>
 
+  <!-- ═══ Language Options ═══ -->
+  <data name="Lang_System" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="Lang_zhCN" xml:space="preserve">
+    <value>中文 (简体)</value>
+  </data>
+  <data name="Lang_enUS" xml:space="preserve">
+    <value>English</value>
+  </data>
+
   <!-- ═══ Navigation ═══ -->
   <data name="Nav_Home" xml:space="preserve">
     <value>首页</value>

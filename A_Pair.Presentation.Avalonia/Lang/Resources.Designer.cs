@@ -35,6 +35,9 @@ public class Resources
     public static string Common_DontRemind => ResourceManager.GetString("Common_DontRemind", Culture)!;
     public static string Common_Later => ResourceManager.GetString("Common_Later", Culture)!;
     public static string Common_Cancel => ResourceManager.GetString("Common_Cancel", Culture)!;
+    public static string Lang_System => ResourceManager.GetString("Lang_System", Culture)!;
+    public static string Lang_zhCN => ResourceManager.GetString("Lang_zhCN", Culture)!;
+    public static string Lang_enUS => ResourceManager.GetString("Lang_enUS", Culture)!;
     public static string Common_Loading => ResourceManager.GetString("Common_Loading", Culture)!;
 
     public static string Nav_Home => ResourceManager.GetString("Nav_Home", Culture)!;

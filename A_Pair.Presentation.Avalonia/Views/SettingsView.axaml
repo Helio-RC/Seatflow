@@ -114,11 +114,16 @@
           <DockPanel>
             <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_LanguageLabel}"
                        Classes="body" VerticalAlignment="Center" />
-            <TextBox Text="{Binding Language, Mode=TwoWay}"
-                     AutomationProperties.Name="{x:Static lang:Resources.Settings_LanguageLabel}"
-                     PlaceholderText="{x:Static lang:Resources.Settings_LanguagePlaceholder}"
-                     MinWidth="200" HorizontalAlignment="Right" FontSize="14"
-                     ToolTip.Tip="{x:Static lang:Resources.Settings_LanguageTooltip}" />
+            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                      SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_LanguageLabel}"
+                      MinWidth="180" HorizontalAlignment="Right" FontSize="14">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:LanguageOption">
+                  <TextBlock Text="{Binding DisplayName}" FontSize="14" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
           </DockPanel>
         </Border>
 
