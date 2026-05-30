@@ -18,6 +18,11 @@ public partial class PluginManagementViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly ILogger<PluginManagementViewModel> _logger;
 
+    
+    public string PluginCountDisplay => string.Format(Resources.Plugin_FoundFmt, Plugins.Count);
+    public string SelectedPluginVersionDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_VersionFmt, SelectedPlugin.Version) : "";
+    public string SelectedPluginAuthorDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_AuthorFmt, SelectedPlugin.Author) : "";
+
     public PluginManagementViewModel (IApplicationFacade facade , ILogger<PluginManagementViewModel>? logger = null)
     {
         _facade = facade;

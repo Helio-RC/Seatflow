@@ -60,6 +60,9 @@ public partial class FreeformManagementViewModel : ViewModelBase
     public static string GetGroupColor (int? groupId)
         => groupId is >= 0 and < 8 ? GroupColors[groupId.Value] : "#4A90D9";
 
+    
+    public string ElementCountDisplay => string.Format(Resources.Freeform_ElementCountFmt, Points.Count);
+
     public FreeformManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<FreeformManagementViewModel>? logger = null)
     {
         _facade = facade;
@@ -456,6 +459,14 @@ public class FreeformPoint
     public double Height { get; set; }
     public int DisplayIndex { get; set; }
     public string GroupColor { get; set; } = "#4A90D9";
+
+    public string TooltipDisplay => ElementType switch
+    {
+        0 => string.Format(Resources.Freeform_SeatFmt, DisplayIndex),
+        1 => string.Format(Resources.Freeform_PodiumFmt, DisplayIndex),
+        2 => string.Format(Resources.Freeform_DoorFmt, DisplayIndex),
+        _ => $"#{DisplayIndex}"
+    };
 
     public FreeformPoint () { }
 

@@ -515,7 +515,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                     Y = obs.Y - (h / 2) ,
                     Width = w ,
                     Height = h ,
-                    Label = obs.Type ?? "障碍物" ,
+                    Label = obs.Type ?? Resources.Seating_Obstacle ,
                     ElementType = elementType ,
                     CornerRadius = elementType == PreviewElementType.Podium ? new(w / 2) : new(4) ,
                     IsCircle = elementType == PreviewElementType.Podium ,

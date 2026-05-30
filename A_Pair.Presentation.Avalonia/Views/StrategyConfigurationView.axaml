@@ -140,11 +140,8 @@
                                  TextTrimming="CharacterEllipsis" FontSize="13" />
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <TextBlock FontSize="11"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-                          <TextBlock.Text>
-                            <Binding Path="Priority" StringFormat="优先级: {0}" />
-                          </TextBlock.Text>
-                        </TextBlock>
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Text="{Binding PriorityDisplay}" />
                         <Border CornerRadius="2" Padding="4,1"
                                 Background="{DynamicResource SystemControlAccentBrush}"
                                 IsVisible="{Binding IsBuiltIn, Converter={x:Static conv:BoolConverters.Negate}}">
@@ -166,7 +163,7 @@
                                TextTrimming="CharacterEllipsis" FontSize="13"
                                HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                              ToolTip.Tip="{Binding DisplayName, StringFormat='启用 {0}'}"
+                              ToolTip.Tip="{Binding EnableTooltipDisplay}"
                               HorizontalAlignment="Right" VerticalAlignment="Center" />
                   </StackPanel>
                 </Grid>
@@ -212,7 +209,7 @@
                 <Border DockPanel.Dock="Right" CornerRadius="4" Padding="8,3"
                         Background="{DynamicResource SystemControlAccentBrush}"
                         VerticalAlignment="Center">
-                  <TextBlock Text="{Binding SelectedDetail.Source, StringFormat='来源: {0}'}"
+                  <TextBlock Text="{Binding DetailSourceDisplay}"
                              FontSize="11" Foreground="White" />
                 </Border>
               </DockPanel>
@@ -220,21 +217,9 @@
                          Classes="body" TextWrapping="Wrap"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
               <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Classes="caption">
-                  <TextBlock.Text>
-                    <Binding Path="SelectedDetail.Author" StringFormat="作者: {0}" />
-                  </TextBlock.Text>
-                </TextBlock>
-                <TextBlock Classes="caption">
-                  <TextBlock.Text>
-                    <Binding Path="SelectedDetail.Category" StringFormat="分类: {0}" />
-                  </TextBlock.Text>
-                </TextBlock>
-                <TextBlock Classes="caption">
-                  <TextBlock.Text>
-                    <Binding Path="SelectedDetail.DefaultPriority" StringFormat="默认优先级: {0}" />
-                  </TextBlock.Text>
-                </TextBlock>
+                <TextBlock Classes="caption" Text="{Binding DetailAuthorDisplay}" FontSize="13" Margin="0,4,0,0" />
+                <TextBlock Classes="caption" Text="{Binding DetailCategoryDisplay}" FontSize="13" Margin="0,4,0,0" />
+                <TextBlock Classes="caption" Text="{Binding DetailDefaultPriorityDisplay}" FontSize="13" Margin="0,4,0,0" />
               </StackPanel>
             </StackPanel>
           </Border>

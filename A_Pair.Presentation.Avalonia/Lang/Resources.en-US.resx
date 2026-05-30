@@ -2334,4 +2334,10 @@ Diagnostics saved to: {1}</value>
   <data name="About_Avalonia" xml:space="preserve">
     <value>Avalonia UI</value>
   </data>
+  <data name="Startup_DotNetVersion" xml:space="preserve">
+    <value>.NET runtime version {0} detected. .NET 10.0 or higher is recommended.</value>
+  </data>
+  <data name="Startup_UnsupportedOS" xml:space="preserve">
+    <value>The current operating system {0} has not been fully tested and may have compatibility issues.</value>
+  </data>
 </root>

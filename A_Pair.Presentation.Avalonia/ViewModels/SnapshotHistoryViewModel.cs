@@ -99,6 +99,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public bool CanCreateSnapshot => _facade.HasActiveWorkspace;
     public bool CanEnterBatchDelete => HasSnapshots && !IsBatchDeleteMode;
 
+    
+    public string SnapshotCountDisplay => string.Format(Resources.Snapshot_CountFmt, Snapshots.Count);
+    public string NoSnapshotDisplay => SelectedVenue != null ? string.Format(Resources.Snapshot_NoSnapshotsFmt, SelectedVenue.Name) : "";
+    public string SelectAllDisplay => string.Format(Resources.Snapshot_SelectAllFmt, CheckableItems.Count);
+    public string PreviewSeatCountDisplay => SelectedSnapshot?.SeatAssignments?.Count > 0 ? string.Format(Resources.Snapshot_SeatCountFmt, SelectedSnapshot.SeatAssignments.Count) : "";
+    public string SnapshotSeatCountDisplay => string.Format(Resources.Snapshot_SeatCountFmt, (SelectedSnapshot?.SeatAssignments?.Count ?? 0));
+
     public SnapshotHistoryViewModel (IApplicationFacade facade , INavigationService navigation , ILogger<SnapshotHistoryViewModel>? logger = null)
     {
         _facade = facade;

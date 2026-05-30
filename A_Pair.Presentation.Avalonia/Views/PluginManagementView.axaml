@@ -51,7 +51,7 @@
               BoxShadow="{StaticResource CardShadowSmall}">
         <DockPanel>
           <Border DockPanel.Dock="Top" Padding="14,12">
-            <TextBlock Text="{Binding Plugins.Count, StringFormat='已发现插件（{0}）'}"
+            <TextBlock Text="{Binding PluginCountDisplay}"
                        FontSize="14" FontWeight="SemiBold" />
           </Border>
 
@@ -117,9 +117,9 @@
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="{Binding SelectedPlugin.Name}" FontSize="20" FontWeight="Bold" />
-                <TextBlock Text="{Binding SelectedPlugin.Version, StringFormat='版本 v{0}'}"
+                <TextBlock Text="{Binding SelectedPluginVersionDisplay}"
                            FontSize="13" Opacity="0.6" />
-                <TextBlock Text="{Binding SelectedPlugin.Author, StringFormat='作者：{0}'}"
+                <TextBlock Text="{Binding SelectedPluginAuthorDisplay}"
                            FontSize="13" Opacity="0.6"
                            IsVisible="{Binding SelectedPlugin.Author.Length, Converter={x:Static conv:BoolConverters.TrueToVisible}}" />
               </StackPanel>

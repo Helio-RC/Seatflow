@@ -82,7 +82,7 @@
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding Snapshots.Count, StringFormat='共 {0} 个快照'}"
+        <TextBlock DockPanel.Dock="Right" Text="{Binding SnapshotCountDisplay}"
                    FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         <TextBlock Text="{Binding StatusMessage}"
                    FontSize="12"
@@ -121,7 +121,7 @@
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                 HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding SelectedVenue, StringFormat='{}{0} 暂无快照'}"
+                <TextBlock Text="{Binding NoSnapshotDisplay}"
                            FontSize="12" HorizontalAlignment="Center"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                            TextWrapping="Wrap" />
@@ -142,7 +142,7 @@
                                FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                TextWrapping="Wrap" MaxHeight="32"/>
-                    <TextBlock Text="{Binding SeatAssignments.Count, StringFormat='{}{0} 个座位'}"
+                    <TextBlock Text="{Binding SeatAssignments.Count}"
                                FontSize="10"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                   </StackPanel>
@@ -155,7 +155,7 @@
           <StackPanel IsVisible="{Binding IsBatchDeleteMode}">
             <CheckBox IsChecked="{Binding IsAllSelected, Mode=TwoWay}"
                       Margin="4,4,4,8" FontSize="13">
-              <TextBlock Text="{Binding CheckableItems.Count, StringFormat='全选（共 {0} 项）'}"
+              <TextBlock Text="{Binding SelectAllDisplay}"
                          FontSize="13" />
             </CheckBox>
             <ListBox ItemsSource="{Binding CheckableItems}"
@@ -171,7 +171,7 @@
                                  FontSize="11"
                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                  TextWrapping="Wrap" MaxHeight="32"/>
-                      <TextBlock Text="{Binding Snapshot.SeatAssignments.Count, StringFormat='{}{0} 个座位'}"
+                      <TextBlock Text="{Binding Snapshot.SeatAssignments.Count}"
                                  FontSize="10"
                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                     </StackPanel>

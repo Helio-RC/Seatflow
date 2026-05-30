@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using A_Pair.Presentation.Avalonia.Lang;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -141,8 +142,8 @@ public sealed class WatchdogService : IDisposable
             // 尝试弹窗通知用户
             try
             {
-                var msg = $"UI 线程超过 {timeoutSeconds} 秒未响应，程序将自动退出。\n诊断日志已保存至: {logPath}";
-                _dialog?.ShowErrorAsync("程序无响应" , msg).Wait(3000);
+                var msg = string.Format(Resources.Watchdog_MessageFmt, timeoutSeconds, logPath);
+                _dialog?.ShowErrorAsync(Resources.Watchdog_Title , msg).Wait(3000);
             }
             catch { /* UI 可能已死锁，弹窗无法显示 */ }
 

@@ -106,6 +106,11 @@ public partial class DataManagementViewModel : ViewModelBase
     }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
+    
+    public string StudentCountDisplay => string.Format(Resources.Data_StudentCountFmt, StudentCount);
+    public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Data_DataSourceFmt, FilePath);
+    public string StudentCountDisplay2 => string.Format(Resources.Data_PersonCountFmt, StudentCount);
+
     public DataManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<DataManagementViewModel>? logger = null)
     {
         _facade = facade;

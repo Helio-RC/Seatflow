@@ -602,4 +602,6 @@ public class Resources
     public static string Venue_VSpacing => ResourceManager.GetString("Venue_VSpacing", Culture)!;
     public static string Venue_VSpacingPH => ResourceManager.GetString("Venue_VSpacingPH", Culture)!;
     public static string About_Avalonia => ResourceManager.GetString("About_Avalonia", Culture)!;
+    public static string Startup_DotNetVersion => ResourceManager.GetString("Startup_DotNetVersion", Culture)!;
+    public static string Startup_UnsupportedOS => ResourceManager.GetString("Startup_UnsupportedOS", Culture)!;
 }

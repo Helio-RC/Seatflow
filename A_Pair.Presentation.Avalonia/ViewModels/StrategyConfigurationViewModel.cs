@@ -139,6 +139,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     // ═══════════════ 构造函数 ═══════════════
 
+    
+    public string PriorityDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_PriorityFmt, SelectedStrategy.Priority) : "";
+    public string EnableTooltipDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_EnableFmt, SelectedStrategy.DisplayName) : "";
+    public string DetailSourceDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_SourceFmt, SelectedDetail.Source) : "";
+    public string DetailAuthorDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_AuthorFmt, SelectedDetail.Author) : "";
+    public string DetailCategoryDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_CategoryFmt, SelectedDetail.Category) : "";
+    public string DetailDefaultPriorityDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_DefaultPriorityFmt, SelectedDetail.DefaultPriority) : "";
+
     public StrategyConfigurationViewModel (IApplicationFacade facade , ILogger<StrategyConfigurationViewModel>? logger = null)
     {
         _facade = facade;

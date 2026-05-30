@@ -2341,4 +2341,10 @@
   <data name="About_Avalonia" xml:space="preserve">
     <value>Avalonia UI</value>
   </data>
+  <data name="Startup_DotNetVersion" xml:space="preserve">
+    <value>检测到 .NET 运行时版本 {0}，建议使用 .NET 10.0 或更高版本。</value>
+  </data>
+  <data name="Startup_UnsupportedOS" xml:space="preserve">
+    <value>当前操作系统 {0} 未经完整测试，可能出现兼容性问题。</value>
+  </data>
 </root>
