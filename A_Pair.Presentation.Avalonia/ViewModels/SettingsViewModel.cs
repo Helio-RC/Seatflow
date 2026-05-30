@@ -245,6 +245,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
         }
         finally { Interlocked.Exchange(ref _dialogLock, 0); }
+        await Task.Delay(150);
     }
 
     [RelayCommand]

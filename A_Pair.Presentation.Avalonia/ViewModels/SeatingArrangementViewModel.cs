@@ -833,10 +833,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         {
             _logger?.LogDebug(ex, "导出文件对话框取消或异常");
         }
-        finally
-        {
-            Interlocked.Exchange(ref _dialogLock, 0);
-        }
+        Interlocked.Exchange(ref _dialogLock, 0);
+        await Task.Delay(150);
     }
 }
 

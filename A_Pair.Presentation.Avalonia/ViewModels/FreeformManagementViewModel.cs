@@ -148,16 +148,16 @@ public partial class FreeformManagementViewModel : ViewModelBase
         if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
         try
         {
-        IStorageFile? tmplFile;
-        try { tmplFile = await _fileService.SaveFileAsync(
-            Resources.Freeform_SaveTemplate ,
-            [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] ,
-            Resources.Freeform_CSVTemplate); }
-        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
-        if (tmplFile == null) return;
-        var file = tmplFile;
+            IStorageFile? tmplFile;
+            try { tmplFile = await _fileService.SaveFileAsync(
+                Resources.Freeform_SaveTemplate ,
+                [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] ,
+                Resources.Freeform_CSVTemplate); }
+            catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); return; }
+            if (tmplFile == null) return;
+            var file = tmplFile;
 
-        await SafeExecuteAsync(async () =>
+            await SafeExecuteAsync(async () =>
         {
             await using var stream = await file.OpenWriteAsync();
             using var writer = new StreamWriter(stream);
@@ -173,7 +173,9 @@ public partial class FreeformManagementViewModel : ViewModelBase
             StatusMessage = Resources.Data_TemplateSaved;
         } , Resources.Data_TemplateSaveFailed);
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
+        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); }
+        Interlocked.Exchange(ref _dialogLock, 0);
+        await Task.Delay(150);
     }
 
     [RelayCommand]
@@ -246,7 +248,9 @@ public partial class FreeformManagementViewModel : ViewModelBase
             StatusMessage = string.Format(Resources.Freeform_ImportedPtsFmt, pts.Count);
         } , Resources.Freeform_ImportFailed);
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
+        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); }
+        Interlocked.Exchange(ref _dialogLock, 0);
+        await Task.Delay(150);
     }
 
     [RelayCommand]
@@ -320,7 +324,9 @@ public partial class FreeformManagementViewModel : ViewModelBase
             StatusMessage = string.Format(Resources.Freeform_ImportedFmt, pts.Count);
         } , Resources.Freeform_ImportFailed);
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
+        catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); }
+        Interlocked.Exchange(ref _dialogLock, 0);
+        await Task.Delay(150);
     }
 
     [RelayCommand]
