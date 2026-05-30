@@ -87,7 +87,8 @@ namespace A_Pair.Presentation.Avalonia
             try
             {
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
-                var settings = facade.LoadAppSettingsAsync().GetAwaiter().GetResult();
+                // Task.Run 跳到线程池（无 SynchronizationContext），避免在 UI 调度器未就绪时死锁
+                var settings = Task.Run(() => facade.LoadAppSettingsAsync(CancellationToken.None)).GetAwaiter().GetResult();
                 ApplyLanguage(settings.Language);
             }
             catch
