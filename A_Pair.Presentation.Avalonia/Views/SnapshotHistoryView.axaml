@@ -112,10 +112,9 @@
           </Border>
 
           <!-- 正常模式 -->
-          <Panel IsVisible="{Binding IsNotBatchMode}">
+          <Grid IsVisible="{Binding IsNotBatchMode}">
             <!-- 空列表 -->
             <Border IsVisible="{Binding !HasSnapshots}"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     Padding="20">
               <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
@@ -149,7 +148,7 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-          </Panel>
+          </Grid>
 
           <!-- 批量模式 -->
           <StackPanel IsVisible="{Binding IsBatchDeleteMode}">

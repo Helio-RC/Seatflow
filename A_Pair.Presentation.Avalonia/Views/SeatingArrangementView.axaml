@@ -137,7 +137,7 @@
           <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Seating_Venue}" Classes="sectionTitle" Margin="3,0,0,8" />
           <ListBox DockPanel.Dock="Top" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
-                   MaxHeight="180" BorderThickness="0" Margin="0,0,0,12"
+                   MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
                    AutomationProperties.Name="{x:Static lang:Resources.Venue_List}">
             <ListBox.ItemTemplate>
@@ -146,6 +146,8 @@
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
+
+          <Separator DockPanel.Dock="Top" Margin="4,10" />
 
           <!-- 数据集选择 -->
           <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Seating_StudentData}" Classes="sectionTitle" Margin="3,0,0,8" />
@@ -165,6 +167,7 @@
           <Button DockPanel.Dock="Bottom"
                   Command="{Binding GenerateSeatingCommand}"
                   IsEnabled="{Binding CanGenerate}"
+                  HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
                   Margin="4,8" Classes="accent" Height="36">
