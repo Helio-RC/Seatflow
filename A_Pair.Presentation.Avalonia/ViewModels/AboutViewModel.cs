@@ -53,13 +53,15 @@ public partial class AboutViewModel : ViewModelBase
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     }
 
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
     private static AboutData LoadAboutData ()
     {
         var assembly = typeof(AboutViewModel).Assembly;
         const string resourceName = "A_Pair.Presentation.Avalonia.Data.about.json";
         using var stream = assembly.GetManifestResourceStream(resourceName)
-            ?? throw new InvalidDataException($"嵌入式资源未找到: {resourceName}");
-        return JsonSerializer.Deserialize<AboutData>(stream) ?? new AboutData();
+            ?? throw new InvalidDataException($"Embedded resource not found: {resourceName}");
+        return JsonSerializer.Deserialize<AboutData>(stream , _jsonOptions) ?? new AboutData();
     }
 
     private sealed class AboutData

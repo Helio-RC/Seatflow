@@ -93,7 +93,7 @@
 
         <Border Classes="settingRow">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="Avalonia UI" Classes="body"
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.About_Avalonia}" Classes="body"
                        VerticalAlignment="Center" />
             <TextBlock Text="{Binding AvaloniaVersion}" Classes="body"
                        HorizontalAlignment="Right"
