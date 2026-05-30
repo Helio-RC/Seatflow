@@ -121,12 +121,12 @@
                  BorderThickness="0"
                  Background="{DynamicResource SidebarBackgroundBrush}">
           <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:StrategyItemViewModel" x:CompileBindings="False">
+            <DataTemplate x:DataType="vm:StrategyItemViewModel">
               <Border Padding="8,6" CornerRadius="4">
                 <Grid>
                   <!-- 展开状态：ToggleSwitch + 名称 + 优先级 -->
-                  <DockPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                             IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarExpanded}">
+                  <DockPanel Opacity="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                             IsHitTestVisible="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded}">
                     <DockPanel.Transitions>
                       <Transitions>
                         <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
@@ -151,8 +151,8 @@
                     </StackPanel>
                   </DockPanel>
                   <!-- 折叠状态：名称 + CheckBox（单选模式） -->
-                  <StackPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                              IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarCollapsed}" Orientation="Horizontal"
+                  <StackPanel Opacity="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                              IsHitTestVisible="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarCollapsed}" Orientation="Horizontal"
                               HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
                     <StackPanel.Transitions>
                       <Transitions>
