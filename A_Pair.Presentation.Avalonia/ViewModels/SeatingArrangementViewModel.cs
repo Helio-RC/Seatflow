@@ -799,39 +799,41 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName)
     {
-        if (_workspace == null) return;
-
-        if (_currentLayout?.LayoutType == LayoutType.Freeform)
-        {
-            await Dialog.ShowWarningAsync(Resources.Seating_UnsupportedExport ,
-                Resources.Seating_UnsupportedExportMsg);
-            return;
-        }
-
-        IStorageFile? file;
         try
         {
-            file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , suggestedName);
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogError(ex , "导出：保存文件对话框失败");
-            return;
-        }
-        if (file == null) return;
+            if (_workspace == null) return;
 
-        var filePath = file.Path.LocalPath;
-        var ok = await SafeExecuteAsync(async (ct) =>
-        {
-            var options = new ExportOptions { Format = format , IncludeMetadata = true };
-            await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
-            StatusMessage = string.Format(Resources.Seating_ExportedFmt, file.Name);
-        } , ExportTimeout , Resources.Seating_ExportTitle);
+            if (_currentLayout?.LayoutType == LayoutType.Freeform)
+            {
+                await Dialog.ShowWarningAsync(Resources.Seating_UnsupportedExport ,
+                    Resources.Seating_UnsupportedExportMsg);
+                return;
+            }
 
-        if (!ok)
+            var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , suggestedName);
+            if (file == null) return;
+
+            var filePath = file.Path.LocalPath;
+            var ok = await SafeExecuteAsync(async (ct) =>
+            {
+                var options = new ExportOptions { Format = format , IncludeMetadata = true };
+                await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
+                StatusMessage = string.Format(Resources.Seating_ExportedFmt, file.Name);
+            } , ExportTimeout , Resources.Seating_ExportTitle);
+
+            if (!ok)
+            {
+                try { File.Delete(filePath); } catch { /* ignore */ }
+                StatusMessage = Resources.Seating_ExportTimeout;
+            }
+        }
+        catch (TaskCanceledException)
         {
-            try { File.Delete(filePath); } catch { /* 忽略清理失败 */ }
-            StatusMessage = Resources.Seating_ExportTimeout;
+            // 用户取消文件对话框，忽略
+        }
+        catch (Exception ex) when (ex.Message?.Contains("cancel", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            // 某些平台取消对话框会抛异常
         }
     }
 }
