@@ -49,4 +49,10 @@
     <ProjectReference Include="..\A_Pair.Application\A_Pair.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Lang\Resources.resx">
+      <Generator></Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

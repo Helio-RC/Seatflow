@@ -926,7 +926,7 @@ Place plugins in the Plugins directory</value>
     <value>PNG image</value>
   </data>
   <data name="Seating_People" xml:space="preserve">
-    <value />
+    <value>menber</value>
   </data>
   <data name="Seating_PolarLabelFmt" xml:space="preserve">
     <value>Ring {0}-{1:F0}°</value>
@@ -1887,5 +1887,11 @@ Diagnostics saved to: {1}</value>
   </data>
   <data name="Snapshot_VenueRestoreTitle" xml:space="preserve">
     <value>Restore Venue</value>
+  </data>
+  <data name="Settings_MaxSnapshots" xml:space="preserve">
+    <value>MaxSnapshots per venue</value>
+  </data>
+  <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
+    <value>Choose a venue</value>
   </data>
 </root>

@@ -18,20 +18,20 @@
         <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_Title}"
                    Classes="pageTitle" VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
-          <Button Command="{Binding ResetDefaultsCommand}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Settings_ResetDefaults}"
-                  Classes="linkButton" HorizontalContentAlignment="Center">
-            <StackPanel Orientation="Horizontal" Spacing="4">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14" />
-              <TextBlock Text="{x:Static lang:Resources.Settings_ResetDefaults}" FontSize="13" />
-            </StackPanel>
-          </Button>
           <Button Command="{Binding SaveSettingsCommand}"
                   AutomationProperties.Name="{x:Static lang:Resources.Settings_Save}"
-                  HorizontalContentAlignment="Center" Padding="10,4" IsDefault="True">
+                  HorizontalContentAlignment="Center" IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="4">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
               <TextBlock Text="{x:Static lang:Resources.Settings_Save}" FontSize="13" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding ResetDefaultsCommand}"
+                  AutomationProperties.Name="{x:Static lang:Resources.Settings_ResetDefaults}"
+                  HorizontalContentAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Settings_ResetDefaults}" FontSize="13" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -128,6 +128,17 @@
           </DockPanel>
         </Border>
 
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_MaxSnapshots}"
+                       Classes="body" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding MaxSnapshotsPerVenue, Mode=TwoWay}"
+                           Minimum="0" Maximum="300" Increment="1"
+                           Width="150" HorizontalAlignment="Right" />
+            <!-- 真的有人能用完吗 -->
+          </DockPanel>
+        </Border>
+
         <!-- 行为 -->
         <TextBlock Text="{x:Static lang:Resources.Settings_Behavior}"
                    Classes="settingSectionHeader" Margin="0,16,0,6" />
@@ -139,16 +150,6 @@
             <ToggleSwitch IsChecked="{Binding ConfirmBeforeClear, Mode=TwoWay}"
                           AutomationProperties.Name="{x:Static lang:Resources.Settings_ConfirmClear}"
                           HorizontalAlignment="Right" />
-          </DockPanel>
-        </Border>
-
-        <Border Classes="settingRow" BorderThickness="0">
-          <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_MaxSnapshots}"
-                       Classes="body" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding MaxSnapshotsPerVenue, Mode=TwoWay}"
-                           Minimum="0" Maximum="999" Increment="1"
-                           Width="100" HorizontalAlignment="Right" />
           </DockPanel>
         </Border>
       </StackPanel>

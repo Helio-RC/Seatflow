@@ -92,7 +92,7 @@
 
     <Grid ColumnDefinitions="280,4,*">
       <!-- 左侧：快照列表 -->
-      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6"
+      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" 
               Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
           <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Snapshot_List}"
@@ -121,7 +121,7 @@
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                 HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding NoSnapshotDisplay}"
+                <TextBlock Text="{x:Static lang:Resources.Snapshot_NoSelectedVenue}"
                            Classes="caption" HorizontalAlignment="Center"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                            TextWrapping="Wrap" />

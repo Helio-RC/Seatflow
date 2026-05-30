@@ -1895,4 +1895,10 @@
   <data name="Snapshot_VenueRestoreTitle" xml:space="preserve">
     <value>恢复会场</value>
   </data>
+  <data name="Settings_MaxSnapshots" xml:space="preserve">
+    <value>单会场快照最大数量</value>
+  </data>
+  <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
+    <value>请选择一个会场</value>
+  </data>
 </root>
