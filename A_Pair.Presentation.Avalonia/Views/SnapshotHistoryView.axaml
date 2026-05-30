@@ -94,15 +94,13 @@
       <!-- 左侧：快照列表 -->
       <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" 
               Background="{DynamicResource SidebarBackgroundBrush}">
-        <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Snapshot_List}"
+        <Grid RowDefinitions="Auto,*" Margin="8">
+          <TextBlock Grid.Row="0" Text="{x:Static lang:Resources.Snapshot_List}"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
           <!-- 加载遮罩 -->
-          <Border IsVisible="{Binding IsLoading}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Classes="loadingOverlay"
-                  ZIndex="10">
+          <Border Grid.Row="1" IsVisible="{Binding IsLoading}"
+                  Classes="loadingOverlay" ZIndex="10">
             <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
               <ProgressBar IsIndeterminate="True" Width="160" Height="4" />
               <TextBlock Text="{x:Static lang:Resources.Common_Loading}" Classes="caption"
@@ -112,7 +110,7 @@
           </Border>
 
           <!-- 正常模式 -->
-          <Grid IsVisible="{Binding IsNotBatchMode}">
+          <Grid Grid.Row="1" IsVisible="{Binding IsNotBatchMode}">
             <!-- 空列表 -->
             <Border IsVisible="{Binding !HasSnapshots}">
               <StackPanel Spacing="8"
@@ -152,7 +150,7 @@
           </Grid>
 
           <!-- 批量模式 -->
-          <StackPanel IsVisible="{Binding IsBatchDeleteMode}">
+          <StackPanel Grid.Row="1" IsVisible="{Binding IsBatchDeleteMode}">
             <CheckBox IsChecked="{Binding IsAllSelected, Mode=TwoWay}"
                       Margin="4,4,4,8" FontSize="13">
               <TextBlock Text="{Binding SelectAllDisplay}"
@@ -180,7 +178,7 @@
               </ListBox.ItemTemplate>
             </ListBox>
           </StackPanel>
-        </DockPanel>
+        </Grid>
       </Border>
 
       <GridSplitter Grid.Column="1" Width="4" Background="Transparent" />
