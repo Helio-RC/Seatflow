@@ -234,6 +234,7 @@ public partial class SettingsViewModel : ViewModelBase
             if (folders.Count > 0)
                 DataDirectory = folders[0].Path.LocalPath;
         }
+        catch (TaskCanceledException) { /* 用户取消，静默忽略 */ }
         catch (Exception ex)
         {
             await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);

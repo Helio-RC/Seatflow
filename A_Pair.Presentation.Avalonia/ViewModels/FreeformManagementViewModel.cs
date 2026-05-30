@@ -10,6 +10,7 @@ using A_Pair.Core.Models;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -142,11 +143,14 @@ public partial class FreeformManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportTemplate ()
     {
-        var file = await _fileService.SaveFileAsync(
+        IStorageFile? tmplFile;
+        try { tmplFile = await _fileService.SaveFileAsync(
             Resources.Freeform_SaveTemplate ,
             [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] ,
-            Resources.Freeform_CSVTemplate);
-        if (file == null) return;
+            Resources.Freeform_CSVTemplate); }
+        catch (TaskCanceledException) { return; }
+        if (tmplFile == null) return;
+        var file = tmplFile;
 
         await SafeExecuteAsync(async () =>
         {
@@ -168,10 +172,13 @@ public partial class FreeformManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportCsv ()
     {
-        var file = await _fileService.OpenFileAsync(
+        IStorageFile? csvFile;
+        try { csvFile = await _fileService.OpenFileAsync(
             Resources.Freeform_ImportCSV ,
-            [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }]);
-        if (file == null) return;
+            [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }]); }
+        catch (TaskCanceledException) { return; }
+        if (csvFile == null) return;
+        var file = csvFile;
 
         var cleanImport = false;
         if (Points.Count > 0)
@@ -233,10 +240,13 @@ public partial class FreeformManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportJson ()
     {
-        var file = await _fileService.OpenFileAsync(
+        IStorageFile? jsonFile;
+        try { jsonFile = await _fileService.OpenFileAsync(
             Resources.Freeform_ImportJSON ,
-            [new(Resources.Data_JSONFile) { Patterns = ["*.json"] }]);
-        if (file == null) return;
+            [new(Resources.Data_JSONFile) { Patterns = ["*.json"] }]); }
+        catch (TaskCanceledException) { return; }
+        if (jsonFile == null) return;
+        var file = jsonFile;
 
         var cleanImport = false;
         if (Points.Count > 0)

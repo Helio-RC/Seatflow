@@ -183,11 +183,13 @@ public partial class DataManagementViewModel : ViewModelBase
                 return;
             }
 
-            var file = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName);
-            if (file is null) return;
+            IStorageFile? tmplFile;
+            try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
+            catch (TaskCanceledException) { return; }
+            if (tmplFile is null) return;
 
             using var source = AssetLoader.Open(uri);
-            await using var destination = File.Create(file.Path.LocalPath);
+            await using var destination = File.Create(tmplFile.Path.LocalPath);
             await source.CopyToAsync(destination , ct);
 
             StatusMessage = Resources.Data_TemplateSaved;
@@ -234,8 +236,11 @@ public partial class DataManagementViewModel : ViewModelBase
 
         try
         {
-            var file = await _fileService.OpenFileAsync(Resources.Data_ImportData , StudentFileTypes);
-            if (file is null) return;
+            IStorageFile? importFile;
+            try { importFile = await _fileService.OpenFileAsync(Resources.Data_ImportData , StudentFileTypes); }
+            catch (TaskCanceledException) { return; }
+            if (importFile is null) return;
+            var file = importFile;
 
             FilePath = file.Path.LocalPath;
             IsLoading = true;
@@ -311,8 +316,11 @@ public partial class DataManagementViewModel : ViewModelBase
 
         try
         {
-            var file = await _fileService.SaveFileAsync(Resources.Data_Export , types);
-            if (file is null) return;
+            IStorageFile? exportFile;
+            try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export , types); }
+            catch (TaskCanceledException) { return; }
+            if (exportFile is null) return;
+            var file = exportFile;
 
             IsLoading = true;
             ErrorMessage = string.Empty;
