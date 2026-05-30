@@ -244,8 +244,7 @@ public partial class SettingsViewModel : ViewModelBase
             await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
         }
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]

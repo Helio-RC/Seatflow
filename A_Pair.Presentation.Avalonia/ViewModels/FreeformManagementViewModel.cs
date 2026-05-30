@@ -174,8 +174,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
         } , Resources.Data_TemplateSaveFailed);
         }
         catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); }
-        Interlocked.Exchange(ref _dialogLock, 0);
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
@@ -249,8 +248,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
         } , Resources.Freeform_ImportFailed);
         }
         catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); }
-        Interlocked.Exchange(ref _dialogLock, 0);
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
@@ -325,8 +323,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
         } , Resources.Freeform_ImportFailed);
         }
         catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常"); }
-        Interlocked.Exchange(ref _dialogLock, 0);
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]

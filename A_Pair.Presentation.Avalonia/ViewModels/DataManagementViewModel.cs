@@ -209,8 +209,7 @@ public partial class DataManagementViewModel : ViewModelBase
                 await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
@@ -294,8 +293,7 @@ public partial class DataManagementViewModel : ViewModelBase
                 await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
@@ -359,8 +357,7 @@ public partial class DataManagementViewModel : ViewModelBase
                 await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
         }
         }
-        finally { Interlocked.Exchange(ref _dialogLock, 0); }
-        await Task.Delay(150);
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
