@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ═══ App ═══ -->
+  <data name="App_Title" xml:space="preserve">
+    <value>A_Pair — 安排</value>
+  </data>
+
+  <!-- ═══ App ═══ -->
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>应用已在运行</value>
+  </data>
+  <data name="App_AlreadyRunningMessage" xml:space="preserve">
+    <value>检测到 A_Pair 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。</value>
+  </data>
+  <data name="App_EnvironmentWarning" xml:space="preserve">
+    <value>运行环境警告</value>
+  </data>
+
+  <!-- ═══ Common ═══ -->
+  <data name="Common_OK" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Common_DontRemind" xml:space="preserve">
+    <value>不再提醒</value>
+  </data>
+  <data name="Common_Later" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="Common_Loading" xml:space="preserve">
+    <value>正在加载...</value>
+  </data>
+
+  <!-- ═══ Navigation ═══ -->
+  <data name="Nav_Home" xml:space="preserve">
+    <value>首页</value>
+  </data>
+  <data name="Nav_DataManagement" xml:space="preserve">
+    <value>数据管理</value>
+  </data>
+  <data name="Nav_VenueConfig" xml:space="preserve">
+    <value>会场配置</value>
+  </data>
+  <data name="Nav_Freeform" xml:space="preserve">
+    <value>自由点管理</value>
+  </data>
+  <data name="Nav_StrategyConfig" xml:space="preserve">
+    <value>策略配置</value>
+  </data>
+  <data name="Nav_Seating" xml:space="preserve">
+    <value>座位安排</value>
+  </data>
+  <data name="Nav_SnapshotHistory" xml:space="preserve">
+    <value>历史快照</value>
+  </data>
+  <data name="Nav_PluginManagement" xml:space="preserve">
+    <value>插件管理</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="Nav_CollapseSidebar" xml:space="preserve">
+    <value>收起侧栏</value>
+  </data>
+  <data name="Nav_ExpandSidebar" xml:space="preserve">
+    <value>展开侧栏</value>
+  </data>
+
+  <!-- ═══ Settings ═══ -->
+  <data name="Settings_Title" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Settings_Appearance" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="Settings_ThemeMode" xml:space="preserve">
+    <value>主题模式</value>
+  </data>
+  <data name="Settings_DefaultZoom" xml:space="preserve">
+    <value>座位图默认缩放</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="Settings_LanguageLabel" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="Settings_LanguagePlaceholder" xml:space="preserve">
+    <value>留空跟随系统</value>
+  </data>
+  <data name="Settings_LanguageTooltip" xml:space="preserve">
+    <value>语言代码，如 zh-CN、en-US</value>
+  </data>
+  <data name="Settings_Storage" xml:space="preserve">
+    <value>存储</value>
+  </data>
+  <data name="Settings_DataDir" xml:space="preserve">
+    <value>数据目录</value>
+  </data>
+  <data name="Settings_DataDirPlaceholder" xml:space="preserve">
+    <value>留空使用默认位置</value>
+  </data>
+  <data name="Settings_BrowseDataDir" xml:space="preserve">
+    <value>浏览数据目录</value>
+  </data>
+  <data name="Settings_OpenDataDir" xml:space="preserve">
+    <value>打开当前数据目录</value>
+  </data>
+  <data name="Settings_Behavior" xml:space="preserve">
+    <value>行为</value>
+  </data>
+  <data name="Settings_ConfirmClear" xml:space="preserve">
+    <value>清除数据前确认</value>
+  </data>
+  <data name="Settings_Save" xml:space="preserve">
+    <value>保存设置</value>
+  </data>
+  <data name="Settings_ResetDefaults" xml:space="preserve">
+    <value>恢复默认</value>
+  </data>
+  <data name="Settings_Saved" xml:space="preserve">
+    <value>设置已保存</value>
+  </data>
+  <data name="Settings_Saving" xml:space="preserve">
+    <value>正在保存...</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>保存失败</value>
+  </data>
+  <data name="Settings_ResetTitle" xml:space="preserve">
+    <value>重置设置</value>
+  </data>
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>确定要恢复所有设置为默认值吗？</value>
+  </data>
+  <data name="Settings_ResetDone" xml:space="preserve">
+    <value>已恢复默认值（尚未保存）</value>
+  </data>
+  <data name="Settings_LoadFailed" xml:space="preserve">
+    <value>加载设置失败，将使用默认值</value>
+  </data>
+  <data name="Settings_FolderTitle" xml:space="preserve">
+    <value>选择数据目录</value>
+  </data>
+  <data name="Settings_FolderFailed" xml:space="preserve">
+    <value>选择目录失败</value>
+  </data>
+  <data name="Settings_DirNotFound" xml:space="preserve">
+    <value>目录不存在</value>
+  </data>
+  <data name="Settings_DirNotFoundFormat" xml:space="preserve">
+    <value>数据目录不存在：\n{0}</value>
+  </data>
+  <data name="Settings_OpenDirFailed" xml:space="preserve">
+    <value>打开目录失败</value>
+  </data>
+  <data name="Settings_LangChangedTitle" xml:space="preserve">
+    <value>语言已更改</value>
+  </data>
+  <data name="Settings_LangChangedMessage" xml:space="preserve">
+    <value>界面语言已更改，需要重启应用才能生效。</value>
+  </data>
+  <data name="Settings_LangChangedRestart" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+
+  <!-- ═══ Theme options ═══ -->
+  <data name="Theme_System" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+
+  <!-- ═══ Zoom options ═══ -->
+  <data name="Zoom_75" xml:space="preserve">
+    <value>75%</value>
+  </data>
+  <data name="Zoom_100" xml:space="preserve">
+    <value>100%</value>
+  </data>
+  <data name="Zoom_125" xml:space="preserve">
+    <value>125%</value>
+  </data>
+  <data name="Zoom_150" xml:space="preserve">
+    <value>150%</value>
+  </data>
+
+  <!-- ═══ About ═══ -->
+  <data name="About_Title" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>版本 {0}</value>
+  </data>
+  <data name="About_Runtime" xml:space="preserve">
+    <value>运行环境</value>
+  </data>
+  <data name="About_Framework" xml:space="preserve">
+    <value>运行框架</value>
+  </data>
+  <data name="About_License" xml:space="preserve">
+    <value>许可证</value>
+  </data>
+  <data name="About_Dependencies" xml:space="preserve">
+    <value>核心依赖</value>
+  </data>
+  <data name="About_OpenLink" xml:space="preserve">
+    <value>打开 {0} 项目页面</value>
+  </data>
+</root>

@@ -14,6 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Data\about.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Lang\Resources.Designer.cs" Condition="!Exists('Lang\Resources.Designer.cs')" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaXaml Remove="Models\**" />
     <Compile Remove="Models\**" />
     <EmbeddedResource Remove="Models\**" />

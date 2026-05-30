@@ -1,9 +1,12 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
@@ -43,6 +46,7 @@ namespace A_Pair.Presentation.Avalonia
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
                 ApplyTheme(settings.Theme);
+                ApplyLanguage(settings.Language);
 
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                     && desktop.MainWindow is { } window)
@@ -74,6 +78,25 @@ namespace A_Pair.Presentation.Avalonia
             catch
             {
                 // 读取/写入失败忽略
+            }
+        }
+
+        private void ApplyLanguage (string language)
+        {
+            try
+            {
+                var culture = string.IsNullOrEmpty(language)
+                    ? CultureInfo.InstalledUICulture
+                    : new CultureInfo(language);
+
+                CultureInfo.CurrentCulture = culture;
+                CultureInfo.CurrentUICulture = culture;
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
+            }
+            catch (CultureNotFoundException)
+            {
+                // 无效的语言代码，保持系统默认
             }
         }
 
@@ -145,8 +168,8 @@ namespace A_Pair.Presentation.Avalonia
             if (!_isFirstInstance)
             {
                 await DialogServiceShim.ShowWarningAsync(dialog ,
-                    "应用已在运行" ,
-                    "检测到 A_Pair 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。");
+                    Lang.Resources.App_AlreadyRunning ,
+                    Lang.Resources.App_AlreadyRunningMessage);
                 desktop.Shutdown();
                 return;
             }
@@ -169,7 +192,7 @@ namespace A_Pair.Presentation.Avalonia
                 if (hasWarning)
                 {
                     var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog , envMessage);
-                    if (result is 1) // "不再提醒" 按钮
+                    if (result is 1) // "不再提醒" / "Don't remind again" 按钮
                     {
                         settings.SuppressEnvironmentWarning = true;
                         try
@@ -206,10 +229,10 @@ namespace A_Pair.Presentation.Avalonia
             try
             {
                 return await dialog.ShowMultiOptionAsync(
-                    "运行环境警告" ,
+                    Lang.Resources.App_EnvironmentWarning ,
                     message ,
-                    "确定" ,
-                    "不再提醒");
+                    Lang.Resources.Common_OK ,
+                    Lang.Resources.Common_DontRemind);
             }
             catch
             {

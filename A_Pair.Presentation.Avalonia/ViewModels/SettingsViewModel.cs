@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
@@ -24,41 +25,30 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IDialogService _dialog;
     private readonly ILogger<SettingsViewModel> _logger;
 
-    // ---- 外观 ----
-
     [ObservableProperty]
     private ThemeMode _theme;
 
     [ObservableProperty]
     private int _themeIndex;
 
-    public List<string> ThemeOptions { get; } = ["跟随系统" , "浅色" , "深色"];
-
-    // ---- 语言 ----
+    public List<string> ThemeOptions { get; } = [Resources.Theme_System, Resources.Theme_Light, Resources.Theme_Dark];
 
     [ObservableProperty]
     private string _language = string.Empty;
 
-    // ---- 数据目录 ----
-
     [ObservableProperty]
     private string _dataDirectory = string.Empty;
-
-    // ---- 清除确认 ----
 
     [ObservableProperty]
     private bool _confirmBeforeClear = true;
 
-    // ---- 默认缩放 ----
-
     [ObservableProperty]
     private int _zoomIndex = 1;
 
-    public List<string> ZoomOptions { get; } = ["75%" , "100%" , "125%" , "150%"];
+    public List<string> ZoomOptions { get; } = [Resources.Zoom_75, Resources.Zoom_100, Resources.Zoom_125, Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
-
-    // ---- 通用 ----
+    private string _originalLanguage = string.Empty;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
@@ -84,6 +74,7 @@ public partial class SettingsViewModel : ViewModelBase
             ThemeIndex = Theme switch { ThemeMode.Light => 1, ThemeMode.Dark => 2, _ => 0 };
 
             Language = settings.Language;
+            _originalLanguage = settings.Language;
             DataDirectory = settings.DataDirectory;
 
             ConfirmBeforeClear = settings.ConfirmBeforeClear;
@@ -94,11 +85,9 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch
         {
-            StatusMessage = "加载设置失败，将使用默认值";
+            StatusMessage = Resources.Settings_LoadFailed;
         }
     }
-
-    // ---- Index → Value 映射 ----
 
     partial void OnThemeIndexChanged (int value)
     {
@@ -123,17 +112,14 @@ public partial class SettingsViewModel : ViewModelBase
         _defaultZoomLevel = zoom;
     }
 
-    // ---- 命令 ----
-
     [RelayCommand]
     private async Task SaveSettingsAsync (CancellationToken ct)
     {
         try
         {
             IsSaving = true;
-            StatusMessage = "正在保存...";
+            StatusMessage = Resources.Settings_Saving;
 
-            // 保留已有的窗口状态，避免覆盖
             var existing = await _facade.LoadAppSettingsAsync(ct);
 
             var settings = new AppSettings
@@ -147,12 +133,32 @@ public partial class SettingsViewModel : ViewModelBase
             };
 
             await _facade.SaveAppSettingsAsync(settings , ct);
-            StatusMessage = "设置已保存";
+
+            var langChanged = !string.Equals(_originalLanguage , Language , StringComparison.Ordinal);
+            _originalLanguage = Language;
+
+            if (langChanged)
+            {
+                var clicked = await _dialog.ShowMultiOptionAsync(
+                    Resources.Settings_LangChangedTitle ,
+                    Resources.Settings_LangChangedMessage ,
+                    Resources.Settings_LangChangedRestart ,
+                    Resources.Common_Later);
+                if (clicked == 0)
+                {
+                    Process.Start(Environment.ProcessPath!);
+                    if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                        desktop.Shutdown();
+                    return;
+                }
+            }
+
+            StatusMessage = Resources.Settings_Saved;
         }
         catch (Exception ex)
         {
-            StatusMessage = "保存失败";
-            await _dialog.ShowErrorAsync("保存设置失败" , ex.Message);
+            StatusMessage = Resources.Settings_SaveFailed;
+            await _dialog.ShowErrorAsync(Resources.Settings_SaveFailed , ex.Message);
         }
         finally
         {
@@ -163,7 +169,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task ResetDefaultsAsync ()
     {
-        var confirmed = await _dialog.ShowConfirmAsync("重置设置" , "确定要恢复所有设置为默认值吗？");
+        var confirmed = await _dialog.ShowConfirmAsync(Resources.Settings_ResetTitle , Resources.Settings_ResetConfirm);
         if (!confirmed) return;
 
         ThemeIndex = 0;
@@ -171,7 +177,7 @@ public partial class SettingsViewModel : ViewModelBase
         DataDirectory = string.Empty;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
-        StatusMessage = "已恢复默认值（尚未保存）";
+        StatusMessage = Resources.Settings_ResetDone;
     }
 
     [RelayCommand]
@@ -187,7 +193,7 @@ public partial class SettingsViewModel : ViewModelBase
 
             var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "选择数据目录" ,
+                Title = Resources.Settings_FolderTitle ,
                 AllowMultiple = false
             });
 
@@ -196,7 +202,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await _dialog.ShowErrorAsync("选择目录失败" , ex.Message);
+            await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
         }
     }
 
@@ -212,11 +218,12 @@ public partial class SettingsViewModel : ViewModelBase
             if (Directory.Exists(path))
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             else
-                _ = _dialog.ShowWarningAsync("目录不存在" , $"数据目录不存在：\n{path}");
+                _ = _dialog.ShowWarningAsync(Resources.Settings_DirNotFound ,
+                    string.Format(Resources.Settings_DirNotFoundFormat , path));
         }
         catch (Exception ex)
         {
-            _ = _dialog.ShowErrorAsync("打开目录失败" , ex.Message);
+            _ = _dialog.ShowErrorAsync(Resources.Settings_OpenDirFailed , ex.Message);
         }
     }
 }

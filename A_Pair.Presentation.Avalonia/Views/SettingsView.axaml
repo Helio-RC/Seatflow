@@ -3,6 +3,7 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -44,25 +45,23 @@
     <!-- 顶部标题栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,24">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="设置" Classes="pageTitle"
-                   VerticalAlignment="Center" />
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_Title}"
+                   Classes="pageTitle" VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
           <Button Command="{Binding ResetDefaultsCommand}"
-                  AutomationProperties.Name="恢复默认设置"
-                  Classes="linkButton"
-                  HorizontalContentAlignment="Center">
+                  AutomationProperties.Name="{x:Static lang:Resources.Settings_ResetDefaults}"
+                  Classes="linkButton" HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="4">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14" />
-              <TextBlock Text="恢复默认" FontSize="13" />
+              <TextBlock Text="{x:Static lang:Resources.Settings_ResetDefaults}" FontSize="13" />
             </StackPanel>
           </Button>
           <Button Command="{Binding SaveSettingsCommand}"
-                  AutomationProperties.Name="保存设置"
-                  HorizontalContentAlignment="Center" Padding="10,4"
-                  IsDefault="True">
+                  AutomationProperties.Name="{x:Static lang:Resources.Settings_Save}"
+                  HorizontalContentAlignment="Center" Padding="10,4" IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="4">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
-              <TextBlock Text="保存设置" FontSize="13" />
+              <TextBlock Text="{x:Static lang:Resources.Settings_Save}" FontSize="13" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -82,14 +81,15 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
       <StackPanel Spacing="0" MaxWidth="600">
         <!-- 外观 -->
-        <TextBlock Text="外观" Classes="settingSectionHeader" Margin="0,0,0,6" />
+        <TextBlock Text="{x:Static lang:Resources.Settings_Appearance}"
+                   Classes="settingSectionHeader" Margin="0,0,0,6" />
 
         <Border Classes="settingRow">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="主题模式" Classes="body"
-                       VerticalAlignment="Center" />
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_ThemeMode}"
+                       Classes="body" VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding ThemeOptions}"
-                      AutomationProperties.Name="主题模式"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_ThemeMode}"
                       SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"
                       MinWidth="160" HorizontalAlignment="Right" FontSize="14" />
           </DockPanel>
@@ -97,52 +97,56 @@
 
         <Border Classes="settingRow" BorderThickness="0">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="座位图默认缩放" Classes="body"
-                       VerticalAlignment="Center" />
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_DefaultZoom}"
+                       Classes="body" VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding ZoomOptions}"
-                      AutomationProperties.Name="默认缩放"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_DefaultZoom}"
                       SelectedIndex="{Binding ZoomIndex, Mode=TwoWay}"
                       MinWidth="160" HorizontalAlignment="Right" FontSize="14" />
           </DockPanel>
         </Border>
 
         <!-- 语言 -->
-        <TextBlock Text="语言" Classes="settingSectionHeader" Margin="0,16,0,6" />
+        <TextBlock Text="{x:Static lang:Resources.Settings_Language}"
+                   Classes="settingSectionHeader" Margin="0,16,0,6" />
 
         <Border Classes="settingRow" BorderThickness="0">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="界面语言" Classes="body"
-                       VerticalAlignment="Center" />
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_LanguageLabel}"
+                       Classes="body" VerticalAlignment="Center" />
             <TextBox Text="{Binding Language, Mode=TwoWay}"
-                     AutomationProperties.Name="界面语言"
-                     PlaceholderText="留空跟随系统" MinWidth="200" HorizontalAlignment="Right"
-                     ToolTip.Tip="语言代码，如 zh-CN、en-US" FontSize="14" />
+                     AutomationProperties.Name="{x:Static lang:Resources.Settings_LanguageLabel}"
+                     PlaceholderText="{x:Static lang:Resources.Settings_LanguagePlaceholder}"
+                     MinWidth="200" HorizontalAlignment="Right" FontSize="14"
+                     ToolTip.Tip="{x:Static lang:Resources.Settings_LanguageTooltip}" />
           </DockPanel>
         </Border>
 
         <!-- 存储 -->
-        <TextBlock Text="存储" Classes="settingSectionHeader" Margin="0,16,0,6" />
+        <TextBlock Text="{x:Static lang:Resources.Settings_Storage}"
+                   Classes="settingSectionHeader" Margin="0,16,0,6" />
 
         <Border Classes="settingRow" BorderThickness="0">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="数据目录" Classes="body"
-                       VerticalAlignment="Top" Margin="0,4,0,0" />
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_DataDir}"
+                       Classes="body" VerticalAlignment="Top" Margin="0,4,0,0" />
             <StackPanel HorizontalAlignment="Right" Spacing="6" MinWidth="280">
               <DockPanel>
                 <Button Command="{Binding BrowseDataDirectoryCommand}"
-                        AutomationProperties.Name="浏览数据目录"
+                        AutomationProperties.Name="{x:Static lang:Resources.Settings_BrowseDataDir}"
                         DockPanel.Dock="Right" Padding="8,4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="16" />
                 </Button>
                 <TextBox Text="{Binding DataDirectory, Mode=TwoWay}"
-                         PlaceholderText="留空使用默认位置" FontSize="14" />
+                         PlaceholderText="{x:Static lang:Resources.Settings_DataDirPlaceholder}"
+                         FontSize="14" />
               </DockPanel>
               <Button Command="{Binding OpenDataDirectoryCommand}"
-                      AutomationProperties.Name="打开当前数据目录"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_OpenDataDir}"
                       Classes="linkButton" HorizontalContentAlignment="Left" Padding="0">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="12" />
-                  <TextBlock Text="打开当前数据目录" FontSize="12" />
+                  <TextBlock Text="{x:Static lang:Resources.Settings_OpenDataDir}" FontSize="12" />
                 </StackPanel>
               </Button>
             </StackPanel>
@@ -150,14 +154,15 @@
         </Border>
 
         <!-- 行为 -->
-        <TextBlock Text="行为" Classes="settingSectionHeader" Margin="0,16,0,6" />
+        <TextBlock Text="{x:Static lang:Resources.Settings_Behavior}"
+                   Classes="settingSectionHeader" Margin="0,16,0,6" />
 
         <Border Classes="settingRow" BorderThickness="0">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="清除数据前确认" Classes="body"
-                       VerticalAlignment="Center" />
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_ConfirmClear}"
+                       Classes="body" VerticalAlignment="Center" />
             <ToggleSwitch IsChecked="{Binding ConfirmBeforeClear, Mode=TwoWay}"
-                          AutomationProperties.Name="清除数据前确认"
+                          AutomationProperties.Name="{x:Static lang:Resources.Settings_ConfirmClear}"
                           HorizontalAlignment="Right" />
           </DockPanel>
         </Border>

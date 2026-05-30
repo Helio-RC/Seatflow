@@ -3,6 +3,7 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              x:Class="A_Pair.Presentation.Avalonia.Views.AboutView"
              x:DataType="vm:AboutViewModel"
              x:Name="AboutHost">
@@ -51,7 +52,7 @@
   <DockPanel Margin="16">
     <!-- 顶部标题 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,24">
-      <TextBlock Text="关于" Classes="pageTitle" VerticalAlignment="Center" />
+      <TextBlock Text="{x:Static lang:Resources.About_Title}" Classes="pageTitle" VerticalAlignment="Center" />
     </Border>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -66,7 +67,7 @@
                      HorizontalAlignment="Center" />
           <TextBlock HorizontalAlignment="Center" FontSize="13"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                     Text="{Binding Version, StringFormat='版本 {0}'}" />
+                     Text="{Binding VersionDisplay}" />
         </StackPanel>
 
         <!-- 描述 -->
@@ -78,11 +79,11 @@
         <Separator Margin="0,12,0,8" />
 
         <!-- 运行环境 -->
-        <TextBlock Text="运行环境" Classes="settingSectionHeader" Margin="0,8,0,6" />
+        <TextBlock Text="{x:Static lang:Resources.About_Runtime}" Classes="settingSectionHeader" Margin="0,8,0,6" />
 
         <Border Classes="settingRow">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="运行框架" Classes="body"
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.About_Framework}" Classes="body"
                        VerticalAlignment="Center" />
             <TextBlock Text="{Binding RuntimeVersion}" Classes="body"
                        HorizontalAlignment="Right"
@@ -102,7 +103,7 @@
 
         <Border Classes="settingRow" BorderThickness="0">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Left" Text="许可证" Classes="body"
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.About_License}" Classes="body"
                        VerticalAlignment="Center" />
             <TextBlock Text="{Binding License}" Classes="body"
                        HorizontalAlignment="Right"
@@ -111,7 +112,7 @@
         </Border>
 
         <!-- 核心依赖 -->
-        <TextBlock Text="核心依赖" Classes="settingSectionHeader" Margin="0,16,0,6" />
+        <TextBlock Text="{x:Static lang:Resources.About_Dependencies}" Classes="settingSectionHeader" Margin="0,16,0,6" />
 
         <ListBox ItemsSource="{Binding Dependencies}" BorderThickness="0"
                  Background="Transparent">
@@ -133,7 +134,7 @@
                   <Button Grid.Row="0" Grid.Column="3"
                           Command="{Binding #AboutHost.DataContext.OpenUrlCommand}"
                           CommandParameter="{Binding Url}"
-                          AutomationProperties.Name="{Binding Name, StringFormat='打开 {0} 项目页面'}"
+                          AutomationProperties.Name="{Binding Name}"
                           Classes="depLink"
                           VerticalAlignment="Center" Margin="2,0,0,0">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Link}" FontSize="13"

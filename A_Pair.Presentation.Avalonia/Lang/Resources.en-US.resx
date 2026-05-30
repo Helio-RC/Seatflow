@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ═══ App ═══ -->
+  <data name="App_Title" xml:space="preserve">
+    <value>A_Pair — Seating</value>
+  </data>
+
+  <!-- ═══ App ═══ -->
+  <data name="App_AlreadyRunning" xml:space="preserve">
+    <value>Application Already Running</value>
+  </data>
+  <data name="App_AlreadyRunningMessage" xml:space="preserve">
+    <value>Another instance of A_Pair is already running. To avoid data conflicts, this instance will exit automatically.</value>
+  </data>
+  <data name="App_EnvironmentWarning" xml:space="preserve">
+    <value>Environment Warning</value>
+  </data>
+
+  <!-- ═══ Common ═══ -->
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_DontRemind" xml:space="preserve">
+    <value>Don't remind again</value>
+  </data>
+  <data name="Common_Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="Common_Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+
+  <!-- ═══ Navigation ═══ -->
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Nav_DataManagement" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Nav_VenueConfig" xml:space="preserve">
+    <value>Venue</value>
+  </data>
+  <data name="Nav_Freeform" xml:space="preserve">
+    <value>Freeform</value>
+  </data>
+  <data name="Nav_StrategyConfig" xml:space="preserve">
+    <value>Strategy</value>
+  </data>
+  <data name="Nav_Seating" xml:space="preserve">
+    <value>Seating</value>
+  </data>
+  <data name="Nav_SnapshotHistory" xml:space="preserve">
+    <value>Snapshots</value>
+  </data>
+  <data name="Nav_PluginManagement" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Nav_CollapseSidebar" xml:space="preserve">
+    <value>Collapse sidebar</value>
+  </data>
+  <data name="Nav_ExpandSidebar" xml:space="preserve">
+    <value>Expand sidebar</value>
+  </data>
+
+  <!-- ═══ Settings ═══ -->
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_ThemeMode" xml:space="preserve">
+    <value>Theme mode</value>
+  </data>
+  <data name="Settings_DefaultZoom" xml:space="preserve">
+    <value>Default zoom</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageLabel" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguagePlaceholder" xml:space="preserve">
+    <value>Blank for system default</value>
+  </data>
+  <data name="Settings_LanguageTooltip" xml:space="preserve">
+    <value>Language code, e.g. en-US, zh-CN</value>
+  </data>
+  <data name="Settings_Storage" xml:space="preserve">
+    <value>Storage</value>
+  </data>
+  <data name="Settings_DataDir" xml:space="preserve">
+    <value>Data directory</value>
+  </data>
+  <data name="Settings_DataDirPlaceholder" xml:space="preserve">
+    <value>Blank for default location</value>
+  </data>
+  <data name="Settings_BrowseDataDir" xml:space="preserve">
+    <value>Browse data directory</value>
+  </data>
+  <data name="Settings_OpenDataDir" xml:space="preserve">
+    <value>Open current data directory</value>
+  </data>
+  <data name="Settings_Behavior" xml:space="preserve">
+    <value>Behavior</value>
+  </data>
+  <data name="Settings_ConfirmClear" xml:space="preserve">
+    <value>Confirm before clear</value>
+  </data>
+  <data name="Settings_Save" xml:space="preserve">
+    <value>Save settings</value>
+  </data>
+  <data name="Settings_ResetDefaults" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+  <data name="Settings_Saved" xml:space="preserve">
+    <value>Settings saved</value>
+  </data>
+  <data name="Settings_Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+  <data name="Settings_ResetTitle" xml:space="preserve">
+    <value>Reset settings</value>
+  </data>
+  <data name="Settings_ResetConfirm" xml:space="preserve">
+    <value>Are you sure you want to restore all settings to their defaults?</value>
+  </data>
+  <data name="Settings_ResetDone" xml:space="preserve">
+    <value>Defaults restored (not yet saved)</value>
+  </data>
+  <data name="Settings_LoadFailed" xml:space="preserve">
+    <value>Failed to load settings, using defaults</value>
+  </data>
+  <data name="Settings_FolderTitle" xml:space="preserve">
+    <value>Select data directory</value>
+  </data>
+  <data name="Settings_FolderFailed" xml:space="preserve">
+    <value>Failed to select directory</value>
+  </data>
+  <data name="Settings_DirNotFound" xml:space="preserve">
+    <value>Directory not found</value>
+  </data>
+  <data name="Settings_DirNotFoundFormat" xml:space="preserve">
+    <value>Data directory does not exist:\n{0}</value>
+  </data>
+  <data name="Settings_OpenDirFailed" xml:space="preserve">
+    <value>Failed to open directory</value>
+  </data>
+  <data name="Settings_LangChangedTitle" xml:space="preserve">
+    <value>Language Changed</value>
+  </data>
+  <data name="Settings_LangChangedMessage" xml:space="preserve">
+    <value>The interface language has been changed. Restart the application for the change to take effect.</value>
+  </data>
+  <data name="Settings_LangChangedRestart" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+
+  <!-- ═══ Theme options ═══ -->
+  <data name="Theme_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+
+  <!-- ═══ Zoom options ═══ -->
+  <data name="Zoom_75" xml:space="preserve">
+    <value>75%</value>
+  </data>
+  <data name="Zoom_100" xml:space="preserve">
+    <value>100%</value>
+  </data>
+  <data name="Zoom_125" xml:space="preserve">
+    <value>125%</value>
+  </data>
+  <data name="Zoom_150" xml:space="preserve">
+    <value>150%</value>
+  </data>
+
+  <!-- ═══ About ═══ -->
+  <data name="About_Title" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Version {0}</value>
+  </data>
+  <data name="About_Runtime" xml:space="preserve">
+    <value>Runtime environment</value>
+  </data>
+  <data name="About_Framework" xml:space="preserve">
+    <value>Framework</value>
+  </data>
+  <data name="About_License" xml:space="preserve">
+    <value>License</value>
+  </data>
+  <data name="About_Dependencies" xml:space="preserve">
+    <value>Dependencies</value>
+  </data>
+  <data name="About_OpenLink" xml:space="preserve">
+    <value>Open {0} project page</value>
+  </data>
+</root>

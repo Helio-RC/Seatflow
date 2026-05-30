@@ -7,6 +7,8 @@ using A_Pair.Presentation.Avalonia.Views;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 
+[assembly: System.Resources.NeutralResourcesLanguage("zh-CN")]
+
 namespace A_Pair.Presentation.Avalonia
 {
     internal sealed class Program
