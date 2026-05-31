@@ -66,6 +66,52 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
         result.Should().BeNull();
     }
 
+    [Fact]
+    public async Task SaveAsync_SetsStudentsHash ()
+    {
+        var students = new List<Student>
+        {
+            new() { Id = "2" , Name = "Bob" },
+            new() { Id = "1" , Name = "Alice" }
+        };
+
+        const string id = "hash-test";
+        await _repo.SaveAsync(id , "hash-test" , students , null , TestContext.Current.CancellationToken);
+
+        var path = Path.Combine(_tempDir , $"{id}.roster.json");
+        var json = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
+        json.Should().Contain("\"studentsHash\"");
+        json.Should().NotContain("\"contentHash\"");
+    }
+
+    [Fact]
+    public async Task SaveAsync_StudentsHash_IsDeterministic ()
+    {
+        var students = new List<Student>
+        {
+            new() { Id = "2" , Name = "Bob" , Height = 170 },
+            new() { Id = "1" , Name = "Alice" , Height = 165 }
+        };
+
+        const string id = "det-test";
+        await _repo.SaveAsync(id , "det-test" , students , null , TestContext.Current.CancellationToken);
+        var path = Path.Combine(_tempDir , $"{id}.roster.json");
+        var json1 = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
+
+        // 删除后重新保存，哈希应一致
+        File.Delete(path);
+        await _repo.SaveAsync(id , "det-test" , students , null , TestContext.Current.CancellationToken);
+        var json2 = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
+
+        ExtractHash(json1).Should().Be(ExtractHash(json2));
+    }
+
+    private static string? ExtractHash (string json)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        return doc.RootElement.TryGetProperty("studentsHash" , out var h) ? h.GetString() : null;
+    }
+
     public void Dispose ()
     {
         try { Directory.Delete(_tempDir , true); } catch { }

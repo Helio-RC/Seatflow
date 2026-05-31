@@ -18,7 +18,7 @@ namespace A_Pair.Core.Models
         /// <summary>附加元数据。</summary>
         public Dictionary<string , object> Metadata { get; set; } = [];
 
-        /// <summary>文件内容哈希（SHA256），首次保存且为空时自动计算。</summary>
-        public string? ContentHash { get; set; }
+        /// <summary>学生列表内容的 SHA256 哈希（基于按 Id 排序后的 JSON 序列化数组）。</summary>
+        public string? StudentsHash { get; set; }
     }
 }

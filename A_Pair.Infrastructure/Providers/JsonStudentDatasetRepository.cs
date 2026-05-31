@@ -55,19 +55,10 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         if (originalFileName != null)
             roster.Metadata["originalFileName"] = originalFileName;
 
-        // 计算内容哈希（排除不稳定的时间戳字段）
-        var savedImportedAt = roster.Metadata.TryGetValue("importedAt" , out var ia) ? ia : null;
-        var savedOrigFile = roster.Metadata.TryGetValue("originalFileName" , out var of) ? of : null;
-        roster.Metadata.Remove("importedAt");
-        roster.Metadata.Remove("originalFileName");
-        using var ms = new MemoryStream();
-        await JsonSerializer.SerializeAsync(ms , roster , WriteOptions , ct);
-        ms.Position = 0;
-        var json = await new StreamReader(ms).ReadToEndAsync(ct);
-        roster.ContentHash = ContentHashHelper.ComputeSha256(json);
-        // 恢复临时清除的字段
-        if (savedImportedAt != null) roster.Metadata["importedAt"] = savedImportedAt;
-        if (savedOrigFile != null) roster.Metadata["originalFileName"] = savedOrigFile;
+        // 按 Id 排序后序列化学生列表，计算 StudentsHash
+        roster.Students = [.. roster.Students.OrderBy(s => s.Id)];
+        var studentsJson = JsonSerializer.Serialize(roster.Students , WriteOptions);
+        roster.StudentsHash = ContentHashHelper.ComputeSha256(studentsJson);
 
         var path = GetFilePath(id);
         await using var stream = File.Create(path);
@@ -145,15 +136,6 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         await using var stream = File.Create(path);
         await JsonSerializer.SerializeAsync(stream , roster , WriteOptions , ct);
         _logger.LogInformation("数据集已重命名：{Id} → {Name}" , id , newName);
-    }
-
-    public async Task<string?> GetContentHashAsync (string id , CancellationToken ct = default)
-    {
-        var path = GetFilePath(id);
-        if (!File.Exists(path)) return null;
-        var json = await File.ReadAllTextAsync(path , ct);
-        using var doc = JsonDocument.Parse(json);
-        return doc.RootElement.TryGetProperty("contentHash" , out var h) ? h.GetString() : null;
     }
 
     private RosterFile? DeserializeRoster (string json)
