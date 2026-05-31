@@ -347,7 +347,8 @@ namespace A_Pair.Application.Services
                 .OrderBy(s => s.CreatedAt).ToList();
             while (snapshots.Count > max)
             {
-                await _snapshotRepository.DeleteAsync(snapshots[0].Id , ct);
+                try { await _snapshotRepository.DeleteAsync(snapshots[0].Id , ct); }
+                catch (Exception ex) { logger.LogWarning(ex , "快照轮转删除失败：{Id}" , snapshots[0].Id); }
                 snapshots.RemoveAt(0);
             }
         }
@@ -412,7 +413,7 @@ namespace A_Pair.Application.Services
             var snapshot = new SeatingSnapshot
             {
                 Description = description ,
-                LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
+                LayoutId = venueId ?? (plan.Assignments.Count > 0 ? "current" : "empty") ,
                 SeatAssignments = plan.Assignments ,
                 Metadata = snapshotMeta
             };
@@ -443,11 +444,21 @@ namespace A_Pair.Application.Services
                 try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
             }
 
+            // 回退：旧快照 LayoutId 为 "current"/"empty" 时，从嵌入布局恢复
+            if (layout == null && snapshot.Metadata.TryGetValue("venueLayout" , out var raw))
+            {
+                var layoutJson = raw as string
+                    ?? (raw is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.String
+                        ? je.GetString() : null);
+                if (!string.IsNullOrEmpty(layoutJson))
+                    layout = DeserializeVenueLayout(layoutJson);
+            }
+
             _currentLayout = layout;
 
             var seats = layout?.Seats ?? new List<Seat>();
             var studentIds = snapshot.SeatAssignments.Values
-                .Where(v => v != null)
+                .Where(v => !string.IsNullOrEmpty(v))
                 .Distinct()
                 .ToList();
             var students = await BuildStudentsForSnapshotAsync(studentIds , cancellationToken);

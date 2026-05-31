@@ -220,10 +220,10 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         {
             // 优先使用快照中嵌入的会场布局，旧快照回退到加载会场文件
             ClassroomLayoutDefinition? layout = null;
-            if (snapshot.Metadata.TryGetValue("venueLayout" , out var rawLayout) &&
-                rawLayout is string layoutJson && !string.IsNullOrEmpty(layoutJson))
+            var embeddedVenueLayout = GetMetaString(snapshot.Metadata , "venueLayout");
+            if (!string.IsNullOrEmpty(embeddedVenueLayout))
             {
-                layout = DeserializeLayout(layoutJson);
+                layout = DeserializeLayout(embeddedVenueLayout);
             }
             else
             {
@@ -239,32 +239,33 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 return;
             }
 
-            // 检测会场是否变更（对比哈希——仅当从外部文件加载时有效）
-            if (snapshot.Metadata.TryGetValue("venueHash" , out var snapHash) &&
-                snapHash is string sh && !string.IsNullOrEmpty(sh))
+            // 检测会场是否变更（对比哈希）
+            var snapVenueHash = GetMetaString(snapshot.Metadata , "venueHash");
+            if (!string.IsNullOrEmpty(snapVenueHash))
             {
-                var (exists , hashMatch) = await _facade.CheckVenueIntegrityAsync(snapshot.LayoutId , sh);
-                if (!exists)
-                {
-                    IsVenueChanged = true;
-                    VenueWarningText = Resources.Snapshot_VenueChangedWarning;
-                }
-                else if (!hashMatch)
+                var (exists , hashMatch) = await _facade.CheckVenueIntegrityAsync(snapshot.LayoutId , snapVenueHash);
+                if (!exists || !hashMatch)
                 {
                     IsVenueChanged = true;
                     VenueWarningText = Resources.Snapshot_VenueChangedWarning;
                 }
             }
 
-            // 收集当前所有数据集中的学生 ID 和姓名
+            // 收集当前所有数据集中的学生 ID 和对象（用于哈希和 ID 存在性双重检测）
             var datasets = await _facade.ListStudentDatasetsAsync();
             var foundIds = new HashSet<string>();
+            var allCurrentStudents = new List<Student>();
             foreach (var ds in datasets)
             {
                 var students = await _facade.LoadStudentDatasetAsync(ds.Id);
                 if (students != null)
+                {
                     foreach (var s in students)
+                    {
                         foundIds.Add(s.Id);
+                        allCurrentStudents.Add(s);
+                    }
+                }
             }
 
             // 检测数据变更：快照中学生 ID 是否在当前数据集中仍存在
@@ -276,6 +277,22 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 IsDataChanged = true;
                 VenueWarningText = string.IsNullOrEmpty(VenueWarningText)
                     ? Resources.Snapshot_DataChangedText : VenueWarningText;
+            }
+
+            // 补充检测：对比 studentHash（即便 ID 仍存在，姓名等属性变更也需告警）
+            // 注：存储的 studentHash 覆盖快照创建时的所有 workspace 学生；
+            // 当前数据集可能包含更多学生，可能产生误报，但偏向安全侧。
+            var storedStudentHash = GetMetaString(snapshot.Metadata , "studentHash");
+            if (!string.IsNullOrEmpty(storedStudentHash))
+            {
+                var currentStudentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+                    string.Concat(allCurrentStudents.OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                if (storedStudentHash != currentStudentHash)
+                {
+                    IsDataChanged = true;
+                    VenueWarningText = string.IsNullOrEmpty(VenueWarningText)
+                        ? Resources.Snapshot_DataChangedText : VenueWarningText;
+                }
             }
 
             var metadata = layout.Metadata!;
@@ -353,9 +370,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             PreviewCanvasWidth = canvasW * scale;
             PreviewCanvasHeight = canvasH * scale;
         }
-        catch
+        catch (Exception ex)
         {
-            // 预览失败不阻塞 UI
+            _logger.LogWarning(ex , "快照预览构建失败");
         }
 
         PreviewSeats = seats;
@@ -390,6 +407,17 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         _ => seat.Id
     };
 
+    private static string? GetMetaString (Dictionary<string , object> meta , string key)
+    {
+        if (!meta.TryGetValue(key , out var value) || value is null) return null;
+        return value switch
+        {
+            string s => s ,
+            System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.String } je => je.GetString() ,
+            _ => null
+        };
+    }
+
     [RelayCommand]
     private async Task LoadSnapshotsAsync ()
     {
@@ -420,14 +448,14 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             // 检查会场完整性
-            snapshot.Metadata.TryGetValue("venueHash" , out var hashObj);
-            var snapHash = hashObj as string;
+            var snapHash = GetMetaString(snapshot.Metadata , "venueHash");
             var (exists , hashMatch) = await _facade.CheckVenueIntegrityAsync(snapshot.LayoutId , snapHash);
 
             if (!exists)
             {
                 // 会场已删除——尝试从快照恢复
-                if (!snapshot.Metadata.TryGetValue("venueLayout" , out var rawLayout) || rawLayout is not string layoutJson)
+                var rollbackLayout = GetMetaString(snapshot.Metadata , "venueLayout");
+                if (string.IsNullOrEmpty(rollbackLayout))
                 {
                     await Dialog.ShowWarningAsync(Resources.Snapshot_RollbackFailed , Resources.Snapshot_VenueDeletedPreview);
                     return;
@@ -435,7 +463,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 var restore = await Dialog.ShowConfirmAsync(Resources.Snapshot_VenueRestoreTitle ,
                     Resources.Snapshot_VenueRestoreMsg);
                 if (restore)
-                    await _facade.ImportVenueFromSnapshotAsync(layoutJson , snapshot.Description);
+                    await _facade.ImportVenueFromSnapshotAsync(rollbackLayout , snapshot.Description);
                 else
                     return;
             }
@@ -444,11 +472,16 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 // 会场已更改——询问是否导入新会场
                 var import = await Dialog.ShowConfirmAsync(Resources.Snapshot_VenueChangedTitle ,
                     Resources.Snapshot_VenueImportMsg);
-                if (import && snapshot.Metadata.TryGetValue("venueLayout" , out var rawImport) && rawImport is string importJson)
+                var importLayout = GetMetaString(snapshot.Metadata , "venueLayout");
+                if (import && !string.IsNullOrEmpty(importLayout))
                 {
                     var newName = $"{snapshot.Description}_{snapshot.CreatedAt:yyyyMMddHHmm}";
-                    await _facade.ImportVenueFromSnapshotAsync(importJson , newName);
+                    await _facade.ImportVenueFromSnapshotAsync(importLayout , newName);
                     await LoadVenuesAsync();
+                }
+                else
+                {
+                    return;
                 }
             }
 
@@ -512,14 +545,25 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
         await SafeExecuteAsync(async () =>
         {
+            var failedCount = 0;
             foreach (var snap in selected)
             {
-                await _facade.DeleteSnapshotAsync(snap.Id);
-                Snapshots.Remove(snap);
+                try
+                {
+                    await _facade.DeleteSnapshotAsync(snap.Id);
+                    Snapshots.Remove(snap);
+                }
+                catch
+                {
+                    failedCount++;
+                }
             }
             ExitBatchDeleteMode();
             SelectedSnapshot = Snapshots.FirstOrDefault();
-            StatusMessage = string.Format(Resources.Snapshot_BatchDeletedFmt , selected.Count , Snapshots.Count);
+            var deletedCount = selected.Count - failedCount;
+            StatusMessage = failedCount > 0
+                ? string.Format(Resources.Snapshot_BatchDeletedFmt , deletedCount , Snapshots.Count)
+                : string.Format(Resources.Snapshot_BatchDeletedFmt , selected.Count , Snapshots.Count);
             OnPropertyChanged(nameof(CanEnterBatchDelete));
         } , Resources.Snapshot_BatchDeleteFailed);
     }

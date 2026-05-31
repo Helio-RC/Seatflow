@@ -14,6 +14,7 @@ namespace A_Pair.Infrastructure.Repositories
         private readonly FileMigrationService _migration;
         private readonly Dictionary<string , string> _index = [];
         private bool _indexBuilt;
+        private readonly object _indexLock = new();
         private readonly ILogger<SeatingSnapshotRepository> _logger;
 
         public SeatingSnapshotRepository (
@@ -32,19 +33,23 @@ namespace A_Pair.Infrastructure.Repositories
         private void BuildIndex ()
         {
             if (_indexBuilt) return;
-            foreach (var venueDir in SafeEnumerateDirectories(_basePath))
+            lock (_indexLock)
             {
-                foreach (var dateDir in SafeEnumerateDirectories(venueDir))
+                if (_indexBuilt) return;
+                foreach (var venueDir in SafeEnumerateDirectories(_basePath))
                 {
-                    foreach (var file in Directory.EnumerateFiles(dateDir , "*.json"))
+                    foreach (var dateDir in SafeEnumerateDirectories(venueDir))
                     {
-                        var id = Path.GetFileNameWithoutExtension(file);
-                        if (!_index.ContainsKey(id))
-                            _index[id] = file;
+                        foreach (var file in Directory.EnumerateFiles(dateDir , "*.json"))
+                        {
+                            var id = Path.GetFileNameWithoutExtension(file);
+                            if (!_index.ContainsKey(id))
+                                _index[id] = file;
+                        }
                     }
                 }
+                _indexBuilt = true;
             }
-            _indexBuilt = true;
         }
 
         public async Task SaveAsync (SeatingSnapshot snapshot , CancellationToken ct = default)
@@ -55,8 +60,11 @@ namespace A_Pair.Infrastructure.Repositories
             snapshot.Version = FileVersionInfo.GetCurrentVersion("snapshot");
             var json = JsonSerializer.Serialize(snapshot , new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(path , json , ct);
-            _index[snapshot.Id] = path;
-            _indexBuilt = true;
+            lock (_indexLock)
+            {
+                _index[snapshot.Id] = path;
+                _indexBuilt = true;
+            }
             _logger.LogInformation("快照已保存：{SnapshotId} → {Path}" , snapshot.Id , path);
         }
 
@@ -110,14 +118,17 @@ namespace A_Pair.Infrastructure.Repositories
         {
             ct.ThrowIfCancellationRequested();
             BuildIndex();
-            if (_index.TryGetValue(id , out var path) && File.Exists(path))
+            lock (_indexLock)
             {
-                File.Delete(path);
-                _index.Remove(id);
-                _logger.LogInformation("快照已删除：{SnapshotId}" , id);
+                if (_index.TryGetValue(id , out var path) && File.Exists(path))
+                {
+                    File.Delete(path);
+                    _index.Remove(id);
+                    _logger.LogInformation("快照已删除：{SnapshotId}" , id);
+                }
+                else
+                    _logger.LogDebug("删除快照未找到：{SnapshotId}" , id);
             }
-            else
-                _logger.LogDebug("删除快照未找到：{SnapshotId}" , id);
             return Task.CompletedTask;
         }
 
@@ -146,9 +157,9 @@ namespace A_Pair.Infrastructure.Repositories
                         var snapshot = DeserializeWithMigration(json , "snapshot");
                         if (snapshot is not null) snapshots.Add(snapshot);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // 跳过损坏的快照文件
+                        _logger.LogDebug(ex , "跳过损坏的快照文件：{File}" , file);
                     }
                 }
             }
