@@ -232,7 +232,7 @@ namespace A_Pair.Application.Services
                 ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
                 : null;
             var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(workspace.Students.OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                string.Concat(workspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
             if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
             snapshotMeta["studentHash"] = studentHash;
@@ -400,7 +400,7 @@ namespace A_Pair.Application.Services
                 .Where(s => plan.Assignments.Values.Contains(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
             var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(_currentWorkspace.Students.OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
             var venueId = _currentLayout?.Id;
             if (!string.IsNullOrEmpty(venueId))
@@ -444,7 +444,21 @@ namespace A_Pair.Application.Services
                 try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
             }
 
-            // 回退：旧快照 LayoutId 为 "current"/"empty" 时，从嵌入布局恢复
+            // 验证加载的布局是否与快照匹配，不匹配则改用嵌入布局
+            if (layout != null && snapshot.Metadata.TryGetValue("venueHash" , out var snapVHash))
+            {
+                var expectedHash = snapVHash as string
+                    ?? (snapVHash is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.String
+                        ? je.GetString() : null);
+                if (expectedHash != null)
+                {
+                    var curHash = await _venueRepo.GetContentHashAsync(snapshot.LayoutId , cancellationToken);
+                    if (curHash != expectedHash)
+                        layout = null;
+                }
+            }
+
+            // 回退：从嵌入布局恢复
             if (layout == null && snapshot.Metadata.TryGetValue("venueLayout" , out var raw))
             {
                 var layoutJson = raw as string

@@ -225,7 +225,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             {
                 layout = DeserializeLayout(embeddedVenueLayout);
             }
-            else
+            // 嵌入布局无效时回退到加载会场文件
+            if (layout == null)
             {
                 layout = await _facade.LoadVenueAsync(snapshot.LayoutId);
             }
@@ -279,14 +280,12 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                     ? Resources.Snapshot_DataChangedText : VenueWarningText;
             }
 
-            // 补充检测：对比 studentHash（即便 ID 仍存在，姓名等属性变更也需告警）
-            // 注：存储的 studentHash 覆盖快照创建时的所有 workspace 学生；
-            // 当前数据集可能包含更多学生，可能产生误报，但偏向安全侧。
+            // 补充检测：对比 studentHash（仅对已分配座位的学生，检测姓名等属性变更）
             var storedStudentHash = GetMetaString(snapshot.Metadata , "studentHash");
             if (!string.IsNullOrEmpty(storedStudentHash))
             {
                 var currentStudentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                    string.Concat(allCurrentStudents.OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                    string.Concat(allCurrentStudents.Where(s => snapshotStudentIds.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
                 if (storedStudentHash != currentStudentHash)
                 {
                     IsDataChanged = true;
