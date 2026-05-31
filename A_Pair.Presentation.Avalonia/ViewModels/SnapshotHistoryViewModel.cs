@@ -425,7 +425,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         return value switch
         {
             string s => s ,
-            System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.String } je => je.GetString() ,
+            System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
+                ? je.GetString()
+                : je.GetRawText() ,
             _ => null
         };
     }

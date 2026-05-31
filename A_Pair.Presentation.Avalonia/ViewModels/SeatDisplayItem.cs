@@ -55,7 +55,7 @@ public partial class SeatDisplayItem : ObservableObject
     private bool _isDataStale;
 
     // ── 计算属性 ──
-    public string DisplayText => IsOccupied ? $"{StudentName ?? StudentId ?? ""} {SeatLabel}" : SeatLabel;
+    public string DisplayText => IsOccupied ? (StudentName ?? "") : SeatLabel;
 
     // ── Tooltip ──
     public string TooltipText => IsOccupied

@@ -86,7 +86,9 @@ namespace A_Pair.Application.Services
             return value switch
             {
                 string s => s ,
-                System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.String } je => je.GetString() ,
+                System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? je.GetString()
+                    : je.GetRawText() ,
                 _ => null
             };
         }
@@ -255,7 +257,7 @@ namespace A_Pair.Application.Services
             {
                 var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(request.LayoutId , cancellationToken);
                 if (rawVenueJson != null)
-                    snapshotMeta["venueFile"] = rawVenueJson;
+                    snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
             }
             var snapshot = new SeatingSnapshot
             {
@@ -427,7 +429,7 @@ namespace A_Pair.Application.Services
                 if (vh != null) snapshotMeta["venueHash"] = vh;
                 var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(venueId , cancellationToken);
                 if (rawVenueJson != null)
-                    snapshotMeta["venueFile"] = rawVenueJson;
+                    snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
             }
             var snapshot = new SeatingSnapshot
             {
