@@ -334,7 +334,10 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             {
                 bool occupied = assignments.TryGetValue(seat.Id , out var sid) && !string.IsNullOrEmpty(sid);
                 studentNames.TryGetValue(sid ?? "" , out var sname);
-                bool isDataStale = occupied && missingIds.Contains(sid!);
+                // ID 不存在 或 姓名已变更 → 数据过期
+                bool isDataStale = occupied && (missingIds.Contains(sid!)
+                    || (sname != null && allCurrentStudents.FirstOrDefault(s => s.Id == sid)?.Name is string curName
+                        && curName != sname));
                 seats.Add(new SeatDisplayItem
                 {
                     X = (cx + offsetX) * scale ,

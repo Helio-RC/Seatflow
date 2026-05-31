@@ -455,37 +455,21 @@ namespace A_Pair.Application.Services
                 try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}"); } catch { }
             }
 
-            // 加载快照对应的会场布局（无论是否已有工作区都重新加载，确保座位 ID 匹配）
+            // 优先使用快照中嵌入的会场布局（自包含，不依赖外部会场文件）
             ClassroomLayoutDefinition? layout = null;
-            if (!string.IsNullOrEmpty(snapshot.LayoutId)
+            var venueFileJson = GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
+                ?? GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+            if (!string.IsNullOrEmpty(venueFileJson))
+                layout = DeserializeVenueFromEmbeddedJson(venueFileJson);
+
+            // 无嵌入时回退到加载会场文件
+            if (layout == null
+                && !string.IsNullOrEmpty(snapshot.LayoutId)
                 && snapshot.LayoutId != "unknown"
                 && snapshot.LayoutId != "empty"
                 && snapshot.LayoutId != "current")
             {
                 try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
-            }
-
-            // 验证加载的布局是否与快照匹配，不匹配则改用嵌入布局
-            if (layout != null && snapshot.Metadata.TryGetValue("venueHash" , out var snapVHash))
-            {
-                var expectedHash = snapVHash as string
-                    ?? (snapVHash is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.String
-                        ? je.GetString() : null);
-                if (expectedHash != null)
-                {
-                    var curHash = await _venueRepo.GetContentHashAsync(snapshot.LayoutId , cancellationToken);
-                    if (curHash != expectedHash)
-                        layout = null;
-                }
-            }
-
-            // 回退：从嵌入的会场文件内容恢复（优先新格式 venueFile，兼容旧格式 venueLayout）
-            if (layout == null)
-            {
-                var venueFileJson = GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
-                    ?? GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
-                if (!string.IsNullOrEmpty(venueFileJson))
-                    layout = DeserializeVenueFromEmbeddedJson(venueFileJson);
             }
 
             _currentLayout = layout;
