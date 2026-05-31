@@ -374,6 +374,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             _logger.LogWarning(ex , "快照预览构建失败");
         }
 
+        // 障碍物追加到座位末尾，渲染在上层
+        foreach (var o in overlays)
+            seats.Add(o);
         PreviewSeats = seats;
         PreviewOverlays = overlays;
     }

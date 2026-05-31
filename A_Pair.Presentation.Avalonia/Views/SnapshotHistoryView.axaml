@@ -303,63 +303,35 @@
                   <StackPanel Spacing="8">
                     <TextBlock Text="{x:Static lang:Resources.Snapshot_Preview}" FontSize="13" FontWeight="SemiBold"/>
                     <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Auto">
-                      <Canvas Width="{Binding PreviewCanvasWidth}"
-                              Height="{Binding PreviewCanvasHeight}">
-                        <!-- 座位层 -->
-                        <ItemsControl ItemsSource="{Binding PreviewSeats}">
-                          <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><Canvas/></ItemsPanelTemplate>
-                          </ItemsControl.ItemsPanel>
-                          <ItemsControl.Styles>
-                            <Style Selector="ContentPresenter">
-                              <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                              <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                            </Style>
-                          </ItemsControl.Styles>
-                          <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:SeatDisplayItem">
-                              <Border Width="{Binding Width}" Height="{Binding Height}"
-                                      CornerRadius="{Binding CornerRadius}" BorderThickness="1"
-                                      Background="{Binding BackgroundBrush}"
-                                      BorderBrush="{Binding BorderBrush}"
-                                      ToolTip.Tip="{Binding TooltipText}">
-                                <TextBlock Text="{Binding DisplayText}"
-                                           FontSize="8" Margin="1"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"/>
-                              </Border>
-                            </DataTemplate>
-                          </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <!-- 障碍物/讲台/门层 -->
-                        <ItemsControl ItemsSource="{Binding PreviewOverlays}">
-                          <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><Canvas/></ItemsPanelTemplate>
-                          </ItemsControl.ItemsPanel>
-                          <ItemsControl.Styles>
-                            <Style Selector="ContentPresenter">
-                              <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                              <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
-                            </Style>
-                          </ItemsControl.Styles>
-                          <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:SeatDisplayItem">
-                              <Border Width="{Binding Width}" Height="{Binding Height}"
-                                      CornerRadius="{Binding CornerRadius}" BorderThickness="1"
-                                      Background="{Binding BackgroundBrush}"
-                                      BorderBrush="{Binding BorderBrush}"
-                                      ToolTip.Tip="{Binding TooltipText}">
-                                <TextBlock Text="{Binding DisplayText}"
-                                           FontSize="8" Margin="1"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"/>
-                              </Border>
-                            </DataTemplate>
-                          </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                      </Canvas>
+                      <ItemsControl ItemsSource="{Binding PreviewSeats}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <Canvas Width="{Binding PreviewCanvasWidth}"
+                                    Height="{Binding PreviewCanvasHeight}"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.Styles>
+                          <Style Selector="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                          </Style>
+                        </ItemsControl.Styles>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:SeatDisplayItem">
+                            <Border Width="{Binding Width}" Height="{Binding Height}"
+                                    CornerRadius="{Binding CornerRadius}" BorderThickness="1"
+                                    Background="{Binding BackgroundBrush}"
+                                    BorderBrush="{Binding BorderBrush}"
+                                    ToolTip.Tip="{Binding TooltipText}">
+                              <TextBlock Text="{Binding DisplayText}"
+                                         FontSize="8" Margin="1"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"
+                                         TextTrimming="CharacterEllipsis"/>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
                     </ScrollViewer>
                   </StackPanel>
                 </Border>
