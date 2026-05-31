@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
@@ -24,44 +26,57 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IDialogService _dialog;
     private readonly ILogger<SettingsViewModel> _logger;
 
-    // ---- 外观 ----
-
     [ObservableProperty]
     private ThemeMode _theme;
 
     [ObservableProperty]
     private int _themeIndex;
 
-    public List<string> ThemeOptions { get; } = ["跟随系统" , "浅色" , "深色"];
-
-    // ---- 语言 ----
+    public List<string> ThemeOptions { get; } = [Resources.Theme_System , Resources.Theme_Light , Resources.Theme_Dark];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedLanguage))]
     private string _language = string.Empty;
 
-    // ---- 数据目录 ----
+    public List<LanguageOption> LanguageOptions { get; } =
+    [
+        new("", () => Resources.Lang_System) ,
+        new("zh-CN", () => Resources.Lang_zhCN) ,
+        new("en-US", () => Resources.Lang_enUS) ,
+    ];
+
+    private LanguageOption? _selectedLanguage;
+
+    public LanguageOption? SelectedLanguage
+    {
+        get => _selectedLanguage ?? LanguageOptions.Find(static o => o.Code == "");
+        set
+        {
+            if (SetProperty(ref _selectedLanguage , value))
+                Language = value?.Code ?? "";
+        }
+    }
 
     [ObservableProperty]
     private string _dataDirectory = string.Empty;
 
-    // ---- 清除确认 ----
-
     [ObservableProperty]
     private bool _confirmBeforeClear = true;
-
-    // ---- 默认缩放 ----
 
     [ObservableProperty]
     private int _zoomIndex = 1;
 
-    public List<string> ZoomOptions { get; } = ["75%" , "100%" , "125%" , "150%"];
+    public List<string> ZoomOptions { get; } = [Resources.Zoom_75 , Resources.Zoom_100 , Resources.Zoom_125 , Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
-
-    // ---- 通用 ----
+    private int _dialogLock;
+    private string _originalLanguage = string.Empty;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
+
+    [ObservableProperty]
+    private int _maxSnapshotsPerVenue = 30;
 
     [ObservableProperty]
     private bool _isSaving;
@@ -84,6 +99,10 @@ public partial class SettingsViewModel : ViewModelBase
             ThemeIndex = Theme switch { ThemeMode.Light => 1, ThemeMode.Dark => 2, _ => 0 };
 
             Language = settings.Language;
+            _originalLanguage = settings.Language;
+            _selectedLanguage = LanguageOptions.FirstOrDefault(o => o.Code == Language);
+            OnPropertyChanged(nameof(SelectedLanguage));
+
             DataDirectory = settings.DataDirectory;
 
             ConfirmBeforeClear = settings.ConfirmBeforeClear;
@@ -91,14 +110,24 @@ public partial class SettingsViewModel : ViewModelBase
             _defaultZoomLevel = settings.DefaultZoomLevel;
             ZoomIndex = _defaultZoomLevel switch { 0.75 => 0, 1.0 => 1, 1.25 => 2, 1.5 => 3, _ => 1 };
 
+            MaxSnapshotsPerVenue = settings.MaxSnapshotsPerVenue;
+
         }
         catch
         {
-            StatusMessage = "加载设置失败，将使用默认值";
+            StatusMessage = Resources.Settings_LoadFailed;
         }
     }
 
-    // ---- Index → Value 映射 ----
+    partial void OnLanguageChanged (string value)
+    {
+        var option = LanguageOptions.FirstOrDefault(o => o.Code == value);
+        if (option != null && !ReferenceEquals(option , _selectedLanguage))
+        {
+            _selectedLanguage = option;
+            OnPropertyChanged(nameof(SelectedLanguage));
+        }
+    }
 
     partial void OnThemeIndexChanged (int value)
     {
@@ -123,17 +152,14 @@ public partial class SettingsViewModel : ViewModelBase
         _defaultZoomLevel = zoom;
     }
 
-    // ---- 命令 ----
-
     [RelayCommand]
     private async Task SaveSettingsAsync (CancellationToken ct)
     {
         try
         {
             IsSaving = true;
-            StatusMessage = "正在保存...";
+            StatusMessage = Resources.Settings_Saving;
 
-            // 保留已有的窗口状态，避免覆盖
             var existing = await _facade.LoadAppSettingsAsync(ct);
 
             var settings = new AppSettings
@@ -143,16 +169,37 @@ public partial class SettingsViewModel : ViewModelBase
                 Language = Language ,
                 DataDirectory = DataDirectory ,
                 ConfirmBeforeClear = ConfirmBeforeClear ,
-                DefaultZoomLevel = _defaultZoomLevel
+                DefaultZoomLevel = _defaultZoomLevel ,
+                MaxSnapshotsPerVenue = MaxSnapshotsPerVenue
             };
 
             await _facade.SaveAppSettingsAsync(settings , ct);
-            StatusMessage = "设置已保存";
+
+            var langChanged = !string.Equals(_originalLanguage , Language , StringComparison.Ordinal);
+            _originalLanguage = Language;
+
+            if (langChanged)
+            {
+                var clicked = await _dialog.ShowMultiOptionAsync(
+                    Resources.Settings_LangChangedTitle ,
+                    Resources.Settings_LangChangedMessage ,
+                    Resources.Settings_LangChangedRestart ,
+                    Resources.Common_Later);
+                if (clicked == 0)
+                {
+                    Process.Start(Environment.ProcessPath!);
+                    if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                        desktop.Shutdown();
+                    return;
+                }
+            }
+
+            StatusMessage = Resources.Settings_Saved;
         }
         catch (Exception ex)
         {
-            StatusMessage = "保存失败";
-            await _dialog.ShowErrorAsync("保存设置失败" , ex.Message);
+            StatusMessage = Resources.Settings_SaveFailed;
+            await _dialog.ShowErrorAsync(Resources.Settings_SaveFailed , ex.Message);
         }
         finally
         {
@@ -163,41 +210,47 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task ResetDefaultsAsync ()
     {
-        var confirmed = await _dialog.ShowConfirmAsync("重置设置" , "确定要恢复所有设置为默认值吗？");
+        var confirmed = await _dialog.ShowConfirmAsync(Resources.Settings_ResetTitle , Resources.Settings_ResetConfirm);
         if (!confirmed) return;
 
         ThemeIndex = 0;
-        Language = string.Empty;
+        Language = "";
         DataDirectory = string.Empty;
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
-        StatusMessage = "已恢复默认值（尚未保存）";
+        StatusMessage = Resources.Settings_ResetDone;
     }
 
     [RelayCommand]
     private async Task BrowseDataDirectoryAsync (CancellationToken ct)
     {
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
         {
-            if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                return;
-
-            var storageProvider = desktop.MainWindow?.StorageProvider;
-            if (storageProvider is null) return;
-
-            var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            try
             {
-                Title = "选择数据目录" ,
-                AllowMultiple = false
-            });
+                if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                    return;
 
-            if (folders.Count > 0)
-                DataDirectory = folders[0].Path.LocalPath;
+                var storageProvider = desktop.MainWindow?.StorageProvider;
+                if (storageProvider is null) return;
+
+                var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = Resources.Settings_FolderTitle ,
+                    AllowMultiple = false
+                });
+
+                if (folders.Count > 0)
+                    DataDirectory = folders[0].Path.LocalPath;
+            }
+            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger?.LogDebug(ex , "目录选择取消"); }
+            catch (Exception ex)
+            {
+                await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
+            }
         }
-        catch (Exception ex)
-        {
-            await _dialog.ShowErrorAsync("选择目录失败" , ex.Message);
-        }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]
@@ -212,11 +265,31 @@ public partial class SettingsViewModel : ViewModelBase
             if (Directory.Exists(path))
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             else
-                _ = _dialog.ShowWarningAsync("目录不存在" , $"数据目录不存在：\n{path}");
+                _ = _dialog.ShowWarningAsync(Resources.Settings_DirNotFound ,
+                    string.Format(Resources.Settings_DirNotFoundFormat , path));
         }
         catch (Exception ex)
         {
-            _ = _dialog.ShowErrorAsync("打开目录失败" , ex.Message);
+            _ = _dialog.ShowErrorAsync(Resources.Settings_OpenDirFailed , ex.Message);
         }
     }
+}
+
+public sealed record LanguageOption
+{
+    private readonly Func<string> _displayNameProvider;
+
+    public string Code { get; }
+    public string DisplayName => _displayNameProvider();
+
+    public LanguageOption (string code , Func<string> displayNameProvider)
+    {
+        Code = code;
+        _displayNameProvider = displayNameProvider;
+    }
+
+    public override string ToString () => DisplayName;
+
+    public bool Equals (LanguageOption? other) => other is not null && Code == other.Code;
+    public override int GetHashCode () => Code.GetHashCode();
 }

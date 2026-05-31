@@ -1,3 +1,4 @@
+using System.Text.Json;
 using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
@@ -11,6 +12,7 @@ using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Infrastructure.Providers;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -57,7 +59,39 @@ namespace A_Pair.Application.Services
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private SeatingWorkspace? _currentWorkspace;
         private ClassroomLayoutDefinition? _currentLayout;
-        private List<ISeatingStrategy>? _cachedStrategies; // 策略为 Singleton，缓存避免重复物化
+        private List<ISeatingStrategy>? _cachedStrategies;
+
+        private static readonly JsonSerializerOptions VenueFileReadOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        static ApplicationFacade ()
+        {
+            VenueFileReadOptions.Converters.Add(new SeatJsonConverter());
+        }
+
+        private static ClassroomLayoutDefinition? DeserializeVenueFromEmbeddedJson (string json)
+        {
+            // venueFile 格式（VenueFile 包装）
+            var venueFile = JsonSerializer.Deserialize<VenueFile>(json , VenueFileReadOptions);
+            if (venueFile?.Layout != null)
+                return venueFile.Layout;
+            // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）
+            return JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueFileReadOptions);
+        }
+
+        private static string? GetMetaStringFromMetadata (Dictionary<string , object> meta , string key)
+        {
+            if (!meta.TryGetValue(key , out var value) || value is null) return null;
+            return value switch
+            {
+                string s => s ,
+                System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? je.GetString()
+                    : je.GetRawText() ,
+                _ => null
+            };
+        }
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -78,6 +112,10 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default)
             => _venueRepo.LoadAsync(venueId , cancellationToken);
+
+        /// <inheritdoc />
+        public Task<string?> GetVenueHashAsync (string venueId , CancellationToken ct = default)
+            => _venueRepo.GetContentHashAsync(venueId , ct);
 
         /// <inheritdoc />
         public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
@@ -202,16 +240,39 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 9. 保存快照
+            // 9. 保存快照（含内容哈希用于完整性检测）
+            var studentNames = workspace.Students
+                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .ToDictionary(s => s.Id , s => s.Name);
+            var venueHash = request.LayoutId != null
+                ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
+                : null;
+            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+                string.Concat(workspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
+            if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
+            snapshotMeta["studentHash"] = studentHash;
+            // 嵌入会场原始文件内容：预览和回滚不依赖外部会场文件
+            if (!string.IsNullOrEmpty(request.LayoutId))
+            {
+                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(request.LayoutId , cancellationToken);
+                if (rawVenueJson != null)
+                    snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
+            }
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
                 LayoutId = request.LayoutId ?? "unknown" ,
-                SeatAssignments = plan.Assignments
+                SeatAssignments = plan.Assignments ,
+                Metadata = snapshotMeta
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
 
-            // 9b. 保存会场摘要到快照目录
+            // 9b. 轮转旧快照
+            if (!string.IsNullOrEmpty(request.LayoutId))
+                await RotateSnapshotsAsync(request.LayoutId , cancellationToken);
+
+            // 9c. 保存会场摘要到快照目录
             if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
             {
                 await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId , new VenueSnapshotInfo
@@ -289,6 +350,53 @@ namespace A_Pair.Application.Services
             => Task.FromResult(_currentLayout);
 
         /// <inheritdoc />
+        public void ClearWorkspace ()
+        {
+            _currentWorkspace = null;
+            _currentLayout = null;
+        }
+
+        /// <summary>轮转旧快照：超出上限删除最旧的。</summary>
+        private async Task RotateSnapshotsAsync (string venueId , CancellationToken ct)
+        {
+            var settings = await _appSettingsRepo.LoadAsync(ct);
+            int max = settings.MaxSnapshotsPerVenue;
+            if (max <= 0) return;
+
+            var snapshots = (await _snapshotRepository.ListByVenueAsync(venueId , ct))
+                .OrderBy(s => s.CreatedAt).ToList();
+            while (snapshots.Count > max)
+            {
+                try { await _snapshotRepository.DeleteAsync(snapshots[0].Id , ct); }
+                catch (Exception ex) { logger.LogWarning(ex , "快照轮转删除失败：{Id}" , snapshots[0].Id); }
+                snapshots.RemoveAt(0);
+            }
+        }
+
+        /// <summary>检查快照关联会场的完整性。返回 (exists, hashMatch)。</summary>
+        public async Task<(bool Exists , bool HashMatch)> CheckVenueIntegrityAsync (
+            string venueId , string? snapshotVenueHash , CancellationToken ct = default)
+        {
+            var curHash = await _venueRepo.GetContentHashAsync(venueId , ct);
+            if (curHash == null) return (false , false); // 会场文件不存在
+            if (snapshotVenueHash == null) return (true , true); // 旧快照无哈希，默认匹配
+            return (true , curHash == snapshotVenueHash);
+        }
+
+        /// <summary>将快照中嵌入的会场布局恢复/导入为会场文件。</summary>
+        public async Task<string> ImportVenueFromSnapshotAsync (
+            string venueLayoutJson , string? newName = null , CancellationToken ct = default)
+        {
+            var layout = DeserializeVenueFromEmbeddedJson(venueLayoutJson)
+                ?? throw new InvalidOperationException("无法反序列化快照中的会场布局");
+            var venueId = Guid.NewGuid().ToString("N")[..8];
+            layout.Id = venueId;
+            if (newName != null) layout.Name = newName;
+            await _venueRepo.SaveAsync(venueId , layout , ct);
+            return venueId;
+        }
+
+        /// <inheritdoc />
         public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照
@@ -308,13 +416,31 @@ namespace A_Pair.Application.Services
             if (_currentWorkspace == null) return null;
 
             var plan = _currentWorkspace.BuildSeatingPlan();
+            var studentNames = _currentWorkspace.Students
+                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .ToDictionary(s => s.Id , s => s.Name);
+            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+                string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
+            var venueId = _currentLayout?.Id;
+            if (!string.IsNullOrEmpty(venueId))
+            {
+                var vh = await _venueRepo.GetContentHashAsync(venueId , cancellationToken);
+                if (vh != null) snapshotMeta["venueHash"] = vh;
+                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(venueId , cancellationToken);
+                if (rawVenueJson != null)
+                    snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
+            }
             var snapshot = new SeatingSnapshot
             {
                 Description = description ,
-                LayoutId = plan.Assignments.Count > 0 ? "current" : "empty" ,
-                SeatAssignments = plan.Assignments
+                LayoutId = venueId ?? (plan.Assignments.Count > 0 ? "current" : "empty") ,
+                SeatAssignments = plan.Assignments ,
+                Metadata = snapshotMeta
             };
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
+            if (!string.IsNullOrEmpty(venueId))
+                await RotateSnapshotsAsync(venueId , cancellationToken);
             return snapshot;
         }
 
@@ -329,9 +455,16 @@ namespace A_Pair.Application.Services
                 try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}"); } catch { }
             }
 
-            // 加载快照对应的会场布局（无论是否已有工作区都重新加载，确保座位 ID 匹配）
+            // 优先使用快照中嵌入的会场布局（自包含，不依赖外部会场文件）
             ClassroomLayoutDefinition? layout = null;
-            if (!string.IsNullOrEmpty(snapshot.LayoutId)
+            var venueFileJson = GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
+                ?? GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+            if (!string.IsNullOrEmpty(venueFileJson))
+                layout = DeserializeVenueFromEmbeddedJson(venueFileJson);
+
+            // 无嵌入时回退到加载会场文件
+            if (layout == null
+                && !string.IsNullOrEmpty(snapshot.LayoutId)
                 && snapshot.LayoutId != "unknown"
                 && snapshot.LayoutId != "empty"
                 && snapshot.LayoutId != "current")
@@ -343,7 +476,7 @@ namespace A_Pair.Application.Services
 
             var seats = layout?.Seats ?? new List<Seat>();
             var studentIds = snapshot.SeatAssignments.Values
-                .Where(v => v != null)
+                .Where(v => !string.IsNullOrEmpty(v))
                 .Distinct()
                 .ToList();
             var students = await BuildStudentsForSnapshotAsync(studentIds , cancellationToken);
@@ -404,6 +537,10 @@ namespace A_Pair.Application.Services
             => _datasetRepo.DeleteAsync(id , ct);
 
         /// <inheritdoc />
+        public Task RenameStudentDatasetAsync (string id , string newName , CancellationToken ct = default)
+            => _datasetRepo.RenameAsync(id , newName , ct);
+
+        /// <inheritdoc />
         public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default)
         {
             var persisted = await _strategyConfigRepo.LoadAllAsync(ct);
@@ -451,13 +588,18 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
+            // 如果 Parameters 为 null（仅保存优先级/开关），保留已有参数
+            if (config.Parameters == null)
+            {
+                var existing = await _strategyConfigRepo.LoadAsync(strategyId , ct);
+                config.Parameters = existing?.Parameters ?? [];
+            }
+
             logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}" ,
                 strategyId , config.Priority , config.IsEnabled);
 
-            // 持久化到文件
             await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
 
-            // 更新运行时内置策略实例
             var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
@@ -532,21 +674,33 @@ namespace A_Pair.Application.Services
             switch (strategy)
             {
                 case FrontRowRotationStrategy fr:
-                    if (parameters.TryGetValue("HistoryWeight" , out var hw) && hw is int hwi)
-                        fr.Config.HistoryWeight = hwi;
-                    if (parameters.TryGetValue("NeedsFrontRowBonus" , out var nb) && nb is int nbi)
-                        fr.Config.NeedsFrontRowBonus = nbi;
-                    if (parameters.TryGetValue("FrontRowCount" , out var fc) && fc is int fci)
-                        fr.Config.FrontRowCount = fci;
+                    fr.Config.HistoryWeight = GetParamInt(parameters , "HistoryWeight");
+                    fr.Config.NeedsFrontRowBonus = GetParamInt(parameters , "NeedsFrontRowBonus");
+                    fr.Config.FrontRowCount = GetParamInt(parameters , "FrontRowCount");
                     break;
 
                 case DeskMateStrategy d:
-                    if (parameters.TryGetValue("PreferHorizontal" , out var ph) && ph is bool phb)
-                        d.Config.PreferHorizontal = phb;
-                    if (parameters.TryGetValue("AllowVertical" , out var av) && av is bool avb)
-                        d.Config.AllowVertical = avb;
+                    d.Config.PreferHorizontal = GetParamBool(parameters , "PreferHorizontal");
+                    d.Config.AllowVertical = GetParamBool(parameters , "AllowVertical");
                     break;
             }
+        }
+
+        private static int GetParamInt (Dictionary<string , object?> p , string key)
+        {
+            if (!p.TryGetValue(key , out var v) || v is null) return 0;
+            if (v is int i) return i;
+            if (v is JsonElement je && je.ValueKind == JsonValueKind.Number) return je.GetInt32();
+            return 0;
+        }
+
+        private static bool GetParamBool (Dictionary<string , object?> p , string key)
+        {
+            if (!p.TryGetValue(key , out var v) || v is null) return false;
+            if (v is bool b) return b;
+            if (v is JsonElement je)
+                return je.ValueKind == JsonValueKind.True;
+            return false;
         }
 
         #endregion
@@ -581,7 +735,28 @@ namespace A_Pair.Application.Services
         {
             int rows = GetParameter(parameters , "Rows" , 3);
             int columns = GetParameter(parameters , "Columns" , 3);
-            return GridLayoutBuilder.BuildGrid(rows , columns);
+            var meta = new GridLayoutMetadata
+            {
+                Rows = rows ,
+                Columns = columns ,
+                SeatsPerDesk = GetParameter(parameters , "SeatsPerDesk" , 1) ,
+                HorizontalSpacing = GetParameter(parameters , "HorizontalSpacing" , 1.0) ,
+                VerticalSpacing = GetParameter(parameters , "VerticalSpacing" , 1.0) ,
+                IntraDeskSpacing = GetParameter(parameters , "IntraDeskSpacing" , 0.0) ,
+                InterDeskSpacing = GetParameter(parameters , "InterDeskSpacing" , 10.0) ,
+                OriginX = GetParameter(parameters , "OriginX" , 0.0) ,
+                OriginY = GetParameter(parameters , "OriginY" , 0.0) ,
+                ColumnRowCounts = GetParameter<List<int>>(parameters , "ColumnRowCounts" , []) ,
+                AisleAfterColumns = GetParameter<List<int>>(parameters , "AisleAfterColumns" , []) ,
+                AisleAfterRows = GetParameter<List<int>>(parameters , "AisleAfterRows" , []) ,
+                AisleWidth = GetParameter(parameters , "AisleWidth" , 0.0) ,
+                FrontRowCount = GetParameter(parameters , "FrontRowCount" , 1) ,
+                HasPodium = GetParameter(parameters , "HasPodium" , false) ,
+                PodiumWidth = GetParameter(parameters , "PodiumWidth" , 0.0) ,
+                PodiumHeight = GetParameter(parameters , "PodiumHeight" , 0.0) ,
+                EmptyPositions = GetParameter<List<GridPosition>>(parameters , "EmptyPositions" , [])
+            };
+            return GridLayoutBuilder.BuildGrid(meta);
         }
 
         /// <summary>
@@ -591,10 +766,17 @@ namespace A_Pair.Application.Services
         /// <returns>极坐标布局定义。</returns>
         private ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
         {
-            double radiusStep = GetParameter(parameters , "RadiusStep" , 1.0);
-            int rings = GetParameter(parameters , "Rings" , 2);
-            int seatsPerRing = GetParameter(parameters , "SeatsPerRing" , 8);
-            return PolarLayoutBuilder.BuildPolar(radiusStep , rings , seatsPerRing);
+            var meta = new PolarLayoutMetadata
+            {
+                RadiusStep = GetParameter(parameters , "RadiusStep" , 1.0) ,
+                Rings = GetParameter(parameters , "Rings" , 2) ,
+                SeatsPerRing = GetParameter(parameters , "SeatsPerRing" , 8) ,
+                RingSeatCounts = GetParameter<List<int>>(parameters , "RingSeatCounts" , []) ,
+                StartAngleDegrees = GetParameter(parameters , "StartAngleDegrees" , 0.0) ,
+                EndAngleDegrees = GetParameter(parameters , "EndAngleDegrees" , 180.0) ,
+                EmptyPositions = GetParameter<List<PolarRingAngle>>(parameters , "EmptyPositions" , [])
+            };
+            return PolarLayoutBuilder.BuildPolar(meta);
         }
 
         /// <summary>
@@ -604,7 +786,7 @@ namespace A_Pair.Application.Services
         /// <returns>自由形式布局定义。</returns>
         private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
-            var points = new List<(double X , double Y)>();
+            var points = new List<(double X , double Y , int? Row , int? Column , int? GroupId)>();
             if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
             {
                 foreach (var item in list)
@@ -613,7 +795,10 @@ namespace A_Pair.Application.Services
                     {
                         double x = GetParameter(dict , "X" , 0.0);
                         double y = GetParameter(dict , "Y" , 0.0);
-                        points.Add((x , y));
+                        int? row = dict.ContainsKey("Row") ? GetParameter<int>(dict , "Row" , 0) : null;
+                        int? col = dict.ContainsKey("Column") ? GetParameter<int>(dict , "Column" , 0) : null;
+                        int? groupId = dict.ContainsKey("GroupId") ? GetParameter<int>(dict , "GroupId" , 0) : null;
+                        points.Add((x , y , row , col , groupId));
                     }
                 }
             }

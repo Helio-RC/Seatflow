@@ -17,7 +17,7 @@ public class CsvStudentProvider : IStudentProvider
 {
     private static readonly CsvConfiguration Config = new(CultureInfo.InvariantCulture)
     {
-        ShouldSkipRecord = args => args.Row.Context.Parser.Row == 2 // 跳过第 2 行（注释行）
+        ShouldSkipRecord = args => args.Row?.Context?.Parser?.Row == 2 // 跳过第 2 行（注释行）
     };
 
     public Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)

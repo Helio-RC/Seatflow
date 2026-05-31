@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using A_Pair.Presentation.Avalonia.Lang;
 
 namespace A_Pair.Presentation.Avalonia.Services;
 
@@ -13,14 +14,12 @@ internal static class StartupGuard
 
         if (major < 10)
         {
-            sb.AppendLine($"检测到 .NET 运行时版本 {Environment.Version}，建议使用 .NET 10.0 或更高版本。");
+            sb.AppendLine(string.Format(Resources.Startup_DotNetVersion , Environment.Version));
         }
 
         if (!IsSupportedOS())
         {
-            sb.Append("当前操作系统 ");
-            sb.Append(RuntimeInformation.OSDescription);
-            sb.Append(" 未经完整测试，可能出现兼容性问题。");
+            sb.Append(string.Format(Resources.Startup_UnsupportedOS , RuntimeInformation.OSDescription));
         }
 
         var message = sb.ToString().TrimEnd();

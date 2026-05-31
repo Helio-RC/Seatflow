@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:fic="using:FluentIcons.Avalonia"
@@ -30,7 +31,7 @@
 
       <DockPanel Margin="8">
         <!-- 标题 -->
-        <TextBlock DockPanel.Dock="Top" Text="策略列表" Classes="sectionTitle"
+        <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Strategy_List}" Classes="sectionTitle"
                    Margin="0,0,0,8" />
 
         <!-- 底部操作按钮 -->
@@ -47,37 +48,37 @@
               </StackPanel.Transitions>
               <Button Command="{Binding MoveUpCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
-                      AutomationProperties.Name="提高优先级"
+                      AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveUp}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
-                  <TextBlock Text="提高优先级" FontSize="13" />
+                  <TextBlock Text="{x:Static lang:Resources.Strategy_MoveUp}" FontSize="13" />
                 </StackPanel>
               </Button>
               <Button Command="{Binding MoveDownCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
-                      AutomationProperties.Name="降低优先级"
+                      AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveDown}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
-                  <TextBlock Text="降低优先级" FontSize="13" />
+                  <TextBlock Text="{x:Static lang:Resources.Strategy_MoveDown}" FontSize="13" />
                 </StackPanel>
               </Button>
               <Separator Margin="0,2" />
               <Button Command="{Binding SaveAllCommand}"
                       IsEnabled="{Binding HasChanges}"
-                      AutomationProperties.Name="保存策略更改"
+                      AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
-                  <TextBlock Text="保存更改" FontSize="13" />
+                  <TextBlock Text="{x:Static lang:Resources.Strategy_SaveChanges}" FontSize="13" />
                 </StackPanel>
               </Button>
               <Button Command="{Binding ToggleSidebarCommand}"
                       HorizontalContentAlignment="Left" Padding="8,5">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" />
-                  <TextBlock Text="收起侧栏" FontSize="13" />
+                  <TextBlock Text="{x:Static lang:Resources.Nav_CollapseSidebar}" FontSize="13" />
                 </StackPanel>
               </Button>
             </StackPanel>
@@ -93,21 +94,21 @@
               </StackPanel.Transitions>
               <Button Command="{Binding MoveUpCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
-                      ToolTip.Tip="提高优先级" HorizontalAlignment="Center">
+                      ToolTip.Tip="{x:Static lang:Resources.Strategy_MoveUp}" HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
               </Button>
               <Button Command="{Binding MoveDownCommand}"
                       CommandParameter="{Binding SelectedStrategy}"
-                      ToolTip.Tip="降低优先级" HorizontalAlignment="Center">
+                      ToolTip.Tip="{x:Static lang:Resources.Strategy_MoveDown}" HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
               </Button>
               <Button Command="{Binding SaveAllCommand}"
                       IsEnabled="{Binding HasChanges}"
-                      ToolTip.Tip="保存更改" HorizontalAlignment="Center">
+                      ToolTip.Tip="{x:Static lang:Resources.Strategy_SaveChanges}" HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
               </Button>
               <Button Command="{Binding ToggleSidebarCommand}"
-                      ToolTip.Tip="展开侧栏" HorizontalAlignment="Center">
+                      ToolTip.Tip="{x:Static lang:Resources.Nav_ExpandSidebar}" HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" />
               </Button>
             </StackPanel>
@@ -120,12 +121,12 @@
                  BorderThickness="0"
                  Background="{DynamicResource SidebarBackgroundBrush}">
           <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:StrategyItemViewModel" x:CompileBindings="False">
+            <DataTemplate x:DataType="vm:StrategyItemViewModel">
               <Border Padding="8,6" CornerRadius="4">
                 <Grid>
                   <!-- 展开状态：ToggleSwitch + 名称 + 优先级 -->
-                  <DockPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                             IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarExpanded}">
+                  <DockPanel Opacity="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                             IsHitTestVisible="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded}">
                     <DockPanel.Transitions>
                       <Transitions>
                         <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
@@ -139,22 +140,19 @@
                                  TextTrimming="CharacterEllipsis" FontSize="13" />
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <TextBlock FontSize="11"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-                          <TextBlock.Text>
-                            <Binding Path="Priority" StringFormat="优先级: {0}" />
-                          </TextBlock.Text>
-                        </TextBlock>
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Text="{Binding PriorityDisplay}" />
                         <Border CornerRadius="2" Padding="4,1"
                                 Background="{DynamicResource SystemControlAccentBrush}"
                                 IsVisible="{Binding IsBuiltIn, Converter={x:Static conv:BoolConverters.Negate}}">
-                          <TextBlock Text="插件" FontSize="9" Foreground="White" />
+                          <TextBlock Text="{x:Static lang:Resources.Strategy_Plugin}" FontSize="9" Foreground="White" />
                         </Border>
                       </StackPanel>
                     </StackPanel>
                   </DockPanel>
                   <!-- 折叠状态：名称 + CheckBox（单选模式） -->
-                  <StackPanel Opacity="{Binding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                              IsHitTestVisible="{Binding $parent[ListBox].DataContext.IsSidebarCollapsed}" Orientation="Horizontal"
+                  <StackPanel Opacity="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                              IsHitTestVisible="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarCollapsed}" Orientation="Horizontal"
                               HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
                     <StackPanel.Transitions>
                       <Transitions>
@@ -165,7 +163,7 @@
                                TextTrimming="CharacterEllipsis" FontSize="13"
                                HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                              ToolTip.Tip="{Binding DisplayName, StringFormat='启用 {0}'}"
+                              ToolTip.Tip="{Binding EnableTooltipDisplay}"
                               HorizontalAlignment="Right" VerticalAlignment="Center" />
                   </StackPanel>
                 </Grid>
@@ -191,8 +189,8 @@
           <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="48"
                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                           HorizontalAlignment="Center" />
-          <TextBlock Text="请从左侧选择策略" Classes="sectionTitle" HorizontalAlignment="Center" />
-          <TextBlock Text="选择一个策略以查看详情和编辑配置" FontSize="12"
+          <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint2}" Classes="sectionTitle" HorizontalAlignment="Center" />
+          <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint}" FontSize="12"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                      HorizontalAlignment="Center" />
         </StackPanel>
@@ -211,7 +209,7 @@
                 <Border DockPanel.Dock="Right" CornerRadius="4" Padding="8,3"
                         Background="{DynamicResource SystemControlAccentBrush}"
                         VerticalAlignment="Center">
-                  <TextBlock Text="{Binding SelectedDetail.Source, StringFormat='来源: {0}'}"
+                  <TextBlock Text="{Binding DetailSourceDisplay}"
                              FontSize="11" Foreground="White" />
                 </Border>
               </DockPanel>
@@ -219,21 +217,9 @@
                          Classes="body" TextWrapping="Wrap"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
               <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Classes="caption">
-                  <TextBlock.Text>
-                    <Binding Path="SelectedDetail.Author" StringFormat="作者: {0}" />
-                  </TextBlock.Text>
-                </TextBlock>
-                <TextBlock Classes="caption">
-                  <TextBlock.Text>
-                    <Binding Path="SelectedDetail.Category" StringFormat="分类: {0}" />
-                  </TextBlock.Text>
-                </TextBlock>
-                <TextBlock Classes="caption">
-                  <TextBlock.Text>
-                    <Binding Path="SelectedDetail.DefaultPriority" StringFormat="默认优先级: {0}" />
-                  </TextBlock.Text>
-                </TextBlock>
+                <TextBlock Classes="bodySmall" Text="{Binding DetailAuthorDisplay}" Margin="0,4,0,0" />
+                <TextBlock Classes="bodySmall" Text="{Binding DetailCategoryDisplay}" Margin="0,4,0,0" />
+                <TextBlock Classes="bodySmall" Text="{Binding DetailDefaultPriorityDisplay}" Margin="0,4,0,0" />
               </StackPanel>
             </StackPanel>
           </Border>
@@ -242,10 +228,10 @@
           <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
             <StackPanel Spacing="14">
-              <TextBlock Text="基本配置" Classes="sectionTitle" />
+              <TextBlock Text="{x:Static lang:Resources.Strategy_BasicConfig}" Classes="sectionTitle" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="优先级" FontSize="14"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PriorityLabel}" FontSize="14"
                            VerticalAlignment="Center" Width="140" />
                 <NumericUpDown Value="{Binding EditPriority, Mode=TwoWay}"
                                Minimum="0" Maximum="999" Increment="1"
@@ -253,7 +239,7 @@
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="启用" FontSize="14"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_EnableLabel}" FontSize="14"
                            VerticalAlignment="Center" Width="140" />
                 <ToggleSwitch IsChecked="{Binding EditIsEnabled, Mode=TwoWay}"
                               HorizontalAlignment="Right" />
@@ -266,10 +252,10 @@
                   Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
             <StackPanel Spacing="14">
-              <TextBlock Text="参数配置：前排轮换" Classes="sectionTitle" />
+              <TextBlock Text="{x:Static lang:Resources.Strategy_FrontRowRotation}" Classes="sectionTitle" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="历史权重 (HistoryWeight)"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_HistoryWeight}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <NumericUpDown Value="{Binding EditHistoryWeight, Mode=TwoWay}"
                                Minimum="0" Maximum="100" Increment="1"
@@ -277,7 +263,7 @@
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="前排需求加分"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_FrontRowBonus}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <NumericUpDown Value="{Binding EditNeedsFrontRowBonus, Mode=TwoWay}"
                                Minimum="0" Maximum="10000" Increment="100"
@@ -285,7 +271,7 @@
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="前排行数"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Venue_FrontRows}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <NumericUpDown Value="{Binding EditFrontRowCount, Mode=TwoWay}"
                                Minimum="1" Maximum="10" Increment="1"
@@ -299,17 +285,17 @@
                   Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
             <StackPanel Spacing="14">
-              <TextBlock Text="参数配置：同桌分组" Classes="sectionTitle" />
+              <TextBlock Text="{x:Static lang:Resources.Strategy_DeskMate}" Classes="sectionTitle" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="优先水平相邻"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PreferHorizontal}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <ToggleSwitch IsChecked="{Binding EditPreferHorizontal, Mode=TwoWay}"
                               HorizontalAlignment="Right" />
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="允许垂直相邻"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_AllowVertical}"
                            FontSize="14" VerticalAlignment="Center" Width="200" />
                 <ToggleSwitch IsChecked="{Binding EditAllowVertical, Mode=TwoWay}"
                               HorizontalAlignment="Right" />
@@ -323,7 +309,7 @@
                     HorizontalContentAlignment="Center" Padding="12,6">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
-                <TextBlock Text="恢复默认" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_RestoreDefaults}" FontSize="14" />
               </StackPanel>
             </Button>
                 <Button Command="{Binding SaveCurrentConfigCommand}"
@@ -331,7 +317,7 @@
                     IsDefault="True">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-                <TextBlock Text="保存配置" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveConfig}" FontSize="14" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -343,7 +329,7 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
           <ProgressBar IsIndeterminate="True" Width="200" />
-          <TextBlock Text="处理中..." FontSize="14" HorizontalAlignment="Center" />
+          <TextBlock Text="{x:Static lang:Resources.Common_Processing}" FontSize="14" HorizontalAlignment="Center" />
         </StackPanel>
       </Border>
     </Grid>

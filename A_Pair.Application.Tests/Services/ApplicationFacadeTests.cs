@@ -1,6 +1,7 @@
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
+using A_Pair.Infrastructure.Migration;
 using A_Pair.Infrastructure.Providers;
 using Microsoft.Extensions.Logging;
 
@@ -31,6 +32,7 @@ public class ApplicationFacadeTests
         datasetRepo = Substitute.For<IStudentDatasetRepository>();
         manifestProvider = Substitute.For<StrategyManifestProvider>();
         strategyConfigRepo = Substitute.For<StrategyConfigFileRepository>("/tmp/dummy_config_dir" ,
+            new FileMigrationService([]) ,
             Substitute.For<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>());
         logger = Substitute.For<ILogger<ApplicationFacade>>();
 

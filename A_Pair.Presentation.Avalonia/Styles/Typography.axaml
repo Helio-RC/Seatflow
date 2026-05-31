@@ -31,10 +31,41 @@
     <Setter Property="FontWeight" Value="Normal" />
   </Style>
 
+  <!-- 微标：10px Regular -->
+  <Style Selector="TextBlock.micro">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 小号正文：13px Regular -->
+  <Style Selector="TextBlock.bodySmall">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 大号正文：15px Regular -->
+  <Style Selector="TextBlock.bodyLarge">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
   <!-- 强调正文：14px SemiBold -->
   <Style Selector="TextBlock.bodyStrong">
     <Setter Property="FontSize" Value="14" />
     <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- 标题大号：18px Bold -->
+  <Style Selector="TextBlock.heading">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <!-- Win10 设置节标题：14px SemiBold 中对比度 -->
+  <Style Selector="TextBlock.settingSectionHeader">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
   </Style>
 
 </Styles>

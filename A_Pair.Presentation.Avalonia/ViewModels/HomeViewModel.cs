@@ -1,7 +1,9 @@
+using A_Pair.Presentation.Avalonia.Lang;
+
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
 public partial class HomeViewModel : ViewModelBase
 {
-    public string Greeting { get; } = "欢迎使用 A_Pair";
-    public string Subtitle { get; } = "跨平台桌面座位安排与轮换系统";
+    public string Greeting { get; } = Resources.Home_Greeting;
+    public string Subtitle { get; } = Resources.Home_Subtitle;
 }

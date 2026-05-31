@@ -1,25 +1,29 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Repositories
 {
-    /// <summary>
-    /// 座位快照仓储，按 <c>Assignments/{venueId}/{yyyyMMdd}/{snapshotId}.json</c> 组织存储。
-    /// 维护内存索引实现 O(1) 的 Load/Delete 操作。
-    /// </summary>
     public class SeatingSnapshotRepository : ISeatingSnapshotRepository
     {
         private readonly string _basePath;
-        private readonly Dictionary<string , string> _index = []; // snapshot ID → full file path
+        private readonly FileMigrationService _migration;
+        private readonly Dictionary<string , string> _index = [];
         private bool _indexBuilt;
+        private readonly object _indexLock = new();
         private readonly ILogger<SeatingSnapshotRepository> _logger;
 
-        public SeatingSnapshotRepository (string basePath , ILogger<SeatingSnapshotRepository>? logger = null)
+        public SeatingSnapshotRepository (
+            string basePath ,
+            FileMigrationService migration ,
+            ILogger<SeatingSnapshotRepository>? logger = null)
         {
             _basePath = basePath;
+            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
             _logger = logger ?? NullLogger<SeatingSnapshotRepository>.Instance;
         }
 
@@ -29,66 +33,70 @@ namespace A_Pair.Infrastructure.Repositories
         private void BuildIndex ()
         {
             if (_indexBuilt) return;
-            foreach (var venueDir in SafeEnumerateDirectories(_basePath))
+            lock (_indexLock)
             {
-                foreach (var dateDir in SafeEnumerateDirectories(venueDir))
+                if (_indexBuilt) return;
+                foreach (var venueDir in SafeEnumerateDirectories(_basePath))
                 {
-                    foreach (var file in Directory.EnumerateFiles(dateDir , "*.json"))
+                    foreach (var dateDir in SafeEnumerateDirectories(venueDir))
                     {
-                        var id = Path.GetFileNameWithoutExtension(file);
-                        if (!_index.ContainsKey(id))
-                            _index[id] = file;
+                        foreach (var file in Directory.EnumerateFiles(dateDir , "*.json"))
+                        {
+                            var id = Path.GetFileNameWithoutExtension(file);
+                            if (!_index.ContainsKey(id))
+                                _index[id] = file;
+                        }
                     }
                 }
+                _indexBuilt = true;
             }
-            _indexBuilt = true;
         }
 
-        /// <inheritdoc />
         public async Task SaveAsync (SeatingSnapshot snapshot , CancellationToken ct = default)
         {
             var dir = Path.Combine(_basePath , snapshot.LayoutId , snapshot.CreatedAt.ToString("yyyyMMdd"));
             Directory.CreateDirectory(dir);
             var path = Path.Combine(_basePath , GetFilePath(snapshot.LayoutId , snapshot.CreatedAt , snapshot.Id));
+            snapshot.Version = FileVersionInfo.GetCurrentVersion("snapshot");
             var json = JsonSerializer.Serialize(snapshot , new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(path , json , ct);
-            _index[snapshot.Id] = path;
-            _indexBuilt = true;
+            lock (_indexLock)
+            {
+                _index[snapshot.Id] = path;
+                _indexBuilt = true;
+            }
             _logger.LogInformation("快照已保存：{SnapshotId} → {Path}" , snapshot.Id , path);
         }
 
-        /// <inheritdoc />
         public async Task SaveVenueInfoAsync (string venueId , VenueSnapshotInfo info , CancellationToken ct = default)
         {
             var dir = Path.Combine(_basePath , venueId);
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir , "_venue.json");
+            info.Version = FileVersionInfo.GetCurrentVersion("venueInfo");
             var json = JsonSerializer.Serialize(info , new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(path , json , ct);
         }
 
-        /// <inheritdoc />
         public SeatingSnapshot? Load (string id)
         {
             BuildIndex();
             if (_index.TryGetValue(id , out var path) && File.Exists(path))
-                return JsonSerializer.Deserialize<SeatingSnapshot>(File.ReadAllText(path));
+                return DeserializeWithMigration(File.ReadAllText(path) , "snapshot");
             return null;
         }
 
-        /// <inheritdoc />
         public async Task<SeatingSnapshot?> LoadAsync (string id , CancellationToken ct = default)
         {
             BuildIndex();
             if (_index.TryGetValue(id , out var path) && File.Exists(path))
             {
                 var json = await File.ReadAllTextAsync(path , ct);
-                return JsonSerializer.Deserialize<SeatingSnapshot>(json);
+                return DeserializeWithMigration(json , "snapshot");
             }
             return null;
         }
 
-        /// <inheritdoc />
         public Task<IReadOnlyList<SeatingSnapshot>> ListByVenueAsync (string venueId , CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
@@ -97,7 +105,6 @@ namespace A_Pair.Infrastructure.Repositories
                 snapshots.OrderByDescending(s => s.CreatedAt).ToList());
         }
 
-        /// <inheritdoc />
         public Task<IReadOnlyList<SeatingSnapshot>> ListAllAsync ()
         {
             var snapshots = new List<SeatingSnapshot>();
@@ -107,20 +114,34 @@ namespace A_Pair.Infrastructure.Repositories
                 snapshots.OrderByDescending(s => s.CreatedAt).ToList());
         }
 
-        /// <inheritdoc />
         public Task DeleteAsync (string id , CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
             BuildIndex();
-            if (_index.TryGetValue(id , out var path) && File.Exists(path))
+            lock (_indexLock)
             {
-                File.Delete(path);
-                _index.Remove(id);
-                _logger.LogInformation("快照已删除：{SnapshotId}" , id);
+                if (_index.TryGetValue(id , out var path) && File.Exists(path))
+                {
+                    File.Delete(path);
+                    _index.Remove(id);
+                    _logger.LogInformation("快照已删除：{SnapshotId}" , id);
+                }
+                else
+                    _logger.LogDebug("删除快照未找到：{SnapshotId}" , id);
             }
-            else
-                _logger.LogDebug("删除快照未找到：{SnapshotId}" , id);
             return Task.CompletedTask;
+        }
+
+        private SeatingSnapshot? DeserializeWithMigration (string json , string fileType)
+        {
+            var node = JsonNode.Parse(json);
+            if (node is not null)
+            {
+                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+                node = _migration.Migrate(fileType , node , fileVersion , FileVersionInfo.GetCurrentVersion(fileType));
+                json = node.ToJsonString();
+            }
+            return JsonSerializer.Deserialize<SeatingSnapshot>(json);
         }
 
         private List<SeatingSnapshot> LoadFromDir (string venueDir)
@@ -132,12 +153,13 @@ namespace A_Pair.Infrastructure.Repositories
                 {
                     try
                     {
-                        var snapshot = JsonSerializer.Deserialize<SeatingSnapshot>(File.ReadAllText(file));
+                        var json = File.ReadAllText(file);
+                        var snapshot = DeserializeWithMigration(json , "snapshot");
                         if (snapshot is not null) snapshots.Add(snapshot);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // 跳过损坏/不兼容的快照文件
+                        _logger.LogDebug(ex , "跳过损坏的快照文件：{File}" , file);
                     }
                 }
             }

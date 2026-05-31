@@ -7,6 +7,8 @@ using A_Pair.Presentation.Avalonia.Views;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 
+[assembly: System.Resources.NeutralResourcesLanguage("zh-CN")]
+
 namespace A_Pair.Presentation.Avalonia
 {
     internal sealed class Program
@@ -29,12 +31,12 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<MainWindow>();
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<HomeViewModel>();
-            services.AddSingleton<DataManagementViewModel>();
+            services.AddSingleton<MemberManagementViewModel>();
             services.AddSingleton<VenueConfigurationViewModel>();
             services.AddSingleton<FreeformManagementViewModel>();
             services.AddSingleton<StrategyConfigurationViewModel>();
             services.AddSingleton<SeatingArrangementViewModel>();
-            services.AddSingleton<SnapshotHistoryViewModel>();
+            services.AddTransient<SnapshotHistoryViewModel>();
             services.AddSingleton<PluginManagementViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<AboutViewModel>();

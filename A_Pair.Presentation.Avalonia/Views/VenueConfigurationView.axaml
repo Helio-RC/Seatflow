@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:behaviors="using:A_Pair.Presentation.Avalonia.Behaviors"
@@ -12,26 +13,26 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="会场配置  " Classes="pageTitle" 
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Venue_Title}" Classes="pageTitle" 
                    VerticalAlignment="Center" />
         <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding DeleteVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
-                  AutomationProperties.Name="删除会场"
+                  AutomationProperties.Name="{x:Static lang:Resources.Venue_DeleteVenue}"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
-              <TextBlock Text="删除" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Delete}" FontSize="14" />
             </StackPanel>
           </Button>
           <Button Command="{Binding SaveVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
-                  AutomationProperties.Name="保存会场"
+                  AutomationProperties.Name="{x:Static lang:Resources.Venue_SaveVenue}"
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="保存" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -61,7 +62,7 @@
           </Transitions>
         </Border.Transitions>
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="会场列表"
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Venue_List}"
                      FontSize="14" FontWeight="SemiBold" Margin="3,0,0,8" />
           <Border DockPanel.Dock="Bottom">
             <Panel>
@@ -74,26 +75,26 @@
                 </Border.Transitions>
                 <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                             IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
-                  <Button Command="{Binding LoadVenueListCommand}" CommandParameter="DataManagement"
+                  <Button Command="{Binding LoadVenueListCommand}" CommandParameter="MemberManagement"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
-                      <TextBlock Text="刷新会场" FontSize="13" VerticalAlignment="Center"/>
+                      <TextBlock Text="{x:Static lang:Resources.Venue_Refresh}" FontSize="13" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
-                          AutomationProperties.Name="新建会场"
+                          AutomationProperties.Name="{x:Static lang:Resources.Venue_New}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
-                      <TextBlock Text="新建会场" FontSize="13" VerticalAlignment="Center"/>
+                      <TextBlock Text="{x:Static lang:Resources.Venue_New}" FontSize="13" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding ToggleSidebarCommand}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" Height="20"/>
-                      <TextBlock Text="收起侧栏" FontSize="13" VerticalAlignment="Center"/>
+                      <TextBlock Text="{x:Static lang:Resources.Nav_CollapseSidebar}" FontSize="13" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
                 </StackPanel>
@@ -115,17 +116,17 @@
                   </StackPanel.Transitions>
                   <Button HorizontalContentAlignment="Left"
                           Command="{Binding LoadVenueListCommand}"
-                          ToolTip.Tip="刷新会场">
+                          ToolTip.Tip="{x:Static lang:Resources.Venue_Refresh}">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
                   </Button>
                   <Button HorizontalContentAlignment="Left"
                           Command="{Binding NewVenueCommand}"
-                          ToolTip.Tip="新建会场">
+                          ToolTip.Tip="{x:Static lang:Resources.Venue_New}">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
                   </Button>
                   <Button HorizontalContentAlignment="Left"
                           Command="{Binding ToggleSidebarCommand}"
-                          ToolTip.Tip="展开列表">
+                          ToolTip.Tip="{x:Static lang:Resources.Venue_ExpandList}">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" Height="20"/>
                   </Button>
                 </StackPanel>
@@ -158,10 +159,10 @@
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="48"
                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                             HorizontalAlignment="Center" />
-            <TextBlock Text="未选择会场" Classes="sectionTitle"
+            <TextBlock Text="{x:Static lang:Resources.Venue_NoSelection}" Classes="sectionTitle"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="请从左侧选择一个会场或新建一个"
+            <TextBlock Text="{x:Static lang:Resources.Venue_SelectHint}"
                        FontSize="12" HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
           </StackPanel>
@@ -173,24 +174,24 @@
             <!-- 名称和类型区 -->
             <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,16">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="会场名称" FontSize="13" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_Name}" FontSize="13" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding LayoutName, Mode=TwoWay}" Width="200" FontSize="14"/>
               </StackPanel>
               <StackPanel Spacing="8">
-                <TextBlock Text="布局类型" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_LayoutType}" FontSize="14" FontWeight="SemiBold"/>
                 <StackPanel Orientation="Horizontal" Spacing="16">
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"
                                IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Grid"
-                               Content="网格 Grid"/>
+                               Content="{x:Static lang:Resources.Venue_GridType}"/>
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
                                IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Polar"
-                               Content="极坐标 Polar"/>
+                               Content="{x:Static lang:Resources.Venue_PolarType}"/>
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
                                IsEnabled="{Binding CanChangeLayoutType}"
                                Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Freeform"
-                               Content="自由点 Freeform"/>
+                               Content="{x:Static lang:Resources.Venue_FreeformType}"/>
                 </StackPanel>
               </StackPanel>
             </StackPanel>
@@ -201,61 +202,61 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_BasicParams}" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Rows}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
-                                 PlaceholderText="排数"
-                                 ToolTip.Tip="座位行数，1-100。如教室有 6 排座位则填 6。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="列数" VerticalAlignment="Center" FontSize="13"/>
+                                 PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Cols}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridColumns, Mode=TwoWay}"
                                  Minimum="1" Maximum="100"
-                                 PlaceholderText="每排座位数"
-                                 ToolTip.Tip="座位列数（单排座位总数），1-100。如每排 8 个座位则填 8。"/>
+                                 PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="水平间距" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_HSpacing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
-                                 PlaceholderText="行内间距 px"
-                                 ToolTip.Tip="行方向基准间距（像素），4-600。参考桌间距和过道宽度。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="垂直间距" VerticalAlignment="Center" FontSize="13"/>
+                                 PlaceholderText="{x:Static lang:Resources.Venue_HSpacingPH}"
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_HSpacingTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_VSpacing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="1" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="600"
-                                 PlaceholderText="列间距 px"
-                                 ToolTip.Tip="列方向基准间距（像素），4-600。用于计算行间距离。"/>
+                                 PlaceholderText="{x:Static lang:Resources.Venue_VSpacingPH}"
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginX}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding GridOriginX, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
-                                 PlaceholderText="起始 X"
-                                 ToolTip.Tip="首列座位的起始水平位置（像素），0-2000。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                                 PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginY}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="2" Value="{Binding GridOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
-                                 PlaceholderText="起始 Y"
-                                 ToolTip.Tip="首行座位的起始垂直位置（像素），0-2000。"/>
+                                 PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"/>
                 </Grid>
 
                 <!-- 可选配置分隔条 -->
                 <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-                  <TextBlock Text="可选" FontSize="11" Opacity="0.5"/>
+                  <TextBlock Text="{x:Static lang:Resources.Venue_Optional}" FontSize="11" Opacity="0.5"/>
                 </Border>
 
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="每列行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="空=使用行数"
-                           ToolTip.Tip="每列各自的行数（逗号分隔）。第1项=第1列，依次类推。留空则所有列使用行数设置。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
+                           ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DisabledSeats}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 1,3;2,5;3,1"
-                           ToolTip.Tip="分号分隔的 (行,列) 对，指定不放置座位的网格位置。行和列从 1 开始。不存在的座位将自动清除。"/>
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
+                           ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -266,29 +267,29 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="桌面配置" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_DeskConfig}" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="每桌人数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DeskSize}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridSeatsPerDesk, Mode=TwoWay}"
                                  Minimum="1" Maximum="6"
                                  PlaceholderText="2"
-                                 ToolTip.Tip="每张桌子的座位数，1-6。通常为 2（同桌两人）。值为 1 时无桌面分组。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="桌内间距" VerticalAlignment="Center" FontSize="13"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSizeTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DeskInnerSpacing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="200"
                                  PlaceholderText="12 px"
-                                 ToolTip.Tip="同桌内相邻座位间距（像素），4-200。较小值表示同桌座位靠近。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_DeskInnerSpacingTooltip}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="桌间距" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DeskSpacing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridInterDeskSpacing, Mode=TwoWay}"
                                  Minimum="4" Maximum="400"
                                  PlaceholderText="40 px"
-                                 ToolTip.Tip="相邻桌之间的间距（像素），4-400。较桌内间距大，用于区分同桌和邻桌。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSpacingTooltip}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -299,8 +300,8 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="过道配置" FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Text="列过道（点击选择相邻桌列之间插入过道）：" Classes="caption"
+                <TextBlock Text="{x:Static lang:Resources.Venue_AisleConfig}" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_ColumnAisles}" Classes="caption"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                 <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
                   <ItemsControl.ItemsPanel>
@@ -313,12 +314,12 @@
                       <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                 Content="{Binding Label}"
                                 FontSize="12" Margin="0,0,12,4"
-                                ToolTip.Tip="勾选在此处插入过道"/>
+                                ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Text="行过道（点击选择相邻排之间插入过道）：" FontSize="12" Margin="0,8,0,0"
+                <TextBlock Text="{x:Static lang:Resources.Venue_RowAisles}" FontSize="12" Margin="0,8,0,0"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
                 <ItemsControl ItemsSource="{Binding AisleRowOptions}">
                   <ItemsControl.ItemsPanel>
@@ -331,17 +332,17 @@
                       <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                 Content="{Binding Label}"
                                 FontSize="12" Margin="0,0,12,4"
-                                ToolTip.Tip="勾选在此处插入过道"/>
+                                ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                  <TextBlock Text="过道宽度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Text="{x:Static lang:Resources.Venue_AisleWidth}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Value="{Binding GridAisleWidth, Mode=TwoWay}"
                                  Minimum="12" Maximum="300"
                                  PlaceholderText="60 px"
-                                 ToolTip.Tip="过道宽度（像素），12-300。通常比桌间距更宽，如 60-80。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_AisleWidthTooltip}"/>
                 </StackPanel>
               </StackPanel>
             </Border>
@@ -352,35 +353,35 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_FrontRows}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
                                  PlaceholderText="1"
-                                 ToolTip.Tip="视作前排的行数（从第 1 行开始），1-10。影响前排轮换策略。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_FrontRowsTooltip}"/>
 
                   <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
                             IsChecked="{Binding GridHasPodium, Mode=TwoWay}"
-                            Content="有讲台" FontSize="13"
-                            ToolTip.Tip="是否在教室前部显示讲台。讲台将显示在预览中第一排上方。"/>
+                            Content="{x:Static lang:Resources.Venue_HasPodium}" FontSize="13"
+                            ToolTip.Tip="{x:Static lang:Resources.Venue_HasPodiumTooltip}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left"
                       IsVisible="{Binding GridHasPodium}">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="讲台宽度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_PodiumWidth}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridPodiumWidth, Mode=TwoWay}"
                                  Minimum="20" Maximum="400"
                                  PlaceholderText="60 px"
-                                 ToolTip.Tip="讲台宽度（像素），20-400。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="讲台高度" VerticalAlignment="Center" FontSize="13"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumWidthTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_PodiumHeight}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridPodiumHeight, Mode=TwoWay}"
                                  Minimum="20" Maximum="200"
                                  PlaceholderText="40 px"
-                                 ToolTip.Tip="讲台高度（像素），20-200。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumHeightTooltip}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -391,63 +392,63 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="基础参数" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_BasicParams}" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="环数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Rings}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarRings, Mode=TwoWay}"
                                  Minimum="1" Maximum="20"
-                                 ToolTip.Tip="极坐标环数，1-20。若填写了每环座位列表则此项忽略。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="每环座位数" VerticalAlignment="Center" FontSize="13"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RingsTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_SeatsPerRing}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarSeatsPerRing, Mode=TwoWay}"
                                  Minimum="2" Maximum="120"
-                                 ToolTip.Tip="均匀模式每环座位数。若填写了每环座位列表则忽略此项。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_SeatsPerRingTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="半径步长" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RadiusStep}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
                                  Minimum="8" Maximum="400"
-                                 ToolTip.Tip="相邻环之间的半径增量（像素），8-400。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="起始角度" VerticalAlignment="Center" FontSize="13"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RadiusStepTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_StartAngle}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarStartAngle, Mode=TwoWay}"
                                  Minimum="0" Maximum="360"
-                                 ToolTip.Tip="扫描起始角度（度）。0=右侧，逆时针递增。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_StartAngleTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="2" Text="结束角度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="2" Text="{x:Static lang:Resources.Venue_EndAngle}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding PolarEndAngle, Mode=TwoWay}"
                                  Minimum="10" Maximum="360"
-                                 ToolTip.Tip="扫描结束角度。360=全圆，180=半圆，90=1/4圆。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="2" Text="原点 X" VerticalAlignment="Center" FontSize="13"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_EndAngleTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginX}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginX, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
-                                 ToolTip.Tip="圆心水平位置（像素）。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginXTooltip}"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="原点 Y" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_OriginY}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
                                  Minimum="0" Maximum="2000"
-                                 ToolTip.Tip="圆心垂直位置（像素）。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="每环座位列表" VerticalAlignment="Center" FontSize="13"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginYTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RingSeats}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 8,12,16"
-                           ToolTip.Tip="逗号分隔每环座位数，空=使用均匀模式。如 8,12,16 表示3环依次8/12/16座。"/>
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RingSeatsPH}"
+                           ToolTip.Tip="{x:Static lang:Resources.Venue_RingSeatsTooltip}"/>
                 </Grid>
 
                 <!-- 可选配置分隔条 -->
                 <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-                  <TextBlock Text="可选" FontSize="11" Opacity="0.5"/>
+                  <TextBlock Text="{x:Static lang:Resources.Venue_Optional}" FontSize="11" Opacity="0.5"/>
                 </Border>
 
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="禁用座位" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DisabledSeats}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 1,0;2,90"
-                           ToolTip.Tip="分号分隔的 (环,角度) 对，指定要禁用的极坐标座位。环从 1（最内）开始，角度以度为单位。不存在的环号将自动清除。"/>
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_PolarDisabledPH}"
+                           ToolTip.Tip="{x:Static lang:Resources.Venue_PolarDisabledTooltip}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -458,23 +459,23 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="教室特征" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="前排行数" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_FrontRows}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
                                  Minimum="1" Maximum="10"
-                                 ToolTip.Tip="视作前排的最外层环数，影响前排轮换策略。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PolarFrontRowsTooltip}"/>
 
                   <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
                             IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
-                            Content="有讲台" FontSize="13"/>
+                            Content="{x:Static lang:Resources.Venue_HasPodium}" FontSize="13"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="讲台半径" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_PodiumRadius}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarPodiumRadius, Mode=TwoWay}"
                                  Minimum="10" Maximum="200" IsEnabled="{Binding PolarHasPodium}"
-                                 ToolTip.Tip="讲台圆形半径（像素），圆心位于预览原点。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumRadiusTooltip}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -485,27 +486,27 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="通道配置" FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_ChannelConfig}" FontSize="13" FontWeight="SemiBold"/>
                 <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
                       RowSpacing="6" ColumnSpacing="12"
                       HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="径向通道角度" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RadialAisleAngles}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 0,90,180,270"
-                           ToolTip.Tip="逗号分隔的通道中心角度。通道从圆心向外辐射。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="径向通道宽度" VerticalAlignment="Center" FontSize="13"/>
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RadialAislePH}"
+                           ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleAnglesTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RadialAisleWidth}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}"
                                  Minimum="1" Maximum="30"
-                                 ToolTip.Tip="径向通道角宽度（度），默认为5。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleWidthTooltip}"/>
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="环间通道位置" VerticalAlignment="Center" FontSize="13"/>
+                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RingAislePositions}" VerticalAlignment="Center" FontSize="13"/>
                   <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="如 1,3"
-                           ToolTip.Tip="逗号分隔的环号，在该环后插入通道。如 1 表示第1-2环之间有通道。"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="环间通道宽度" VerticalAlignment="Center" FontSize="13"/>
+                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RingAislePH}"
+                           ToolTip.Tip="{x:Static lang:Resources.Venue_RingAislePositionsTooltip}"/>
+                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RingAisleWidth}" VerticalAlignment="Center" FontSize="13"/>
                   <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}"
                                  Minimum="4" Maximum="200"
-                                 ToolTip.Tip="环间通道的径向宽度（像素），默认为20。"/>
+                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RingAisleWidthTooltip}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -517,12 +518,12 @@
                     CornerRadius="4">
               <StackPanel Spacing="4">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <TextBlock Text="门" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                  <TextBlock Text="{x:Static lang:Resources.Venue_DoorSection}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                   <Button Command="{Binding AddDoorCommand}" Padding="8,2" Classes="caption"
-                          ToolTip.Tip="添加一扇门到预览中">
+                          ToolTip.Tip="{x:Static lang:Resources.Venue_AddDoorTooltip}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
-                      <TextBlock Text="添加门" FontSize="12"/>
+                      <TextBlock Text="{x:Static lang:Resources.Venue_AddDoor}" FontSize="12"/>
                     </StackPanel>
                   </Button>
                 </StackPanel>
@@ -539,11 +540,11 @@
                             <TextBlock Text="X :" FontSize="12" VerticalAlignment="Center"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" Classes="caption"
-                                           ToolTip.Tip="门的水平位置（像素）"/>
+                                           ToolTip.Tip="{x:Static lang:Resources.Venue_DoorXTooltip}"/>
                             <TextBlock Text="Y :" FontSize="12" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
                             <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
                                            Minimum="0" Maximum="2000" Classes="caption"
-                                           ToolTip.Tip="门的垂直位置（像素）"/>
+                                           ToolTip.Tip="{x:Static lang:Resources.Venue_DoorYTooltip}"/>
                           </StackPanel>
                           <Button Grid.Row="0" Grid.Column="3" Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
                                   CommandParameter="{Binding}"
@@ -564,14 +565,14 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                     CornerRadius="4">
               <StackPanel Spacing="8">
-                <TextBlock Text="自由点布局通过导入 CSV/JSON 坐标文件来定义座位位置。"
+                <TextBlock Text="{x:Static lang:Resources.Venue_FreeformHint}"
                            FontSize="13" TextWrapping="Wrap"/>
                 <Button Command="{Binding NavigateToFreeformCommand}"
                         HorizontalContentAlignment="Center" HorizontalAlignment="Left"
                         Padding="8,4" FontSize="12">
                   <StackPanel Orientation="Horizontal" Spacing="4">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowMove}" FontSize="14"/>
-                    <TextBlock Text="打开自由点管理" FontSize="12"/>
+                    <TextBlock Text="{x:Static lang:Resources.Venue_OpenFreeform}" FontSize="12"/>
                   </StackPanel>
                 </Button>
               </StackPanel>
@@ -580,12 +581,12 @@
             <!-- 预览区域 -->
             <StackPanel Spacing="8">
               <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock Text="布局预览" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static lang:Resources.Venue_Preview}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 <Button Command="{Binding RegeneratePreviewCommand}"
                         HorizontalContentAlignment="Center" Padding="8,4" FontSize="12">
                   <StackPanel Orientation="Horizontal" Spacing="4">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14"/>
-                    <TextBlock Text="刷新预览" FontSize="12"/>
+                    <TextBlock Text="{x:Static lang:Resources.Venue_RefreshPreview}" FontSize="12"/>
                   </StackPanel>
                 </Button>
               </StackPanel>
@@ -663,7 +664,7 @@
                       </ItemsControl>
                     </Grid>
                   </ScrollViewer>
-                  <TextBlock Text="左键拖动" FontSize="11" Opacity="0.4"
+                  <TextBlock Text="{x:Static lang:Resources.Venue_DragHint}" FontSize="11" Opacity="0.4"
                              HorizontalAlignment="Right" VerticalAlignment="Bottom"
                              Margin="0,0,12,8"/>
                 </Grid>

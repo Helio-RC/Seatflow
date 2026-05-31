@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Logging;
@@ -27,8 +28,9 @@ public abstract class ViewModelBase : ObservableObject
     }
 
     /// <summary>在 try-catch 中执行操作，出错时弹窗并记录日志。</summary>
-    protected async Task<bool> SafeExecuteAsync (Func<Task> action , string errorTitle = "操作失败")
+    protected async Task<bool> SafeExecuteAsync (Func<Task> action , string? errorTitle = null)
     {
+        errorTitle ??= Resources.Common_OperationFailed;
         try
         {
             await action();
@@ -48,8 +50,9 @@ public abstract class ViewModelBase : ObservableObject
     /// <param name="action">接受 CancellationToken 的异步操作，超时后 token 会被取消</param>
     /// <param name="timeout">超时阈值，应小于 UI 看门狗的 45 秒</param>
     /// <param name="errorTitle">错误弹窗标题</param>
-    protected async Task<bool> SafeExecuteAsync (Func<CancellationToken , Task> action , TimeSpan timeout , string errorTitle = "操作失败")
+    protected async Task<bool> SafeExecuteAsync (Func<CancellationToken , Task> action , TimeSpan timeout , string? errorTitle = null)
     {
+        errorTitle ??= Resources.Common_OperationFailed;
         using var cts = new CancellationTokenSource(timeout);
         try
         {
@@ -59,8 +62,8 @@ public abstract class ViewModelBase : ObservableObject
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             _logger?.LogError("操作超时：{Title}（{Seconds} 秒）" , errorTitle , timeout.TotalSeconds);
-            await Dialog.ShowErrorAsync("操作超时" ,
-                $"「{errorTitle}」超过 {timeout.TotalSeconds:F0} 秒未完成，已自动取消。\n部分数据可能未写入，请重试。");
+            await Dialog.ShowErrorAsync(Resources.Common_OperationTimeout ,
+                string.Format(Resources.Common_TimeoutFormat , errorTitle , timeout.TotalSeconds));
             return false;
         }
         catch (Exception ex)

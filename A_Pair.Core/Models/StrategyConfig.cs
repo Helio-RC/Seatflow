@@ -5,6 +5,9 @@ namespace A_Pair.Core.Models;
 /// </summary>
 public sealed class StrategyConfig
 {
+    /// <summary>文件格式版本号。</summary>
+    public string Version { get; set; } = "1.0";
+
     /// <summary>配置来源："builtin" 或 "plugin:{pluginId}"。</summary>
     public string Source { get; set; } = "builtin";
 

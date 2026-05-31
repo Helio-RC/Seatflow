@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 前排轮换策略（Priority=30），基于累计分数公平分配前排座位。
-    /// 分数计算公式：总分 = NeedsFrontRow加分 + FrontRowPreferenceScore - (历史前排次数 × HistoryWeight)。
-    /// 分数越高的学生越优先分配到前排，确保轮换公平性。
+    /// 前排轮换策略（Priority=20，第二执行，在非固定空座中填前排）。
+    /// 在 FixedSeat 锁定固定座位后执行，从剩余空座中识别前排座位，
+    /// 按需求分数分配给最需要的学生。分数公式与前相同。
     /// </summary>
     public class FrontRowRotationStrategy : ISeatingStrategy
     {
@@ -38,15 +38,15 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："FrontRowRotation"。</summary>
         public string Name { get; } = "FrontRowRotation";
 
-        /// <summary>执行优先级：30。</summary>
-        public int Priority { get; set; } = 30;
+        /// <summary>执行优先级：20（第二执行，在非固定空座中填前排）。</summary>
+        public int Priority { get; set; } = 20;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;
 
         /// <summary>
         /// 执行前排轮换：
-        /// 1. 识别网格布局最前行 / 极坐标布局最外层环。
+        /// 1. 识别网格布局最前行 / 极坐标布局最内层环（Ring=1 靠近讲台）。
         /// 2. 计算每个未分配学生的前排需求分数。
         /// 3. 按分数从高到低分配前排座位。
         /// </summary>
@@ -77,9 +77,9 @@ namespace A_Pair.Core.Strategies
             var polarSeats = emptySeats.OfType<PolarSeat>().ToList();
             if (polarSeats.Count > 0)
             {
-                int maxRing = polarSeats.Max(s => s.Ring);
-                int frontRingMin = maxRing - _config.FrontRowCount + 1;
-                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring >= frontRingMin));
+                // Ring=1 为最内环（靠近讲台），即前排
+                int frontRingMax = _config.FrontRowCount;
+                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring <= frontRingMax));
             }
 
             var freeformSeats = emptySeats.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();

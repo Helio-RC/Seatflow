@@ -1,3 +1,4 @@
+using A_Pair.Infrastructure.Migration;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Tests.Repositories;
@@ -10,7 +11,7 @@ public class StrategyConfigFileRepositoryTests : IDisposable
     public StrategyConfigFileRepositoryTests ()
     {
         _tempDir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString("N"));
-        _repo = new StrategyConfigFileRepository(_tempDir , NullLogger<StrategyConfigFileRepository>.Instance);
+        _repo = new StrategyConfigFileRepository(_tempDir , new FileMigrationService([]) , NullLogger<StrategyConfigFileRepository>.Instance);
     }
 
     [Fact]

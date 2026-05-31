@@ -5,9 +5,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 固定座位策略，优先级最高（Priority=100，最后执行）。
-    /// 将指定学生强制分配到固定座位，不受其他策略影响。
-    /// 适用于有特殊需求的学生（如残障学生固定前排座位）。
+    /// 固定座位策略（Priority=10，最先执行，锁定固定座位）。
+    /// 将指定学生强制分配到固定座位，标记 IsFixed=true。
+    /// 因为最先执行且通过 IsFixed 锁定，后续策略的 GetEmptySeats() 自动排除这些座位，
+    /// 确保固定分配不受其他任何策略影响。适用于特殊需求学生（如残障学生固定前排座位）。
     /// </summary>
     public class FixedSeatStrategy : ISeatingStrategy
     {
@@ -31,8 +32,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："FixedSeat"。</summary>
         public string Name { get; } = "FixedSeat";
 
-        /// <summary>执行优先级：100（最高优先级，最后执行以确保覆盖）。</summary>
-        public int Priority { get; set; } = 100;
+        /// <summary>执行优先级：10（最先执行，锁定固定座位后 IsFixed=true 自动保护）。</summary>
+        public int Priority { get; set; } = 10;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;

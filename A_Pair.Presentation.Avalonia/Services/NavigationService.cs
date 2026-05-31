@@ -48,7 +48,7 @@ public class NavigationService : INavigationService
         CurrentViewModel = page switch
         {
             PageKey.Home => _serviceProvider.GetRequiredService<HomeViewModel>(),
-            PageKey.DataManagement => _serviceProvider.GetRequiredService<DataManagementViewModel>(),
+            PageKey.MemberManagement => _serviceProvider.GetRequiredService<MemberManagementViewModel>(),
             PageKey.VenueConfiguration => _serviceProvider.GetRequiredService<VenueConfigurationViewModel>(),
             PageKey.FreeformManagement => _serviceProvider.GetRequiredService<FreeformManagementViewModel>(),
             PageKey.StrategyConfiguration => _serviceProvider.GetRequiredService<StrategyConfigurationViewModel>(),

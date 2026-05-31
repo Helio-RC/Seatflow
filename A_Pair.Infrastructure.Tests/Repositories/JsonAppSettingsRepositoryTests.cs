@@ -1,3 +1,4 @@
+using A_Pair.Infrastructure.Migration;
 namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonAppSettingsRepositoryTests
@@ -10,7 +11,7 @@ public class JsonAppSettingsRepositoryTests
         var path = GetTempFilePath();
         try
         {
-            var repo = new JsonAppSettingsRepository(path);
+            var repo = new JsonAppSettingsRepository(path , new FileMigrationService([]));
             var settings = await repo.LoadAsync(CancellationToken.None);
             settings.WindowState.Width.Should().Be(1024);
             settings.WindowState.Height.Should().Be(768);
@@ -27,7 +28,7 @@ public class JsonAppSettingsRepositoryTests
         var path = GetTempFilePath();
         try
         {
-            var repo = new JsonAppSettingsRepository(path);
+            var repo = new JsonAppSettingsRepository(path , new FileMigrationService([]));
             var original = new AppSettings
             {
                 LastOpenedFilePath = "/test/file.txt" ,
@@ -53,7 +54,7 @@ public class JsonAppSettingsRepositoryTests
     [Fact]
     public void SettingsFilePath_ShouldReturnCorrectPath ()
     {
-        var repo = new JsonAppSettingsRepository("C:\\test.json");
+        var repo = new JsonAppSettingsRepository("C:\\test.json" , new FileMigrationService([]));
         repo.SettingsFilePath.Should().Be("C:\\test.json");
     }
 }

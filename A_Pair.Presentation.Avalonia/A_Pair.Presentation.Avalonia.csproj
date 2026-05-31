@@ -14,6 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Data\about.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Lang\Resources.Designer.cs" Condition="!Exists('Lang\Resources.Designer.cs')" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaXaml Remove="Models\**" />
     <Compile Remove="Models\**" />
     <EmbeddedResource Remove="Models\**" />
@@ -21,27 +29,30 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Assets\A_Pair_1.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.2" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.2" />
-    <PackageReference Include="Avalonia.Headless" Version="12.0.2" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.2" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.2" />
+    <PackageReference Include="Avalonia" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Headless" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.3" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="FluentIcons.Avalonia" Version="2.1.326" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+    <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\A_Pair.Application\A_Pair.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Lang\Resources.resx">
+      <Generator></Generator>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

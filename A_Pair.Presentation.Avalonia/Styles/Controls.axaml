@@ -1,0 +1,69 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ═══ 设置行（About / Settings 共用） ═══ -->
+
+  <Style Selector="Border.settingRow">
+    <Setter Property="Padding" Value="0,12,0,12" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundChromeHighBrush}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Transitions">
+      <Setter.Value>
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style Selector="Border.settingRow:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+  </Style>
+
+  <!-- ═══ 链接按钮 ═══ -->
+
+  <Style Selector="Button.linkButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Padding" Value="8,4" />
+  </Style>
+  <Style Selector="Button.linkButton:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark2}" />
+  </Style>
+
+  <!-- 依赖项链接（About 页专用，Padding 更小） -->
+  <Style Selector="Button.depLink">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Padding" Value="4" />
+  </Style>
+
+  <!-- ═══ 对话框操作按钮 ═══ -->
+
+  <Style Selector="Button.ActionButton">
+    <Setter Property="MinWidth" Value="80" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.ActionCancel">
+    <Setter Property="MinWidth" Value="80" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
+  <!-- ═══ Accent 强调按钮 ═══ -->
+
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.accent:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}" />
+  </Style>
+
+</Styles>

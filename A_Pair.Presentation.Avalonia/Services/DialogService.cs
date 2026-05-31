@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Views;
 using Avalonia.Controls;
 
@@ -38,7 +39,7 @@ public class DialogService : IDialogService
     }
 
     public async Task<int?> ShowMultiOptionAsync (string title , string message ,
-        string primaryText , string secondaryText , string cancelText = "取消")
+        string primaryText , string secondaryText , string? cancelText = null)
     {
         if (_topLevel is not Window window)
         {
@@ -53,7 +54,7 @@ public class DialogService : IDialogService
             Kind = DialogKind.MultiOption ,
             Button1Text = primaryText ,
             Button2Text = secondaryText ,
-            Button3Text = cancelText
+            Button3Text = cancelText ?? Resources.Common_Cancel
         };
 
         await dialog.ShowDialog<bool>(window);

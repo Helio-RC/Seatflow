@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
+using A_Pair.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,11 @@ public partial class PluginManagementViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly ILogger<PluginManagementViewModel> _logger;
 
+
+    public string PluginCountDisplay => string.Format(Resources.Plugin_FoundFmt , Plugins.Count);
+    public string SelectedPluginVersionDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_VersionFmt , SelectedPlugin.Version) : "";
+    public string SelectedPluginAuthorDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_AuthorFmt , SelectedPlugin.Author) : "";
+
     public PluginManagementViewModel (IApplicationFacade facade , ILogger<PluginManagementViewModel>? logger = null)
     {
         _facade = facade;
@@ -24,7 +30,7 @@ public partial class PluginManagementViewModel : ViewModelBase
     }
 
     /// <summary>页面标题。</summary>
-    public string Title { get; } = "插件管理";
+    public string Title { get; } = Resources.Plugin_Title;
 
     // ── 插件列表 ──
 
@@ -135,7 +141,7 @@ public partial class PluginManagementViewModel : ViewModelBase
                     var script = await _facade.GetPluginScriptAsync(plugin.Id , ct);
                     if (ct.IsCancellationRequested) return;
                     ScriptEditorText = script;
-                } , "加载脚本失败");
+                } , Resources.Plugin_LoadScriptFailed);
             }
             else
             {
@@ -150,7 +156,7 @@ public partial class PluginManagementViewModel : ViewModelBase
                 var config = await _facade.GetPluginConfigJsonAsync(plugin.Id , ct);
                 if (ct.IsCancellationRequested) return;
                 ConfigEditorText = config;
-            } , "加载配置失败");
+            } , Resources.Plugin_LoadConfigFailed);
         }
         finally
         {
@@ -170,8 +176,8 @@ public partial class PluginManagementViewModel : ViewModelBase
             var newEnabled = !SelectedPlugin.IsEnabled;
             await _facade.SetPluginEnabledAsync(SelectedPlugin.Id , newEnabled);
             SelectedPlugin.IsEnabled = newEnabled;
-            StatusMessage = $"插件「{SelectedPlugin.Name}」已{(newEnabled ? "启用" : "禁用")}";
-        } , "切换插件状态失败");
+            StatusMessage = string.Format(Resources.Plugin_ToggledFmt , SelectedPlugin.Name , newEnabled ? Resources.Common_Enabled : Resources.Common_Disabled);
+        } , Resources.Plugin_ToggleFailed);
     }
 
     [RelayCommand]
@@ -183,8 +189,8 @@ public partial class PluginManagementViewModel : ViewModelBase
         {
             await _facade.SavePluginScriptAsync(SelectedPlugin.Id , ScriptEditorText , ct);
             IsScriptDirty = false;
-            StatusMessage = $"脚本「{SelectedPlugin.Name}」已保存";
-        } , TimeSpan.FromSeconds(30) , "保存脚本失败");
+            StatusMessage = string.Format(Resources.Plugin_ScriptSavedFmt , SelectedPlugin.Name);
+        } , TimeSpan.FromSeconds(30) , Resources.Plugin_ScriptSaveFailed);
     }
 
     [RelayCommand]
@@ -201,14 +207,14 @@ public partial class PluginManagementViewModel : ViewModelBase
             }
             catch (JsonException ex)
             {
-                StatusMessage = $"JSON 格式错误: {ex.Message}";
+                StatusMessage = string.Format(Resources.Plugin_JSONErrorFmt , ex.Message);
                 return;
             }
 
             await _facade.SavePluginConfigJsonAsync(SelectedPlugin.Id , ConfigEditorText , ct);
             IsConfigDirty = false;
-            StatusMessage = $"配置「{SelectedPlugin.Name}」已保存";
-        } , TimeSpan.FromSeconds(30) , "保存配置失败");
+            StatusMessage = string.Format(Resources.Plugin_ConfigSavedFmt , SelectedPlugin.Name);
+        } , TimeSpan.FromSeconds(30) , Resources.Plugin_ConfigSaveFailed);
     }
 
     // ── 编辑器内容变更标记 ──

@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
@@ -33,6 +35,7 @@ namespace A_Pair.Presentation.Avalonia
 
         public override void Initialize ()
         {
+            ApplyLanguageFromSettings();
             AvaloniaXamlLoader.Load(this);
         }
 
@@ -43,6 +46,7 @@ namespace A_Pair.Presentation.Avalonia
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
                 ApplyTheme(settings.Theme);
+                ApplyLanguage(settings.Language);
 
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                     && desktop.MainWindow is { } window)
@@ -74,6 +78,41 @@ namespace A_Pair.Presentation.Avalonia
             catch
             {
                 // 读取/写入失败忽略
+            }
+        }
+
+        private void ApplyLanguageFromSettings ()
+        {
+            try
+            {
+                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+                // Task.Run 跳到线程池（无 SynchronizationContext），避免在 UI 调度器未就绪时死锁
+                var settings = Task.Run(() => facade.LoadAppSettingsAsync(CancellationToken.None)).GetAwaiter().GetResult();
+                ApplyLanguage(settings.Language);
+            }
+            catch
+            {
+                // 加载失败保持默认
+            }
+        }
+
+        private static void ApplyLanguage (string language)
+        {
+            try
+            {
+                var culture = string.IsNullOrEmpty(language)
+                    ? CultureInfo.InstalledUICulture
+                    : new CultureInfo(language);
+
+                CultureInfo.CurrentCulture = culture;
+                CultureInfo.CurrentUICulture = culture;
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
+                Lang.Resources.Culture = culture;
+            }
+            catch (CultureNotFoundException)
+            {
+                // 无效的语言代码，保持系统默认
             }
         }
 
@@ -118,6 +157,18 @@ namespace A_Pair.Presentation.Avalonia
                 // 全角字符输入转换（全角数字/符号 → 半角）
                 Behaviors.ChineseInputNormalizer.Attach(mainWindow);
 
+                // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
+                desktop.ShutdownRequested += (_ , _) =>
+                {
+                    var exitLogger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(20));
+                        exitLogger.LogWarning("程序退出超时（20s），强制终止进程");
+                        Environment.Exit(0);
+                    });
+                };
+
                 // 启动时恢复已保存的设置（主题、语言等）
                 _ = RestoreSettingsAsync();
             }
@@ -133,8 +184,8 @@ namespace A_Pair.Presentation.Avalonia
             if (!_isFirstInstance)
             {
                 await DialogServiceShim.ShowWarningAsync(dialog ,
-                    "应用已在运行" ,
-                    "检测到 A_Pair 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。");
+                    Lang.Resources.App_AlreadyRunning ,
+                    Lang.Resources.App_AlreadyRunningMessage);
                 desktop.Shutdown();
                 return;
             }
@@ -157,7 +208,7 @@ namespace A_Pair.Presentation.Avalonia
                 if (hasWarning)
                 {
                     var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog , envMessage);
-                    if (result is 1) // "不再提醒" 按钮
+                    if (result is 1) // "不再提醒" / "Don't remind again" 按钮
                     {
                         settings.SuppressEnvironmentWarning = true;
                         try
@@ -194,10 +245,10 @@ namespace A_Pair.Presentation.Avalonia
             try
             {
                 return await dialog.ShowMultiOptionAsync(
-                    "运行环境警告" ,
+                    Lang.Resources.App_EnvironmentWarning ,
                     message ,
-                    "确定" ,
-                    "不再提醒");
+                    Lang.Resources.Common_OK ,
+                    Lang.Resources.Common_DontRemind);
             }
             catch
             {

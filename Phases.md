@@ -11,8 +11,8 @@
 | 层次 | 技术选型 | 版本 | 用途 |
 |------|----------|------|------|
 | 运行时 | .NET 10 | 10.0.x | 跨平台基础 |
-| UI 框架 | Avalonia UI | 11.2+ | 跨平台桌面界面 |
-| MVVM 框架 | ReactiveUI / CommunityToolkit.Mvvm | - | 响应式绑定、命令 |
+| UI 框架 | Avalonia UI | 12.0 | 跨平台桌面界面 |
+| MVVM 框架 | CommunityToolkit.Mvvm | 8.4 | 响应式绑定、命令 |
 | 依赖注入 | Microsoft.Extensions.DependencyInjection | 10.0.x | DI 容器 |
 | 配置管理 | Microsoft.Extensions.Configuration | 10.0.x | JSON 配置读取 |
 | 日志 | Serilog | 4.x | 结构化日志 |
@@ -40,10 +40,7 @@
 ```
 A_Pair/
 ├── A_Pair.slnx                          # 解决方案文件
-├── Directory.Build.props                # 公共编译属性
-├── Directory.Packages.props             # 集中包版本管理
-├── src/
-│   ├── A_Pair.Core/                     # 领域核心（无外部依赖）
+├── A_Pair.Core/                     # 领域核心（无外部依赖）
 │   │   ├── Entities/                    # Student, Classroom, Seat 等
 │   │   ├── ValueObjects/                # Position, Gender, SeatType 等
 │   │   ├── Interfaces/                  # 领域服务接口
@@ -82,10 +79,15 @@ A_Pair/
 │   │   │   ├── ExcelExporter.cs
 │   │   │   ├── PdfExporter.cs
 │   │   │   └── CsvExporter.cs
-│   │   ├── Persistence/                 # 文件存储、快照管理
-│   │   │   ├── SnapshotRepository.cs
-│   │   │   ├── ConfigMigrationService.cs
-│   │   │   └── FileLockManager.cs
+│   │   ├── Migration/                  # 文件版本迁移（已完成）
+│   │   │   ├── FileMigrationService.cs
+│   │   │   ├── IFileMigrator.cs
+│   │   │   ├── FileVersionInfo.cs
+│   │   │   ├── file_versions.json       # 嵌入资源
+│   │   │   └── Migrators/{Type}Migrators.cs
+│   │   ├── Repositories/               # 文件存储、快照管理
+│   │   │   ├── SeatingSnapshotRepository.cs
+│   │   │   └── FileLockManager.cs（计划）
 │   │   ├── Encryption/                  # 加密服务
 │   │   ├── Logging/                     # Serilog 配置
 │   │   └── Plugins/                     # 插件管理器
@@ -357,9 +359,9 @@ A_Pair/
 | 任务 | 产出 | 技术点 | 预估工时 |
 |------|------|--------|----------|
 | 实现 AppSettings 加载与监视 | 热重载配置 | `IOptionsMonitor` | 1d |
-| 实现 Venue/Roster 文件仓储 | 读取/保存 JSON 文件 | 文件 I/O | 1d |
+| 实现 Venue/Roster 文件仓储 | 读取/保存 JSON 文件 | 文件 I/O | 1d（已完成，含版本号字段）|
 | 实现 SnapshotRepository | 保存/加载座位快照 | JSON 序列化 | 1d |
-| 实现 ConfigMigrationService | 配置版本升级 | 迁移管线模式 | 1.5d |
+| 实现 ConfigMigrationService | 配置版本升级 | 迁移管线模式 | 1.5d（基础实现已完成：IFileMigrator + FileMigrationService）|
 | 实现文件锁机制 | 防止多人同时编辑同一文件 | `FileStream` 锁 | 0.5d |
 | 实现备份与恢复 | 自动备份损坏文件 | 文件复制 | 0.5d |
 | 实现敏感数据加密 | 字段级/文件级加密 | AES-256, DPAPI | 1.5d |
@@ -367,16 +369,17 @@ A_Pair/
 
 **关键技术细节**：
 
-1. **配置迁移管线**：
+1. **配置迁移管线**（基础实现已完成）：
    ```csharp
-   public interface IConfigMigrator
+   public interface IFileMigrator
    {
-       int FromVersion { get; }
-       int ToVersion { get; }
-       JObject Migrate(JObject config);
+       string FileType { get; }
+       string FromVersion { get; }
+       string ToVersion { get; }
+       JsonNode Migrate(JsonNode root);
    }
    ```
-   按版本顺序依次执行迁移。
+   注册到 `FileMigrationService`，按版本号链式执行向前迁移。迁移器按文件类型组织在 `Migration/Migrators/{Type}Migrators.cs`。
 
 2. **字段级加密**：
    - 使用 `[SensitiveData]` 特性标记属性。

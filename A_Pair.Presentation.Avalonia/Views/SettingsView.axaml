@@ -3,6 +3,7 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
@@ -11,26 +12,26 @@
   </Design.DataContext>
 
   <DockPanel Margin="16">
-    <!-- 顶部 -->
-    <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+    <!-- 顶部标题栏 -->
+    <Border DockPanel.Dock="Top" Margin="0,0,0,24">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="设置" Classes="pageTitle"
-                   VerticalAlignment="Center" />
-                <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_Title}"
+                   Classes="pageTitle" VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
-          <Button Command="{Binding ResetDefaultsCommand}" AutomationProperties.Name="恢复默认设置"
-                  HorizontalContentAlignment="Center" Padding="12,6">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
-              <TextBlock Text="恢复默认" FontSize="14" />
+          <Button Command="{Binding SaveSettingsCommand}"
+                  AutomationProperties.Name="{x:Static lang:Resources.Settings_Save}"
+                  HorizontalContentAlignment="Center" IsDefault="True">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Settings_Save}" FontSize="13" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding SaveSettingsCommand}" AutomationProperties.Name="保存设置"
-                  HorizontalContentAlignment="Center" Padding="12,6"
-                  IsDefault="True">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="保存设置" FontSize="14" />
+          <Button Command="{Binding ResetDefaultsCommand}"
+                  AutomationProperties.Name="{x:Static lang:Resources.Settings_ResetDefaults}"
+                  HorizontalContentAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Settings_ResetDefaults}" FontSize="13" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -48,99 +49,108 @@
 
     <!-- 中间内容 -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-      <StackPanel Spacing="16" MaxWidth="560">
+      <StackPanel Spacing="0" MaxWidth="600">
         <!-- 外观 -->
-        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8" Padding="20">
-          <StackPanel Spacing="14">
-            <TextBlock Text="外观" Classes="sectionTitle" />
-            <Separator />
+        <TextBlock Text="{x:Static lang:Resources.Settings_Appearance}"
+                   Classes="settingSectionHeader" Margin="0,0,0,6" />
 
-            <!-- 主题模式 -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="主题模式" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <ComboBox ItemsSource="{Binding ThemeOptions}" AutomationProperties.Name="主题模式"
-                        SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"
-                        MinWidth="160" FontSize="14" />
-            </DockPanel>
+        <Border Classes="settingRow">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_ThemeMode}"
+                       Classes="body" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding ThemeOptions}"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_ThemeMode}"
+                      SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"
+                      MinWidth="160" HorizontalAlignment="Right" FontSize="14" />
+          </DockPanel>
+        </Border>
 
-            <Separator />
-          </StackPanel>
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_DefaultZoom}"
+                       Classes="body" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding ZoomOptions}"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_DefaultZoom}"
+                      SelectedIndex="{Binding ZoomIndex, Mode=TwoWay}"
+                      MinWidth="160" HorizontalAlignment="Right" FontSize="14" />
+          </DockPanel>
         </Border>
 
         <!-- 语言 -->
-        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8" Padding="20">
-          <StackPanel Spacing="14">
-            <TextBlock Text="语言" Classes="sectionTitle" />
-            <Separator />
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="界面语言" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <TextBox Text="{Binding Language, Mode=TwoWay}" AutomationProperties.Name="界面语言"
-                       PlaceholderText="留空跟随系统" Width="200" FontSize="14"
-                       ToolTip.Tip="语言代码，如 zh-CN、en-US。留空则跟随系统。"/>
-            </DockPanel>
-          </StackPanel>
+        <TextBlock Text="{x:Static lang:Resources.Settings_Language}"
+                   Classes="settingSectionHeader" Margin="0,16,0,6" />
+
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_LanguageLabel}"
+                       Classes="body" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                      SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_LanguageLabel}"
+                      MinWidth="180" HorizontalAlignment="Right" FontSize="14">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:LanguageOption">
+                  <TextBlock Text="{Binding DisplayName}" FontSize="14" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </DockPanel>
         </Border>
 
-        <!-- 数据目录 -->
-        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8" Padding="20">
-          <StackPanel Spacing="14">
-            <TextBlock Text="存储" Classes="sectionTitle" />
-            <Separator />
-            <StackPanel Spacing="8">
-              <TextBlock Text="数据目录" FontSize="14"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBox Text="{Binding DataDirectory, Mode=TwoWay}" AutomationProperties.Name="数据目录"
-                         PlaceholderText="留空使用默认位置" FontSize="14"
-                         MinWidth="240" />
-                <Button Command="{Binding BrowseDataDirectoryCommand}" AutomationProperties.Name="浏览数据目录" Padding="10,6">
+        <!-- 存储 -->
+        <TextBlock Text="{x:Static lang:Resources.Settings_Storage}"
+                   Classes="settingSectionHeader" Margin="0,16,0,6" />
+
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_DataDir}"
+                       Classes="body" VerticalAlignment="Top" Margin="0,4,0,0" />
+            <StackPanel HorizontalAlignment="Right" Spacing="6" MinWidth="280">
+              <DockPanel>
+                <Button Command="{Binding BrowseDataDirectoryCommand}"
+                        AutomationProperties.Name="{x:Static lang:Resources.Settings_BrowseDataDir}"
+                        DockPanel.Dock="Right" Padding="8,4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="16" />
                 </Button>
-              </StackPanel>
-              <Button Command="{Binding OpenDataDirectoryCommand}" AutomationProperties.Name="打开当前数据目录"
-                      HorizontalContentAlignment="Left" Padding="8,6">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
-                  <TextBlock Text="打开当前数据目录" FontSize="13" />
+                <TextBox Text="{Binding DataDirectory, Mode=TwoWay}"
+                         PlaceholderText="{x:Static lang:Resources.Settings_DataDirPlaceholder}"
+                         FontSize="14" />
+              </DockPanel>
+              <Button Command="{Binding OpenDataDirectoryCommand}"
+                      AutomationProperties.Name="{x:Static lang:Resources.Settings_OpenDataDir}"
+                      Classes="linkButton" HorizontalContentAlignment="Left" Padding="0">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="12" />
+                  <TextBlock Text="{x:Static lang:Resources.Settings_OpenDataDir}" FontSize="12" />
                 </StackPanel>
               </Button>
             </StackPanel>
-          </StackPanel>
+          </DockPanel>
+        </Border>
+
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_MaxSnapshots}"
+                       Classes="body" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding MaxSnapshotsPerVenue, Mode=TwoWay}"
+                           Minimum="0" Maximum="300" Increment="1"
+                           Width="150" HorizontalAlignment="Right" />
+            <!-- 真的有人能用完吗 -->
+          </DockPanel>
         </Border>
 
         <!-- 行为 -->
-        <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                CornerRadius="8" Padding="20" Margin="0,0,0,16">
-          <StackPanel Spacing="14">
-            <TextBlock Text="行为" Classes="sectionTitle" />
-            <Separator />
+        <TextBlock Text="{x:Static lang:Resources.Settings_Behavior}"
+                   Classes="settingSectionHeader" Margin="0,16,0,6" />
 
-            <Separator />
-
-            <!-- 清除确认 -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="清除数据前确认" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <ToggleSwitch IsChecked="{Binding ConfirmBeforeClear, Mode=TwoWay}" AutomationProperties.Name="清除数据前确认"
-                            HorizontalAlignment="Right" />
-            </DockPanel>
-
-            <Separator />
-
-            <!-- 默认缩放 -->
-            <DockPanel>
-              <TextBlock DockPanel.Dock="Left" Text="座位图默认缩放" FontSize="14"
-                         VerticalAlignment="Center" Width="140" />
-              <ComboBox ItemsSource="{Binding ZoomOptions}" AutomationProperties.Name="默认缩放"
-                        SelectedIndex="{Binding ZoomIndex, Mode=TwoWay}"
-                        MinWidth="160" FontSize="14" />
-            </DockPanel>
-          </StackPanel>
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Settings_ConfirmClear}"
+                       Classes="body" VerticalAlignment="Center" />
+            <ToggleSwitch IsChecked="{Binding ConfirmBeforeClear, Mode=TwoWay}"
+                          AutomationProperties.Name="{x:Static lang:Resources.Settings_ConfirmClear}"
+                          HorizontalAlignment="Right" />
+          </DockPanel>
         </Border>
       </StackPanel>
     </ScrollViewer>

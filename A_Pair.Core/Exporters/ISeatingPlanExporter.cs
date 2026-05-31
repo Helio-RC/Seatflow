@@ -9,6 +9,7 @@ namespace A_Pair.Core.Exporters
     /// </summary>
     public interface ISeatingPlanExporter
     {
+        /// <summary>导出格式类型。</summary>
         ExportFormat Format { get; }
         /// <summary>
         /// 使用默认选项导出座位安排计划（向后兼容）。

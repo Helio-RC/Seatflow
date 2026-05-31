@@ -5,8 +5,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 随机填充策略，优先级最低（Priority=10）。
-    /// 将尚未分配的学生随机填入空座位，作为兜底策略确保所有学生都有座位。
+    /// 随机填充策略（Priority=100，最后执行，填满所有剩余座位）。
+    /// 作为管道中的兜底策略，在所有其他策略完成分配后运行，
+    /// 将剩余未分配学生随机填入剩余空座。确保发布会场没有空座或遗漏学生。
     /// </summary>
     public class RandomFillStrategy : ISeatingStrategy
     {
@@ -30,8 +31,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："RandomFill"。</summary>
         public string Name { get; } = "RandomFill";
 
-        /// <summary>执行优先级：10（最低优先级，最后执行）。</summary>
-        public int Priority { get; set; } = 10;
+        /// <summary>执行优先级：100（最后执行，填满所有剩余非固定空座）。</summary>
+        public int Priority { get; set; } = 100;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;

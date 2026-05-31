@@ -1,6 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,12 +23,17 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
     };
 
     private readonly string _rostersPath;
+    private readonly FileMigrationService _migration;
     private readonly ILogger<JsonStudentDatasetRepository> _logger;
 
-    public JsonStudentDatasetRepository (string rostersPath , ILogger<JsonStudentDatasetRepository>? logger = null)
+    public JsonStudentDatasetRepository (
+        string rostersPath ,
+        FileMigrationService migration ,
+        ILogger<JsonStudentDatasetRepository>? logger = null)
     {
         ArgumentNullException.ThrowIfNull(rostersPath);
         _rostersPath = rostersPath;
+        _migration = migration ?? throw new ArgumentNullException(nameof(migration));
         _logger = logger ?? NullLogger<JsonStudentDatasetRepository>.Instance;
         Directory.CreateDirectory(_rostersPath);
     }
@@ -35,7 +43,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
     {
         var roster = new RosterFile
         {
-            Version = "1.0" ,
+            Version = FileVersionInfo.GetCurrentVersion("roster") ,
             Description = name ,
             Students = students ,
             Metadata = new Dictionary<string , object>
@@ -46,6 +54,11 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         };
         if (originalFileName != null)
             roster.Metadata["originalFileName"] = originalFileName;
+
+        // 按 Id 排序后序列化学生列表，计算 StudentsHash
+        roster.Students = [.. roster.Students.OrderBy(s => s.Id)];
+        var studentsJson = JsonSerializer.Serialize(roster.Students , WriteOptions);
+        roster.StudentsHash = ContentHashHelper.ComputeSha256(studentsJson);
 
         var path = GetFilePath(id);
         await using var stream = File.Create(path);
@@ -58,8 +71,8 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         var path = GetFilePath(id);
         if (!File.Exists(path)) return null;
 
-        await using var stream = File.OpenRead(path);
-        var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream , ReadOptions , ct);
+        var json = await File.ReadAllTextAsync(path , ct);
+        var roster = DeserializeRoster(json);
         return roster?.Students;
     }
 
@@ -73,8 +86,8 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         {
             try
             {
-                using var stream = File.OpenRead(file);
-                var roster = JsonSerializer.Deserialize<RosterFile>(stream , ReadOptions);
+                var json = File.ReadAllText(file);
+                var roster = DeserializeRoster(json);
                 if (roster is null) continue;
 
                 var info = new StudentDatasetInfo
@@ -106,6 +119,35 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         if (File.Exists(path))
             File.Delete(path);
         return Task.CompletedTask;
+    }
+
+    public async Task RenameAsync (string id , string newName , CancellationToken ct = default)
+    {
+        var path = GetFilePath(id);
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"数据集文件不存在：{path}");
+
+        var json = await File.ReadAllTextAsync(path , ct);
+        var roster = DeserializeRoster(json);
+        if (roster == null)
+            throw new InvalidOperationException($"数据集文件损坏：{path}");
+
+        roster.Description = newName;
+        await using var stream = File.Create(path);
+        await JsonSerializer.SerializeAsync(stream , roster , WriteOptions , ct);
+        _logger.LogInformation("数据集已重命名：{Id} → {Name}" , id , newName);
+    }
+
+    private RosterFile? DeserializeRoster (string json)
+    {
+        var node = JsonNode.Parse(json);
+        if (node is not null)
+        {
+            var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+            node = _migration.Migrate("roster" , node , fileVersion , FileVersionInfo.GetCurrentVersion("roster"));
+            json = node.ToJsonString();
+        }
+        return JsonSerializer.Deserialize<RosterFile>(json , ReadOptions);
     }
 
     private string GetFilePath (string id) => Path.Combine(_rostersPath , $"{id}.roster.json");

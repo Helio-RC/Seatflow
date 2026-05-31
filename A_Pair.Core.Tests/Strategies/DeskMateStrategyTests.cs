@@ -116,4 +116,165 @@ public class DeskMateStrategyTests
         var result = strategy.ValidateConfiguration();
         result.IsValid.Should().BeFalse();
     }
+
+    [Fact]
+    public void Constructor_NullConfig_ShouldThrowArgumentNullException ()
+    {
+        var act = () => new DeskMateStrategy(null!);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_NullWorkspace_ShouldThrowArgumentNullException ()
+    {
+        var strategy = new DeskMateStrategy();
+        var act = async () => await strategy.ExecuteAsync(null! , CancellationToken.None);
+        await act.Should().ThrowAsync<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_GroupsFromAttributeBag_ShouldMergeGroups ()
+    {
+        var s1 = new Student { Id = "s1" };
+        s1.Extensions.Set("DeskMates" , new List<string> { "s2" });
+        var s2 = new Student { Id = "s2" };
+
+        var seats = CreateGridSeats((1 , 1) , (1 , 2));
+        var ws = new SeatingWorkspace(new[] { s1 , s2 } , seats.Cast<Seat>().ToList());
+
+        var strategy = new DeskMateStrategy();
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_GroupWithOnlyOneUnassigned_ShouldBeFilteredOut ()
+    {
+        var s1 = new Student { Id = "s1" };
+        var s2 = new Student { Id = "s2" };
+        var s3 = new Student { Id = "s3" };
+
+        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var ws = new SeatingWorkspace(new[] { s1 , s2 , s3 } , seats.Cast<Seat>().ToList());
+
+        // Pre-assign s1 — the group {s1, s2} only has s2 unassigned → filtered out
+        ws.TryAssignSeat(seats[2].Id , s1.Id , out _);
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            }
+        };
+        var strategy = new DeskMateStrategy(config);
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        // s2 should not be assigned by DeskMate (group filtered out)
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(1); // only s1 assigned
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_PolarSeatsWithLogicalGroup_ShouldConsiderAdjacent ()
+    {
+        var students = CreateStudents("s1" , "s2");
+        var seats = new List<Seat>
+        {
+            new PolarSeat { Id = "p1", Ring = 1, Radius = 1, AngleDegrees = 0, LogicalGroup = "A" },
+            new PolarSeat { Id = "p2", Ring = 1, Radius = 1, AngleDegrees = 45, LogicalGroup = "A" },
+            new PolarSeat { Id = "p3", Ring = 1, Radius = 1, AngleDegrees = 180, LogicalGroup = "B" },
+        };
+        var ws = new SeatingWorkspace(students , seats);
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            }
+        };
+        var strategy = new DeskMateStrategy(config);
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(2);
+        // p1 and p2 share LogicalGroup "A" → adjacent → assigned
+        plan.Assignments.Keys.Should().Contain(new[] { "p1" , "p2" });
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_FreeformSeatsWithLogicalGroup_ShouldConsiderAdjacent ()
+    {
+        var students = CreateStudents("s1" , "s2");
+        var seats = new List<Seat>
+        {
+            new FreeformSeat { Id = "ff1", X = 0, Y = 0, LogicalGroup = "G1" },
+            new FreeformSeat { Id = "ff2", X = 10, Y = 10, LogicalGroup = "G1" },
+            new FreeformSeat { Id = "ff3", X = 50, Y = 50, LogicalGroup = "G2" },
+        };
+        var ws = new SeatingWorkspace(students , seats);
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            }
+        };
+        var strategy = new DeskMateStrategy(config);
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(2);
+        // ff1 and ff2 share LogicalGroup "G1" → adjacent despite large distance
+        plan.Assignments.Keys.Should().Contain(new[] { "ff1" , "ff2" });
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_BfsFallback_WhenNoContiguousBlock ()
+    {
+        var students = CreateStudents("s1" , "s2" , "s3");
+        // Seats are all isolated (no grid adjacency, no LogicalGroup) — BFS finds only size-1 components
+        var seats = new List<Seat>
+        {
+            new GridSeat { Id = "a1", Row = 1, Column = 1 },
+            new GridSeat { Id = "a3", Row = 1, Column = 3 },
+            new GridSeat { Id = "c1", Row = 3, Column = 1 },
+        };
+        var ws = new SeatingWorkspace(students , seats);
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1", "s2" } }
+            },
+            PreferHorizontal = true,
+            AllowVertical = false,
+        };
+        var strategy = new DeskMateStrategy(config);
+        await strategy.ExecuteAsync(ws , CancellationToken.None);
+
+        // BFS finds no component of size >= 2 → falls back to sequential: assigns first 2 seats
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void ValidateConfiguration_GroupWithLessThanTwoStudents_ShouldFail ()
+    {
+        var config = new DeskMateConfiguration
+        {
+            Groups = new List<DeskMateGroup>
+            {
+                new DeskMateGroup { StudentIds = new List<string> { "s1" } }
+            }
+        };
+        var strategy = new DeskMateStrategy(config);
+        var result = strategy.ValidateConfiguration();
+        result.IsValid.Should().BeFalse();
+    }
 }

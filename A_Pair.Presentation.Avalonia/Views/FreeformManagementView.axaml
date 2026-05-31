@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
              xmlns:behaviors="using:A_Pair.Presentation.Avalonia.Behaviors"
@@ -12,41 +13,41 @@
     <!-- 顶部工具栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,16">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="自由点管理  " Classes="pageTitle"
+        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Freeform_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
         <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding ExportTemplateCommand}"
-                  AutomationProperties.Name="导出模板"
+                  AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-              <TextBlock Text="模板" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Freeform_Template}" FontSize="14" />
             </StackPanel>
           </Button>
           <Button Command="{Binding ImportCsvCommand}"
-                  AutomationProperties.Name="导入CSV文件"
+                  AutomationProperties.Name="{x:Static lang:Resources.Data_Import}"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-              <TextBlock Text="导入 CSV" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportCSV}" FontSize="14" />
             </StackPanel>
           </Button>
           <Button Command="{Binding ImportJsonCommand}"
-                  AutomationProperties.Name="导入JSON文件"
+                  AutomationProperties.Name="{x:Static lang:Resources.Data_Import}"
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-              <TextBlock Text="导入 JSON" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportJSON}" FontSize="14" />
             </StackPanel>
           </Button>
           <Button Command="{Binding SaveLayoutCommand}"
                   IsEnabled="{Binding HasPoints}"
-                  AutomationProperties.Name="保存布局"
+                  AutomationProperties.Name="{x:Static lang:Resources.Freeform_SaveLayout}"
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="保存" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -56,7 +57,7 @@
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding Points.Count, StringFormat='共 {0} 个元素'}"
+        <TextBlock DockPanel.Dock="Right" Text="{Binding ElementCountDisplay}"
                    FontSize="12" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         <TextBlock Text="{Binding StatusMessage}" Classes="caption"
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
@@ -68,7 +69,7 @@
       <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" MinWidth="240"
               Background="{DynamicResource SidebarBackgroundBrush}">
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="已保存布局"
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Freeform_SavedLayouts}"
                      FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8" />
 
           <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,8,0,0">
@@ -77,7 +78,7 @@
               <StackPanel Orientation="Horizontal" Spacing="6"
                           HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14" />
-                <TextBlock Text="刷新" FontSize="13" />
+                <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" FontSize="13" />
               </StackPanel>
             </Button>
             <Button Command="{Binding DeleteLayoutCommand}"
@@ -86,7 +87,7 @@
               <StackPanel Orientation="Horizontal" Spacing="6"
                           HorizontalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
-                <TextBlock Text="删除" FontSize="13" />
+                <TextBlock Text="{x:Static lang:Resources.Common_Delete}" FontSize="13" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -113,10 +114,10 @@
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="48"
                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                             HorizontalAlignment="Center" />
-            <TextBlock Text="暂无数据" Classes="sectionTitle"
+            <TextBlock Text="{x:Static lang:Resources.Common_NoData}" Classes="sectionTitle"
                        HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="点击「模板」下载 CSV 模板，编辑后「导入 CSV」或从左侧加载已保存的布局"
+            <TextBlock Text="{x:Static lang:Resources.Data_Import}"
                        FontSize="12" HorizontalAlignment="Center"
                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
           </StackPanel>
@@ -127,7 +128,7 @@
           <!-- 名称栏 -->
           <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="布局名称" FontSize="13" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static lang:Resources.Freeform_LayoutName}" FontSize="13" VerticalAlignment="Center"/>
               <TextBox Text="{Binding LayoutName, Mode=TwoWay}" FontSize="14"/>
             </StackPanel>
           </StackPanel>
@@ -141,7 +142,7 @@
                       Padding="8,4" FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
-                  <TextBlock Text="添加自由点" FontSize="12"/>
+                  <TextBlock Text="{x:Static lang:Resources.Freeform_AddPoint}" FontSize="12"/>
                 </StackPanel>
               </Button>
               <Button Command="{Binding ClearPointsCommand}"
@@ -149,7 +150,7 @@
                       Padding="8,4" FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-                  <TextBlock Text="清空数据" FontSize="12"/>
+                  <TextBlock Text="{x:Static lang:Resources.Freeform_ClearData}" FontSize="12"/>
                 </StackPanel>
               </Button>
               <Button Command="{Binding UnloadCommand}"
@@ -157,10 +158,10 @@
                       Padding="8,4" FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="14"/>
-                  <TextBlock Text="卸载已加载数据" FontSize="12"/>
+                  <TextBlock Text="{x:Static lang:Resources.Data_UnloadData}" FontSize="12"/>
                 </StackPanel>
               </Button>
-              <TextBlock Text="{Binding Points.Count, StringFormat='共 {0} 个元素'}"
+              <TextBlock Text="{Binding ElementCountDisplay}"
                          FontSize="12" VerticalAlignment="Center"
                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
             </StackPanel>
@@ -187,44 +188,44 @@
                             <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
                                            Minimum="0" Maximum="5000" FontSize="12"
-                                           PlaceholderText="X 坐标"
-                                           ToolTip.Tip="X 坐标（像素）"/>
+                                           PlaceholderText="{x:Static lang:Resources.Freeform_XCoord}"
+                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_XTooltip}"/>
                             <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
                                            Minimum="0" Maximum="5000" FontSize="12"
-                                           PlaceholderText="Y 坐标"
-                                           ToolTip.Tip="Y 坐标（像素）"/>
-                            <TextBlock Text="类型:" FontSize="12" VerticalAlignment="Center"/>
+                                           PlaceholderText="{x:Static lang:Resources.Freeform_YCoord}"
+                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_YTooltip}"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_Type}" FontSize="12" VerticalAlignment="Center"/>
                             <ComboBox SelectedIndex="{ReflectionBinding ElementType}"
                                       FontSize="12"
-                                      ToolTip.Tip="元素类型：座位 / 讲台 / 门">
-                              <ComboBoxItem Content="座位"/>
-                              <ComboBoxItem Content="讲台"/>
-                              <ComboBoxItem Content="门"/>
+                                      ToolTip.Tip="{x:Static lang:Resources.Freeform_TypeTooltip}">
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Seat}"/>
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Podium}"/>
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Door}"/>
                             </ComboBox>
                           </StackPanel>
                           <!-- 第二行: 行, 列, 组 -->
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="行:" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_RowLabel}" FontSize="12" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding Row, Mode=TwoWay}"
                                            Minimum="0" Maximum="100" FontSize="12"
-                                           PlaceholderText="行号"
-                                           ToolTip.Tip="行号"/>
-                            <TextBlock Text="列:" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                                           PlaceholderText="{x:Static lang:Resources.Freeform_RowPH}"
+                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_RowPH}"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_ColLabel}" FontSize="12" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding Column, Mode=TwoWay}"
                                            Minimum="0" Maximum="100" FontSize="12"
-                                           PlaceholderText="列号"
-                                           ToolTip.Tip="列号"/>
-                            <TextBlock Text="组:" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                                           PlaceholderText="{x:Static lang:Resources.Freeform_ColPH}"
+                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_ColPH}"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_GroupLabel}" FontSize="12" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding GroupId, Mode=TwoWay}"
                                            Minimum="0" Maximum="7" FontSize="12"
-                                           PlaceholderText="组号"
-                                           ToolTip.Tip="同桌组号（0-7）"/>
+                                           PlaceholderText="{x:Static lang:Resources.Freeform_GroupPH}"
+                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_GroupTooltip}"/>
                             <Button Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
                                     CommandParameter="{Binding}"
                                     Padding="6,2" FontSize="12"
                                     VerticalAlignment="Center" HorizontalAlignment="Right"
-                                    AutomationProperties.Name="删除此点">
+                                    AutomationProperties.Name="{x:Static lang:Resources.Freeform_DeletePoint}">
                               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="12"/>
                             </Button>
                           </StackPanel>
@@ -264,27 +265,27 @@
                                     IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
                                     ConverterParameter=0}"
                                     Background="{DynamicResource SystemAccentColor}"
-                                    ToolTip.Tip="{Binding DisplayIndex, StringFormat='座位 #{0}'}"/>
+                                    ToolTip.Tip="{Binding TooltipDisplay}"/>
                             <!-- 讲台：大圆点 -->
                             <Border Width="40" Height="40"
                                     CornerRadius="20" Opacity="0.6"
                                     IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
                                     ConverterParameter=1}"
                                     Background="{DynamicResource PreviewPodiumFillBrush}"
-                                    ToolTip.Tip="{Binding DisplayIndex, StringFormat='讲台 #{0}'}"/>
+                                    ToolTip.Tip="{Binding TooltipDisplay}"/>
                             <!-- 门：矩形 -->
                             <Border Width="36" Height="24"
                                     CornerRadius="4" Opacity="0.7"
                                     IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
                                     ConverterParameter=2}"
                                     Background="{DynamicResource PreviewDoorFillBrush}"
-                                    ToolTip.Tip="{Binding DisplayIndex, StringFormat='门 #{0}'}"/>
+                                    ToolTip.Tip="{Binding TooltipDisplay}"/>
                           </Panel>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                   </ScrollViewer>
-                  <TextBlock Text="左键拖动" FontSize="11" Opacity="0.4"
+                  <TextBlock Text="{x:Static lang:Resources.Venue_DragHint}" FontSize="11" Opacity="0.4"
                              HorizontalAlignment="Right" VerticalAlignment="Bottom"
                              Margin="0,0,10,6"/>
                 </Grid>

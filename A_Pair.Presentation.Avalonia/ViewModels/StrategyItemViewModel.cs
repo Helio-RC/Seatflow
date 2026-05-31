@@ -43,5 +43,8 @@ public partial class StrategyItemViewModel : ObservableObject
     partial void OnPriorityChanged (int value) => HasChanges = true;
     partial void OnIsEnabledChanged (bool value) => HasChanges = true;
 
+    public string PriorityDisplay => string.Format(Lang.Resources.Strategy_PriorityFmt , Priority);
+    public string EnableTooltipDisplay => IsEnabled ? Lang.Resources.Common_Enabled : Lang.Resources.Common_Disabled;
+
     public void MarkClean () => HasChanges = false;
 }

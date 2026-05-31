@@ -10,6 +10,7 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -82,6 +83,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     public Action<double> ZoomAction => delta => ApplyZoom(delta);
     public void ApplyZoom (double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta , 0.2 , 3.0); BuildSeatDisplayItems(); }
 
+    /// <summary>不改变数据，仅重新绘制预览区域。</summary>
+    public void RefreshPreview () => BuildSeatDisplayItems();
+
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
@@ -118,7 +122,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 状态栏 ──
     [ObservableProperty]
-    private string _statusMessage = "就绪";
+    private string _statusMessage = Resources.Seating_Ready;
 
     [ObservableProperty]
     private int _totalSeats;
@@ -164,7 +168,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private async Task LoadInitialDataAsync ()
     {
         await Task.WhenAll(LoadVenuesAsync() , LoadDatasetsAsync() , LoadDefaultZoomAsync());
-        StatusMessage = "就绪，请选择会场和学生数据集后生成座位安排";
+        StatusMessage = Resources.Seating_ReadyHint;
     }
 
     private async Task LoadDefaultZoomAsync ()
@@ -227,13 +231,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             _isRestoringWorkspace = false;
 
             HasGenerated = true;
-            BuildSeatDisplayItems();
         }
 
         await UpdateRightPanelAsync();
         UpdateStats();
-        InitHistory("已恢复的工作区");
-        StatusMessage = $"已恢复工作区：{AssignedSeats}/{TotalSeats} 已分配";
+        InitHistory(Resources.Seating_RestoredWorkspace);
+        StatusMessage = string.Format(Resources.Seating_RestoredWorkspaceFmt , AssignedSeats , TotalSeats);
+
+        // 强制在 UI 线程上重绘，确保异步 continuation 未切到线程池时也能正确渲染
+        Dispatcher.UIThread.Post(RefreshPreview);
     }
 
     // ── 会场选择 ──
@@ -246,7 +252,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (_currentLayout != null)
             {
                 ObstacleProcessor.ApplyObstacles(_currentLayout);
-                StatusMessage = $"已选择会场「{_currentLayout.Name}」，共 {_currentLayout.Seats.Count} 个座位";
+                StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt , _currentLayout.Name , _currentLayout.Seats.Count);
             }
         });
     }
@@ -264,7 +270,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         IsGenerating = true;
         HasGenerated = false;
-        StatusMessage = "正在生成座位安排...";
+        StatusMessage = Resources.Seating_Generating;
 
         await SafeExecuteAsync(async () =>
         {
@@ -272,7 +278,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id , ct);
             if (students == null || students.Count == 0)
             {
-                StatusMessage = "数据集中没有学生数据";
+                StatusMessage = Resources.Seating_NoMembers;
                 return;
             }
 
@@ -301,7 +307,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 {
                     LayoutId = SelectedVenue!.Id ,
                     StudentDataSource = tempPath ,
-                    Description = $"会场「{SelectedVenue.Name}」× 数据集「{SelectedDataset.Name}」"
+                    Description = string.Format(Resources.Seating_VenueDatasetDesc , SelectedVenue.Name , SelectedDataset.Name)
                 };
 
                 _workspace = await _facade.GenerateSeatingAsync(request , progress , ct);
@@ -311,17 +317,17 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 BuildSeatDisplayItems();
                 await UpdateRightPanelAsync();
                 UpdateStats();
-                InitHistory("生成座位安排");
+                InitHistory(Resources.Seating_GenerateDesc);
 
                 HasGenerated = true;
-                StatusMessage = $"座位安排已生成：{AssignedSeats}/{TotalSeats} 已分配";
+                StatusMessage = string.Format(Resources.Seating_GeneratedFmt , AssignedSeats , TotalSeats);
             }
             finally
             {
                 // 5. 清理临时文件
                 try { File.Delete(tempPath); } catch { /* 忽略 */ }
             }
-        } , "生成座位安排失败");
+        } , Resources.Seating_GenerateFailed);
 
         IsGenerating = false;
     }
@@ -457,7 +463,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 Width = w ,
                 Height = h ,
                 SeatId = obs.Id ,
-                SeatLabel = obs.Type ?? "障碍物" ,
+                SeatLabel = obs.Type ?? Resources.Seating_Obstacle ,
                 CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4) ,
                 OccupancyStatus = SeatOccupancyStatus.Empty
             });
@@ -497,7 +503,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         return seat switch
         {
             GridSeat g => $"R{g.Row}C{g.Column}",
-            PolarSeat p => $"环{p.Ring}-{p.AngleDegrees:F0}°",
+            PolarSeat p => string.Format(Resources.Seating_PolarLabelFmt , p.Ring , p.AngleDegrees),
             FreeformSeat => $"#{counter}",
             _ => $"#{counter}"
         };
@@ -580,7 +586,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             _swapSourceSeat = clickedSeat;
             clickedSeat.IsSelectedForSwap = true;
             IsSwapMode = true;
-            SwapHintText = $"已选择「{clickedSeat.StudentName ?? clickedSeat.SeatLabel}」，请点击目标座位交换";
+            SwapHintText = string.Format(Resources.Seating_SelectTargetFmt , clickedSeat.StudentName ?? clickedSeat.SeatLabel);
             return;
         }
 
@@ -607,10 +613,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 RefreshSeatAssignments();
                 await UpdateRightPanelAsync();
                 UpdateStats();
-                AddHistoryEntry($"交换：{source.StudentName ?? source.SeatLabel} ↔ {clickedSeat.StudentName ?? "(空位)"}");
-                StatusMessage = $"已交换：{source.StudentName} ↔ {clickedSeat.StudentName ?? "(空位)"}";
+                AddHistoryEntry(string.Format(Resources.Seating_SwapDescFmt , source.StudentName ?? source.SeatLabel , clickedSeat.StudentName ?? Resources.Common_Cancel));
+                StatusMessage = string.Format(Resources.Seating_SwappedFmt , source.StudentName , clickedSeat.StudentName ?? Resources.Common_Cancel);
             }
-        } , "座位交换失败");
+        } , Resources.Seating_SwapFailed);
 
         CancelSwap();
     }
@@ -656,7 +662,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var idx = _historyEntries.IndexOf(SelectedHistory);
         if (idx < 0) return;
         RestoreToHistoryIndex(idx);
-        StatusMessage = $"已恢复至「{SelectedHistory.Description}」";
+        StatusMessage = string.Format(Resources.Seating_RestoredToFmt , SelectedHistory.Description);
     }
 
     // ── 历史管理 ──
@@ -698,7 +704,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _ = UpdateRightPanelAsync();
         RefreshSeatAssignments();
         UpdateStats();
-        StatusMessage = $"已恢复至「{_historyEntries[index].Description}」";
+        StatusMessage = string.Format(Resources.Seating_RestoredToFmt , _historyEntries[index].Description);
     }
 
     private void UpdateHistoryState ()
@@ -721,36 +727,43 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         await SafeExecuteAsync(async () =>
         {
-            var snapshot = await _facade.CreateSnapshotAsync($"手动保存 - {DateTime.Now:yyyy-MM-dd HH:mm}");
+            var snapshot = await _facade.CreateSnapshotAsync(string.Format(Resources.Seating_ManualSnapshotFmt , DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
             if (snapshot != null)
             {
                 _lastSavedIndex = _currentHistoryIndex;
                 OnPropertyChanged(nameof(HasUnsavedChanges));
-                StatusMessage = "已保存到快照";
+                StatusMessage = Resources.Seating_SnapshotSaved;
             }
-        } , "保存快照失败");
+        } , Resources.Seating_SnapshotFailed);
     }
 
     // ── 页面离开拦截 ──
 
     public override async Task<bool> CanLeaveAsync ()
     {
-        if (!HasUnsavedChanges) return true;
+        if (!HasUnsavedChanges)
+        {
+            _facade.ClearWorkspace();
+            return true;
+        }
 
-        var result = await Dialog.ShowMultiOptionAsync("未保存的修改" ,
-            "当前座位安排有未保存的修改，是否保存后离开？" ,
-            "保存并离开" , "不保存直接离开" , "取消");
+        var result = await Dialog.ShowMultiOptionAsync(Resources.Seating_UnsavedChanges ,
+            Resources.Seating_UnsavedChangesMsg ,
+            Resources.Seating_SaveAndLeave , Resources.Seating_DiscardAndLeave , "取消");
 
         switch (result)
         {
             case 0: // 保存
                 await SaveToSnapshotAsync();
-                return true;
+                break;
             case 1: // 不保存
-                return true;
+                break;
             default: // 取消
                 return false;
         }
+
+        _facade.ClearWorkspace();
+        return true;
     }
 
     // ── 折叠切换 ──
@@ -766,50 +779,64 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 导出 ──
 
+    private int _dialogLock;
     private static readonly TimeSpan ExportTimeout = TimeSpan.FromSeconds(30);
 
     [RelayCommand]
     private async Task ExportExcelAsync () => await ExportAsync(ExportFormat.Excel ,
-        [new FilePickerFileType("Excel 文件") { Patterns = ["*.xlsx"] }] , "座位安排.xlsx");
+        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , Resources.Seating_ExcelDefault);
 
     [RelayCommand]
     private async Task ExportCsvAsync () => await ExportAsync(ExportFormat.Csv ,
-        [new FilePickerFileType("CSV 文件") { Patterns = ["*.csv"] }] , "座位安排.csv");
+        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , Resources.Seating_CsvDefault);
 
     [RelayCommand]
     private async Task ExportPdfAsync () => await ExportAsync(ExportFormat.Pdf ,
-        [new FilePickerFileType("PDF 文件") { Patterns = ["*.pdf"] }] , "座位安排.pdf");
+        [new FilePickerFileType(Resources.Seating_PDFFile) { Patterns = ["*.pdf"] }] , Resources.Seating_PDFDefault);
 
     [RelayCommand]
     private async Task ExportImageAsync () => await ExportAsync(ExportFormat.Png ,
-        [new FilePickerFileType("PNG 图片") { Patterns = ["*.png"] }] , "座位安排.png");
+        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault);
 
     private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName)
     {
-        if (_workspace == null) return;
-
-        if (_currentLayout?.LayoutType == LayoutType.Freeform)
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        try
         {
-            await Dialog.ShowWarningAsync("不支持的数据导出" ,
-                "自由点布局不支持导出为表格格式，请使用「预览图片」导出。");
-            return;
+            if (_workspace == null) return;
+
+            if (_currentLayout?.LayoutType == LayoutType.Freeform)
+            {
+                await Dialog.ShowWarningAsync(Resources.Seating_UnsupportedExport ,
+                    Resources.Seating_UnsupportedExportMsg);
+                return;
+            }
+
+            var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , suggestedName);
+            if (file == null) return;
+
+            var filePath = file.Path.LocalPath;
+            var ok = await SafeExecuteAsync(async (ct) =>
+            {
+                var options = new ExportOptions { Format = format , IncludeMetadata = true };
+                await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
+                StatusMessage = string.Format(Resources.Seating_ExportedFmt , file.Name);
+            } , ExportTimeout , Resources.Seating_ExportTitle);
+
+            if (!ok)
+            {
+                try { File.Delete(filePath); } catch { /* ignore */ }
+                StatusMessage = Resources.Seating_ExportTimeout;
+            }
         }
-
-        var file = await _fileService.SaveFileAsync("导出座位安排" , types , suggestedName);
-        if (file == null) return;
-
-        var filePath = file.Path.LocalPath;
-        var ok = await SafeExecuteAsync(async (ct) =>
+        catch (Exception ex)
         {
-            var options = new ExportOptions { Format = format , IncludeMetadata = true };
-            await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
-            StatusMessage = $"已导出至 {file.Name}";
-        } , ExportTimeout , "导出座位安排");
-
-        if (!ok)
+            _logger?.LogDebug(ex , "导出文件对话框取消或异常");
+        }
+        finally
         {
-            try { File.Delete(filePath); } catch { /* 忽略清理失败 */ }
-            StatusMessage = "导出超时，已取消";
+            await Task.Delay(150);
+            Interlocked.Exchange(ref _dialogLock , 0);
         }
     }
 }

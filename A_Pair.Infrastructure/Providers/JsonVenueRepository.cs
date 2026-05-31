@@ -1,7 +1,10 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Migration;
 using A_Pair.Infrastructure.Serialization;
+using A_Pair.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -17,15 +20,19 @@ namespace A_Pair.Infrastructure.Providers
     public class JsonVenueRepository : IVenueRepository
     {
         private readonly string _venuesFolder;
+        private readonly FileMigrationService _migration;
         private readonly ILogger<JsonVenueRepository> _logger;
 
         /// <summary>
         /// 初始化 JSON 会场仓储，确保存储目录存在。
         /// </summary>
-        /// <param name="venuesFolder">会场文件存储目录。</param>
-        public JsonVenueRepository (string venuesFolder , ILogger<JsonVenueRepository>? logger = null)
+        public JsonVenueRepository (
+            string venuesFolder ,
+            FileMigrationService migration ,
+            ILogger<JsonVenueRepository>? logger = null)
         {
             _venuesFolder = venuesFolder ?? throw new ArgumentNullException(nameof(venuesFolder));
+            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
             _logger = logger ?? NullLogger<JsonVenueRepository>.Instance;
             Directory.CreateDirectory(_venuesFolder);
         }
@@ -36,12 +43,16 @@ namespace A_Pair.Infrastructure.Providers
             var filePath = GetFilePath(venueId);
             var venueFile = new VenueFile
             {
-                Version = "1.0" ,
+                Version = FileVersionInfo.GetCurrentVersion("venue") ,
                 VenueId = venueId ,
                 Layout = layout
             };
             var options = SerializerOptions;
+            // 首次序列化（不含哈希）用于计算内容哈希
             var json = JsonSerializer.Serialize(venueFile , options);
+            venueFile.ContentHash = ContentHashHelper.ComputeSha256(json);
+            // 二次序列化（含哈希）用于保存
+            json = JsonSerializer.Serialize(venueFile , options);
             await File.WriteAllTextAsync(filePath , json , cancellationToken);
             _logger.LogInformation("会场已保存：{VenueId} → {Path}" , venueId , filePath);
         }
@@ -54,9 +65,34 @@ namespace A_Pair.Infrastructure.Providers
                 return null;
 
             var json = await File.ReadAllTextAsync(filePath , cancellationToken);
+            var node = JsonNode.Parse(json);
+            if (node is not null)
+            {
+                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+                node = _migration.Migrate("venue" , node , fileVersion , FileVersionInfo.GetCurrentVersion("venue"));
+                json = node.ToJsonString();
+            }
             var options = SerializerOptions;
             var venueFile = JsonSerializer.Deserialize<VenueFile>(json , options);
             return venueFile?.Layout;
+        }
+
+        /// <inheritdoc />
+        public async Task<string?> GetContentHashAsync (string venueId , CancellationToken ct = default)
+        {
+            var filePath = GetFilePath(venueId);
+            if (!File.Exists(filePath)) return null;
+            var json = await File.ReadAllTextAsync(filePath , ct);
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty("contentHash" , out var h) ? h.GetString() : null;
+        }
+
+        /// <inheritdoc />
+        public async Task<string?> GetRawVenueFileAsync (string venueId , CancellationToken ct = default)
+        {
+            var filePath = GetFilePath(venueId);
+            if (!File.Exists(filePath)) return null;
+            return await File.ReadAllTextAsync(filePath , ct);
         }
 
         /// <inheritdoc />

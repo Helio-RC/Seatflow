@@ -57,6 +57,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>加载会场布局。</summary>
         Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default);
 
+        /// <summary>获取会场的 ContentHash（不反序列化全量布局）。</summary>
+        Task<string?> GetVenueHashAsync (string venueId , CancellationToken ct = default);
+
         /// <summary>获取所有会场 ID 列表。</summary>
         Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default);
 
@@ -93,6 +96,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>删除指定学生数据集。</summary>
         Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default);
 
+        /// <summary>原地重命名数据集，保持 ID 不变。</summary>
+        Task RenameStudentDatasetAsync (string id , string newName , CancellationToken ct = default);
+
         /// <summary>获取所有策略（内置 + 插件）的完整展示信息，合并 Manifest 和运行时 Config。</summary>
         Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default);
 
@@ -121,6 +127,15 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>获取指定插件的原始清单。</summary>
         Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default);
+
+        /// <summary>清除当前工作区和布局状态，用于页面离开时重置。</summary>
+        void ClearWorkspace ();
+
+        /// <summary>检查快照关联会场的完整性。返回 (文件是否存在, 哈希是否匹配)。</summary>
+        Task<(bool Exists , bool HashMatch)> CheckVenueIntegrityAsync (string venueId , string? snapshotVenueHash , CancellationToken ct = default);
+
+        /// <summary>将快照中嵌入的会场布局 JSON 导入为新的会场文件，返回新会场 ID。</summary>
+        Task<string> ImportVenueFromSnapshotAsync (string venueLayoutJson , string? newName = null , CancellationToken ct = default);
     }
 
     /// <summary>

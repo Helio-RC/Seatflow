@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Environment
 
-你处在无头环境中，无法使用 avdt。
+在执行需要 GUI 的操作前，先确认当前是否处于无头环境（检查 `DISPLAY` / `WAYLAND_DISPLAY` 等环境变量），以及是否安装了 .NET 10 SDK。avdt（Avalonia DevTools）仅在桌面环境下可用。
 
 ##  Build & Test
 
@@ -23,7 +23,7 @@ dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 
 **No `Directory.Build.props` or `Directory.Packages.props`** — package versions are managed directly in each `.csproj`.
 
-**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in repo-root `dotnet-tools.json`. 在无头环境中无法使用 avdt，但构建时无需此工具。
+**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in repo-root `dotnet-tools.json`. 使用前先确认当前环境是否有桌面显示支持，若无头则跳过 avdt。构建时无需此工具。
 
 ## Architecture
 
@@ -39,19 +39,31 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 
 **DI**: `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
 
-**Navigation**: `INavigationService` + `MainShellViewModel` manages 10 pages via `PageKey` enum (`Home`, `DataManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
+**Navigation**: `INavigationService` + `MainShellViewModel` manages 10 pages via `PageKey` enum (`Home`, `MemberManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
 
 **Project dependency chain**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`). `Plugins.Sdk` is referenced only by external plugins. `Application` orchestrates; `Infrastructure` implements providers/exporters/layouts/repos; `Core` owns entities, strategy interfaces, and the workspace.
 
+**Strategy pipeline**: Uses a **fill-in-order** model — all four strategies operate on the same `SeatingWorkspace`. They execute in **ascending Priority order** (lower = earlier = dibs on empty seats). No "override" semantics; first to fill a seat keeps it. `IsFixed=true` (set by FixedSeat) causes `GetEmptySeats()` to exclude those seats, providing natural protection.
+
+| Order | Strategy | Priority | Role |
+|-------|----------|----------|------|
+| 1st | `FixedSeatStrategy` | 10 | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
+| 2nd | `FrontRowRotationStrategy` | 20 | Fills front-row seats from remaining empty non-fixed seats |
+| 3rd | `DeskMateStrategy` | 30 | Finds contiguous blocks in remaining seats for desk-mate groups |
+| 4th | `RandomFillStrategy` | 100 | Final fallback — fills all remaining empty seats with unassigned students |
+
+Conflict resolution = Priority number (first-come-first-served). This is a known compromise — the override model was abandoned because GetEmptySeats + TryAssignSeat only support fill semantics. See `docs/adr/ADR-006.md`.
+
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
 
-**App startup sequence** (`App.axaml.cs` `OnFrameworkInitializationCompleted`):
-1. Resolve `MainShellViewModel` and `MainWindow` from DI, wire DataContext
-2. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
-3. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
-4. Start `WatchdogService` (prevents UI freeze from blocking exit) with a 3s DispatcherTimer ping
-5. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
-6. Restore saved settings (theme, window position/size) via `RestoreSettingsAsync()`
+**App startup sequence**:
+1. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
+2. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
+3. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
+4. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
+5. Start `WatchdogService` with a 3s DispatcherTimer ping
+6. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
+7. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
 
 ## Key Patterns
 
@@ -66,11 +78,11 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 Two overloads:
 
 ```csharp
-// Simple: try-catch, auto error dialog
-protected async Task<bool> SafeExecuteAsync(Func<Task> action, string errorTitle = "操作失败")
+// Simple: try-catch, auto error dialog. errorTitle defaults to localized Resources.Common_OperationFailed
+protected async Task<bool> SafeExecuteAsync(Func<Task> action, string? errorTitle = null)
 
 // With timeout: auto-cancels via CancellationTokenSource, shows timeout dialog
-protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string errorTitle = "操作失败")
+protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string? errorTitle = null)
 ```
 
 The timeout overload aborts the operation when exceeded — prefer it for long-running exports or imports. Keep the timeout well under the WatchdogService threshold (45s).
@@ -114,7 +126,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 
 ### Axaml Bindings
 - Always use `x:DataType` on the root element for compiled bindings
-- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `Fluent_Icons.md`)
+- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md`)
 - Converters: `BoolConverters.cs` (Negate, TrueWhenNull, etc.) and `ValueConverters.cs`
 
 ### Sidebar
@@ -122,10 +134,131 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - Auto-collapses when window width < 750px
 - `MainShellViewModel.ToggleSidebar()` command for manual toggle
 
+### i18n / Localization (`Lang/`)
+
+Uses standard .NET `.resx` resource files in `A_Pair.Presentation.Avalonia/Lang/`:
+- `Resources.resx` — neutral language (zh-CN), ~570 keys
+- `Resources.en-US.resx` — English satellite
+- `Resources.Designer.cs` — hand-maintained typed accessor class (Visual Studio's `PublicResXFileCodeGenerator` doesn't work with `dotnet build`)
+
+**Adding a new language**: create `Resources.xx-XX.resx` with translations, no code changes needed.
+
+**Usage in XAML** (attribute syntax only — element content won't resolve):
+```xml
+<TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
+<Button Content="{x:Static lang:Resources.Common_OK}" />
+```
+Namespace: `xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"`
+
+**Usage in C#**:
+```csharp
+StatusMessage = Resources.Settings_Saved;
+StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
+```
+**Important**: In classes inheriting from `Window` (DialogWindow, InputWindow), `Resources` resolves to `Window.Resources` (IResourceDictionary). Use fully-qualified `Lang.Resources.xxx` in those files.
+
+**Key naming**: `{Page}_{Element}` with PascalCase, e.g. `Settings_Title`, `Nav_Home`, `Common_OK`. Format strings use `{0}` placeholders.
+
+**Language switching**: `App.ApplyLanguageFromSettings()` (called in `Initialize()` before XAML loading). Sets `CultureInfo.CurrentUICulture` and `Resources.Culture`.
+
+### About Page Data (`Data/about.json`)
+
+Multi-language JSON with top-level culture keys:
+```json
+{ "zh-CN": { "description": "...", "dependencies": [...] },
+  "en-US": { "description": "...", "dependencies": [...] } }
+```
+`AboutViewModel.LoadAboutData()` selects by `CultureInfo.CurrentUICulture.Name`, falls back to `"zh-CN"`.
+
+### Dialog Windows
+
+- `DialogWindow` — Confirm/Error/Warning/Info/MultiOption dialogs. Buttons use `Content="{x:Static}"` attribute syntax. Code-behind only controls visibility and MultiOption custom text. **Never** use `{x:Static}` as element content inside `<Button>...</Button>`.
+- `InputWindow` — Text input dialog. Same button pattern.
+
+## File Versions & Migration
+
+All persisted JSON files carry a `version` field. Current versions are defined in `A_Pair.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly). `FileVersionInfo.GetCurrentVersion(fileType)` reads the latest version at runtime.
+
+| File type | Version | Location | Wrapper class |
+|---|---|---|---|
+| Venue | `1.1` | `{data}/Venues/*.venue.json` | `VenueFile` |
+| Roster | `1.0` | `{data}/Rosters/*.roster.json` | `RosterFile` |
+| Snapshot | `1.0` | `{data}/Assignments/{venueId}/{date}/*.json` | `SeatingSnapshot` |
+| VenueInfo | `1.0` | `{data}/Assignments/{venueId}/_venue.json` | `VenueSnapshotInfo` |
+| AppSettings | `1.0` | `{data}/AppSettings.json` | `AppSettings` |
+| StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` | `StrategyConfig` |
+
+### Migration pipeline
+
+On load, each repository reads the file as `JsonNode`, calls `FileMigrationService.Migrate(fileType, node, fileVersion, targetVersion)`, then deserializes. Migration is **forward-only** — no version rollback. The service finds registered `IFileMigrator` implementations and chains them by matching `FromVersion`/`ToVersion`.
+
+### Adding a migration
+
+1. Add a nested class in `Migration/Migrators/{FileType}Migrators.cs` (one file per file type):
+   ```csharp
+   public static class VenueMigrators
+   {
+       public sealed class Step_1_0_to_1_1 : IFileMigrator
+       {
+           public string FileType => "venue";
+           public string FromVersion => "1.0";
+           public string ToVersion => "1.1";
+           public JsonNode Migrate(JsonNode root) { ... }
+       }
+   }
+   ```
+2. Register in `ServiceCollectionExtensions.cs`: `services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>()`
+3. Bump the version in `file_versions.json`
+4. Update the model's default `Version` property in Core
+5. Add tests in `Infrastructure.Tests/Migration/{FileType}MigratorsTests.cs`
+
+### Existing migrators
+
+- `VenueMigrators.Step_1_0_to_1_1` — Reorders Grid layout seats from column-major to row-major (sorted by `Row` then `Column`)
+
+### JSON field conventions
+
+- Serialization uses `JsonNamingPolicy.CamelCase` — all fields are lowercase in JSON (`row`, `column`, `layoutTypeString`, `logicalGroup`)
+- `ClassroomLayoutDefinition.LayoutType` is serialized as **both** a number (`layoutType`: 0=Grid, 1=Polar, 2=Freeform) and a string (`layoutTypeString`: "Grid"/"Polar"/"Freeform"). Migrators should read `layoutTypeString` for clarity.
+- `Seat` polymorphic serialization uses `SeatJsonConverter` which writes a `Type` discriminator (capital T, string: "Grid"/"Polar"/"Freeform") alongside each seat object. The `type` field (lowercase, camelCase of `SeatType` enum) is a separate integer.
+- `SeatingSnapshot.Version` and `VenueSnapshotInfo.Version` were added in this migration round — old snapshots without the field default to `"1.0"`.
+- `VenueFile.ContentHash` and `RosterFile.ContentHash` — SHA256 hashes computed on save (ContentHash null → serialize → hash → set → re-serialize). Student dataset hash excludes `importedAt`/`originalFileName` (unstable timestamps).
+
+### Grid seat ordering
+
+`GridLayoutBuilder.BuildGrid` creates seats in **row-major** order (outer loop: rows, inner loop: columns). This ensures `RandomFillStrategy` fills seats row-by-row (left-to-right, top-to-bottom). For irregular grids with `ColumnRowCounts`, `maxRows = ColumnRowCounts.Max()` and each column checks `r <= rowsForCol`.
+
+### Snapshot venue layout embedding
+
+Snapshots store the full `ClassroomLayoutDefinition` (JSON-serialized via `SeatJsonConverter`) in `Metadata["venueLayout"]` at creation time. The snapshot preview (`BuildPreviewAsync`) reads this embedded layout first; old snapshots without it fall back to loading the venue file. This ensures snapshots are self-contained — editing or deleting the venue file doesn't break existing snapshot previews.
+
+### Snapshot integrity detection
+
+`BuildPreviewAsync` compares `Metadata["venueHash"]` with the current venue file's `ContentHash`:
+- **Venue deleted** → red warning bar "会场已删除，无法预览", rollback button disabled
+- **Venue changed** → yellow warning bar "会场布局已更改，回滚可能失败"
+- **Data changed** (student IDs missing from current datasets) → yellow bar "数据已更改", affected seats highlighted in yellow
+
+`RollbackAsync` checks venue integrity before rolling back:
+- Venue deleted → dialog → restore venue from snapshot's `venueLayout`
+- Venue changed → dialog → import snapshot's venue as new venue
+
+### Snapshot rotation
+
+`AppSettings.MaxSnapshotsPerVenue` (default 30, 0=unlimited). After saving a snapshot, `RotateSnapshotsAsync` deletes the oldest snapshots if the count exceeds the limit. Sidebar status bar shows `"{n}/{max}"` via `SnapshotQuotaDisplay`.
+
+### Venue editing & seat ID preservation
+
+`VenueConfigurationViewModel` preserves seat IDs across edits: on load, records `(Row, Column) → Id` and `(Ring, Angle) → Id` maps; on save, newly-built seats match old seats by position and reuse their IDs. This prevents snapshot `SeatAssignments` from breaking after venue edits.
+
+### Student dataset rename
+
+`RenameStudentDatasetAsync` renames in-place (updates `RosterFile.Description` only, preserves ID). Previously it deleted the old file and created a new one with a new ID.
+
 ## Documents
-- `Goal.md` — Project goals & architecture design
+- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
+- `ARCHITECTURE.md` — Project goals & architecture design
 - `Phases.md` — Implementation phases & detailed planning
-- `A_Pair.Presentation.Avalonia/Develop handoff.md` — Developer handoff guide
-- `A_Pair.Presentation.Avalonia/How_to_Design_UI.md` — UI implementation guide (step by step, in Chinese)
-- `A_Pair.Presentation.Avalonia/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
-- `A_Pair.Presentation.Avalonia/Fluent_Icons.md` — All FluentUI icon names in use
+- `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
+- `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
+- `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use

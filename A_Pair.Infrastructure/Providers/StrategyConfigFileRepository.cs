@@ -1,16 +1,18 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
+using A_Pair.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Infrastructure.Providers
 {
-    /// <summary>
-    /// 策略运行时配置的 per-file JSON 持久化仓储。
-    /// 每个策略的配置存储在 <c>{configDir}/{strategyId}.config.json</c>。
-    /// </summary>
-    /// <param name="configDir">配置目录路径，通常为 AppData/StrategyConfig。</param>
+    /// <param name="configDir">配置目录路径。</param>
+    /// <param name="migration">文件版本迁移服务。</param>
     /// <param name="logger">日志记录器。</param>
-    public class StrategyConfigFileRepository (string configDir , ILogger<StrategyConfigFileRepository> logger)
+    public class StrategyConfigFileRepository (
+        string configDir ,
+        FileMigrationService migration ,
+        ILogger<StrategyConfigFileRepository> logger)
     {
         private readonly string _configDir = configDir ?? throw new ArgumentNullException(nameof(configDir));
 
@@ -20,9 +22,6 @@ namespace A_Pair.Infrastructure.Providers
             WriteIndented = true
         };
 
-        /// <summary>
-        /// 加载指定策略的运行时配置。若文件不存在则返回 <c>null</c>。
-        /// </summary>
         public async Task<StrategyConfig?> LoadAsync (string strategyId , CancellationToken ct = default)
         {
             var filePath = GetFilePath(strategyId);
@@ -30,26 +29,21 @@ namespace A_Pair.Infrastructure.Providers
                 return null;
 
             var json = await File.ReadAllTextAsync(filePath , ct);
-            return JsonSerializer.Deserialize<StrategyConfig>(json , JsonOptions);
+            return DeserializeWithMigration(json);
         }
 
-        /// <summary>
-        /// 保存指定策略的运行时配置。
-        /// </summary>
         public async Task SaveAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
             if (!Directory.Exists(_configDir))
                 Directory.CreateDirectory(_configDir);
 
+            config.Version = FileVersionInfo.GetCurrentVersion("strategyConfig");
             var filePath = GetFilePath(strategyId);
             var json = JsonSerializer.Serialize(config , JsonOptions);
             await File.WriteAllTextAsync(filePath , json , ct);
             logger.LogDebug("策略配置已保存：{Id} → {Path}" , strategyId , filePath);
         }
 
-        /// <summary>
-        /// 加载所有已保存的策略配置。
-        /// </summary>
         public async Task<Dictionary<string , StrategyConfig>> LoadAllAsync (CancellationToken ct = default)
         {
             var results = new Dictionary<string , StrategyConfig>();
@@ -59,16 +53,27 @@ namespace A_Pair.Infrastructure.Providers
             foreach (var filePath in Directory.EnumerateFiles(_configDir , "*.config.json"))
             {
                 var fileName = Path.GetFileNameWithoutExtension(filePath);
-                // 去掉 .config 后缀：FixedSeat.config.json → FixedSeat
                 var strategyId = Path.GetFileNameWithoutExtension(fileName);
 
                 var json = await File.ReadAllTextAsync(filePath , ct);
-                var config = JsonSerializer.Deserialize<StrategyConfig>(json , JsonOptions);
+                var config = DeserializeWithMigration(json);
                 if (config is not null)
                     results[strategyId] = config;
             }
 
             return results;
+        }
+
+        private StrategyConfig? DeserializeWithMigration (string json)
+        {
+            var node = JsonNode.Parse(json);
+            if (node is not null)
+            {
+                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+                node = migration.Migrate("strategyConfig" , node , fileVersion , FileVersionInfo.GetCurrentVersion("strategyConfig"));
+                json = node.ToJsonString();
+            }
+            return JsonSerializer.Deserialize<StrategyConfig>(json , JsonOptions);
         }
 
         private string GetFilePath (string strategyId)

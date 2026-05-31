@@ -1,0 +1,552 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using A_Pair.Application.Interfaces;
+using A_Pair.Core.Models;
+using A_Pair.Presentation.Avalonia.Lang;
+using A_Pair.Presentation.Avalonia.Services;
+using Avalonia.Platform;
+using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace A_Pair.Presentation.Avalonia.ViewModels;
+
+public partial class MemberManagementViewModel : ViewModelBase
+{
+    private readonly IApplicationFacade _facade;
+    private readonly IFileService _fileService;
+    private readonly IDialogService _dialog;
+    private readonly ILogger<MemberManagementViewModel> _logger;
+
+    [ObservableProperty]
+    private ObservableCollection<Student> _students = [];
+
+    [ObservableProperty]
+    private string _filePath = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotLoading))]
+    private bool _isLoading;
+
+    public bool IsNotLoading => !IsLoading;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasData))]
+    private bool _isEmpty = true;
+
+    public bool HasData => !IsEmpty;
+
+    [ObservableProperty]
+    private string _statusMessage = Resources.Member_Ready;
+
+    [ObservableProperty]
+    private string _errorMessage = string.Empty;
+
+    [ObservableProperty]
+    private int _studentCount;
+
+    [ObservableProperty]
+    private ObservableCollection<StudentDatasetInfo> _savedDatasets = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
+    private StudentDatasetInfo? _selectedDataset;
+
+    [ObservableProperty]
+    private bool _isLoadingDatasets;
+
+    [ObservableProperty]
+    private string? _currentDatasetId;
+
+    [ObservableProperty]
+    private string? _currentDatasetName;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasExpanded))]
+    private bool _isCompact;
+
+    public bool HasExpanded => !IsCompact;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
+    private bool _isSidebarExpanded = true;
+
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
+
+    [ObservableProperty]
+    private double _sidebarListWidth = 240;
+
+    private bool _userWantsSidebarExpanded = true;
+
+    public void OnWindowWidthChanged (double windowWidth)
+    {
+        IsCompact = windowWidth < 960;
+        if (windowWidth < 780)
+            IsSidebarExpanded = false;
+        else
+            IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+
+    partial void OnIsSidebarExpandedChanged (bool value)
+        => SidebarListWidth = value ? 240 : 100;
+
+    [RelayCommand]
+    private void ToggleSidebar ()
+    {
+        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
+        IsSidebarExpanded = _userWantsSidebarExpanded;
+    }
+    public bool HasSelectedDataset => SelectedDataset is not null;
+
+
+    public string StudentCountDisplay => string.Format(Resources.Member_MemberCountFmt , StudentCount);
+    public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt , FilePath);
+    public string StudentCountDisplay2 => string.Format(Resources.Member_PersonCountFmt , StudentCount);
+
+    public MemberManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<MemberManagementViewModel>? logger = null)
+    {
+        _facade = facade;
+        _fileService = fileService;
+        _dialog = dialog;
+        _logger = logger ?? NullLogger<MemberManagementViewModel>.Instance;
+        _ = RefreshDatasetsAsync(CancellationToken.None);
+    }
+
+    private async Task RefreshDatasetsAsync (CancellationToken ct)
+    {
+        try
+        {
+            var datasets = await _facade.ListStudentDatasetsAsync(ct);
+            SavedDatasets = new ObservableCollection<StudentDatasetInfo>(datasets);
+        }
+        catch
+        {
+            // 静默处理
+        }
+    }
+
+    private int _dialogLock;
+    private static readonly FilePickerFileType[] StudentFileTypes =
+    [
+        new(Resources.Member_MemberDataFile) { Patterns = ["*.csv", "*.xlsx", "*.json"] },
+        new(Resources.Data_CSVFile) { Patterns = ["*.csv"] },
+        new(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] },
+        new(Resources.Data_JSONFile) { Patterns = ["*.json"] },
+        FilePickerFileTypes.All
+    ];
+
+    private static readonly FilePickerFileType[] TemplateFileTypes =
+    [
+        new(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }
+    ];
+
+    private static readonly Dictionary<string , (string Suffix , string DisplayName)> TemplateLocales = new()
+    {
+        ["zh_cn"] = ("zh_cn" , Resources.Member_SampleFileCN) ,
+        ["zh_tw"] = ("zh_tw" , "學生匯入範本.xlsx") ,
+        ["ja_jp"] = ("ja_jp" , "学生インポートテンプレート.xlsx") ,
+        ["ko_kr"] = ("ko_kr" , "학생가져오기템플릿.xlsx") ,
+    };
+
+    private const string DefaultTemplateSuffix = "en_us";
+    private const string DefaultTemplateDisplayName = "MemberImportTemplate.xlsx";
+
+    [RelayCommand]
+    private async Task ExportTemplateAsync (CancellationToken ct)
+    {
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        try
+        {
+            string? errorTitle = null;
+            string? errorMsg = null;
+
+            try
+            {
+                var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
+                var uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
+
+                if (!AssetLoader.Exists(uri))
+                {
+                    suffix = DefaultTemplateSuffix;
+                    displayName = DefaultTemplateDisplayName;
+                    uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
+                }
+
+                if (!AssetLoader.Exists(uri))
+                {
+                    errorTitle = Resources.Member_TemplateMissing;
+                    errorMsg = string.Format(Resources.Member_TemplateMissingMsg);
+                    return;
+                }
+
+                IStorageFile? tmplFile;
+                try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (tmplFile is null) return;
+
+                using var source = AssetLoader.Open(uri);
+                await using var destination = File.Create(tmplFile.Path.LocalPath);
+                await source.CopyToAsync(destination , ct);
+
+                StatusMessage = Resources.Data_TemplateSaved;
+            }
+            catch (Exception ex)
+            {
+                errorTitle = Resources.Data_TemplateSaveFailed;
+                errorMsg = string.Format(Resources.Member_TemplateSaveError) + "\n" + ex.Message;
+            }
+            finally
+            {
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
+            }
+        }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+    }
+
+    private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
+    {
+        try
+        {
+            var settings = await _facade.LoadAppSettingsAsync(ct);
+            var lang = !string.IsNullOrEmpty(settings.Language)
+                ? settings.Language
+                : CultureInfo.CurrentUICulture.Name.Replace('-' , '_').ToLowerInvariant();
+
+            if (TemplateLocales.TryGetValue(lang , out var entry))
+                return entry;
+
+            var prefix = lang.Split('_')[0];
+            var fallback = TemplateLocales.FirstOrDefault(kv => kv.Key.StartsWith(prefix));
+            return fallback.Value is (var f, var d) ? (f , d) : (DefaultTemplateSuffix , DefaultTemplateDisplayName);
+        }
+        catch
+        {
+            return (DefaultTemplateSuffix , DefaultTemplateDisplayName);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportAsync (CancellationToken ct)
+    {
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        try
+        {
+            string? errorTitle = null;
+            string? errorMsg = null;
+
+            try
+            {
+                IStorageFile? importFile;
+                try { importFile = await _fileService.OpenFileAsync(Resources.Member_ImportData , StudentFileTypes); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (importFile is null) return;
+                var file = importFile;
+
+                FilePath = file.Path.LocalPath;
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                StatusMessage = Resources.Member_Importing;
+
+                var students = await _facade.LoadStudentsAsync(FilePath , ct);
+
+                Students = new ObservableCollection<Student>(students);
+                StudentCount = Students.Count;
+                IsEmpty = StudentCount == 0;
+                StatusMessage = IsEmpty ? Resources.Member_NoImport : $"已导入 {StudentCount} 名学生";
+
+                // 自动保存到托管存储
+                if (!IsEmpty)
+                {
+                    var name = Path.GetFileNameWithoutExtension(FilePath);
+                    CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name , students , Path.GetFileName(FilePath) , ct);
+                    CurrentDatasetName = name;
+                    _ = RefreshDatasetsAsync(ct);
+                }
+
+                if (IsEmpty)
+                {
+                    errorTitle = Resources.Member_ImportResult;
+                    errorMsg = Resources.Member_NoValidMembers;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorTitle = Resources.Member_ImportFailed;
+                errorMsg = ex is FileNotFoundException
+                    ? string.Format(Resources.Member_FileNotFoundFmt , FilePath)
+                    : string.Format(Resources.Member_ImportErrorFmt , ex.Message);
+                StatusMessage = Resources.Member_ImportFailed;
+            }
+            finally
+            {
+                IsLoading = false;
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
+            }
+        }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+    }
+
+    [RelayCommand]
+    private async Task ExportCsvAsync (CancellationToken ct)
+    {
+        await ExportAsync(ExportFormat.Csv , [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , ct);
+    }
+
+    [RelayCommand]
+    private async Task ExportExcelAsync (CancellationToken ct)
+    {
+        await ExportAsync(ExportFormat.Excel , [new(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , ct);
+    }
+
+    [RelayCommand]
+    private async Task ExportJsonAsync (CancellationToken ct)
+    {
+        await ExportAsync(ExportFormat.Json , [new(Resources.Data_JSONFile) { Patterns = ["*.json"] }] , ct);
+    }
+
+    private async Task ExportAsync (ExportFormat format , FilePickerFileType[] types , CancellationToken ct)
+    {
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        try
+        {
+            string? errorTitle = null;
+            string? errorMsg = null;
+
+            if (Students.Count == 0)
+            {
+                await _dialog.ShowWarningAsync("无数据" , Resources.Member_NoDataToExport);
+                return;
+            }
+
+            try
+            {
+                IStorageFile? exportFile;
+                try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export , types); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (exportFile is null) return;
+                var file = exportFile;
+
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                StatusMessage = Resources.Member_Exporting;
+
+                await _facade.ExportStudentsAsync(file.Path.LocalPath , Students , format , ct);
+
+                StatusMessage = Resources.Member_ExportDone;
+            }
+            catch (Exception ex)
+            {
+                errorTitle = Resources.Member_ExportFailed;
+                errorMsg = string.Format(Resources.Member_ExportErrorFmt , ex.Message);
+                StatusMessage = Resources.Member_ExportFailed;
+            }
+            finally
+            {
+                IsLoading = false;
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
+            }
+        }
+        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+    }
+
+    [RelayCommand]
+    private async Task ClearDataAsync ()
+    {
+        if (!IsEmpty)
+        {
+            var confirmed = await _dialog.ShowConfirmAsync(Resources.Member_ClearConfirm ,
+                string.Format(Resources.Member_ClearConfirmMsg , StudentCount));
+            if (!confirmed) return;
+        }
+
+        Students.Clear();
+        StudentCount = 0;
+        IsEmpty = true;
+        CurrentDatasetId = null;
+        CurrentDatasetName = null;
+        FilePath = string.Empty;
+        ErrorMessage = string.Empty;
+        StatusMessage = Resources.Member_Ready;
+    }
+
+    [RelayCommand]
+    private async Task LoadSelectedDatasetAsync (CancellationToken ct)
+    {
+        if (SelectedDataset is null) return;
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        StatusMessage = Resources.Member_Loading;
+
+        try
+        {
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id , ct);
+            if (students is not null)
+            {
+                CurrentDatasetId = SelectedDataset.Id;
+                CurrentDatasetName = SelectedDataset.Name;
+                Students = new ObservableCollection<Student>(students);
+                StudentCount = Students.Count;
+                IsEmpty = StudentCount == 0;
+                FilePath = SelectedDataset.OriginalFileName ?? SelectedDataset.Name;
+                StatusMessage = StudentCount > 0
+                    ? string.Format(Resources.Member_LoadedFmt , StudentCount)
+                    : Resources.Member_EmptyDataset;
+            }
+            else
+            {
+                StatusMessage = Resources.Member_DatasetNotFound;
+                await _dialog.ShowErrorAsync(Resources.Data_LoadFailed , $"找不到数据集「{SelectedDataset.Name}」的文件。");
+                await RefreshDatasetsAsync(ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Resources.Data_LoadFailed;
+            await _dialog.ShowErrorAsync(Resources.Data_LoadFailed , ex.Message);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteSelectedDatasetAsync (CancellationToken ct)
+    {
+        if (SelectedDataset is null) return;
+
+        var confirmed = await _dialog.ShowConfirmAsync(Resources.Data_DeleteConfirm ,
+            string.Format(Resources.Member_DeleteConfirmMsg , SelectedDataset.Name));
+        if (!confirmed) return;
+
+        try
+        {
+            await _facade.DeleteStudentDatasetAsync(SelectedDataset.Id , ct);
+            SelectedDataset = null;
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = Resources.Member_Deleted;
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync(Resources.Member_DeleteFailed , ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RenameSelectedDatasetAsync (CancellationToken ct)
+    {
+        if (SelectedDataset is null) return;
+
+        var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Member_RenameTitle ,
+            string.Format(Resources.Member_RenamePrompt , SelectedDataset.Name) , SelectedDataset.Name);
+        if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
+
+        try
+        {
+            await _facade.RenameStudentDatasetAsync(SelectedDataset.Id , newName.Trim() , ct);
+
+            if (CurrentDatasetId == SelectedDataset.Id)
+                CurrentDatasetName = newName.Trim();
+
+            SelectedDataset = null;
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = Resources.Member_Renamed;
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync(Resources.Member_RenameFailed , ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveAsync (CancellationToken ct)
+    {
+        if (Students.Count == 0) return;
+
+        var errors = ValidateStudents();
+        if (errors.Count > 0)
+        {
+            await _dialog.ShowErrorAsync(Resources.Data_ValidationFailed ,
+                string.Join('\n' , errors.Take(10)));
+            return;
+        }
+
+        var datasetName = CurrentDatasetName ?? Resources.Member_Unnamed;
+
+        var confirmed = await _dialog.ShowConfirmAsync(Resources.Member_SaveConfirm ,
+            string.Format(Resources.Member_SaveConfirmMsg , datasetName , StudentCount));
+        if (!confirmed) return;
+
+        try
+        {
+            if (CurrentDatasetId is not null)
+                await _facade.DeleteStudentDatasetAsync(CurrentDatasetId , ct);
+
+            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
+            CurrentDatasetName = datasetName;
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = string.Format(Resources.Member_SavedFmt , datasetName);
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync(Resources.Data_SaveFailed , ex.Message);
+        }
+    }
+
+    private List<string> ValidateStudents ()
+    {
+        var errors = new List<string>();
+
+        for (int i = 0; i < Students.Count; i++)
+        {
+            var s = Students[i];
+            var row = i + 1;
+
+            if (string.IsNullOrWhiteSpace(s.Name))
+                errors.Add(string.Format(Resources.Member_NameEmptyFmt , row));
+
+            if (s.Height.HasValue && s.Height.Value <= 0)
+                errors.Add(string.Format(Resources.Member_HeightInvalidFmt , row , s.Name));
+
+            if (s.Gender.HasValue && !Enum.IsDefined(s.Gender.Value))
+                errors.Add(string.Format(Resources.Member_GenderInvalidFmt , row , s.Name));
+        }
+
+        return errors;
+    }
+
+
+
+    [RelayCommand]
+    private async Task RenameSaveAsync (CancellationToken ct)
+    {
+        var (confirmed , newName) = await _dialog.ShowInputAsync(Resources.Member_SaveAsTitle ,
+            Resources.Member_SaveAsPrompt , "");
+        if (!confirmed || string.IsNullOrWhiteSpace(newName)) return;
+
+        try
+        {
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , Students.ToList() , null , ct);
+            CurrentDatasetId = newId;
+            CurrentDatasetName = newName.Trim();
+            await RefreshDatasetsAsync(ct);
+            StatusMessage = string.Format(Resources.Member_SavedAsFmt , newName.Trim());
+        }
+        catch (Exception ex)
+        {
+            await _dialog.ShowErrorAsync(Resources.Data_SaveFailed , ex.Message);
+        }
+    }
+}

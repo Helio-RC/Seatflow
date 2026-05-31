@@ -1,5 +1,12 @@
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using A_Pair.Presentation.Avalonia.Lang;
+using CommunityToolkit.Mvvm.Input;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
@@ -8,36 +15,83 @@ public partial class AboutViewModel : ViewModelBase
 {
     public string AppName { get; } = "A_Pair";
     public string Version { get; }
-    public string Description { get; } = "跨平台桌面座位安排与轮换系统，支持多种布局、策略引擎、插件扩展和数据导入导出。";
+    public string VersionDisplay { get; }
+    public string Description { get; }
     public string RuntimeVersion { get; }
     public string AvaloniaVersion { get; }
-    public string ProjectUrl { get; } = "https://github.com/Helio-RC/A_Pair";
-    public string License { get; } = "MIT License";
-    public string Copyright { get; } = $"© {System.DateTime.Now.Year} A_Pair Contributors";
+    public string ProjectUrl { get; }
+    public string License { get; }
+    public string Copyright { get; }
 
     public List<DependencyInfo> Dependencies { get; }
 
     public AboutViewModel ()
     {
+        var data = LoadAboutData();
+
         var assembly = Assembly.GetEntryAssembly();
         Version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
                   ?? assembly?.GetName()?.Version?.ToString()
                   ?? "1.0.0";
+        VersionDisplay = string.Format(Resources.About_Version , Version);
 
         RuntimeVersion = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
         AvaloniaVersion = typeof(AvaloniaApplication).Assembly.GetName().Version?.ToString() ?? "";
 
-        Dependencies =
-        [
-            new("Avalonia UI", "12.0.2", "跨平台 UI 框架"),
-            new("CommunityToolkit.Mvvm", "8.4.2", "MVVM 源生成器"),
-            new("FluentIcons.Avalonia", "2.1.325", "Fluent UI 系统图标"),
-            new("EPPlus", "8.5.4", "Excel 读写"),
-            new("CsvHelper", "33.1.0", "CSV 读写"),
-            new("QuestPDF", "2026.2.4", "PDF 生成"),
-            new("NLua", "1.7.8", "Lua 脚本引擎"),
-            new("Serilog", "10.0.0", "结构化日志"),
-        ];
+        Description = data.Description;
+        ProjectUrl = data.ProjectUrl;
+        License = data.License;
+        Copyright = data.Copyright;
+        Dependencies = data.Dependencies
+            .Select(d => new DependencyInfo(d.Name , d.Version , d.Purpose , d.License , d.Url))
+            .ToList();
+    }
+
+    [RelayCommand]
+    private void OpenUrl (string url)
+    {
+        if (!string.IsNullOrWhiteSpace(url))
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+    }
+
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+    private static AboutData LoadAboutData ()
+    {
+        var assembly = typeof(AboutViewModel).Assembly;
+        const string resourceName = "A_Pair.Presentation.Avalonia.Data.about.json";
+        using var stream = assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidDataException($"Embedded resource not found: {resourceName}");
+
+        var all = JsonSerializer.Deserialize<Dictionary<string , AboutData>>(stream , _jsonOptions)
+                  ?? new Dictionary<string , AboutData>();
+
+        // 按当前语言查找，回退到 zh-CN
+        var culture = CultureInfo.CurrentUICulture;
+        if (all.TryGetValue(culture.Name , out var match)) return match;
+        if (all.TryGetValue(culture.TwoLetterISOLanguageName , out match)) return match;
+        if (all.TryGetValue("zh-CN" , out match)) return match;
+
+        // 最后一个回退：取第一个可用语言
+        return all.Values.FirstOrDefault() ?? new AboutData();
+    }
+
+    private sealed class AboutData
+    {
+        public string Description { get; set; } = "";
+        public string ProjectUrl { get; set; } = "";
+        public string License { get; set; } = "";
+        public string Copyright { get; set; } = "";
+        public List<DepEntry> Dependencies { get; set; } = [];
+    }
+
+    private sealed class DepEntry
+    {
+        public string Name { get; set; } = "";
+        public string Version { get; set; } = "";
+        public string Purpose { get; set; } = "";
+        public string License { get; set; } = "";
+        public string Url { get; set; } = "";
     }
 }
 
@@ -46,11 +100,15 @@ public class DependencyInfo
     public string Name { get; }
     public string Version { get; }
     public string Purpose { get; }
+    public string License { get; }
+    public string Url { get; }
 
-    public DependencyInfo (string name , string version , string purpose)
+    public DependencyInfo (string name , string version , string purpose , string license , string url)
     {
         Name = name;
         Version = version;
         Purpose = purpose;
+        License = license;
+        Url = url;
     }
 }

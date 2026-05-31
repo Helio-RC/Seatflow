@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyPropertyChangedFor(nameof(PriorityDisplay))]
+    [NotifyPropertyChangedFor(nameof(EnableTooltipDisplay))]
     private StrategyItemViewModel? _selectedStrategy;
 
     public bool HasSelection => SelectedStrategy is not null;
@@ -47,6 +50,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDetail))]
+    [NotifyPropertyChangedFor(nameof(DetailSourceDisplay))]
+    [NotifyPropertyChangedFor(nameof(DetailAuthorDisplay))]
+    [NotifyPropertyChangedFor(nameof(DetailCategoryDisplay))]
+    [NotifyPropertyChangedFor(nameof(DetailDefaultPriorityDisplay))]
     private StrategyDisplayInfo? _selectedDetail;
 
     public bool HasDetail => SelectedDetail is not null && !string.IsNullOrEmpty(SelectedDetail.Id);
@@ -138,6 +145,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     // ═══════════════ 构造函数 ═══════════════
 
+
+    public string PriorityDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_PriorityFmt , SelectedStrategy.Priority) : "";
+    public string EnableTooltipDisplay => SelectedStrategy != null ? string.Format(Resources.Strategy_EnableFmt , SelectedStrategy.DisplayName) : "";
+    public string DetailSourceDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_SourceFmt , SelectedDetail.Source) : "";
+    public string DetailAuthorDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_AuthorFmt , SelectedDetail.Author) : "";
+    public string DetailCategoryDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_CategoryFmt , SelectedDetail.Category) : "";
+    public string DetailDefaultPriorityDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_DefaultPriorityFmt , SelectedDetail.DefaultPriority) : "";
+
     public StrategyConfigurationViewModel (IApplicationFacade facade , ILogger<StrategyConfigurationViewModel>? logger = null)
     {
         _facade = facade;
@@ -153,8 +168,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (!HasChanges) return true;
 
         var choice = await Dialog.ShowConfirmAsync(
-            "未保存的更改" ,
-            "策略配置有未保存的更改，是否保存？\n\n选择「是」保存并离开\n选择「否」放弃更改并离开");
+            Resources.Strategy_UnsavedChanges ,
+            Resources.Strategy_UnsavedChangesMsg);
 
         if (choice)
             await SaveAllCommand.ExecuteAsync(null);
@@ -192,6 +207,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             SelectedDetail = new();
             return;
         }
+        // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
+        _hasDetailChanges = false;
         _ = LoadDetailAsync(value);
     }
 
@@ -202,7 +219,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         try
         {
             IsLoading = true;
-            StatusMessage = "正在加载策略列表...";
+            StatusMessage = Resources.Strategy_Loading;
 
             var displayInfos = await _facade.GetStrategiesAsync(ct);
             var items = displayInfos.Select(d => new StrategyItemViewModel(
@@ -233,18 +250,18 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             {
                 var names = string.Join("\n" , fixedList.Select(n => $"• {n}"));
                 await Dialog.ShowWarningAsync(
-                    "优先级冲突已自动修复" ,
-                    $"以下策略的优先级存在冲突，已自动调整为递增：\n\n{names}");
+                    Resources.Strategy_PriorityConflictAutoFixed ,
+                    string.Format(Resources.Strategy_PriorityConflictMsgFmt , names));
                 ReSort();
-                StatusMessage = $"已加载 {Strategies.Count} 个策略，自动修复了 {fixedList.Count} 处优先级冲突";
+                StatusMessage = string.Format(Resources.Strategy_LoadedFixedFmt , Strategies.Count , fixedList.Count);
             }
             else
-                StatusMessage = $"已加载 {Strategies.Count} 个策略";
+                StatusMessage = string.Format(Resources.Strategy_LoadedFmt , Strategies.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = "加载失败";
-            await Dialog.ShowErrorAsync("加载策略列表失败" , ex.Message);
+            StatusMessage = Resources.Data_LoadFailed;
+            await Dialog.ShowErrorAsync(Resources.Strategy_LoadFailed , ex.Message);
         }
         finally
         {
@@ -288,7 +305,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         catch (Exception ex)
         {
             _suppressChangeTracking = false;
-            await Dialog.ShowErrorAsync("加载详情失败" , ex.Message);
+            await Dialog.ShowErrorAsync(Resources.Strategy_DetailLoadFailed , ex.Message);
         }
     }
 
@@ -319,7 +336,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         var neighbor = sorted[idx - 1];
         await ResolveAndSwapPriorityAsync(item , neighbor);
         ReSort();
-        StatusMessage = $"已将「{item.DisplayName}」上移（优先级 {item.Priority}）";
+        StatusMessage = string.Format(Resources.Strategy_MovedUpFmt , item.DisplayName , item.Priority);
     }
 
     [RelayCommand]
@@ -333,7 +350,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         var neighbor = sorted[idx + 1];
         await ResolveAndSwapPriorityAsync(neighbor , item);
         ReSort();
-        StatusMessage = $"已将「{item.DisplayName}」下移（优先级 {item.Priority}）";
+        StatusMessage = string.Format(Resources.Strategy_MovedDownFmt , item.DisplayName , item.Priority);
     }
 
     private async Task ResolveAndSwapPriorityAsync (
@@ -349,10 +366,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (first.Priority == second.Priority)
         {
             var choice = await Dialog.ShowConfirmAsync(
-                "优先级冲突" ,
-                $"「{first.DisplayName}」和「{second.DisplayName}」的优先级相同（均为 {first.Priority}）。\n\n" +
-                $"选择「是」— {first.DisplayName} 优先执行\n" +
-                $"选择「否」— {second.DisplayName} 优先执行");
+                Resources.Strategy_PriorityConflict ,
+                string.Format(Resources.Strategy_PriorityConflictMsg , first.DisplayName , second.DisplayName , first.Priority) + "\n\n" +
+                string.Format(Resources.Strategy_PriorityConflictChoice1 , first.DisplayName) + "\n" +
+                string.Format(Resources.Strategy_PriorityConflictChoice2 , second.DisplayName));
             if (choice)
                 AssignWithCascade(first , second);
             else
@@ -383,8 +400,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         if (conflict is null) return true;
 
         await Dialog.ShowWarningAsync(
-            "优先级冲突" ,
-            $"优先级 {newPriority} 已被「{conflict.DisplayName}」使用。\n\n请修改为不同的优先级值后再保存。");
+            Resources.Strategy_PriorityConflict ,
+            string.Format(Resources.Strategy_PriorityTakenFmt , newPriority , conflict.DisplayName));
         return false;
     }
 
@@ -414,14 +431,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         for (int i = 1; i < snapshot.Count; i++)
         {
             if (snapshot[i].Priority <= snapshot[i - 1].Priority)
-                duplicates.Add($"• {snapshot[i].DisplayName}（优先级 {snapshot[i].Priority}）");
+                duplicates.Add(string.Format(Resources.Strategy_DuplicateEntryFmt , snapshot[i].DisplayName , snapshot[i].Priority));
         }
 
         if (duplicates.Count == 0) return true;
 
         await Dialog.ShowWarningAsync(
-            "优先级冲突" ,
-            $"保存后将出现以下优先级冲突：\n\n{string.Join("\n" , duplicates)}\n\n请逐个调整冲突策略的优先级后再保存。");
+            Resources.Strategy_PriorityConflict ,
+            string.Format(Resources.Strategy_DuplicateWarningFmt , string.Join("\n" , duplicates)));
         return false;
     }
 
@@ -481,7 +498,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         try
         {
             IsLoading = true;
-            StatusMessage = "正在保存...";
+            StatusMessage = Resources.Strategy_Saving;
 
             // 将详情编辑同步到侧栏项
             SelectedStrategy.Priority = EditPriority;
@@ -500,12 +517,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             _hasDetailChanges = false;
             ReSort();
             OnPropertyChanged(nameof(HasChanges));
-            StatusMessage = $"{savedName} 已保存";
+            StatusMessage = string.Format(Resources.Strategy_SavedFmt , savedName);
         }
         catch (Exception ex)
         {
-            StatusMessage = "保存失败";
-            await Dialog.ShowErrorAsync("保存策略配置失败" , ex.Message);
+            StatusMessage = Resources.Data_SaveFailed;
+            await Dialog.ShowErrorAsync(Resources.Strategy_SaveConfigFailed , ex.Message);
         }
         finally
         {
@@ -534,14 +551,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
         if (dirtyItems.Count == 0)
         {
-            StatusMessage = "没有需要保存的更改";
+            StatusMessage = Resources.Strategy_NoChanges;
             return;
         }
 
         try
         {
             IsLoading = true;
-            StatusMessage = "正在保存...";
+            StatusMessage = Resources.Strategy_Saving;
 
             // 同步详情编辑到侧栏项
             if (_hasDetailChanges && SelectedStrategy is not null)
@@ -554,7 +571,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             {
                 var parameters = item.Id == SelectedDetail?.Id && _hasDetailChanges
                     ? CollectDetailParameters()
-                    : [];
+                    : null;
                 var config = new StrategyConfig
                 {
                     Source = item.Source ,
@@ -569,12 +586,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             _hasDetailChanges = false;
             ReSort();
             OnPropertyChanged(nameof(HasChanges));
-            StatusMessage = $"已保存 {dirtyItems.Count} 个策略";
+            StatusMessage = string.Format(Resources.Strategy_SavedCountFmt , dirtyItems.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = "保存失败";
-            await Dialog.ShowErrorAsync("保存策略配置失败" , ex.Message);
+            StatusMessage = Resources.Data_SaveFailed;
+            await Dialog.ShowErrorAsync(Resources.Strategy_SaveConfigFailed , ex.Message);
         }
         finally
         {
@@ -587,8 +604,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         if (SelectedDetail is null) return;
 
-        var confirmed = await Dialog.ShowConfirmAsync("恢复默认" ,
-            $"确定要将「{SelectedDetail.DisplayName}」恢复到默认配置吗？");
+        var confirmed = await Dialog.ShowConfirmAsync(Resources.Strategy_RestoreDefaults ,
+            string.Format(Resources.Strategy_RestoreDefaultConfirmFmt , SelectedDetail.DisplayName));
         if (!confirmed) return;
 
         EditPriority = SelectedDetail.DefaultPriority;
@@ -608,7 +625,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
         // 确认后直接保存
         await SaveCurrentConfigCommand.ExecuteAsync(null);
-        StatusMessage = "已恢复默认值并保存";
+        StatusMessage = Resources.Strategy_RestoredAndSaved;
     }
 
     // ═══════════════ 辅助 ═══════════════
@@ -632,13 +649,22 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private static int GetParamInt (Dictionary<string , object?> parameters , string key)
     {
-        if (parameters.TryGetValue(key , out var v) && v is int i) return i;
+        if (!parameters.TryGetValue(key , out var v) || v is null) return 0;
+        if (v is int i) return i;
+        if (v is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Number)
+            return je.GetInt32();
         return 0;
     }
 
     private static bool GetParamBool (Dictionary<string , object?> parameters , string key)
     {
-        if (parameters.TryGetValue(key , out var v) && v is bool b) return b;
+        if (!parameters.TryGetValue(key , out var v) || v is null) return false;
+        if (v is bool b) return b;
+        if (v is System.Text.Json.JsonElement je)
+        {
+            if (je.ValueKind == System.Text.Json.JsonValueKind.True) return true;
+            if (je.ValueKind == System.Text.Json.JsonValueKind.False) return false;
+        }
         return false;
     }
 }
