@@ -55,7 +55,7 @@ public partial class SeatDisplayItem : ObservableObject
     private bool _isDataStale;
 
     // ── 计算属性 ──
-    public string DisplayText => IsOccupied ? (StudentName ?? "") : SeatLabel;
+    public string DisplayText => IsOccupied ? $"{StudentName ?? StudentId ?? ""} {SeatLabel}" : SeatLabel;
 
     // ── Tooltip ──
     public string TooltipText => IsOccupied
@@ -65,7 +65,7 @@ public partial class SeatDisplayItem : ObservableObject
     // ── 颜色 ──
     private static readonly SolidColorBrush EmptyBg = new(Color.FromArgb(0x20 , 0xA0 , 0xA0 , 0xA0));
     private static readonly SolidColorBrush EmptyBorder = new(Color.FromArgb(0x80 , 0xA0 , 0xA0 , 0xA0));
-    private static readonly SolidColorBrush OccupiedBg = new(Color.FromArgb(0x20 , 0x16 , 0xA3 , 0x4A));
+    private static readonly SolidColorBrush OccupiedBg = new(Color.FromArgb(0x60 , 0x16 , 0xA3 , 0x4A));
     private static readonly SolidColorBrush OccupiedBorder = new(Color.FromArgb(0xFF , 0x16 , 0xA3 , 0x4A));
     private static readonly SolidColorBrush FixedBg = new(Color.FromArgb(0x20 , 0x25 , 0x63 , 0xEB));
     private static readonly SolidColorBrush FixedBorder = new(Color.FromArgb(0xFF , 0x25 , 0x63 , 0xEB));
