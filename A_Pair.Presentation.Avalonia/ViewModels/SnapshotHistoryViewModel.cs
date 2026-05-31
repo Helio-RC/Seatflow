@@ -329,6 +329,17 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             double offsetY = 20 - minY;
             double scale = 0.55; // 缩略图缩放
 
+            // 诊断日志
+            _logger.LogInformation("快照预览：布局座位 {SeatCount}，快照分配 {AssignCount}，studentNames {NameCount}" ,
+                layout.Seats.Count(s => s.IsAvailable) , assignments.Count , studentNames.Count);
+            if (assignments.Count > 0)
+            {
+                var sampleSeatIds = layout.Seats.Take(3).Select(s => s.Id);
+                var sampleKeys = assignments.Keys.Take(3);
+                _logger.LogInformation("布局座位 ID 样本：{SeatIds}，分配 key 样本：{Keys}" ,
+                    string.Join(", " , sampleSeatIds) , string.Join(", " , sampleKeys));
+            }
+
             foreach (var (cx , cy , seat) in raw)
             {
                 bool occupied = assignments.TryGetValue(seat.Id , out var sid) && !string.IsNullOrEmpty(sid);
