@@ -7,7 +7,7 @@ namespace A_Pair.Core.Models
     public class RosterFile
     {
         /// <summary>文件格式版本号，用于向后兼容。</summary>
-        public string Version { get; set; } = "1.0";
+        public string Version { get; set; } = "1.1";
 
         /// <summary>名单描述（如"2026级计算机1班"）。</summary>
         public string? Description { get; set; }
