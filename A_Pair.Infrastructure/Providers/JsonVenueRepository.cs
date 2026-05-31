@@ -88,6 +88,14 @@ namespace A_Pair.Infrastructure.Providers
         }
 
         /// <inheritdoc />
+        public async Task<string?> GetRawVenueFileAsync (string venueId , CancellationToken ct = default)
+        {
+            var filePath = GetFilePath(venueId);
+            if (!File.Exists(filePath)) return null;
+            return await File.ReadAllTextAsync(filePath , ct);
+        }
+
+        /// <inheritdoc />
         public Task DeleteAsync (string venueId , CancellationToken cancellationToken = default)
         {
             var filePath = GetFilePath(venueId);

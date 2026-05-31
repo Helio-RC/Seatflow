@@ -218,12 +218,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
         try
         {
-            // 优先使用快照中嵌入的会场布局，旧快照回退到加载会场文件
+            // 优先使用快照中嵌入的会场文件内容，旧快照回退到加载会场文件
             ClassroomLayoutDefinition? layout = null;
-            var embeddedVenueLayout = GetMetaString(snapshot.Metadata , "venueLayout");
-            if (!string.IsNullOrEmpty(embeddedVenueLayout))
+            var embeddedVenueJson = GetMetaString(snapshot.Metadata , "venueFile")
+                ?? GetMetaString(snapshot.Metadata , "venueLayout");
+            if (!string.IsNullOrEmpty(embeddedVenueJson))
             {
-                layout = DeserializeLayout(embeddedVenueLayout);
+                layout = DeserializeLayout(embeddedVenueJson);
             }
             // 嵌入布局无效时回退到加载会场文件
             if (layout == null)
@@ -402,6 +403,11 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
 
     private static ClassroomLayoutDefinition? DeserializeLayout (string json)
     {
+        // venueFile 格式（VenueFile 包装，与 JsonVenueRepository 一致）
+        var venueFile = System.Text.Json.JsonSerializer.Deserialize<A_Pair.Core.Models.VenueFile>(json , LayoutDeserializeOptions);
+        if (venueFile?.Layout != null)
+            return venueFile.Layout;
+        // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）
         return System.Text.Json.JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , LayoutDeserializeOptions);
     }
 
@@ -460,7 +466,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             if (!exists)
             {
                 // 会场已删除——尝试从快照恢复
-                var rollbackLayout = GetMetaString(snapshot.Metadata , "venueLayout");
+                var rollbackLayout = GetMetaString(snapshot.Metadata , "venueFile")
+                    ?? GetMetaString(snapshot.Metadata , "venueLayout");
                 if (string.IsNullOrEmpty(rollbackLayout))
                 {
                     await Dialog.ShowWarningAsync(Resources.Snapshot_RollbackFailed , Resources.Snapshot_VenueDeletedPreview);
@@ -478,7 +485,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 // 会场已更改——询问是否导入新会场
                 var import = await Dialog.ShowConfirmAsync(Resources.Snapshot_VenueChangedTitle ,
                     Resources.Snapshot_VenueImportMsg);
-                var importLayout = GetMetaString(snapshot.Metadata , "venueLayout");
+                var importLayout = GetMetaString(snapshot.Metadata , "venueFile")
+                    ?? GetMetaString(snapshot.Metadata , "venueLayout");
                 if (import && !string.IsNullOrEmpty(importLayout))
                 {
                     var newName = $"{snapshot.Description}_{snapshot.CreatedAt:yyyyMMddHHmm}";

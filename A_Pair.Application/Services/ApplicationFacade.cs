@@ -61,21 +61,35 @@ namespace A_Pair.Application.Services
         private ClassroomLayoutDefinition? _currentLayout;
         private List<ISeatingStrategy>? _cachedStrategies;
 
-        private static readonly JsonSerializerOptions VenueLayoutOptions = new()
+        private static readonly JsonSerializerOptions VenueFileReadOptions = new()
         {
-            WriteIndented = false ,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
         static ApplicationFacade ()
         {
-            VenueLayoutOptions.Converters.Add(new SeatJsonConverter());
+            VenueFileReadOptions.Converters.Add(new SeatJsonConverter());
         }
 
-        private static string SerializeVenueLayout (ClassroomLayoutDefinition layout)
-            => JsonSerializer.Serialize(layout , VenueLayoutOptions);
+        private static ClassroomLayoutDefinition? DeserializeVenueFromEmbeddedJson (string json)
+        {
+            // venueFile 格式（VenueFile 包装）
+            var venueFile = JsonSerializer.Deserialize<VenueFile>(json , VenueFileReadOptions);
+            if (venueFile?.Layout != null)
+                return venueFile.Layout;
+            // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）
+            return JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueFileReadOptions);
+        }
 
-        private static ClassroomLayoutDefinition? DeserializeVenueLayout (string json)
-            => JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueLayoutOptions);
+        private static string? GetMetaStringFromMetadata (Dictionary<string , object> meta , string key)
+        {
+            if (!meta.TryGetValue(key , out var value) || value is null) return null;
+            return value switch
+            {
+                string s => s ,
+                System.Text.Json.JsonElement { ValueKind: System.Text.Json.JsonValueKind.String } je => je.GetString() ,
+                _ => null
+            };
+        }
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -236,9 +250,13 @@ namespace A_Pair.Application.Services
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
             if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
             snapshotMeta["studentHash"] = studentHash;
-            // 嵌入会场布局：预览和回滚不依赖外部会场文件
-            if (venueLayout != null)
-                snapshotMeta["venueLayout"] = SerializeVenueLayout(venueLayout);
+            // 嵌入会场原始文件内容：预览和回滚不依赖外部会场文件
+            if (!string.IsNullOrEmpty(request.LayoutId))
+            {
+                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(request.LayoutId , cancellationToken);
+                if (rawVenueJson != null)
+                    snapshotMeta["venueFile"] = rawVenueJson;
+            }
             var snapshot = new SeatingSnapshot
             {
                 Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
@@ -367,7 +385,7 @@ namespace A_Pair.Application.Services
         public async Task<string> ImportVenueFromSnapshotAsync (
             string venueLayoutJson , string? newName = null , CancellationToken ct = default)
         {
-            var layout = DeserializeVenueLayout(venueLayoutJson)
+            var layout = DeserializeVenueFromEmbeddedJson(venueLayoutJson)
                 ?? throw new InvalidOperationException("无法反序列化快照中的会场布局");
             var venueId = Guid.NewGuid().ToString("N")[..8];
             layout.Id = venueId;
@@ -407,8 +425,9 @@ namespace A_Pair.Application.Services
             {
                 var vh = await _venueRepo.GetContentHashAsync(venueId , cancellationToken);
                 if (vh != null) snapshotMeta["venueHash"] = vh;
-                if (_currentLayout != null)
-                    snapshotMeta["venueLayout"] = SerializeVenueLayout(_currentLayout);
+                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(venueId , cancellationToken);
+                if (rawVenueJson != null)
+                    snapshotMeta["venueFile"] = rawVenueJson;
             }
             var snapshot = new SeatingSnapshot
             {
@@ -458,14 +477,13 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 回退：从嵌入布局恢复
-            if (layout == null && snapshot.Metadata.TryGetValue("venueLayout" , out var raw))
+            // 回退：从嵌入的会场文件内容恢复（优先新格式 venueFile，兼容旧格式 venueLayout）
+            if (layout == null)
             {
-                var layoutJson = raw as string
-                    ?? (raw is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.String
-                        ? je.GetString() : null);
-                if (!string.IsNullOrEmpty(layoutJson))
-                    layout = DeserializeVenueLayout(layoutJson);
+                var venueFileJson = GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
+                    ?? GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+                if (!string.IsNullOrEmpty(venueFileJson))
+                    layout = DeserializeVenueFromEmbeddedJson(venueFileJson);
             }
 
             _currentLayout = layout;
