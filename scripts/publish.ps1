@@ -36,7 +36,7 @@ function Publish-One($SelfContained, $Label) {
     foreach ($rid in $Rids) {
         $tmpOut = "$base/.tmp_$rid"
         $suffix = if ($rid -like "win*") { ".exe" } else { "" }
-        $finalName = "$AppName-$rid$suffix"
+        $finalName = "$AppName-$Label-$rid$suffix"
 
         $title = "A_Pair: $Label / $rid"
         $Host.UI.RawUI.WindowTitle = $title

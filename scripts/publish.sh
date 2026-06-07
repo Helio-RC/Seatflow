@@ -25,7 +25,7 @@ publish_one() {
         local tmp_out="$base/.tmp_$rid"
         local suffix=""
         [ "${rid:0:3}" = "win" ] && suffix=".exe"
-        local final_name="$APP_NAME-$rid$suffix"
+        local final_name="$APP_NAME-$label-$rid$suffix"
         local title="A_Pair: $label / $rid"
 
         echo -ne "\033]0;$title\007"
