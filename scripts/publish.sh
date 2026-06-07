@@ -2,6 +2,7 @@
 # ============================================================
 # A_Pair 多平台发布 — 在 scripts/ 目录下执行
 # 用法: ./publish.sh [both|sc|fd] [Release|Debug]
+#        ./publish.sh hash  仅计算已有文件的 SHA256
 # ============================================================
 set -euo pipefail
 cd ..
@@ -14,6 +15,30 @@ RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 START_TIME=$(date +%s)
 
 step() { echo -e "  [$(date +%H:%M:%S)] \e[${2:-37}m$1\e[0m"; }
+
+print_sha256_table() {
+    local files
+    mapfile -t files < <(find publish -type f -name "$APP_NAME-*" -print0 | sort -z | xargs -0 -n1)
+    if [ ${#files[@]} -eq 0 ]; then
+        echo -e "\e[33m没有找到已发布文件\e[0m"
+        return
+    fi
+    echo ""
+    echo "| 文件 | SHA256 |"
+    echo "|------|--------|"
+    for f in "${files[@]}"; do
+        local hash name
+        hash=$(sha256sum "$f" | awk '{print tolower($1)}')
+        name=$(basename "$f")
+        echo "| \`$name\` | $hash |"
+    done
+}
+
+if [ "$MODE" = "hash" ]; then
+    echo -e "\e[36mSHA256 校验值（Markdown 表格）：\e[0m"
+    print_sha256_table
+    exit 0
+fi
 
 publish_one() {
     local sc="$1" label="$2" base="publish/$label"
@@ -49,7 +74,6 @@ publish_one() {
             local size; size=$(du -h "$base/$final_name" | cut -f1)
             step "完成 → $label/$final_name ($size)" 32
         else
-            # 回退：查找任意以 A_Pair 开头的可执行文件
             local fallback; fallback=$(find "$tmp_out" -maxdepth 1 -type f -name "$APP_NAME*" | head -1)
             if [ -n "$fallback" ]; then
                 mv "$fallback" "$base/$final_name"
@@ -82,18 +106,12 @@ fi
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))
-
-# 收集并输出 SHA256
-echo ""
-echo -e "\e[36mSHA256 校验值：\e[0m"
-while IFS= read -r -d '' f; do
-    hash=$(sha256sum "$f" | awk '{print $1}')
-    name=$(basename "$f")
-    echo -e "\e[90m  $hash  $name\e[0m"
-done < <(find publish -type f -name "$APP_NAME-*" -print0 | sort -z)
-
 echo ""
 echo -e "\e[36m══════════════════════════════════════════\e[0m"
 echo -e "\e[36m  全部完成，总用时 ${ELAPSED} 秒\e[0m"
 echo -e "\e[36m══════════════════════════════════════════\e[0m"
 echo -ne "\033]0;A_Pair: 发布完成\007"
+
+echo ""
+echo -e "\e[36mSHA256 校验值（可直接粘贴到 Release 说明）：\e[0m"
+print_sha256_table

@@ -4,16 +4,18 @@
   A_Pair 多平台发布 — 在 scripts/ 目录下执行
 .EXAMPLE
   cd scripts
-  .\publish.ps1              # 自包含 + 依赖运行时
-  .\publish.ps1 -Mode sc     # 仅自包含
-  .\publish.ps1 -Mode fd     # 仅依赖运行时
+  .\publish.ps1                  # 自包含 + 依赖运行时
+  .\publish.ps1 -Mode sc         # 仅自包含
+  .\publish.ps1 -Mode fd         # 仅依赖运行时
+  .\publish.ps1 -HashOnly        # 仅计算已有文件的 SHA256
 #>
 
 param(
     [ValidateSet("both", "sc", "fd")]
     [string]$Mode = "both",
     [ValidateSet("Release", "Debug")]
-    [string]$Configuration = "Release"
+    [string]$Configuration = "Release",
+    [switch]$HashOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,6 +28,25 @@ $AppName = "A_Pair"
 
 function Write-Step($text, $color = "White") {
     Write-Host "  [$([datetime]::Now.ToString('HH:mm:ss'))] $text" -ForegroundColor $color
+}
+
+function Print-Sha256Table {
+    $files = @(Get-ChildItem publish -Recurse -File | Where-Object { $_.Name -like "$AppName-*" } | Sort-Object Name)
+    if ($files.Count -eq 0) { Write-Host "没有找到已发布文件" -ForegroundColor Yellow; return }
+
+    Write-Host ""
+    Write-Host "| 文件 | SHA256 |" -ForegroundColor White
+    Write-Host "|------|--------|" -ForegroundColor White
+    foreach ($f in $files) {
+        $hash = (Get-FileHash -Algorithm SHA256 $f.FullName).Hash.ToLower()
+        Write-Host "| ``$($f.Name)`` | $hash |" -ForegroundColor Gray
+    }
+}
+
+if ($HashOnly) {
+    Write-Host "SHA256 校验值（Markdown 表格）：" -ForegroundColor Cyan
+    Print-Sha256Table
+    exit 0
 }
 
 function Publish-One($SelfContained, $Label) {
@@ -65,7 +86,6 @@ function Publish-One($SelfContained, $Label) {
             Write-Step "完成 → $Label/$finalName ($size MB)" -ForegroundColor Green
         }
         else {
-            # 回退：查找任意可执行文件
             $fallback = Get-ChildItem $tmpOut -File | Where-Object { $_.Name -like "$AppName*" } | Select-Object -First 1
             if ($fallback) {
                 Move-Item $fallback.FullName "$base/$finalName" -Force
@@ -98,20 +118,12 @@ if ($Mode -ne "sc") {
 }
 
 $sw.Stop()
-
-# 收集并输出 SHA256
-$published = @(Get-ChildItem publish -Recurse -File | Where-Object { $_.Name -like "$AppName-*" } | Sort-Object Name)
-if ($published.Count -gt 0) {
-    Write-Host ""
-    Write-Host "SHA256 校验值：" -ForegroundColor Cyan
-    foreach ($f in $published) {
-        $hash = (Get-FileHash -Algorithm SHA256 $f.FullName).Hash
-        Write-Host "  $hash  $($f.Name)" -ForegroundColor Gray
-    }
-}
-
 Write-Host ""
 Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host "  全部完成，总用时 $([math]::Round($sw.Elapsed.TotalSeconds, 1)) 秒" -ForegroundColor Cyan
 Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
 $Host.UI.RawUI.WindowTitle = "A_Pair: 发布完成"
+
+Write-Host ""
+Write-Host "SHA256 校验值（可直接粘贴到 Release 说明）：" -ForegroundColor Cyan
+Print-Sha256Table
