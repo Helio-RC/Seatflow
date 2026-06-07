@@ -31,7 +31,7 @@ function Publish-One($SelfContained, $Label) {
         Write-Host "[$Label] $rid " -ForegroundColor Yellow -NoNewline
 
         dotnet publish $Project -c $Configuration -r $rid --self-contained $scFlag `
-            -p:PublishSingleFile=true -o $out 
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -o $out 
         if ($LASTEXITCODE -ne 0) { Write-Host "  FAILED" -ForegroundColor Red; exit $LASTEXITCODE }
 
         $exe = if ($rid -like "win*") { "$Project.exe" } else { $Project }

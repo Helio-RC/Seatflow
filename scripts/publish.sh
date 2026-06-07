@@ -23,6 +23,8 @@ publish_one() {
         dotnet publish "$PROJECT" -c "$CONFIG" -r "$rid" \
             --self-contained "$sc_flag" \
             -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:IncludeAllContentForSelfExtract=true \
             -o "$out"
 
         local exe="$PROJECT"
