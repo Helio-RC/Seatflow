@@ -35,17 +35,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.3" />
-    <PackageReference Include="Avalonia.Headless" Version="12.0.3" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.3" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1">
+    <PackageReference Include="Avalonia" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Headless" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.2">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="FluentIcons.Avalonia" Version="2.1.326" />
+    <PackageReference Include="FluentIcons.Avalonia" Version="2.1.328" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
     <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.11" />
@@ -79,10 +79,7 @@
       <_GitCommitLine Include="    }" />
       <_GitCommitLine Include="}" />
     </ItemGroup>
-    <WriteLinesToFile
-      File="$(IntermediateOutputPath)Generated\GitCommit.g.cs"
-      Lines="@(_GitCommitLine)"
-      Overwrite="true" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)Generated\GitCommit.g.cs" Lines="@(_GitCommitLine)" Overwrite="true" />
     <ItemGroup>
       <Compile Include="$(IntermediateOutputPath)Generated\GitCommit.g.cs" />
     </ItemGroup>
@@ -91,10 +88,7 @@
   <!-- 编译前从所有项目收集 PackageReference 版本号，生成 PackageVersions.g.cs -->
   <Target Name="GeneratePackageVersions" BeforeTargets="BeforeBuild">
     <!-- 从其他源项目收集 PackageReference -->
-    <MSBuild
-      Projects="..\A_Pair.Infrastructure\A_Pair.Infrastructure.csproj;..\A_Pair.Application\A_Pair.Application.csproj;..\A_Pair.Core\A_Pair.Core.csproj"
-      Targets="_GetPackageRefs"
-      BuildInParallel="false">
+    <MSBuild Projects="..\A_Pair.Infrastructure\A_Pair.Infrastructure.csproj;..\A_Pair.Application\A_Pair.Application.csproj;..\A_Pair.Core\A_Pair.Core.csproj" Targets="_GetPackageRefs" BuildInParallel="false">
       <Output TaskParameter="TargetOutputs" ItemName="_ExtPkgs" />
     </MSBuild>
     <!-- 合并本项目 + 外部项目的 PackageReference -->
@@ -117,10 +111,7 @@
       <_PvLine Include="    }" />
       <_PvLine Include="}" />
     </ItemGroup>
-    <WriteLinesToFile
-      File="$(IntermediateOutputPath)Generated\PackageVersions.g.cs"
-      Lines="@(_PvLine)"
-      Overwrite="true" />
+    <WriteLinesToFile File="$(IntermediateOutputPath)Generated\PackageVersions.g.cs" Lines="@(_PvLine)" Overwrite="true" />
     <ItemGroup>
       <Compile Include="$(IntermediateOutputPath)Generated\PackageVersions.g.cs" />
     </ItemGroup>

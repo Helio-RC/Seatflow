@@ -3,6 +3,7 @@
              xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
              xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
              x:Class="A_Pair.Presentation.Avalonia.Views.AboutView"
              x:DataType="vm:AboutViewModel"
@@ -23,9 +24,10 @@
 
         <!-- 应用信息头部 -->
         <StackPanel Spacing="8" HorizontalAlignment="Center" Margin="0,8,0,0">
-          <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="48" Height="48"
-                          HorizontalAlignment="Center"
-                          Foreground="{DynamicResource SystemAccentColor}" />
+          <svg:Svg Path="/Assets/icon_with_background.svg"
+                   Width="240" Height="240"
+                   HorizontalAlignment="Center"
+                   Stretch="Uniform" />
           <TextBlock Text="{Binding AppName}" FontSize="22" FontWeight="Bold"
                      HorizontalAlignment="Center" />
           <TextBlock HorizontalAlignment="Center" FontSize="13"
