@@ -31,8 +31,7 @@ function Publish-One($SelfContained, $Label) {
         Write-Host "[$Label] $rid " -ForegroundColor Yellow -NoNewline
 
         dotnet publish $Project -c $Configuration -r $rid --self-contained $scFlag `
-            -p:PublishSingleFile=true -p:PublishTrimmed=true -o $out 2>&1 | Select-Object -Last 1
-
+            -p:PublishSingleFile=true -p:PublishTrimmed=true -o $out 
         if ($LASTEXITCODE -ne 0) { Write-Host "  FAILED" -ForegroundColor Red; exit $LASTEXITCODE }
 
         $exe = if ($rid -like "win*") { "$Project.exe" } else { $Project }
