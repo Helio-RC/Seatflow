@@ -29,7 +29,7 @@ public partial class AboutViewModel : ViewModelBase
     {
         var data = LoadAboutData();
 
-        Version = $"{data.Version ?? "1.0.0"}+{GitCommit.Hash}";
+        Version = $"{data.Version ?? "1.0.0"}-{GitCommit.Hash}";
         VersionDisplay = string.Format(Resources.About_Version , Version);
 
         RuntimeVersion = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;

@@ -275,6 +275,72 @@ Snapshots store the full `ClassroomLayoutDefinition` (JSON-serialized via `SeatJ
 
 `RenameStudentDatasetAsync` renames in-place (updates `RosterFile.Description` only, preserves ID). Previously it deleted the old file and created a new one with a new ID.
 
+### Page navigability management
+
+A JSON config file `Data/page_navigation.json` (embedded resource) controls which navigation pages are enabled. Format:
+
+```json
+{ "version": "1.0", "pages": { "Home": true, "PluginManagement": false, ... } }
+```
+
+Key = `PageKey` enum value name. `MainShellViewModel.LoadPageNav()` loads it via `Assembly.GetManifestResourceStream` (same pattern as `about.json`). For each disabled page, add two properties to `MainShellViewModel`:
+
+```csharp
+public double PluginManagementOpacity => IsPageEnabled("PluginManagement") ? 1.0 : 0.4;
+public string? PluginManagementDisabledTip => IsPageEnabled("PluginManagement") ? null : Resources.Nav_PluginDisabled;
+```
+
+Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hide ToolTips in Avalonia) and `ToolTip.Tip`. `NavigateAsync` already checks `IsPageEnabled()` and returns early for disabled pages. Disabled message goes in `.resx` with key pattern `Nav_{PageName}Disabled`.
+
+### MemberManagement dataset flow
+
+**Click-to-load**: `OnSelectedDatasetChanged` auto-loads the dataset via `SwitchToDatasetAsync()`. No separate "Load" button.
+
+**Dirty tracking**: Uses JSON serialization snapshot comparison. `_originalStudentsJson` stores the state after load/save; `IsDirty` compares current `SerializeStudents()` against it. `MarkClean()` / `MarkDirty()` manage the snapshot.
+
+```csharp
+private bool IsDirty =>
+    IsNewStudentDirty ||
+    (_originalStudentsJson != null && SerializeStudents() != _originalStudentsJson);
+```
+
+**NewStudent dirty**: `IsNewStudentDirty` checks if any field on the bottom "add row" has been filled (name, height, gender, or front-row flag). Must be included in `IsDirty` so unsaved new-row data triggers the switch-dataset dialog.
+
+**Switch dataset flow**: `SwitchToDatasetAsync(target)` → if dirty → 3-btn dialog (Save / Discard / Cancel). Cancel reverts `SelectedDataset` to `_previousDataset` via `_suppressDatasetLoad` guard. After save or discard, `NewStudent` is reset to prevent data leaking between datasets.
+
+**Save flow**: `SaveAsync` checks `IsNewStudentDirty` first → if true, shows "Discard & Save" / "Cancel" dialog. If `CurrentDatasetId` is null (imported data), delegates to `RenameSaveAsync` (Save As). Otherwise calls `SaveInternalAsync` which deletes old file + saves new one without confirmation dialog. Both call `MarkClean()` after success.
+
+**Validation**: `ValidateStudents()` skips completely blank rows (name empty AND height null AND gender null AND needsFrontRow false). Partial rows with empty name still flagged.
+
+### About page version
+
+Version comes from `about.json` → `AboutData.Version` field, appended with git commit hash:
+
+```
+Version = $"{data.Version ?? "1.0.0"}+{GitCommit.Hash}"
+```
+
+`GitCommit.Hash` is a `const string` in auto-generated `GitCommit.g.cs`, produced by an MSBuild target (`GenerateGitCommit`) that runs `git rev-parse --short HEAD` before each build. Falls back to `"unknown-commit-id"` when git is unavailable. The generated file lives in `$(IntermediateOutputPath)Generated\` and is NOT committed.
+
+### Deterministic builds
+
+csproj settings for reproducible output across time/machines:
+
+```xml
+<Deterministic>true</Deterministic>
+<PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)'))=./</PathMap>
+```
+
+Same source code → same DLL hash regardless of build time or absolute path.
+
+### VenueConfiguration: NewVenue race condition
+
+`NewVenue()` must cancel any in-flight `SelectVenueAsync` from the previous selected venue before calling `ResetParameters()`. Otherwise the running async load can overwrite the reset parameters with the old venue's data. Pattern: `_selectVenueCts?.Cancel()` at the top of `NewVenue()`, and `ct.IsCancellationRequested` checks inside `SelectVenueAsync` before setting VM state.
+
+### DockPanel child order
+
+In Avalonia's `DockPanel`, `LastChildFill="True"` (default) means the LAST child fills remaining space. If the last child has `DockPanel.Dock="..."`, the previous undocked child fills instead. Always place `Dock` children BEFORE the filling child (typically a `ScrollViewer` or `ListBox`).
+
 ## Documents
 - `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
 - `ARCHITECTURE.md` — Project goals & architecture design

@@ -57,7 +57,9 @@ A_Pair.slnx
 ├── A_Pair.Infrastructure    # 基础设施（数据访问、布局实现）
 ├── A_Pair.Plugins.Sdk       # 插件 SDK
 ├── A_Pair.Presentation.Avalonia  # Avalonia UI 主程序
-└── Tests/                               # 单元测试与集成测试
+├── A_Pair.Core.Tests          # 核心领域测试
+├── A_Pair.Application.Tests   # 应用层测试
+└── A_Pair.Infrastructure.Tests # 基础设施测试
 ```
 
 ---
@@ -380,7 +382,7 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 · 手动微调：支持拖拽换位，记录手动覆盖标记。
 · 撤销/重做：命令模式实现操作栈。
 · 数据验证：导入后调用 IDataValidator 返回错误列表。
-· 打印/PDF 导出：集成 QuestPDF 或 PdfSharp。
+· 打印/PDF 导出：已集成 QuestPDF（`PdfSeatingExporter`）。
 
 7.3 异常处理
 

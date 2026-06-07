@@ -6,13 +6,14 @@
 
 ```
 README.md                     ← 项目入口，功能概览 + 开发状态
-├── CONTRIBUTING.md           ← 开发环境、编码约定、添加功能流程
-├── CLAUDE.md                 ← AI 编码助手主配置（含文件版本/迁移/JSON 约定）
-│   └── docs/CLAUDE.md        ← CLAUDE.md 的人类可读副本（同步维护）
-├── ARCHITECTURE.md           ← 架构设计、分层、数据流、安全策略
-├── Phases.md                 ← 实现阶段、任务分解、工时估算
+├── CHANGELOG.md               ← 版本变更记录
+├── CONTRIBUTING.md            ← 开发环境、编码约定、添加功能流程
+├── CLAUDE.md                  ← AI 编码助手主配置（含文件版本/迁移/JSON 约定）
+│   └── docs/CLAUDE.md         ← CLAUDE.md 的人类可读副本（同步维护）
+├── ARCHITECTURE.md            ← 架构设计、分层、数据流、安全策略
 ├── docs/
-│   ├── INDEX.md              ← 本文件
+│   ├── INDEX.md               ← 本文件
+│   ├── Phases.md              ← 实现阶段、任务分解、工时估算
 │   └── adr/
 │       ├── ADR-001.md        ← 选择 Avalonia UI 的决策
 │       ├── ADR-002.md        ← 选择 CommunityToolkit.Mvvm 的决策
@@ -59,7 +60,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
   - **文件版本管理机制变更**（更新 5.3 节）
 - **关联文档**: Phases.md、docs/adr/
 
-### Phases.md
+### docs/Phases.md
 - **覆盖**: 实现阶段规划、具体任务清单、技术栈版本、风险分析
 - **何时更新**:
   - 阶段任务完成或新增

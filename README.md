@@ -1,6 +1,8 @@
-# A_Pair
+# A_Pair - 安排
 
 跨平台桌面座位安排与轮换系统。支持自动/手动排座、多数据源导入导出、策略引擎、插件扩展、历史快照回滚。
+
+> **QQ 交流群**：[761175549](https://qm.qq.com/q/y9D63B0dYk) 欢迎大家前来反馈 / 吹水
 
 ## 核心功能
 
@@ -16,19 +18,41 @@
 
 ## 开发路线图
 
-当前已完成核心业务逻辑（领域模型、策略引擎、数据导入导出、插件系统、快照管理）和大部分 UI 页面。详见 [Phases.md](Phases.md)。
+当前已完成核心业务逻辑（领域模型、策略引擎、数据导入导出、插件系统、快照管理）和大部分 UI 页面。详见 [docs/Phases.md](docs/Phases.md)。
 
 | 阶段 | 内容 | 状态 |
 |------|------|------|
 | Phase 1-3 | 领域建模、数据导入导出、内置策略 | 已完成 |
 | Phase 4-5 | 插件系统、Lua/C# 脚本支持 | 已完成 |
-| Phase 6 | 高级布局可视化、拖拽交互 | 进行中 |
-| Phase 7 | 配置管理、存储、版本迁移 | 部分完成（版本号字段、迁移管线已完成；CLI 工具待启动） |
-| Phase 8 | 测试覆盖与用户文档 | 计划中 |
+| Phase 6 | 高级布局可视化、拖拽交互、命令模式 | 已完成（Grid/Polar/Freeform 布局、Canvas 预览、缩放平移、撤销/重做） |
+| Phase 7 | 配置管理、存储、版本迁移 | 已完成（文件版本管理、迁移管线、快照回滚、快照完整性检测、确定性构建、页面导航管理） |
+| Phase 8 | 测试覆盖、文档完善、打包发布 | 进行中 |
+
+## 快速开始
+
+### 环境要求
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- Windows 11 / macOS 14+ / Ubuntu 22.04+（或其他 Linux 发行版）
+
+### 构建与运行
+
+```bash
+git clone https://github.com/Helio-RC/A_Pair.git
+cd A_Pair
+dotnet build
+dotnet run --project A_Pair.Presentation.Avalonia
+```
+
+### 运行测试
+
+```bash
+dotnet test
+```
 
 ## 反馈与贡献
 
-- **Bug 反馈**：请在 GitHub Issues 提交，附上操作系统版本和复现步骤,最好能附上日志。
+- **Bug 反馈**：请在 GitHub Issues 提交，附上操作系统版本和复现步骤，最好能附上日志
 - **功能建议**：欢迎提交 Feature Request
 - **插件开发**：参见 [A_Pair.Plugins.Sdk/docs/README.md](A_Pair.Plugins.Sdk/docs/README.md) 插件开发指南
 - **参与开发**：参见 [CONTRIBUTING.md](CONTRIBUTING.md) 了解构建环境、项目结构和编码规范
@@ -36,7 +60,28 @@
 
 ## 技术概要
 
-.NET 10 + Avalonia 12 + CommunityToolkit.Mvvm，采用分层架构（Core → Application → Infrastructure → Presentation），[外观模式](https://en.wikipedia.org/wiki/Facade_pattern)统一入口，[命令模式](https://en.wikipedia.org/wiki/Command_pattern)实现撤销/重做。
+.NET 10 + Avalonia 12 + CommunityToolkit.Mvvm，分层架构，外观模式统一入口，命令模式实现撤销/重做。
+
+```
+Presentation (Avalonia UI)  ← 用户界面、MVVM
+        ↓  IApplicationFacade
+Application                 ← 编排、策略管道、命令栈
+   ↓            ↓
+Core           Infrastructure
+领域模型        文件 I/O、布局生成器
+策略接口        导出器、仓库、迁移
+```
+
+| 层 | 职责 |
+|----|------|
+| **Core** | 领域实体（`Student`, `Seat`）、策略接口、领域服务 |
+| **Application** | 外观模式入口、策略管道、插件管理、撤销/重做 |
+| **Infrastructure** | CSV/Excel/JSON 导入导出、网格/环形/自由布局构建、PDF/图片导出、文件版本迁移 |
+| **Presentation** | Avalonia 12 桌面 UI、MVVM（CommunityToolkit.Mvvm）、编译绑定 |
+
+## 许可
+
+MIT License © 2026 A_Pair Contributors
 
 ## 项目文档
 
@@ -44,9 +89,10 @@
 |------|------|
 | [docs/INDEX.md](docs/INDEX.md) | 文档导航地图（修改文档前先查阅联动规则） |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 项目目标与架构设计 |
-| [Phases.md](Phases.md) | 实现阶段与详细规划 |
+| [docs/Phases.md](docs/Phases.md) | 实现阶段与详细规划 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发环境搭建与参与指南 |
 | [CLAUDE.md](CLAUDE.md) | AI 编码助手配置 |
+| [CHANGELOG.md](CHANGELOG.md) | 变更日志 |
 | [docs/adr/](docs/adr/) | 架构决策记录 |
 | [Design_Spec.md](A_Pair.Presentation.Avalonia/docs/Design_Spec.md) | UI 设计规范 |
 | [Fluent_Icons.md](A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md) | 图标参考 |
