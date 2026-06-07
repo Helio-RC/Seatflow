@@ -42,15 +42,23 @@ publish_one() {
             -p:IncludeAllContentForSelfExtract=true \
             -o "$tmp_out"
 
-        local built
-        built=$(find "$tmp_out" -maxdepth 1 -type f \( -name "$PROJECT" -o -name "$PROJECT.exe" \) | head -1)
-        if [ -n "$built" ]; then
-            mv "$built" "$base/$final_name"
+        local exe_name="$APP_NAME$suffix"
+        if [ -f "$tmp_out/$exe_name" ]; then
+            mv "$tmp_out/$exe_name" "$base/$final_name"
             rm -rf "$tmp_out"
             local size; size=$(du -h "$base/$final_name" | cut -f1)
             step "完成 → $label/$final_name ($size)" 32
         else
-            step "完成 → $tmp_out (未找到可执行文件)" 33
+            # 回退：查找任意以 A_Pair 开头的可执行文件
+            local fallback; fallback=$(find "$tmp_out" -maxdepth 1 -type f -name "$APP_NAME*" | head -1)
+            if [ -n "$fallback" ]; then
+                mv "$fallback" "$base/$final_name"
+                rm -rf "$tmp_out"
+                local size2; size2=$(du -h "$base/$final_name" | cut -f1)
+                step "完成 → $label/$final_name ($size2)" 32
+            else
+                step "未找到可执行文件，临时目录保留: $tmp_out" 31
+            fi
         fi
     done
 }

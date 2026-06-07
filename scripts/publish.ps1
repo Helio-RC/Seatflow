@@ -56,15 +56,26 @@ function Publish-One($SelfContained, $Label) {
             Write-Host ""; Write-Step "编译失败" -ForegroundColor Red; exit $LASTEXITCODE
         }
 
-        $built = Get-ChildItem $tmpOut -File | Where-Object { $_.Name -like "$Project*" -and ($suffix -eq "" -or $_.Name -like "*$suffix") } | Select-Object -First 1
-        if ($built) {
-            Move-Item $built.FullName "$base/$finalName" -Force
+        $exeName = if ($suffix) { "$AppName$suffix" } else { $AppName }
+        $built = Join-Path $tmpOut $exeName
+        if (Test-Path $built) {
+            Move-Item $built "$base/$finalName" -Force
             Remove-Item $tmpOut -Recurse -Force -ErrorAction SilentlyContinue
             $size = [math]::Round((Get-Item "$base/$finalName").Length / 1MB, 1)
             Write-Step "完成 → $Label/$finalName ($size MB)" -ForegroundColor Green
         }
         else {
-            Write-Step "完成 → $tmpOut (未找到可执行文件)" -ForegroundColor Yellow
+            # 回退：查找任意可执行文件
+            $fallback = Get-ChildItem $tmpOut -File | Where-Object { $_.Name -like "$AppName*" } | Select-Object -First 1
+            if ($fallback) {
+                Move-Item $fallback.FullName "$base/$finalName" -Force
+                Remove-Item $tmpOut -Recurse -Force -ErrorAction SilentlyContinue
+                $size = [math]::Round((Get-Item "$base/$finalName").Length / 1MB, 1)
+                Write-Step "完成 → $Label/$finalName ($size MB)" -ForegroundColor Green
+            }
+            else {
+                Write-Step "未找到可执行文件，临时目录保留: $tmpOut" -ForegroundColor Red
+            }
         }
     }
 }
