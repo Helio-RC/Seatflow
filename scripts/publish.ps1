@@ -98,6 +98,18 @@ if ($Mode -ne "sc") {
 }
 
 $sw.Stop()
+
+# 收集并输出 SHA256
+$published = @(Get-ChildItem publish -Recurse -File | Where-Object { $_.Name -like "$AppName-*" } | Sort-Object Name)
+if ($published.Count -gt 0) {
+    Write-Host ""
+    Write-Host "SHA256 校验值：" -ForegroundColor Cyan
+    foreach ($f in $published) {
+        $hash = (Get-FileHash -Algorithm SHA256 $f.FullName).Hash
+        Write-Host "  $hash  $($f.Name)" -ForegroundColor Gray
+    }
+}
+
 Write-Host ""
 Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host "  全部完成，总用时 $([math]::Round($sw.Elapsed.TotalSeconds, 1)) 秒" -ForegroundColor Cyan

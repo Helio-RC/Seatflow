@@ -82,6 +82,16 @@ fi
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))
+
+# 收集并输出 SHA256
+echo ""
+echo -e "\e[36mSHA256 校验值：\e[0m"
+while IFS= read -r -d '' f; do
+    hash=$(sha256sum "$f" | awk '{print $1}')
+    name=$(basename "$f")
+    echo -e "\e[90m  $hash  $name\e[0m"
+done < <(find publish -type f -name "$APP_NAME-*" -print0 | sort -z)
+
 echo ""
 echo -e "\e[36m══════════════════════════════════════════\e[0m"
 echo -e "\e[36m  全部完成，总用时 ${ELAPSED} 秒\e[0m"

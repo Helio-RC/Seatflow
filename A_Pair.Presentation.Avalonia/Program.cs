@@ -74,7 +74,8 @@ namespace A_Pair.Presentation.Avalonia
         var extra = Directory.GetFileSystemEntries(exeDir)
             .Select(p => Path.GetFileName(p))
             .Where(n => !string.Equals(n , exeName , StringComparison.OrdinalIgnoreCase)
-                     && !string.Equals(n , "AppData" , StringComparison.OrdinalIgnoreCase))
+                     && !string.Equals(n , "AppData" , StringComparison.OrdinalIgnoreCase)
+                     && !string.Equals(n , "Plugins" , StringComparison.OrdinalIgnoreCase))
             .ToArray();
 
         if (extra.Length == 0) return;
