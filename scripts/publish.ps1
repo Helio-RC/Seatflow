@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-  A_Pair 多平台发布 — 请在 scripts/ 目录下执行
+  A_Pair 多平台发布 — 在 scripts/ 目录下执行
 .EXAMPLE
   cd scripts
   .\publish.ps1              # 自包含 + 依赖运行时
@@ -19,38 +19,76 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location ..
 
+$sw = [Diagnostics.Stopwatch]::StartNew()
 $Project = "A_Pair.Presentation.Avalonia"
 $Rids = @("win-x64", "linux-x64", "osx-x64", "osx-arm64")
+$AppName = "A_Pair"
+
+function Write-Step($text, $color = "White") {
+    Write-Host "  [$([datetime]::Now.ToString('HH:mm:ss'))] $text" -ForegroundColor $color
+}
 
 function Publish-One($SelfContained, $Label) {
     $scFlag = if ($SelfContained) { "true" } else { "false" }
     $base = "publish/$Label"
+    New-Item -ItemType Directory -Force -Path $base | Out-Null
 
     foreach ($rid in $Rids) {
-        $out = "$base/$rid"
-        Write-Host "[$Label] $rid " -ForegroundColor Yellow -NoNewline
+        $tmpOut = "$base/.tmp_$rid"
+        $suffix = if ($rid -like "win*") { ".exe" } else { "" }
+        $finalName = "$AppName-$rid$suffix"
+
+        $title = "A_Pair: $Label / $rid"
+        $Host.UI.RawUI.WindowTitle = $title
+        Write-Host ""
+        Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
+        Write-Host "  $title" -ForegroundColor Cyan
+        Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
+        Write-Step "开始编译..." -ForegroundColor Yellow
 
         dotnet publish $Project -c $Configuration -r $rid --self-contained $scFlag `
-            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true -o $out 
-        if ($LASTEXITCODE -ne 0) { Write-Host "  FAILED" -ForegroundColor Red; exit $LASTEXITCODE }
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:IncludeAllContentForSelfExtract=true `
+            -o $tmpOut
 
-        $exe = if ($rid -like "win*") { "$Project.exe" } else { $Project }
-        if (Test-Path "$out/$exe") {
-            $size = [math]::Round((Get-Item "$out/$exe").Length / 1MB, 1)
-            Write-Host "  -> $out ($size MB)" -ForegroundColor Green
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host ""; Write-Step "编译失败" -ForegroundColor Red; exit $LASTEXITCODE
+        }
+
+        $built = Get-ChildItem $tmpOut -File | Where-Object { $_.Name -like "$Project*" -and ($suffix -eq "" -or $_.Name -like "*$suffix") } | Select-Object -First 1
+        if ($built) {
+            Move-Item $built.FullName "$base/$finalName" -Force
+            Remove-Item $tmpOut -Recurse -Force -ErrorAction SilentlyContinue
+            $size = [math]::Round((Get-Item "$base/$finalName").Length / 1MB, 1)
+            Write-Step "完成 → $Label/$finalName ($size MB)" -ForegroundColor Green
+        }
+        else {
+            Write-Step "完成 → $tmpOut (未找到可执行文件)" -ForegroundColor Yellow
         }
     }
 }
 
-Write-Host "=== A_Pair 发布 ($Configuration) ===" -ForegroundColor Cyan
+$Host.UI.RawUI.WindowTitle = "A_Pair: 发布中..."
+Write-Host "╔══════════════════════════════════╗" -ForegroundColor Cyan
+Write-Host "║  A_Pair 多平台发布               ║" -ForegroundColor Cyan
+Write-Host "║  $Configuration | $(if ($Mode -eq 'both') {'SC + FD'} else {$Mode.ToUpper()})" -ForegroundColor Cyan
+Write-Host "╚══════════════════════════════════╝" -ForegroundColor Cyan
 
 if ($Mode -ne "fd") {
-    Write-Host "`n--- 自包含 (Self-Contained) ---" -ForegroundColor Magenta
+    Write-Host "`n┌─ 自包含 (Self-Contained) ─────────┐" -ForegroundColor Magenta
     Publish-One $true "sc"
+    Write-Host "└────────────────────────────────────┘" -ForegroundColor Magenta
 }
 if ($Mode -ne "sc") {
-    Write-Host "`n--- 依赖运行时 (Framework-Dependent) ---" -ForegroundColor Magenta
+    Write-Host "`n┌─ 依赖运行时 (Framework-Dependent) ──┐" -ForegroundColor Magenta
     Publish-One $false "fd"
+    Write-Host "└────────────────────────────────────┘" -ForegroundColor Magenta
 }
 
-Write-Host "`n=== 完成 ===" -ForegroundColor Cyan
+$sw.Stop()
+Write-Host ""
+Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "  全部完成，总用时 $([math]::Round($sw.Elapsed.TotalSeconds, 1)) 秒" -ForegroundColor Cyan
+Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
+$Host.UI.RawUI.WindowTitle = "A_Pair: 发布完成"
