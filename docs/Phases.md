@@ -40,87 +40,51 @@
 ```
 A_Pair/
 ├── A_Pair.slnx                          # 解决方案文件
-├── A_Pair.Core/                     # 领域核心（无外部依赖）
-│   │   ├── Entities/                    # Student, Classroom, Seat 等
-│   │   ├── ValueObjects/                # Position, Gender, SeatType 等
-│   │   ├── Interfaces/                  # 领域服务接口
-│   │   ├── DomainServices/              # 领域服务实现
-│   │   ├── Events/                      # 领域事件
-│   │   └── Specifications/              # 规约模式（筛选条件）
-│   │
-│   ├── A_Pair.Contracts/                # 共享契约（轻量，接口定义）
-│   │   ├── ISeatingStrategy.cs
-│   │   ├── IStudentProvider.cs
-│   │   ├── ILayoutDefinition.cs
-│   │   ├── IPluginSeatingStrategy.cs
-│   │   ├── IDataValidator.cs
-│   │   └── Models/                      # 跨层使用的 DTO
-│   │
-│   ├── A_Pair.Application/              # 应用层
-│   │   ├── Facades/                     # IApplicationFacade 实现
-│   │   ├── Orchestrators/               # 流程编排
-│   │   ├── Strategies/                  # 内置策略实现
-│   │   ├── Workspace/                   # SeatingWorkspace 实现
-│   │   ├── Pipelines/                   # 策略执行管道
-│   │   ├── Validators/                  # 应用层验证
-│   │   ├── Commands/                    # 命令（撤销/重做）
-│   │   └── Services/                    # 应用服务
-│   │
-│   ├── A_Pair.Infrastructure/           # 基础设施层
-│   │   ├── DataProviders/               # StudentProvider 实现
-│   │   │   ├── CsvStudentProvider.cs
-│   │   │   ├── XlsxStudentProvider.cs
-│   │   │   └── JsonStudentProvider.cs
-│   │   ├── Layouts/                     # 布局实现
-│   │   │   ├── GridLayoutBuilder.cs
-│   │   │   ├── PolarLayoutBuilder.cs
-│   │   │   └── FreeformLayoutBuilder.cs
-│   │   ├── Exporters/                   # 导出器实现
-│   │   │   ├── ExcelExporter.cs
-│   │   │   ├── PdfExporter.cs
-│   │   │   └── CsvExporter.cs
-│   │   ├── Migration/                  # 文件版本迁移（已完成）
-│   │   │   ├── FileMigrationService.cs
-│   │   │   ├── IFileMigrator.cs
-│   │   │   ├── FileVersionInfo.cs
-│   │   │   ├── file_versions.json       # 嵌入资源
-│   │   │   └── Migrators/{Type}Migrators.cs
-│   │   ├── Repositories/               # 文件存储、快照管理
-│   │   │   ├── SeatingSnapshotRepository.cs
-│   │   │   └── FileLockManager.cs（计划）
-│   │   ├── Encryption/                  # 加密服务
-│   │   ├── Logging/                     # Serilog 配置
-│   │   └── Plugins/                     # 插件管理器
-│   │
-│   ├── A_Pair.Plugins.Sdk/              # 插件 SDK（供外部插件引用）
-│   │   ├── Abstractions/
-│   │   ├── Attributes/                  # 插件元数据标记
-│   │   └── Models/
-│   │
-│   └── A_Pair.Presentation.Avalonia/    # Avalonia UI 主程序
-│       ├── Views/
-│       ├── ViewModels/
-│       ├── Converters/
-│       ├── Behaviors/
-│       ├── Assets/
-│       ├── Locales/                     # 国际化资源
-│       ├── Services/                    # UI 专有服务（如对话框）
-│       ├── App.axaml
-│       └── Program.cs
+├── A_Pair.Core/                         # 领域核心（无外部依赖）
+│   ├── Enums/                           # Gender, SeatType 等
+│   ├── Models/                          # Student, ClassroomLayoutDefinition 等
+│   ├── Providers/                       # 接口：IStudentProvider, IVenueRepository 等
+│   ├── DomainServices/                  # ObstacleProcessor, SeatGeometryHelper 等
+│   ├── Strategies/                      # ISeatingStrategy + 4 个内置实现
+│   │   └── Manifests/                   # 声明式配置 JSON
+│   └── Utilities/                       # AttributeBag, CircularHistory
 │
-├── tests/
-│   ├── A_Pair.Core.Tests/
-│   ├── A_Pair.Application.Tests/
-│   ├── A_Pair.Infrastructure.Tests/
-│   └── A_Pair.IntegrationTests/
+├── A_Pair.Contracts/                    # 共享契约（轻量接口）
+│   └── Models/                          # IPluginSeatingStrategy, IPluginStudent 等
 │
-├── plugins/                              # 示例插件源码（可选）
-│   ├── Sample.CustomStrategy/
-│   └── Sample.LuaScript/
+├── A_Pair.Application/                  # 应用层
+│   ├── Interfaces/                      # IApplicationFacade
+│   ├── Services/                        # ApplicationFacade, ServiceCollectionExtensions
+│   ├── Plugins/                         # PluginManager, PluginLoadContext
+│   └── Pipelines/                       # StrategyExecutionPipeline
 │
-├── docs/                                 # 设计文档、用户手册
-├── scripts/                              # 构建脚本、打包脚本
-└── samples/                              # 示例配置文件、数据文件
+├── A_Pair.Infrastructure/               # 基础设施层
+│   ├── Providers/                       # Csv/Xlsx/JsonStudentProvider, CompositeStudentProvider
+│   ├── Layouts/                         # GridLayoutBuilder, PolarLayoutBuilder, FreeformLayoutBuilder
+│   ├── Exporters/                       # ExcelSeatingExporter, CsvSeatingExporter, PdfSeatingExporter, ImageSeatingExporter
+│   ├── Repositories/                    # JsonVenueRepository, SeatingSnapshotRepository 等
+│   ├── Writers/                         # JsonStudentWriter, CsvStudentWriter, XlsxStudentWriter
+│   └── Migration/                       # FileMigrationService, IFileMigrator, file_versions.json
+│
+├── A_Pair.Plugins.Sdk/                  # 插件 SDK（供外部插件引用）
+├── A_Pair.Presentation.Avalonia/        # Avalonia UI 主程序
+│   ├── Views/
+│   ├── ViewModels/
+│   ├── Converters/
+│   ├── Behaviors/
+│   ├── Services/                        # INavigationService, IDialogService 等
+│   ├── Lang/                            # .resx 国际化资源
+│   ├── Data/                            # about.json, page_navigation.json
+│   └── Assets/
+│
+├── A_Pair.Core.Tests/
+├── A_Pair.Application.Tests/
+├── A_Pair.Infrastructure.Tests/
+│
+├── docs/                                # 设计文档、ADRs
+│   └── adr/
+├── plugins/                             # 外部插件目录（运行时）
+└── samples/                             # 示例配置文件、数据文件
 ```
 
 ---
@@ -466,7 +430,7 @@ A_Pair/
 | Avalonia 在 Linux 下的稳定性问题 | 中 | 高 | 提前在目标发行版测试，参与社区修复 |
 | 插件系统内存泄漏 | 中 | 中 | 使用 `WeakReference` 和内存分析工具监控 |
 | 复杂布局算法有误 | 低 | 中 | 充分单元测试，提供手动微调补救 |
-| 第三方库版本冲突 | 低 | 中 | 使用 `Directory.Packages.props` 集中管理版本 |
+| 第三方库版本冲突 | 低 | 中 | 版本号直接在各 `.csproj` 中管理（项目未使用 `Directory.Packages.props`） |
 | 性能不达标（大型数据集） | 中 | 高 | 早期引入性能基准测试，持续优化 |
 
 ---
