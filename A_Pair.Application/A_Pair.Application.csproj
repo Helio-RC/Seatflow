@@ -24,4 +24,6 @@
     <ProjectReference Include="..\A_Pair.Infrastructure\A_Pair.Infrastructure.csproj" />
   </ItemGroup>
 
+  <Target Name="_GetPackageRefs" Returns="@(PackageReference)" />
+
 </Project>

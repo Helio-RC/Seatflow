@@ -28,4 +28,6 @@
     <EmbeddedResource Include="Migration\file_versions.json" />
   </ItemGroup>
 
+  <Target Name="_GetPackageRefs" Returns="@(PackageReference)" />
+
 </Project>

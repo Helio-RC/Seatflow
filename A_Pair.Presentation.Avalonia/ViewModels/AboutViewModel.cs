@@ -40,7 +40,12 @@ public partial class AboutViewModel : ViewModelBase
         License = data.License;
         Copyright = data.Copyright;
         Dependencies = data.Dependencies
-            .Select(d => new DependencyInfo(d.Name , d.Version , d.Purpose , d.License , d.Url))
+            .Select(d =>
+            {
+                var pkgId = d.PackageId ?? d.Name;
+                var version = PackageVersions.Map.TryGetValue(pkgId , out var v) ? v : "?";
+                return new DependencyInfo(d.Name , version , d.Purpose , d.License , d.Url);
+            })
             .ToList();
     }
 
@@ -86,6 +91,7 @@ public partial class AboutViewModel : ViewModelBase
     private sealed class DepEntry
     {
         public string Name { get; set; } = "";
+        public string? PackageId { get; set; }
         public string Version { get; set; } = "";
         public string Purpose { get; set; } = "";
         public string License { get; set; } = "";

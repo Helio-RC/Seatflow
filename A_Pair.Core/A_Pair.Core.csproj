@@ -19,4 +19,6 @@
     <ProjectReference Include="..\A_Pair.Contracts\A_Pair.Contracts.csproj" />
   </ItemGroup>
 
+  <Target Name="_GetPackageRefs" Returns="@(PackageReference)" />
+
 </Project>
