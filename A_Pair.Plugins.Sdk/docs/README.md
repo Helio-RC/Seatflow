@@ -49,7 +49,7 @@ dotnet add reference /path/to/A_Pair/A_Pair.Plugins.Sdk/A_Pair.Plugins.Sdk.cspro
 
 ```csharp
 using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.Workspace;
+using A_Pair.Contracts.Models;
 
 namespace MyPlugin;
 
@@ -66,12 +66,13 @@ public class MyStrategy : IPluginSeatingStrategy
     public bool IsEnabled { get; set; } = true;
 
     public Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace,
+        IPluginWorkspace workspace,
         CancellationToken cancellationToken)
     {
         var emptySeats = workspace.GetEmptySeats().ToList();
+        var assigned = workspace.GetAssignments().Values.ToHashSet();
         var unassigned = workspace.Students
-            .Where(s => !workspace.BuildSeatingPlan().Assignments.Values.Contains(s.Id))
+            .Where(s => !assigned.Contains(s.Id))
             .ToList();
 
         for (int i = 0; i < Math.Min(unassigned.Count, emptySeats.Count); i++)
@@ -128,7 +129,7 @@ dotnet build -c Release
 
 ### 通过传递引用可用的类型
 
-SDK 引用了 `A_Pair.Contracts` 和 `A_Pair.Core`，以下类型可直接使用：
+SDK 引用 `A_Pair.Contracts`。插件作者通过 `IPluginWorkspace` 接口与工作区交互（不在 SDK 中，由主程序传入）：
 
 | 类型 | 命名空间 | 来源 |
 |------|----------|------|
@@ -138,11 +139,11 @@ SDK 引用了 `A_Pair.Contracts` 和 `A_Pair.Core`，以下类型可直接使用
 | `IPluginSeatingStrategy` | `A_Pair.Contracts.Interfaces` | Contracts |
 | `PluginStrategyResult` | `A_Pair.Contracts.Interfaces` | Contracts |
 | `IPluginConfigurationService` | `A_Pair.Contracts.Interfaces` | Contracts |
-| `SeatingWorkspace` | `A_Pair.Core.Workspace` | Core |
-| `SeatingPlan` | `A_Pair.Core.Workspace` | Core |
-| `Student` | `A_Pair.Core.Models` | Core |
-| `Seat` / `GridSeat` / `PolarSeat` | `A_Pair.Core.Models` | Core |
-| `AttributeBag` | `A_Pair.Core.Utilities` | Core |
+| `IPluginWorkspace` | `A_Pair.Contracts.Models` | Contracts |
+| `IPluginStudent` | `A_Pair.Contracts.Models` | Contracts |
+| `IPluginSeat` | `A_Pair.Contracts.Models` | Contracts |
+
+> **注意：** 插件代码中应使用 `IPluginWorkspace`（而非 `SeatingWorkspace`），`IPluginSeat`（而非 `GridSeat`/`PolarSeat`），以及 `IPluginStudent`（而非 `Student`）。主程序在运行时会将这些接口的具体实现注入到策略的 `ExecuteAsync` 方法中。
 
 ---
 
@@ -207,7 +208,7 @@ public interface IPluginSeatingStrategy : IPlugin
     bool IsEnabled { get; set; }             // 是否启用
 
     Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace,
+        IPluginWorkspace workspace,
         CancellationToken cancellationToken);
 }
 ```
@@ -255,7 +256,7 @@ public abstract class PluginStrategyBase : PluginBase, IPluginSeatingStrategy
     public bool IsEnabled { get; set; }   // 来自 [Plugin].Enabled，默认 true
 
     public abstract Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace, CancellationToken ct);
+        IPluginWorkspace workspace, CancellationToken ct);
 }
 ```
 
@@ -306,8 +307,74 @@ public class MyStrategy : PluginStrategyBase { ... }
 | `dependencies` | string[] | 否 | `[]` | 依赖的插件 ID 列表 |
 | `scriptFile` | string | 见注 | null | 脚本文件名（脚本插件） |
 | `scriptType` | string | 见注 | null | 脚本类型：`"lua"` 或 `"csharp"` |
+| `visible` | bool | 否 | `true` | 控制策略是否参与管道。`false` 时从 UI（配置页、座位安排侧栏）和执行管道中完全排除 |
+| `parameters` | array | 否 | null | 策略级全局参数声明（见下方"声明式配置"） |
+| `codeBlocks` | array | 否 | null | 按数据集/会场的配置块声明（见下方"声明式配置"） |
 
 > **注：** 程序集插件需同时提供 `assembly` + `type`；脚本插件需同时提供 `scriptFile` + `scriptType`。两者互斥。
+
+### 声明式配置与 i18n
+
+插件通过 `parameters` 和 `codeBlocks` 声明配置 UI。所有用户可见文字使用内嵌多语言词典：
+
+```json
+"label": { "zh-CN": "历史惩罚权重", "en-US": "History Penalty Weight" }
+```
+
+**parameters 示例：**
+
+```json
+"parameters": [
+  {
+    "name": "minScore",
+    "fieldType": "NumberInput",
+    "label": { "zh-CN": "最低分数", "en-US": "Minimum Score" },
+    "defaultValue": 50,
+    "minValue": 0,
+    "maxValue": 100
+  }
+]
+```
+
+支持的 `fieldType`：`NumberInput`、`TextInput`、`ToggleSwitch`、`Dropdown`。
+
+**codeBlocks 示例：**
+
+```json
+"codeBlocks": [
+  {
+    "title": { "zh-CN": "优先分配", "en-US": "Priority Assignment" },
+    "dataType": "Student",
+    "displayMode": "ValuePair",
+    "fields": [
+      { "name": "student", "fieldType": "StudentPicker",
+        "label": { "zh-CN": "学生", "en-US": "Student" } }
+    ]
+  }
+]
+```
+
+`dataType`：`Student`、`Venue`、`Both`。
+`displayMode`：`Table`（表格模式）、`ValuePair`（值对模式）。
+`showSeatPosition`（可选，默认 `true`）：`false` 时隐藏座位定位器，适用于自动匹配策略。
+`preventDuplicateInRow`（可选，默认 `false`）：`true` 时禁止同行内学生选择器值重复——用于同桌分组策略。
+`preventDuplicateAcrossRows`（可选，默认 `false`）：`true` 时禁止跨行学生选择器值重复——用于 FixedSeat 等固定座位策略。
+`loadTrigger`（可选，默认 `Both`）：控制 `dataType:Both` 时配置加载的触发方式。`Both`=需两个选择器都选后精确匹配加载，`Any`=任一选择器有值即模糊匹配加载。用于平衡加载时机与匹配精度。
+codeBlock 中额外支持的 `fieldType`：`StudentPicker`、`SeatPosition`。
+
+**会场驱动的动态 StudentPicker**：当 `dataType: "Both"` 且会场类型为 Grid 时，
+UI 从 `GridLayoutMetadata.SeatsPerDesk` 读取每桌人数，动态决定每行的学生选择器数量。
+若 `SeatsPerDesk` 与已有配置不匹配，旧行将被清除。
+
+**学生选择器防重复**：通过 `preventDuplicateInRow` 和 `preventDuplicateAcrossRows` 声明防重复行为。
+启用后，已选学生将从其他选择器的下拉列表中排除（当前选中项自身保留下拉可见性）。
+若从持久化配置加载时检测到重复，系统自动清除冲突的选择项（保留按行序靠前者）。
+
+**配置加载匹配规则**：加载持久化配置时采用宽松匹配——`(SelectedDataset is null || match) && (SelectedVenue is null || match)`。
+对于 `dataType: "Both"`，仅选数据集即可加载配置（场馆视为通配符），后续选择场馆后自动窄化为精确匹配。
+此设计确保用户无需同时选择两个选择器才能看到已有的配置数据。
+
+UI 层通过 `LocalizeHelper.Resolve(dict)` 按 `CultureInfo.CurrentUICulture` 解析词典，回退顺序：当前语言 → zh-CN → 字典第一项。
 
 ### 程序集插件示例
 
@@ -362,15 +429,15 @@ public class MyStrategy : PluginStrategyBase { ... }
 
 ---
 
-## SeatingWorkspace API 参考
+## IPluginWorkspace API 参考
 
-`ExecuteAsync` 接收一个 `SeatingWorkspace` 实例，包含所有学生和座位数据。
+`ExecuteAsync` 接收一个 `IPluginWorkspace` 实例，这是插件视角的工作区契约。主程序在运行时将 `SeatingWorkspace`（实现了 `IPluginWorkspace`）注入。
 
 ### 属性
 
 | 成员 | 类型 | 说明 |
 |------|------|------|
-| `Students` | `IReadOnlyList<Student>` | 所有待分配学生（只读） |
+| `Students` | `IReadOnlyList<IPluginStudent>` | 所有待分配学生（只读） |
 
 ### 方法
 
@@ -382,89 +449,67 @@ public class MyStrategy : PluginStrategyBase { ... }
 - 固定座位只能分配给指定学生
 - 同一学生不可已分配到其他座位
 
-成功时自动更新学生座位历史记录。
-
-**`IEnumerable<Seat> GetEmptySeats()`**
+**`IEnumerable<IPluginSeat> GetEmptySeats()`**
 
 返回所有可用且非固定的空座位。
 
-**`IEnumerable<Seat> FindSeats(Func<Seat, bool> predicate)`**
+**`IEnumerable<IPluginSeat> FindSeats(Func<IPluginSeat, bool> predicate)`**
 
 按条件查找座位。示例：
 ```csharp
-var frontRow = workspace.FindSeats(s => s is GridSeat g && g.Row == 1);
-var groupA = workspace.FindSeats(s => s.LogicalGroup == "A组" && s.IsAvailable);
+var available = workspace.FindSeats(s => s.IsAvailable);
+var fixedSeats = workspace.FindSeats(s => s.IsFixed);
 ```
 
-**`SeatingPlan BuildSeatingPlan()`**
+**`IReadOnlyDictionary<string, string> GetAssignments()`**
 
-构建当前分配状态的只读快照：
-```csharp
-public class SeatingPlan
-{
-    public Dictionary<string, string> Assignments { get; set; }
-    // Key = 座位 ID, Value = 学生 ID
+返回当前座位分配快照（座位 ID → 学生 ID）。Key = 座位 ID，Value = 学生 ID。
+
+**`void LogWarning(string strategyId, string displayName, string messageKey, params object?[] args)`**
+
+记录一条警告消息，执行完成后自动汇总到座位安排页的侧栏信息面板中。`messageKey` 对应 manifest `messages` 中的 i18n 键，`args` 为 `string.Format` 参数。
+
+**`void LogError(string strategyId, string displayName, string messageKey, params object?[] args)`**
+
+同上，严重级别为错误。
+
+**manifest `messages` 字段**（可选）：
+```json
+"messages": {
+  "MyPlugin_NoSeats": {
+    "zh-CN": "无法为组（{0}）找到连续座位",
+    "en-US": "Could not find contiguous seats for group ({0})"
+  }
 }
 ```
-
-**`void ApplySnapshotAssignments(Dictionary<string, string> seatAssignments)`**
-
-清空当前所有分配并按给定快照恢复。
+策略内调用：`workspace.LogWarning(Id, "我的策略", "MyPlugin_NoSeats", groupInfo);`
 
 ---
 
 ## 数据模型参考
 
-### Student
+插件通过 `IPluginWorkspace` 接口与以下只读模型交互：
+
+### IPluginStudent
 
 | 属性 | 类型 | 说明 |
 |------|------|------|
 | `Id` | `string` | 唯一标识符（GUID） |
 | `Name` | `string` | 学生姓名 |
 | `Height` | `float?` | 身高（厘米），可为 null |
-| `Gender` | `Gender?` | 性别，可为 null |
 | `NeedsFrontRow` | `bool` | 是否需要前排座位 |
 | `FrontRowPreferenceScore` | `int` | 前排偏好分数，越大越优先 |
-| `Extensions` | `AttributeBag` | 扩展数据挂载点 |
 
-### Seat（抽象基类）
+### IPluginSeat
 
 | 属性 | 类型 | 说明 |
 |------|------|------|
 | `Id` | `string` | 唯一标识符（GUID） |
-| `Type` | `SeatType` | 座位类型：`Grid` / `Polar` / `Freeform` |
-| `LogicalGroup` | `string` | 逻辑分组（如 "A区"） |
 | `IsAvailable` | `bool` | 是否可用 |
 | `IsFixed` | `bool` | 是否固定座位 |
 | `OccupantId` | `string?` | 当前占用学生 ID，null 表示空 |
-| `Extensions` | `AttributeBag` | 扩展数据挂载点 |
 
-### GridSeat : Seat
-
-| 附加属性 | 类型 | 说明 |
-|----------|------|------|
-| `Row` | `int` | 行号（1-based） |
-| `Column` | `int` | 列号（1-based） |
-
-### PolarSeat : Seat
-
-| 附加属性 | 类型 | 说明 |
-|----------|------|------|
-| `Ring` | `int` | 环号（1-based，1=最内环） |
-| `Radius` | `double` | 半径距离 |
-| `AngleDegrees` | `double` | 角度（0°=右侧水平，逆时针） |
-
-### AttributeBag
-
-线程安全的键值对容器，用于挂载自定义数据：
-
-```csharp
-student.Extensions.Set("customScore", 100);
-if (student.Extensions.TryGet<int>("customScore", out var score))
-    Console.WriteLine(score);
-foreach (var kv in seat.Extensions.GetAll())
-    Console.WriteLine($"{kv.Key} = {kv.Value}");
-```
+> **注意：** 插件代码中不可直接使用 `Student`、`Seat`、`GridSeat`、`PolarSeat`、`AttributeBag` 等 Core 层类型。这些类型仅在主程序内部使用，插件应通过上述 Contracts 接口与系统交互。
 
 ---
 
@@ -475,6 +520,7 @@ foreach (var kv in seat.Extensions.GetAll())
 ```csharp
 using A_Pair.Plugins.Sdk.Attributes;
 using A_Pair.Plugins.Sdk.Abstractions;
+using A_Pair.Contracts.Models;
 
 [Plugin("height-desc", Name = "身高降序分配",
     Description = "按身高从高到低分配座位", Author = "张三", Priority = 25)]
@@ -485,9 +531,9 @@ public class HeightDescendingStrategy : PluginStrategyBase
     // 只需实现 ExecuteAsync！
 
     public override Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace, CancellationToken ct)
+        IPluginWorkspace workspace, CancellationToken ct)
     {
-        var assigned = workspace.BuildSeatingPlan().Assignments.Values;
+        var assigned = workspace.GetAssignments().Values.ToHashSet();
         var sorted = workspace.Students
             .Where(s => !assigned.Contains(s.Id))
             .OrderByDescending(s => s.Height ?? 0)
@@ -508,8 +554,7 @@ public class HeightDescendingStrategy : PluginStrategyBase
 
 ```csharp
 using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.Workspace;
-using A_Pair.Core.Models;
+using A_Pair.Contracts.Models;
 
 namespace MyPlugin;
 
@@ -523,7 +568,7 @@ public class FrontRowPriority : IPluginSeatingStrategy
     public bool IsEnabled { get; set; } = true;
 
     public Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace, CancellationToken ct)
+        IPluginWorkspace workspace, CancellationToken ct)
     {
         var needsFront = workspace.Students
             .Where(s => s.NeedsFrontRow)
@@ -531,7 +576,7 @@ public class FrontRowPriority : IPluginSeatingStrategy
             .ToList();
 
         var frontSeats = workspace.FindSeats(s =>
-            s is GridSeat g && g.Row == 1 && s.IsAvailable).ToList();
+            s.IsAvailable && s.Id.StartsWith("R1")).ToList();
 
         for (int i = 0; i < Math.Min(needsFront.Count, frontSeats.Count); i++)
             workspace.TryAssignSeat(frontSeats[i].Id, needsFront[i].Id, out _);
@@ -562,7 +607,7 @@ public class StatefulStrategy : PluginStrategyBase, IPluginLifecycle
     }
 
     public override Task<PluginStrategyResult> ExecuteAsync(
-        SeatingWorkspace workspace, CancellationToken ct)
+        IPluginWorkspace workspace, CancellationToken ct)
     {
         // 使用 _configJson ...
         return Task.FromResult(new PluginStrategyResult { Success = true });
@@ -626,15 +671,15 @@ end
 - 程序集白名单：`System.Private.CoreLib`、`System.Linq`、`A_Pair.Core`、`A_Pair.Application`
 - 命名空间自动导入：`System`、`System.Linq`、`System.Collections.Generic`、`A_Pair.Core.Workspace`、`A_Pair.Core.Models`
 - 超时：默认 5 秒
-- 通过全局变量 `Workspace`（类型为 `SeatingWorkspace`）访问**完整公共 API**
+- 通过全局变量 `Workspace`（`SeatingWorkspace`，实现了 `IPluginWorkspace`）访问主程序内部 API
 
 ### 示例 (strategy.csx)
 
 ```csharp
-// 为需要前排的学生优先分配第一排座位
-var frontSeats = Workspace.FindSeats(s =>
-    s is GridSeat g && g.Row == 1)
+// 为需要前排的学生优先分配座位（示例：按座位 ID 排序选前 N 个可用座位）
+var frontSeats = Workspace.FindSeats(s => s.IsAvailable)
     .OrderBy(s => s.Id)
+    .Take(Workspace.Students.Count(s => s.NeedsFrontRow))
     .ToList();
 
 var priorityStudents = Workspace.Students

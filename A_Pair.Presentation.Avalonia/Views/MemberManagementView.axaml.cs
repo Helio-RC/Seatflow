@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 
 namespace A_Pair.Presentation.Avalonia.Views;
 
@@ -41,6 +42,16 @@ public partial class MemberManagementView : UserControl
         var grid = this.FindControl<Grid>("SidebarGrid");
         if (grid != null && grid.ColumnDefinitions.Count > 0)
             grid.ColumnDefinitions[0].Width = new GridLength(width);
+    }
+
+    /// <summary>新增行 Name 文本框按 Enter 时触发 AddNewStudentCommand。</summary>
+    public void OnNewStudentNameKeyDown (object? sender , KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && DataContext is ViewModels.MemberManagementViewModel vm)
+        {
+            vm.AddNewStudentCommand.Execute(null);
+            e.Handled = true;
+        }
     }
 
     protected override void OnDetachedFromVisualTree (VisualTreeAttachmentEventArgs e)

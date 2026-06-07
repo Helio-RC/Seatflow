@@ -9,18 +9,17 @@
   <DockPanel Margin="20,16">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8">
-      <Button x:Name="CancelButton" MinWidth="80" Padding="12,6"
-              FontSize="14" HorizontalContentAlignment="Center"
+      <Button x:Name="CancelButton" Classes="ActionCancel"
               Content="{x:Static lang:Resources.Common_Cancel}"/>
-      <Button x:Name="OkButton" MinWidth="80" Padding="12,6"
-              FontSize="14" IsDefault="True" HorizontalContentAlignment="Center"
+      <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True"
               Content="{x:Static lang:Resources.Common_OK}"/>
     </StackPanel>
 
     <StackPanel Spacing="8">
-      <TextBlock x:Name="PromptBlock" FontSize="14"
+      <TextBlock x:Name="PromptBlock" Classes="body"
                  TextWrapping="Wrap" />
-      <TextBox x:Name="InputBox" FontSize="14" Padding="8,4" />
+      <TextBox x:Name="InputBox" FontSize="14" Padding="8,4"
+               AutomationProperties.Name="{x:Static lang:Resources.Common_OK}" />
     </StackPanel>
   </DockPanel>
 </Window>

@@ -29,10 +29,7 @@ public partial class AboutViewModel : ViewModelBase
     {
         var data = LoadAboutData();
 
-        var assembly = Assembly.GetEntryAssembly();
-        Version = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                  ?? assembly?.GetName()?.Version?.ToString()
-                  ?? "1.0.0";
+        Version = $"{data.Version ?? "1.0.0"}+{GitCommit.Hash}";
         VersionDisplay = string.Format(Resources.About_Version , Version);
 
         RuntimeVersion = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
@@ -78,6 +75,7 @@ public partial class AboutViewModel : ViewModelBase
 
     private sealed class AboutData
     {
+        public string? Version { get; set; }
         public string Description { get; set; } = "";
         public string ProjectUrl { get; set; } = "";
         public string License { get; set; } = "";

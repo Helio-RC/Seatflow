@@ -14,11 +14,13 @@ namespace A_Pair.Core.Strategies
     {
         private readonly FrontRowRotationConfiguration _config;
         private readonly ILogger<FrontRowRotationStrategy> _logger;
+        private readonly Random _random;
 
-        public FrontRowRotationStrategy (FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null)
+        public FrontRowRotationStrategy (FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null , Random? random = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
+            _random = random ?? new Random();
         }
 
         /// <summary>
@@ -31,6 +33,9 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>设置前排行数（从布局元数据同步）。</summary>
         public void SetFrontRowCount (int count) => _config.FrontRowCount = Math.Max(1 , count);
+
+        /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
+        public const string DisplayNameConst = "前排轮换";
 
         /// <summary>策略 ID："FrontRowRotation"。</summary>
         public string Id { get; } = "FrontRowRotation";
@@ -93,6 +98,7 @@ namespace A_Pair.Core.Strategies
             if (frontRowSeats.Count == 0)
             {
                 _logger.LogDebug("FrontRowRotation：未识别到前排座位，跳过");
+                workspace.LogWarning(Id , DisplayNameConst , "FrontRow_NoSeats");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
@@ -114,10 +120,22 @@ namespace A_Pair.Core.Strategies
             }).OrderByDescending(x => x.Score).ToList();
 
             int assignCount = Math.Min(frontRowSeats.Count , studentScores.Count);
+
+            // 随机洗牌：同时打乱座位和学生，确保前排学生均匀分布而非偏向一侧
+            Shuffle(frontRowSeats , _random);
+            var selectedStudents = studentScores.Take(assignCount).Select(x => x.Student).ToList();
+            Shuffle(selectedStudents , _random);
+
             for (int i = 0; i < assignCount && !cancellationToken.IsCancellationRequested; i++)
             {
-                workspace.TryAssignSeat(frontRowSeats[i].Id , studentScores[i].Student.Id , out _);
+                workspace.TryAssignSeat(frontRowSeats[i].Id , selectedStudents[i].Id , out _);
             }
+
+            // 若需要前排的学生多于前排座位数，记录警告
+            var needFrontRowCount = studentScores.Count(x => x.Student.NeedsFrontRow);
+            if (needFrontRowCount > frontRowSeats.Count)
+                workspace.LogWarning(Id , DisplayNameConst , "FrontRow_Overflow" ,
+                    needFrontRowCount , frontRowSeats.Count);
 
             _logger.LogInformation("FrontRowRotation 策略完成：{FrontSeats} 个前排座位，分配 {Assigned} 名学生" ,
                 frontRowSeats.Count , assignCount);
@@ -134,6 +152,18 @@ namespace A_Pair.Core.Strategies
                 return new ValidationResult { IsValid = false , Error = "HistoryWeight must be non-negative." };
             }
             return new ValidationResult { IsValid = true };
+        }
+
+        /// <summary>
+        /// Fisher-Yates 洗牌算法，用于随机化学生在前排座位中的分配。
+        /// </summary>
+        private static void Shuffle<T> (IList<T> list , Random random)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                (list[j] , list[i]) = (list[i] , list[j]);
+            }
         }
 
         /// <summary>

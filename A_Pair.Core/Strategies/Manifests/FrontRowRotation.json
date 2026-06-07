@@ -3,9 +3,47 @@
     "name": "FrontRowRotation",
     "displayName": "前排轮换",
     "version": "1.0.0",
-    "description": "按优先级自动分配前排座位。有视力需求的人员优先坐前排，坐过前排的人员下次排座自动后移，确保轮流公平。",
+    "description": "在非固定空座中按需求分数分配前排座位。需前排的学生优先，坐过前排的学生通过历史惩罚自动轮换。",
     "author": "A_Pair Team",
     "category": "rotation",
-    "defaultPriority": 30,
-    "defaultEnabled": true
+    "defaultPriority": 20,
+    "defaultEnabled": true,
+    "visible": true,
+    "parameters": [
+        {
+            "name": "HistoryWeight",
+            "fieldType": "NumberInput",
+            "label": { "zh-CN": "历史惩罚权重", "en-US": "History Penalty Weight" },
+            "defaultValue": 10,
+            "minValue": 0,
+            "maxValue": 100
+        },
+        {
+            "name": "NeedsFrontRowBonus",
+            "fieldType": "NumberInput",
+            "label": { "zh-CN": "前排需求加分", "en-US": "Front Row Need Bonus" },
+            "defaultValue": 1000,
+            "minValue": 0,
+            "maxValue": 10000
+        },
+        {
+            "name": "FrontRowCount",
+            "fieldType": "NumberInput",
+            "label": { "zh-CN": "前排行数", "en-US": "Front Row Count" },
+            "defaultValue": 1,
+            "minValue": 1,
+            "maxValue": 10
+        }
+    ],
+    "codeBlocks": [],
+    "messages": {
+        "FrontRow_NoSeats": {
+            "zh-CN": "未识别到前排座位，前排轮换策略已跳过",
+            "en-US": "No front-row seats identified, front-row rotation skipped"
+        },
+        "FrontRow_Overflow": {
+            "zh-CN": "需要前排的学生（{0}人）超过前排座位数（{1}个），部分学生将无法分配到前排",
+            "en-US": "Students needing front row ({0}) exceed front-row seats ({1}), some will miss out"
+        }
+    }
 }

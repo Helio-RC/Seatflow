@@ -198,7 +198,7 @@
 
       <!-- 详情状态 -->
       <ScrollViewer IsVisible="{Binding HasDetail}" VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16" MaxWidth="560">
+        <StackPanel Spacing="16">
           <!-- 策略名称 + 来源标签 -->
           <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
@@ -247,61 +247,15 @@
             </StackPanel>
           </Border>
 
-          <!-- FrontRowRotation 参数 -->
-          <Border IsVisible="{Binding HasFrontRowConfig}"
+          <!-- 策略参数（manifest parameters[] 驱动） -->
+          <Border IsVisible="{Binding HasParameters}"
                   Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
                   CornerRadius="8" Padding="20">
-            <StackPanel Spacing="14">
-              <TextBlock Text="{x:Static lang:Resources.Strategy_FrontRowRotation}" Classes="sectionTitle" />
-              <Separator />
-              <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_HistoryWeight}"
-                           FontSize="14" VerticalAlignment="Center" Width="200" />
-                <NumericUpDown Value="{Binding EditHistoryWeight, Mode=TwoWay}"
-                               Minimum="0" Maximum="100" Increment="1"
-                               MinWidth="120" HorizontalAlignment="Right" />
-              </DockPanel>
-              <Separator />
-              <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_FrontRowBonus}"
-                           FontSize="14" VerticalAlignment="Center" Width="200" />
-                <NumericUpDown Value="{Binding EditNeedsFrontRowBonus, Mode=TwoWay}"
-                               Minimum="0" Maximum="10000" Increment="100"
-                               MinWidth="120" HorizontalAlignment="Right" />
-              </DockPanel>
-              <Separator />
-              <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Venue_FrontRows}"
-                           FontSize="14" VerticalAlignment="Center" Width="200" />
-                <NumericUpDown Value="{Binding EditFrontRowCount, Mode=TwoWay}"
-                               Minimum="1" Maximum="10" Increment="1"
-                               MinWidth="120" HorizontalAlignment="Right" />
-              </DockPanel>
-            </StackPanel>
+            <ContentControl Content="{Binding ParameterEditor}" />
           </Border>
 
-          <!-- DeskMate 参数 -->
-          <Border IsVisible="{Binding HasDeskMateConfig}"
-                  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                  CornerRadius="8" Padding="20">
-            <StackPanel Spacing="14">
-              <TextBlock Text="{x:Static lang:Resources.Strategy_DeskMate}" Classes="sectionTitle" />
-              <Separator />
-              <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PreferHorizontal}"
-                           FontSize="14" VerticalAlignment="Center" Width="200" />
-                <ToggleSwitch IsChecked="{Binding EditPreferHorizontal, Mode=TwoWay}"
-                              HorizontalAlignment="Right" />
-              </DockPanel>
-              <Separator />
-              <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_AllowVertical}"
-                           FontSize="14" VerticalAlignment="Center" Width="200" />
-                <ToggleSwitch IsChecked="{Binding EditAllowVertical, Mode=TwoWay}"
-                              HorizontalAlignment="Right" />
-              </DockPanel>
-            </StackPanel>
-          </Border>
+          <!-- 配置块（manifest codeBlocks[] 驱动） -->
+          <ItemsControl ItemsSource="{Binding ConfigBlockEditors}" />
 
           <!-- 保存/重置按钮 -->
           <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">

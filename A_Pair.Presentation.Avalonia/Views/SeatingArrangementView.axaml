@@ -10,13 +10,12 @@
              x:Class="A_Pair.Presentation.Avalonia.Views.SeatingArrangementView"
              x:DataType="vm:SeatingArrangementViewModel">
 
-  <DockPanel Margin="16">
+  <DockPanel Classes="pageMargin">
     <!-- ═══ 工具栏 ═══ -->
-    <Border DockPanel.Dock="Top" Margin="0,0,0,12">
+    <Border DockPanel.Dock="Top" Classes="sectionSpacing">
       <DockPanel>
         <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Seating_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
-        <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <!-- 导出按钮 + Flyout -->
           <Button IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
@@ -83,7 +82,7 @@
     </Border>
 
     <!-- ═══ 状态栏 ═══ -->
-    <Border DockPanel.Dock="Bottom" Padding="0,8,0,0"
+    <Border DockPanel.Dock="Bottom" Classes="statusBarBottom"
             IsVisible="{Binding HasGenerated}">
       <Grid ColumnDefinitions="*,Auto">
         <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Classes="caption"
@@ -106,10 +105,10 @@
     </Border>
 
     <!-- 交换提示栏 -->
-    <Border DockPanel.Dock="Bottom" Padding="0,8,0,0"
+    <Border DockPanel.Dock="Bottom" Classes="statusBarBottom"
             IsVisible="{Binding IsSwapMode}">
       <Grid ColumnDefinitions="*,Auto">
-        <TextBlock Text="{Binding SwapHintText}" FontSize="12"
+        <TextBlock Text="{Binding SwapHintText}" Classes="caption"
                    Foreground="{DynamicResource SystemAccentColor}"
                    VerticalAlignment="Center" />
         <Button Grid.Column="1" Command="{Binding CancelSwapCommand}"
@@ -142,7 +141,7 @@
                    AutomationProperties.Name="{x:Static lang:Resources.Venue_List}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
-                <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6" />
+                <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,6" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -158,7 +157,7 @@
                    AutomationProperties.Name="{x:Static lang:Resources.Seating_MemberDatasetList}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="core:StudentDatasetInfo">
-                <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,6" />
+                <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,6" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
@@ -211,7 +210,7 @@
                            HorizontalAlignment="Center"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                 <TextBlock Text="{x:Static lang:Resources.Seating_NotGeneratedHint}"
-                           FontSize="12" HorizontalAlignment="Center"
+                           Classes="caption" HorizontalAlignment="Center"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                            TextWrapping="Wrap" />
               </StackPanel>
@@ -292,7 +291,7 @@
                 </ItemsControl>
               </Panel>
             </ScrollViewer>
-            <TextBlock Text="{x:Static lang:Resources.Seating_CanvasHint}" FontSize="11" Opacity="0.4"
+            <TextBlock Text="{x:Static lang:Resources.Seating_CanvasHint}" Classes="small" Opacity="0.4"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
                        Margin="0,0,12,8"
                        IsVisible="{Binding HasGenerated}"/>
@@ -335,12 +334,12 @@
                         <Border Grid.Column="0" CornerRadius="3" Padding="4,1"
                                 Background="{DynamicResource SystemAccentColor}"
                                 Margin="0,0,8,0" VerticalAlignment="Center">
-                          <TextBlock Text="{Binding Priority}" FontSize="10"
+                          <TextBlock Text="{Binding Priority}" Classes="micro"
                                      Foreground="White" />
                         </Border>
                         <StackPanel Grid.Column="1">
                           <TextBlock Text="{Binding DisplayName}" FontSize="13" />
-                          <TextBlock Text="{Binding Category}" FontSize="11"
+                          <TextBlock Text="{Binding Category}" Classes="small"
                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                         </StackPanel>
                       </Grid>
@@ -358,8 +357,9 @@
                         Padding="0" HorizontalContentAlignment="Stretch"
                         Cursor="Hand">
                   <DockPanel>
-                    <TextBlock DockPanel.Dock="Left" FontSize="14" FontWeight="SemiBold">
+                    <TextBlock DockPanel.Dock="Left" Classes="bodyStrong">
                       <Run Text="{x:Static lang:Resources.Seating_UnassignedMembers}" />
+                      <!-- Run 不是 StyledElement，Typography 样式类（TextBlock.* 选择器）无法匹配，只能用内联 FontSize -->
                       <Run Text="{Binding UnassignedStudentCount, StringFormat=' ({0})'}"
                            FontSize="12"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
@@ -382,7 +382,7 @@
                          Background="{DynamicResource SidebarBackgroundBrush}">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="core:Student">
-                      <TextBlock Text="{Binding Name}" FontSize="13" Margin="4,4" />
+                      <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4" />
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>
@@ -412,7 +412,7 @@
                             Padding="8,4" HorizontalContentAlignment="Center">
                       <StackPanel Orientation="Horizontal" Spacing="4">
                         <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14" />
-                        <TextBlock Text="{x:Static lang:Resources.Seating_Restore}" FontSize="13" />
+                        <TextBlock Text="{x:Static lang:Resources.Seating_Restore}" Classes="bodySmall" />
                       </StackPanel>
                     </Button>
                   </StackPanel>
@@ -436,15 +436,72 @@
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:HistoryEntry">
                       <StackPanel Margin="0,2">
-                        <TextBlock Text="{Binding Description}" FontSize="13"
+                        <TextBlock Text="{Binding Description}" Classes="bodySmall"
                                    FontWeight="{Binding IsCurrent, Converter={x:Static conv:BoolConverters.TrueToBold}}" />
                         <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
-                                   FontSize="10"
+                                   Classes="micro"
                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                       </StackPanel>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>
+              </StackPanel>
+
+              <Separator IsVisible="{Binding HasMessages}" />
+
+              <!-- ── 策略消息 (可折叠) ── -->
+              <StackPanel IsVisible="{Binding HasMessages}">
+                <Button Command="{Binding ToggleMessagesCommand}"
+                        Background="Transparent" BorderThickness="0"
+                        Padding="0" HorizontalContentAlignment="Stretch"
+                        Cursor="Hand">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Left"
+                               Text="{x:Static lang:Resources.Seating_StrategyMessages}"
+                               Classes="sectionTitle" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronUp}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsMessagesExpanded}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                    <fic:FluentIcon DockPanel.Dock="Right"
+                        Icon="{x:Static ficEnum:Icon.ChevronDown}" FontSize="14"
+                        VerticalAlignment="Center"
+                        IsVisible="{Binding IsMessagesExpanded, Converter={x:Static conv:BoolConverters.Negate}}"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                  </DockPanel>
+                </Button>
+                <ScrollViewer IsVisible="{Binding IsMessagesExpanded}" MaxHeight="300">
+                  <ItemsControl ItemsSource="{Binding MessageGroups}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:StrategyMessageGroup">
+                        <StackPanel Margin="0,4">
+                          <!-- 分组标题：错误 (n) / 警告 (n) -->
+                          <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold"
+                                     Margin="4,2,0,4"
+                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                          <ItemsControl ItemsSource="{Binding Messages}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="vm:StrategyMessageItem">
+                                <Border Margin="4,1" Padding="6,4" CornerRadius="4"
+                                        Background="{DynamicResource SystemControlBackgroundSubtleBrush}">
+                                  <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding StrategyName}" FontSize="10"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource SystemAccentColor}" />
+                                    <TextBlock Text="{Binding Message}" Classes="small"
+                                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                               TextWrapping="Wrap" />
+                                  </StackPanel>
+                                </Border>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
               </StackPanel>
             </StackPanel>
           </ScrollViewer>

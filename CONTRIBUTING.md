@@ -86,6 +86,94 @@ StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
 
 **语言切换**: 在 `AppSettings.Language` 中设置语言代码（如 `en-US`），重启后生效。
 
+## 添加策略配置
+
+内置策略通过 manifest JSON 声明配置 UI（`A_Pair.Core/Strategies/Manifests/{Id}.json`）。
+
+### 声明策略参数（parameters）
+
+```json
+{
+  "parameters": [
+    {
+      "name": "MyParam",
+      "fieldType": "NumberInput",
+      "label": { "zh-CN": "我的参数", "en-US": "My Parameter" },
+      "defaultValue": 10,
+      "minValue": 0,
+      "maxValue": 100
+    }
+  ]
+}
+```
+
+支持的 fieldType：`NumberInput`、`TextInput`、`ToggleSwitch`、`Dropdown`。
+
+### 策略可见性（visible）
+
+manifest 顶层 `visible` 字段（可选，默认 `true`）控制策略在配置页面的可见性：
+
+```json
+{ "visible": false }
+```
+
+设为 `false` 时，该策略在配置页侧栏不显示，不可用。设为 `true` 或不填时正常显示。
+
+### 声明配置块（codeBlocks）
+
+```json
+{
+  "codeBlocks": [
+    {
+      "title": { "zh-CN": "配置块标题", "en-US": "Block Title" },
+      "description": { "zh-CN": "说明文字", "en-US": "Description" },
+      "dataType": "Student",
+      "displayMode": "ValuePair",
+      "fields": [
+        { "name": "mate", "fieldType": "StudentPicker",
+          "label": { "zh-CN": "的同桌是", "en-US": "'s desk mate" } }
+      ]
+    }
+  ]
+}
+```
+
+dataType：`Student`（仅人员）、`Venue`（仅会场）、`Both`（人员+会场）。
+displayMode：`Table`（表格）、`ValuePair`（值对行）。
+`showSeatPosition`（可选，默认 true）：`false` 时隐藏座位定位器——用于自动匹配策略。
+`preventDuplicateInRow`（可选，默认 false）：`true` 时禁止同行内学生选择器值重复，下拉列表互相排除已选学生。
+`preventDuplicateAcrossRows`（可选，默认 false）：`true` 时禁止跨行学生选择器值重复，下拉列表互相排除已选学生——用于 FixedSeat。
+`loadTrigger`（可选，默认 `Both`）：控制 `dataType:Both` 时配置加载时机——`Both`=两个选择器都需有值后精确匹配加载，`Any`=任一选择器有值即模糊匹配加载。
+fieldType 在 codeBlock 中额外支持 `StudentPicker`、`SeatPosition`。
+
+**⚠️ DeskMate 策略已隐藏（visible=false）**，以下内容为历史参考——该策略存在根本性缺陷，不建议使用。
+
+**DeskMate 特殊处理**：当 `dataType: "Both"` 且选中会场后，UI 读取 `GridLayoutMetadata.SeatsPerDesk` 动态决定每行的 StudentPicker 数量。`SeatsPerDesk` 变化时自动清除不兼容的旧配置行。
+同行内多个学生选择器通过 `preventDuplicateInRow` 互相排除已选学生，确保一桌多人不能是同一个人。
+
+**FixedSeat 特殊处理**：通过 `preventDuplicateAcrossRows` 确保跨所有行的学生选择器值互斥，一个学生只能固定在一个座位。
+
+**配置加载与匹配**：持久化配置的过滤采用"已选定则匹配，未选定则跳过"策略——仅已选定的选择器参与 ID 匹配。对于 `dataType: "Both"`，用户仅选数据集即可加载配置（场馆作为通配符），选场馆后重新精确匹配。学生选择通过 `_pendingSelections` 延迟到列表加载完成后应用。
+
+### 策略执行消息 i18n
+
+策略执行期间可通过 `workspace.LogWarning(id, displayName, messageKey, args)` 记录警告/错误。消息模板在 manifest 的 `messages` 字段中声明：
+
+```json
+"messages": {
+  "DeskMate_Split": {
+    "zh-CN": "同桌组（{0}）中的 {1} 已被前排策略分配，该组已拆散",
+    "en-US": "Desk-mate group ({0}) member(s) {1} already assigned to front row, group split"
+  }
+}
+```
+
+内建策略和插件策略共用同一格式——内建策略的 messages 在 `Manifests/{Id}.json` 中，插件策略的在 `plugin.manifest.json` 中。
+
+### i18n 约定
+
+所有用户可见文字使用 `{ "zh-CN": "...", "en-US": "..." }` 词典格式，UI 层通过 `LocalizeHelper.Resolve(dict)` 解析。
+
 ## 添加新页面
 
 1. 在 `INavigationService.cs` 的 `PageKey` 枚举中添加新值

@@ -105,6 +105,20 @@ namespace A_Pair.Application.Interfaces
         /// <summary>保存单个策略的运行时配置（优先级、启用状态、参数），并更新运行时策略实例。</summary>
         Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default);
 
+        // ── 策略数据集配置 ──
+
+        /// <summary>加载指定策略的所有数据集配置。</summary>
+        Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default);
+
+        /// <summary>保存一份数据集配置，自动计算学生/会场哈希。</summary>
+        Task SaveStrategyDatasetConfigAsync (StrategyDatasetConfig config , CancellationToken ct = default);
+
+        /// <summary>删除一份数据集配置。</summary>
+        Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default);
+
+        /// <summary>检测数据集和会场的哈希是否与配置中记录的一致。返回 (studentOk, venueOk)。</summary>
+        Task<(bool studentOk , bool venueOk)> CheckDatasetIntegrityAsync (StrategyDatasetConfig config , CancellationToken ct = default);
+
         // ── 插件管理 ──
 
         /// <summary>获取所有已发现插件的展示信息列表。</summary>
@@ -165,6 +179,9 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>学生数据源路径。</summary>
         public string? StudentDataSource { get; set; }
+
+        /// <summary>人员数据集 ID（用于加载对应策略代码块配置）。</summary>
+        public string? DatasetId { get; set; }
 
         /// <summary>座位安排描述（用于快照记录）。</summary>
         public string? Description { get; set; }

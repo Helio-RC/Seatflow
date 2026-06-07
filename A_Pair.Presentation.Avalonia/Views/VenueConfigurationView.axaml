@@ -15,7 +15,6 @@
       <DockPanel>
         <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Venue_Title}" Classes="pageTitle" 
                    VerticalAlignment="Center" />
-        <!-- 想实现文字和按钮之间有间隔，但是没招了，给文字后面加了两个空格'😥' -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <Button Command="{Binding DeleteVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"

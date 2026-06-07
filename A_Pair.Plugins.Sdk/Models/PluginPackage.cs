@@ -187,6 +187,18 @@ public class PluginManifestStub
     /// <summary>是否启用。</summary>
     public bool Enabled { get; set; } = true;
 
+    /// <summary>是否可见（默认 true）。false 时从 UI 和执行管道中完全排除。</summary>
+    public bool Visible { get; set; } = true;
+
+    /// <summary>策略级全局参数声明（可选）。使用 JsonElement 保留原始 JSON，避免 SDK 依赖 Core 类型。</summary>
+    public System.Text.Json.JsonElement? Parameters { get; set; }
+
+    /// <summary>按数据集/会场的配置块声明（可选）。</summary>
+    public System.Text.Json.JsonElement? CodeBlocks { get; set; }
+
+    /// <summary>策略执行消息的多语言模板（可选）。</summary>
+    public Dictionary<string, Dictionary<string, string>>? Messages { get; set; }
+
     /// <summary>脚本文件名（脚本插件）。</summary>
     public string? ScriptFile { get; set; }
 

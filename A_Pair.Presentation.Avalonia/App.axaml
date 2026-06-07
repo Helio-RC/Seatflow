@@ -39,6 +39,11 @@
           <!-- Shadow -->
           <Color x:Key="ShadowLargeColor">#40000000</Color>
           <Color x:Key="ShadowSmallColor">#20000000</Color>
+
+          <!-- BoxShadows (Light) -->
+          <BoxShadows x:Key="CardShadowNone">0 0 0 0 Transparent</BoxShadows>
+          <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #30000000, 0 2 8 0 #18000000</BoxShadows>
+          <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #18000000</BoxShadows>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <!-- Sidebar & Preview -->
@@ -70,6 +75,11 @@
           <!-- Shadow (lighter in dark mode) -->
           <Color x:Key="ShadowLargeColor">#60000000</Color>
           <Color x:Key="ShadowSmallColor">#30000000</Color>
+
+          <!-- BoxShadows (Dark) — elevated opacity for dark surfaces -->
+          <BoxShadows x:Key="CardShadowNone">0 0 0 0 Transparent</BoxShadows>
+          <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #60000000, 0 2 8 0 #40000000</BoxShadows>
+          <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #40000000</BoxShadows>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 
@@ -99,10 +109,6 @@
       <!-- Preview Background -->
       <SolidColorBrush x:Key="PreviewBackgroundBrush" Color="{DynamicResource PreviewBackgroundColor}" />
 
-      <!-- BoxShadows -->
-      <BoxShadows x:Key="CardShadowNone">0 0 0 0 Transparent</BoxShadows>
-      <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #30000000, 0 2 8 0 #18000000</BoxShadows>
-      <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #18000000</BoxShadows>
     </ResourceDictionary>
   </Application.Resources>
 

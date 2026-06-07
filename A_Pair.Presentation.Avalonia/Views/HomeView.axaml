@@ -22,7 +22,7 @@
                  HorizontalAlignment="Center"
                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
       <Separator Width="200" Margin="0,8" />
-      <TextBlock Text="{x:Static lang:Resources.Home_Hint}" FontSize="14"
+      <TextBlock Text="{x:Static lang:Resources.Home_Hint}" Classes="body"
                  HorizontalAlignment="Center"
                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
     </StackPanel>

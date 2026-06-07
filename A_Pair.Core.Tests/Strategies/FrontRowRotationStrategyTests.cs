@@ -251,9 +251,11 @@ public class FrontRowRotationStrategyTests
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
         // s1 and s2 should get rows 1 and 2 (both front), s3 gets row 3
+        // 注意：分配是随机的，不断言具体哪个学生坐哪个前排座位
         ws.BuildSeatingPlan().Assignments.Should().HaveCount(2);
-        seats.First(s => s.Id == "r1").OccupantId.Should().Be("s1");
-        seats.First(s => s.Id == "r2").OccupantId.Should().Be("s2");
+        var frontOccupants = new[] { seats[0].OccupantId, seats[1].OccupantId };
+        frontOccupants.Should().Contain("s1");
+        frontOccupants.Should().Contain("s2");
         seats.First(s => s.Id == "r3").OccupantId.Should().BeNull();
     }
 

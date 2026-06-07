@@ -150,7 +150,7 @@ public class DeskMateStrategyTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_GroupWithOnlyOneUnassigned_ShouldBeFilteredOut ()
+    public async Task ExecuteAsync_GroupWithOnlyOneUnassigned_ShouldBePlacedNearAssignedMate ()
     {
         var s1 = new Student { Id = "s1" };
         var s2 = new Student { Id = "s2" };
@@ -159,7 +159,7 @@ public class DeskMateStrategyTests
         var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
         var ws = new SeatingWorkspace(new[] { s1 , s2 , s3 } , seats.Cast<Seat>().ToList());
 
-        // Pre-assign s1 — the group {s1, s2} only has s2 unassigned → filtered out
+        // Pre-assign s1 to (2,1) — the group {s1, s2} only has s2 unassigned
         ws.TryAssignSeat(seats[2].Id , s1.Id , out _);
 
         var config = new DeskMateConfiguration
@@ -172,9 +172,11 @@ public class DeskMateStrategyTests
         var strategy = new DeskMateStrategy(config);
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
-        // s2 should not be assigned by DeskMate (group filtered out)
+        // s2 should be placed adjacent to s1 (near-occupied)
         var plan = ws.BuildSeatingPlan();
-        plan.Assignments.Should().HaveCount(1); // only s1 assigned
+        plan.Assignments.Should().HaveCount(2);
+        // s1 stays at (2,1), s2 assigned to adjacent (1,1)
+        plan.Assignments[seats[0].Id].Should().Be("s2");
     }
 
     [Fact]

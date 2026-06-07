@@ -43,6 +43,7 @@ public class Resources
     public static string Common_Clear => ResourceManager.GetString("Common_Clear", Culture)!;
     public static string Common_Close => ResourceManager.GetString("Common_Close", Culture)!;
     public static string Common_Delete => ResourceManager.GetString("Common_Delete", Culture)!;
+    public static string Common_Discard => ResourceManager.GetString("Common_Discard", Culture)!;
     public static string Common_Disabled => ResourceManager.GetString("Common_Disabled", Culture)!;
     public static string Common_DontRemind => ResourceManager.GetString("Common_DontRemind", Culture)!;
     public static string Common_Enabled => ResourceManager.GetString("Common_Enabled", Culture)!;
@@ -63,6 +64,8 @@ public class Resources
     public static string Common_SaveAs => ResourceManager.GetString("Common_SaveAs", Culture)!;
     public static string Common_TimeoutFormat => ResourceManager.GetString("Common_TimeoutFormat", Culture)!;
     public static string Common_Unload => ResourceManager.GetString("Common_Unload", Culture)!;
+    public static string ConfigBlock_Dataset => ResourceManager.GetString("ConfigBlock_Dataset", Culture)!;
+    public static string ConfigBlock_Venue => ResourceManager.GetString("ConfigBlock_Venue", Culture)!;
     public static string Data_CSVFile => ResourceManager.GetString("Data_CSVFile", Culture)!;
     public static string Data_DeleteConfirm => ResourceManager.GetString("Data_DeleteConfirm", Culture)!;
     public static string Data_ExcelFile => ResourceManager.GetString("Data_ExcelFile", Culture)!;
@@ -156,6 +159,8 @@ public class Resources
     public static string Lang_System => ResourceManager.GetString("Lang_System", Culture)!;
     public static string Lang_enUS => ResourceManager.GetString("Lang_enUS", Culture)!;
     public static string Lang_zhCN => ResourceManager.GetString("Lang_zhCN", Culture)!;
+    public static string Member_AddRow => ResourceManager.GetString("Member_AddRow", Culture)!;
+    public static string Member_AddedRowFmt => ResourceManager.GetString("Member_AddedRowFmt", Culture)!;
     public static string Member_ClearConfirm => ResourceManager.GetString("Member_ClearConfirm", Culture)!;
     public static string Member_ClearConfirmMsg => ResourceManager.GetString("Member_ClearConfirmMsg", Culture)!;
     public static string Member_DataSourceFmt => ResourceManager.GetString("Member_DataSourceFmt", Culture)!;
@@ -163,6 +168,9 @@ public class Resources
     public static string Member_DeleteConfirmMsg => ResourceManager.GetString("Member_DeleteConfirmMsg", Culture)!;
     public static string Member_DeleteFailed => ResourceManager.GetString("Member_DeleteFailed", Culture)!;
     public static string Member_Deleted => ResourceManager.GetString("Member_Deleted", Culture)!;
+    public static string Member_DeletedRowFmt => ResourceManager.GetString("Member_DeletedRowFmt", Culture)!;
+    public static string Member_DeleteRowTooltip => ResourceManager.GetString("Member_DeleteRowTooltip", Culture)!;
+    public static string Member_DiscardAndSave => ResourceManager.GetString("Member_DiscardAndSave", Culture)!;
     public static string Member_EmptyDataset => ResourceManager.GetString("Member_EmptyDataset", Culture)!;
     public static string Member_EmptyHint => ResourceManager.GetString("Member_EmptyHint", Culture)!;
     public static string Member_ExportCSV => ResourceManager.GetString("Member_ExportCSV", Culture)!;
@@ -198,6 +206,9 @@ public class Resources
     public static string Member_NameEmptyFmt => ResourceManager.GetString("Member_NameEmptyFmt", Culture)!;
     public static string Member_NamePlaceholder => ResourceManager.GetString("Member_NamePlaceholder", Culture)!;
     public static string Member_NameTooltip => ResourceManager.GetString("Member_NameTooltip", Culture)!;
+    public static string Member_NewRowHint => ResourceManager.GetString("Member_NewRowHint", Culture)!;
+    public static string Member_NewRowPendingMsg => ResourceManager.GetString("Member_NewRowPendingMsg", Culture)!;
+    public static string Member_NewRowPendingTitle => ResourceManager.GetString("Member_NewRowPendingTitle", Culture)!;
     public static string Member_NoDataToExport => ResourceManager.GetString("Member_NoDataToExport", Culture)!;
     public static string Member_NoImport => ResourceManager.GetString("Member_NoImport", Culture)!;
     public static string Member_NoValidMembers => ResourceManager.GetString("Member_NoValidMembers", Culture)!;
@@ -222,6 +233,8 @@ public class Resources
     public static string Member_TemplateSaveError => ResourceManager.GetString("Member_TemplateSaveError", Culture)!;
     public static string Member_Title => ResourceManager.GetString("Member_Title", Culture)!;
     public static string Member_Unnamed => ResourceManager.GetString("Member_Unnamed", Culture)!;
+    public static string Member_UnsavedChanges => ResourceManager.GetString("Member_UnsavedChanges", Culture)!;
+    public static string Member_UnsavedChangesMsg => ResourceManager.GetString("Member_UnsavedChangesMsg", Culture)!;
     public static string Nav_About => ResourceManager.GetString("Nav_About", Culture)!;
     public static string Nav_AppShort => ResourceManager.GetString("Nav_AppShort", Culture)!;
     public static string Nav_CollapseSidebar => ResourceManager.GetString("Nav_CollapseSidebar", Culture)!;
@@ -230,6 +243,7 @@ public class Resources
     public static string Nav_Home => ResourceManager.GetString("Nav_Home", Culture)!;
     public static string Nav_MemberManagement => ResourceManager.GetString("Nav_MemberManagement", Culture)!;
     public static string Nav_PluginManagement => ResourceManager.GetString("Nav_PluginManagement", Culture)!;
+    public static string Nav_PluginDisabled => ResourceManager.GetString("Nav_PluginDisabled", Culture)!;
     public static string Nav_Seating => ResourceManager.GetString("Nav_Seating", Culture)!;
     public static string Nav_Settings => ResourceManager.GetString("Nav_Settings", Culture)!;
     public static string Nav_SnapshotHistory => ResourceManager.GetString("Nav_SnapshotHistory", Culture)!;
@@ -309,6 +323,10 @@ public class Resources
     public static string Seating_SnapshotSaved => ResourceManager.GetString("Seating_SnapshotSaved", Culture)!;
     public static string Seating_MemberData => ResourceManager.GetString("Seating_MemberData", Culture)!;
     public static string Seating_MemberDatasetList => ResourceManager.GetString("Seating_MemberDatasetList", Culture)!;
+    public static string Seating_MessagesGroupError => ResourceManager.GetString("Seating_MessagesGroupError", Culture)!;
+    public static string Seating_MessagesGroupWarning => ResourceManager.GetString("Seating_MessagesGroupWarning", Culture)!;
+    public static string Seating_MessagesNone => ResourceManager.GetString("Seating_MessagesNone", Culture)!;
+    public static string Seating_StrategyMessages => ResourceManager.GetString("Seating_StrategyMessages", Culture)!;
     public static string Seating_SwapDescFmt => ResourceManager.GetString("Seating_SwapDescFmt", Culture)!;
     public static string Seating_SwapFailed => ResourceManager.GetString("Seating_SwapFailed", Culture)!;
     public static string Seating_SwappedFmt => ResourceManager.GetString("Seating_SwappedFmt", Culture)!;

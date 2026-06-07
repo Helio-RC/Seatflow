@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   
   <xs:schema id="root">
@@ -107,6 +107,9 @@
   <data name="Common_Delete" xml:space="preserve">
     <value>Delete</value>
   </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
   <data name="Common_Disabled" xml:space="preserve">
     <value>Disabled</value>
   </data>
@@ -167,8 +170,20 @@
   <data name="Common_Unload" xml:space="preserve">
     <value>Unload</value>
   </data>
+  <data name="ConfigBlock_Dataset" xml:space="preserve">
+    <value>Dataset</value>
+  </data>
+  <data name="ConfigBlock_Venue" xml:space="preserve">
+    <value>Venue</value>
+  </data>
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV file</value>
+  </data>
+  <data name="Member_AddRow" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Member_AddedRowFmt" xml:space="preserve">
+    <value>Added student #{0}</value>
   </data>
   <data name="Member_ClearConfirm" xml:space="preserve">
     <value>Confirm clear</value>
@@ -194,6 +209,15 @@ This cannot be undone.</value>
   </data>
   <data name="Member_Deleted" xml:space="preserve">
     <value>Dataset deleted</value>
+  </data>
+  <data name="Member_DeletedRowFmt" xml:space="preserve">
+    <value>Deleted "{0}", {1} students remaining</value>
+  </data>
+  <data name="Member_DeleteRowTooltip" xml:space="preserve">
+    <value>Delete this row</value>
+  </data>
+  <data name="Member_DiscardAndSave" xml:space="preserve">
+    <value>Discard &amp; Save</value>
   </data>
   <data name="Member_EmptyDataset" xml:space="preserve">
     <value>Dataset is empty</value>
@@ -314,6 +338,15 @@ This cannot be undone.</value>
   <data name="Member_NameTooltip" xml:space="preserve">
     <value>Required. Member name, cannot be empty.</value>
   </data>
+  <data name="Member_NewRowHint" xml:space="preserve">
+    <value>Enter new student info…</value>
+  </data>
+  <data name="Member_NewRowPendingMsg" xml:space="preserve">
+    <value>The new row has incomplete data. Saving will discard these inputs.</value>
+  </data>
+  <data name="Member_NewRowPendingTitle" xml:space="preserve">
+    <value>Incomplete New Row</value>
+  </data>
   <data name="Member_NoDataToExport" xml:space="preserve">
     <value>No data to export.</value>
   </data>
@@ -404,6 +437,12 @@ This cannot be undone.</value>
   </data>
   <data name="Member_Unnamed" xml:space="preserve">
     <value>Unnamed</value>
+  </data>
+  <data name="Member_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved Changes</value>
+  </data>
+  <data name="Member_UnsavedChangesMsg" xml:space="preserve">
+    <value>You have unsaved changes. Save before switching?</value>
   </data>
   <data name="Data_ValidationFailed" xml:space="preserve">
     <value>Validation failed</value>
@@ -672,6 +711,9 @@ This cannot be undone.</value>
   <data name="Nav_PluginManagement" xml:space="preserve">
     <value>Plugins</value>
   </data>
+  <data name="Nav_PluginDisabled" xml:space="preserve">
+    <value>Plugin system not ready</value>
+  </data>
   <data name="Nav_Seating" xml:space="preserve">
     <value>Seating</value>
   </data>
@@ -903,6 +945,18 @@ Place plugins in the Plugins directory</value>
   </data>
   <data name="Seating_MemberDatasetList" xml:space="preserve">
     <value>Member dataset list</value>
+  </data>
+  <data name="Seating_MessagesGroupError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Seating_MessagesGroupWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Seating_MessagesNone" xml:space="preserve">
+    <value>No messages</value>
+  </data>
+  <data name="Seating_StrategyMessages" xml:space="preserve">
+    <value>Strategy Messages</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
     <value>Swap: {0} ↔ {1}</value>

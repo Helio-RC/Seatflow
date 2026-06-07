@@ -49,10 +49,30 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 |-------|----------|----------|------|
 | 1st | `FixedSeatStrategy` | 10 | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
 | 2nd | `FrontRowRotationStrategy` | 20 | Fills front-row seats from remaining empty non-fixed seats |
-| 3rd | `DeskMateStrategy` | 30 | Finds contiguous blocks in remaining seats for desk-mate groups |
+| 3rd | `DeskMateStrategy` | 30 | ⚠️ HIDDEN (visible=false): desk-mate grouping — fundamentally unreliable due to seat fragmentation from prior strategies |
 | 4th | `RandomFillStrategy` | 100 | Final fallback — fills all remaining empty seats with unassigned students |
 
 Conflict resolution = Priority number (first-come-first-served). This is a known compromise — the override model was abandoned because GetEmptySeats + TryAssignSeat only support fill semantics. See `docs/adr/ADR-006.md`.
+
+**Strategy messaging**: Strategies can report warnings/errors during execution via `workspace.LogWarning(strategyId, displayName, messageKey, args)` and `workspace.LogError(strategyId, displayName, messageKey, args)`. `messageKey` corresponds to a key in the manifest's `messages` dictionary (inline i18n: `{ "zh-CN": "...", "en-US": "..." }`). Messages are collected in `SeatingWorkspace.Messages` (with `StrategyId`, `StrategyDisplayName`, `MessageKey`, and `Args`) and surfaced to the UI sidebar after pipeline execution. Plugin strategies access the same methods through `IPluginWorkspace`.
+
+**Declarative strategy configuration**: All strategy-specific configuration (beyond Priority/IsEnabled) is driven by the manifest JSON files (`A_Pair.Core/Strategies/Manifests/*.json`). Three top-level fields:
+
+- **`visible`** — (optional, default `true`) Controls whether the strategy participates in the pipeline. Set to `false` to exclude it from both the UI (configuration page, seating sidebar) and execution — the pipeline skips invisible strategies. DeskMate is `false` by default (同桌策略默认隐藏).
+- **`parameters[]`** — strategy-level global params. Each parameter declares a `fieldType` (`NumberInput`, `TextInput`, `ToggleSwitch`, `Dropdown`), a `label` (Dictionary<string,string> for i18n), `defaultValue`, and optional `minValue`/`maxValue`. UI renders these as standard input controls.
+- **`codeBlocks[]`** — per-dataset/per-venue config blocks. Each block declares `dataType` (`Student`, `Venue`, `Both`), `displayMode` (`Table`, `ValuePair`), optional `showSeatPosition` (default true, set false for auto-matching strategies like DeskMate), optional `showStudentPicker`/`showVenuePicker` (overrides DataType auto-detection), optional `studentPickerCount` (default 1), optional `seatsPerDeskFromVenue` (set true to read student count from venue's GridLayoutMetadata.SeatsPerDesk), optional `preventDuplicateInRow` (set true to prevent same-row student picker duplicate values — DeskMate), optional `preventDuplicateAcrossRows` (set true to prevent cross-row student picker duplicate values — FixedSeat), and optional `loadTrigger` (default `Both` — both selectors required for exact match; `Any` — fuzzy match on whichever selector has a value). UI renders a dataset selector + config rows with student pickers and/or seat position pickers.
+  - **DeskMate** ⚠️ HIDDEN (visible=false): The core algorithm — finding contiguous seat blocks for desk-mate groups after FixedSeat and FrontRowRotation have already consumed seats — is fundamentally unreliable. Contiguous blocks are heavily fragmented by prior strategies; groups are frequently split with only single students remaining, who can only be placed near already-assigned mates at best. `dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`. The number of student pickers per row is dynamically determined by the venue's `GridLayoutMetadata.SeatsPerDesk`. Changing venue with incompatible `SeatsPerDesk` clears existing rows. If enabled, during execution, collects all candidate contiguous seat segments and randomly picks one (avoids all groups clustering top-left).
+  - **FixedSeat**: `dataType: "Both"`, `preventDuplicateAcrossRows: true`. Each row has a student picker + seat position picker for explicit assignment. Student pickers across all rows exclude each other's selected students from their dropdowns.
+  - **FrontRowRotation**: No codeBlocks — `NeedsFrontRow` is already a Student model property (imported from CSV/XLSX). After selecting students by score, applies Fisher-Yates shuffle for random distribution across front-row columns.
+  - **RandomFill**: No parameters, no codeBlocks.
+
+All user-visible text uses inline i18n: `{ "zh-CN": "...", "en-US": "..." }` dictionaries (not .resx keys). `LocalizeHelper.Resolve(dict)` in Presentation resolves per `CultureInfo.CurrentUICulture`, falling back to zh-CN. This works for both built-in strategies and plugins.
+
+**Config loading behavior**: When loading persisted config rows, the matching filter uses a "match on whichever selectors have values" strategy: `(SelectedDataset is null || match) && (SelectedVenue is null || match)`. This means for `dataType: "Both"`, selecting only the dataset immediately loads the config (venue is treated as a wildcard until selected). When the user subsequently selects a venue, the filter re-runs with both values and narrows to the exact match. Student picker selections are deferred via `_pendingSelections` until the student list is loaded, avoiding lost selections from premature `SelectById` calls.
+
+New model types (all in `A_Pair.Core.Models`):
+- `StrategyParameterDefinition` / `StrategyCodeBlock` / `StrategyFieldDefinition` + enums (`StrategyFieldType`, `StrategyDataType`, `StrategyDisplayMode`)
+- `StrategyDatasetConfig` + `StrategyConfigRow` — persistence models stored under `{AppData}/StrategyConfig/{strategyId}/`.
 
 **Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
 

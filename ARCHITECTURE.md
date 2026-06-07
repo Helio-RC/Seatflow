@@ -166,11 +166,14 @@ public interface ISeatingStrategy
 public class SeatingWorkspace
 {
     public IReadOnlyList<Student> Students { get; }
-    public SeatingContext Context { get; }
     
     public bool TryAssignSeat(string seatId, string studentId, out string error);
     public IEnumerable<Seat> GetEmptySeats();
     public IEnumerable<Seat> FindSeats(Func<Seat, bool> predicate);
+    public SeatingPlan BuildSeatingPlan();
+    public IReadOnlyList<StrategyMessage> Messages { get; }
+    public void LogWarning(string strategyId, string displayName, string messageKey, params object?[] args);
+    public void LogError(string strategyId, string displayName, string messageKey, params object?[] args);
 }
 ```
 
@@ -184,7 +187,7 @@ public class SeatingWorkspace
 Priority 升序 →
   FixedSeat(10)         ← 最先执行：锁定固定座位（IsFixed=true 自动保护）
   FrontRowRotation(20)  ← 第二执行：在非固定空座中填前排
-  DeskMate(30)          ← 第三执行：在剩余空座中拼连续块
+  DeskMate(30)          ← 第三执行：⚠️ 已隐藏（visible=false），当前实现存在根本性缺陷
   RandomFill(100)       ← 最后执行：填满所有剩余空座
 ```
 
@@ -199,6 +202,11 @@ public class StrategyExecutionPipeline
         foreach (var strategy in _strategies.OrderBy(s => s.Priority).Where(s => s.IsEnabled))
         {
             var result = await strategy.ExecuteAsync(workspace, cancellationToken);
+            if (!result.Success)
+            {
+                failedStrategies.Add($"{strategy.Name}({strategy.Id}): {result.Message}");
+                workspace.LogError(strategy.Id, strategy.Name, "Pipeline_ExecFailed", result.Message);
+            }
         }
         return workspace.BuildSeatingPlan();
     }
@@ -210,15 +218,61 @@ public class StrategyExecutionPipeline
 | 策略 | Priority | 执行顺序 | 职责 |
 |------|----------|----------|------|
 | FixedSeatStrategy | 10 | 第1 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
-| FrontRowRotationStrategy | 20 | 第2 | 在非固定空座中识别前排，按需求分数分配 |
-| DeskMateStrategy | 30 | 第3 | 在剩余空座中寻找连续块，组合同桌组 |
+| FrontRowRotationStrategy | 20 | 第2 | 在非固定空座中识别前排，按需求分数选出学生后 Fisher-Yates 洗牌，随机分布在各列 |
+| DeskMateStrategy | 30 | — | ⚠️ 已隐藏（visible=false）。受前排分配和固定座位影响极大——组员常被拆散，连续座位块在前序策略执行后碎片化严重，实际成功率远低于预期。保留代码以供未来重构，当前不建议使用。 |
 | RandomFillStrategy | 100 | 最后 | 兜底策略，将剩余未分配学生随机填入剩余空座 |
 
-4.5 插件化策略
+4.5 声明式策略配置
+
+策略的配置界面由 manifest JSON 声明驱动，而非 ViewModel 中硬编码。
+
+**三层声明：**
+
+```
+visible               ← 策略可见性（默认 true，false 时策略在 UI 和执行管道中完全排除）
+parameters[]          ← 策略级全局参数（NumberInput/TextInput/ToggleSwitch/Dropdown）
+codeBlocks[]          ← 按数据集/会场的配置块（Table/ValuePair 模式）
+  ├── dataType        ← Student | Venue | Both
+  ├── displayMode     ← Table | ValuePair
+  ├── showSeatPosition ← 是否显示座位定位器（默认 true，自动匹配策略设为 false）
+  ├── preventDuplicateInRow      ← 是否禁止同行学生选择器值重复（同桌策略设为 true）
+  ├── preventDuplicateAcrossRows ← 是否禁止跨行学生选择器值重复（FixedSeat 设为 true）
+  ├── loadTrigger    ← 配置加载触发方式：Both=需两个选择器都选（默认），Any=任一选择即加载
+  └── fields[]        ← 自定义字段定义（DeskMate 无固定字段——由 SeatsPerDesk 动态生成，同见 ⚠️ 已隐藏）
+messages[]             ← 策略执行消息 i18n 模板（{ "zh-CN": "{0}...", "en-US": "{0}..." }）
+```
+
+**i18n 方案：** 所有用户可见文字在 manifest 中以内嵌词典存储：
+`{ "zh-CN": "历史惩罚权重", "en-US": "History Penalty Weight" }`。
+UI 层通过 `LocalizeHelper.Resolve(dict)` 按 `CurrentUICulture` 解析。
+
+**DeskMate（⚠️ 已隐藏）特有：** `dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`。
+每行 StudentPicker 数量由会场 `GridLayoutMetadata.SeatsPerDesk` 动态决定，
+会场变更导致 `SeatsPerDesk` 不匹配时自动清除旧配置行。
+同行内多个学生选择器互相排除已选学生（同对防重复）。
+
+**FixedSeat 特有：** `preventDuplicateAcrossRows: true`。
+跨所有行的学生选择器互相排除已选学生（全局防重复），确保一个学生只能固定在一个座位。
+
+**FrontRowRotation：** 无 codeBlock——`NeedsFrontRow` 是 Student 模型字段，由 CSV/XLSX 导入。
+
+**配置加载行为：** 持久化配置行的匹配采用"已选定则匹配，未选定则跳过"策略：
+`(SelectedDataset is null || c.DatasetId == SelectedDataset.Id) && (SelectedVenue is null || c.VenueId == SelectedVenue.Id)`。
+对于 `dataType: "Both"`，仅选数据集时场馆作为通配符，立即加载配置；后续选择场馆后重新精确匹配。
+学生选择器通过 `_pendingSelections` 字典延迟到学生列表加载完成后再应用，避免 `SelectById` 在学生列表为空时被调用导致选中信息丢失。
+
+**策略执行消息：** Manifest 中的 `messages` 字段为策略执行时可能产生的警告/错误提供 i18n 模板。
+模板中用 `{0} {1}` 占位，策略通过 `workspace.LogWarning(id, displayName, key, args)` 写入，
+消息（含 `StrategyDisplayName`、`MessageKey`、`Args`）收集在 `SeatingWorkspace.Messages` 中供 UI 展示。
+日志同时记录原始 ID，UI 层将学生 ID 解析为姓名后显示。
+
+插件 manifest 同样支持 `parameters`、`codeBlocks` 和 `messages`——声明后即可自动获得配置 UI 和消息支持。
+
+4.6 插件化策略
 
 · Assembly 插件：编译为 DLL，实现 IPluginSeatingStrategy。
 · Script 插件：支持 Lua / C# Script，逻辑完全由脚本文件描述。
-· 插件清单：plugin.manifest.json 定义 ID、类型、入口文件、优先级等。
+· 插件清单：plugin.manifest.json 定义 ID、类型、入口文件、优先级、parameters、codeBlocks 等。
 
 ---
 
@@ -278,12 +332,26 @@ Avalonia UI，支持 Windows / macOS / Linux，原生 MVVM 支持。
 ```csharp
 public interface IApplicationFacade
 {
-    Task<AppConfiguration> LoadConfigurationAsync(string path);
-    Task<List<Student>> LoadStudentsAsync(string source);
-    Task<SeatingPlan> GenerateSeatingAsync(SeatingRequest request, IProgress<SeatingProgress> progress = null);
-    Task ExportSeatingPlanAsync(SeatingPlan plan, ExportOptions options);
-    Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync(string venueId);
-    Task RollbackToSnapshotAsync(string snapshotId);
+    // 数据管理
+    Task<IReadOnlyList<StudentDatasetInfo>> ListStudentDatasetsAsync(CancellationToken ct = default);
+    Task ImportStudentsAsync(string filePath, CancellationToken ct = default);
+    // 排座
+    Task<SeatingWorkspace> GenerateSeatingAsync(SeatingRequest request,
+        IProgress<SeatingProgress>? progress = null, CancellationToken ct = default);
+    // 导出
+    Task ExportSeatingPlanAsync(ExportOptions options, SeatingWorkspace workspace,
+        ClassroomLayoutDefinition layout, CancellationToken ct = default);
+    // 快照
+    Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync(string venueId, CancellationToken ct = default);
+    Task RollbackToSnapshotAsync(string snapshotId, CancellationToken ct = default);
+    // 命令历史
+    Task<bool> ExecuteCommandAsync(IUndoableCommand command, CancellationToken ct = default);
+    Task<bool> UndoAsync(CancellationToken ct = default);
+    Task<bool> RedoAsync(CancellationToken ct = default);
+    // 策略配置
+    Task<IReadOnlyList<StrategyDisplayInfo>> GetStrategiesAsync(CancellationToken ct = default);
+    Task SaveStrategyConfigAsync(string id, StrategyConfig config, CancellationToken ct = default);
+    // … 共 40+ 方法
 }
 ```
 
@@ -318,7 +386,7 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 
 场景 策略
 座位不足 提前容量检查，抛出明确异常
-固定座位冲突 配置验证阶段检测，后者覆盖并警告
+固定座位冲突 配置验证阶段检测，Fill-in-Order 模型下 FixedSeat 最先执行锁定座位
 插件加载失败 提供“安全模式”跳过插件
 配置文件损坏 自动加载最近有效备份
 策略执行超时 CancellationToken + 超时设置

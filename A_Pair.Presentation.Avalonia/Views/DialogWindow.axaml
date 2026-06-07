@@ -26,7 +26,7 @@
       <StackPanel Spacing="4">
         <TextBlock x:Name="TitleBlock" Classes="sectionTitle"
                    TextWrapping="Wrap" />
-        <TextBlock x:Name="MessageBlock" FontSize="14"
+        <TextBlock x:Name="MessageBlock" Classes="body"
                    TextWrapping="Wrap"
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
       </StackPanel>

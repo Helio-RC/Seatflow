@@ -205,7 +205,7 @@ A_Pair/
 | 设计 SeatingWorkspace 与 SeatingContext | 提供可修改的座位视图 | 快照隔离、变更跟踪 | 2d |
 | 实现 StrategyExecutionPipeline | 按优先级执行策略 | 异步管道、日志记录 | 1d |
 | 实现 FixedSeatStrategy | 强制固定座位分配 | 配置读取、冲突检测 | 1d |
-| 实现 DeskMateStrategy | 同桌组绑定靠近 | 聚类算法（简单贪心） | 2d |
+| 实现 DeskMateStrategy | ⚠️ 已隐藏：同桌组绑定靠近。实现存在根本性缺陷（见 ADR-006），当前默认不启用。 | 聚类算法（简单贪心） | 2d |
 | 实现 FrontRowRotationStrategy | 基于历史分数轮换前排 | 分数累计算法 | 2d |
 | 实现 RandomFillStrategy | 剩余学生随机填充 | Fisher-Yates 随机 | 0.5d |
 | 添加策略配置模型与验证 | 每个策略的配置类与 ValidateConfiguration | FluentValidation | 1d |
@@ -225,9 +225,10 @@ A_Pair/
    - 每次轮换时，计算每个学生对前排的“需求度”：`score = (前排累计次数 * -10) + (身高低加分) + (视力需求加分)`。
    - 按分数降序选择前排座位。
 
-3. **DeskMateStrategy 实现**：
+3. **DeskMateStrategy 实现**（⚠️ 已隐藏，见 ADR-006 补充）：
    - 先识别同桌组（配置中指定），将组视为一个单元。
    - 寻找相邻空座位组（网格布局中检查左右/前后相邻），将组内成员分配进去。
+   - **已知缺陷**：在前序策略占座后连续块碎片化严重，组员常被拆散，无法保证有效分组。
 
 4. **进度报告设计**：
    ```csharp

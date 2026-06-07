@@ -8,25 +8,31 @@ namespace A_Pair.Core.Strategies
     /// <summary>
     /// 同桌组策略（Priority=30，第三执行，在剩余空座中拼连续块）。
     /// 在 FixedSeat 和 FrontRowRotation 之后执行，从剩余空座中寻找连续座位块分配给同桌组。
-    /// 优先尝试水平相邻，其次垂直相邻，最后降级为顺序分配。
+    /// 优先水平相邻 → 回退纵向邻接 → 降级 BFS 连通分量。
+    /// ⚠️ 此策略极不稳定：受前排分配和固定座位影响较大，组员被拆散后仅能就近安插单人。
     /// 支持从配置和 <see cref="AttributeBag"/> 扩展属性中读取同桌组定义。
     /// </summary>
     public class DeskMateStrategy : ISeatingStrategy
     {
         private readonly DeskMateConfiguration _config;
         private readonly ILogger<DeskMateStrategy> _logger;
+        private readonly Random _random;
 
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public DeskMateConfiguration Config => _config;
 
-        public DeskMateStrategy (DeskMateConfiguration config , ILogger<DeskMateStrategy>? logger = null)
+        public DeskMateStrategy (DeskMateConfiguration config , ILogger<DeskMateStrategy>? logger = null , Random? random = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? NullLogger<DeskMateStrategy>.Instance;
+            _random = random ?? new Random();
         }
 
         /// <summary>使用默认配置创建实例。</summary>
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
+
+        /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
+        public const string DisplayNameConst = "同桌分组";
 
         /// <summary>策略 ID："DeskMate"。</summary>
         public string Id { get; } = "DeskMate";
@@ -56,7 +62,11 @@ namespace A_Pair.Core.Strategies
             var assignedStudentIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
             var unassignedStudentIds = workspace.Students.Select(s => s.Id).Where(id => !assignedStudentIds.Contains(id)).ToHashSet();
 
-            // 合并配置中的组和 Extensions 中的组（向后兼容）
+            // 合并配置中的组和 Extensions 中的组（向后兼容）。
+            // 注意：Extensions 合并的组会获得新的随机 GroupId，
+            // 因此 GetPreAssignedMembers 无法在 _config.Groups 中找到它们。
+            // 这意味着 near-occupied 路径不适用于 Extensions 组——这是预期行为，
+            // 因为 Extensions 组在执行时才创建，不可能有"已被前序策略分配"的成员。
             var groups = new List<DeskMateGroup>(_config.Groups);
             foreach (var student in workspace.Students)
             {
@@ -79,19 +89,29 @@ namespace A_Pair.Core.Strategies
             }
 
             // 去重并过滤掉已分配的学生
-            var validGroups = groups
-                .Select(g => new DeskMateGroup
+            var validGroups = new List<DeskMateGroup>();
+            foreach (var g in groups)
+            {
+                var filtered = g.StudentIds.Distinct().Where(id => unassignedStudentIds.Contains(id)).ToList();
+                if (filtered.Count < g.StudentIds.Count)
                 {
-                    GroupId = g.GroupId ,
-                    StudentIds = g.StudentIds.Distinct().Where(id => unassignedStudentIds.Contains(id)).ToList()
-                })
-                .Where(g => g.StudentIds.Count >= 2)
-                .OrderByDescending(g => g.StudentIds.Count)
-                .ToList();
+                    // 部分成员已被之前的策略分配走，记录警告
+                    var lostMembers = g.StudentIds.Except(filtered).ToList();
+                    workspace.LogWarning(Id , DisplayNameConst , "DeskMate_Split" ,
+                        string.Join(", " , g.StudentIds) , string.Join(", " , lostMembers));
+                }
+                if (filtered.Count >= 1)
+                {
+                    validGroups.Add(new DeskMateGroup { GroupId = g.GroupId , StudentIds = filtered });
+                }
+            }
+            validGroups = validGroups.OrderByDescending(g => g.StudentIds.Count).ToList();
 
             if (validGroups.Count == 0)
             {
-                _logger.LogDebug("DeskMate：无有效同桌组（每组至少 2 名未分配学生）");
+                _logger.LogDebug("DeskMate：无有效同桌组（每组至少 1 名未分配学生）");
+                if (groups.Count > 0)
+                    workspace.LogWarning(Id , DisplayNameConst , "DeskMate_AllSplit");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
@@ -109,29 +129,55 @@ namespace A_Pair.Core.Strategies
 
                 bool assigned = false;
 
-                // 策略1：水平相邻分配（同行相邻列）
-                if (gridSeats.Count > 0 && _config.PreferHorizontal)
+                // 策略0：若原始组有成员已被其他策略分配，尝试将未分配成员放到其邻座
+                var assignedMembers = GetPreAssignedMembers(group.GroupId , group.StudentIds.Count , unassignedStudentIds);
+                if (assignedMembers.Count > 0)
                 {
-                    assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: true);
+                    var occupiedSeats = workspace.FindSeats(s =>
+                        s.OccupantId is not null && assignedMembers.Contains(s.OccupantId)).ToList();
+                    if (occupiedSeats.Count > 0)
+                    {
+                        assigned = TryAssignNearOccupied(
+                            workspace , group.StudentIds , occupiedSeats , emptySeats);
+                    }
                 }
 
-                // 策略2：垂直相邻分配（同列相邻行）
-                if (!assigned && _config.AllowVertical && gridSeats.Count > 0)
+                // 单人组仅尝试 near-occupied，不降级到网格分配策略
+                if (group.StudentIds.Count >= 2)
                 {
-                    assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: false);
+                    // 策略1：水平相邻分配（同行相邻列）
+                    if (!assigned && gridSeats.Count > 0 && _config.PreferHorizontal)
+                    {
+                        assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: true);
+                    }
+
+                    // 策略2：垂直相邻分配（同列相邻行）
+                    if (!assigned && _config.AllowVertical && gridSeats.Count > 0)
+                    {
+                        assigned = TryAssignGroupToAdjacentGridSeats(workspace , group.StudentIds , gridSeats , horizontal: false);
+                    }
+
+                    // 策略3：降级，尝试分配到任意相邻空座位（BFS 连通分量）
+                    if (!assigned)
+                    {
+                        assigned = TryAssignGroupToAnyAdjacentSeats(workspace , group.StudentIds , emptySeats);
+                    }
                 }
 
-                // 策略3：降级，尝试分配到任意相邻空座位（BFS 连通分量）
-                if (!assigned)
-                {
-                    assigned = TryAssignGroupToAnyAdjacentSeats(workspace , group.StudentIds , emptySeats);
-                }
-
-                // 如果组分配成功，刷新空座位列表
+                // 如果组分配成功，刷新空座位列表和未分配学生集合
                 if (assigned)
                 {
                     emptySeats = workspace.GetEmptySeats().ToList();
                     gridSeats = emptySeats.OfType<GridSeat>().ToList();
+                    var currentAssignedIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
+                    unassignedStudentIds = workspace.Students.Select(s => s.Id)
+                        .Where(id => !currentAssignedIds.Contains(id)).ToHashSet();
+                }
+                else
+                {
+                    // 所有策略都失败：记录警告（可能因座位不足或碎片化）
+                    workspace.LogWarning(Id , DisplayNameConst , "DeskMate_NoSeats" ,
+                        string.Join(", " , group.StudentIds));
                 }
             }
 
@@ -139,6 +185,24 @@ namespace A_Pair.Core.Strategies
             _logger.LogInformation("DeskMate 策略完成：处理了 {GroupCount} 个同桌组，剩余 {Remaining} 个空座位" ,
                 validGroups.Count , remaining);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
+        }
+
+        /// <summary>
+        /// 获取原始配置组中已被其他策略分配走的成员 ID 列表。
+        /// 若原始组不存在或人数未减少（无成员被其他策略先分配），返回空列表。
+        /// </summary>
+        /// <param name="groupId">组 ID。</param>
+        /// <param name="currentCount">当前有效组中未分配学生数。</param>
+        /// <param name="unassignedIds">全局未分配学生 ID 集合。</param>
+        private List<string> GetPreAssignedMembers (string groupId , int currentCount , HashSet<string> unassignedIds)
+        {
+            var originalGroup = _config.Groups.FirstOrDefault(g => g.GroupId == groupId);
+            if (originalGroup is null || originalGroup.StudentIds.Count <= currentCount)
+                return [];
+
+            return originalGroup.StudentIds
+                .Where(id => !unassignedIds.Contains(id))
+                .ToList();
         }
 
         /// <summary>
@@ -151,14 +215,15 @@ namespace A_Pair.Core.Strategies
         /// <returns>是否成功分配。</returns>
         private bool TryAssignGroupToAdjacentGridSeats (SeatingWorkspace workspace , List<string> studentIds , List<GridSeat> gridSeats , bool horizontal)
         {
-            // 根据方向选择分组依据：水平时按行分组，垂直时按列分组
+            // 收集所有足够大的连续段，后续随机选一个（避免所有同桌组挤在左上角）
+            var candidates = new List<List<GridSeat>>();
+
             var seatGroups = horizontal
                 ? gridSeats.GroupBy(s => s.Row).OrderBy(g => g.Key)
                 : gridSeats.GroupBy(s => s.Column).OrderBy(g => g.Key);
 
             foreach (var group in seatGroups)
             {
-                // 在组内按次要坐标排序
                 var sorted = horizontal
                     ? group.OrderBy(s => s.Column).ToList()
                     : group.OrderBy(s => s.Row).ToList();
@@ -172,7 +237,6 @@ namespace A_Pair.Core.Strategies
                     }
                     else
                     {
-                        // 检查次要坐标是否连续（差1）
                         int diff = horizontal
                             ? sorted[i].Column - currentSegment[^1].Column
                             : sorted[i].Row - currentSegment[^1].Row;
@@ -184,21 +248,20 @@ namespace A_Pair.Core.Strategies
                         else
                         {
                             if (currentSegment.Count >= studentIds.Count)
-                            {
-                                AssignSegment(workspace , currentSegment , studentIds);
-                                return true;
-                            }
-                            currentSegment.Clear();
-                            currentSegment.Add(sorted[i]);
+                                candidates.Add(currentSegment);
+                            currentSegment = [sorted[i]];
                         }
                     }
                 }
-                // 检查最后一个段
                 if (currentSegment.Count >= studentIds.Count)
-                {
-                    AssignSegment(workspace , currentSegment , studentIds);
-                    return true;
-                }
+                    candidates.Add(currentSegment);
+            }
+
+            if (candidates.Count > 0)
+            {
+                var segment = candidates[_random.Next(candidates.Count)];
+                AssignSegment(workspace , segment , studentIds);
+                return true;
             }
             return false;
         }
@@ -209,6 +272,38 @@ namespace A_Pair.Core.Strategies
             {
                 workspace.TryAssignSeat(segment[i].Id , studentIds[i] , out _);
             }
+        }
+
+        /// <summary>
+        /// 尝试将未分配学生安排到已分配同桌成员的邻座中。
+        /// 用于处理前排策略已将组内某人分配到前排后，其余成员找不到连续块的场景。
+        /// 优先水平相邻，其次垂直相邻，再其次任意相邻空座。
+        /// </summary>
+        private bool TryAssignNearOccupied (
+            SeatingWorkspace workspace ,
+            List<string> unassignedIds ,
+            List<Seat> occupiedSeats ,
+            List<Seat> allEmptySeats)
+        {
+            var remaining = new List<string>(unassignedIds);
+            Shuffle(remaining , _random);
+            var emptySet = new HashSet<Seat>(allEmptySeats);
+
+            foreach (var occSeat in occupiedSeats)
+            {
+                if (remaining.Count == 0) break;
+                // 查找该座位周围的所有空座
+                var nearby = emptySet.Where(e => AreSeatsAdjacent(occSeat , e)).ToList();
+                Shuffle(nearby , _random);
+                for (int i = 0; i < Math.Min(nearby.Count , remaining.Count); i++)
+                {
+                    workspace.TryAssignSeat(nearby[i].Id , remaining[i] , out _);
+                    emptySet.Remove(nearby[i]);
+                }
+                remaining = remaining.Skip(Math.Min(nearby.Count , remaining.Count)).ToList();
+            }
+
+            return remaining.Count == 0;
         }
 
         /// <summary>
@@ -339,6 +434,18 @@ namespace A_Pair.Core.Strategies
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Fisher-Yates 洗牌算法。
+        /// </summary>
+        private static void Shuffle<T> (IList<T> list , Random random)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = random.Next(i + 1);
+                (list[j] , list[i]) = (list[i] , list[j]);
+            }
         }
 
         /// <summary>

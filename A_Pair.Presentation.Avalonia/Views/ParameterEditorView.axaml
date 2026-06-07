@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             x:DataType="vm:ParameterEditorViewModel"
+             x:Class="A_Pair.Presentation.Avalonia.Views.ParameterEditorView">
+    <ItemsControl ItemsSource="{Binding Parameters}">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:EditableParameter">
+                <DockPanel Margin="0,4" LastChildFill="True">
+                    <TextBlock Text="{Binding LocalizedLabel}"
+                               DockPanel.Dock="Left"
+                               VerticalAlignment="Center" Width="160"
+                               TextWrapping="Wrap" Margin="0,0,12,0" />
+                    <NumericUpDown Value="{Binding NumberValue}"
+                                   IsVisible="{Binding IsNumberInput}"
+                                   Minimum="{Binding Definition.MinValue}"
+                                   Maximum="{Binding Definition.MaxValue}"
+                                   HorizontalAlignment="Stretch" />
+                    <TextBox Text="{Binding TextValue}"
+                             IsVisible="{Binding IsTextInput}"
+                             HorizontalAlignment="Stretch" />
+                    <ToggleSwitch IsChecked="{Binding ToggleValue}"
+                                  IsVisible="{Binding IsToggleSwitch}"
+                                  HorizontalAlignment="Left" />
+                </DockPanel>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

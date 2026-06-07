@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   
   <xs:schema id="root">
@@ -107,6 +107,9 @@
   <data name="Common_Delete" xml:space="preserve">
     <value>删除</value>
   </data>
+  <data name="Common_Discard" xml:space="preserve">
+    <value>放弃</value>
+  </data>
   <data name="Common_Disabled" xml:space="preserve">
     <value>已禁用</value>
   </data>
@@ -167,8 +170,20 @@
   <data name="Common_Unload" xml:space="preserve">
     <value>卸载</value>
   </data>
+  <data name="ConfigBlock_Dataset" xml:space="preserve">
+    <value>数据集</value>
+  </data>
+  <data name="ConfigBlock_Venue" xml:space="preserve">
+    <value>会场</value>
+  </data>
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV 文件</value>
+  </data>
+  <data name="Member_AddedRowFmt" xml:space="preserve">
+    <value>已添加第 {0} 名学生</value>
+  </data>
+  <data name="Member_AddRow" xml:space="preserve">
+    <value>添加</value>
   </data>
   <data name="Member_ClearConfirm" xml:space="preserve">
     <value>确认清除</value>
@@ -194,6 +209,15 @@
   </data>
   <data name="Member_Deleted" xml:space="preserve">
     <value>数据集已删除</value>
+  </data>
+  <data name="Member_DeletedRowFmt" xml:space="preserve">
+    <value>已删除「{0}」，剩余 {1} 名学生</value>
+  </data>
+  <data name="Member_DeleteRowTooltip" xml:space="preserve">
+    <value>删除此行</value>
+  </data>
+  <data name="Member_DiscardAndSave" xml:space="preserve">
+    <value>放弃并保存</value>
   </data>
   <data name="Member_EmptyDataset" xml:space="preserve">
     <value>数据集为空</value>
@@ -314,6 +338,15 @@
   <data name="Member_NameTooltip" xml:space="preserve">
     <value>必填。姓名，不能为空。</value>
   </data>
+  <data name="Member_NewRowHint" xml:space="preserve">
+    <value>输入新学生信息…</value>
+  </data>
+  <data name="Member_NewRowPendingMsg" xml:space="preserve">
+    <value>底部新增行有数据未完成，继续保存将丢弃这些输入。</value>
+  </data>
+  <data name="Member_NewRowPendingTitle" xml:space="preserve">
+    <value>空行有未完成的输入</value>
+  </data>
   <data name="Member_NoDataToExport" xml:space="preserve">
     <value>当前没有可导出的数据。</value>
   </data>
@@ -404,6 +437,12 @@
   </data>
   <data name="Member_Unnamed" xml:space="preserve">
     <value>未命名</value>
+  </data>
+  <data name="Member_UnsavedChanges" xml:space="preserve">
+    <value>有未保存的修改</value>
+  </data>
+  <data name="Member_UnsavedChangesMsg" xml:space="preserve">
+    <value>当前数据集有未保存的修改，是否保存后再切换？</value>
   </data>
   <data name="Data_ValidationFailed" xml:space="preserve">
     <value>数据校验未通过</value>
@@ -672,6 +711,9 @@
   <data name="Nav_PluginManagement" xml:space="preserve">
     <value>插件管理</value>
   </data>
+  <data name="Nav_PluginDisabled" xml:space="preserve">
+    <value>插件系统尚未就绪</value>
+  </data>
   <data name="Nav_Seating" xml:space="preserve">
     <value>座位安排</value>
   </data>
@@ -903,6 +945,18 @@
   </data>
   <data name="Seating_MemberDatasetList" xml:space="preserve">
     <value>数据集列表</value>
+  </data>
+  <data name="Seating_MessagesGroupError" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Seating_MessagesGroupWarning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Seating_MessagesNone" xml:space="preserve">
+    <value>无消息</value>
+  </data>
+  <data name="Seating_StrategyMessages" xml:space="preserve">
+    <value>策略消息</value>
   </data>
   <data name="Seating_SwapDescFmt" xml:space="preserve">
     <value>交换：{0} ↔ {1}</value>

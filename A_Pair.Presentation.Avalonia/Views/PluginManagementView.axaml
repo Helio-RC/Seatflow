@@ -20,9 +20,9 @@
     <conv:FilePathToBitmapConverter x:Key="IconConverter" />
   </UserControl.Resources>
 
-  <DockPanel Margin="16">
+  <DockPanel Classes="pageMargin">
     <!-- 顶部标题 -->
-    <Border DockPanel.Dock="Top" Margin="0,0,0,16">
+    <Border DockPanel.Dock="Top" Classes="toolbarTop">
       <DockPanel>
         <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Plugin_Title}" Classes="pageTitle"
                    VerticalAlignment="Center" />
@@ -31,7 +31,7 @@
                 HorizontalContentAlignment="Center" Padding="12,6">
           <StackPanel Orientation="Horizontal" Spacing="6">
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
-            <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" FontSize="14" />
+            <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" Classes="body" />
           </StackPanel>
         </Button>
       </DockPanel>
@@ -39,7 +39,7 @@
 
     <!-- 底部状态栏 -->
     <Border DockPanel.Dock="Bottom" Margin="0,8,0,0">
-      <TextBlock Text="{Binding StatusMessage}" FontSize="13"
+      <TextBlock Text="{Binding StatusMessage}" Classes="bodySmall"
                  Opacity="0.7" />
     </Border>
 
@@ -48,17 +48,17 @@
       <!-- ═══ 左侧：插件列表 ═══ -->
       <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
               CornerRadius="8" Padding="0"
-              BoxShadow="{StaticResource CardShadowSmall}">
+              BoxShadow="{DynamicResource CardShadowSmall}">
         <DockPanel>
           <Border DockPanel.Dock="Top" Padding="14,12">
             <TextBlock Text="{Binding PluginCountDisplay}"
-                       FontSize="14" FontWeight="SemiBold" />
+                       Classes="bodyStrong" />
           </Border>
 
           <!-- 空列表提示 -->
           <TextBlock Text="{x:Static lang:Resources.Strategy_Plugin}"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                     FontSize="14" Opacity="0.5"
+                     Classes="body" Opacity="0.5"
                      IsVisible="{Binding EmptyHintVisible}" />
 
           <ListBox ItemsSource="{Binding Plugins}"
@@ -84,11 +84,11 @@
                       <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
                                  TextTrimming="CharacterEllipsis" />
                       <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="{Binding Version, StringFormat='v{0}'}" FontSize="11"
+                        <TextBlock Text="{Binding Version, StringFormat='v{0}'}" Classes="small"
                                    Opacity="0.6" />
                         <Border CornerRadius="3" Padding="4,1"
                                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
-                          <TextBlock Text="{Binding LoadKind}" FontSize="10" Opacity="0.7" />
+                          <TextBlock Text="{Binding LoadKind}" Classes="micro" Opacity="0.7" />
                         </Border>
                       </StackPanel>
                     </StackPanel>
@@ -103,7 +103,7 @@
       <!-- ═══ 右侧：详情面板 ═══ -->
       <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}"
               CornerRadius="8" Padding="20"
-              BoxShadow="{StaticResource CardShadowSmall}"
+              BoxShadow="{DynamicResource CardShadowSmall}"
               IsVisible="{Binding HasPluginSelected}">
         <ScrollViewer>
           <StackPanel Spacing="16">
@@ -116,11 +116,11 @@
                        Stretch="Uniform" />
               </Border>
               <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                <TextBlock Text="{Binding SelectedPlugin.Name}" FontSize="20" FontWeight="Bold" />
+                <TextBlock Text="{Binding SelectedPlugin.Name}" Classes="pageTitle" />
                 <TextBlock Text="{Binding SelectedPluginVersionDisplay}"
-                           FontSize="13" Opacity="0.6" />
+                           Classes="bodySmall" Opacity="0.6" />
                 <TextBlock Text="{Binding SelectedPluginAuthorDisplay}"
-                           FontSize="13" Opacity="0.6"
+                           Classes="bodySmall" Opacity="0.6"
                            IsVisible="{Binding SelectedPlugin.Author.Length, Converter={x:Static conv:BoolConverters.TrueToVisible}}" />
               </StackPanel>
             </Grid>
@@ -128,14 +128,14 @@
             <!-- 描述 -->
             <Border Padding="12,10" CornerRadius="6"
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-              <TextBlock Text="{Binding SelectedPlugin.Description}" FontSize="13"
+              <TextBlock Text="{Binding SelectedPlugin.Description}" Classes="bodySmall"
                          TextWrapping="Wrap" Opacity="0.8" />
             </Border>
 
             <!-- 优先级 -->
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="{x:Static lang:Resources.Strategy_PriorityLabel}" FontSize="13" VerticalAlignment="Center" />
-              <TextBlock Text="{Binding SelectedPlugin.Priority}" FontSize="13"
+              <TextBlock Text="{x:Static lang:Resources.Strategy_PriorityLabel}" Classes="bodySmall" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding SelectedPlugin.Priority}" Classes="bodySmall"
                          FontWeight="SemiBold" VerticalAlignment="Center" />
             </StackPanel>
 
@@ -143,7 +143,7 @@
             <Border Padding="14,10" CornerRadius="6"
                     Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_Plugin}" FontSize="14"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_Plugin}" Classes="body"
                            VerticalAlignment="Center" />
                 <ToggleSwitch DockPanel.Dock="Right"
                               IsChecked="{Binding SelectedPlugin.IsEnabled, Mode=OneWay}"
@@ -164,7 +164,7 @@
                         Padding="10,6" HorizontalContentAlignment="Center">
                   <StackPanel Orientation="Horizontal" Spacing="4">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
-                    <TextBlock Text="{x:Static lang:Resources.Plugin_SaveScript}" FontSize="13" />
+                    <TextBlock Text="{x:Static lang:Resources.Plugin_SaveScript}" Classes="bodySmall" />
                   </StackPanel>
                 </Button>
               </DockPanel>
@@ -190,7 +190,7 @@
                         Padding="10,6" HorizontalContentAlignment="Center">
                   <StackPanel Orientation="Horizontal" Spacing="4">
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14" />
-                    <TextBlock Text="{x:Static lang:Resources.Plugin_SaveConfig}" FontSize="13" />
+                    <TextBlock Text="{x:Static lang:Resources.Plugin_SaveConfig}" Classes="bodySmall" />
                   </StackPanel>
                 </Button>
               </DockPanel>
@@ -215,11 +215,11 @@
              IsVisible="{Binding HasPluginSelected, Converter={x:Static conv:BoolConverters.Negate}}">
         <Border Background="{DynamicResource CardBackgroundBrush}"
                 CornerRadius="8" Padding="20"
-                BoxShadow="{StaticResource CardShadowSmall}">
+                BoxShadow="{DynamicResource CardShadowSmall}">
           <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
             <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PuzzlePiece}" FontSize="36"
                             Opacity="0.3" HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Static lang:Resources.Plugin_SelectHint}" FontSize="15"
+            <TextBlock Text="{x:Static lang:Resources.Plugin_SelectHint}" Classes="bodyLarge"
                        Opacity="0.5" HorizontalAlignment="Center" />
           </StackPanel>
         </Border>

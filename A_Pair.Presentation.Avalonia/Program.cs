@@ -41,6 +41,9 @@ namespace A_Pair.Presentation.Avalonia
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<AboutViewModel>();
 
+            // 声明式策略配置子组件
+            services.AddTransient<ConfigBlockEditorViewModel>();
+
             var serviceProvider = services.BuildServiceProvider();
             BuildAvaloniaApp(serviceProvider , isFirstInstance)
                 .StartWithClassicDesktopLifetime(args);

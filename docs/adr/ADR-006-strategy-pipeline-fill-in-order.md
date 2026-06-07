@@ -78,3 +78,26 @@ FixedSeat(100)     → 直接操控 OccupantId → 覆盖成功
 - 加入管道的端到端集成测试，验证 Fill-in-Order 顺序下的实际行为
 - UI 层暴露 Priority 拖拽排序，让用户显式控制策略间的资源分配优先级
 - 如果用户反馈需要"覆盖"行为，在 Workspace 中引入 `ForceAssignSeat` 或 `SwapSeats` 方法，同时追踪被替换学生
+
+## 补充 (2026-06-06)：策略可见性字段控制管道参与
+
+在声明式策略配置 manifest 中新增 `visible` 字段（`StrategyManifest.Visible`，默认 `true`）。设为 `false` 时策略**完全排除**：
+
+- 配置页不显示（`StrategyConfigurationViewModel` 过滤）
+- 座位安排页侧栏不显示（`SeatingArrangementViewModel` 过滤）
+- **执行管道跳过**（`ApplicationFacade` 执行前收集 `visible=false` 的 manifest ID 并过滤策略列表）
+
+实现：`ApplicationFacade` 在准备策略列表时，从 `StrategyManifestProvider` 获取内置 manifest 并从插件加载结果中提取 `PluginManifest.Visible`，构建不可见 ID 集合，统一过滤。`StrategyExecutionPipeline` 仅执行过滤后的策略列表。
+
+DeskMate 策略（同桌分组）默认 `visible: false`。原因：该策略受前排分配和固定座位影响较大，组员被拆散后仅能就近安插单人，对多数用户场景不适用。高级用户通过配置页手动启用后配置。
+
+## 补充 (2026-06-06)：DeskMate 单人就近安置
+
+DeskMate 策略的有效组过滤阈值从 `>= 2` 放宽为 `>= 1`：当原始同桌组仅剩一名未分配学生时，保留该学生并尝试将其安置到已分配组员的相邻座位。
+
+关键设计选择：
+
+- **统一查找路径**：单人组和多人组共用 `GetPreAssignedMembers()` 方法，通过 `FirstOrDefault` 按 GroupId 查找原始配置组，判断人数是否减少来决定是否执行 near-occupied 分配
+- **Fisher-Yates 洗牌**：候选座位列表和学生列表均随机打乱，避免所有拆散学生聚类到同一区域
+- **单人组不降级**：仅 `group.StudentIds.Count >= 2` 的组才会尝试水平/垂直/BFS 网格分配；单人组仅通过 near-occupied 路径处理
+- **座位查找优化**：`LogWarning`/`LogError` 中 ID→姓名解析改用 `Dictionary.TryGetValue` 替代 `FirstOrDefault` 线性扫描，将 O(n×m) 降为 O(n+m)

@@ -32,4 +32,19 @@ public sealed class StrategyManifest
 
     /// <summary>默认是否启用。</summary>
     public bool DefaultEnabled { get; init; } = true;
+
+    /// <summary>策略级全局参数声明（可选）。UI 根据此列表动态渲染参数输入控件。</summary>
+    public List<StrategyParameterDefinition>? Parameters { get; init; }
+
+    /// <summary>按数据集/会场的配置块声明（可选）。每个 codeBlock 渲染为一个独立配置区。</summary>
+    public List<StrategyCodeBlock>? CodeBlocks { get; init; }
+
+    /// <summary>是否在策略配置页可见（默认 true）。设为 false 时策略不可见、不可用。</summary>
+    public bool Visible { get; init; } = true;
+
+    /// <summary>
+    /// 策略执行消息的多语言模板（可选）。key 为消息标识符，value 为多语言词典。
+    /// 模板中用 {0} {1} 占位，运行时 string.Format 替换。
+    /// </summary>
+    public Dictionary<string , Dictionary<string , string>>? Messages { get; init; }
 }

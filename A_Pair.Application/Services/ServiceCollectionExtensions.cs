@@ -155,6 +155,12 @@ namespace A_Pair.Application.Services
                 sp.GetRequiredService<FileMigrationService>() ,
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 
+            // 注册策略数据集配置仓储（per-strategy sub-directory，全局单例）
+            services.AddSingleton(sp => new StrategyDatasetConfigRepository(
+                strategyConfigDir ,
+                sp.GetRequiredService<FileMigrationService>() ,
+                sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyDatasetConfigRepository>>()));
+
             return services;
         }
 

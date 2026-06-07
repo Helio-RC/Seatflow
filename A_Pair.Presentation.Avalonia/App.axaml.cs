@@ -20,6 +20,8 @@ using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia
 {
+    // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
+    #pragma warning disable AVLN3001
     public partial class App : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider;

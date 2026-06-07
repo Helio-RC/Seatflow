@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -39,8 +42,39 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     private double _pageOpacity = 1.0;
 
+    private readonly Dictionary<string, bool> _pageNav = [];
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
+
+    /// <summary>加载页面导航配置（page_navigation.json 嵌入资源）。</summary>
+    private static Dictionary<string, bool> LoadPageNav ()
+    {
+        try
+        {
+            var assembly = typeof(MainShellViewModel).Assembly;
+            const string resourceName = "A_Pair.Presentation.Avalonia.Data.page_navigation.json";
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null) return [];
+            using var doc = JsonDocument.Parse(stream);
+            var pages = doc.RootElement.GetProperty("pages");
+            var result = new Dictionary<string, bool>();
+            foreach (var p in pages.EnumerateObject())
+                result[p.Name] = p.Value.GetBoolean();
+            return result;
+        }
+        catch
+        {
+            // 静默回退：全部页面保持启用
+            return [];
+        }
+    }
+
+    private bool IsPageEnabled (string key) =>
+        !_pageNav.TryGetValue(key , out var enabled) || enabled;
+
+    public double PluginManagementOpacity => IsPageEnabled("PluginManagement") ? 1.0 : 0.4;
+    public string? PluginManagementDisabledTip =>
+        IsPageEnabled("PluginManagement") ? null : Resources.Nav_PluginDisabled;
 
     /// <summary>页面淡出时长（对应 AXAML ContentControl Opacity 0.35s）。</summary>
     private static readonly TimeSpan StaggerDelay = TimeSpan.FromMilliseconds(150);
@@ -56,6 +90,7 @@ public partial class MainShellViewModel : ViewModelBase
     {
         _navigation = navigation;
         _logger = logger ?? NullLogger<MainShellViewModel>.Instance;
+        _pageNav = LoadPageNav();
         _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
@@ -138,6 +173,10 @@ public partial class MainShellViewModel : ViewModelBase
     private async Task NavigateAsync (string pageName)
     {
         if (Enum.TryParse<PageKey>(pageName , out var key))
+        {
+            if (!IsPageEnabled(pageName))
+                return;
             await _navigation.NavigateToAsync(key);
+        }
     }
 }

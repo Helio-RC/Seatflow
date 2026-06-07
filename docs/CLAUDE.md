@@ -39,6 +39,31 @@ A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的
 
 **依赖链**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`)。`Plugins.Sdk` 仅供外部插件引用。
 
+**策略管道**: 采用 fill-in-order 模型——四个内置策略操作同一个 `SeatingWorkspace`，按 Priority 升序执行（低=先=优先挑选）。`IsFixed=true` 提供自然保护，详见 `docs/adr/ADR-006.md`。
+
+| 执行顺序 | 策略 | Priority | 职责 |
+|----------|------|----------|------|
+| 第1 | FixedSeatStrategy | 10 | 锁定固定座位（IsFixed=true） |
+| 第2 | FrontRowRotationStrategy | 20 | 在非固定空座中填前排 |
+| 第3 | DeskMateStrategy | 30 | ⚠️ 已隐藏（visible=false）：在剩余空座中拼连续块——因前序策略碎片化严重，实际不可靠 |
+| 第4 | RandomFillStrategy | 100 | 最终兜底填满剩余 |
+
+**策略执行消息**: 策略可通过 `workspace.LogWarning(id, displayName, messageKey, args)` / `workspace.LogError(...)` 报告警告和错误。`messageKey` 对应 manifest `messages` 字典中的 i18n 键，模板用 `{0} {1}` 占位。消息（含 `StrategyId`、`StrategyDisplayName`、`MessageKey`、`Args`）收集在 `SeatingWorkspace.Messages` 中，执行完成后汇总到座位安排页侧栏。内建和插件统一使用此机制——内建策略在 `Manifests/{Id}.json` 中声明 `messages`，插件在 `plugin.manifest.json` 中声明。
+
+**声明式策略配置**: 策略的配置 UI 由 manifest JSON（`Manifests/*.json`）中的 `visible`、`parameters[]` 和 `codeBlocks[]` 声明驱动。所有用户文字使用 `{ "zh-CN": "...", "en-US": "..." }` 内嵌词典，UI 通过 `LocalizeHelper` 解析。
+
+- `visible`：（可选，默认 `true`）控制策略是否参与管道。设为 `false` 时从 UI（配置页、座位安排侧栏）和执行管道中完全排除。DeskMate 默认为 `false`（同桌策略默认隐藏）
+- `parameters[]`：策略级全局参数（NumberInput/TextInput/ToggleSwitch/Dropdown），UI 渲染为输入控件
+- `codeBlocks[]`：按数据集/会场的配置块。`dataType` 决定渲染哪些选择器（`Student`/`Venue`/`Both`），`showSeatPosition` 控制座位定位器显隐，`preventDuplicateInRow` 控制同行学生选择器防重复，`preventDuplicateAcrossRows` 控制跨行学生选择器防重复，`loadTrigger` 控制配置加载触发方式（`Both`=需两个都选/精确匹配（默认），`Any`=任一即加载/模糊匹配）
+- **DeskMate** ⚠️ 已隐藏（visible=false）：核心算法——在 FixedSeat 和 FrontRowRotation 占座后寻找连续座位块——存在根本性缺陷。前序策略严重碎片化连续块，同桌组常被拆散仅剩单人，仅能就近安插（near-occupied），无法保证组员完整相邻。`dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`。若手动启用，每行学生选择器数量由会场 `SeatsPerDesk` 动态决定，执行时收集候选段后随机选择。
+- **FixedSeat**：`dataType: "Both"`, `preventDuplicateAcrossRows: true`。每行学生选择器 + 座位定位器。跨所有行选择器互相排除已选学生
+- **FrontRowRotation**：无 codeBlock——`NeedsFrontRow` 已是 Student 模型字段。按分数选出学生后 Fisher-Yates 洗牌，随机分布在各列
+- **RandomFill**：无 parameters，无 codeBlocks
+
+**配置加载行为：** 持久化配置匹配采用宽松策略——已选定的选择器参与匹配，未选定的不参与。对于 `dataType: "Both"`，仅选数据集即可加载配置（场馆作为通配符），后续选场馆后重新精确匹配。学生选择延迟到列表加载完成后应用，避免时序问题导致选中丢失。
+
+详见 CLAUDE.md 根目录的"Declarative strategy configuration"章节。
+
 **项目配置**: Avalonia 项目的 `AvaloniaUseCompiledBindingsByDefault` 为 `true`，所有绑定默认编译，除非显式退出。
 
 **应用启动顺序**:

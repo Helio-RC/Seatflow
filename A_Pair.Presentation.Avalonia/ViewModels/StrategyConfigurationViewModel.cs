@@ -89,32 +89,19 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     [ObservableProperty]
     private bool _editIsEnabled;
 
+    // ═══════════════ 声明式配置编辑器 ═══════════════
+
+    /// <summary>策略级参数编辑器（manifest parameters[] 驱动）。</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasFrontRowConfig))]
-    private bool _showFrontRowConfig;
+    private ParameterEditorViewModel? _parameterEditor;
 
-    public bool HasFrontRowConfig => ShowFrontRowConfig;
-
+    /// <summary>配置块编辑器列表（manifest codeBlocks[] 驱动），每项对应一个 codeBlock。</summary>
     [ObservableProperty]
-    private int _editHistoryWeight;
+    private ObservableCollection<ConfigBlockEditorViewModel> _configBlockEditors = [];
 
-    [ObservableProperty]
-    private int _editNeedsFrontRowBonus;
-
-    [ObservableProperty]
-    private int _editFrontRowCount;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasDeskMateConfig))]
-    private bool _showDeskMateConfig;
-
-    public bool HasDeskMateConfig => ShowDeskMateConfig;
-
-    [ObservableProperty]
-    private bool _editPreferHorizontal;
-
-    [ObservableProperty]
-    private bool _editAllowVertical;
+    /// <summary>是否有参数或配置块可显示。</summary>
+    public bool HasParameters => ParameterEditor is not null && ParameterEditor.Parameters.Count > 0;
+    public bool HasCodeBlocks => ConfigBlockEditors.Count > 0;
 
     // ── 详情编辑触发 _hasDetailChanges ──
 
@@ -127,15 +114,9 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         if (_suppressChangeTracking) return;
         MarkDetailChanged();
-        // 联动侧栏开关
         if (SelectedStrategy is not null)
             SelectedStrategy.IsEnabled = value;
     }
-    partial void OnEditHistoryWeightChanged (int value) { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditNeedsFrontRowBonusChanged (int value) { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditFrontRowCountChanged (int value) { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditPreferHorizontalChanged (bool value) { if (!_suppressChangeTracking) MarkDetailChanged(); }
-    partial void OnEditAllowVerticalChanged (bool value) { if (!_suppressChangeTracking) MarkDetailChanged(); }
 
     private void MarkDetailChanged ()
     {
@@ -165,7 +146,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     public override async Task<bool> CanLeaveAsync ()
     {
-        if (!HasChanges) return true;
+        var hasBlockChanges = ConfigBlockEditors.Any(ce => ce.IsDirty);
+        if (!HasChanges && !hasBlockChanges) return true;
 
         var choice = await Dialog.ShowConfirmAsync(
             Resources.Strategy_UnsavedChanges ,
@@ -200,16 +182,31 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// <summary>
     /// 侧栏项属性变更时刷新全局 HasChanges。
     /// </summary>
-    partial void OnSelectedStrategyChanged (StrategyItemViewModel? value)
+    partial void OnSelectedStrategyChanged (StrategyItemViewModel? oldValue , StrategyItemViewModel? newValue)
     {
-        if (value is null)
+        // 取消旧订阅
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnSelectedStrategyItemPropertyChanged;
+
+        if (newValue is null)
         {
             SelectedDetail = new();
             return;
         }
+        // 订阅新项的属性变更，以同步 PriorityDisplay
+        newValue.PropertyChanged += OnSelectedStrategyItemPropertyChanged;
         // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
         _hasDetailChanges = false;
-        _ = LoadDetailAsync(value);
+        _ = LoadDetailAsync(newValue);
+    }
+
+    private void OnSelectedStrategyItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
+        {
+            OnPropertyChanged(nameof(PriorityDisplay));
+            OnPropertyChanged(nameof(EnableTooltipDisplay));
+        }
     }
 
     // ═══════════════ 加载 ═══════════════
@@ -222,21 +219,25 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             StatusMessage = Resources.Strategy_Loading;
 
             var displayInfos = await _facade.GetStrategiesAsync(ct);
-            var items = displayInfos.Select(d => new StrategyItemViewModel(
-                d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
-                d.Priority , d.DefaultPriority , d.IsEnabled)).ToList();
+            var items = displayInfos
+                .Where(d => d.Visible)
+                .Select(d => new StrategyItemViewModel(
+                    d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
+                    d.Priority , d.DefaultPriority , d.IsEnabled)).ToList();
 
             foreach (var item in items)
             {
                 item.PropertyChanged += (_ , e) =>
                 {
                     OnPropertyChanged(nameof(HasChanges));
-                    // 侧栏开关联动详情面板
-                    if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled)
-                        && item == SelectedStrategy)
+                    // 侧栏变更联动详情面板
+                    if (item == SelectedStrategy)
                     {
                         _suppressChangeTracking = true;
-                        EditIsEnabled = item.IsEnabled;
+                        if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled))
+                            EditIsEnabled = item.IsEnabled;
+                        else if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
+                            EditPriority = item.Priority;
                         _suppressChangeTracking = false;
                     }
                 };
@@ -283,20 +284,49 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             EditPriority = item.Priority;
             EditIsEnabled = item.IsEnabled;
 
-            ShowFrontRowConfig = detail.Id == "FrontRowRotation";
-            ShowDeskMateConfig = detail.Id == "DeskMate";
+            // 加载策略参数编辑器（manifest parameters[] 驱动）
+            if (detail.ParameterDefinitions is { Count: > 0 })
+            {
+                var pe = new ParameterEditorViewModel();
+                pe.LoadParameters(detail.ParameterDefinitions, detail.Parameters);
+                pe.Parameters.CollectionChanged += (_, _) => MarkDetailChanged();
+                foreach (var p in pe.Parameters)
+                    p.PropertyChanged += (_, _) => MarkDetailChanged();
+                ParameterEditor = pe;
+            }
+            else
+            {
+                ParameterEditor = null;
+            }
+            OnPropertyChanged(nameof(HasParameters));
 
-            if (ShowFrontRowConfig && detail.Parameters is { Count: > 0 })
+            // 加载配置块编辑器（manifest codeBlocks[] 驱动）
+            ConfigBlockEditors.Clear();
+            if (detail.CodeBlocks is { Count: > 0 })
             {
-                EditHistoryWeight = GetParamInt(detail.Parameters , "HistoryWeight");
-                EditNeedsFrontRowBonus = GetParamInt(detail.Parameters , "NeedsFrontRowBonus");
-                EditFrontRowCount = GetParamInt(detail.Parameters , "FrontRowCount");
+                var datasets = await _facade.ListStudentDatasetsAsync(CancellationToken.None);
+                var datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id, Name = d.Name }).ToList();
+                var venueIds = await _facade.ListVenueIdsAsync(CancellationToken.None);
+                var venueItems = new List<DatasetItem>();
+                foreach (var vid in venueIds)
+                {
+                    var name = vid; // 简化：用 ID 作为名称
+                    venueItems.Add(new DatasetItem { Id = vid, Name = name });
+                }
+
+                foreach (var cb in detail.CodeBlocks)
+                {
+                    var ce = new ConfigBlockEditorViewModel(_facade);
+                    ce.Initialize(cb, detail.Id, datasetItems, venueItems);
+                    ce.PropertyChanged += (_, e) =>
+                    {
+                        if (e.PropertyName == nameof(ConfigBlockEditorViewModel.IsDirty))
+                            MarkDetailChanged();
+                    };
+                    ConfigBlockEditors.Add(ce);
+                }
             }
-            if (ShowDeskMateConfig && detail.Parameters is { Count: > 0 })
-            {
-                EditPreferHorizontal = GetParamBool(detail.Parameters , "PreferHorizontal");
-                EditAllowVertical = GetParamBool(detail.Parameters , "AllowVertical");
-            }
+            OnPropertyChanged(nameof(HasCodeBlocks));
 
             _suppressChangeTracking = false;
             _hasDetailChanges = false;
@@ -472,11 +502,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void ReSort ()
     {
-        var selected = SelectedStrategy;
         var sorted = Strategies.OrderBy(s => s.Priority).ToList();
-        Strategies = new ObservableCollection<StrategyItemViewModel>(sorted);
-        SelectedStrategy = selected;
-        OnPropertyChanged(nameof(Strategies));
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            var currentIdx = Strategies.IndexOf(sorted[i]);
+            if (currentIdx != i)
+                Strategies.Move(currentIdx , i);
+        }
     }
 
     // ═══════════════ 保存当前（详情页） ═══════════════
@@ -516,6 +548,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             SelectedStrategy.MarkClean();
             _hasDetailChanges = false;
             ReSort();
+
+            // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
+            foreach (var ce in ConfigBlockEditors)
+            {
+                if (ce.IsDirty && ce.IsLoaded)
+                    await ce.SaveConfigCommand.ExecuteAsync(null);
+            }
+
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = string.Format(Resources.Strategy_SavedFmt , savedName);
         }
@@ -577,7 +617,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     Source = item.Source ,
                     Priority = item.Priority ,
                     IsEnabled = item.IsEnabled ,
-                    Parameters = parameters
+                    Parameters = parameters ?? []
                 };
                 await _facade.SaveStrategyConfigAsync(item.Id , config , ct);
                 item.MarkClean();
@@ -585,6 +625,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
             _hasDetailChanges = false;
             ReSort();
+
+            // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
+            foreach (var ce in ConfigBlockEditors)
+            {
+                if (ce.IsDirty && ce.IsLoaded)
+                    await ce.SaveConfigCommand.ExecuteAsync(null);
+            }
+
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = string.Format(Resources.Strategy_SavedCountFmt , dirtyItems.Count);
         }
@@ -611,16 +659,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         EditPriority = SelectedDetail.DefaultPriority;
         EditIsEnabled = SelectedDetail.DefaultEnabled;
 
-        if (ShowFrontRowConfig)
+        // 重置参数为默认值
+        if (SelectedDetail.ParameterDefinitions is { Count: > 0 })
         {
-            EditHistoryWeight = 10;
-            EditNeedsFrontRowBonus = 1000;
-            EditFrontRowCount = 1;
-        }
-        if (ShowDeskMateConfig)
-        {
-            EditPreferHorizontal = true;
-            EditAllowVertical = false;
+            ParameterEditor?.LoadParameters(SelectedDetail.ParameterDefinitions, null);
         }
 
         // 确认后直接保存
@@ -632,19 +674,9 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private Dictionary<string , object?> CollectDetailParameters ()
     {
-        var p = new Dictionary<string , object?>();
-        if (ShowFrontRowConfig)
-        {
-            p["HistoryWeight"] = EditHistoryWeight;
-            p["NeedsFrontRowBonus"] = EditNeedsFrontRowBonus;
-            p["FrontRowCount"] = EditFrontRowCount;
-        }
-        if (ShowDeskMateConfig)
-        {
-            p["PreferHorizontal"] = EditPreferHorizontal;
-            p["AllowVertical"] = EditAllowVertical;
-        }
-        return p;
+        if (ParameterEditor is not null)
+            return ParameterEditor.CollectValues();
+        return [];
     }
 
     private static int GetParamInt (Dictionary<string , object?> parameters , string key)

@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             x:DataType="vm:StudentPickerViewModel"
+             x:Class="A_Pair.Presentation.Avalonia.Views.StudentPickerView">
+    <ComboBox ItemsSource="{Binding Students}"
+              SelectedItem="{Binding SelectedStudent}"
+              DisplayMemberBinding="{Binding Display}"
+              PlaceholderText="选择学生"
+              HorizontalAlignment="Stretch" />
+</UserControl>

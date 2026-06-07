@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Lang;
@@ -28,6 +29,10 @@ public partial class MemberManagementViewModel : ViewModelBase
 
     [ObservableProperty]
     private ObservableCollection<Student> _students = [];
+
+    /// <summary>底部新增行的绑定源，用户填写后通过 AddNewStudentCommand 加入表格。</summary>
+    [ObservableProperty]
+    private Student _newStudent = new();
 
     [ObservableProperty]
     private string _filePath = string.Empty;
@@ -85,6 +90,71 @@ public partial class MemberManagementViewModel : ViewModelBase
     private double _sidebarListWidth = 240;
 
     private bool _userWantsSidebarExpanded = true;
+
+    // ── 脏状态追踪 ──
+    private static readonly JsonSerializerOptions _studentJsonOptions = new()
+    {
+        WriteIndented = false ,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+    private string? _originalStudentsJson;
+    private StudentDatasetInfo? _previousDataset;
+    private bool _suppressDatasetLoad;
+
+    private bool IsNewStudentDirty =>
+        !string.IsNullOrWhiteSpace(NewStudent.Name) ||
+        NewStudent.Height.HasValue ||
+        NewStudent.Gender.HasValue ||
+        NewStudent.NeedsFrontRow;
+
+    private bool IsDirty =>
+        IsNewStudentDirty ||
+        (_originalStudentsJson != null &&
+        SerializeStudents() != _originalStudentsJson);
+
+    private string SerializeStudents () =>
+        JsonSerializer.Serialize(Students , _studentJsonOptions);
+
+    private void MarkClean () => _originalStudentsJson = SerializeStudents();
+    private void MarkDirty () => _originalStudentsJson ??= "";
+
+    partial void OnSelectedDatasetChanged (StudentDatasetInfo? value)
+    {
+        if (_suppressDatasetLoad || value is null)
+            return;
+        _ = SwitchToDatasetAsync(value);
+    }
+
+    private async Task SwitchToDatasetAsync (StudentDatasetInfo target)
+    {
+        if (IsDirty)
+        {
+            var choice = await Dialog.ShowMultiOptionAsync(
+                Resources.Member_UnsavedChanges ,
+                Resources.Member_UnsavedChangesMsg ,
+                Resources.Common_Save ,
+                Resources.Common_Discard ,
+                Resources.Common_Cancel);
+
+            switch (choice)
+            {
+                case 0: // 保存
+                    await SaveInternalAsync(CancellationToken.None);
+                    break;
+                case 1: // 放弃
+                    break;
+                default: // 取消或关闭窗口
+                    _suppressDatasetLoad = true;
+                    SelectedDataset = _previousDataset;
+                    _suppressDatasetLoad = false;
+                    return;
+            }
+        }
+
+        NewStudent = new Student();
+        await LoadDatasetAsync(target , CancellationToken.None);
+        _previousDataset = target;
+    }
 
     public void OnWindowWidthChanged (double windowWidth)
     {
@@ -269,6 +339,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     var name = Path.GetFileNameWithoutExtension(FilePath);
                     CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name , students , Path.GetFileName(FilePath) , ct);
                     CurrentDatasetName = name;
+                    MarkClean();
                     _ = RefreshDatasetsAsync(ct);
                 }
 
@@ -377,29 +448,64 @@ public partial class MemberManagementViewModel : ViewModelBase
         CurrentDatasetName = null;
         FilePath = string.Empty;
         ErrorMessage = string.Empty;
+        _originalStudentsJson = null;
+        NewStudent = new Student();
         StatusMessage = Resources.Member_Ready;
     }
 
     [RelayCommand]
-    private async Task LoadSelectedDatasetAsync (CancellationToken ct)
+    private void DeleteStudent (Student student)
     {
-        if (SelectedDataset is null) return;
+        if (Students.Remove(student))
+        {
+            MarkDirty();
+            StudentCount = Students.Count;
+            IsEmpty = StudentCount == 0;
+            StatusMessage = string.Format(Resources.Member_DeletedRowFmt , student.Name , StudentCount);
+        }
+    }
 
+    [RelayCommand]
+    private void AddNewStudent ()
+    {
+        if (string.IsNullOrWhiteSpace(NewStudent.Name))
+            return;
+
+        MarkDirty();
+
+        Students.Add(new Student
+        {
+            Name = NewStudent.Name.Trim() ,
+            Height = NewStudent.Height ,
+            Gender = NewStudent.Gender ,
+            NeedsFrontRow = NewStudent.NeedsFrontRow
+        });
+
+        NewStudent = new Student();
+        StudentCount = Students.Count;
+        IsEmpty = false;
+        StatusMessage = string.Format(Resources.Member_AddedRowFmt , StudentCount);
+    }
+
+    private async Task LoadDatasetAsync (StudentDatasetInfo dataset , CancellationToken ct)
+    {
         IsLoading = true;
         ErrorMessage = string.Empty;
         StatusMessage = Resources.Member_Loading;
 
         try
         {
-            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id , ct);
+            var students = await _facade.LoadStudentDatasetAsync(dataset.Id , ct);
             if (students is not null)
             {
-                CurrentDatasetId = SelectedDataset.Id;
-                CurrentDatasetName = SelectedDataset.Name;
+                CurrentDatasetId = dataset.Id;
+                CurrentDatasetName = dataset.Name;
                 Students = new ObservableCollection<Student>(students);
                 StudentCount = Students.Count;
                 IsEmpty = StudentCount == 0;
-                FilePath = SelectedDataset.OriginalFileName ?? SelectedDataset.Name;
+                FilePath = dataset.OriginalFileName ?? dataset.Name;
+                MarkClean();
+                NewStudent = new Student();
                 StatusMessage = StudentCount > 0
                     ? string.Format(Resources.Member_LoadedFmt , StudentCount)
                     : Resources.Member_EmptyDataset;
@@ -407,7 +513,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             else
             {
                 StatusMessage = Resources.Member_DatasetNotFound;
-                await _dialog.ShowErrorAsync(Resources.Data_LoadFailed , $"找不到数据集「{SelectedDataset.Name}」的文件。");
+                await _dialog.ShowErrorAsync(Resources.Data_LoadFailed , $"找不到数据集「{dataset.Name}」的文件。");
                 await RefreshDatasetsAsync(ct);
             }
         }
@@ -483,11 +589,32 @@ public partial class MemberManagementViewModel : ViewModelBase
             return;
         }
 
-        var datasetName = CurrentDatasetName ?? Resources.Member_Unnamed;
+        // 检查空行是否有未完成的数据
+        if (IsNewStudentDirty)
+        {
+            var choice = await Dialog.ShowMultiOptionAsync(
+                Resources.Member_NewRowPendingTitle ,
+                Resources.Member_NewRowPendingMsg ,
+                Resources.Member_DiscardAndSave ,
+                Resources.Common_Cancel);
+            if (choice != 0) return;
+            NewStudent = new Student();
+        }
 
-        var confirmed = await _dialog.ShowConfirmAsync(Resources.Member_SaveConfirm ,
-            string.Format(Resources.Member_SaveConfirmMsg , datasetName , StudentCount));
-        if (!confirmed) return;
+        // 无关联数据集 → 另存为
+        if (CurrentDatasetId is null)
+        {
+            await RenameSaveAsync(ct);
+            return;
+        }
+
+        await SaveInternalAsync(ct);
+    }
+
+    /// <summary>直接保存到 CurrentDatasetId，无确认弹窗，不刷新侧栏选中状态。</summary>
+    private async Task SaveInternalAsync (CancellationToken ct)
+    {
+        var datasetName = CurrentDatasetName ?? Resources.Member_Unnamed;
 
         try
         {
@@ -496,6 +623,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
             CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
             CurrentDatasetName = datasetName;
+            MarkClean();
             await RefreshDatasetsAsync(ct);
             StatusMessage = string.Format(Resources.Member_SavedFmt , datasetName);
         }
@@ -513,6 +641,10 @@ public partial class MemberManagementViewModel : ViewModelBase
         {
             var s = Students[i];
             var row = i + 1;
+
+            // 跳过完全空行（所有字段均未填写）
+            if (string.IsNullOrWhiteSpace(s.Name) && s.Height == null && s.Gender == null && !s.NeedsFrontRow)
+                continue;
 
             if (string.IsNullOrWhiteSpace(s.Name))
                 errors.Add(string.Format(Resources.Member_NameEmptyFmt , row));
@@ -541,6 +673,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , Students.ToList() , null , ct);
             CurrentDatasetId = newId;
             CurrentDatasetName = newName.Trim();
+            MarkClean();
             await RefreshDatasetsAsync(ct);
             StatusMessage = string.Format(Resources.Member_SavedAsFmt , newName.Trim());
         }

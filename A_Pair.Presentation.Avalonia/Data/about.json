@@ -1,6 +1,7 @@
 {
   "zh-CN": {
-    "description": "跨平台桌面座位安排与轮换系统，支持多种布局、策略引擎、插件扩展和数据导入导出。",
+    "version": "1.0.0",
+    "description": "跨平台桌面座位安排与轮换系统，支持多种布局、策略引擎（WIP）、插件扩展（开发中）和数据导入导出。",
     "projectUrl": "https://github.com/Helio-RC/A_Pair",
     "license": "MIT License",
     "copyright": "© 2026 A_Pair Contributors",
@@ -16,7 +17,8 @@
     ]
   },
   "en-US": {
-    "description": "Cross-platform desktop seating arrangement and rotation system supporting multiple layouts, strategy engines, plugin extensions, and data import/export.",
+    "version": "1.0.0",
+    "description": "Cross-platform desktop seating arrangement and rotation system supporting multiple layouts, strategy engines (WIP), plugin extensions (in development), and data import/export.",
     "projectUrl": "https://github.com/Helio-RC/A_Pair",
     "license": "MIT License",
     "copyright": "© 2026 A_Pair Contributors",

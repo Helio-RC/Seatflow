@@ -26,6 +26,12 @@ namespace A_Pair.Core.Strategies
         /// </summary>
         public FixedSeatStrategy () : this(new FixedSeatConfiguration()) { }
 
+        /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
+        public FixedSeatConfiguration Config => _config;
+
+        /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
+        public const string DisplayNameConst = "固定座位";
+
         /// <summary>策略 ID："FixedSeat"。</summary>
         public string Id { get; } = "FixedSeat";
 
@@ -56,17 +62,18 @@ namespace A_Pair.Core.Strategies
                 if (seat == null)
                 {
                     _logger.LogWarning("FixedSeat：座位 {SeatId} 不存在，跳过" , kv.Key);
+                    workspace.LogWarning(Id , DisplayNameConst , "FixedSeat_NotFound" , kv.Key);
                     continue;
                 }
 
                 // 先分配再固定，避免 IsFixed 导致分配失败
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    // 如果座位已被其他人占用则清除（但不覆盖非固定？这里为了固定座位强制）
+                    // 如果座位已被其他人占用则清除
                     if (seat.OccupantId != null && seat.OccupantId != kv.Value)
                     {
-                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被 {OldStudent} 占用，清除后分配给 {NewStudent}" ,
-                            seat.Id , seat.OccupantId , kv.Value);
+                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被占用，清除后重新分配" , kv.Key);
+                        workspace.LogWarning(Id , DisplayNameConst , "FixedSeat_Occupied" , kv.Key);
                         seat.OccupantId = null;
                         seat.IsAvailable = true;
                     }
@@ -79,11 +86,11 @@ namespace A_Pair.Core.Strategies
                     else
                     {
                         _logger.LogWarning("FixedSeat：分配座位 {SeatId} 给学生 {StudentId} 失败" , kv.Key , kv.Value);
+                        workspace.LogError(Id , DisplayNameConst , "FixedSeat_AssignFailed" , kv.Key , kv.Value);
                     }
                 }
                 else
                 {
-                    // 如果配置中只有座位ID没有学生ID，仅标记为固定但不清除当前占用
                     seat.IsFixed = true;
                 }
             }

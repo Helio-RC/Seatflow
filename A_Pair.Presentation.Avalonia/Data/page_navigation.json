@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "pages": {
+    "Home": true,
+    "MemberManagement": true,
+    "VenueConfiguration": true,
+    "FreeformManagement": true,
+    "StrategyConfiguration": true,
+    "SeatingArrangement": true,
+    "SnapshotHistory": true,
+    "PluginManagement": false,
+    "Settings": true,
+    "About": true
+  }
+}

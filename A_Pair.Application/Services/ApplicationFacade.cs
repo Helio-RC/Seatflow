@@ -44,6 +44,7 @@ namespace A_Pair.Application.Services
         IStudentDatasetRepository datasetRepo ,
         StrategyManifestProvider manifestProvider ,
         StrategyConfigFileRepository strategyConfigRepo ,
+        StrategyDatasetConfigRepository datasetConfigRepo ,
         ILogger<ApplicationFacade> logger) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -57,7 +58,10 @@ namespace A_Pair.Application.Services
         private readonly IStudentDatasetRepository _datasetRepo = datasetRepo ?? throw new ArgumentNullException(nameof(datasetRepo));
         private readonly StrategyManifestProvider _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
+        private readonly StrategyDatasetConfigRepository _datasetConfigRepo = datasetConfigRepo ?? throw new ArgumentNullException(nameof(datasetConfigRepo));
         private SeatingWorkspace? _currentWorkspace;
+        // 注意：以下字段假定单线程访问（桌面 UI 线程）。
+        // 并发调用 GenerateSeatingAsync 等操作不受支持。
         private ClassroomLayoutDefinition? _currentLayout;
         private List<ISeatingStrategy>? _cachedStrategies;
 
@@ -187,13 +191,15 @@ namespace A_Pair.Application.Services
             }
 
             // 3. 创建工作区
-            var workspace = new SeatingWorkspace(students , seats);
+            var workspace = new SeatingWorkspace(students , seats ,
+                _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
-            // 4. 获取内置策略
-            var strategies = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            // 4. 获取内置策略（缓存 D内置策略，不变异）
+            var builtInStrategies = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
 
-            // 5. 加载插件策略并适配
+            // 5. 加载插件策略并适配（加入独立列表，不污染缓存）
+            var strategies = new List<ISeatingStrategy>(builtInStrategies);
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(cancellationToken);
             foreach (var pluginInfo in loadedPlugins)
             {
@@ -203,6 +209,18 @@ namespace A_Pair.Application.Services
                     strategies.Add(adapter);
                 }
             }
+
+            // 5b. 排除标记为不可见（visible=false）的策略 — 它们既不显示也不执行
+            var invisibleIds = _manifestProvider.GetBuiltInManifests()
+                .Where(m => !m.Visible)
+                .Select(m => m.Id)
+                .ToHashSet();
+            foreach (var pi in loadedPlugins)
+            {
+                if (!pi.Manifest.Visible)
+                    invisibleIds.Add(pi.Manifest.Id);
+            }
+            strategies = strategies.Where(s => !invisibleIds.Contains(s.Id)).ToList();
 
             // 6. 按请求过滤策略
             if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
@@ -219,6 +237,9 @@ namespace A_Pair.Application.Services
                 var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
                 frontRowStrategy?.SetFrontRowCount(polarMeta.FrontRowCount);
             }
+
+            // 6c. 加载代码块配置并应用到 FixedSeat / DeskMate 策略
+            await ApplyCodeBlockConfigsAsync(strategies , request , venueLayout , cancellationToken);
 
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
@@ -261,7 +282,7 @@ namespace A_Pair.Application.Services
             }
             var snapshot = new SeatingSnapshot
             {
-                Description = request.Description ?? $"生成于 {DateTime.Now:yyyy-MM-dd HH:mm}" ,
+                Description = request.Description ?? $"Generated at {DateTime.Now:yyyy-MM-dd HH:mm}" ,
                 LayoutId = request.LayoutId ?? "unknown" ,
                 SeatAssignments = plan.Assignments ,
                 Metadata = snapshotMeta
@@ -447,7 +468,7 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
-            var snapshot = await _snapshotRepository.LoadAsync(snapshotId , cancellationToken) ?? throw new InvalidOperationException($"快照 {snapshotId} 不存在");
+            var snapshot = await _snapshotRepository.LoadAsync(snapshotId , cancellationToken) ?? throw new InvalidOperationException($"Snapshot {snapshotId} not found");
 
             // 回滚前自动保存当前状态为备份快照，确保可撤销
             if (_currentWorkspace != null)
@@ -570,7 +591,11 @@ namespace A_Pair.Application.Services
                     Author = pi.Manifest.Author ,
                     Category = "plugin" ,
                     DefaultPriority = pi.Manifest.Priority ,
-                    DefaultEnabled = pi.Manifest.Enabled
+                    DefaultEnabled = pi.Manifest.Enabled ,
+                    Parameters = pi.Manifest.Parameters ,
+                    CodeBlocks = pi.Manifest.CodeBlocks ,
+                    Messages = pi.Manifest.Messages ,
+                    Visible = pi.Manifest.Visible
                 };
 
                 var runtimePluginConfig = pi.Strategy;
@@ -610,7 +635,182 @@ namespace A_Pair.Application.Services
             }
         }
 
+        /// <inheritdoc />
+        public Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
+        {
+            return _datasetConfigRepo.LoadAllAsync(strategyId , ct);
+        }
+
+        private static readonly JsonSerializerOptions StudentHashOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+
+        /// <inheritdoc />
+        public async Task SaveStrategyDatasetConfigAsync (StrategyDatasetConfig config , CancellationToken ct = default)
+        {
+            string? studentHash = null;
+
+            if (!string.IsNullOrEmpty(config.DatasetId))
+            {
+                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
+                if (students is { Count: > 0 })
+                {
+                    var sorted = students.OrderBy(s => s.Id).ToList();
+                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
+                    studentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
+                }
+            }
+
+            string? venueHash = null;
+            if (!string.IsNullOrEmpty(config.VenueId))
+                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
+
+            await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
+        }
+
+        /// <inheritdoc />
+        public Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
+        {
+            return _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
+        }
+
+        /// <inheritdoc />
+        public async Task<(bool studentOk , bool venueOk)> CheckDatasetIntegrityAsync (StrategyDatasetConfig config , CancellationToken ct = default)
+        {
+            bool studentOk = true;
+            bool venueOk = true;
+
+            if (!string.IsNullOrEmpty(config.DatasetId) && !string.IsNullOrEmpty(config.StudentsHash))
+            {
+                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
+                string? currentHash = null;
+                if (students is { Count: > 0 })
+                {
+                    var sorted = students.OrderBy(s => s.Id).ToList();
+                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
+                    currentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
+                }
+                studentOk = currentHash == config.StudentsHash;
+            }
+
+            if (!string.IsNullOrEmpty(config.VenueId) && !string.IsNullOrEmpty(config.ContentHash))
+            {
+                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
+                venueOk = currentHash == config.ContentHash;
+            }
+
+            return (studentOk, venueOk);
+        }
+
         #region Strategy Helpers
+
+        /// <summary>
+        /// 加载代码块配置（FixedSeat/DeskMate 等）并应用到策略实例。
+        /// </summary>
+        private async Task ApplyCodeBlockConfigsAsync (
+            List<ISeatingStrategy> strategies ,
+            SeatingRequest request ,
+            ClassroomLayoutDefinition? venueLayout ,
+            CancellationToken ct)
+        {
+            string? datasetId = request.DatasetId;
+            string? venueId = request.LayoutId;
+            if (string.IsNullOrEmpty(datasetId) && string.IsNullOrEmpty(venueId)) return;
+
+            foreach (var strategy in strategies)
+            {
+                var config = await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
+                if (config?.Rows is not { Count: > 0 }) continue;
+
+                switch (strategy)
+                {
+                    case FixedSeatStrategy fs:
+                        ApplyFixedSeatConfig(fs , config , venueLayout);
+                        break;
+                    case DeskMateStrategy ds:
+                        ApplyDeskMateConfig(ds , config);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 将 StrategyDatasetConfig 的 Rows 转换为 FixedSeatConfiguration.FixedAssignments。
+        /// ConfigRow 中的 SeatRow/SeatColumn/SeatRing/SeatAngle/SeatX/SeatY → 查找实际座位 ID。
+        /// </summary>
+        private static void ApplyFixedSeatConfig (
+            FixedSeatStrategy strategy ,
+            StrategyDatasetConfig config ,
+            ClassroomLayoutDefinition? venueLayout)
+        {
+            var assignments = new Dictionary<string , string>();
+            foreach (var row in config.Rows)
+            {
+                if (string.IsNullOrEmpty(row.StudentId)) continue;
+                var seat = FindSeatByPosition(venueLayout , row);
+                if (seat is not null)
+                    assignments[seat.Id] = row.StudentId;
+            }
+            if (assignments.Count > 0)
+                strategy.Config.FixedAssignments = assignments;
+        }
+
+        /// <summary>
+        /// 将 StrategyDatasetConfig 的 Rows 转换为 DeskMateConfiguration.Groups。
+        /// 每行一个 DeskMateGroup，StudentId + Values["student1"/"student2"/...] → 组内学生 ID 列表。
+        /// </summary>
+        private static void ApplyDeskMateConfig (DeskMateStrategy strategy , StrategyDatasetConfig config)
+        {
+            strategy.Config.Groups.Clear();
+            foreach (var row in config.Rows)
+            {
+                var group = new DeskMateGroup();
+                if (!string.IsNullOrEmpty(row.StudentId))
+                    group.StudentIds.Add(row.StudentId);
+                // 额外的同桌学生
+                for (int i = 1; i <= 10; i++)
+                {
+                    var key = $"student{i}";
+                    if (row.Values?.TryGetValue(key , out var sid) == true && sid?.ToString() is string s && !string.IsNullOrEmpty(s))
+                        group.StudentIds.Add(s);
+                }
+                if (group.StudentIds.Count >= 2)
+                    strategy.Config.Groups.Add(group);
+            }
+        }
+
+        /// <summary>
+        /// 根据 ConfigRow 中的座位位置信息在会场布局中查找对应的 Seat 对象。
+        /// </summary>
+        private static Seat? FindSeatByPosition (ClassroomLayoutDefinition? layout , StrategyConfigRow row)
+        {
+            if (layout is null) return null;
+
+            if (layout.LayoutType == LayoutType.Grid)
+            {
+                if (row.SeatRow.HasValue && row.SeatColumn.HasValue)
+                    return layout.Seats.OfType<GridSeat>()
+                        .FirstOrDefault(s => s.Row == row.SeatRow.Value && s.Column == row.SeatColumn.Value);
+            }
+            else if (layout.LayoutType == LayoutType.Polar)
+            {
+                if (row.SeatRing.HasValue && row.SeatAngle.HasValue)
+                    return layout.Seats.OfType<PolarSeat>()
+                        .FirstOrDefault(s => s.Ring == row.SeatRing.Value
+                            && Math.Abs(s.AngleDegrees - row.SeatAngle.Value) < 0.01);
+            }
+            else if (layout.LayoutType == LayoutType.Freeform)
+            {
+                if (row.SeatX.HasValue && row.SeatY.HasValue)
+                    return layout.Seats.OfType<FreeformSeat>()
+                        .FirstOrDefault(s => Math.Abs(s.X - row.SeatX.Value) < 0.01
+                            && Math.Abs(s.Y - row.SeatY.Value) < 0.01);
+            }
+
+            return null;
+        }
 
         private static StrategyDisplayInfo BuildDisplayInfo (
             StrategyManifest manifest ,
@@ -629,7 +829,11 @@ namespace A_Pair.Application.Services
                 DefaultPriority = manifest.DefaultPriority ,
                 DefaultEnabled = manifest.DefaultEnabled ,
                 Priority = manifest.DefaultPriority ,
-                IsEnabled = manifest.DefaultEnabled
+                IsEnabled = manifest.DefaultEnabled ,
+                ParameterDefinitions = manifest.Parameters ,
+                CodeBlocks = manifest.CodeBlocks ,
+                Messages = manifest.Messages ,
+                Visible = manifest.Visible
             };
 
             // 用持久化的配置覆盖默认值

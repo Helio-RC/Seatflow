@@ -4,5 +4,6 @@
   "snapshot": "1.0",
   "venueInfo": "1.0",
   "appSettings": "1.0",
-  "strategyConfig": "1.0"
+  "strategyConfig": "1.0",
+  "strategyDatasetConfig": "1.0"
 }

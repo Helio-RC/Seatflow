@@ -3,9 +3,12 @@
     "name": "RandomFill",
     "displayName": "随机填充",
     "version": "1.0.0",
-    "description": "将剩余人员随机填入空座位。最先执行，确保每个座位都有人员，后续策略可按需覆盖。",
+    "description": "最后执行的兜底策略。将所有剩余未分配学生随机填入剩余空座，确保全员有座位。",
     "author": "A_Pair Team",
     "category": "fill",
-    "defaultPriority": 10,
-    "defaultEnabled": true
+    "defaultPriority": 100,
+    "defaultEnabled": true,
+    "visible": true,
+    "parameters": [],
+    "codeBlocks": []
 }

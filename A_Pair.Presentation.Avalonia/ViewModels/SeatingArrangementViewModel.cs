@@ -120,6 +120,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isHistoryExpanded = true;
 
+    [ObservableProperty]
+    private ObservableCollection<StrategyMessageGroup> _messageGroups = [];
+
+    [ObservableProperty]
+    private bool _isMessagesExpanded = true;
+
+    public bool HasMessages => MessageGroups.Count > 0;
+
     // ── 状态栏 ──
     [ObservableProperty]
     private string _statusMessage = Resources.Seating_Ready;
@@ -306,6 +314,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 var request = new SeatingRequest
                 {
                     LayoutId = SelectedVenue!.Id ,
+                    DatasetId = SelectedDataset!.Id ,
                     StudentDataSource = tempPath ,
                     Description = string.Format(Resources.Seating_VenueDatasetDesc , SelectedVenue.Name , SelectedDataset.Name)
                 };
@@ -553,7 +562,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         // 策略列表
         var allStrategies = await _facade.GetStrategiesAsync();
         ActiveStrategies = new ObservableCollection<StrategyDisplayInfo>(
-            allStrategies.Where(s => s.IsEnabled).OrderBy(s => s.Priority));
+            allStrategies.Where(s => s.IsEnabled && s.Visible).OrderBy(s => s.Priority));
 
         // 未分配学生
         if (_workspace != null && _currentPlan != null)
@@ -563,6 +572,59 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 _workspace.Students.Where(s => !assignedIds.Contains(s.Id)));
             OnPropertyChanged(nameof(UnassignedStudentCount));
         }
+
+        // 策略消息（按 Warning / Error 分组）
+        if (_workspace != null)
+        {
+            // 构建消息模板字典：从各策略的 manifest messages 中解析当前语言模板
+            var templates = new Dictionary<string , string>();
+            foreach (var s in allStrategies)
+            {
+                if (s.Messages is null) continue;
+                foreach (var (key , dict) in s.Messages)
+                    templates[key] = Helpers.LocalizeHelper.Resolve(dict);
+            }
+
+            var messages = _workspace.Messages;
+            var studentNames = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
+            var errors = messages.Where(m => m.Severity == StrategyMessageSeverity.Error).ToList();
+            var warnings = messages.Where(m => m.Severity == StrategyMessageSeverity.Warning).ToList();
+
+            var groups = new ObservableCollection<StrategyMessageGroup>();
+            if (errors.Count > 0)
+                groups.Add(new StrategyMessageGroup
+                {
+                    Severity = StrategyMessageSeverity.Error,
+                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})",
+                    Messages = new ObservableCollection<StrategyMessageItem>(
+                        errors.Select(m => new StrategyMessageItem
+                        {
+                            StrategyName = m.StrategyDisplayName,
+                            Message = FormatStrategyMessage(m, studentNames, templates),
+                            Severity = m.Severity
+                        }))
+                });
+            if (warnings.Count > 0)
+                groups.Add(new StrategyMessageGroup
+                {
+                    Severity = StrategyMessageSeverity.Warning,
+                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})",
+                    Messages = new ObservableCollection<StrategyMessageItem>(
+                        warnings.Select(m => new StrategyMessageItem
+                        {
+                            StrategyName = m.StrategyDisplayName,
+                            Message = FormatStrategyMessage(m, studentNames, templates),
+                            Severity = m.Severity
+                        }))
+                });
+
+            MessageGroups = groups;
+        }
+        else
+        {
+            MessageGroups = [];
+        }
+        OnPropertyChanged(nameof(HasMessages));
     }
 
     private void UpdateStats ()
@@ -777,6 +839,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [RelayCommand]
     private void ToggleHistory () => IsHistoryExpanded = !IsHistoryExpanded;
 
+    [RelayCommand]
+    private void ToggleMessages () => IsMessagesExpanded = !IsMessagesExpanded;
+
     // ── 导出 ──
 
     private int _dialogLock;
@@ -839,6 +904,27 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             Interlocked.Exchange(ref _dialogLock , 0);
         }
     }
+
+    /// <summary>
+    /// 将 StrategyMessage 的 MessageKey + Args 格式化为可读消息。
+    /// Args 中的学生 ID 会被解析为姓名。
+    /// </summary>
+    private static string FormatStrategyMessage(StrategyMessage m,
+        Dictionary<string, string> studentNames,
+        Dictionary<string, string> templates)
+    {
+        var template = templates.TryGetValue(m.MessageKey, out var t) ? t : m.MessageKey;
+        var resolved = m.Args.Select(a =>
+        {
+            if (a is not string s) return a;
+            // 拆分逗号分隔的 ID 列表，逐个解析为姓名
+            return string.Join(", ",
+                s.Split(',').Select(part =>
+                    studentNames.TryGetValue(part.Trim(), out var n) ? n : part.Trim()));
+        }).ToArray();
+        try { return string.Format(template, resolved); }
+        catch { return template; }
+    }
 }
 
 public partial class HistoryEntry (string description , Dictionary<string , string> assignments) : ObservableObject
@@ -849,4 +935,18 @@ public partial class HistoryEntry (string description , Dictionary<string , stri
     public bool IsCurrent { get; set; }
     [ObservableProperty]
     private bool _isSelected;
+}
+
+public class StrategyMessageGroup
+{
+    public StrategyMessageSeverity Severity { get; init; }
+    public string Title { get; init; } = "";
+    public ObservableCollection<StrategyMessageItem> Messages { get; init; } = [];
+}
+
+public class StrategyMessageItem
+{
+    public string StrategyName { get; init; } = "";
+    public string Message { get; init; } = "";
+    public StrategyMessageSeverity Severity { get; init; }
 }

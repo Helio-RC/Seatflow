@@ -11,7 +11,7 @@
     <vm:SettingsViewModel />
   </Design.DataContext>
 
-  <DockPanel Margin="16">
+  <DockPanel Classes="pageMargin">
     <!-- 顶部标题栏 -->
     <Border DockPanel.Dock="Top" Margin="0,0,0,24">
       <DockPanel>

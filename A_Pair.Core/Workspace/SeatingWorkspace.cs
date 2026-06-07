@@ -13,6 +13,7 @@ public class SeatingWorkspace : IPluginWorkspace
 {
     private readonly List<Student> _students = [];
     private readonly List<Seat> _seats = [];
+    private readonly List<StrategyMessage> _messages = [];
     private readonly ILogger<SeatingWorkspace>? _logger;
 
     /// <summary>学生列表（只读）。</summary>
@@ -157,6 +158,43 @@ public class SeatingWorkspace : IPluginWorkspace
     }
 
     /// <inheritdoc />
+    /// <summary>策略执行期间收集的消息（警告/错误），供 UI 展示。</summary>
+    public IReadOnlyList<StrategyMessage> Messages => _messages;
+
+    /// <inheritdoc />
+    public void LogWarning (string strategyId , string displayName , string messageKey , params object?[] args)
+    {
+        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Warning , strategyId , displayName , messageKey , args));
+        _logger?.LogWarning("[{DisplayName}] {MessageKey} → {Detailed}" ,
+            displayName , messageKey , ResolveArgsWithNames(args));
+    }
+
+    /// <inheritdoc />
+    public void LogError (string strategyId , string displayName , string messageKey , params object?[] args)
+    {
+        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Error , strategyId , displayName , messageKey , args));
+        _logger?.LogError("[{DisplayName}] {MessageKey} → {Detailed}" ,
+            displayName , messageKey , ResolveArgsWithNames(args));
+    }
+
+    /// <summary>
+    /// 将 args 中的学生 ID 解析为 "姓名(ID)" 格式，用于日志记录。
+    /// 逗号分隔的 ID 列表会被逐个解析。
+    /// </summary>
+    private List<string> ResolveArgsWithNames (object?[] args)
+    {
+        var studentMap = _students.ToDictionary(s => s.Id , s => s);
+        return args.Select(a =>
+        {
+            if (a is not string s) return a?.ToString() ?? "null";
+            return string.Join(", " , s.Split(',').Select(part =>
+            {
+                var id = part.Trim();
+                return studentMap.TryGetValue(id, out var student) ? $"{student.Name}({id})" : id;
+            }));
+        }).ToList();
+    }
+
     public IReadOnlyDictionary<string , string> GetAssignments ()
     {
         return BuildSeatingPlan().Assignments;

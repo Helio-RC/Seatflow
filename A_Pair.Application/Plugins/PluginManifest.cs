@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using A_Pair.Core.Models;
 
 namespace A_Pair.Application.Plugins
 {
@@ -89,5 +90,27 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         [JsonPropertyName("scriptType")]
         public string? ScriptType { get; set; }
+
+        /// <summary>
+        /// 策略级全局参数声明（可选）。UI 根据此列表动态渲染参数输入控件。
+        /// </summary>
+        [JsonPropertyName("parameters")]
+        public List<StrategyParameterDefinition>? Parameters { get; set; }
+
+        /// <summary>
+        /// 按数据集/会场的配置块声明（可选）。每个 codeBlock 渲染为一个独立配置区。
+        /// </summary>
+        [JsonPropertyName("codeBlocks")]
+        public List<StrategyCodeBlock>? CodeBlocks { get; set; }
+
+        /// <summary>是否在策略配置页可见（默认 true）。设为 false 时策略不可见、不可用。</summary>
+        [JsonPropertyName("visible")]
+        public bool Visible { get; set; } = true;
+
+        /// <summary>
+        /// 策略执行消息的多语言模板（可选）。key 为消息标识，value 为 {语言: 模板} 词典。
+        /// </summary>
+        [JsonPropertyName("messages")]
+        public Dictionary<string , Dictionary<string , string>>? Messages { get; set; }
     }
 }

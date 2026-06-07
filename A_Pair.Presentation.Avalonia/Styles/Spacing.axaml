@@ -3,7 +3,10 @@
 
   <!-- ═══ 间距令牌 ═══ -->
 
-  <!-- 页面统一外边距 -->
+  <!-- 页面统一外边距 (DockPanel/Border) -->
+  <Style Selector="DockPanel.pageMargin">
+    <Setter Property="Margin" Value="16" />
+  </Style>
   <Style Selector="Border.pageMargin">
     <Setter Property="Margin" Value="16" />
   </Style>
@@ -12,6 +15,26 @@
   <Style Selector="Border.cardPadding">
     <Setter Property="Padding" Value="20" />
     <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <!-- 顶部工具栏外边距 -->
+  <Style Selector="Border.toolbarTop">
+    <Setter Property="Margin" Value="0,0,0,16" />
+  </Style>
+
+  <!-- 底部状态栏外边距 -->
+  <Style Selector="Border.statusBarBottom">
+    <Setter Property="Padding" Value="0,8,0,0" />
+  </Style>
+
+  <!-- 区块间距 -->
+  <Style Selector="Border.sectionSpacing">
+    <Setter Property="Margin" Value="0,0,0,12" />
+  </Style>
+
+  <!-- 通用内边距 8px -->
+  <Style Selector="Border.paddingSm">
+    <Setter Property="Padding" Value="8" />
   </Style>
 
   <!-- ═══ 圆角预设 (CornerRadius) ═══ -->
@@ -38,13 +61,13 @@
   <!-- ═══ 阴影预设 (BoxShadow) ═══ -->
 
   <Style Selector="Border.elevationNone">
-    <Setter Property="BoxShadow" Value="{StaticResource CardShadowNone}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource CardShadowNone}" />
   </Style>
   <Style Selector="Border.elevationSm">
-    <Setter Property="BoxShadow" Value="{StaticResource CardShadowSmall}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource CardShadowSmall}" />
   </Style>
   <Style Selector="Border.elevationMd">
-    <Setter Property="BoxShadow" Value="{StaticResource CardShadowLarge}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource CardShadowLarge}" />
   </Style>
 
 </Styles>

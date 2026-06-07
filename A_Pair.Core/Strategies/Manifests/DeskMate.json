@@ -3,9 +3,51 @@
     "name": "DeskMate",
     "displayName": "同桌分组",
     "version": "1.0.0",
-    "description": "将同组人员分配到相邻座位。支持同行或同列相邻，组内学生坐在一起。",
+    "description": "将同组学生分配到相邻座位。优先寻找水平连续座位块，可回退到纵向邻接。⚠️ 此策略极不稳定：受前排分配和固定座位影响较大，组员被拆散后仅能就近安插单人。",
     "author": "A_Pair Team",
     "category": "grouping",
-    "defaultPriority": 50,
-    "defaultEnabled": true
+    "defaultPriority": 30,
+    "defaultEnabled": true,
+    "visible": false,
+    "parameters": [
+        {
+            "name": "PreferHorizontal",
+            "fieldType": "ToggleSwitch",
+            "label": { "zh-CN": "优先水平相邻", "en-US": "Prefer Horizontal" },
+            "defaultValue": true
+        },
+        {
+            "name": "AllowVertical",
+            "fieldType": "ToggleSwitch",
+            "label": { "zh-CN": "允许垂直相邻", "en-US": "Allow Vertical" },
+            "defaultValue": false
+        }
+    ],
+    "codeBlocks": [
+        {
+            "title": { "zh-CN": "同桌组", "en-US": "Desk Mate Groups" },
+            "description": { "zh-CN": "每行配置一桌学生。学生选择器数量由会场文件的每桌人数自动决定。", "en-US": "Each row configures one desk of students. The number of student pickers is determined by the venue's seats-per-desk setting." },
+            "dataType": "Both",
+            "displayMode": "ValuePair",
+            "showSeatPosition": false,
+            "studentPickerCount": 2,
+            "seatsPerDeskFromVenue": true,
+            "preventDuplicateInRow": true,
+            "fields": []
+        }
+    ],
+    "messages": {
+        "DeskMate_Split": {
+            "zh-CN": "同桌组（{0}）中的 {1} 已被前排策略分配，该组已拆散",
+            "en-US": "Desk-mate group ({0}) member(s) {1} already assigned to front row, group split"
+        },
+        "DeskMate_AllSplit": {
+            "zh-CN": "所有同桌组均无法形成有效组（成员被前排策略分散或不足2人）",
+            "en-US": "All desk-mate groups invalid (members scattered by front-row strategy or fewer than 2)"
+        },
+        "DeskMate_NoSeats": {
+            "zh-CN": "同桌组（{0}）无法找到连续座位，已跳过",
+            "en-US": "Desk-mate group ({0}) could not find contiguous seats, skipped"
+        }
+    }
 }

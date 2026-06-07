@@ -194,6 +194,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [RelayCommand]
     private void NewVenue ()
     {
+        _selectVenueCts?.Cancel();
         _suppressAutoLoad = true;
         var id = Guid.NewGuid().ToString("N")[..8];
         var item = new VenueItem(id , string.Format(Resources.Venue_NewVenueFmt , id));
@@ -237,6 +238,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var layout = await _facade.LoadVenueAsync(item.Id);
+            if (ct.IsCancellationRequested) return;
             if (layout == null) { StatusMessage = string.Format(Resources.Venue_LoadFailedFmt , item.Name); return; }
 
             LayoutName = layout.Name;
@@ -858,6 +860,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         PolarAisleCircularRings = ""; PolarAisleCircularWidth = 20;
         PolarFrontRowCount = 1;
         PolarEmptyPositionsSpec = "";
+        _freeformPreviewSeats = [];
+        _freeformPreviewObstacles = [];
     }
 
     private static List<int> ParseIntList (string csv)

@@ -23,6 +23,20 @@ public sealed class StrategyDisplayInfo
     public bool IsEnabled { get; set; }
     public Dictionary<string , object?> Parameters { get; set; } = [];
 
+    // ── 来自 Manifest 的声明式配置 ──
+
+    /// <summary>策略级全局参数声明。</summary>
+    public List<StrategyParameterDefinition>? ParameterDefinitions { get; init; }
+
+    /// <summary>按数据集/会场的配置块声明。</summary>
+    public List<StrategyCodeBlock>? CodeBlocks { get; init; }
+
+    /// <summary>是否在策略配置页可见（来自 manifest visible）。默认 true。</summary>
+    public bool Visible { get; init; } = true;
+
+    /// <summary>策略执行消息的多语言模板（来自 manifest messages）。key→语言词典。</summary>
+    public Dictionary<string , Dictionary<string , string>>? Messages { get; init; }
+
     // ── 便捷判断 ──
 
     public bool IsBuiltIn => Source == "builtin";

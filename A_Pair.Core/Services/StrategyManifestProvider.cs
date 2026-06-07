@@ -13,7 +13,8 @@ public class StrategyManifestProvider
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true ,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
     private const string ManifestResourcePrefix = "A_Pair.Core.Strategies.Manifests.";
