@@ -1,41 +1,59 @@
-# A_Pair - 安排
+<!-- markdownlint-disable MD033 MD041 -->
+<div align="center">
 
-跨平台桌面座位安排与轮换系统。支持自动/手动排座、多数据源导入导出、策略引擎、插件扩展、历史快照回滚。
+# 🪑 A_Pair - 安排
 
-> **QQ 交流群**：[761175549](https://qm.qq.com/q/y9D63B0dYk) 欢迎大家前来反馈 / 吹水
+**跨平台桌面座位安排与轮换系统**  
+自动/手动排座 · 多数据源导入导出 · 策略引擎 · 插件扩展 · 历史快照回滚
 
-## 核心功能
+[![GitHub release](https://img.shields.io/github/v/release/Helio-RC/A_Pair?include_prereleases&label=Release&logo=github&style=flat-square)](https://github.com/Helio-RC/A_Pair/releases)
+[![GitHub stars](https://img.shields.io/github/stars/Helio-RC/A_Pair?style=flat-square&logo=github)](https://github.com/Helio-RC/A_Pair/stargazers)
+[![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Repo size](https://img.shields.io/github/repo-size/Helio-RC/A_Pair?style=flat-square)](https://github.com/Helio-RC/A_Pair)
+[![Top language](https://img.shields.io/github/languages/top/Helio-RC/A_Pair?style=flat-square)](https://github.com/Helio-RC/A_Pair)
+[![QQ Group](https://img.shields.io/badge/QQ-761175549-blue?style=flat-square&logo=tencent-qq)](https://qm.qq.com/q/y9D63B0dYk)
 
-- **多格式数据导入** — CSV、Excel（XLSX）、JSON 学生名单导入
-- **智能排座引擎** — 4条内置策略管道执行（1条默认隐藏）：固定座位、前排轮换、随机填充；策略按优先级 Fill-in-Order 模型执行
-- **插件扩展** — 第三方可通过 DLL、Lua 脚本、C# 脚本编写自定义排座策略，拖入即用
-- **手动微调** — 拖拽交换座位，全功能撤销/重做
-- **多种布局** — 网格、环形/扇形、自由点教室布局；支持障碍物（柱子、讲台）
-- **多格式导出** — Excel、CSV、PDF、图片导出座位表
-- **历史快照** — 每次排座自动保存快照，支持回滚到任意历史版本
-- **配置驱动** — 策略优先级、布局参数、导出选项均可配置
-- **跨平台** — Windows / macOS / Linux 原生运行
+</div>
 
-## 开发路线图
+---
+
+![ICON](A_Pair.Presentation.Avalonia/Assets/banner_long.png)
+
+> [!TIP]
+> **💬 QQ 交流群**：[761175549](https://qm.qq.com/q/y9D63B0dYk)  
+> 欢迎大家前来反馈问题、提出建议，或者一起吹水聊天！
+
+## ✨ 核心功能
+
+- [x] **多格式数据导入** — CSV、Excel（XLSX）、JSON 学生名单导入
+- [x] **智能排座引擎** — 3 条内置策略管道执行：固定座位、前排轮换、随机填充；策略按优先级 Fill-in-Order 模型执行
+- [x] **插件扩展** — 第三方可通过 DLL、Lua 脚本、C# 脚本编写自定义排座策略，拖入即用
+- [x] **手动微调** — 拖拽交换座位，全功能撤销/重做
+- [x] **多种布局** — 网格、环形/扇形、自由点教室布局；支持障碍物（柱子、讲台）
+- [x] **多格式导出** — Excel、CSV、PDF、图片导出座位表
+- [x] **历史快照** — 每次排座自动保存快照，支持回滚到任意历史版本
+- [x] **配置驱动** — 策略优先级、布局参数、导出选项均可配置
+- [x] **跨平台** — Windows / macOS / Linux 原生运行
+
+## 📋 开发路线图
 
 当前已完成核心业务逻辑（领域模型、策略引擎、数据导入导出、插件系统、快照管理）和大部分 UI 页面。详见 [docs/Phases.md](docs/Phases.md)。
 
-| 阶段 | 内容 | 状态 |
-|------|------|------|
-| Phase 1-3 | 领域建模、数据导入导出、内置策略 | 已完成 |
-| Phase 4-5 | 插件系统、Lua/C# 脚本支持 | 已完成 |
-| Phase 6 | 高级布局可视化、拖拽交互、命令模式 | 已完成（Grid/Polar/Freeform 布局、Canvas 预览、缩放平移、撤销/重做） |
-| Phase 7 | 配置管理、存储、版本迁移 | 已完成（文件版本管理、迁移管线、快照回滚、快照完整性检测、确定性构建、页面导航管理） |
-| Phase 8 | 测试覆盖、文档完善、打包发布 | 进行中 |
+- [x] **Phase 1-3** — 领域建模、数据导入导出、内置策略
+- [x] **Phase 4-5** — 插件系统、Lua/C# 脚本支持
+- [x] **Phase 6** — 高级布局可视化、拖拽交互、命令模式（Grid/Polar/Freeform 布局、Canvas 预览、缩放平移、撤销/重做）
+- [x] **Phase 7** — 配置管理、存储、版本迁移（文件版本管理、迁移管线、快照回滚、快照完整性检测、确定性构建、页面导航管理）
+- [ ] **Phase 8** — 测试覆盖、文档完善、打包发布
 
-## 快速开始
+## 🚀 快速开始
 
-### 环境要求
+> [!IMPORTANT]
+> **环境要求**
+> - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+> - Windows 11 / macOS 14+ / Ubuntu 22.04+（或其他 Linux 发行版）
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- Windows 11 / macOS 14+ / Ubuntu 22.04+（或其他 Linux 发行版）
-
-### 构建与运行
+**构建与运行**
 
 ```bash
 git clone https://github.com/Helio-RC/A_Pair.git
@@ -44,21 +62,22 @@ dotnet build
 dotnet run --project A_Pair.Presentation.Avalonia
 ```
 
-### 运行测试
+**运行测试**
 
 ```bash
 dotnet test
 ```
 
-## 反馈与贡献
+## 🤝 反馈与贡献
 
-- **Bug 反馈**：请在 GitHub Issues 提交，附上操作系统版本和复现步骤，最好能附上日志
+- **Bug 反馈**：请在 [GitHub Issues](https://github.com/Helio-RC/A_Pair/issues) 提交，附上操作系统版本和复现步骤，最好能附上日志
 - **功能建议**：欢迎提交 Feature Request
-- **插件开发**：参见 [A_Pair.Plugins.Sdk/docs/README.md](A_Pair.Plugins.Sdk/docs/README.md) 插件开发指南
+- **界面美化**：初代开发者审美不好，欢迎各位大能贡献 UI 设计和图标资源
+- **插件开发**：参见 [A_Pair.Plugins.Sdk/docs/README.md](A_Pair.Plugins.Sdk/docs/README.md) 插件开发指南 `尚未完善 🚧 部分支持`
 - **参与开发**：参见 [CONTRIBUTING.md](CONTRIBUTING.md) 了解构建环境、项目结构和编码规范
 - **AI 辅助开发**：本项目使用 Claude Code & Deepseek V4 preview 辅助开发。项目级 AI 配置位于 [CLAUDE.md](CLAUDE.md)，包含架构约定、代码模式和开发命令。建议 AI 开发者先阅读此文件和 [docs/adr/](docs/adr/) 中的架构决策记录
 
-## 技术概要
+## 🧱 技术概要
 
 .NET 10 + Avalonia 12 + CommunityToolkit.Mvvm，分层架构，外观模式统一入口，命令模式实现撤销/重做。
 
@@ -79,11 +98,11 @@ Core           Infrastructure
 | **Infrastructure** | CSV/Excel/JSON 导入导出、网格/环形/自由布局构建、PDF/图片导出、文件版本迁移 |
 | **Presentation** | Avalonia 12 桌面 UI、MVVM（CommunityToolkit.Mvvm）、编译绑定 |
 
-## 许可
+## ⚖️ 许可
 
 MIT License © 2026 A_Pair Contributors
 
-## 项目文档
+## 📚 项目文档
 
 | 文档 | 说明 |
 |------|------|
@@ -97,3 +116,9 @@ MIT License © 2026 A_Pair Contributors
 | [Design_Spec.md](A_Pair.Presentation.Avalonia/docs/Design_Spec.md) | UI 设计规范 |
 | [Fluent_Icons.md](A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md) | 图标参考 |
 | [Plugins.Sdk/README.md](A_Pair.Plugins.Sdk/docs/README.md) | 插件开发 SDK 文档 |
+
+---
+
+<div align="center">
+Made with ❤️ by A_Pair Contributors
+</div>
