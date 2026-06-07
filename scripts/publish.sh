@@ -22,7 +22,7 @@ publish_one() {
 
         dotnet publish "$PROJECT" -c "$CONFIG" -r "$rid" \
             --self-contained "$sc_flag" \
-            -p:PublishSingleFile=true -p:PublishTrimmed=true \
+            -p:PublishSingleFile=true \
             -o "$out"
 
         local exe="$PROJECT"
