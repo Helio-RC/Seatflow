@@ -21,10 +21,10 @@ total=0
 for d in "${dirs[@]}"; do
     size=$(du -sk "$d" 2>/dev/null | cut -f1 || echo 0)
     total=$((total + size))
-    echo -e "\e[90m  $d  ($(echo "scale=1; $size/1024" | bc)M)\e[0m"
+    echo -e "\e[90m  $d  ($((size/1024))M)\e[0m"
 done
 
-total_mb=$(echo "scale=1; $total/1024" | bc)
+total_mb=$((total/1024))
 echo -e "\n\e[33m共 ${#dirs[@]} 个目录，${total_mb}M\e[0m"
 
 if $DRY; then echo -e "\e[36mDryRun — 未删除\e[0m"; exit 0; fi
