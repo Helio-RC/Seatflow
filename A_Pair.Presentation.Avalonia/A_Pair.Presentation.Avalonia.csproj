@@ -12,7 +12,6 @@
     <!-- 确定性构建：相同源码 → 相同输出，不因时间/路径变化 -->
     <Deterministic>true</Deterministic>
     <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)'))=./</PathMap>
-    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
