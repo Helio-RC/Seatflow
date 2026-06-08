@@ -3,6 +3,7 @@
 param(
     [string]$Mode,
     [ValidateSet("Release","Debug")][string]$Configuration="Release",
+    [string]$Suffix="",
     [switch]$Optimize, [switch]$HashOnly
 )
 $ErrorActionPreference="Stop"
@@ -21,7 +22,7 @@ function ShaTable{
 function Publish-One($SC,$Label,$Rids){
     $base="publish/$Label";mkdir -Force $base|Out-Null
     foreach($rid in $Rids){
-        $sf=if($rid-like"win*"){".exe"}else{""};$tmp="$base/.tmp_$rid";$fn="$AppName-$Label-$rid$sf"
+        $sf=if($rid-like"win*"){".exe"}else{""};$tmp="$base/.tmp_$rid";$fn=if($Suffix){"$AppName-$Label-$rid-$Suffix$sf"}else{"$AppName-$Label-$rid$sf"}
         $Host.UI.RawUI.WindowTitle="A_Pair: $Label / $rid"
         Write-Host "`n══════════════════════════════════════════" -F Cyan
         Write-Host "  $Label / $rid" -F Cyan
@@ -48,7 +49,7 @@ if($Mode-or$HashOnly){
 
 # TUI 模式
 [Console]::Clear()
-$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cu=0;$ii=12
+$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cu=0;$suf=$Suffix;$ii=13
 
 function Draw{
     [Console]::SetCursorPosition(0,0)
@@ -79,11 +80,14 @@ function Draw{
     $tm=if($ts){"[*]"}else{"[ ]"}; $tc=if($cu-eq9){">"}else{" "}
     $o+="  优化选项："
     $o+="     $tc$tm 裁剪 (TrimMode=partial)"
+    $sx=if($cu-eq10){">"}else{" "}
+    $sd=if($suf){"[$suf]"}else{"[未设置]"}
+    $o+="     $sx$sd 文件名后缀（Enter 设置）"
     $o+=""
     $o+="  操作："
-    $b1=if($cu-eq10){">"}else{" "}
+    $b1=if($cu-eq11){">"}else{" "}
     $o+="     $b1[ 开始编译 ]"
-    $b2=if($cu-eq11){">"}else{" "}
+    $b2=if($cu-eq12){">"}else{" "}
     $o+="     $b2[ 仅计算哈希 ]"
     $o+=""
     foreach($l in $o){ [Console]::WriteLine($l) }
@@ -102,8 +106,9 @@ while(-not $run){
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
         Escape{[Console]::CursorVisible=$true;[Console]::Clear();Pop-Location;exit 0}
         Enter{
-            if($cu-eq10){$run=$true}
-            elseif($cu-eq11){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Pop-Location;exit 0}
+            if($cu-eq10){[Console]::CursorVisible=$true;$Suffix=(Read-Host "文件名后缀").Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
+            elseif($cu-eq11){$run=$true}
+            elseif($cu-eq12){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Pop-Location;exit 0}
             elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }
