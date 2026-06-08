@@ -11,11 +11,9 @@ cd ..
 APP_NAME="A_Pair"; PROJECT="A_Pair.Presentation.Avalonia"; CONFIG="Release"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 SUFFIXES=(".exe" "" "" ""); SEL=(0 0 0 0)
-TYPE_IDX=2; TRIM_SEL=0; CURSOR=0; ITEMS=14; W=41
+TYPE_IDX=2; TRIM_SEL=0; CURSOR=0; ITEMS=14
 
 step(){ echo -e "  [$(date +%H:%M:%S)] \e[${2:-37}m$1\e[0m"; }
-line(){ printf "│ %-*s │\n" $((W-4)) "$1"; }
-hr(){ echo "├$(printf '%*s' $((W-2)) '' | tr ' ' '─')┤"; }
 
 sha_table(){
     local files=() f h n
@@ -66,29 +64,31 @@ stty -echo -icanon min 0 time 0 2>/dev/null||true; printf "\e[?25l\e[2J"
 draw(){
     local mk hi nm
     printf "\e[2J\e[H"
-    echo "┌$(printf '%*s' $((W-2)) ''|tr ' ' '─')┐"
-    line "A_Pair 发布"; hr
-    line "平台（空格切换）："
+    echo "  A_Pair 发布"
+    echo ""
+    echo "  平台（空格切换）："
     for i in 0 1 2 3; do
         mk="[ ]"; [ "${SEL[$i]}" = "1" ] && mk="[✓]"
         hi=" "; [ "$CURSOR" = "$i" ] && hi=">"
         printf -v nm "%-14s" "${RIDS[$i]}"
-        if [ $((i%2)) -eq 0 ]; then printf "│   %s%s %s" "$hi" "$mk" "$nm"
-        else printf "  %s%s %s │\n" "$hi" "$mk" "$nm"; fi
+        printf "    %s%s %s" "$hi" "$mk" "$nm"
+        [ $((i%2)) -eq 1 ] && echo ""
     done
-    hr
+    echo ""
     local sa=" "; [ "$CURSOR" = "4" ] && sa=">"; local sn=" "; [ "$CURSOR" = "5" ] && sn=">"
-    line "$sa[A] 全选   $sn[N] 全不选"; hr
-    line "发布类型："
+    echo "  $sa[A] 全选   $sn[N] 全不选"
+    echo ""
     local tl="" types=("自包含" "依赖运行时" "两者")
     for i in 0 1 2; do mk="○"; [ "$i" = "$TYPE_IDX" ] && mk="●"; hi=" "; [ "$CURSOR" = "$((6+i))" ] && hi=">"; tl+="$hi$mk ${types[$i]}   "; done
-    line "${tl%   }"; hr
+    echo "  发布类型：${tl%   }"
+    echo ""
     mk="[ ]"; [ "$TRIM_SEL" = "1" ] && mk="[✓]"; tc=" "; [ "$CURSOR" = "9" ] && tc=">"
-    line "$tc$mk 裁剪 (TrimMode=partial)"; hr
+    echo "  $tc$mk 裁剪 (TrimMode=partial)"
+    echo ""
     local b1=" "; [ "$CURSOR" = "10" ] && b1=">"; local b2=" "; [ "$CURSOR" = "11" ] && b2=">"
-    line "$b1[ 开始编译 ]   $b2[ 仅计算哈希 ]"
-    echo "└$(printf '%*s' $((W-2)) ''|tr ' ' '─')┘"
-    echo "↑↓移动  Space切换  Enter确认  Esc退出"
+    echo "  $b1[ 开始编译 ]   $b2[ 仅计算哈希 ]"
+    echo ""
+    echo "  ↑↓移动  Space切换  Enter确认  Esc退出"
 }
 
 draw
