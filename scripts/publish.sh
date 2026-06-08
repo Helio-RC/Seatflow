@@ -6,6 +6,7 @@
 #        ./publish.sh hash              # 仅哈希
 # ============================================================
 set -euo pipefail
+OLDPWD="$PWD"; trap 'cd "$OLDPWD"' EXIT
 cd ..
 
 APP_NAME="A_Pair"; PROJECT="A_Pair.Presentation.Avalonia"; CONFIG="Release"
