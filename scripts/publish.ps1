@@ -62,6 +62,7 @@ if ($Mode -or $HashOnly) {
 }
 
 # ── TUI 模式 ──
+[Console]::Clear()
 $types = @("自包含", "依赖运行时", "两者")
 $typeIdx = 2  # 默认两者
 $trimSel = $false
