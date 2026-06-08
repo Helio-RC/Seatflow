@@ -6,7 +6,7 @@ param(
     [switch]$Optimize, [switch]$HashOnly
 )
 $ErrorActionPreference="Stop"
-$OrigDir=Get-Location;Set-Location ..
+Push-Location ..
 $AppName,$Project="A_Pair","A_Pair.Presentation.Avalonia"
 $P=@(@{N="win-x64";S=".exe";Sel=$false},@{N="linux-x64";S="";Sel=$false},@{N="osx-x64";S="";Sel=$false},@{N="osx-arm64";S="";Sel=$false})
 
@@ -29,7 +29,7 @@ function Publish-One($SC,$Label,$Rids){
         Step "开始编译..." Yellow
         $ta=if($Optimize){@("-p:PublishTrimmed=true","-p:TrimMode=partial","-p:SuppressTrimAnalysisWarnings=true")}else{@()}
         dotnet publish $Project -c $Configuration -r $rid --self-contained $(if($SC){"true"}else{"false"}) -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true @ta -o $tmp
-        if($LASTEXITCODE){Step "编译失败" Red;Set-Location $OrigDir;exit 1}
+        if($LASTEXITCODE){Step "编译失败" Red;Pop-Location;exit 1}
         $exe="$AppName$sf"
         if(Test-Path "$tmp/$exe"){mv "$tmp/$exe" "$base/$fn" -Force;rm $tmp -r -Force -ea 0;$s=[math]::Round((gi "$base/$fn").Length/1MB,1);Step "完成 → $Label/$fn ($s MB)" Green}
         else{$fb=gci $tmp -File|?{$_.Name -like "$AppName*"}|select -First 1;if($fb){mv $fb.FullName "$base/$fn" -Force;rm $tmp -r -Force -ea 0;$s=[math]::Round((gi "$base/$fn").Length/1MB,1);Step "完成 → $Label/$fn ($s MB)" Green}else{Step "未找到可执行文件: $tmp" Red}}
@@ -38,12 +38,12 @@ function Publish-One($SC,$Label,$Rids){
 
 # CLI 模式
 if($Mode-or$HashOnly){
-    if($HashOnly){ShaTable;Set-Location $OrigDir;exit 0}
+    if($HashOnly){ShaTable;Pop-Location;exit 0}
     $m=if($Mode-eq"self-contained"){"sc"}elseif($Mode-eq"framework-dependent"){"fd"}else{"both"}
     $sw=[Diagnostics.Stopwatch]::StartNew()
     if($m-ne"fd"){Write-Host "`n--- 自包含 ---" -F Magenta;Publish-One $true "self-contained" @("win-x64","linux-x64","osx-x64","osx-arm64")}
     if($m-ne"sc"){Write-Host "`n--- 依赖运行时 ---" -F Magenta;Publish-One $false "framework-dependent" @("win-x64","linux-x64","osx-x64","osx-arm64")}
-    $sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable;Set-Location $OrigDir;exit 0
+    $sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable;Pop-Location;exit 0
 }
 
 # TUI 模式
@@ -100,20 +100,20 @@ while(-not $run){
         Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-eq9){$ts=!$ts};Draw}
         A{if($cu-eq4){0..3|%{$P[$_].Sel=$true};Draw}}
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
-        Escape{[Console]::CursorVisible=$true;[Console]::Clear();Set-Location $OrigDir;exit 0}
+        Escape{[Console]::CursorVisible=$true;[Console]::Clear();Pop-Location;exit 0}
         Enter{
             if($cu-eq10){$run=$true}
-            elseif($cu-eq11){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Set-Location $OrigDir;exit 0}
+            elseif($cu-eq11){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Pop-Location;exit 0}
             elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }
 }
 [Console]::CursorVisible=$true;[Console]::Clear()
 $sp=@($P|? Sel)
-if(!$sp){Write-Host "未选择任何平台" -F Red;Set-Location $OrigDir;exit 1}
+if(!$sp){Write-Host "未选择任何平台" -F Red;Pop-Location;exit 1}
 $doSc=($ti-eq0-or$ti-eq2);$doFd=($ti-eq1-or$ti-eq2)
 $sw=[Diagnostics.Stopwatch]::StartNew()
 if($doSc){Write-Host "`n--- 自包含 (Self-Contained) ---" -F Magenta;Publish-One $true "self-contained" @($sp|% N)}
 if($doFd){Write-Host "`n--- 依赖运行时 (Framework-Dependent) ---" -F Magenta;Publish-One $false "framework-dependent" @($sp|% N)}
-Set-Location $OrigDir
+Pop-Location
 $sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable
