@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # ============================================================
 # A_Pair 多平台发布 — 在 scripts/ 目录下执行
-# 用法: ./publish.sh [both|sc|fd] [Release|Debug]
+# 用法: ./publish.sh [both|sc|fd] [Release|Debug] [opt]
 #        ./publish.sh hash  仅计算已有文件的 SHA256
+#        ./publish.sh both Release opt  开启裁剪优化
 # ============================================================
 set -euo pipefail
 cd ..
 
 MODE="${1:-both}"
 CONFIG="${2:-Release}"
+OPTIMIZE="${3:-}"
 PROJECT="A_Pair.Presentation.Avalonia"
 APP_NAME="A_Pair"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
@@ -60,11 +62,17 @@ publish_one() {
         echo -e "\e[36m══════════════════════════════════════════\e[0m"
         step "开始编译..." 33
 
+        local trim_args=()
+        if [ "$OPTIMIZE" = "opt" ]; then
+            trim_args=(-p:PublishTrimmed=true -p:TrimMode=partial -p:SuppressTrimAnalysisWarnings=true)
+        fi
+
         dotnet publish "$PROJECT" -c "$CONFIG" -r "$rid" \
             --self-contained "$sc_flag" \
             -p:PublishSingleFile=true \
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:IncludeAllContentForSelfExtract=true \
+            "${trim_args[@]}" \
             -o "$tmp_out"
 
         local exe_name="$APP_NAME$suffix"

@@ -15,6 +15,7 @@ param(
     [string]$Mode = "both",
     [ValidateSet("Release", "Debug")]
     [string]$Configuration = "Release",
+    [switch]$Optimize,
     [switch]$HashOnly
 )
 
@@ -67,10 +68,15 @@ function Publish-One($SelfContained, $Label) {
         Write-Host "══════════════════════════════════════════" -ForegroundColor Cyan
         Write-Step "开始编译..." -ForegroundColor Yellow
 
+        $trimArgs = if ($Optimize) {
+            @("-p:PublishTrimmed=true", "-p:TrimMode=partial", "-p:SuppressTrimAnalysisWarnings=true")
+        } else { @() }
+
         dotnet publish $Project -c $Configuration -r $rid --self-contained $scFlag `
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:IncludeAllContentForSelfExtract=true `
+            @trimArgs `
             -o $tmpOut
 
         if ($LASTEXITCODE -ne 0) {
