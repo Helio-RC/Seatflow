@@ -68,7 +68,7 @@ draw(){
     echo ""
     echo "  平台（空格切换）："
     for i in 0 1 2 3; do
-        mk="[ ]"; [ "${SEL[$i]}" = "1" ] && mk="[✓]"
+        mk="[ ]"; [ "${SEL[$i]}" = "1" ] && mk="[*]"
         hi=" "; [ "$CURSOR" = "$i" ] && hi=">"
         echo "     $hi$mk ${RIDS[$i]}"
     done
@@ -79,10 +79,10 @@ draw(){
     echo ""
     echo "  发布类型（Enter 选择）："
     types=("自包含" "依赖运行时" "两者")
-    for i in 0 1 2; do mk="○"; [ "$i" = "$TYPE_IDX" ] && mk="●"; hi=" "; [ "$CURSOR" = "$((6+i))" ] && hi=">"; echo "     $hi$mk ${types[$i]}"; done
+    for i in 0 1 2; do mk=" "; [ "$i" = "$TYPE_IDX" ] && mk="*"; hi=" "; [ "$CURSOR" = "$((6+i))" ] && hi=">"; echo "     $hi$mk ${types[$i]}"; done
     echo ""
     echo "  优化选项："
-    mk="[ ]"; [ "$TRIM_SEL" = "1" ] && mk="[✓]"; tc=" "; [ "$CURSOR" = "9" ] && tc=">"
+    mk="[ ]"; [ "$TRIM_SEL" = "1" ] && mk="[*]"; tc=" "; [ "$CURSOR" = "9" ] && tc=">"
     echo "     $tc$mk 裁剪 (TrimMode=partial)"
     echo ""
     echo "  操作："
@@ -101,6 +101,8 @@ while true; do
         $'\e[A') CURSOR=$(((CURSOR-1+ITEMS)%ITEMS)); draw ;;
         $'\e[B') CURSOR=$(((CURSOR+1)%ITEMS)); draw ;;
         " ") if [ "$CURSOR" -lt 4 ]; then [ "${SEL[$CURSOR]}" = "1" ] && SEL[$CURSOR]=0 || SEL[$CURSOR]=1
+            elif [ "$CURSOR" = "4" ]; then for i in 0 1 2 3; do SEL[$i]=1; done
+            elif [ "$CURSOR" = "5" ]; then for i in 0 1 2 3; do SEL[$i]=0; done
             elif [ "$CURSOR" = "9" ]; then [ "$TRIM_SEL" = "1" ] && TRIM_SEL=0 || TRIM_SEL=1; fi; draw ;;
         A|a) [ "$CURSOR" = "4" ] && { for i in 0 1 2 3; do SEL[$i]=1; done; draw; } ;;
         N|n) [ "$CURSOR" = "5" ] && { for i in 0 1 2 3; do SEL[$i]=0; done; draw; } ;;

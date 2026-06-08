@@ -60,7 +60,7 @@ function Draw{
     $o+=""
     $o+="  平台（空格切换）："
     for($i=0;$i-lt4;$i++){
-        $mk=if($P[$i].Sel){"[✓]"}else{"[ ]"}
+        $mk=if($P[$i].Sel){"[*]"}else{"[ ]"}
         $hi=if($cu-eq$i){">"}else{" "}
         $o+="     $hi$mk $($P[$i].N)"
     }
@@ -71,12 +71,12 @@ function Draw{
     $o+=""
     $o+="  发布类型（Enter 选择）："
     for($i=0;$i-lt3;$i++){
-        $mk=if($i-eq$ti){"●"}else{"○"}
+        $mk=if($i-eq$ti){"*"}else{" "}
         $hi=if($cu-eq(6+$i)){">"}else{" "}
         $o+="     $hi$mk $($types[$i])"
     }
     $o+=""
-    $tm=if($ts){"[✓]"}else{"[ ]"}; $tc=if($cu-eq9){">"}else{" "}
+    $tm=if($ts){"[*]"}else{"[ ]"}; $tc=if($cu-eq9){">"}else{" "}
     $o+="  优化选项："
     $o+="     $tc$tm 裁剪 (TrimMode=partial)"
     $o+=""
@@ -96,7 +96,7 @@ while($true){
     switch($k.Key){
         UpArrow{$cu=($cu-1+$ii)%$ii;Draw}
         DownArrow{$cu=($cu+1)%$ii;Draw}
-        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq9){$ts=!$ts};Draw}
+        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-eq9){$ts=!$ts};Draw}
         A{if($cu-eq4){0..3|%{$P[$_].Sel=$true};Draw}}
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
         Escape{[Console]::CursorVisible=$true;[Console]::Clear();exit 0}
