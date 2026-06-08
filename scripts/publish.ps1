@@ -28,7 +28,7 @@ function Publish-One($SC,$Label,$Rids){
         Write-Host "  $Label / $rid" -F Cyan
         Write-Host "══════════════════════════════════════════" -F Cyan
         Step "开始编译..." Yellow
-        $ta=if($Optimize){@("-p:PublishTrimmed=true","-p:TrimMode=partial","-p:SuppressTrimAnalysisWarnings=true")}else{@()}
+        $ta=if($Optimize-and$SC){@("-p:PublishTrimmed=true","-p:TrimMode=partial","-p:SuppressTrimAnalysisWarnings=true")}else{@()}
         dotnet publish $Project -c $Configuration -r $rid --self-contained $(if($SC){"true"}else{"false"}) -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true @ta -o $tmp
         if($LASTEXITCODE){Step "编译失败" Red;Pop-Location;exit 1}
         $exe="$AppName$sf"
@@ -50,13 +50,11 @@ if($Mode-or$HashOnly){
 
 # TUI 模式
 [Console]::Clear()
+Write-Host "  A_Pair 发布"
 $types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cl=$false;$cu=0;$suf=$Suffix;$ii=14
 
 function Draw{
-    [Console]::SetCursorPosition(0,0)
-    $blank=" "*[Console]::WindowWidth
-    for($y=0;$y -lt [Console]::WindowHeight;$y++){[Console]::WriteLine($blank)}
-    [Console]::SetCursorPosition(0,0)
+    [Console]::SetCursorPosition(0,1)
     $o=@()
     $o+="  A_Pair 发布"
     $o+=""
@@ -104,19 +102,19 @@ while(-not $run){
     switch($k.Key){
         UpArrow{$cu=($cu-1+$ii)%$ii;Draw}
         DownArrow{$cu=($cu+1)%$ii;Draw}
-        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq11){$cl=!$cl};Draw}
+        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-ge6-and$cu-le8){$ti=$cu-6}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq11){$cl=!$cl};Draw}
         A{if($cu-eq4){0..3|%{$P[$_].Sel=$true};Draw}}
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
-        Escape{[Console]::CursorVisible=$true;[Console]::Clear();Pop-Location;exit 0}
+        Escape{[Console]::CursorVisible=$true;Pop-Location;exit 0}
         Enter{
-            if($cu-eq10){[Console]::CursorVisible=$true;$Suffix=(Read-Host "文件名后缀").Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
+            if($cu-eq10){[Console]::CursorVisible=$true;Write-Host "";Write-Host "文件名后缀: " -NoNewline;$Suffix=[Console]::ReadLine().Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
             elseif($cu-eq12){$run=$true}
-            elseif($cu-eq13){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Pop-Location;exit 0}
+            elseif($cu-eq13){[Console]::CursorVisible=$true;ShaTable;Pop-Location;exit 0}
             elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }
 }
-[Console]::CursorVisible=$true;[Console]::Clear()
+[Console]::CursorVisible=$true
 if($cl-and(Test-Path publish)){gci publish -r|%{Write-Host "  $_" -F Gray};$c=Read-Host "确认删除以上文件? (y/N)";if($c-eq'y'){rm publish -r -Force;Write-Host "已清空" -F Yellow}else{Write-Host "已取消" -F Gray}}
 $sp=@($P|? Sel)
 if(!$sp){Write-Host "未选择任何平台" -F Red;Pop-Location;exit 1}

@@ -37,7 +37,7 @@ publish_one(){
         echo -e "\e[36m══════════════════════════════════════════\e[0m"
         step "开始编译..." 33
         local ta=()
-        [ "$TRIM_SEL" = "1" ] && ta=(-p:PublishTrimmed=true -p:TrimMode=partial -p:SuppressTrimAnalysisWarnings=true)
+        [ "$TRIM_SEL" = "1" ] && [ "$sc" = "true" ] && ta=(-p:PublishTrimmed=true -p:TrimMode=partial -p:SuppressTrimAnalysisWarnings=true)
         dotnet publish "$PROJECT" -c "$CONFIG" -r "$rid" --self-contained "$sc_flag" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true "${ta[@]}" -o "$tmp"
         exe="$APP_NAME$sf"
         if [ -f "$tmp/$exe" ]; then mv "$tmp/$exe" "$base/$fn"; rm -rf "$tmp"; s=$(du -h "$base/$fn"|cut -f1); step "完成 → $label/$fn ($s)" 32
@@ -60,14 +60,34 @@ if [ $# -gt 0 ]; then
 fi
 
 # TUI 模式
-OLD=$(stty -g 2>/dev/null||true); trap 'stty "$OLD" 2>/dev/null; printf "\e[?25h\e[2J"' EXIT
-stty -echo -icanon min 0 time 0 2>/dev/null||true; printf "\e[?25l\e[2J"
+OLD=$(stty -g 2>/dev/null||echo sane)
+on_exit(){ stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h"; }
+trap on_exit EXIT INT TERM HUP
+printf "\e[2J\e[H"
+echo "  A_Pair 发布"; echo ""
+stty -echo -icanon min 1 time 1 2>/dev/null||true; printf "\e[?25l"
+
+read_key(){
+    key=""
+    while [ -z "$key" ]; do
+        IFS= read -rsN1 b || continue
+        case "$b" in
+            $'\e')
+                IFS= read -rsN1 -t 0.1 b2 || { key="ESC"; return; }
+                case "$b2" in
+                    '[') IFS= read -rsN1 b3; case "$b3" in A) key="UP";; B) key="DN";; esac ;;
+                esac ;;
+            ' ') key="SPC";;
+            a|A) key="A_KEY";;
+            n|N) key="N_KEY";;
+            $'\n'|$'\r') key="ENT";;
+        esac
+    done
+}
 
 draw(){
     local mk hi nm
-    printf "\e[2J\e[H"
-    echo "  A_Pair 发布"
-    echo ""
+    printf "\e[3;1H"
     echo "  平台（空格切换）："
     for i in 0 1 2 3; do
         mk="[ ]"; [ "${SEL[$i]}" = "1" ] && mk="[*]"
@@ -103,25 +123,27 @@ draw(){
 
 draw
 while true; do
-    k=$(dd bs=3 count=1 2>/dev/null||echo "")
-    case "$k" in
-        $'\e[A') CURSOR=$(((CURSOR-1+ITEMS)%ITEMS)); draw ;;
-        $'\e[B') CURSOR=$(((CURSOR+1)%ITEMS)); draw ;;
-        " ") if [ "$CURSOR" -lt 4 ]; then [ "${SEL[$CURSOR]}" = "1" ] && SEL[$CURSOR]=0 || SEL[$CURSOR]=1
+    read_key
+    case "$key" in
+        UP) CURSOR=$(((CURSOR-1+ITEMS)%ITEMS)); draw ;;
+        DN) CURSOR=$(((CURSOR+1)%ITEMS)); draw ;;
+        SPC) if [ "$CURSOR" -lt 4 ]; then [ "${SEL[$CURSOR]}" = "1" ] && SEL[$CURSOR]=0 || SEL[$CURSOR]=1
             elif [ "$CURSOR" = "4" ]; then for i in 0 1 2 3; do SEL[$i]=1; done
             elif [ "$CURSOR" = "5" ]; then for i in 0 1 2 3; do SEL[$i]=0; done
+            elif [ "$CURSOR" -ge 6 ] && [ "$CURSOR" -le 8 ]; then TYPE_IDX=$((CURSOR-6))
             elif [ "$CURSOR" = "9" ]; then [ "$TRIM_SEL" = "1" ] && TRIM_SEL=0 || TRIM_SEL=1
             elif [ "$CURSOR" = "11" ]; then [ "$CLEAN" = "1" ] && CLEAN=0 || CLEAN=1; fi; draw ;;
-        A|a) [ "$CURSOR" = "4" ] && { for i in 0 1 2 3; do SEL[$i]=1; done; draw; } ;;
-        N|n) [ "$CURSOR" = "5" ] && { for i in 0 1 2 3; do SEL[$i]=0; done; draw; } ;;
-        $'\e') exit 0 ;;
-        "") if [ "$CURSOR" = "10" ]; then printf "\e[?25h"; read -r -p "文件名后缀: " SUFFIX; printf "\e[?25l"; draw
+        A_KEY) [ "$CURSOR" = "4" ] && { for i in 0 1 2 3; do SEL[$i]=1; done; draw; } ;;
+        N_KEY) [ "$CURSOR" = "5" ] && { for i in 0 1 2 3; do SEL[$i]=0; done; draw; } ;;
+        ESC) stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h\e[2J"; exit 0 ;;
+        ENT) if [ "$CURSOR" = "10" ]; then printf "\e[?25h"; stty "$OLD" 2>/dev/null||stty sane; read -r -p "文件名后缀: " SUFFIX; stty -echo -icanon min 1 time 1 2>/dev/null; printf "\e[?25l"; draw
             elif [ "$CURSOR" = "12" ]; then break
-            elif [ "$CURSOR" = "13" ]; then printf "\e[?25h\e[2J"; sha_table; exit 0
+            elif [ "$CURSOR" = "13" ]; then stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h\n"; sha_table; exit 0
             elif [ "$CURSOR" -ge 6 ] && [ "$CURSOR" -le 8 ]; then TYPE_IDX=$((CURSOR-6)); draw; fi ;;
     esac
 done
-printf "\e[?25h\e[2J"
+printf "\e[?25h\n"
+stty "$OLD" 2>/dev/null||stty sane
 
 SP=(); for i in 0 1 2 3; do [ "${SEL[$i]}" = "1" ] && SP+=("${RIDS[$i]}"); done
 if [ "$CLEAN" = "1" ] && [ -d publish ]; then find publish -type f | while read -r f; do echo -e "\e[90m  $f\e[0m"; done; read -r -p "确认删除以上文件? (y/N) " c; [ "$c" = "y" ] && { rm -rf publish; echo -e "\e[33m已清空\e[0m"; } || echo -e "\e[90m已取消\e[0m"; fi

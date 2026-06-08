@@ -16,9 +16,7 @@
 
 </div>
 
----
-
-![ICON](A_Pair.Presentation.Avalonia/Assets/banner_long.png)
+![ICON](Assets/banner_long.png)
 
 > [!TIP]
 > **💬 QQ 交流群**：[761175549](https://qm.qq.com/q/y9D63B0dYk)  
@@ -36,12 +34,34 @@
 - [x] **配置驱动** — 策略优先级、布局参数、导出选项均可配置
 - [x] **跨平台** — Windows / macOS / Linux 原生运行
 
+> 人员管理功能演示
+
+![人员管理](Assets/Member.gif)
+
+> 会场管理功能演示
+
+![会场管理](Assets/Venue.gif)
+
+> 策略配置功能演示
+
+![策略配置](Assets/Strategy.gif)
+
+> 座位安排与微调
+
+![座位安排与微调](Assets/Generate&Export.gif)
+
+> 快照与回滚
+
+![快照与回滚](Assets/Snapshot&Roolback.gif)
+
+---
+
 ## 📋 开发路线图
 
 当前已完成核心业务逻辑（领域模型、策略引擎、数据导入导出、插件系统、快照管理）和大部分 UI 页面。详见 [docs/Phases.md](docs/Phases.md)。
 
 - [x] **Phase 1-3** — 领域建模、数据导入导出、内置策略
-- [x] **Phase 4-5** — 插件系统、Lua/C# 脚本支持
+- [ ] **Phase 4-5** — 插件系统、Lua/C# 脚本支持
 - [x] **Phase 6** — 高级布局可视化、拖拽交互、命令模式（Grid/Polar/Freeform 布局、Canvas 预览、缩放平移、撤销/重做）
 - [x] **Phase 7** — 配置管理、存储、版本迁移（文件版本管理、迁移管线、快照回滚、快照完整性检测、确定性构建、页面导航管理）
 - [ ] **Phase 8** — 测试覆盖、文档完善、打包发布
