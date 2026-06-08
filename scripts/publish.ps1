@@ -4,7 +4,7 @@ param(
     [string]$Mode,
     [ValidateSet("Release","Debug")][string]$Configuration="Release",
     [string]$Suffix="",
-    [switch]$Optimize, [switch]$HashOnly
+    [switch]$Optimize, [switch]$HashOnly, [switch]$Clean
 )
 $ErrorActionPreference="Stop"
 Push-Location ..
@@ -40,6 +40,7 @@ function Publish-One($SC,$Label,$Rids){
 # CLI 模式
 if($Mode-or$HashOnly){
     if($HashOnly){ShaTable;Pop-Location;exit 0}
+    if($Clean-and(Test-Path publish)){gci publish -r|%{Write-Host "  $_" -F Gray};$c=Read-Host "确认删除以上文件? (y/N)";if($c-eq'y'){rm publish -r -Force;Write-Host "已清空" -F Yellow}else{Write-Host "已取消" -F Gray}}
     $m=if($Mode-eq"self-contained"){"sc"}elseif($Mode-eq"framework-dependent"){"fd"}else{"both"}
     $sw=[Diagnostics.Stopwatch]::StartNew()
     if($m-ne"fd"){Write-Host "`n--- 自包含 ---" -F Magenta;Publish-One $true "self-contained" @("win-x64","linux-x64","osx-x64","osx-arm64")}
@@ -49,7 +50,7 @@ if($Mode-or$HashOnly){
 
 # TUI 模式
 [Console]::Clear()
-$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cu=0;$suf=$Suffix;$ii=13
+$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cl=$false;$cu=0;$suf=$Suffix;$ii=14
 
 function Draw{
     [Console]::SetCursorPosition(0,0)
@@ -85,9 +86,11 @@ function Draw{
     $o+="     $sx$sd 文件名后缀（Enter 设置）"
     $o+=""
     $o+="  操作："
-    $b1=if($cu-eq11){">"}else{" "}
+    $cb=if($cl){"[*]"}else{"[ ]"}; $ci=if($cu-eq11){">"}else{" "}
+    $o+="     $ci$cb 编译前清空 publish/ 目录"
+    $b1=if($cu-eq12){">"}else{" "}
     $o+="     $b1[ 开始编译 ]"
-    $b2=if($cu-eq12){">"}else{" "}
+    $b2=if($cu-eq13){">"}else{" "}
     $o+="     $b2[ 仅计算哈希 ]"
     $o+=""
     foreach($l in $o){ [Console]::WriteLine($l) }
@@ -101,19 +104,20 @@ while(-not $run){
     switch($k.Key){
         UpArrow{$cu=($cu-1+$ii)%$ii;Draw}
         DownArrow{$cu=($cu+1)%$ii;Draw}
-        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-eq9){$ts=!$ts};Draw}
+        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq11){$cl=!$cl};Draw}
         A{if($cu-eq4){0..3|%{$P[$_].Sel=$true};Draw}}
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
         Escape{[Console]::CursorVisible=$true;[Console]::Clear();Pop-Location;exit 0}
         Enter{
             if($cu-eq10){[Console]::CursorVisible=$true;$Suffix=(Read-Host "文件名后缀").Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
-            elseif($cu-eq11){$run=$true}
-            elseif($cu-eq12){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Pop-Location;exit 0}
+            elseif($cu-eq12){$run=$true}
+            elseif($cu-eq13){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;Pop-Location;exit 0}
             elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }
 }
 [Console]::CursorVisible=$true;[Console]::Clear()
+if($cl-and(Test-Path publish)){gci publish -r|%{Write-Host "  $_" -F Gray};$c=Read-Host "确认删除以上文件? (y/N)";if($c-eq'y'){rm publish -r -Force;Write-Host "已清空" -F Yellow}else{Write-Host "已取消" -F Gray}}
 $sp=@($P|? Sel)
 if(!$sp){Write-Host "未选择任何平台" -F Red;Pop-Location;exit 1}
 $doSc=($ti-eq0-or$ti-eq2);$doFd=($ti-eq1-or$ti-eq2)

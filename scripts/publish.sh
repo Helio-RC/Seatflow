@@ -12,7 +12,7 @@ cd ..
 APP_NAME="A_Pair"; PROJECT="A_Pair.Presentation.Avalonia"; CONFIG="Release"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 SUFFIXES=(".exe" "" "" ""); SEL=(0 0 0 0)
-TYPE_IDX=2; TRIM_SEL=0; CURSOR=0; SUFFIX=""; ITEMS=13
+TYPE_IDX=2; TRIM_SEL=0; CLEAN=0; CURSOR=0; SUFFIX=""; ITEMS=14
 
 step(){ echo -e "  [$(date +%H:%M:%S)] \e[${2:-37}m$1\e[0m"; }
 
@@ -51,7 +51,8 @@ publish_one(){
 # CLI 模式
 if [ $# -gt 0 ]; then
     if [ "${1:-}" = "hash" ]; then sha_table; exit 0; fi
-    MODE="${1:-both}"; CONFIG="${2:-Release}"; [ "${3:-}" = "opt" ] && TRIM_SEL=1; SUFFIX="${4:-}"
+    MODE="${1:-both}"; CONFIG="${2:-Release}"; [ "${3:-}" = "opt" ] && TRIM_SEL=1; SUFFIX="${4:-}"; [ "${5:-}" = "clean" ] && CLEAN=1
+    if [ "$CLEAN" = "1" ] && [ -d publish ]; then find publish -type f | while read -r f; do echo -e "\e[90m  $f\e[0m"; done; read -r -p "确认删除以上文件? (y/N) " c; [ "$c" = "y" ] && { rm -rf publish; echo -e "\e[33m已清空\e[0m"; } || echo -e "\e[90m已取消\e[0m"; fi
     S=$(date +%s)
     if [ "$MODE" != "fd" ]; then echo -e "\n\e[35m--- 自包含 ---\e[0m"; publish_one "true" "self-contained" "${RIDS[@]}"; fi
     if [ "$MODE" != "sc" ]; then echo -e "\n\e[35m--- 依赖运行时 ---\e[0m"; publish_one "false" "framework-dependent" "${RIDS[@]}"; fi
@@ -90,9 +91,11 @@ draw(){
     echo "     $sx$sd 文件名后缀（Enter 设置）"
     echo ""
     echo "  操作："
-    local b1=" "; [ "$CURSOR" = "11" ] && b1=">"
+    mk="[ ]"; [ "$CLEAN" = "1" ] && mk="[*]"; ci=" "; [ "$CURSOR" = "11" ] && ci=">"
+    echo "     $ci$mk 编译前清空 publish/ 目录"
+    local b1=" "; [ "$CURSOR" = "12" ] && b1=">"
     echo "     $b1[ 开始编译 ]"
-    local b2=" "; [ "$CURSOR" = "12" ] && b2=">"
+    local b2=" "; [ "$CURSOR" = "13" ] && b2=">"
     echo "     $b2[ 仅计算哈希 ]"
     echo ""
     echo "  ↑↓移动  Space切换  Enter确认  Esc退出"
@@ -107,19 +110,21 @@ while true; do
         " ") if [ "$CURSOR" -lt 4 ]; then [ "${SEL[$CURSOR]}" = "1" ] && SEL[$CURSOR]=0 || SEL[$CURSOR]=1
             elif [ "$CURSOR" = "4" ]; then for i in 0 1 2 3; do SEL[$i]=1; done
             elif [ "$CURSOR" = "5" ]; then for i in 0 1 2 3; do SEL[$i]=0; done
-            elif [ "$CURSOR" = "9" ]; then [ "$TRIM_SEL" = "1" ] && TRIM_SEL=0 || TRIM_SEL=1; fi; draw ;;
+            elif [ "$CURSOR" = "9" ]; then [ "$TRIM_SEL" = "1" ] && TRIM_SEL=0 || TRIM_SEL=1
+            elif [ "$CURSOR" = "11" ]; then [ "$CLEAN" = "1" ] && CLEAN=0 || CLEAN=1; fi; draw ;;
         A|a) [ "$CURSOR" = "4" ] && { for i in 0 1 2 3; do SEL[$i]=1; done; draw; } ;;
         N|n) [ "$CURSOR" = "5" ] && { for i in 0 1 2 3; do SEL[$i]=0; done; draw; } ;;
         $'\e') exit 0 ;;
         "") if [ "$CURSOR" = "10" ]; then printf "\e[?25h"; read -r -p "文件名后缀: " SUFFIX; printf "\e[?25l"; draw
-            elif [ "$CURSOR" = "11" ]; then break
-            elif [ "$CURSOR" = "12" ]; then printf "\e[?25h\e[2J"; sha_table; exit 0
+            elif [ "$CURSOR" = "12" ]; then break
+            elif [ "$CURSOR" = "13" ]; then printf "\e[?25h\e[2J"; sha_table; exit 0
             elif [ "$CURSOR" -ge 6 ] && [ "$CURSOR" -le 8 ]; then TYPE_IDX=$((CURSOR-6)); draw; fi ;;
     esac
 done
 printf "\e[?25h\e[2J"
 
 SP=(); for i in 0 1 2 3; do [ "${SEL[$i]}" = "1" ] && SP+=("${RIDS[$i]}"); done
+if [ "$CLEAN" = "1" ] && [ -d publish ]; then find publish -type f | while read -r f; do echo -e "\e[90m  $f\e[0m"; done; read -r -p "确认删除以上文件? (y/N) " c; [ "$c" = "y" ] && { rm -rf publish; echo -e "\e[33m已清空\e[0m"; } || echo -e "\e[90m已取消\e[0m"; fi
 if [ ${#SP[@]} -eq 0 ]; then echo -e "\e[31m未选择任何平台\e[0m"; exit 1; fi
 
 doSc=false; doFd=false
