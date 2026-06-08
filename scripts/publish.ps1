@@ -48,7 +48,7 @@ if($Mode-or$HashOnly){
 
 # TUI 模式
 [Console]::Clear()
-$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cu=0;$ii=14
+$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cu=0;$ii=12
 
 function Draw{
     [Console]::SetCursorPosition(0,0)
@@ -59,39 +59,37 @@ function Draw{
     $o+="  A_Pair 发布"
     $o+=""
     $o+="  平台（空格切换）："
-    $o+=PlatLine 0 1
-    $o+=PlatLine 2 3
-    $sa=if($cu-eq4){">"}else{" "}; $sn=if($cu-eq5){">"}else{" "}
-    $o+="  $sa[A] 全选   $sn[N] 全不选"
+    for($i=0;$i-lt4;$i++){
+        $mk=if($P[$i].Sel){"[✓]"}else{"[ ]"}
+        $hi=if($cu-eq$i){">"}else{" "}
+        $o+="     $hi$mk $($P[$i].N)"
+    }
+    $sa=if($cu-eq4){">"}else{" "}
+    $o+="     $sa[A] 全选"
+    $sn=if($cu-eq5){">"}else{" "}
+    $o+="     $sn[N] 全不选"
     $o+=""
-    $tl=""
+    $o+="  发布类型（Enter 选择）："
     for($i=0;$i-lt3;$i++){
         $mk=if($i-eq$ti){"●"}else{"○"}
         $hi=if($cu-eq(6+$i)){">"}else{" "}
-        $tl+="$hi$mk $($types[$i])   "
+        $o+="     $hi$mk $($types[$i])"
     }
-    $o+="  发布类型：$($tl.TrimEnd())"
     $o+=""
     $tm=if($ts){"[✓]"}else{"[ ]"}; $tc=if($cu-eq9){">"}else{" "}
-    $o+="  $tc$tm 裁剪 (TrimMode=partial)"
+    $o+="  优化选项："
+    $o+="     $tc$tm 裁剪 (TrimMode=partial)"
     $o+=""
-    $b1=if($cu-eq10){">"}else{" "}; $b2=if($cu-eq11){">"}else{" "}
-    $o+="  $b1[ 开始编译 ]   $b2[ 仅计算哈希 ]"
+    $o+="  操作："
+    $b1=if($cu-eq10){">"}else{" "}
+    $o+="     $b1[ 开始编译 ]"
+    $b2=if($cu-eq11){">"}else{" "}
+    $o+="     $b2[ 仅计算哈希 ]"
     $o+=""
     foreach($l in $o){ [Console]::WriteLine($l) }
     [Console]::WriteLine("  ↑↓移动  Space切换  Enter确认  Esc退出")
 }
 
-function PlatLine($a,$b){
-    $r=""
-    foreach($i in @($a,$b)){
-        $mk=if($P[$i].Sel){"[✓]"}else{"[ ]"}
-        $hi=if($cu-eq$i){">"}else{" "}
-        $nm=$P[$i].N.PadRight(14)
-        $r+="    $hi$mk $nm"
-    }
-    $r
-}
 [Console]::CursorVisible=$false;Draw
 while($true){
     $k=[Console]::ReadKey($true)

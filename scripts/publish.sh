@@ -11,7 +11,7 @@ cd ..
 APP_NAME="A_Pair"; PROJECT="A_Pair.Presentation.Avalonia"; CONFIG="Release"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 SUFFIXES=(".exe" "" "" ""); SEL=(0 0 0 0)
-TYPE_IDX=2; TRIM_SEL=0; CURSOR=0; ITEMS=14
+TYPE_IDX=2; TRIM_SEL=0; CURSOR=0; ITEMS=12
 
 step(){ echo -e "  [$(date +%H:%M:%S)] \e[${2:-37}m$1\e[0m"; }
 
@@ -70,23 +70,26 @@ draw(){
     for i in 0 1 2 3; do
         mk="[ ]"; [ "${SEL[$i]}" = "1" ] && mk="[✓]"
         hi=" "; [ "$CURSOR" = "$i" ] && hi=">"
-        printf -v nm "%-14s" "${RIDS[$i]}"
-        printf "    %s%s %s" "$hi" "$mk" "$nm"
-        [ $((i%2)) -eq 1 ] && echo ""
+        echo "     $hi$mk ${RIDS[$i]}"
     done
+    local sa=" "; [ "$CURSOR" = "4" ] && sa=">"
+    echo "     $sa[A] 全选"
+    local sn=" "; [ "$CURSOR" = "5" ] && sn=">"
+    echo "     $sn[N] 全不选"
     echo ""
-    local sa=" "; [ "$CURSOR" = "4" ] && sa=">"; local sn=" "; [ "$CURSOR" = "5" ] && sn=">"
-    echo "  $sa[A] 全选   $sn[N] 全不选"
+    echo "  发布类型（Enter 选择）："
+    types=("自包含" "依赖运行时" "两者")
+    for i in 0 1 2; do mk="○"; [ "$i" = "$TYPE_IDX" ] && mk="●"; hi=" "; [ "$CURSOR" = "$((6+i))" ] && hi=">"; echo "     $hi$mk ${types[$i]}"; done
     echo ""
-    local tl="" types=("自包含" "依赖运行时" "两者")
-    for i in 0 1 2; do mk="○"; [ "$i" = "$TYPE_IDX" ] && mk="●"; hi=" "; [ "$CURSOR" = "$((6+i))" ] && hi=">"; tl+="$hi$mk ${types[$i]}   "; done
-    echo "  发布类型：${tl%   }"
-    echo ""
+    echo "  优化选项："
     mk="[ ]"; [ "$TRIM_SEL" = "1" ] && mk="[✓]"; tc=" "; [ "$CURSOR" = "9" ] && tc=">"
-    echo "  $tc$mk 裁剪 (TrimMode=partial)"
+    echo "     $tc$mk 裁剪 (TrimMode=partial)"
     echo ""
-    local b1=" "; [ "$CURSOR" = "10" ] && b1=">"; local b2=" "; [ "$CURSOR" = "11" ] && b2=">"
-    echo "  $b1[ 开始编译 ]   $b2[ 仅计算哈希 ]"
+    echo "  操作："
+    local b1=" "; [ "$CURSOR" = "10" ] && b1=">"
+    echo "     $b1[ 开始编译 ]"
+    local b2=" "; [ "$CURSOR" = "11" ] && b2=">"
+    echo "     $b2[ 仅计算哈希 ]"
     echo ""
     echo "  ↑↓移动  Space切换  Enter确认  Esc退出"
 }
