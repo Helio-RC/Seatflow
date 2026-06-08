@@ -50,32 +50,51 @@ if($Mode-or$HashOnly){
 [Console]::Clear()
 $types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cu=0;$ii=14
 
+$W=41
+function L($s){ "│ "+$s.PadRight($W-4)+" │" }
+function H{ "├"+("─"*($W-2))+"┤" }
+
 function Draw{
     [Console]::SetCursorPosition(0,0)
-    $w=41
-    function L($s){Write-Host("│ "+$s.PadRight($w-4)+" │")}
-    function H{Write-Host("├"+("─"*($w-2))+"┤")}
-    Write-Host("┌"+("─"*($w-2))+"┐")
-    L "A_Pair 发布"
-    H
-    L "平台（空格切换）："
-    for($i=0;$i-lt4;$i++){$mk=if($P[$i].Sel){"[✓]"}else{"[ ]"};$hi=if($cu-eq$i){">"}else{" "};$nm=$P[$i].N.PadRight(14);$line="$hi$mk $nm";if($i%2-eq0){$line="  $line"}else{$line="   $line"};if($i%2-eq1){Write-Host("│ $line │")}else{Write-Host("│ $line" -NoNewline)}}
-    H
-    $sa=if($cu-eq4){">"}else{" "};$sn=if($cu-eq5){">"}else{" "}
-    L "$sa[A] 全选   $sn[N] 全不选"
-    H
-    L "发布类型："
+    $o=@()
+    $o+="┌"+("─"*($W-2))+"┐"
+    $o+=L "A_Pair 发布"
+    $o+=H
+    $o+=L "平台（空格切换）："
+    $o+=PlatLine 0 1
+    $o+=PlatLine 2 3
+    $o+=H
+    $sa=if($cu-eq4){">"}else{" "}; $sn=if($cu-eq5){">"}else{" "}
+    $o+=L "$sa[A] 全选   $sn[N] 全不选"
+    $o+=H
+    $o+=L "发布类型："
     $tl=""
-    for($i=0;$i-lt3;$i++){$mk=if($i-eq$ti){"●"}else{"○"};$hi=if($cu-eq(6+$i)){">"}else{" "};$tl+="$hi$mk $($types[$i])   "}
-    L $tl.TrimEnd()
-    H
-    $tm=if($ts){"[✓]"}else{"[ ]"};$tc=if($cu-eq9){">"}else{" "}
-    L "$tc$tm 裁剪 (TrimMode=partial)"
-    H
-    $b1=if($cu-eq10){">"}else{" "};$b2=if($cu-eq11){">"}else{" "}
-    L "$b1[ 开始编译 ]   $b2[ 仅计算哈希 ]"
-    Write-Host("└"+("─"*($w-2))+"┘")
+    for($i=0;$i-lt3;$i++){
+        $mk=if($i-eq$ti){"●"}else{"○"}
+        $hi=if($cu-eq(6+$i)){">"}else{" "}
+        $tl+="$hi$mk $($types[$i])   "
+    }
+    $o+=L $tl.TrimEnd()
+    $o+=H
+    $tm=if($ts){"[✓]"}else{"[ ]"}; $tc=if($cu-eq9){">"}else{" "}
+    $o+=L "$tc$tm 裁剪 (TrimMode=partial)"
+    $o+=H
+    $b1=if($cu-eq10){">"}else{" "}; $b2=if($cu-eq11){">"}else{" "}
+    $o+=L "$b1[ 开始编译 ]   $b2[ 仅计算哈希 ]"
+    $o+="└"+("─"*($W-2))+"┘"
+    $o|%{Write-Host $_}
     Write-Host "↑↓移动  Space切换  Enter确认  Esc退出"
+}
+
+function PlatLine($a,$b){
+    $r="│ "
+    foreach($i in @($a,$b)){
+        $mk=if($P[$i].Sel){"[✓]"}else{"[ ]"}
+        $hi=if($cu-eq$i){">"}else{" "}
+        $nm=$P[$i].N.PadRight(14)
+        $r+="  $hi$mk $nm"
+    }
+    $r.PadRight($W-1)+"│"
 }
 [Console]::CursorVisible=$false;Draw
 while($true){
