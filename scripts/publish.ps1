@@ -91,7 +91,8 @@ function Draw{
 }
 
 [Console]::CursorVisible=$false;Draw
-while($true){
+$run=$false
+while(-not $run){
     $k=[Console]::ReadKey($true)
     switch($k.Key){
         UpArrow{$cu=($cu-1+$ii)%$ii;Draw}
@@ -101,9 +102,9 @@ while($true){
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
         Escape{[Console]::CursorVisible=$true;[Console]::Clear();exit 0}
         Enter{
-            if($cu-eq10){break}
-            if($cu-eq11){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;exit 0}
-            if($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
+            if($cu-eq10){$run=$true}
+            elseif($cu-eq11){[Console]::CursorVisible=$true;[Console]::Clear();ShaTable;exit 0}
+            elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }
 }
