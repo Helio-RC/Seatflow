@@ -65,7 +65,7 @@ stty -echo -icanon min 0 time 0 2>/dev/null||true; printf "\e[?25l\e[2J"
 
 draw(){
     local mk hi nm
-    printf "\e[H"
+    printf "\e[2J\e[H"
     echo "┌$(printf '%*s' $((W-2)) ''|tr ' ' '─')┐"
     line "A_Pair 发布"; hr
     line "平台（空格切换）："

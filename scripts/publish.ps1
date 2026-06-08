@@ -55,7 +55,7 @@ function L($s){ "│ "+$s.PadRight($W-4)+" │" }
 function H{ "├"+("─"*($W-2))+"┤" }
 
 function Draw{
-    [Console]::SetCursorPosition(0,0)
+    [Console]::Clear()
     $o=@()
     $o+="┌"+("─"*($W-2))+"┐"
     $o+=L "A_Pair 发布"
