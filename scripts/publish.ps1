@@ -115,5 +115,4 @@ $doSc=($ti-eq0-or$ti-eq2);$doFd=($ti-eq1-or$ti-eq2)
 $sw=[Diagnostics.Stopwatch]::StartNew()
 if($doSc){Write-Host "`n--- 自包含 (Self-Contained) ---" -F Magenta;Publish-One $true "self-contained" @($sp|% N)}
 if($doFd){Write-Host "`n--- 依赖运行时 (Framework-Dependent) ---" -F Magenta;Publish-One $false "framework-dependent" @($sp|% N)}
-Pop-Location
-$sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable
+$sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable;Pop-Location
