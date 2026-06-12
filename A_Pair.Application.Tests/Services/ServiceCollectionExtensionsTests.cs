@@ -48,12 +48,15 @@ public class ServiceCollectionExtensionsTests : IDisposable
 
         // 外观
         provider.GetService<IApplicationFacade>().Should().NotBeNull();
-        // 策略
+        // 独立策略
         var strategies = provider.GetServices<ISeatingStrategy>().ToList();
         strategies.Should().Contain(s => s is FixedSeatStrategy);
         strategies.Should().Contain(s => s is RandomFillStrategy);
         strategies.Should().Contain(s => s is FrontRowRotationStrategy);
-        strategies.Should().Contain(s => s is DeskMateStrategy);
+
+        // 依赖策略（在 RandomFill 上下文中执行）
+        var dependentStrategies = provider.GetServices<IDependentSeatingStrategy>().ToList();
+        dependentStrategies.Should().Contain(s => s is DeskMateStrategy);
         // 冲突解决器
         provider.GetService<IConflictResolver>().Should().NotBeNull();
         // 导出器

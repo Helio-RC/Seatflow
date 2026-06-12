@@ -307,11 +307,27 @@ public class MyStrategy : PluginStrategyBase { ... }
 | `dependencies` | string[] | 否 | `[]` | 依赖的插件 ID 列表 |
 | `scriptFile` | string | 见注 | null | 脚本文件名（脚本插件） |
 | `scriptType` | string | 见注 | null | 脚本类型：`"lua"` 或 `"csharp"` |
-| `visible` | bool | 否 | `true` | 控制策略是否参与管道。`false` 时从 UI（配置页、座位安排侧栏）和执行管道中完全排除 |
+| `visible` | bool | 否 | `true` | 控制策略是否参与管道。`false` 时从 UI 和执行管道中完全排除 |
+| `isIndependent` | bool | 否 | `true` | `true`=独立策略（外部管道执行）；`false`=依赖策略（在 RandomFill 分配循环中执行）。详见下方"依赖策略" |
+| `manifestVersion` | string | 否 | `"1.0"` | Manifest 格式版本号，用于运行时兼容性校验 |
 | `parameters` | array | 否 | null | 策略级全局参数声明（见下方"声明式配置"） |
 | `codeBlocks` | array | 否 | null | 按数据集/会场的配置块声明（见下方"声明式配置"） |
 
 > **注：** 程序集插件需同时提供 `assembly` + `type`；脚本插件需同时提供 `scriptFile` + `scriptType`。两者互斥。
+
+### 依赖策略（Dependent Strategy）
+
+设置 `"isIndependent": false` 可使插件策略作为**依赖策略**执行。依赖策略不在外部管道中执行，而是在 RandomFill 的分配循环中运行：
+
+```
+RandomFill 随机选 (student, seat) →
+  依次调用依赖策略 EvaluateAsync (按内部 Priority) →
+    批准 (Approve) → 继续分配
+    拒绝 (Reject) → 换座位重试（有上限）
+    已处理 (Handled) → 策略已完成分配（含连携修改），跳过 TryAssignSeat
+```
+
+**注意：** 当前版本的 `IPluginSeatingStrategy` 接口尚未支持 `EvaluateAsync`，因此插件依赖策略将默认批准所有分配。后续版本会扩展该接口。
 
 ### 声明式配置与 i18n
 

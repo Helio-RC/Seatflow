@@ -27,7 +27,8 @@ namespace A_Pair.Application.Services
     /// 此扩展方法一次性注册以下组件：
     /// <list type="bullet">
     ///   <item><see cref="IApplicationFacade"/> — 应用程序外观</item>
-    ///   <item>内置策略（<see cref="FixedSeatStrategy"/>、<see cref="RandomFillStrategy"/>、<see cref="FrontRowRotationStrategy"/>、<see cref="DeskMateStrategy"/>)</item>
+    ///   <item>内置策略（<see cref="FixedSeatStrategy"/>、<see cref="RandomFillStrategy"/>、<see cref="FrontRowRotationStrategy"/> 作为 <see cref="ISeatingStrategy"/>）</item>
+    ///   <item>依赖策略（<see cref="DeskMateStrategy"/> 作为 <see cref="IDependentSeatingStrategy"/>，在 RandomFill 上下文中执行）</item>
     ///   <item>导出器（Excel、CSV、PDF）</item>
     ///   <item>学生写入器（JSON、CSV、XLSX）</item>
     ///   <item><see cref="IConflictResolver"/> — 冲突解决器</item>
@@ -109,7 +110,9 @@ namespace A_Pair.Application.Services
                 new Random() , sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
                 new FrontRowRotationStrategy.FrontRowRotationConfiguration() , sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
-            services.AddSingleton<ISeatingStrategy>(sp => new DeskMateStrategy(
+
+            // 注册依赖策略（在 RandomFill 上下文中执行）
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new DeskMateStrategy(
                 new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
 
             // 注册导出器

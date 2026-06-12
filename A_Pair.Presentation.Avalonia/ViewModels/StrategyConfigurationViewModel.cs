@@ -219,33 +219,54 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             StatusMessage = Resources.Strategy_Loading;
 
             var displayInfos = await _facade.GetStrategiesAsync(ct);
-            var items = displayInfos
-                .Where(d => d.Visible)
+
+            // 分类：独立策略 vs 依赖策略
+            var independentInfos = displayInfos
+                .Where(d => d.Visible && d.IsIndependent)
+                .ToList();
+            var dependentInfos = displayInfos
+                .Where(d => d.Visible && !d.IsIndependent)
+                .ToList();
+
+            // 构建独立策略的 ViewModel
+            var items = independentInfos
                 .Select(d => new StrategyItemViewModel(
                     d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
-                    d.Priority , d.DefaultPriority , d.IsEnabled)).ToList();
+                    d.Priority , d.DefaultPriority , d.IsEnabled ,
+                    isIndependent: true))
+                .ToList();
+
+            // 将依赖策略附加到 RandomFill 的 Children
+            var randomFill = items.FirstOrDefault(i => i.Id == "RandomFill");
+            if (randomFill != null && dependentInfos.Count > 0)
+            {
+                var children = dependentInfos
+                    .OrderBy(d => d.Priority)
+                    .Select(d => new StrategyItemViewModel(
+                        d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
+                        d.Priority , d.DefaultPriority , d.IsEnabled ,
+                        isIndependent: false))
+                    .ToList();
+                randomFill.Children = new ObservableCollection<StrategyItemViewModel>(children);
+                // 默认展开以显示依赖策略
+                randomFill.IsExpanded = true;
+            }
 
             foreach (var item in items)
             {
-                item.PropertyChanged += (_ , e) =>
+                AttachChangeTracking(item);
+
+                // 为子项也附加变更追踪
+                if (item.Children is not null)
                 {
-                    OnPropertyChanged(nameof(HasChanges));
-                    // 侧栏变更联动详情面板
-                    if (item == SelectedStrategy)
-                    {
-                        _suppressChangeTracking = true;
-                        if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled))
-                            EditIsEnabled = item.IsEnabled;
-                        else if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
-                            EditPriority = item.Priority;
-                        _suppressChangeTracking = false;
-                    }
-                };
+                    foreach (var child in item.Children)
+                        AttachChangeTracking(child);
+                }
             }
 
             Strategies = new ObservableCollection<StrategyItemViewModel>(items);
 
-            // 检测并修复初始优先级冲突
+            // 检测并修复初始优先级冲突（仅独立策略）
             var fixedList = DetectAndFixPriorityConflicts();
             if (fixedList.Count > 0)
             {
@@ -268,6 +289,25 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>为策略项附加属性变更追踪。</summary>
+    private void AttachChangeTracking (StrategyItemViewModel item)
+    {
+        item.PropertyChanged += (_ , e) =>
+        {
+            OnPropertyChanged(nameof(HasChanges));
+            // 侧栏变更联动详情面板
+            if (item == SelectedStrategy)
+            {
+                _suppressChangeTracking = true;
+                if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled))
+                    EditIsEnabled = item.IsEnabled;
+                else if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
+                    EditPriority = item.Priority;
+                _suppressChangeTracking = false;
+            }
+        };
     }
 
     private async Task LoadDetailAsync (StrategyItemViewModel item)

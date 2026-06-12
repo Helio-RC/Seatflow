@@ -561,8 +561,25 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         // 策略列表
         var allStrategies = await _facade.GetStrategiesAsync();
-        ActiveStrategies = new ObservableCollection<StrategyDisplayInfo>(
-            allStrategies.Where(s => s.IsEnabled && s.Visible).OrderBy(s => s.Priority));
+
+        // 分离独立策略和依赖策略
+        var enabledVisible = allStrategies
+            .Where(s => s.IsEnabled && s.Visible)
+            .OrderBy(s => s.Priority)
+            .ToList();
+        var independents = enabledVisible.Where(s => s.IsIndependent).ToList();
+        var dependents = enabledVisible.Where(s => !s.IsIndependent).ToList();
+
+        // 将依赖策略注入到 RandomFill 的 DependentChildren
+        var randomFill = independents.FirstOrDefault(s => s.Id == "RandomFill");
+        if (randomFill != null && dependents.Count > 0)
+        {
+            randomFill.DependentChildren = dependents
+                .OrderBy(d => d.Priority)
+                .ToList();
+        }
+
+        ActiveStrategies = new ObservableCollection<StrategyDisplayInfo>(independents);
 
         // 未分配学生
         if (_workspace != null && _currentPlan != null)

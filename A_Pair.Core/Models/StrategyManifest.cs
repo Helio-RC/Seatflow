@@ -43,6 +43,18 @@ public sealed class StrategyManifest
     public bool Visible { get; init; } = true;
 
     /// <summary>
+    /// 是否为独立策略（默认 true）。设为 false 时策略不直接加入外部执行管道，
+    /// 而是以"依赖策略"形式在 RandomFill 上下文中执行。
+    /// </summary>
+    public bool IsIndependent { get; init; } = true;
+
+    /// <summary>
+    /// Manifest 文件格式版本号。用于运行时版本兼容性校验。
+    /// Manifest 是嵌入资源，不走 FileMigrationService，因此需要在加载时检查版本。
+    /// </summary>
+    public string ManifestVersion { get; init; } = "1.0";
+
+    /// <summary>
     /// 策略执行消息的多语言模板（可选）。key 为消息标识符，value 为多语言词典。
     /// 模板中用 {0} {1} 占位，运行时 string.Format 替换。
     /// </summary>

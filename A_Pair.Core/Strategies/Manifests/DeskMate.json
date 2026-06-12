@@ -3,12 +3,14 @@
     "name": "DeskMate",
     "displayName": "同桌分组",
     "version": "1.0.0",
-    "description": "将同组学生分配到相邻座位。优先寻找水平连续座位块，可回退到纵向邻接。⚠️ 此策略极不稳定：受前排分配和固定座位影响较大，组员被拆散后仅能就近安插单人。",
+    "manifestVersion": "1.0",
+    "description": "作为依赖策略在随机填充上下文中执行。当 RandomFill 随机分配学生时检查该学生是否有同桌组，若有则尝试将同组学生分配到相邻座位（连携修改）。若目标座位周围无足够相邻空座则请求重掷。",
     "author": "A_Pair Team",
     "category": "grouping",
     "defaultPriority": 30,
     "defaultEnabled": true,
-    "visible": false,
+    "visible": true,
+    "isIndependent": false,
     "parameters": [
         {
             "name": "PreferHorizontal",
@@ -37,17 +39,17 @@
         }
     ],
     "messages": {
-        "DeskMate_Split": {
-            "zh-CN": "同桌组（{0}）中的 {1} 已被前排策略分配，该组已拆散",
-            "en-US": "Desk-mate group ({0}) member(s) {1} already assigned to front row, group split"
+        "DeskMate_RerollNoAdjacent": {
+            "zh-CN": "学生 {0} 需要 {1} 个相邻空座，目标座位周围仅有 {2} 个，请求重掷",
+            "en-US": "Student {0} needs {1} adjacent empty seats, only {2} found near target seat, requesting reroll"
         },
-        "DeskMate_AllSplit": {
-            "zh-CN": "所有同桌组均无法形成有效组（成员被前排策略分散或不足2人）",
-            "en-US": "All desk-mate groups invalid (members scattered by front-row strategy or fewer than 2)"
+        "DeskMate_NearOccupied": {
+            "zh-CN": "学生 {0} 的同桌已分配，将其安置到相邻座位 {1}",
+            "en-US": "Student {0} desk-mate already assigned, placing student at adjacent seat {1}"
         },
-        "DeskMate_NoSeats": {
-            "zh-CN": "同桌组（{0}）无法找到连续座位，已跳过",
-            "en-US": "Desk-mate group ({0}) could not find contiguous seats, skipped"
+        "DeskMate_PartialAssign": {
+            "zh-CN": "学生 {0} 的同桌组部分分配失败：{1}/{2} 名组员已分配",
+            "en-US": "Partial desk-mate assignment for student {0}: {1}/{2} members assigned"
         }
     }
 }

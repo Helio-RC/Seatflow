@@ -330,19 +330,44 @@
                               MaxHeight="200">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="core:StrategyDisplayInfo">
-                      <Grid ColumnDefinitions="Auto,*" Margin="4,3">
-                        <Border Grid.Column="0" CornerRadius="3" Padding="4,1"
-                                Background="{DynamicResource SystemAccentColor}"
-                                Margin="0,0,8,0" VerticalAlignment="Center">
-                          <TextBlock Text="{Binding Priority}" Classes="micro"
-                                     Foreground="White" />
-                        </Border>
-                        <StackPanel Grid.Column="1">
-                          <TextBlock Text="{Binding DisplayName}" FontSize="13" />
-                          <TextBlock Text="{Binding Category}" Classes="small"
-                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                        </StackPanel>
-                      </Grid>
+                      <StackPanel>
+                        <!-- 父策略项 -->
+                        <Grid ColumnDefinitions="Auto,*" Margin="4,3">
+                          <Border Grid.Column="0" CornerRadius="3" Padding="4,1"
+                                  Background="{DynamicResource SystemAccentColor}"
+                                  Margin="0,0,8,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Priority}" Classes="micro"
+                                       Foreground="White" />
+                          </Border>
+                          <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding DisplayName}" FontSize="13" />
+                            <TextBlock Text="{Binding Category}" Classes="small"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                          </StackPanel>
+                        </Grid>
+                        <!-- 依赖策略子项（RandomFill 展开时显示） -->
+                        <ItemsControl ItemsSource="{Binding DependentChildren}"
+                                      Margin="24,0,0,0">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="core:StrategyDisplayInfo">
+                              <Grid ColumnDefinitions="Auto,*" Margin="4,1">
+                                <Border Grid.Column="0" CornerRadius="2" Padding="3,0"
+                                        Background="{DynamicResource SystemAccentColor}"
+                                        Opacity="0.7"
+                                        Margin="0,0,6,0" VerticalAlignment="Center">
+                                  <TextBlock Text="{Binding Priority}" Classes="micro"
+                                             Foreground="White" />
+                                </Border>
+                                <StackPanel Grid.Column="1">
+                                  <TextBlock Text="{Binding DisplayName}" FontSize="11" />
+                                  <TextBlock Text="{Binding Category}" Classes="micro"
+                                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                                </StackPanel>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

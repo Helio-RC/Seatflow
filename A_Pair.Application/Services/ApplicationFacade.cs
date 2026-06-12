@@ -241,6 +241,32 @@ namespace A_Pair.Application.Services
             // 6c. 加载代码块配置并应用到 FixedSeat / DeskMate 策略
             await ApplyCodeBlockConfigsAsync(strategies , request , venueLayout , cancellationToken);
 
+            // 6d. 收集依赖策略并注入到 RandomFill
+            var dependentStrategies = new List<IDependentSeatingStrategy>();
+
+            // 收集内置依赖策略（从 DI）
+            var builtInDependents = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            dependentStrategies.AddRange(builtInDependents);
+
+            // 收集插件依赖策略（manifest.IsIndependent == false 的插件）
+            foreach (var pi in loadedPlugins)
+            {
+                if (!pi.Manifest.IsIndependent && pi.Strategy.IsEnabled)
+                {
+                    // TODO: 插件依赖策略适配器 — 当前插件无法实现 EvaluateAsync，默认 Approve
+                    // 未来需扩展 IPluginSeatingStrategy 添加 EvaluateAsync 支持
+                    logger.LogWarning("插件依赖策略 {PluginId} 尚不支持 EvaluateAsync，将默认批准所有分配" , pi.Manifest.Id);
+                }
+            }
+
+            // 注入依赖策略到 RandomFill
+            var randomFill = strategies.OfType<RandomFillStrategy>().FirstOrDefault();
+            if (randomFill != null && dependentStrategies.Count > 0)
+            {
+                randomFill.LoadDependentStrategies(dependentStrategies);
+                logger.LogInformation("已将 {Count} 个依赖策略注入 RandomFill" , dependentStrategies.Count);
+            }
+
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
             var plan = await pipeline.ExecuteAsync(workspace , progress , cancellationToken);
@@ -570,10 +596,15 @@ namespace A_Pair.Application.Services
             // 收集内置策略（Manifest + 运行时实例配置）
             var builtInManifests = _manifestProvider.GetBuiltInManifests();
             var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInDependents = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+
             foreach (var manifest in builtInManifests)
             {
+                // 优先从独立策略查找，其次从依赖策略查找
                 var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
-                var info = BuildDisplayInfo(manifest , "builtin" , persisted , runtimeStrategy);
+                var depStrategy = builtInDependents.FirstOrDefault(d => d.Id == manifest.Id);
+
+                var info = BuildDisplayInfo(manifest , "builtin" , persisted , runtimeStrategy , depStrategy);
                 result.Add(info);
             }
 
@@ -595,12 +626,13 @@ namespace A_Pair.Application.Services
                     Parameters = pi.Manifest.Parameters ,
                     CodeBlocks = pi.Manifest.CodeBlocks ,
                     Messages = pi.Manifest.Messages ,
-                    Visible = pi.Manifest.Visible
+                    Visible = pi.Manifest.Visible ,
+                    IsIndependent = pi.Manifest.IsIndependent ,
+                    ManifestVersion = pi.Manifest.ManifestVersion
                 };
 
-                var runtimePluginConfig = pi.Strategy;
                 var source = $"plugin:{pi.Manifest.Id}";
-                var info = BuildDisplayInfo(pluginManifest , source , persisted , null);
+                var info = BuildDisplayInfo(pluginManifest , source , persisted , null , null);
                 result.Add(info);
             }
 
@@ -632,6 +664,17 @@ namespace A_Pair.Application.Services
                 strategy.Priority = config.Priority;
                 strategy.IsEnabled = config.IsEnabled;
                 ApplyConfiguration(strategy , config.Parameters);
+                return;
+            }
+
+            // 尝试从依赖策略查找
+            var depStrategy = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                .FirstOrDefault(d => d.Id == strategyId);
+            if (depStrategy is not null)
+            {
+                depStrategy.Priority = config.Priority;
+                depStrategy.IsEnabled = config.IsEnabled;
+                ApplyDependentConfiguration(depStrategy , config.Parameters);
             }
         }
 
@@ -719,6 +762,7 @@ namespace A_Pair.Application.Services
             string? venueId = request.LayoutId;
             if (string.IsNullOrEmpty(datasetId) && string.IsNullOrEmpty(venueId)) return;
 
+            // 处理独立策略的代码块配置（FixedSeat）
             foreach (var strategy in strategies)
             {
                 var config = await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
@@ -729,10 +773,18 @@ namespace A_Pair.Application.Services
                     case FixedSeatStrategy fs:
                         ApplyFixedSeatConfig(fs , config , venueLayout);
                         break;
-                    case DeskMateStrategy ds:
-                        ApplyDeskMateConfig(ds , config);
-                        break;
                 }
+            }
+
+            // 处理依赖策略的代码块配置（DeskMate）
+            var dependentStrategies = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            foreach (var dep in dependentStrategies)
+            {
+                var config = await _datasetConfigRepo.LoadAsync(dep.Id , datasetId ?? string.Empty , venueId , ct);
+                if (config?.Rows is not { Count: > 0 }) continue;
+
+                if (dep is DeskMateStrategy ds)
+                    ApplyDeskMateConfig(ds , config);
             }
         }
 
@@ -816,7 +868,8 @@ namespace A_Pair.Application.Services
             StrategyManifest manifest ,
             string source ,
             Dictionary<string , StrategyConfig> persisted ,
-            ISeatingStrategy? runtimeStrategy)
+            ISeatingStrategy? runtimeStrategy ,
+            IDependentSeatingStrategy? depStrategy = null)
         {
             var info = new StrategyDisplayInfo
             {
@@ -833,7 +886,8 @@ namespace A_Pair.Application.Services
                 ParameterDefinitions = manifest.Parameters ,
                 CodeBlocks = manifest.CodeBlocks ,
                 Messages = manifest.Messages ,
-                Visible = manifest.Visible
+                Visible = manifest.Visible ,
+                IsIndependent = manifest.IsIndependent
             };
 
             // 用持久化的配置覆盖默认值
@@ -847,6 +901,10 @@ namespace A_Pair.Application.Services
             else if (runtimeStrategy is not null)
             {
                 info.Parameters = ExtractParameters(runtimeStrategy);
+            }
+            else if (depStrategy is not null)
+            {
+                info.Parameters = ExtractDependentParameters(depStrategy);
             }
 
             return info;
@@ -862,6 +920,14 @@ namespace A_Pair.Application.Services
                     ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus ,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
+                _ => []
+            };
+        }
+
+        private static Dictionary<string , object?> ExtractDependentParameters (IDependentSeatingStrategy strategy)
+        {
+            return strategy switch
+            {
                 DeskMateStrategy d => new Dictionary<string , object?>
                 {
                     ["PreferHorizontal"] = d.Config.PreferHorizontal ,
@@ -882,7 +948,15 @@ namespace A_Pair.Application.Services
                     fr.Config.NeedsFrontRowBonus = GetParamInt(parameters , "NeedsFrontRowBonus");
                     fr.Config.FrontRowCount = GetParamInt(parameters , "FrontRowCount");
                     break;
+            }
+        }
 
+        private static void ApplyDependentConfiguration (IDependentSeatingStrategy strategy , Dictionary<string , object?> parameters)
+        {
+            if (parameters.Count == 0) return;
+
+            switch (strategy)
+            {
                 case DeskMateStrategy d:
                     d.Config.PreferHorizontal = GetParamBool(parameters , "PreferHorizontal");
                     d.Config.AllowVertical = GetParamBool(parameters , "AllowVertical");

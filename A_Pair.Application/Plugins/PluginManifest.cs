@@ -112,5 +112,17 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         [JsonPropertyName("messages")]
         public Dictionary<string , Dictionary<string , string>>? Messages { get; set; }
+
+        /// <summary>
+        /// 是否为独立策略（默认 true）。设为 false 时策略在 RandomFill 上下文中执行。
+        /// </summary>
+        [JsonPropertyName("isIndependent")]
+        public bool IsIndependent { get; set; } = true;
+
+        /// <summary>
+        /// Manifest 文件格式版本号，用于运行时版本兼容性校验。
+        /// </summary>
+        [JsonPropertyName("manifestVersion")]
+        public string ManifestVersion { get; set; } = "1.0";
     }
 }
