@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -59,7 +60,7 @@ namespace A_Pair.Infrastructure.Providers
                 Directory.CreateDirectory(dir);
 
             settings.Version = FileVersionInfo.GetCurrentVersion("appSettings");
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            var options = JsonOptions.WriteIndented;
             var json = JsonSerializer.Serialize(settings , options);
             await File.WriteAllTextAsync(_filePath , json , cancellationToken);
             _logger.LogInformation("AppSettings 已保存：{Path}" , _filePath);

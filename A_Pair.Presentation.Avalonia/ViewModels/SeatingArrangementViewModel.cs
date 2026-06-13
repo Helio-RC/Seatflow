@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
+using A_Pair.Infrastructure.Serialization;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Presentation.Avalonia.Lang;
@@ -293,11 +294,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             // 2. 写入临时 JSON 文件（RosterFile 格式）
             var roster = new RosterFile { Version = "1.0" , Students = students };
-            var jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true ,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+            var jsonOptions = JsonOptions.WriteIndentedCamelCase;
             var tempPath = Path.Combine(Path.GetTempPath() , $"a_pair_gen_{Guid.NewGuid():N}.json");
             await File.WriteAllTextAsync(tempPath , JsonSerializer.Serialize(roster , jsonOptions) , ct);
 

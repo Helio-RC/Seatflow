@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -59,7 +60,7 @@ namespace A_Pair.Infrastructure.Repositories
             Directory.CreateDirectory(dir);
             var path = Path.Combine(_basePath , GetFilePath(snapshot.LayoutId , snapshot.CreatedAt , snapshot.Id));
             snapshot.Version = FileVersionInfo.GetCurrentVersion("snapshot");
-            var json = JsonSerializer.Serialize(snapshot , new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(snapshot , JsonOptions.WriteIndented);
             await File.WriteAllTextAsync(path , json , ct);
             lock (_indexLock)
             {
@@ -74,7 +75,7 @@ namespace A_Pair.Infrastructure.Repositories
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir , "_venue.json");
             info.Version = FileVersionInfo.GetCurrentVersion("venueInfo");
-            var json = JsonSerializer.Serialize(info , new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(info , JsonOptions.WriteIndented);
             await File.WriteAllTextAsync(path , json , ct);
         }
 

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
+using A_Pair.Infrastructure.Serialization;
 
 namespace A_Pair.Infrastructure.Providers
 {
@@ -21,11 +22,7 @@ namespace A_Pair.Infrastructure.Providers
                 Students = new List<Student>(students)
             };
 
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true ,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+            var options = JsonOptions.WriteIndentedCamelCase;
 
             var json = JsonSerializer.Serialize(roster , options);
             await File.WriteAllTextAsync(path , json , cancellationToken);

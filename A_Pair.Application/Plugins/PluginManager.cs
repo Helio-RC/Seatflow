@@ -3,6 +3,7 @@ using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Core.Services;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Application.Plugins
@@ -227,7 +228,7 @@ namespace A_Pair.Application.Plugins
 
             var json = await File.ReadAllTextAsync(enablesPath , ct);
             return JsonSerializer.Deserialize<PluginEnables>(json ,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new PluginEnables();
+                JsonOptions.CaseInsensitiveRead) ?? new PluginEnables();
         }
 
         /// <inheritdoc />
@@ -237,8 +238,7 @@ namespace A_Pair.Application.Plugins
             Directory.CreateDirectory(dataDir);
 
             var enablesPath = Path.Combine(dataDir , "enables.json");
-            var json = JsonSerializer.Serialize(enables ,
-                new JsonSerializerOptions { WriteIndented = true , PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var json = JsonSerializer.Serialize(enables , JsonOptions.WriteIndentedCamelCase);
             await File.WriteAllTextAsync(enablesPath , json , ct);
         }
 
@@ -285,7 +285,7 @@ namespace A_Pair.Application.Plugins
 
                 var json = await File.ReadAllTextAsync(manifestPath , ct);
                 var manifest = JsonSerializer.Deserialize<PluginPackageManifest>(json ,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    JsonOptions.CaseInsensitiveRead);
                 if (manifest is null || string.IsNullOrEmpty(manifest.Id))
                     throw new InvalidDataException("plugins-manifest.json 格式无效：缺少 id 字段");
                 var packageId = manifest.Id;
@@ -359,7 +359,7 @@ namespace A_Pair.Application.Plugins
 
             var manifestJson = await File.ReadAllTextAsync(manifestPath , ct);
             var packageManifest = JsonSerializer.Deserialize<PluginPackageManifest>(manifestJson ,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                JsonOptions.CaseInsensitiveRead);
             if (packageManifest == null || string.IsNullOrEmpty(packageManifest.Id))
                 return results;
 
@@ -392,7 +392,7 @@ namespace A_Pair.Application.Plugins
 
                 var strategyManifestJson = await File.ReadAllTextAsync(strategyManifestPath , ct);
                 var strategyManifest = JsonSerializer.Deserialize<StrategyManifest>(strategyManifestJson ,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    JsonOptions.CaseInsensitiveRead);
                 if (strategyManifest == null || string.IsNullOrEmpty(strategyManifest.Id))
                 {
                     _logger.LogWarning("策略 manifest 无效：{Path}" , strategyManifestPath);

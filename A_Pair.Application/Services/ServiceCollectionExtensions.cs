@@ -8,6 +8,7 @@ using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
 using A_Pair.Core.Strategies;
 using A_Pair.Infrastructure.Exporters;
+using A_Pair.Infrastructure.Serialization;
 using A_Pair.Infrastructure.Migration;
 using A_Pair.Infrastructure.Migration.Migrators;
 using A_Pair.Infrastructure.Providers;
@@ -60,7 +61,7 @@ namespace A_Pair.Application.Services
                 {
                     var json = File.ReadAllText(defaultSettingsPath);
                     var existing = JsonSerializer.Deserialize<AppSettings>(json ,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        JsonOptions.CaseInsensitiveRead);
                     if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
                         effectiveDataPath = customPath;
                     if (existing?.Logging is { } ls)
