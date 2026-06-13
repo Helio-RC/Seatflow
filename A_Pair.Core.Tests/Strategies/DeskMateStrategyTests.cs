@@ -319,6 +319,83 @@ public class DeskMateStrategyTests
     // ═══════════ 属性测试 ═══════════
 
     [Fact]
+    public async Task EvaluateAsync_AllowVerticalFalse_ShouldOnlyUseHorizontalAdjacent ()
+    {
+        var students = CreateStudents("s1" , "s2");
+        // (1,1) and (2,1) are vertically adjacent; (1,2) is horizontally adjacent to (1,1)
+        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
+            PreferHorizontal = true ,
+            AllowVertical = false  // vertical should NOT be used
+        };
+        var strategy = new DeskMateStrategy(config);
+
+        // (1,1) has horizontal neighbor (1,2) and vertical neighbor (2,1)
+        // With AllowVertical=false, only (1,2) should be used → s2 assigned to (1,2)
+        var result = await strategy.EvaluateAsync(
+            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+
+        result.AlreadyHandled.Should().BeTrue();
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments[seats[1].Id].Should().Be("s2"); // (1,2) — horizontal
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_VerticalOnly_ShouldUseVerticalAdjacent ()
+    {
+        var students = CreateStudents("s1" , "s2");
+        // (1,1) and (2,1) are vertically adjacent
+        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
+            PreferHorizontal = false ,
+            AllowVertical = true  // only vertical
+        };
+        var strategy = new DeskMateStrategy(config);
+
+        // With PreferHorizontal=false, AllowVertical=true, only (2,1) is adjacent → Handled
+        var result = await strategy.EvaluateAsync(
+            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+
+        result.AlreadyHandled.Should().BeTrue();
+        var plan = ws.BuildSeatingPlan();
+        plan.Assignments.Should().HaveCount(2);
+        // s2 should be at (2,1) — vertical adjacent
+        plan.Assignments[seats[2].Id].Should().Be("s2");
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_NoAdjacentWhenConfigRestricted_ShouldReject ()
+    {
+        var students = CreateStudents("s1" , "s2");
+        // (1,1) and (2,2) are NOT adjacent
+        var seats = CreateGridSeats((1 , 1) , (2 , 2));
+        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+
+        var config = new DeskMateConfiguration
+        {
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
+            PreferHorizontal = true ,
+            AllowVertical = false
+        };
+        var strategy = new DeskMateStrategy(config);
+
+        // (2,2) is not adjacent to (1,1) at all → should reject
+        var result = await strategy.EvaluateAsync(
+            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+
+        result.Approved.Should().BeFalse();
+        result.AlreadyHandled.Should().BeFalse();
+    }
+
+    [Fact]
     public void Properties_ShouldHaveExpectedDefaults ()
     {
         var strategy = new DeskMateStrategy();

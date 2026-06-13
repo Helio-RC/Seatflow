@@ -218,9 +218,10 @@ namespace A_Pair.Core.Strategies
                 return DependentResult.Reject();
             }
 
-            // 随机选 neededAdjacent 个相邻空座给组员
+            // 随机打乱相邻空座，优先取前 N 个，剩余作为回退池
             Shuffle(adjacentEmpty , _random);
             var mateSeats = adjacentEmpty.Take(neededAdjacent).ToList();
+            var fallbackPool = adjacentEmpty.Skip(neededAdjacent).ToList();
 
             // 先分配 student 到 targetSeat
             if (!workspace.TryAssignSeat(targetSeat.Id , student.Id , out var err))
@@ -230,15 +231,32 @@ namespace A_Pair.Core.Strategies
                 return DependentResult.Reject();
             }
 
-            // 再将组员分配到相邻空座
+            // 将组员分配到相邻空座；失败时尝试回退池中的其他相邻座位
             int assignedMates = 0;
-            for (int i = 0; i < unassignedMates.Count; i++)
+            var unassignedIds = new List<string>(unassignedMates);
+            Shuffle(unassignedIds , _random);
+
+            for (int i = 0; i < unassignedIds.Count; i++)
             {
-                if (workspace.TryAssignSeat(mateSeats[i].Id , unassignedMates[i] , out _))
-                    assignedMates++;
-                else
-                    _logger.LogWarning("DeskMate：分配组员 {MateId} 到 {SeatId} 失败" ,
-                        unassignedMates[i] , mateSeats[i].Id);
+                bool assigned = false;
+                if (i < mateSeats.Count)
+                {
+                    assigned = workspace.TryAssignSeat(mateSeats[i].Id , unassignedIds[i] , out _);
+                }
+                // 失败或座位不够时尝试回退池
+                if (!assigned && fallbackPool.Count > 0)
+                {
+                    for (int fb = 0; fb < fallbackPool.Count; fb++)
+                    {
+                        if (fallbackPool[fb].IsAvailable && workspace.TryAssignSeat(fallbackPool[fb].Id , unassignedIds[i] , out _))
+                        {
+                            assigned = true;
+                            fallbackPool.RemoveAt(fb);
+                            break;
+                        }
+                    }
+                }
+                if (assigned) assignedMates++;
             }
 
             _logger.LogInformation(
@@ -255,7 +273,7 @@ namespace A_Pair.Core.Strategies
         }
 
         /// <summary>
-        /// 查找指定座位周围的相邻空座。
+        /// 查找指定座位周围的相邻空座，根据配置过滤方向偏好。
         /// </summary>
         /// <param name="seat">参考座位。</param>
         /// <param name="emptySeats">空座位列表。</param>
@@ -265,10 +283,29 @@ namespace A_Pair.Core.Strategies
             var result = new List<Seat>();
             foreach (var empty in emptySeats)
             {
-                if (AreSeatsAdjacent(seat , empty))
+                if (IsAdjacentWithConfig(seat , empty))
                     result.Add(empty);
             }
             return result;
+        }
+
+        /// <summary>
+        /// 根据配置偏好判断两个座位是否相邻。
+        /// <see cref="DeskMateConfiguration.PreferHorizontal"/> 和 <see cref="DeskMateConfiguration.AllowVertical"/>
+        /// 控制 Grid 布局中的方向性。
+        /// </summary>
+        private bool IsAdjacentWithConfig (Seat a , Seat b)
+        {
+            // 非 Grid 布局使用通用 adjacency 判定（LogicalGroup / 几何距离）
+            if (a is not GridSeat ga || b is not GridSeat gb)
+                return AreSeatsAdjacent(a , b);
+
+            bool horizontalOk = _config.PreferHorizontal
+                && ga.Row == gb.Row && Math.Abs(ga.Column - gb.Column) == 1;
+            bool verticalOk = _config.AllowVertical
+                && ga.Column == gb.Column && Math.Abs(ga.Row - gb.Row) == 1;
+
+            return horizontalOk || verticalOk;
         }
 
         /// <summary>

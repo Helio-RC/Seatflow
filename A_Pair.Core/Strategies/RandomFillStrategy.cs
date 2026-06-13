@@ -241,12 +241,7 @@ namespace A_Pair.Core.Strategies
                         }
 
                         // 刷新状态：依赖策略可能已分配多名学生（连携修改）
-                        emptySeats = workspace.GetEmptySeats().ToList();
-                        var currentAssigned = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
-                        unassignedStudents = workspace.Students
-                            .Where(s => !currentAssigned.Contains(s.Id))
-                            .ToList();
-
+                        RefreshState(workspace , ref emptySeats , ref unassignedStudents);
                         assigned = true;
                         break;
                     }
@@ -254,28 +249,46 @@ namespace A_Pair.Core.Strategies
 
                 if (!assigned)
                 {
-                    // 重掷上限：兜底强制分配
+                    // 重掷上限：兜底强制分配。确保使用当前已知的空座（而非可能已被占用的旧引用）
+                    var fallbackSeat = emptySeats.FirstOrDefault();
+                    if (fallbackSeat is null)
+                    {
+                        _logger.LogWarning("RandomFill：无剩余空座，学生 {Student} 无法分配" , student.Name);
+                        break;
+                    }
+
                     _logger.LogWarning(
                         "RandomFill：重掷次数达上限 {MaxRerolls}，学生 {Student} 强制分配到座位 {Seat}" ,
-                        maxRerolls , student.Name , seat.Id);
+                        maxRerolls , student.Name , fallbackSeat.Id);
 
                     workspace.LogWarning(
                         Id , DisplayNameConst , "RandomFill_RerollExhausted" ,
-                        maxRerolls , student.Id , seat.Id);
+                        maxRerolls , student.Id , fallbackSeat.Id);
 
-                    workspace.TryAssignSeat(seat.Id , student.Id , out _);
-
-                    emptySeats = workspace.GetEmptySeats().ToList();
-                    var currentAssigned = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
-                    unassignedStudents = workspace.Students
-                        .Where(s => !currentAssigned.Contains(s.Id))
-                        .ToList();
+                    workspace.TryAssignSeat(fallbackSeat.Id , student.Id , out _);
+                    RefreshState(workspace , ref emptySeats , ref unassignedStudents);
                 }
             }
 
             _logger.LogInformation(
                 "RandomFill 上下文路径完成：剩余空座 {RemainingSeats}，剩余学生 {RemainingStudents}，总重掷 {TotalRerolls} 次" ,
                 emptySeats.Count , unassignedStudents.Count , totalRerolls);
+        }
+
+        /// <summary>
+        /// 刷新空座列表和未分配学生列表，复用 BuildSeatingPlan 结果避免重复调用。
+        /// </summary>
+        private static void RefreshState (
+            SeatingWorkspace workspace ,
+            ref List<Seat> emptySeats ,
+            ref List<Student> unassignedStudents)
+        {
+            emptySeats = workspace.GetEmptySeats().ToList();
+            var plan = workspace.BuildSeatingPlan();
+            var assignedIds = plan.Assignments.Values.ToHashSet();
+            unassignedStudents = workspace.Students
+                .Where(s => !assignedIds.Contains(s.Id))
+                .ToList();
         }
 
         private void LogCompletion (SeatingWorkspace workspace)

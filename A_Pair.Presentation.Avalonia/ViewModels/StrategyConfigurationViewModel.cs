@@ -200,6 +200,16 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         _ = LoadDetailAsync(newValue);
     }
 
+    /// <summary>
+    /// 子策略项（依赖策略）被点击选中时的回调。
+    /// 绕过 ListBox 的选中机制，直接设置 SelectedStrategy 并加载详情。
+    /// </summary>
+    private void OnChildStrategySelected (StrategyItemViewModel child)
+    {
+        if (child == SelectedStrategy) return;
+        SelectedStrategy = child;
+    }
+
     private void OnSelectedStrategyItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
@@ -248,6 +258,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                         isIndependent: false))
                     .ToList();
                 randomFill.Children = new ObservableCollection<StrategyItemViewModel>(children);
+                // 为每个子项设置选中回调，点击子项时切换到该策略的详情
+                foreach (var child in children)
+                {
+                    child.OnSelected = OnChildStrategySelected;
+                }
                 // 默认展开以显示依赖策略
                 randomFill.IsExpanded = true;
             }

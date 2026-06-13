@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -44,6 +45,9 @@ public partial class StrategyItemViewModel : ObservableObject
     /// <summary>是否为依赖策略的宿主（如 RandomFill）。依赖策略显示为其子项。</summary>
     public bool IsHost => HasChildren;
 
+    /// <summary>当用户点击选中此策略项时的回调。由父 ViewModel 设置，用于子项选中通知。</summary>
+    public Action<StrategyItemViewModel>? OnSelected { get; set; }
+
     public StrategyItemViewModel (
         string id ,
         string displayName ,
@@ -76,5 +80,12 @@ public partial class StrategyItemViewModel : ObservableObject
     private void ToggleExpand ()
     {
         IsExpanded = !IsExpanded;
+    }
+
+    /// <summary>子项被点击时触发，通知父 ViewModel 切换选中项。</summary>
+    [RelayCommand]
+    private void SelectSelf ()
+    {
+        OnSelected?.Invoke(this);
     }
 }
