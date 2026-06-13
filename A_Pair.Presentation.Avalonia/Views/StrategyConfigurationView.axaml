@@ -136,24 +136,22 @@
                       <ToggleSwitch DockPanel.Dock="Right"
                                     IsChecked="{Binding IsEnabled, Mode=TwoWay}"
                                     VerticalAlignment="Center" />
-                      <!-- 展开/折叠按钮（仅宿主策略显示，占据左侧区域） -->
+                      <!-- 左侧展开按钮（仅宿主策略显示，占满左侧区域） -->
                       <Button DockPanel.Dock="Left"
                               Command="{Binding ToggleExpandCommand}"
                               IsVisible="{Binding HasChildren}"
                               Background="Transparent"
                               BorderThickness="0"
-                              Padding="0"
-                              Width="28"
-                              HorizontalContentAlignment="Center"
+                              Padding="6,0"
                               VerticalAlignment="Stretch"
                               VerticalContentAlignment="Center"
                               Cursor="Hand">
                         <Panel Width="12" Height="12">
-                          <fic:FluentIcon FontSize="10"
+                          <fic:FluentIcon FontSize="12"
                                           Icon="{x:Static ficEnum:Icon.ChevronDown}"
                                           IsVisible="{Binding IsExpanded}"
                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                          <fic:FluentIcon FontSize="10"
+                          <fic:FluentIcon FontSize="12"
                                           Icon="{x:Static ficEnum:Icon.ChevronRight}"
                                           IsVisible="{Binding IsExpanded, Converter={x:Static conv:BoolConverters.Negate}}"
                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
