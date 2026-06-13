@@ -353,15 +353,17 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     public bool CanMoveUp (StrategyItemViewModel? item)
     {
         if (item is null) return false;
-        var idx = Strategies.IndexOf(item);
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
         return idx > 0;
     }
 
     public bool CanMoveDown (StrategyItemViewModel? item)
     {
         if (item is null) return false;
-        var idx = Strategies.IndexOf(item);
-        return idx >= 0 && idx < Strategies.Count - 1;
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
+        return idx >= 0 && idx < sameGroup.Count - 1;
     }
 
     [RelayCommand]
@@ -549,7 +551,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void ReSort ()
     {
-        // 独立策略在前，依赖策略在后，各自按 Priority 升序
+        // 独立策略在前，依赖策略在后，各自按 Priority 升序。
+        // 依赖策略的 IsIndependent=false，必然排在所有独立策略之后。
         var sorted = Strategies
             .OrderBy(s => s.IsIndependent ? 0 : 1)
             .ThenBy(s => s.Priority)
