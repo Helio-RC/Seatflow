@@ -53,8 +53,9 @@ public interface IPluginManager
     /// 自动检测格式并安装到插件目录。
     /// </summary>
     /// <param name="packagePath">包文件路径。</param>
+    /// <param name="ct">取消令牌。</param>
     /// <returns>安装后的插件包目录路径。</returns>
-    Task<string> InstallFromPackageAsync (string packagePath);
+    Task<string> InstallFromPackageAsync (string packagePath , CancellationToken ct = default);
 
     /// <summary>
     /// 获取所有已加载插件包的清单字典（键为包 ID）。

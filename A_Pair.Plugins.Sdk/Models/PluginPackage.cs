@@ -79,7 +79,67 @@ public static class PluginPackage
     }
 
     /// <summary>
+    /// 最大压缩比率（解压后大小 / 压缩大小），超过此值视为 ZIP 炸弹。
+    /// </summary>
+    public const int MaxCompressionRatio = 100;
+
+    /// <summary>
+    /// 解压后总大小上限（字节），默认 500 MB。
+    /// </summary>
+    public const long MaxUncompressedSize = 500 * 1024 * 1024;
+
+    /// <summary>
+    /// ZIP 条目数量上限。
+    /// </summary>
+    public const int MaxEntryCount = 10000;
+
+    /// <summary>
+    /// 验证 ZIP 文件是否安全（检查压缩炸弹、总大小、条目数）。
+    /// </summary>
+    /// <param name="archivePath">ZIP 文件路径。</param>
+    /// <returns>验证失败时返回错误描述；通过时返回 <c>null</c>。</returns>
+    public static string? ValidateZipSafety (string archivePath)
+    {
+        try
+        {
+            using var archive = ZipFile.OpenRead(archivePath);
+            var entries = archive.Entries;
+            if (entries.Count > MaxEntryCount)
+                return $"ZIP 条目数 ({entries.Count}) 超过上限 ({MaxEntryCount})";
+
+            long totalUncompressed = 0;
+            foreach (var entry in entries)
+            {
+                // 跳过目录条目
+                if (string.IsNullOrEmpty(entry.Name) && entry.FullName.EndsWith('/'))
+                    continue;
+
+                var compressed = entry.CompressedLength;
+                var uncompressed = entry.Length;
+
+                totalUncompressed += uncompressed;
+                if (totalUncompressed > MaxUncompressedSize)
+                    return $"ZIP 解压后总大小 ({totalUncompressed / 1024 / 1024:N0} MB) 超过上限 ({MaxUncompressedSize / 1024 / 1024:N0} MB)";
+
+                // 压缩炸弹检测：压缩比超过阈值
+                if (compressed > 0 && uncompressed > 0)
+                {
+                    var ratio = uncompressed / (double)compressed;
+                    if (ratio > MaxCompressionRatio)
+                        return $"条目 \"{entry.FullName}\" 压缩比 ({ratio:N0}:1) 超过上限 ({MaxCompressionRatio}:1)，疑似 ZIP 炸弹";
+                }
+            }
+            return null; // 通过验证
+        }
+        catch (InvalidDataException)
+        {
+            return "ZIP 文件格式无效";
+        }
+    }
+
+    /// <summary>
     /// 将插件包文件解包到目标目录，自动处理嵌套单层目录。
+    /// 解压前自动进行 ZIP 炸弹安全验证。
     /// </summary>
     /// <param name="packagePath">包文件路径（<c>.ap-plugin</c> 或 <c>.apairplugin</c>）。</param>
     /// <param name="targetDir">解包目标目录（不存在则自动创建）。</param>
@@ -88,11 +148,16 @@ public static class PluginPackage
     /// <c>false</c> — 直接解包，不做剥离。默认为 <c>true</c>。
     /// </param>
     /// <exception cref="FileNotFoundException">包文件不存在。</exception>
-    /// <exception cref="InvalidDataException">包内缺少清单文件。</exception>
+    /// <exception cref="InvalidDataException">包内缺少清单文件或 ZIP 安全验证失败。</exception>
     public static void Extract (string packagePath , string targetDir , bool stripSingleFolder = true)
     {
         if (!File.Exists(packagePath))
             throw new FileNotFoundException($"插件包文件不存在：{packagePath}");
+
+        // ZIP 炸弹安全验证
+        var safetyError = ValidateZipSafety(packagePath);
+        if (safetyError != null)
+            throw new InvalidDataException(safetyError);
 
         Directory.CreateDirectory(targetDir);
 
@@ -108,27 +173,27 @@ public static class PluginPackage
                 var entries = Directory.GetFileSystemEntries(tempDir);
                 if (entries.Length == 1 && Directory.Exists(entries[0]))
                 {
-                    // 被嵌套在单层文件夹中，剥离外层：将内容上移
+                    // 被嵌套在单层文件夹中，剥离外层：使用 Copy+Delete 替代 Move 以兼容跨文件系统
                     var innerDir = entries[0];
                     foreach (var item in Directory.GetFileSystemEntries(innerDir))
                     {
                         var dest = Path.Combine(tempDir , Path.GetFileName(item));
                         if (Directory.Exists(item))
-                            Directory.Move(item , dest);
+                            CopyDirectoryRecursive(item , dest);
                         else
-                            File.Move(item , dest);
+                            File.Copy(item , dest , overwrite: true);
                     }
-                    Directory.Delete(innerDir);
+                    Directory.Delete(innerDir , recursive: true);
                 }
 
-                // 将临时目录内容移动到目标目录
+                // 将临时目录内容复制到目标目录（Copy+Delete 兼容跨文件系统）
                 foreach (var item in Directory.GetFileSystemEntries(tempDir))
                 {
                     var dest = Path.Combine(targetDir , Path.GetFileName(item));
                     if (Directory.Exists(item))
-                        Directory.Move(item , dest);
+                        CopyDirectoryRecursive(item , dest);
                     else
-                        File.Move(item , dest);
+                        File.Copy(item , dest , overwrite: true);
                 }
             }
             finally
@@ -296,6 +361,24 @@ public static class PluginPackage
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// 递归复制目录（Copy+Delete 模式，兼容跨文件系统场景）。
+    /// </summary>
+    private static void CopyDirectoryRecursive (string sourceDir , string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+        foreach (var file in Directory.EnumerateFiles(sourceDir))
+        {
+            var destFile = Path.Combine(destDir , Path.GetFileName(file));
+            File.Copy(file , destFile , overwrite: true);
+        }
+        foreach (var subDir in Directory.EnumerateDirectories(sourceDir))
+        {
+            var destSubDir = Path.Combine(destDir , Path.GetFileName(subDir));
+            CopyDirectoryRecursive(subDir , destSubDir);
         }
     }
 }

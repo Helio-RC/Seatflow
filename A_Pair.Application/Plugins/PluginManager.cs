@@ -32,12 +32,13 @@ namespace A_Pair.Application.Plugins
         // 包级存储
         private readonly Dictionary<string , LoadedPackageInfo> _loadedPackages = [];
         private readonly Dictionary<string , string> _strategyToPackage = []; // strategyId → packageId
+        private readonly Dictionary<string , PluginStrategyEntry> _strategyEntryMap = []; // strategyId → entry
 
         // 旧字典 — 由 SyncLegacyDictionaries() 同步，供外部（ApplicationFacade 等）按旧 API 访问
         private readonly Dictionary<string , PluginManifest> _loadedManifests = [];
         private readonly Dictionary<string , LoadedPluginInfo> _loadedPlugins = [];
 
-        private bool _isLoaded;
+        private readonly HashSet<string> _loadedPackageDirs = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// 初始化插件管理器，确保插件目录存在并注册内置脚本适配器。
@@ -78,17 +79,21 @@ namespace A_Pair.Application.Plugins
         /// <inheritdoc />
         public async Task<IEnumerable<LoadedPluginInfo>> LoadPluginsAsync (string? category = null , CancellationToken ct = default)
         {
-            if (_isLoaded)
-                return _loadedPlugins.Values;
-
             if (!Directory.Exists(_pluginsPath))
                 return [];
 
+            // 总是包含已缓存的策略（安装后会有新目录加入，但缓存依然有效）
             var allStrategies = new List<LoadedPluginInfo>();
+            if (_loadedPlugins.Count > 0)
+                allStrategies.AddRange(_loadedPlugins.Values);
 
             foreach (var pluginDir in Directory.EnumerateDirectories(_pluginsPath))
             {
                 ct.ThrowIfCancellationRequested();
+
+                // 跳过已成功加载的目录
+                if (_loadedPackageDirs.Contains(pluginDir))
+                    continue;
 
                 try
                 {
@@ -100,6 +105,7 @@ namespace A_Pair.Application.Plugins
                         // 新格式
                         var strategies = await LoadNewFormatPackage(pluginDir , newManifestPath , category , ct);
                         allStrategies.AddRange(strategies);
+                        _loadedPackageDirs.Add(pluginDir);
                     }
                     else if (File.Exists(oldManifestPath))
                     {
@@ -107,6 +113,7 @@ namespace A_Pair.Application.Plugins
                         var strategy = await LoadOldFormatPackage(pluginDir , oldManifestPath , category , ct);
                         if (strategy != null)
                             allStrategies.Add(strategy);
+                        _loadedPackageDirs.Add(pluginDir);
                     }
                 }
                 catch (OperationCanceledException)
@@ -116,10 +123,10 @@ namespace A_Pair.Application.Plugins
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex , "加载插件包失败：{PluginDir}" , pluginDir);
+                    // 不加入 _loadedPackageDirs，下次调用会重试
                 }
             }
 
-            _isLoaded = true;
             return allStrategies;
         }
 
@@ -127,7 +134,6 @@ namespace A_Pair.Application.Plugins
         public async Task<IEnumerable<LoadedPluginInfo>> RefreshPluginsAsync (string? category = null , CancellationToken ct = default)
         {
             await UnloadAllAsync();
-            _isLoaded = false;
             return await LoadPluginsAsync(category , ct);
         }
 
@@ -175,11 +181,13 @@ namespace A_Pair.Application.Plugins
             if (File.Exists(newManifestPath))
             {
                 await LoadNewFormatPackage(packageDir , newManifestPath , null , ct);
+                _loadedPackageDirs.Add(packageDir);
                 return _loadedPackages.GetValueOrDefault(packageId);
             }
             else if (File.Exists(oldManifestPath))
             {
                 await LoadOldFormatPackage(packageDir , oldManifestPath , null , ct);
+                _loadedPackageDirs.Add(packageDir);
                 return _loadedPackages.GetValueOrDefault(packageId);
             }
 
@@ -207,6 +215,9 @@ namespace A_Pair.Application.Plugins
                 await LoadNewFormatPackage(packageDir , newManifestPath , null , ct);
             else if (File.Exists(oldManifestPath))
                 await LoadOldFormatPackage(packageDir , oldManifestPath , null , ct);
+
+            // 重新跟踪该目录，避免 LoadPluginsAsync 重复扫描
+            _loadedPackageDirs.Add(packageDir);
         }
 
         /// <inheritdoc />
@@ -312,18 +323,25 @@ namespace A_Pair.Application.Plugins
         }
 
         /// <inheritdoc />
-        public async Task<string> InstallFromPackageAsync (string packagePath)
+        public async Task<string> InstallFromPackageAsync (string packagePath , CancellationToken ct = default)
         {
+            ct.ThrowIfCancellationRequested();
+
             if (!File.Exists(packagePath))
                 throw new FileNotFoundException($"插件包文件不存在：{packagePath}");
+
+            // ZIP 炸弹安全验证（在解压前检查压缩比和总大小）
+            ValidateZipSafety(packagePath);
 
             var tempDir = Path.Combine(Path.GetTempPath() , $"apair_plugin_{Guid.NewGuid():N}");
             Directory.CreateDirectory(tempDir);
 
             try
             {
-                // 解压到临时目录
+                // 解压到临时目录（使用 Copy+Delete 替代 Move，避免跨文件系统问题）
                 ZipFile.ExtractToDirectory(packagePath , tempDir , overwriteFiles: true);
+
+                ct.ThrowIfCancellationRequested();
 
                 // 防嵌套：若恰好只有 1 个目录 + 0 个文件，剥离外层
                 var entries = Directory.GetFileSystemEntries(tempDir);
@@ -334,12 +352,14 @@ namespace A_Pair.Application.Plugins
                     {
                         var dest = Path.Combine(tempDir , Path.GetFileName(item));
                         if (Directory.Exists(item))
-                            Directory.Move(item , dest);
+                            CopyDirectoryRecursive(item , dest);
                         else
-                            File.Move(item , dest);
+                            File.Copy(item , dest , overwrite: true);
                     }
-                    Directory.Delete(innerDir);
+                    Directory.Delete(innerDir , recursive: true);
                 }
+
+                ct.ThrowIfCancellationRequested();
 
                 // 检测格式 → 读取包 ID
                 string packageId;
@@ -351,7 +371,7 @@ namespace A_Pair.Application.Plugins
                 if (File.Exists(newManifestPath))
                 {
                     isNewFormat = true;
-                    var json = await File.ReadAllTextAsync(newManifestPath);
+                    var json = await File.ReadAllTextAsync(newManifestPath , ct);
                     var manifest = JsonSerializer.Deserialize<PluginPackageManifest>(json ,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (manifest is null || string.IsNullOrEmpty(manifest.Id))
@@ -361,7 +381,7 @@ namespace A_Pair.Application.Plugins
                 else if (File.Exists(oldManifestPath))
                 {
                     isNewFormat = false;
-                    var json = await File.ReadAllTextAsync(oldManifestPath);
+                    var json = await File.ReadAllTextAsync(oldManifestPath , ct);
 #pragma warning disable CS0618
                     var manifest = JsonSerializer.Deserialize<PluginManifest>(json ,
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -375,6 +395,8 @@ namespace A_Pair.Application.Plugins
                     throw new InvalidDataException("插件包内缺少 plugins-manifest.json 或 plugin.manifest.json 文件");
                 }
 
+                ct.ThrowIfCancellationRequested();
+
                 // 目标目录
                 var targetDir = Path.Combine(_pluginsPath , packageId);
                 if (Directory.Exists(targetDir))
@@ -385,6 +407,7 @@ namespace A_Pair.Application.Plugins
                 // 复制所有文件到目标目录
                 foreach (var filePath in Directory.EnumerateFiles(tempDir , "*" , SearchOption.AllDirectories))
                 {
+                    ct.ThrowIfCancellationRequested();
                     var relativePath = Path.GetRelativePath(tempDir , filePath);
                     var destPath = Path.Combine(targetDir , relativePath);
                     var destDir = Path.GetDirectoryName(destPath);
@@ -397,11 +420,10 @@ namespace A_Pair.Application.Plugins
                 if (isNewFormat)
                 {
                     var enables = new PluginEnables { Enabled = true };
-                    await SaveEnablesAsync(packageId , enables , CancellationToken.None);
+                    await SaveEnablesAsync(packageId , enables , ct);
                 }
 
                 _logger.LogInformation("插件包 \"{PackageId}\" 安装成功：{TargetDir}" , packageId , targetDir);
-                _isLoaded = false;
                 return targetDir;
             }
             finally
@@ -422,15 +444,16 @@ namespace A_Pair.Application.Plugins
 
             _loadedPackages.Clear();
             _strategyToPackage.Clear();
+            _strategyEntryMap.Clear();
             _loadedPlugins.Clear();
             _loadedManifests.Clear();
+            _loadedPackageDirs.Clear();
 
             foreach (var c in _contexts)
             {
                 c.Unload();
             }
             _contexts.Clear();
-            _isLoaded = false;
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -552,11 +575,13 @@ namespace A_Pair.Application.Plugins
                 {
                     Manifest = null!, // 新格式无 PluginManifest
                     Strategy = strategy ,
-                    PluginPath = packageDir
+                    PluginPath = packageDir ,
+                    Entry = entry
                 };
 
                 pkgInfo.Strategies[strategyManifest.Id] = pluginInfo;
                 _strategyToPackage[strategyManifest.Id] = packageId;
+                _strategyEntryMap[strategyManifest.Id] = entry;
                 results.Add(pluginInfo);
 
                 _logger.LogInformation("加载插件策略：{StrategyId}（包：{PkgId}，类型：{LoadKind}）" ,
@@ -778,15 +803,70 @@ namespace A_Pair.Application.Plugins
         }
 
         /// <summary>
+        /// 验证 ZIP 文件安全性：检查压缩炸弹、总大小、条目数。
+        /// </summary>
+        private static void ValidateZipSafety (string archivePath)
+        {
+            const int maxEntryCount = 10000;
+            const long maxUncompressedSize = 500L * 1024 * 1024; // 500 MB
+            const int maxCompressionRatio = 100;
+
+            using var archive = ZipFile.OpenRead(archivePath);
+            var entries = archive.Entries;
+            if (entries.Count > maxEntryCount)
+                throw new InvalidDataException($"ZIP 条目数 ({entries.Count}) 超过上限 ({maxEntryCount})");
+
+            long totalUncompressed = 0;
+            foreach (var entry in entries)
+            {
+                if (string.IsNullOrEmpty(entry.Name) && entry.FullName.EndsWith('/'))
+                    continue;
+
+                totalUncompressed += entry.Length;
+                if (totalUncompressed > maxUncompressedSize)
+                    throw new InvalidDataException(
+                        $"ZIP 解压后总大小 ({totalUncompressed / 1024 / 1024:N0} MB) 超过上限 ({maxUncompressedSize / 1024 / 1024:N0} MB)");
+
+                if (entry.CompressedLength > 0 && entry.Length > 0)
+                {
+                    var ratio = entry.Length / (double)entry.CompressedLength;
+                    if (ratio > maxCompressionRatio)
+                        throw new InvalidDataException(
+                            $"条目 \"{entry.FullName}\" 压缩比 ({ratio:N0}:1) 超过上限 ({maxCompressionRatio}:1)，疑似 ZIP 炸弹");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 递归复制目录（Copy+Delete 模式，兼容跨文件系统场景）。
+        /// </summary>
+        private static void CopyDirectoryRecursive (string sourceDir , string destDir)
+        {
+            Directory.CreateDirectory(destDir);
+            foreach (var file in Directory.EnumerateFiles(sourceDir))
+            {
+                var destFile = Path.Combine(destDir , Path.GetFileName(file));
+                File.Copy(file , destFile , overwrite: true);
+            }
+            foreach (var subDir in Directory.EnumerateDirectories(sourceDir))
+            {
+                var destSubDir = Path.Combine(destDir , Path.GetFileName(subDir));
+                CopyDirectoryRecursive(subDir , destSubDir);
+            }
+        }
+
+        /// <summary>
         /// 从所有内部字典中移除指定包。
         /// </summary>
         private void RemovePackageFromDictionaries (string packageId)
         {
             if (_loadedPackages.TryGetValue(packageId , out var pkgInfo))
             {
+                _loadedPackageDirs.Remove(pkgInfo.PackagePath);
                 foreach (var strategyId in pkgInfo.Strategies.Keys)
                 {
                     _strategyToPackage.Remove(strategyId);
+                    _strategyEntryMap.Remove(strategyId);
                     _loadedPlugins.Remove(strategyId);
                     _loadedManifests.Remove(strategyId);
                 }
@@ -820,6 +900,12 @@ namespace A_Pair.Application.Plugins
         /// 插件所在目录的绝对路径。
         /// </summary>
         public string PluginPath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 新格式策略对应的加载条目（来自 <c>plugins-manifest.json</c> 的 <c>strategies[]</c>）。
+        /// 旧格式插件此字段为 <c>null</c>。
+        /// </summary>
+        public PluginStrategyEntry? Entry { get; set; }
     }
 
     /// <summary>

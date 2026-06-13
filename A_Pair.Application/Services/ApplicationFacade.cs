@@ -610,26 +610,29 @@ namespace A_Pair.Application.Services
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             foreach (var pi in loadedPlugins)
             {
+                var (pkg, _) = _pluginManager.FindStrategy(pi.Strategy.Id);
+                var category = pkg?.PackageManifest?.Type ?? "strategy";
+
                 var pluginManifest = new StrategyManifest
                 {
-                    Id = pi.Manifest.Id ,
-                    Name = pi.Manifest.Name ,
-                    DisplayName = pi.Manifest.Name ,
-                    Version = pi.Manifest.Version ,
-                    Description = pi.Manifest.Description ,
-                    Author = pi.Manifest.Author ,
-                    Category = "plugin" ,
-                    DefaultPriority = pi.Manifest.Priority ,
-                    DefaultEnabled = pi.Manifest.Enabled ,
-                    Parameters = pi.Manifest.Parameters ,
-                    CodeBlocks = pi.Manifest.CodeBlocks ,
-                    Messages = pi.Manifest.Messages ,
-                    Visible = pi.Manifest.Visible ,
-                    IsIndependent = pi.Manifest.IsIndependent ,
-                    ManifestVersion = pi.Manifest.ManifestVersion
+                    Id = pi.Strategy.Id ,
+                    Name = pi.Strategy.Name ,
+                    DisplayName = pi.Strategy.Name ,
+                    Version = pkg?.PackageManifest?.Version ?? "1.0.0" ,
+                    Description = pkg?.PackageManifest?.Description ?? string.Empty ,
+                    Author = pkg?.PackageManifest?.Author ?? string.Empty ,
+                    Category = category ,
+                    DefaultPriority = pi.Strategy.Priority ,
+                    DefaultEnabled = pi.Strategy.IsEnabled ,
+                    Parameters = pi.Manifest?.Parameters ,
+                    CodeBlocks = pi.Manifest?.CodeBlocks ,
+                    Messages = pi.Manifest?.Messages ,
+                    Visible = pi.Manifest?.Visible ?? true ,
+                    IsIndependent = pi.Manifest?.IsIndependent ?? true ,
+                    ManifestVersion = pi.Manifest?.ManifestVersion ?? "1.0"
                 };
 
-                var source = $"plugin:{pi.Manifest.Id}";
+                var source = $"plugin:{pi.Strategy.Id}";
                 var info = BuildDisplayInfo(pluginManifest , source , persisted , null , null);
                 result.Add(info);
             }
@@ -1178,13 +1181,11 @@ namespace A_Pair.Application.Services
                 {
                     var loadKind = pkgInfo.IsLegacyFormat
                         ? GetLoadKindFromManifest(pluginInfo.Manifest)
-                        : GetLoadKindFromEntry(pkgInfo.PackageManifest.Strategies
-                            .FirstOrDefault(s => pkgInfo.Strategies.ContainsKey(strategyId)));
+                        : GetLoadKindFromEntry(pluginInfo.Entry);
 
                     var scriptType = pkgInfo.IsLegacyFormat
                         ? pluginInfo.Manifest?.ScriptType?.ToLowerInvariant()
-                        : pkgInfo.PackageManifest.Strategies
-                            .FirstOrDefault(s => pkgInfo.Strategies.ContainsKey(strategyId))?.ScriptType?.ToLowerInvariant();
+                        : pluginInfo.Entry?.ScriptType?.ToLowerInvariant();
 
                     strategies.Add(new PluginDisplayInfo
                     {
@@ -1229,7 +1230,7 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<string> InstallPluginPackageAsync (string packagePath , CancellationToken ct = default)
         {
-            return await _pluginManager.InstallFromPackageAsync(packagePath);
+            return await _pluginManager.InstallFromPackageAsync(packagePath , ct);
         }
 
         /// <inheritdoc />
@@ -1265,8 +1266,7 @@ namespace A_Pair.Application.Services
             }
             else
             {
-                var entry = pkg.PackageManifest.Strategies
-                    .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
+                var entry = plugin.Entry;
                 if (entry != null)
                 {
                     scriptFile = entry.ScriptFile;
@@ -1277,17 +1277,18 @@ namespace A_Pair.Application.Services
             if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
-            if (!File.Exists(scriptPath))
+            // 优先从策略子目录查找（与 LoadStrategyFromEntry 的查找顺序一致）
+            var scriptPath = (string?)null;
+            if (!pkg.IsLegacyFormat)
             {
-                // 尝试从策略子目录查找
-                if (!pkg.IsLegacyFormat)
-                {
-                    var entry = pkg.PackageManifest.Strategies
-                        .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
-                    if (entry != null && !string.IsNullOrEmpty(entry.Path))
-                        scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
-                }
+                var entry = plugin.Entry;
+                if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                    scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
+            }
+            // 回退到包根目录
+            if (scriptPath == null || !File.Exists(scriptPath))
+            {
+                scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
             }
 
             return await File.ReadAllTextAsync(scriptPath , ct);
@@ -1308,24 +1309,24 @@ namespace A_Pair.Application.Services
             }
             else
             {
-                var entry = pkg.PackageManifest.Strategies
-                    .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
-                scriptFile = entry?.ScriptFile;
+                scriptFile = plugin.Entry?.ScriptFile;
             }
 
             if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
-            if (!File.Exists(scriptPath))
+            // 优先从策略子目录查找（与 LoadStrategyFromEntry 的查找顺序一致）
+            var scriptPath = (string?)null;
+            if (!pkg.IsLegacyFormat)
             {
-                if (!pkg.IsLegacyFormat)
-                {
-                    var entry = pkg.PackageManifest.Strategies
-                        .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
-                    if (entry != null && !string.IsNullOrEmpty(entry.Path))
-                        scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
-                }
+                var entry = plugin.Entry;
+                if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                    scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
+            }
+            // 回退到包根目录
+            if (scriptPath == null || !File.Exists(scriptPath))
+            {
+                scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
             }
 
             await File.WriteAllTextAsync(scriptPath , script , ct);

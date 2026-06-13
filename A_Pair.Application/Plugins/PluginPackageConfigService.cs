@@ -163,12 +163,10 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         private string? GetConfigFilePath (string strategyId)
         {
-            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            var (pkg , plugin) = _pluginManager.FindStrategy(strategyId);
             if (pkg == null) return null;
 
-            var strategyEntry = pkg.PackageManifest.Strategies
-                .FirstOrDefault(s => pkg.Strategies.ContainsKey(strategyId));
-            var strategyPath = strategyEntry?.Path ?? string.Empty;
+            var strategyPath = plugin?.Entry?.Path ?? string.Empty;
             var configDir = string.IsNullOrEmpty(strategyPath)
                 ? pkg.PackagePath
                 : Path.Combine(pkg.PackagePath , strategyPath);
@@ -182,12 +180,10 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         private string? GetDatasetConfigDir (string strategyId)
         {
-            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            var (pkg , plugin) = _pluginManager.FindStrategy(strategyId);
             if (pkg == null) return null;
 
-            var strategyEntry = pkg.PackageManifest.Strategies
-                .FirstOrDefault(s => pkg.Strategies.ContainsKey(strategyId));
-            var strategyPath = strategyEntry?.Path ?? string.Empty;
+            var strategyPath = plugin?.Entry?.Path ?? string.Empty;
             var baseDir = string.IsNullOrEmpty(strategyPath)
                 ? pkg.PackagePath
                 : Path.Combine(pkg.PackagePath , strategyPath);
