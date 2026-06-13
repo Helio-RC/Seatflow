@@ -54,6 +54,7 @@ namespace A_Pair.Infrastructure.Repositories
 
         public async Task SaveAsync (SeatingSnapshot snapshot , CancellationToken ct = default)
         {
+            BuildIndex();
             var dir = Path.Combine(_basePath , snapshot.LayoutId , snapshot.CreatedAt.ToString("yyyyMMdd"));
             Directory.CreateDirectory(dir);
             var path = Path.Combine(_basePath , GetFilePath(snapshot.LayoutId , snapshot.CreatedAt , snapshot.Id));
@@ -63,7 +64,6 @@ namespace A_Pair.Infrastructure.Repositories
             lock (_indexLock)
             {
                 _index[snapshot.Id] = path;
-                _indexBuilt = true;
             }
             _logger.LogInformation("快照已保存：{SnapshotId} → {Path}" , snapshot.Id , path);
         }
