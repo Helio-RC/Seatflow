@@ -331,39 +331,50 @@
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="core:StrategyDisplayInfo">
                       <StackPanel>
-                        <!-- 父策略项 -->
-                        <Grid ColumnDefinitions="Auto,*" Margin="4,3">
-                          <Border Grid.Column="0" CornerRadius="3" Padding="4,1"
+                        <!-- 父策略项：有子项时左侧竖线 -->
+                        <DockPanel Margin="4,3">
+                          <Border DockPanel.Dock="Left"
+                                  IsVisible="{Binding HasDependentChildren}"
+                                  Width="4"
+                                  Background="{DynamicResource SystemAccentColor}"
+                                  CornerRadius="2"
+                                  Margin="0,2,4,2"
+                                  VerticalAlignment="Stretch" />
+                          <Border CornerRadius="3" Padding="4,1"
                                   Background="{DynamicResource SystemAccentColor}"
                                   Margin="0,0,8,0" VerticalAlignment="Center">
                             <TextBlock Text="{Binding Priority}" Classes="micro"
                                        Foreground="White" />
                           </Border>
-                          <StackPanel Grid.Column="1">
+                          <StackPanel>
                             <TextBlock Text="{Binding DisplayName}" FontSize="13" />
                             <TextBlock Text="{Binding Category}" Classes="small"
                                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                           </StackPanel>
-                        </Grid>
-                        <!-- 依赖策略子项（RandomFill 展开时显示） -->
-                        <ItemsControl ItemsSource="{Binding DependentChildren}"
-                                      Margin="24,0,0,0">
+                        </DockPanel>
+                        <!-- 依赖策略子项：平级，左侧竖线区分 -->
+                        <ItemsControl ItemsSource="{Binding DependentChildren}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="core:StrategyDisplayInfo">
-                              <Grid ColumnDefinitions="Auto,*" Margin="4,1">
-                                <Border Grid.Column="0" CornerRadius="2" Padding="3,0"
+                              <DockPanel Margin="4,1">
+                                <Border DockPanel.Dock="Left"
+                                        Width="4"
                                         Background="{DynamicResource SystemAccentColor}"
-                                        Opacity="0.7"
-                                        Margin="0,0,6,0" VerticalAlignment="Center">
+                                        CornerRadius="2"
+                                        Margin="0,2,4,2"
+                                        VerticalAlignment="Stretch" />
+                                <Border CornerRadius="3" Padding="4,1"
+                                        Background="{DynamicResource SystemAccentColor}"
+                                        Margin="0,0,8,0" VerticalAlignment="Center">
                                   <TextBlock Text="{Binding Priority}" Classes="micro"
                                              Foreground="White" />
                                 </Border>
-                                <StackPanel Grid.Column="1">
-                                  <TextBlock Text="{Binding DisplayName}" FontSize="11" />
-                                  <TextBlock Text="{Binding Category}" Classes="micro"
+                                <StackPanel>
+                                  <TextBlock Text="{Binding DisplayName}" FontSize="13" />
+                                  <TextBlock Text="{Binding Category}" Classes="small"
                                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                                 </StackPanel>
-                              </Grid>
+                              </DockPanel>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>

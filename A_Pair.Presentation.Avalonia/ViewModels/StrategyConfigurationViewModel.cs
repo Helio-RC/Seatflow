@@ -151,37 +151,19 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// </summary>
     partial void OnSelectedStrategyChanged (StrategyItemViewModel? oldValue , StrategyItemViewModel? newValue)
     {
-        // 更新选中高亮
         if (oldValue is not null)
-        {
-            oldValue.IsSelected = false;
             oldValue.PropertyChanged -= OnSelectedStrategyItemPropertyChanged;
-        }
 
         if (newValue is null)
         {
             SelectedDetail = new();
             return;
         }
-        newValue.IsSelected = true;
         // 订阅新项的属性变更，以同步 PriorityDisplay
         newValue.PropertyChanged += OnSelectedStrategyItemPropertyChanged;
         // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
         _hasDetailChanges = false;
         _ = LoadDetailAsync(newValue);
-    }
-
-    /// <summary>
-    /// 子策略项（依赖策略）被点击选中时的回调。
-    /// 绕过 ListBox 的选中机制，直接设置 SelectedStrategy 并加载详情。
-    /// </summary>
-    private void OnChildStrategySelected (StrategyItemViewModel child)
-    {
-        if (child == SelectedStrategy) return;
-        // 清除旧选中项的高亮
-        if (SelectedStrategy is not null)
-            SelectedStrategy.IsSelected = false;
-        SelectedStrategy = child;
     }
 
     private void OnSelectedStrategyItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
@@ -220,7 +202,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     isIndependent: true))
                 .ToList();
 
-            // 将依赖策略附加到 RandomFill 的 Children
+            // 将依赖策略展平插入到宿主（RandomFill）后面，避免 hover 冒泡
             var randomFill = items.FirstOrDefault(i => i.Id == "RandomFill");
             if (randomFill != null && dependentInfos.Count > 0)
             {
@@ -229,15 +211,17 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     .Select(d => new StrategyItemViewModel(
                         d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
                         d.Priority , d.DefaultPriority , d.IsEnabled ,
-                        isIndependent: false))
+                        isIndependent: false , isDependentChild: true))
                     .ToList();
+
+                // 设置 Children 保留引用（SeatingArrangement 页面使用）
                 randomFill.Children = new ObservableCollection<StrategyItemViewModel>(children);
-                // 为每个子项设置选中回调，点击子项时切换到该策略的详情
-                foreach (var child in children)
-                {
-                    child.OnSelected = OnChildStrategySelected;
-                }
-                // 检测依赖策略内部优先级冲突（独立于外部管道优先级）
+
+                // 展平：在宿主后面插入依赖策略
+                var hostIndex = items.IndexOf(randomFill);
+                items.InsertRange(hostIndex + 1 , children);
+
+                // 检测依赖策略内部优先级冲突
                 var depFixed = DetectAndFixDependentPriorityConflicts(children);
                 if (depFixed.Count > 0)
                 {
@@ -247,16 +231,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             }
 
             foreach (var item in items)
-            {
                 AttachChangeTracking(item);
-
-                // 为子项也附加变更追踪
-                if (item.Children is not null)
-                {
-                    foreach (var child in item.Children)
-                        AttachChangeTracking(child);
-                }
-            }
 
             Strategies = new ObservableCollection<StrategyItemViewModel>(items);
 

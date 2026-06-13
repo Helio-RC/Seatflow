@@ -76,9 +76,9 @@
                       <ToggleSwitch DockPanel.Dock="Right"
                                     IsChecked="{Binding IsEnabled, Mode=TwoWay}"
                                     VerticalAlignment="Center" />
-                      <!-- 左侧竖线（仅宿主策略显示，Markdown 引用风格） -->
+                      <!-- 左侧竖线（宿主策略或依赖子项，Markdown 引用风格） -->
                       <Border DockPanel.Dock="Left"
-                              IsVisible="{Binding HasChildren}"
+                              IsVisible="{Binding ShowLeftBar}"
                               Width="4"
                               Background="{DynamicResource SystemAccentColor}"
                               CornerRadius="2"
@@ -101,41 +101,6 @@
                     </DockPanel>
                   </Grid>
                 </Border>
-                <!-- 依赖策略子项：始终显示，平级，左侧竖线区分 -->
-                <ItemsControl ItemsSource="{Binding Children}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:StrategyItemViewModel">
-                      <Grid Margin="0,1" Cursor="Hand" PointerPressed="OnChildStrategyPressed">
-                        <Border CornerRadius="4" IsVisible="{Binding IsSelected}"
-                                Background="{DynamicResource SystemControlHighlightAccentBrush}" />
-                        <Border Padding="8,6" CornerRadius="4" Background="Transparent">
-                          <DockPanel>
-                            <!-- 子项左侧竖线 -->
-                            <Border DockPanel.Dock="Left"
-                                    Width="4"
-                                    Background="{DynamicResource SystemAccentColor}"
-                                    CornerRadius="2"
-                                    Margin="0,2,4,2"
-                                    VerticalAlignment="Stretch" />
-                            <ToggleSwitch DockPanel.Dock="Right"
-                                          IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                          VerticalAlignment="Center"
-                                          Classes="small" />
-                            <StackPanel Spacing="2">
-                              <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                         TextTrimming="CharacterEllipsis" FontSize="13" />
-                              <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock FontSize="11"
-                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding PriorityDisplay}" />
-                              </StackPanel>
-                            </StackPanel>
-                          </DockPanel>
-                        </Border>
-                      </Grid>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>

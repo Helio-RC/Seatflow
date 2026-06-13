@@ -40,6 +40,9 @@ public sealed class StrategyDisplayInfo
     /// <summary>依赖策略的子策略列表（仅当此策略是宿主时使用，如 RandomFill）。</summary>
     public List<StrategyDisplayInfo> DependentChildren { get; set; } = [];
 
+    /// <summary>是否有子依赖策略。</summary>
+    public bool HasDependentChildren => DependentChildren is { Count: > 0 };
+
     /// <summary>策略执行消息的多语言模板（来自 manifest messages）。key→语言词典。</summary>
     public Dictionary<string , Dictionary<string , string>>? Messages { get; init; }
 

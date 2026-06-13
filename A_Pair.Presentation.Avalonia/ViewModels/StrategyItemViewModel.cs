@@ -1,7 +1,5 @@
-using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
@@ -18,6 +16,9 @@ public partial class StrategyItemViewModel : ObservableObject
 
     /// <summary>是否为独立策略（false 表示依赖策略，在 RandomFill 上下文中执行）。</summary>
     public bool IsIndependent { get; }
+
+    /// <summary>是否为依赖策略子项（在扁平列表中位于宿主下方）。</summary>
+    public bool IsDependentChild { get; init; }
 
     public int DefaultPriority { get; }
 
@@ -37,12 +38,8 @@ public partial class StrategyItemViewModel : ObservableObject
     /// <summary>是否有子策略（用于 UI 竖线显示判断）。</summary>
     public bool HasChildren => Children is { Count: > 0 };
 
-    /// <summary>是否被选中（用于高亮显示）。</summary>
-    [ObservableProperty]
-    private bool _isSelected;
-
-    /// <summary>当用户点击选中此策略项时的回调。由父 ViewModel 设置，用于子项选中通知。</summary>
-    public Action<StrategyItemViewModel>? OnSelected { get; set; }
+    /// <summary>是否显示左侧竖线（宿主或有依赖子项）。</summary>
+    public bool ShowLeftBar => HasChildren || IsDependentChild;
 
     public StrategyItemViewModel (
         string id ,
@@ -52,7 +49,8 @@ public partial class StrategyItemViewModel : ObservableObject
         int priority ,
         int defaultPriority ,
         bool isEnabled ,
-        bool isIndependent = true)
+        bool isIndependent = true,
+        bool isDependentChild = false)
     {
         Id = id;
         DisplayName = displayName;
@@ -62,6 +60,7 @@ public partial class StrategyItemViewModel : ObservableObject
         DefaultPriority = defaultPriority;
         _isEnabled = isEnabled;
         IsIndependent = isIndependent;
+        IsDependentChild = isDependentChild;
     }
 
     partial void OnPriorityChanged (int value) => HasChanges = true;
@@ -73,11 +72,4 @@ public partial class StrategyItemViewModel : ObservableObject
     public string EnableTooltipDisplay => IsEnabled ? Lang.Resources.Common_Enabled : Lang.Resources.Common_Disabled;
 
     public void MarkClean () => HasChanges = false;
-
-    /// <summary>子项被点击时触发，通知父 ViewModel 切换选中项。</summary>
-    [RelayCommand]
-    private void SelectSelf ()
-    {
-        OnSelected?.Invoke(this);
-    }
 }
