@@ -17,6 +17,6 @@ public sealed class StrategyConfig
     /// <summary>当前是否启用。</summary>
     public bool IsEnabled { get; set; } = true;
 
-    /// <summary>策略特有的配置参数。</summary>
+    /// <summary>策略特有的配置参数。为 null 时表示仅保存优先级/开关，保存时应保留既有参数。</summary>
     public Dictionary<string , object?> Parameters { get; set; } = [];
 }

@@ -65,6 +65,7 @@ namespace A_Pair.Application.Services
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
         private ClassroomLayoutDefinition? _currentLayout;
         private List<ISeatingStrategy>? _cachedStrategies;
+        private List<IDependentSeatingStrategy>? _cachedDependentStrategies;
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -242,8 +243,11 @@ namespace A_Pair.Application.Services
             // 6d. 收集依赖策略并注入到 RandomFill
             var dependentStrategies = new List<IDependentSeatingStrategy>();
 
-            // 收集内置依赖策略（从 DI）
-            var builtInDependents = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            // 收集内置依赖策略（从 DI 缓存），排除标记为不可见的策略
+            var cachedDeps = _cachedDependentStrategies ??= _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            var builtInDependents = cachedDeps
+                .Where(d => !invisibleIds.Contains(d.Id))
+                .ToList();
             dependentStrategies.AddRange(builtInDependents);
 
             // 收集插件依赖策略（IsIndependent == false 的插件）
@@ -622,7 +626,7 @@ namespace A_Pair.Application.Services
                     Description = pkg?.PackageManifest?.Description ?? string.Empty ,
                     Author = pkg?.PackageManifest?.Author ?? string.Empty ,
                     Category = category ,
-                    DefaultPriority = pi.Strategy.Priority ,
+                    DefaultPriority = sm?.DefaultPriority ?? pi.Strategy.Priority ,
                     DefaultEnabled = pi.Strategy.IsEnabled ,
                     Parameters = sm?.Parameters ,
                     CodeBlocks = sm?.CodeBlocks ,
@@ -681,9 +685,9 @@ namespace A_Pair.Application.Services
                 return;
             }
 
-            // 尝试从依赖策略查找
-            var depStrategy = _serviceProvider.GetServices<IDependentSeatingStrategy>()
-                .FirstOrDefault(d => d.Id == strategyId);
+            // 尝试从依赖策略查找（缓存，与独立策略对称）
+            var cachedDeps = _cachedDependentStrategies ??= _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            var depStrategy = cachedDeps.FirstOrDefault(d => d.Id == strategyId);
             if (depStrategy is not null)
             {
                 depStrategy.Priority = config.Priority;

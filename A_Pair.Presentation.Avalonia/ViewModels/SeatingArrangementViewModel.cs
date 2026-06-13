@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
+using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
@@ -571,7 +572,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var dependents = enabledVisible.Where(s => !s.IsIndependent).ToList();
 
         // 将依赖策略注入到 RandomFill 的 DependentChildren
-        var randomFill = independents.FirstOrDefault(s => s.Id == "RandomFill");
+        var randomFill = independents.FirstOrDefault(s => s.Id == RandomFillStrategy.StrategyId);
         if (randomFill != null && dependents.Count > 0)
         {
             randomFill.DependentChildren = dependents

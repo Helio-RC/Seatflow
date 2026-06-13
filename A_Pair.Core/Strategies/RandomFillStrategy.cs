@@ -41,11 +41,14 @@ namespace A_Pair.Core.Strategies
         /// </summary>
         public RandomFillStrategy () : this(new Random()) { }
 
-        /// <inheritdoc />
-        public string Id { get; } = "RandomFill";
+        /// <summary>RandomFill 策略 ID 常量，供 ViewModel 等层引用。</summary>
+        public const string StrategyId = "RandomFill";
 
         /// <inheritdoc />
-        public string Name { get; } = "RandomFill";
+        public string Id { get; } = StrategyId;
+
+        /// <inheritdoc />
+        public string Name { get; } = StrategyId;
 
         /// <inheritdoc />
         public int Priority { get; set; } = 1;

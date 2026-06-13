@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Core.Strategies;
 using A_Pair.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -141,7 +142,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             Resources.Strategy_UnsavedChangesMsg);
 
         if (choice)
+        {
             await SaveAllCommand.ExecuteAsync(null);
+            // 保存后再次检查是否仍有未保存内容（保存可能部分失败）
+            if (HasChanges)
+                return false;
+        }
 
         return true;
     }
@@ -152,7 +158,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     partial void OnSelectedStrategyChanged (StrategyItemViewModel? oldValue , StrategyItemViewModel? newValue)
     {
         if (oldValue is not null)
+        {
             oldValue.PropertyChanged -= OnSelectedStrategyItemPropertyChanged;
+            // 切换前自动保存旧策略的脏代码块，避免编辑内容丢失
+            SaveDirtyBlockEditors(oldValue);
+        }
 
         if (newValue is null)
         {
@@ -164,6 +174,18 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
         _hasDetailChanges = false;
         _ = LoadDetailAsync(newValue);
+    }
+
+    /// <summary>自动保存旧策略的脏代码块，失败时标记策略项为脏以确保离开时提示保存。</summary>
+    private void SaveDirtyBlockEditors (StrategyItemViewModel oldItem)
+    {
+        var dirtyEditors = ConfigBlockEditors.Where(ce => ce.IsDirty && ce.IsLoaded).ToList();
+        if (dirtyEditors.Count == 0) return;
+
+        foreach (var editor in dirtyEditors)
+            _ = editor.SaveConfigCommand.ExecuteAsync(null);
+
+        oldItem.HasChanges = true;
     }
 
     private void OnSelectedStrategyItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
@@ -203,7 +225,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 .ToList();
 
             // 将依赖策略展平插入到宿主（RandomFill）后面，避免 hover 冒泡
-            var randomFill = items.FirstOrDefault(i => i.Id == "RandomFill");
+            var randomFill = items.FirstOrDefault(i => i.Id == RandomFillStrategy.StrategyId);
             if (randomFill != null && dependentInfos.Count > 0)
             {
                 var children = dependentInfos
@@ -429,7 +451,9 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void AssignWithCascade (StrategyItemViewModel higher , StrategyItemViewModel lower)
     {
-        higher.Priority = Math.Min(int.MaxValue - 1 , lower.Priority + 1);
+        higher.Priority = lower.Priority == int.MaxValue
+            ? int.MaxValue
+            : lower.Priority + 1;
         RefreshPriorities();
     }
 
@@ -510,7 +534,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 if (ordered[i].Priority >= ordered[i - 1].Priority)
                 {
                     fixedNames.Add(ordered[i].DisplayName);
-                    ordered[i].Priority = ordered[i - 1].Priority - 1;
+                    ordered[i].Priority = Math.Max(int.MinValue + 1 , ordered[i - 1].Priority - 1);
                 }
             }
         }
@@ -530,7 +554,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             if (ordered[i].Priority >= ordered[i - 1].Priority)
             {
                 fixedNames.Add(ordered[i].DisplayName);
-                ordered[i].Priority = ordered[i - 1].Priority - 1;
+                ordered[i].Priority = Math.Max(int.MinValue + 1 , ordered[i - 1].Priority - 1);
             }
         }
         return fixedNames;
@@ -544,7 +568,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             for (int i = 1; i < ordered.Count; i++)
             {
                 if (ordered[i].Priority >= ordered[i - 1].Priority)
-                    ordered[i].Priority = ordered[i - 1].Priority - 1;
+                    ordered[i].Priority = Math.Max(int.MinValue + 1 , ordered[i - 1].Priority - 1);
             }
         }
     }
@@ -618,7 +642,6 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
             await _facade.SaveStrategyConfigAsync(SelectedDetail.Id , config , ct);
             SelectedStrategy.MarkClean();
-            _hasDetailChanges = false;
             RefreshPriorities();
 
             // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
@@ -628,6 +651,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     await ce.SaveConfigCommand.ExecuteAsync(null);
             }
 
+            _hasDetailChanges = false;
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = string.Format(Resources.Strategy_SavedFmt , savedName);
         }
@@ -689,13 +713,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     Source = item.Source ,
                     Priority = item.Priority ,
                     IsEnabled = item.IsEnabled ,
-                    Parameters = parameters ?? []
+                    Parameters = parameters!
                 };
                 await _facade.SaveStrategyConfigAsync(item.Id , config , ct);
                 item.MarkClean();
             }
 
-            _hasDetailChanges = false;
             RefreshPriorities();
 
             // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
@@ -705,6 +728,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     await ce.SaveConfigCommand.ExecuteAsync(null);
             }
 
+            _hasDetailChanges = false;
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = string.Format(Resources.Strategy_SavedCountFmt , dirtyItems.Count);
         }
