@@ -1383,7 +1383,7 @@
 {0}</value>
   </data>
   <data name="Strategy_PipelinePriorityFmt" xml:space="preserve">
-    <value>管道优先级: {0}</value>
+    <value>执行优先级: {0}</value>
   </data>
   <data name="Strategy_ContextPriorityFmt" xml:space="preserve">
     <value>上下文优先级: {0}</value>
@@ -1453,8 +1453,8 @@
   <data name="Strategy_UnsavedChangesMsg" xml:space="preserve">
     <value>策略配置有未保存的更改，是否保存？
 
-选择「是」保存并离开
-选择「否」放弃更改并离开</value>
+选择「确认」保存并离开
+选择「取消」放弃更改并离开</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
     <value>深色</value>

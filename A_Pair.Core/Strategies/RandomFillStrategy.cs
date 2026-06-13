@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 随机填充策略（Priority=100，最后执行，填满所有剩余座位）。
+    /// 随机填充策略（Priority=10，最后执行，填满所有剩余座位）。
     /// 作为管道中的兜底策略，在所有独立策略完成分配后运行。
     /// </summary>
     /// <remarks>
@@ -48,7 +48,7 @@ namespace A_Pair.Core.Strategies
         public string Name { get; } = "RandomFill";
 
         /// <inheritdoc />
-        public int Priority { get; set; } = 100;
+        public int Priority { get; set; } = 10;
 
         /// <inheritdoc />
         public bool IsEnabled { get; set; } = true;
@@ -58,12 +58,12 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>
         /// 加载依赖策略列表。由 ApplicationFacade 在管道执行前调用。
-        /// 依赖策略按 Priority 升序排列（数值越小越先评估）。
+        /// 依赖策略按 Priority 降序排列（数值越大越先评估）。
         /// </summary>
         public void LoadDependentStrategies (IEnumerable<IDependentSeatingStrategy> strategies)
         {
             _dependentStrategies.Clear();
-            _dependentStrategies.AddRange(strategies.OrderBy(s => s.Priority));
+            _dependentStrategies.AddRange(strategies.OrderByDescending(s => s.Priority));
             _logger.LogInformation("RandomFill：已加载 {Count} 个依赖策略" , _dependentStrategies.Count);
         }
 

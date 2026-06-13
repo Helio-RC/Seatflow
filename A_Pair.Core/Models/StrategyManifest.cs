@@ -27,7 +27,7 @@ public sealed class StrategyManifest
     /// <summary>策略分类：fill / rotation / grouping / assignment。</summary>
     public string Category { get; init; } = string.Empty;
 
-    /// <summary>默认执行优先级（数值越小越先执行）。</summary>
+    /// <summary>默认执行优先级（数值越大越先执行）。</summary>
     public int DefaultPriority { get; init; }
 
     /// <summary>默认是否启用。</summary>

@@ -93,7 +93,7 @@ public class StrategyManifestProvider
         }
 
         _logger.LogInformation("加载内置策略清单：成功 {Success} 个，失败 {Failed} 个" , results.Count , failed);
-        return results.OrderBy(m => m.DefaultPriority).ToList().AsReadOnly();
+        return results.OrderByDescending(m => m.DefaultPriority).ToList().AsReadOnly();
     }
 
     /// <summary>

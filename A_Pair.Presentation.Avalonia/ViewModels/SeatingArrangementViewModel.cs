@@ -565,7 +565,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         // 分离独立策略和依赖策略
         var enabledVisible = allStrategies
             .Where(s => s.IsEnabled && s.Visible)
-            .OrderBy(s => s.Priority)
+            .OrderByDescending(s => s.Priority)
             .ToList();
         var independents = enabledVisible.Where(s => s.IsIndependent).ToList();
         var dependents = enabledVisible.Where(s => !s.IsIndependent).ToList();
@@ -575,7 +575,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         if (randomFill != null && dependents.Count > 0)
         {
             randomFill.DependentChildren = dependents
-                .OrderBy(d => d.Priority)
+                .OrderByDescending(d => d.Priority)
                 .ToList();
         }
 

@@ -152,7 +152,7 @@ public interface ISeatingStrategy
 {
     string Id { get; }
     string Name { get; }
-    int Priority { get; set; }      // 数值越小越先执行
+    int Priority { get; set; }      // 数值越大越先执行
     bool IsEnabled { get; set; }
     
     Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken);
@@ -208,7 +208,7 @@ public class SeatingWorkspace
 4.3 执行管道
 
 管道采用 **"按优先级填空"（Fill-in-Order）** 模型。所有独立策略操作同一个
-`SeatingWorkspace` 实例，按 Priority 升序依次执行。每个策略在空座中操作，
+`SeatingWorkspace` 实例，按 Priority 降序依次执行。每个策略在空座中操作，
 后执行的策略在剩余空座中择优。不存在"覆盖"语义。
 
 依赖策略不在外部管道中执行，而是在 RandomFill 的分配循环中按上下文内部优先级
@@ -216,15 +216,15 @@ public class SeatingWorkspace
 再决定是否分配或重掷。
 
 ```
-独立策略 Priority 升序 →
-  FixedSeat(10)         ← 最先执行：锁定固定座位（IsFixed=true 自动保护）
-  FrontRowRotation(20)  ← 第二执行：在非固定空座中填前排
-  RandomFill(100)       ← 最后执行：
-    └─ 内部上下文 (依赖策略按 Priority 升序) →
-       DeskMate(30)     ← 检查同桌关系，协调相邻分配，必要时请求重掷
+独立策略 Priority 降序 →
+  FixedSeat(100)         ← 最先执行：锁定固定座位（IsFixed=true 自动保护）
+  FrontRowRotation(90)  ← 第二执行：在非固定空座中填前排
+  RandomFill(10)       ← 最后执行：
+    └─ 内部上下文 (依赖策略按 Priority 降序) →
+       DeskMate(80)     ← 检查同桌关系，协调相邻分配，必要时请求重掷
 ```
 
-> **关键设计决策**：低 Priority = 先执行 = 优先挑选座位。冲突解决 = Priority 数值（先到先得）。
+> **关键设计决策**：高 Priority = 先执行 = 优先挑选座位。冲突解决 = Priority 数值（先到先得）。
 > 该模型是妥协方案——"后可覆盖"模型因 Workspace API 限制不可行，详见 docs/adr/ADR-006.md。
 
 ```csharp
@@ -232,7 +232,7 @@ public class StrategyExecutionPipeline
 {
     public async Task<SeatingPlan> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken)
     {
-        foreach (var strategy in _strategies.OrderBy(s => s.Priority).Where(s => s.IsEnabled))
+        foreach (var strategy in _strategies.OrderByDescending(s => s.Priority).Where(s => s.IsEnabled))
         {
             var result = await strategy.ExecuteAsync(workspace, cancellationToken);
             if (!result.Success)
@@ -250,10 +250,10 @@ public class StrategyExecutionPipeline
 
 | 策略 | Priority | 类型 | 职责 |
 |------|----------|------|------|
-| FixedSeatStrategy | 10 | 独立 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
-| FrontRowRotationStrategy | 20 | 独立 | 在非固定空座中识别前排，按需求分数选出学生后 Fisher-Yates 洗牌，随机分布在各列 |
-| DeskMateStrategy | 30 | 依赖 | 在 RandomFill 上下文中执行。当随机分配学生时检查同桌关系：若有同桌组，尝试将同组学生分配到相邻座位（连携修改）；若目标座位周围无足够相邻空座则请求重掷。解决了旧版受前序策略碎片化影响的根本性问题 |
-| RandomFillStrategy | 100 | 独立+宿主 | 兜底策略，将剩余未分配学生随机填入剩余空座。同时作为依赖策略的宿主，其内部上下文循环按优先级依次调用依赖策略评估 |
+| FixedSeatStrategy | 100 | 独立 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
+| FrontRowRotationStrategy | 90 | 独立 | 在非固定空座中识别前排，按需求分数选出学生后 Fisher-Yates 洗牌，随机分布在各列 |
+| DeskMateStrategy | 80 | 依赖 | 在 RandomFill 上下文中执行。当随机分配学生时检查同桌关系：若有同桌组，尝试将同组学生分配到相邻座位（连携修改）；若目标座位周围无足够相邻空座则请求重掷。解决了旧版受前序策略碎片化影响的根本性问题 |
+| RandomFillStrategy | 10 | 独立+宿主 | 兜底策略，将剩余未分配学生随机填入剩余空座。同时作为依赖策略的宿主，其内部上下文循环按优先级依次调用依赖策略评估 |
 
 4.5 声明式策略配置
 

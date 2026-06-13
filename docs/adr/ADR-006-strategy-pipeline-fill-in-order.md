@@ -31,23 +31,23 @@ FixedSeat(100)     → 直接操控 OccupantId → 覆盖成功
 
 采用 **"按优先级填空"（Fill-in-Order）** 模型：
 
-- 策略按 Priority 升序执行（数值越小越先执行）
+- 策略按 Priority 降序执行（数值越大越先执行）
 - 先执行的策略从空座中优先挑选，后执行的在剩余空座中择优
 - **不存在覆盖**——先占的座位不会被推翻
 - IsFixed 标志是唯一的保护机制（FixedSeat 最先执行，标记座位为 IsFixed=true，后续策略的 GetEmptySeats 自动排除这些座位）
 
 ### 新 Priority
 
-| 策略 | Priority | 执行顺序 | 职责 |
-|------|----------|----------|------|
-| FixedSeatStrategy | 10 | 第1 | 锁定固定座位，IsFixed=true 自动保护 |
-| FrontRowRotationStrategy | 20 | 第2 | 在非固定空座中填前排 |
-| DeskMateStrategy | 30 | 第3 | 在剩余空座中拼连续块 |
-| RandomFillStrategy | 100 | 最后 | 填满所有剩余空座 |
+| 策略 | Priority | 类型 | 执行顺序 | 职责 |
+|------|----------|------|----------|------|
+| FixedSeatStrategy | 100 | 独立 | 第1 | 锁定固定座位，IsFixed=true 自动保护 |
+| FrontRowRotationStrategy | 90 | 独立 | 第2 | 在非固定空座中填前排 |
+| DeskMateStrategy | 80 | 依赖 | — | 在 RandomFill 上下文中执行，检查同桌关系并协调相邻分配 |
+| RandomFillStrategy | 10 | 独立+宿主 | 最后 | 填满所有剩余空座；作为依赖策略宿主 |
 
 ### 冲突解决
 
-策略间的座位冲突 = Priority 数值决定（先到先得）。如果 FrontRowRotation(20) 使用了 DeskMate(30) 想要的相邻座位，DeskMate 只能在其他位置寻找连续块。这是有意设计——用户可通过调整策略优先级控制资源分配顺序。
+独立策略间的座位冲突 = Priority 数值决定（先到先得）。DeskMate 作为依赖策略在 RandomFill 内部运行，其请求重掷（Reroll）机制允许它与 RandomFill 协作寻找合适的连续块。用户可通过调整独立策略的 Priority 控制资源分配顺序，依赖策略的内部优先级独立管理。
 
 ## 考虑的替代方案
 
@@ -125,7 +125,7 @@ while 还有未分配学生 AND 空座位:
     随机选 (student, seat)
     rerollCount = 0
     loop:
-        依次调用依赖策略 EvaluateAsync (按内部 Priority 升序)
+        依次调用依赖策略 EvaluateAsync (按内部 Priority 降序)
         if Reject → rerollCount++; if >= maxRerolls 兜底强制分配 else 换座位重试
         if Handled → 依赖策略已自行分配，跳过 TryAssignSeat
         if 全部 Approve → TryAssignSeat, 刷新列表

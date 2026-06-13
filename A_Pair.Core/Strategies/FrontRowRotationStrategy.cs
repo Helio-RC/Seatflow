@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 前排轮换策略（Priority=20，第二执行，在非固定空座中填前排）。
+    /// 前排轮换策略（Priority=90，第二执行，在非固定空座中填前排）。
     /// 在 FixedSeat 锁定固定座位后执行，从剩余空座中识别前排座位，
     /// 按需求分数分配给最需要的学生。分数公式与前相同。
     /// </summary>
@@ -43,8 +43,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："FrontRowRotation"。</summary>
         public string Name { get; } = "FrontRowRotation";
 
-        /// <summary>执行优先级：20（第二执行，在非固定空座中填前排）。</summary>
-        public int Priority { get; set; } = 20;
+        /// <summary>执行优先级：90（第二执行，在非固定空座中填前排）。</summary>
+        public int Priority { get; set; } = 90;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;

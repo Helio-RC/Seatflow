@@ -204,7 +204,7 @@ public interface IPluginSeatingStrategy : IPlugin
     string IPlugin.Category => "strategy";   // 默认类别
     string IPlugin.Version => "1.0.0";       // 默认版本
 
-    int Priority { get; set; }               // 执行优先级（数值越小越先执行）
+    int Priority { get; set; }               // 执行优先级（数值越大越先执行）
     bool IsEnabled { get; set; }             // 是否启用
 
     Task<PluginStrategyResult> ExecuteAsync(
@@ -302,7 +302,7 @@ public class MyStrategy : PluginStrategyBase { ... }
 | `author` | string | 否 | `""` | 插件作者 |
 | `assembly` | string | 见注 | `""` | DLL 文件名（程序集插件） |
 | `type` | string | 见注 | `""` | 入口类型的完全限定名（程序集插件） |
-| `priority` | int | 否 | `50` | 执行优先级，越小越先执行 |
+| `priority` | int | 否 | `50` | 执行优先级，越大越先执行 |
 | `enabled` | bool | 否 | `true` | 加载时是否默认启用 |
 | `dependencies` | string[] | 否 | `[]` | 依赖的插件 ID 列表 |
 | `scriptFile` | string | 见注 | null | 脚本文件名（脚本插件） |
@@ -821,7 +821,7 @@ A_Pair/
 |------|----------|----------|
 | 插件未出现在列表中 | 清单缺失或无效 | 检查 `plugin.manifest.json` 是否存在且为有效 JSON |
 | 插件加载失败 | `assembly`/`type` 字段不匹配 | 确保 `type` 是完整命名空间限定名 |
-| 脚本执行无效果 | 优先级过高或未启用 | 检查 `priority`（越小越先）和 `enabled` |
+| 脚本执行无效果 | 优先级过高或未启用 | 检查 `priority`（越大越先）和 `enabled` |
 | Lua 脚本报错 | 调用了不可用的库 | `io/os/package/debug` 已移除，仅用 `workspace` API |
 | C# 脚本编译失败 | 使用了白名单外的 API | 仅用 `System`、`System.Linq`、`Collection` 等 |
 | .apairplugin 安装失败 | 同 ID 插件已存在 | 先卸载旧版本再安装 |

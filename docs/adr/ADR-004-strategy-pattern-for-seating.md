@@ -18,7 +18,7 @@
 使用**策略模式** + **优先级管道执行**：
 
 - `ISeatingStrategy` 接口定义策略契约（`Id`、`Name`、`Priority`、`IsEnabled`、`ExecuteAsync`、`ValidateConfiguration`）
-- `StrategyExecutionPipeline` 按 `Priority` 升序排列策略，依次执行
+- `StrategyExecutionPipeline` 按 `Priority` 降序排列策略，依次执行
 - 每个策略接收 `SeatingWorkspace`（座位视图的隔离副本），可以分配、取消分配座位
 - 所有修改记录到工作区的变更日志，最终构建 `SeatingPlan`
 
@@ -40,7 +40,7 @@
 - 拒绝：策略模式的优先级 + 覆盖语义更匹配需求（后执行策略可以覆盖之前的分配）
 
 ## 后果
-- 四个内置策略按优先级排序：`RandomFillStrategy`（最低）< `FrontRowRotationStrategy` < `DeskMateStrategy`（⚠️ 已隐藏，见 ADR-006）< `FixedSeatStrategy`（最高）
+- 四个内置策略按执行优先级排序（高→低）：`FixedSeatStrategy`(100) > `FrontRowRotationStrategy`(90) > `DeskMateStrategy`(80, 依赖) > `RandomFillStrategy`(10)。依赖策略在 RandomFill 上下文中运行，详见 ADR-006
 - 插件策略通过 `IPluginSeatingStrategy`（继承 `ISeatingStrategy`）融入同一管道
 - `SeatingWorkspace` 提供隔离的座位视图 — 策略修改的是副本，原始数据不受影响
 - 每步执行后记录变更日志，支持细粒度的撤销/重做

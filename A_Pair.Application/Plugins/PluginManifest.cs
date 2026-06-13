@@ -62,7 +62,7 @@ namespace A_Pair.Application.Plugins
         public string Type { get; set; } = string.Empty;
 
         /// <summary>
-        /// 获取或设置插件在策略管道中的执行优先级（数值越小优先级越高）。
+        /// 获取或设置插件在策略管道中的执行优先级（数值越大优先级越高）。
         /// </summary>
         [JsonPropertyName("priority")]
         public int Priority { get; set; } = 50;

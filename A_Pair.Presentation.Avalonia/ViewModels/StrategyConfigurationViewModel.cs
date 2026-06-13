@@ -207,7 +207,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             if (randomFill != null && dependentInfos.Count > 0)
             {
                 var children = dependentInfos
-                    .OrderBy(d => d.Priority)
+                    .OrderByDescending(d => d.Priority)
                     .Select(d => new StrategyItemViewModel(
                         d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
                         d.Priority , d.DefaultPriority , d.IsEnabled ,
@@ -353,7 +353,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     public bool CanMoveUp (StrategyItemViewModel? item)
     {
         if (item is null) return false;
-        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
         var idx = sameGroup.IndexOf(item);
         return idx > 0;
     }
@@ -361,7 +361,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     public bool CanMoveDown (StrategyItemViewModel? item)
     {
         if (item is null) return false;
-        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
         var idx = sameGroup.IndexOf(item);
         return idx >= 0 && idx < sameGroup.Count - 1;
     }
@@ -371,7 +371,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         if (item is null) return;
         // 只在同类策略中查找邻居
-        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
         var idx = sameGroup.IndexOf(item);
         if (idx <= 0) return;
 
@@ -385,7 +385,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private async Task MoveDownAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
         var idx = sameGroup.IndexOf(item);
         if (idx < 0 || idx >= sameGroup.Count - 1) return;
 
@@ -429,7 +429,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void AssignWithCascade (StrategyItemViewModel higher , StrategyItemViewModel lower)
     {
-        higher.Priority = Math.Max(0 , lower.Priority - 1);
+        higher.Priority = Math.Min(int.MaxValue - 1 , lower.Priority + 1);
         RefreshPriorities();
     }
 
@@ -474,7 +474,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 priority = s.Priority;
 
             return (Id: s.Id , DisplayName: s.DisplayName , Priority: priority , s.IsIndependent);
-        }).OrderBy(s => s.IsIndependent).ThenBy(s => s.Priority).ToList();
+        }).OrderBy(s => s.IsIndependent).ThenByDescending(s => s.Priority).ToList();
 
         // 只在同类策略中检查冲突
         var duplicates = new List<string>();
@@ -494,7 +494,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 确保所有策略优先级严格递增（无重复、无逆序），返回被修复的策略名列表。
+    /// 确保所有策略优先级严格递减（无重复、无逆序），返回被修复的策略名列表。
     /// </summary>
     /// <summary>
     /// 检测并修复优先级冲突。独立策略和依赖策略分别检查，互不干扰。
@@ -504,13 +504,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         var fixedNames = new List<string>();
         foreach (var group in Strategies.GroupBy(s => s.IsIndependent))
         {
-            var ordered = group.OrderBy(s => s.Priority).ToList();
+            var ordered = group.OrderByDescending(s => s.Priority).ToList();
             for (int i = 1; i < ordered.Count; i++)
             {
-                if (ordered[i].Priority <= ordered[i - 1].Priority)
+                if (ordered[i].Priority >= ordered[i - 1].Priority)
                 {
                     fixedNames.Add(ordered[i].DisplayName);
-                    ordered[i].Priority = ordered[i - 1].Priority + 1;
+                    ordered[i].Priority = ordered[i - 1].Priority - 1;
                 }
             }
         }
@@ -518,19 +518,19 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 检测依赖策略（同宿主内）的优先级冲突，确保严格递增不重复。
+    /// 检测依赖策略（同宿主内）的优先级冲突，确保严格递减不重复。
     /// 依赖策略的优先级仅与同宿主下的其他依赖策略比较，与独立策略完全分离。
     /// </summary>
     private static List<string> DetectAndFixDependentPriorityConflicts (List<StrategyItemViewModel> children)
     {
         var fixedNames = new List<string>();
-        var ordered = children.OrderBy(s => s.Priority).ToList();
+        var ordered = children.OrderByDescending(s => s.Priority).ToList();
         for (int i = 1; i < ordered.Count; i++)
         {
-            if (ordered[i].Priority <= ordered[i - 1].Priority)
+            if (ordered[i].Priority >= ordered[i - 1].Priority)
             {
                 fixedNames.Add(ordered[i].DisplayName);
-                ordered[i].Priority = ordered[i - 1].Priority + 1;
+                ordered[i].Priority = ordered[i - 1].Priority - 1;
             }
         }
         return fixedNames;
@@ -540,24 +540,24 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         foreach (var group in Strategies.GroupBy(s => s.IsIndependent))
         {
-            var ordered = group.OrderBy(s => s.Priority).ToList();
+            var ordered = group.OrderByDescending(s => s.Priority).ToList();
             for (int i = 1; i < ordered.Count; i++)
             {
-                if (ordered[i].Priority <= ordered[i - 1].Priority)
-                    ordered[i].Priority = ordered[i - 1].Priority + 1;
+                if (ordered[i].Priority >= ordered[i - 1].Priority)
+                    ordered[i].Priority = ordered[i - 1].Priority - 1;
             }
         }
     }
 
     private void ReSort ()
     {
-        // 独立策略按 Priority 升序，每个宿主的依赖子项紧跟其后。
+        // 独立策略按 Priority 降序，每个宿主的依赖子项紧跟其后。
         var result = new List<StrategyItemViewModel>();
-        foreach (var item in Strategies.Where(s => s.IsIndependent).OrderBy(s => s.Priority))
+        foreach (var item in Strategies.Where(s => s.IsIndependent).OrderByDescending(s => s.Priority))
         {
             result.Add(item);
             if (item.Children is { Count: > 0 })
-                result.AddRange(item.Children.OrderBy(c => c.Priority));
+                result.AddRange(item.Children.OrderByDescending(c => c.Priority));
         }
 
         for (int i = 0; i < result.Count; i++)

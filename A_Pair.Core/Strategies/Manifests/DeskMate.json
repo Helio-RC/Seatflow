@@ -7,7 +7,7 @@
     "description": "作为依赖策略在随机填充上下文中执行。当 RandomFill 随机分配学生时检查该学生是否有同桌组，若有则尝试将同组学生分配到相邻座位（连携修改）。若目标座位周围无足够相邻空座则请求重掷。",
     "author": "A_Pair Team",
     "category": "grouping",
-    "defaultPriority": 30,
+    "defaultPriority": 80,
     "defaultEnabled": true,
     "visible": true,
     "isIndependent": false,

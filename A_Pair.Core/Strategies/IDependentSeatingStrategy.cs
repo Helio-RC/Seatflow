@@ -12,7 +12,7 @@ namespace A_Pair.Core.Strategies
     /// <remarks>
     /// <b>执行模型</b>
     /// <para>
-    /// RandomFill 内部维护一个依赖策略清单（按 Priority 升序）。
+    /// RandomFill 内部维护一个依赖策略清单（按 Priority 降序）。
     /// 每次随机选出一对 (student, seat) 后，依次调用每个启用的依赖策略的
     /// <see cref="EvaluateAsync"/>。策略可以返回三种结果：
     /// </para>
@@ -38,7 +38,7 @@ namespace A_Pair.Core.Strategies
         string DisplayName { get; }
 
         /// <summary>
-        /// 上下文内部优先级，数值越小越先被评估。
+        /// 上下文内部优先级，数值越大越先被评估。
         /// 此优先级独立于外部管道 <see cref="ISeatingStrategy.Priority"/>。
         /// </summary>
         int Priority { get; set; }

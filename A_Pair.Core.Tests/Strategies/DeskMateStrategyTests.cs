@@ -402,7 +402,7 @@ public class DeskMateStrategyTests
         strategy.Id.Should().Be("DeskMate");
         strategy.Name.Should().Be("DeskMate");
         strategy.DisplayName.Should().Be("同桌分组");
-        strategy.Priority.Should().Be(30);
+        strategy.Priority.Should().Be(80);
         strategy.IsEnabled.Should().BeTrue();
     }
 }

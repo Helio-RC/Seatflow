@@ -43,14 +43,14 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 
 **Project dependency chain**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`). `Plugins.Sdk` is referenced only by external plugins. `Application` orchestrates; `Infrastructure` implements providers/exporters/layouts/repos; `Core` owns entities, strategy interfaces, and the workspace.
 
-**Strategy pipeline**: Uses a **fill-in-order** model for independent strategies. Dependent strategies execute inside RandomFill's assignment loop via `IDependentSeatingStrategy`. All strategies operate on the same `SeatingWorkspace`. Independent strategies execute in **ascending Priority order** (lower = earlier = dibs on empty seats). No "override" semantics; first to fill a seat keeps it. `IsFixed=true` (set by FixedSeat) causes `GetEmptySeats()` to exclude those seats, providing natural protection.
+**Strategy pipeline**: Uses a **fill-in-order** model for independent strategies. Dependent strategies execute inside RandomFill's assignment loop via `IDependentSeatingStrategy`. All strategies operate on the same `SeatingWorkspace`. Independent strategies execute in **descending Priority order** (higher = earlier = dibs on empty seats). No "override" semantics; first to fill a seat keeps it. `IsFixed=true` (set by FixedSeat) causes `GetEmptySeats()` to exclude those seats, providing natural protection.
 
 | Order | Strategy | Priority | Type | Role |
 |-------|----------|----------|------|------|
-| 1st | `FixedSeatStrategy` | 10 | Independent | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
-| 2nd | `FrontRowRotationStrategy` | 20 | Independent | Fills front-row seats from remaining empty non-fixed seats |
-| — | `DeskMateStrategy` | 30 (context) | Dependent | Runs inside RandomFill: checks desk-mate groups on each (student,seat) pair, coordinates adjacent assignments, requests reroll |
-| 3rd | `RandomFillStrategy` | 100 | Independent + Host | Fills remaining seats; hosts dependent strategies in its assignment loop (`IDependentSeatingStrategy`) |
+| 1st | `FixedSeatStrategy` | 100 | Independent | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
+| 2nd | `FrontRowRotationStrategy` | 90 | Independent | Fills front-row seats from remaining empty non-fixed seats |
+| — | `DeskMateStrategy` | 80 (context) | Dependent | Runs inside RandomFill: checks desk-mate groups on each (student,seat) pair, coordinates adjacent assignments, requests reroll |
+| 3rd | `RandomFillStrategy` | 10 | Independent + Host | Fills remaining seats; hosts dependent strategies in its assignment loop (`IDependentSeatingStrategy`) |
 
 Conflict resolution = Priority number (first-come-first-served). Dependent strategies have their own internal priority ordering within RandomFill's context (independent from external pipeline priority). See `docs/adr/ADR-006.md`.
 

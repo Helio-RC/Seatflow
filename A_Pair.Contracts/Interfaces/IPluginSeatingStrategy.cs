@@ -14,7 +14,7 @@ public interface IPluginSeatingStrategy : IPlugin
     /// <inheritdoc cref="IPlugin.Version"/>
     string IPlugin.Version => "1.0.0";
 
-    /// <summary>执行优先级，数值越小越先执行。</summary>
+    /// <summary>执行优先级，数值越大越先执行。</summary>
     int Priority { get; set; }
 
     /// <summary>策略是否启用。</summary>

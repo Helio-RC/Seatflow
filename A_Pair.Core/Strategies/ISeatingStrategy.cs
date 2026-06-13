@@ -9,16 +9,16 @@ namespace A_Pair.Core.Strategies
     /// <b>执行模型："按优先级填空"（Fill-in-Order）</b>
     /// <para>
     /// 所有策略操作同一个 <see cref="Workspace.SeatingWorkspace"/> 实例，
-    /// 按 <see cref="Priority"/> 升序依次执行（数值越小越先执行）。
+    /// 按 <see cref="Priority"/> 降序依次执行（数值越大越先执行）。
     /// 先执行的策略从空座中选择，后执行的策略在剩余空座中择优。
     /// 不存在"覆盖"——先占的座不会被推翻。
     /// </para>
     /// <list type="bullet">
-    /// <item>低 Priority（先执行）= 优先挑选座位。IsFixed=true 的座位被 GetEmptySeats() 自动排除，形成天然保护</item>
-    /// <item>高 Priority（后执行）= 在剩余空座中工作。最终兜底策略确保全场填满</item>
+    /// <item>高 Priority（先执行）= 优先挑选座位。IsFixed=true 的座位被 GetEmptySeats() 自动排除，形成天然保护</item>
+    /// <item>低 Priority（后执行）= 在剩余空座中工作。最终兜底策略确保全场填满</item>
     /// </list>
     /// <para>
-    /// 内置策略：FixedSeat(10) → FrontRowRotation(20) → DeskMate(30) → RandomFill(100)。
+    /// 内置策略：FixedSeat(100) → FrontRowRotation(90) → DeskMate(80) → RandomFill(10)。
     /// 策略间的冲突解决 = Priority 数值本身——先到先得。
     /// 参见 docs/adr/ADR-006.md。
     /// </para>
@@ -32,10 +32,10 @@ namespace A_Pair.Core.Strategies
         string Name { get; }
 
         /// <summary>
-        /// 执行优先级，数值越小越先执行（升序）。
+        /// 执行优先级，数值越大越先执行（降序）。
         /// 管道采用"按优先级填空"模型：先执行的策略先占用座位，后执行的在剩余空座中择优。
-        /// 内置策略：FixedSeat=10（锁定固定座）, FrontRowRotation=20（填前排）,
-        /// DeskMate=30（拼连续块）, RandomFill=100（最终兜底）。
+        /// 内置策略：FixedSeat=100（锁定固定座）, FrontRowRotation=90（填前排）,
+        /// DeskMate=80（同桌分组）, RandomFill=10（最终兜底）。
         /// </summary>
         int Priority { get; set; }
 

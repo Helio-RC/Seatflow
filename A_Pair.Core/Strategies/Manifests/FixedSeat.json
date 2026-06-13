@@ -7,7 +7,7 @@
     "description": "将指定学生强制分配到固定座位。最先执行，通过 IsFixed 锁定座位，后续策略自动排除。",
     "author": "A_Pair Team",
     "category": "assignment",
-    "defaultPriority": 10,
+    "defaultPriority": 100,
     "defaultEnabled": true,
     "visible": true,
     "parameters": [],

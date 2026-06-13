@@ -231,7 +231,7 @@ namespace A_Pair.Application.Interfaces
         /// <summary>插件作者。</summary>
         public string Author { get; set; } = string.Empty;
 
-        /// <summary>执行优先级（数值越小优先）。</summary>
+        /// <summary>执行优先级（数值越大优先）。</summary>
         public int Priority { get; set; }
 
         /// <summary>脚本语言类型（"lua" / "csharp"），仅脚本插件。</summary>

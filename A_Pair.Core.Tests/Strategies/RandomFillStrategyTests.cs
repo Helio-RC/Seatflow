@@ -133,7 +133,7 @@ public class RandomFillStrategyTests
         var strategy = new RandomFillStrategy();
         strategy.HasActiveDependents.Should().BeFalse();
 
-        var dep = new MockDependent("dep1" , 10 , DependentResult.Approve());
+        var dep = new MockDependent("dep1" , 90 , DependentResult.Approve());
         strategy.LoadDependentStrategies([dep]);
 
         strategy.HasActiveDependents.Should().BeTrue();
@@ -143,7 +143,7 @@ public class RandomFillStrategyTests
     public void LoadDependentStrategies_DisabledDependent_ShouldNotCountAsActive ()
     {
         var strategy = new RandomFillStrategy();
-        var dep = new MockDependent("dep1" , 10 , DependentResult.Approve()) { IsEnabled = false };
+        var dep = new MockDependent("dep1" , 90 , DependentResult.Approve()) { IsEnabled = false };
         strategy.LoadDependentStrategies([dep]);
 
         strategy.HasActiveDependents.Should().BeFalse();
@@ -157,7 +157,7 @@ public class RandomFillStrategyTests
         var ws = new SeatingWorkspace(students , seats);
 
         var strategy = new RandomFillStrategy(new Random(42));
-        var dep = new MockDependent("dep1" , 10 , DependentResult.Approve());
+        var dep = new MockDependent("dep1" , 90 , DependentResult.Approve());
         strategy.LoadDependentStrategies([dep]);
 
         await strategy.ExecuteAsync(ws , CancellationToken.None);
@@ -175,7 +175,7 @@ public class RandomFillStrategyTests
 
         var strategy = new RandomFillStrategy(new Random(42));
         // Handles: dependent actually assigns the student + mate, RandomFill should skip TryAssignSeat
-        var dep = new AssigningDependent("dep1" , 10);
+        var dep = new AssigningDependent("dep1" , 90);
         strategy.LoadDependentStrategies([dep]);
 
         await strategy.ExecuteAsync(ws , CancellationToken.None);
@@ -194,13 +194,13 @@ public class RandomFillStrategyTests
 
         var strategy = new RandomFillStrategy(new Random(42));
         var callOrder = new List<string>();
-        var dep1 = new TracingDependent("dep1" , 20 , callOrder);
-        var dep2 = new TracingDependent("dep2" , 10 , callOrder); // higher priority (lower number)
+        var dep1 = new TracingDependent("dep1" , 10 , callOrder);
+        var dep2 = new TracingDependent("dep2" , 20 , callOrder); // higher priority (higher number)
         strategy.LoadDependentStrategies([dep1 , dep2]);
 
         await strategy.ExecuteAsync(ws , CancellationToken.None);
 
-        // dep2 (priority 10) should be called before dep1 (priority 20)
+        // dep2 (priority 20) should be called before dep1 (priority 10)
         if (callOrder.Count >= 2)
         {
             var firstDep2 = callOrder.IndexOf("dep2");

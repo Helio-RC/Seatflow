@@ -98,7 +98,7 @@ public partial class PluginManagementViewModel : ViewModelBase
             var selectedId = SelectedPlugin?.Id;
 
             Plugins.Clear();
-            foreach (var p in plugins.OrderBy(p => p.Priority).ThenBy(p => p.Name))
+            foreach (var p in plugins.OrderByDescending(p => p.Priority).ThenBy(p => p.Name))
                 Plugins.Add(p);
 
             OnPropertyChanged(nameof(HasPlugins));

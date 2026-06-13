@@ -41,7 +41,7 @@ public sealed class PluginAttribute : Attribute
     /// <summary>插件功能类别（可选，默认 "strategy"）。</summary>
     public string? Category { get; set; }
 
-    /// <summary>默认执行优先级，数值越小越先执行（可选，默认 50）。</summary>
+    /// <summary>默认执行优先级，数值越大越先执行（可选，默认 50）。</summary>
     public int Priority { get; set; } = 50;
 
     /// <summary>插件默认是否启用（可选，默认 true）。</summary>
