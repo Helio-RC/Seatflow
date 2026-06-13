@@ -226,11 +226,15 @@ namespace A_Pair.Application.Services
             if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
                 strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
 
-            // 6b. 同步 FrontRowCount 到策略配置
+            // 6b. 同步 FrontRowCount / SeatsPerDesk 到策略配置
             if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
             {
                 var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
                 frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
+
+                var deskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<DeskMateStrategy>().FirstOrDefault();
+                deskMate?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
             }
             else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
             {

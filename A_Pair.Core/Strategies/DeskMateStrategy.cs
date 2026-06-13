@@ -38,6 +38,9 @@ namespace A_Pair.Core.Strategies
         /// <summary>使用默认配置创建实例。</summary>
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
 
+        /// <summary>同步会场每桌座位数，用于同桌边界检查。</summary>
+        public void SetSeatsPerDesk (int count) => _config.SeatsPerDesk = Math.Max(1 , count);
+
         /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
         public const string DisplayNameConst = "同桌分组";
 
@@ -147,7 +150,7 @@ namespace A_Pair.Core.Strategies
             }
 
             // 检查 targetSeat 是否与任何组员的座位相邻
-            bool isAdjacent = occupiedSeats.Any(occ => AreSeatsAdjacent(occ , targetSeat));
+            bool isAdjacent = occupiedSeats.Any(occ => IsAdjacentWithConfig(occ , targetSeat));
             if (isAdjacent)
             {
                 _logger.LogDebug("DeskMate：目标座位 {SeatId} 与已分配组员相邻，批准" , targetSeat.Id);
@@ -159,7 +162,7 @@ namespace A_Pair.Core.Strategies
             var candidates = new List<Seat>();
             foreach (var occSeat in occupiedSeats)
             {
-                var nearby = emptySeats.Where(e => AreSeatsAdjacent(occSeat , e)).ToList();
+                var nearby = emptySeats.Where(e => IsAdjacentWithConfig(occSeat , e)).ToList();
                 candidates.AddRange(nearby);
             }
 
@@ -347,6 +350,15 @@ namespace A_Pair.Core.Strategies
             bool verticalOk = _config.AllowVertical
                 && ga.Column == gb.Column && Math.Abs(ga.Row - gb.Row) == 1;
 
+            // 横向邻接时检查同桌边界：同一桌的座位必须在同一个 SeatsPerDesk 分组内
+            if (horizontalOk && _config.SeatsPerDesk > 1)
+            {
+                int deskA = (ga.Column - 1) / _config.SeatsPerDesk;
+                int deskB = (gb.Column - 1) / _config.SeatsPerDesk;
+                if (deskA != deskB)
+                    horizontalOk = false;
+            }
+
             return horizontalOk || verticalOk;
         }
 
@@ -494,6 +506,9 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>是否允许垂直相邻分配（同列相邻行）。</summary>
         public bool AllowVertical { get; set; } = false;
+
+        /// <summary>每桌座位数（来自会场 GridLayoutMetadata.SeatsPerDesk）。大于 1 时检查同桌边界。</summary>
+        public int SeatsPerDesk { get; set; } = 2;
     }
 
     /// <summary>
