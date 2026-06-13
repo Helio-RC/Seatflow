@@ -34,6 +34,14 @@
             "defaultValue": 1,
             "minValue": 1,
             "maxValue": 10
+        },
+        {
+            "name": "HistoryWindowSize",
+            "fieldType": "NumberInput",
+            "label": { "zh-CN": "历史窗口大小", "en-US": "History Window Size" },
+            "defaultValue": 10,
+            "minValue": 1,
+            "maxValue": 30
         }
     ],
     "codeBlocks": [],

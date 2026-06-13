@@ -100,6 +100,7 @@ namespace A_Pair.Application.Services
                 new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
                     sp.GetRequiredService<FileMigrationService>() ,
                     sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
+            services.AddSingleton<FrontRowHistoryLoader>();
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 

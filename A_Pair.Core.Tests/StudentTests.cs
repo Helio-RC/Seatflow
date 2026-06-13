@@ -20,10 +20,11 @@ public class StudentTests
     public void RecentSeatHistory_ShouldBeCircular ()
     {
         var s = new Student();
-        s.RecentSeatHistory.Add("seat1");
-        s.RecentSeatHistory.Add("seat2");
-        s.RecentSeatHistory.Add("seat3");
-        s.RecentSeatHistory.Add("seat4"); // over capacity 3
-        s.RecentSeatHistory.GetAll().Should().BeEquivalentTo(["seat2" , "seat3" , "seat4"]);
+        // 默认容量为 10，填充超过容量以验证环形覆盖行为
+        for (int i = 1 ; i <= 12 ; i++)
+            s.RecentSeatHistory.Add($"seat{i}");
+        // 最旧的 seat1, seat2 被覆盖，保留最新的 10 条
+        var expected = Enumerable.Range(3 , 10).Select(i => $"seat{i}").ToArray();
+        s.RecentSeatHistory.GetAll().Should().BeEquivalentTo(expected);
     }
 }

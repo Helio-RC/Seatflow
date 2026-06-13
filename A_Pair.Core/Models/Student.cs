@@ -40,7 +40,7 @@ public class Student : IPluginStudent
     /// 默认容量为 3，记录最近坐过的座位 ID。
     /// </summary>
     [JsonIgnore]
-    public CircularHistory<string> RecentSeatHistory { get; set; } = new(3);
+    public CircularHistory<string> RecentSeatHistory { get; set; } = new(10);
 
     /// <summary>
     /// 前排偏好分数，由轮换策略动态调整，分数越高越优先分配到前排。

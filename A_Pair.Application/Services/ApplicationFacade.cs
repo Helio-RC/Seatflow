@@ -12,7 +12,6 @@ using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Infrastructure.Providers;
-using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -64,38 +63,6 @@ namespace A_Pair.Application.Services
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
         private ClassroomLayoutDefinition? _currentLayout;
         private List<ISeatingStrategy>? _cachedStrategies;
-
-        private static readonly JsonSerializerOptions VenueFileReadOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        static ApplicationFacade ()
-        {
-            VenueFileReadOptions.Converters.Add(new SeatJsonConverter());
-        }
-
-        private static ClassroomLayoutDefinition? DeserializeVenueFromEmbeddedJson (string json)
-        {
-            // venueFile 格式（VenueFile 包装）
-            var venueFile = JsonSerializer.Deserialize<VenueFile>(json , VenueFileReadOptions);
-            if (venueFile?.Layout != null)
-                return venueFile.Layout;
-            // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）
-            return JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueFileReadOptions);
-        }
-
-        private static string? GetMetaStringFromMetadata (Dictionary<string , object> meta , string key)
-        {
-            if (!meta.TryGetValue(key , out var value) || value is null) return null;
-            return value switch
-            {
-                string s => s ,
-                System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
-                    ? je.GetString()
-                    : je.GetRawText() ,
-                _ => null
-            };
-        }
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -194,6 +161,17 @@ namespace A_Pair.Application.Services
             var workspace = new SeatingWorkspace(students , seats ,
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
+
+            // 3b. 从历史快照恢复前排历史，实现跨会话轮换
+            if (!string.IsNullOrEmpty(request.LayoutId))
+            {
+                var frontRowStrategy = _serviceProvider
+                    .GetServices<ISeatingStrategy>().OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                int windowSize = frontRowStrategy?.Config.HistoryWindowSize ?? 10;
+                var historyLoader = _serviceProvider.GetRequiredService<FrontRowHistoryLoader>();
+                await historyLoader.PopulateFrontRowHistoryAsync(
+                    workspace , request.LayoutId , windowSize , cancellationToken);
+            }
 
             // 4. 获取内置策略（缓存 D内置策略，不变异）
             var builtInStrategies = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
@@ -438,7 +416,7 @@ namespace A_Pair.Application.Services
         public async Task<string> ImportVenueFromSnapshotAsync (
             string venueLayoutJson , string? newName = null , CancellationToken ct = default)
         {
-            var layout = DeserializeVenueFromEmbeddedJson(venueLayoutJson)
+            var layout = SnapshotLayoutHelper.DeserializeVenueFromEmbeddedJson(venueLayoutJson)
                 ?? throw new InvalidOperationException("无法反序列化快照中的会场布局");
             var venueId = Guid.NewGuid().ToString("N")[..8];
             layout.Id = venueId;
@@ -508,10 +486,10 @@ namespace A_Pair.Application.Services
 
             // 优先使用快照中嵌入的会场布局（自包含，不依赖外部会场文件）
             ClassroomLayoutDefinition? layout = null;
-            var venueFileJson = GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
-                ?? GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+            var venueFileJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
+                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
             if (!string.IsNullOrEmpty(venueFileJson))
-                layout = DeserializeVenueFromEmbeddedJson(venueFileJson);
+                layout = SnapshotLayoutHelper.DeserializeVenueFromEmbeddedJson(venueFileJson);
 
             // 无嵌入时回退到加载会场文件
             if (layout == null
