@@ -23,6 +23,7 @@ public partial class StrategyItemViewModel : ObservableObject
     public int DefaultPriority { get; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PriorityDisplay))]
     private int _priority;
 
     [ObservableProperty]
