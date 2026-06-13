@@ -8,7 +8,7 @@
     "author": "A_Pair Team",
     "category": "grouping",
     "defaultPriority": 40,
-    "defaultEnabled": true,
+    "defaultEnabled": false,
     "visible": true,
     "isIndependent": false,
     "parameters": [

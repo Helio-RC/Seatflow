@@ -26,7 +26,7 @@ dotnet run --project A_Pair.Presentation.Avalonia   # 启动桌面应用
 A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的跨平台桌面座位安排系统。解决方案文件为 `A_Pair.slnx`（新的 XML 格式）。
 
 **分层（自下而上）**:
-- **Core** — 领域实体（`Student`、`Seat`、`ClassroomLayoutDefinition`、`SeatingWorkspace`、`SeatingPlan`）、策略接口（`ISeatingStrategy`）+ 四种内置实现、领域服务（`ObstacleProcessor`、`SeatGeometryHelper`、`StrategyManifestProvider`）、数据提供者接口（`IStudentProvider`、`IVenueRepository` 等）
+- **Core** — 领域实体（`Student`、`Seat`、`ClassroomLayoutDefinition`、`SeatingWorkspace`、`SeatingPlan`）、策略接口（`ISeatingStrategy`）+ 六种内置实现、领域服务（`ObstacleProcessor`、`SeatGeometryHelper`、`StrategyManifestProvider`）、数据提供者接口（`IStudentProvider`、`IVenueRepository` 等）
 - **Contracts** — 跨层接口（`IPluginSeatingStrategy`）
 - **Infrastructure** — 文件 I/O（`CsvStudentProvider`、`XlsxStudentProvider`、`JsonStudentProvider`、以及注册为主 `IStudentProvider` 的组合 `CompositeStudentProvider`）、导出器（`ExcelSeatingExporter`、`CsvSeatingExporter`、`PdfSeatingExporter`、`ImageSeatingExporter`）、布局构建器（`GridLayoutBuilder`、`PolarLayoutBuilder`、`FreeformLayoutBuilder`）、仓储（`JsonVenueRepository`、`JsonAppSettingsRepository`、`StrategyConfigFileRepository`、`SeatingSnapshotRepository`、`JsonStudentDatasetRepository`）、写入器（`JsonStudentWriter`、`CsvStudentWriter`、`XlsxStudentWriter`）、序列化
 - **Application** — `IApplicationFacade`（UI 唯一入口）、`StrategyExecutionPipeline`、命令模式（`IUndoableCommand` / `CommandHistory`）、插件管理器（`PluginManager`、`PluginLoadContext`）、脚本适配器（Lua/C#）、DI 注册
@@ -46,6 +46,8 @@ A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的
 | 第1 | FixedSeatStrategy | 100 | 独立 | 锁定固定座位（IsFixed=true） |
 | 第2 | FrontRowRotationStrategy | 50 | 独立 | 在非固定空座中填前排 |
 | — | DeskMateStrategy | 50 (上下文) | 依赖 | 在 RandomFill 上下文中执行：检查同桌关系，协调相邻分配，必要时请求重掷 |
+| — | GenderRestrictedSeatStrategy | 45 (上下文) | 依赖 | 在 RandomFill 上下文中执行：检查座位性别限制，不匹配时重定向到匹配空座，无可用时请求重掷 |
+| — | NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 上下文中执行：检查相邻座位历史同桌重复，必要时请求重掷 |
 | 第3 | RandomFillStrategy | 1 | 独立+宿主 | 最终兜底填满剩余；同时作为依赖策略宿主 |
 
 **策略执行消息**: 策略可通过 `workspace.LogWarning(id, displayName, messageKey, args)` / `workspace.LogError(...)` 报告警告和错误。`messageKey` 对应 manifest `messages` 字典中的 i18n 键，模板用 `{0} {1}` 占位。消息（含 `StrategyId`、`StrategyDisplayName`、`MessageKey`、`Args`）收集在 `SeatingWorkspace.Messages` 中，执行完成后汇总到座位安排页侧栏。内建和插件统一使用此机制——内建策略在 `Manifests/{Id}.json` 中声明 `messages`，插件在 `plugin.manifest.json` 中声明。
@@ -58,6 +60,7 @@ A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的
 - `parameters[]`：策略级全局参数（NumberInput/TextInput/ToggleSwitch/Dropdown），UI 渲染为输入控件
 - `codeBlocks[]`：按数据集/会场的配置块。`dataType` 决定渲染哪些选择器（`Student`/`Venue`/`Both`），`showSeatPosition` 控制座位定位器显隐，`preventDuplicateInRow` 控制同行学生选择器防重复，`preventDuplicateAcrossRows` 控制跨行学生选择器防重复，`loadTrigger` 控制配置加载触发方式（`Both`=需两个都选/精确匹配（默认），`Any`=任一即加载/模糊匹配）
 - **DeskMate**（依赖策略，`isIndependent: false`）：在 RandomFill 分配循环中执行。当 RandomFill 提出 (student, seat) 时检查同桌关系：若有同桌组，尝试将同组学生分配到相邻座位（连携修改）；若目标座位无足够相邻空座则请求重掷（Reroll）。此机制彻底解决了旧版受前序策略碎片化影响的根本性问题。`dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`。每行学生选择器数量由会场 `SeatsPerDesk` 动态决定。
+- **GenderRestrictedSeat**（依赖策略，`isIndependent: false`）：在 RandomFill 分配循环中执行（Priority 45）。检查目标座位是否有性别限制。若学生性别不匹配，优先重定向到匹配性别的受限空座（Handled，不消耗重掷）；无可用匹配空座时请求重掷；重掷耗尽后强制分配并警告。`dataType: "Venue"`, `showSeatPosition: true`, `showStudentPicker: false`, `showGenderPicker: true`, `preventDuplicateAcrossRows: true`。性别值存入 `CustomValues["Gender"]`。
 - **FixedSeat**：`dataType: "Both"`, `preventDuplicateAcrossRows: true`。每行学生选择器 + 座位定位器。跨所有行选择器互相排除已选学生
 - **FrontRowRotation**：无 codeBlock——`NeedsFrontRow` 已是 Student 模型字段。按分数选出学生后 Fisher-Yates 洗牌，随机分布在各列
 - **RandomFill**：无 parameters，无 codeBlocks

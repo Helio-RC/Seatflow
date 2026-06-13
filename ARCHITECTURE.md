@@ -254,10 +254,9 @@ public class StrategyExecutionPipeline
 | FixedSeatStrategy | 100 | 独立 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
 | FrontRowRotationStrategy | 50 | 独立 | 在非固定空座中识别前排，按需求分数选出学生后 Fisher-Yates 洗牌，随机分布在各列 |
 | DeskMateStrategy | 50 (context) | 依赖 | 在 RandomFill 中协调同桌组分配，同行+邻列+同 SeatsPerDesk 分组为同桌；可腾挪 RandomFill 已分配学生但不移动前序策略安置者 |
+| GenderRestrictedSeatStrategy | 45 (context) | 依赖 | 在 RandomFill 中检查座位性别限制；不匹配时优先重定向到匹配性别的受限空座（减少无效重掷），无可用时请求重掷，耗尽则强制分配 |
 | NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 中检查历史同桌重复，从快照提取过去的同桌对；重复时请求重掷，耗尽则强制分配 |
 | RandomFillStrategy | 1 | 独立+Host | 兜底填充剩余空座，约束学生（DeskMate 组）优先分配；托管依赖策略执行 |
-| DeskMateStrategy | 50 | 依赖 | 在 RandomFill 上下文中执行。当随机分配学生时检查同桌关系：若有同桌组，尝试将同组学生分配到相邻座位（连携修改）；若目标座位周围无足够相邻空座则请求重掷。解决了旧版受前序策略碎片化影响的根本性问题 |
-| RandomFillStrategy | 1 | 独立+宿主 | 兜底策略，将剩余未分配学生随机填入剩余空座。同时作为依赖策略的宿主，其内部上下文循环按优先级依次调用依赖策略评估 |
 
 4.5 声明式策略配置
 

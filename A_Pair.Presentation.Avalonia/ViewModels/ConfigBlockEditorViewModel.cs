@@ -525,6 +525,21 @@ public partial class ConfigBlockRowViewModel : ObservableObject
 
     public SeatPositionPickerViewModel SeatPicker { get; }
 
+    /// <summary>CodeBlock 是否声明了性别选择器。</summary>
+    public bool ShowGenderPicker => _codeBlock?.ShowGenderPicker == true;
+
+    /// <summary>性别下拉选项列表（静态）。</summary>
+    public static List<string> GenderOptions { get; } = ["Male" , "Female"];
+
+    /// <summary>性别选择器的当前值（"Male" / "Female" / null），直接读写 CustomValues["Gender"]。</summary>
+    [ObservableProperty]
+    private string? _genderValue;
+
+    partial void OnGenderValueChanged (string? value)
+    {
+        _customValues["Gender"] = value;
+    }
+
     /// <summary>自定义字段值。</summary>
     [ObservableProperty]
     private Dictionary<string, object?> _customValues = [];
@@ -588,6 +603,9 @@ public partial class ConfigBlockRowViewModel : ObservableObject
         vm.SeatPicker.Angle = row.SeatAngle ?? 0;
         vm.SeatPicker.X = row.SeatX ?? 0;
         vm.SeatPicker.Y = row.SeatY ?? 0;
+        // 恢复性别值
+        if (row.Values?.TryGetValue("Gender" , out var gv) == true)
+            vm.GenderValue = gv?.ToString();
         return vm;
     }
 

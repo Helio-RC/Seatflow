@@ -4,6 +4,7 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.DomainServices;
+using A_Pair.Core.Enums;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
@@ -828,6 +829,8 @@ namespace A_Pair.Application.Services
 
                 if (dep is DeskMateStrategy ds)
                     ApplyDeskMateConfig(ds , config);
+                else if (dep is GenderRestrictedSeatStrategy grs)
+                    ApplyGenderRestrictionConfig(grs , config , venueLayout);
             }
         }
 
@@ -874,6 +877,38 @@ namespace A_Pair.Application.Services
                 if (group.StudentIds.Count >= 2)
                     strategy.Config.Groups.Add(group);
             }
+        }
+
+        /// <summary>
+        /// 将 StrategyDatasetConfig 的 Rows 转换为 GenderRestrictedSeatConfiguration.SeatGenderRestrictions。
+        /// 每行通过座位位置查找实际 Seat.Id，Gender 字段值映射为 Gender 枚举，构建限制字典。
+        /// </summary>
+        private static void ApplyGenderRestrictionConfig (
+            GenderRestrictedSeatStrategy strategy ,
+            StrategyDatasetConfig config ,
+            ClassroomLayoutDefinition? venueLayout)
+        {
+            var restrictions = new Dictionary<string , Gender>();
+            foreach (var row in config.Rows)
+            {
+                var seat = FindSeatByPosition(venueLayout , row);
+                if (seat is null) continue;
+
+                if (row.Values?.TryGetValue("Gender" , out var genderObj) != true || genderObj is null)
+                    continue;
+
+                var genderStr = genderObj.ToString();
+                Gender? parsed = null;
+                if (string.Equals(genderStr , "Male" , StringComparison.OrdinalIgnoreCase))
+                    parsed = Gender.Male;
+                else if (string.Equals(genderStr , "Female" , StringComparison.OrdinalIgnoreCase))
+                    parsed = Gender.Female;
+
+                if (parsed is null) continue;
+                restrictions[seat.Id] = parsed.Value;
+            }
+
+            strategy.SetRestrictions(restrictions);
         }
 
         /// <summary>
@@ -975,6 +1010,7 @@ namespace A_Pair.Application.Services
                 {
                     ["HistoryWindowSize"] = nd.Config.HistoryWindowSize
                 },
+                GenderRestrictedSeatStrategy => [],
                 _ => []
             };
         }
@@ -1001,6 +1037,9 @@ namespace A_Pair.Application.Services
             {
                 case NoRepeatDeskMateStrategy nd:
                     nd.Config.HistoryWindowSize = GetParamInt(parameters , "HistoryWindowSize");
+                    break;
+                case GenderRestrictedSeatStrategy:
+                    // 无策略级参数
                     break;
             }
         }

@@ -47,7 +47,7 @@ namespace A_Pair.Core.Strategies
         public int Priority { get; set; } = 50;
 
         /// <summary>是否启用。</summary>
-        public bool IsEnabled { get; set; } = true;
+        public bool IsEnabled { get; set; } = false;
 
         /// <summary>
         /// 执行前排轮换：

@@ -58,6 +58,9 @@ public sealed class StrategyCodeBlock
     /// <summary>是否显示会場选择器。默认根据 DataType 自动判断。</summary>
     public bool? ShowVenuePicker { get; init; }
 
+    /// <summary>是否显示性别选择器（默认 false）。声明开启后每行渲染一个 Male/Female ComboBox，值存入 CustomValues["Gender"]。</summary>
+    public bool ShowGenderPicker { get; init; }
+
     /// <summary>每行学生选择器数量，默认 1。</summary>
     public int StudentPickerCount { get; init; } = 1;
 

@@ -8,7 +8,7 @@
     "author": "A_Pair Team",
     "category": "rotation",
     "defaultPriority": 50,
-    "defaultEnabled": true,
+    "defaultEnabled": false,
     "visible": true,
     "parameters": [
         {

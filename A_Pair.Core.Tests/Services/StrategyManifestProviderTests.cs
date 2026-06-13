@@ -5,12 +5,12 @@ namespace A_Pair.Core.Tests.Services;
 public class StrategyManifestProviderTests
 {
     [Fact]
-    public void GetBuiltInManifests_ReturnsAllFive ()
+    public void GetBuiltInManifests_ReturnsAllBuiltIn ()
     {
         var provider = new StrategyManifestProvider();
         var manifests = provider.GetBuiltInManifests();
         manifests.Should().NotBeNull();
-        manifests.Should().HaveCount(5);
+        manifests.Should().HaveCount(6);
     }
 
     [Fact]

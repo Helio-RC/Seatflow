@@ -116,6 +116,8 @@ namespace A_Pair.Application.Services
             // 注册依赖策略（在 RandomFill 上下文中执行）
             services.AddSingleton<IDependentSeatingStrategy>(sp => new DeskMateStrategy(
                 new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new GenderRestrictedSeatStrategy(
+                new GenderRestrictedSeatConfiguration() , sp.GetRequiredService<ILogger<GenderRestrictedSeatStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new NoRepeatDeskMateStrategy(
                 new NoRepeatDeskMateConfiguration() , sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
 

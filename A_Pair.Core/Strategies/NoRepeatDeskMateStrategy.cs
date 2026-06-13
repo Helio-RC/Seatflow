@@ -54,7 +54,7 @@ namespace A_Pair.Core.Strategies
         public int Priority { get; set; } = 40;
 
         /// <inheritdoc />
-        public bool IsEnabled { get; set; } = true;
+        public bool IsEnabled { get; set; } = false;
 
         /// <summary>获取策略配置对象。</summary>
         public NoRepeatDeskMateConfiguration Config => _config;
