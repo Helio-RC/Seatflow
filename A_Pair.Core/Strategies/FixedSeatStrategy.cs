@@ -80,7 +80,7 @@ namespace A_Pair.Core.Strategies
                     bool success = workspace.TryAssignSeat(seat.Id , kv.Value , out _);
                     if (success)
                     {
-                        seat.IsFixed = true;
+                        ((IFixedSeatCapability)workspace).TryMarkFixed(seat.Id , null , Id , DisplayNameConst , out _);
                         assignedCount++;
                     }
                     else
@@ -91,7 +91,7 @@ namespace A_Pair.Core.Strategies
                 }
                 else
                 {
-                    seat.IsFixed = true;
+                    ((IFixedSeatCapability)workspace).TryMarkFixed(seat.Id , null , Id , DisplayNameConst , out _);
                 }
             }
 

@@ -212,17 +212,24 @@ public class SeatingWorkspace
 后执行的策略在剩余空座中择优。不存在"覆盖"语义。
 
 依赖策略不在外部管道中执行，而是在 RandomFill 的分配循环中按上下文内部优先级
-依次评估（DeskMate 50 → NoRepeatDeskMate 40）。Handled 后仍继续运行后续依赖策略
-以供检查/警告。
+依次评估（DeskMate 50 → GenderRestrictedSeat 45 → NoRepeatDeskMate 40）。
+Handled 后仍继续运行后续依赖策略以供检查/警告。
 
 ```
 独立策略 Priority 降序 →
-  FixedSeat(100)         ← 最先执行：锁定固定座位（IsFixed=true 自动保护）
+  FixedSeat(100)         ← 最先执行：锁定固定座位（IsFixed=true，通过 Capability.MarkFixedSeat 能力）
   FrontRowRotation(50)  ← 第二执行：在非固定空座中填前排
-  RandomFill(1)       ← 最后执行：
+  RandomFill(1)       ← 兜底填充：
     └─ 内部上下文 (依赖策略按 Priority 降序) →
-       DeskMate(50)          ← 检查同桌关系，协调同行分配（连携修改/腾挪）
-       NoRepeatDeskMate(40)  ← 检查相邻已占座是否与历史同桌重复，重复则重掷
+       DeskMate(50)               ← 检查同桌关系，协调同行分配（连携修改/腾挪）
+       GenderRestrictedSeat(45)   ← 检查性别限制，不匹配时重定向
+       NoRepeatDeskMate(40)       ← 检查相邻已占座是否与历史同桌重复，重复则重掷
+  Defrag(0)            ← 最后执行："扫地僧"碎片整理，后排无约束学生前移
+
+能力系统（Capability.cs）：
+  Manifest capabilities 声明 → Facade 注册 → Workspace 校验 → 接口调用
+  · MarkFixedSeat — IFixedSeatCapability.TryMarkFixed()
+  · 日后在 Capability.cs 追加 const + interface 即可拓展
 ```
 
 > **关键设计决策**：高 Priority = 先执行 = 优先挑选座位。冲突解决 = Priority 数值（先到先得）。

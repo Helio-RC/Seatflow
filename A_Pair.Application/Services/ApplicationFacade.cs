@@ -241,6 +241,29 @@ namespace A_Pair.Application.Services
             // 6c. 加载代码块配置并应用到 FixedSeat / DeskMate 策略
             await ApplyCodeBlockConfigsAsync(strategies , request , venueLayout , cancellationToken);
 
+            // 6c-b. 收集约束学生 ID 并注入 DefragStrategy（固定座位 + DeskMate 组）
+            var defragStrategy = strategies.OfType<DefragStrategy>().FirstOrDefault();
+            if (defragStrategy != null && defragStrategy.IsEnabled)
+            {
+                var constrainedIds = new HashSet<string>();
+                // 固定座位上的学生
+                foreach (var seat in workspace.FindSeats(s => s.IsFixed && s.OccupantId is not null))
+                    constrainedIds.Add(seat.OccupantId!);
+                // DeskMate 组内学生
+                var deskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<DeskMateStrategy>().FirstOrDefault();
+                if (deskMate != null)
+                {
+                    foreach (var group in deskMate.Config.Groups)
+                    {
+                        foreach (var sid in group.StudentIds)
+                            constrainedIds.Add(sid);
+                    }
+                }
+                defragStrategy.SetConstrainedStudentIds(constrainedIds);
+                logger.LogInformation("Defrag：已注入 {Count} 个约束学生 ID" , constrainedIds.Count);
+            }
+
             // 6d. 收集依赖策略并注入到 RandomFill
             var dependentStrategies = new List<IDependentSeatingStrategy>();
 
@@ -267,6 +290,19 @@ namespace A_Pair.Application.Services
             {
                 randomFill.LoadDependentStrategies(dependentStrategies);
                 logger.LogInformation("已将 {Count} 个依赖策略注入 RandomFill" , dependentStrategies.Count);
+            }
+
+            // 6e. 注册策略能力到 workspace（从 manifest 读取）
+            foreach (var s in strategies)
+            {
+                var m = _manifestProvider.GetBuiltInManifest(s.Id);
+                if (m?.Capabilities is { Count: > 0 })
+                    workspace.RegisterCapabilities(s.Id , m.Capabilities);
+            }
+            foreach (var pi in loadedPlugins)
+            {
+                if (pi.StrategyManifest?.Capabilities is { Count: > 0 })
+                    workspace.RegisterCapabilities(pi.Strategy.Id , pi.StrategyManifest.Capabilities);
             }
 
             // 7. 执行策略管道
@@ -998,6 +1034,7 @@ namespace A_Pair.Application.Services
                     ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus ,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
+                DefragStrategy => [] ,
                 _ => []
             };
         }
@@ -1026,6 +1063,8 @@ namespace A_Pair.Application.Services
                     fr.Config.NeedsFrontRowBonus = GetParamInt(parameters , "NeedsFrontRowBonus");
                     fr.Config.FrontRowCount = GetParamInt(parameters , "FrontRowCount");
                     break;
+                case DefragStrategy:
+                    break; // 零参数策略
             }
         }
 

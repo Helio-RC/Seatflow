@@ -1,190 +1,216 @@
-# A_Pair 项目参考手册
+# CLAUDE.md
 
-> 本文档是项目级 AI 配置 [CLAUDE.md](../CLAUDE.md) 的可读版本，供开发者快速查阅项目约定和技术细节。
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 开发环境
+## Chat & Coding Language
+
+你需要使用中文来进行对话和思考、编写注释。
+
+## Development Environment
 
 在执行需要 GUI 的操作前，先确认当前是否处于无头环境（检查 `DISPLAY` / `WAYLAND_DISPLAY` 等环境变量），以及是否安装了 .NET 10 SDK。avdt（Avalonia DevTools）仅在桌面环境下可用。
 
-## 构建与测试
+##  Build & Test
 
 ```bash
-dotnet build                    # 构建全部 9 个项目（使用 .slnx，需要 .NET 10 SDK）
-dotnet test                     # 运行所有测试（xUnit v3, Microsoft.Testing.Platform）
-dotnet test --filter "FullyQualifiedName~TestName"  # 运行单个测试
-dotnet run --project A_Pair.Presentation.Avalonia   # 启动桌面应用
+dotnet build                    # Build all 9 projects (uses .slnx, requires .NET 10 SDK)
+dotnet test                     # Run all tests (xUnit v3, Microsoft.Testing.Platform)
+dotnet test --filter "FullyQualifiedName~TestName"  # Run a single test
+dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 ```
 
-**测试栈**: xUnit v3 + FluentAssertions + NSubstitute。测试项目分布在 `*.Core.Tests`、`*.Application.Tests`、`*.Infrastructure.Tests`。每个项目启用了 `<ImplicitUsings>enable`，项目级全局 using 在 `Usings.cs`（Application.Tests 中为 `Using.cs`）。
+**Test stack**: xUnit v3 + FluentAssertions + NSubstitute. Tests are in 3 projects: `*.Core.Tests`, `*.Application.Tests`, `*.Infrastructure.Tests`. Each has `<ImplicitUsings>enable</ImplicitUsings>` (provides `System`, `System.Collections.Generic`, `System.Linq`, `System.Threading.Tasks`). Project-specific global usings are in `Usings.cs` (or `Using.cs` in Application.Tests).
 
-**包管理**: 无 `Directory.Build.props` 或 `Directory.Packages.props`，版本在每个 `.csproj` 中直接管理。
+**No `Directory.Build.props` or `Directory.Packages.props`** — package versions are managed directly in each `.csproj`.
 
-**dotnet tools**: `avaloniaui.developertools` (avdt) 已安装在仓库根目录的 `dotnet-tools.json` 中。使用前先确认当前环境是否有桌面显示支持，若无头则跳过。构建时无需此工具。
+**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in repo-root `dotnet-tools.json`. 使用前先确认当前环境是否有桌面显示支持，若无头则跳过 avdt。构建时无需此工具。
 
-## 架构
+## Architecture
 
-A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的跨平台桌面座位安排系统。解决方案文件为 `A_Pair.slnx`（新的 XML 格式）。
+A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4. The solution file is `A_Pair.slnx` (the new XML-based format).
 
-**分层（自下而上）**:
-- **Core** — 领域实体（`Student`、`Seat`、`ClassroomLayoutDefinition`、`SeatingWorkspace`、`SeatingPlan`）、策略接口（`ISeatingStrategy`）+ 六种内置实现、领域服务（`ObstacleProcessor`、`SeatGeometryHelper`、`StrategyManifestProvider`）、数据提供者接口（`IStudentProvider`、`IVenueRepository` 等）
-- **Contracts** — 跨层接口（`IPluginSeatingStrategy`）
-- **Infrastructure** — 文件 I/O（`CsvStudentProvider`、`XlsxStudentProvider`、`JsonStudentProvider`、以及注册为主 `IStudentProvider` 的组合 `CompositeStudentProvider`）、导出器（`ExcelSeatingExporter`、`CsvSeatingExporter`、`PdfSeatingExporter`、`ImageSeatingExporter`）、布局构建器（`GridLayoutBuilder`、`PolarLayoutBuilder`、`FreeformLayoutBuilder`）、仓储（`JsonVenueRepository`、`JsonAppSettingsRepository`、`StrategyConfigFileRepository`、`SeatingSnapshotRepository`、`JsonStudentDatasetRepository`）、写入器（`JsonStudentWriter`、`CsvStudentWriter`、`XlsxStudentWriter`）、序列化
-- **Application** — `IApplicationFacade`（UI 唯一入口）、`StrategyExecutionPipeline`、命令模式（`IUndoableCommand` / `CommandHistory`）、插件管理器（`PluginManager`、`PluginLoadContext`）、脚本适配器（Lua/C#）、DI 注册
-- **Plugins.Sdk** — 供外部插件作者使用的轻量程序集
-- **Presentation.Avalonia** — Avalonia 12 桌面应用，MVVM + CommunityToolkit.Mvvm
+**Layers (bottom-up)**:
+- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + six built-in implementations, capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
+- **Contracts** — Cross-layer interface for plugins (`IPluginSeatingStrategy`)
+- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider`, `JsonStudentProvider`, and the composite `CompositeStudentProvider` registered as the primary `IStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization
+- **Application** — `IApplicationFacade` (UI's single entry point), `StrategyExecutionPipeline`, command pattern (`IUndoableCommand` / `CommandHistory`), plugin manager (`PluginManager`, `PluginLoadContext`), script adapters (Lua/C#), DI registration
+- **Plugins.Sdk** — Lightweight assembly for external plugin authors
+- **Presentation.Avalonia** — Avalonia 12 desktop app, MVVM with CommunityToolkit.Mvvm
 
-**依赖注入**: Application 层的 `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` 注册所有服务。`Program.cs` 中 UI 层调用此方法后，再注册自己的单例：`INavigationService`、`IFileService`、`IDialogService`、`MainWindow`、`MainShellViewModel` 以及所有页面 ViewModel。
+**DI**: `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
 
-**导航**: `INavigationService` + `MainShellViewModel` 通过 `PageKey` 枚举管理 10 个页面（`Home`、`MemberManagement`、`VenueConfiguration`、`FreeformManagement`、`StrategyConfiguration`、`SeatingArrangement`、`SnapshotHistory`、`PluginManagement`、`Settings`、`About`）。`ViewLocator` 按命名约定自动解析 `XXXViewModel` → `XXXView`。
+**Navigation**: `INavigationService` + `MainShellViewModel` manages 10 pages via `PageKey` enum (`Home`, `MemberManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
 
-**依赖链**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`)。`Plugins.Sdk` 仅供外部插件引用。
+**Project dependency chain**: `Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`). `Plugins.Sdk` is referenced only by external plugins. `Application` orchestrates; `Infrastructure` implements providers/exporters/layouts/repos; `Core` owns entities, strategy interfaces, and the workspace.
 
-**策略管道**: 采用 fill-in-order 模型。独立策略按 Priority 降序执行（高=先=优先挑选），依赖策略在 RandomFill 的分配循环中按内部优先级评估。`IsFixed=true` 提供自然保护，详见 `docs/adr/ADR-006.md`。
+**Strategy pipeline**: Uses a **fill-in-order** model for independent strategies. Dependent strategies execute inside RandomFill's assignment loop via `IDependentSeatingStrategy`. All strategies operate on the same `SeatingWorkspace`. Independent strategies execute in **descending Priority order** (higher = earlier = dibs on empty seats). No "override" semantics; first to fill a seat keeps it. `IsFixed=true` (set by FixedSeat) causes `GetEmptySeats()` to exclude those seats, providing natural protection.
 
-| 执行顺序 | 策略 | Priority | 类型 | 职责 |
-|----------|------|----------|------|------|
-| 第1 | FixedSeatStrategy | 100 | 独立 | 锁定固定座位（IsFixed=true） |
-| 第2 | FrontRowRotationStrategy | 50 | 独立 | 在非固定空座中填前排 |
-| — | DeskMateStrategy | 50 (上下文) | 依赖 | 在 RandomFill 上下文中执行：检查同桌关系，协调相邻分配，必要时请求重掷 |
-| — | GenderRestrictedSeatStrategy | 45 (上下文) | 依赖 | 在 RandomFill 上下文中执行：检查座位性别限制，不匹配时重定向到匹配空座，无可用时请求重掷 |
-| — | NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 上下文中执行：检查相邻座位历史同桌重复，必要时请求重掷 |
-| 第3 | RandomFillStrategy | 1 | 独立+宿主 | 最终兜底填满剩余；同时作为依赖策略宿主 |
+| Order | Strategy | Priority | Type | Role |
+|-------|----------|----------|------|------|
+| 1st | `FixedSeatStrategy` | 100 | Independent | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
+| 2nd | `FrontRowRotationStrategy` | 50 | Independent | Fills front-row seats from remaining empty non-fixed seats |
+| — | `DeskMateStrategy` | 50 (context) | Dependent | Runs inside RandomFill: checks desk-mate groups on each (student,seat) pair, coordinates adjacent assignments (horizontal/same-desk only), requests reroll |
+| — | `GenderRestrictedSeatStrategy` | 45 (context) | Dependent | Runs inside RandomFill after DeskMate: checks if target seat has a gender restriction. Redirects mismatched students to matching restricted empty seats; rejects otherwise; forces with warning on reroll exhaustion |
+| — | `NoRepeatDeskMateStrategy` | 40 (context) | Dependent | Runs inside RandomFill after DeskMate: checks adjacent occupied seats for past desk-mate repeats. Rejects to trigger reroll; forces with warning on reroll exhaustion |
+| 3rd | `RandomFillStrategy` | 1 | Independent + Host | Fills remaining seats; hosts dependent strategies in its assignment loop. Constrained students (DeskMate groups) are prioritized first to reduce rerolls. Eviction respects prior-strategy assignments |
+| 4th | `DefragStrategy` | 0 | Independent | "扫地僧" — after all strategies, moves unconstrained students from back rows forward to fill front-row gaps. Cross-column allowed. Skips FixedSeat and DeskMate group students. Logs effectiveness warning (may invalidate prior strategy results) |
 
-**策略执行消息**: 策略可通过 `workspace.LogWarning(id, displayName, messageKey, args)` / `workspace.LogError(...)` 报告警告和错误。`messageKey` 对应 manifest `messages` 字典中的 i18n 键，模板用 `{0} {1}` 占位。消息（含 `StrategyId`、`StrategyDisplayName`、`MessageKey`、`Args`）收集在 `SeatingWorkspace.Messages` 中，执行完成后汇总到座位安排页侧栏。内建和插件统一使用此机制——内建策略在 `Manifests/{Id}.json` 中声明 `messages`，插件在 `plugin.manifest.json` 中声明。
+Conflict resolution = Priority number (first-come-first-served). Dependent strategies have their own internal priority ordering within RandomFill's context (DeskMate 50 → GenderRestrictedSeat 45 → NoRepeatDeskMate 40). Defrag (0) runs last and may partially invalidate prior strategy results — see its effectiveness warning. Handled assignments still run remaining dependents for inspection/warnings. See `docs/adr/ADR-006.md`.
 
-**声明式策略配置**: 策略的配置 UI 由 manifest JSON（`Manifests/*.json`）中的 `visible`、`parameters[]` 和 `codeBlocks[]` 声明驱动。所有用户文字使用 `{ "zh-CN": "...", "en-US": "..." }` 内嵌词典，UI 通过 `LocalizeHelper` 解析。
+**Strategy messaging**: Strategies can report warnings/errors during execution via `workspace.LogWarning(strategyId, displayName, messageKey, args)` and `workspace.LogError(strategyId, displayName, messageKey, args)`. `messageKey` corresponds to a key in the manifest's `messages` dictionary (inline i18n: `{ "zh-CN": "...", "en-US": "..." }`). Messages are collected in `SeatingWorkspace.Messages` (with `StrategyId`, `StrategyDisplayName`, `MessageKey`, and `Args`) and surfaced to the UI sidebar after pipeline execution. Plugin strategies access the same methods through `IPluginWorkspace`.
 
-- `visible`：（可选，默认 `true`）控制策略是否参与管道。设为 `false` 时从 UI（配置页、座位安排侧栏）和执行管道中完全排除。
-- `isIndependent`：（可选，默认 `true`）`true`=独立策略（外部管道执行）；`false`=依赖策略（RandomFill 上下文中执行）。DeskMate 为 `false`。
-- `manifestVersion`：（可选，默认 `"1.0"`）Manifest 格式版本号，用于运行时兼容性校验。
-- `parameters[]`：策略级全局参数（NumberInput/TextInput/ToggleSwitch/Dropdown），UI 渲染为输入控件
-- `codeBlocks[]`：按数据集/会场的配置块。`dataType` 决定渲染哪些选择器（`Student`/`Venue`/`Both`），`showSeatPosition` 控制座位定位器显隐，`preventDuplicateInRow` 控制同行学生选择器防重复，`preventDuplicateAcrossRows` 控制跨行学生选择器防重复，`loadTrigger` 控制配置加载触发方式（`Both`=需两个都选/精确匹配（默认），`Any`=任一即加载/模糊匹配）
-- **DeskMate**（依赖策略，`isIndependent: false`）：在 RandomFill 分配循环中执行。当 RandomFill 提出 (student, seat) 时检查同桌关系：若有同桌组，尝试将同组学生分配到相邻座位（连携修改）；若目标座位无足够相邻空座则请求重掷（Reroll）。此机制彻底解决了旧版受前序策略碎片化影响的根本性问题。`dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`。每行学生选择器数量由会场 `SeatsPerDesk` 动态决定。
-- **GenderRestrictedSeat**（依赖策略，`isIndependent: false`）：在 RandomFill 分配循环中执行（Priority 45）。检查目标座位是否有性别限制。若学生性别不匹配，优先重定向到匹配性别的受限空座（Handled，不消耗重掷）；无可用匹配空座时请求重掷；重掷耗尽后强制分配并警告。`dataType: "Venue"`, `showSeatPosition: true`, `showStudentPicker: false`, `showGenderPicker: true`, `preventDuplicateAcrossRows: true`。性别值存入 `CustomValues["Gender"]`。
-- **FixedSeat**：`dataType: "Both"`, `preventDuplicateAcrossRows: true`。每行学生选择器 + 座位定位器。跨所有行选择器互相排除已选学生
-- **FrontRowRotation**：无 codeBlock——`NeedsFrontRow` 已是 Student 模型字段。按分数选出学生后 Fisher-Yates 洗牌，随机分布在各列
-- **RandomFill**：无 parameters，无 codeBlocks
+**Declarative strategy configuration**: All strategy-specific configuration (beyond Priority/IsEnabled) is driven by the manifest JSON files (`A_Pair.Core/Strategies/Manifests/*.json`). Three top-level fields:
 
-**配置加载行为：** 持久化配置匹配采用宽松策略——已选定的选择器参与匹配，未选定的不参与。对于 `dataType: "Both"`，仅选数据集即可加载配置（场馆作为通配符），后续选场馆后重新精确匹配。学生选择延迟到列表加载完成后应用，避免时序问题导致选中丢失。
+- **`visible`** — (optional, default `true`) Controls whether the strategy participates in the pipeline. Set to `false` to exclude it from both the UI (configuration page, seating sidebar) and execution — the pipeline skips invisible strategies.
+- **`isIndependent`** — (optional, default `true`) `true` = independent strategy (executed by external pipeline); `false` = dependent strategy (executed inside RandomFill's assignment loop). DeskMate and NoRepeatDeskMate are `false`.
+- **`manifestVersion`** — (optional, default `"1.0"`) Manifest format version for runtime compatibility checks. Embedded resources don't go through FileMigrationService, so the provider warns if version exceeds max known.
+- **`capabilities[]`** — (optional) Strategy capability declarations. Each entry is a capability constant defined in `A_Pair.Core.Strategies.Capability` (e.g. `"MarkFixedSeat"`). Strategies must declare a capability before calling its corresponding interface method at runtime. Undeclared capability calls are rejected with a logged warning. Currently supported: `MarkFixedSeat` → `IFixedSeatCapability.TryMarkFixed()`. Extensible — add const + interface to `Capability.cs`.
+- **`parameters[]`** — strategy-level global params. Each parameter declares a `fieldType` (`NumberInput`, `TextInput`, `ToggleSwitch`, `Dropdown`), a `label` (Dictionary<string,string> for i18n), `defaultValue`, and optional `minValue`/`maxValue`. UI renders these as standard input controls.
+- **`codeBlocks[]`** — per-dataset/per-venue config blocks. Each block declares `dataType` (`Student`, `Venue`, `Both`), `displayMode` (`Table`, `ValuePair`), optional `showSeatPosition` (default true, set false for auto-matching strategies like DeskMate), optional `showStudentPicker`/`showVenuePicker` (overrides DataType auto-detection), optional `studentPickerCount` (default 1), optional `seatsPerDeskFromVenue` (set true to read student count from venue's GridLayoutMetadata.SeatsPerDesk), optional `preventDuplicateInRow` (set true to prevent same-row student picker duplicate values — DeskMate), optional `preventDuplicateAcrossRows` (set true to prevent cross-row student picker duplicate values — FixedSeat), and optional `loadTrigger` (default `Both` — both selectors required for exact match; `Any` — fuzzy match on whichever selector has a value). UI renders a dataset selector + config rows with student pickers and/or seat position pickers.
+  - **DeskMate** (dependent, `isIndependent: false`): Executes inside RandomFill's assignment loop via `IDependentSeatingStrategy`. When RandomFill proposes (student, seat), DeskMate checks if the student belongs to a desk-mate group. If so, it attempts coordinated assignment: places the student and their groupmates in adjacent seats on the same desk（同行+邻列+同 SeatsPerDesk 分组 = 同桌）. Eviction may move already-assigned RandomFill students but will NOT move students placed by prior strategies (FixedSeat/FrontRowRotation) or fixed seats. If the target seat lacks enough adjacent empty seats, partial assignment proceeds with a warning. No parameters — adjacency is always horizontal/same-desk. `dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`. Number of student pickers per row dynamically determined by venue's `GridLayoutMetadata.SeatsPerDesk`.
+  - **GenderRestrictedSeat** (dependent, `isIndependent: false`): Executes inside RandomFill's assignment loop after DeskMate (Priority 45). Checks if the target seat has a gender restriction configured via codeBlock. Gender mismatches trigger a redirect optimization: the student is immediately placed into a random matching-gender restricted empty seat (Handled, no reroll consumed). If no matching restricted seats are available, rejects to trigger reroll; forces assignment with warning on reroll exhaustion. No parameters — restrictions are configured per-seat via codeBlock. `dataType: "Venue"`, `showSeatPosition: true`, `showStudentPicker: false`, `showGenderPicker: true`, `preventDuplicateAcrossRows: true`. Gender value stored in `CustomValues["Gender"]`.
+  - **NoRepeatDeskMate** (dependent, `isIndependent: false`): Executes inside RandomFill's assignment loop after DeskMate (Priority 40). Checks if the target seat's adjacent occupied seats contain a past desk-mate (loaded from recent snapshots by `NoRepeatDeskMateHistoryLoader`). If a repeat is detected, rejects to trigger reroll; forces assignment with warning on reroll exhaustion. Does NOT interfere with DeskMate group placements (lower priority) or fixed seats. Parameter: `HistoryWindowSize` (1–30, default 10). No codeBlocks.
+  - **FixedSeat**: `dataType: "Both"`, `preventDuplicateAcrossRows: true`. Each row has a student picker + seat position picker for explicit assignment. Student pickers across all rows exclude each other's selected students from their dropdowns.
+  - **FrontRowRotation**: No codeBlocks — `NeedsFrontRow` is already a Student model property (imported from CSV/XLSX). After selecting students by score, applies Fisher-Yates shuffle for random distribution across front-row columns.
+  - **RandomFill**: No parameters, no codeBlocks.
+  - **Defrag** (independent, Priority=0): "扫地僧" role — executes after all other strategies. Scans empty seats front-to-back, moves unconstrained students (those not in fixed seats or DeskMate groups) from behind each gap forward to fill it. Cross-column allowed. Logs `Defrag_EffectivenessNote` warning that prior strategy results may be invalidated. Zero parameters — behavior is purely position-driven. Default disabled.
 
-详见 CLAUDE.md 根目录的"Declarative strategy configuration"章节。
+**Plugin seat protection**: Plugins protect their assigned seats by declaring `"MarkFixedSeat"` in their manifest `capabilities` and calling `IPluginWorkspace.TryMarkFixed()`. The workspace validates the capability declaration, sets `IsFixed=true`, and logs the operation. `GetEmptySeats()` and Defrag's seat scanning both exclude `IsFixed` seats automatically. Built-in strategies use the same mechanism via `IFixedSeatCapability`. Capability constants and interfaces are centralized in `A_Pair.Core/Strategies/Capability.cs` — add new const + interface there for future capabilities.
 
-**项目配置**: Avalonia 项目的 `AvaloniaUseCompiledBindingsByDefault` 为 `true`，所有绑定默认编译，除非显式退出。
+All user-visible text uses inline i18n: `{ "zh-CN": "...", "en-US": "..." }` dictionaries (not .resx keys). `LocalizeHelper.Resolve(dict)` in Presentation resolves per `CultureInfo.CurrentUICulture`, falling back to zh-CN. This works for both built-in strategies and plugins.
 
-**应用启动顺序**:
-1. `App.Initialize()` — `ApplyLanguageFromSettings()` 设置 `CurrentUICulture` + `Resources.Culture`，然后加载 XAML
-2. `OnFrameworkInitializationCompleted` — 从 DI 解析 `MainShellViewModel`/`MainWindow`，绑定 DataContext
-3. 调用 `IFileService.SetTopLevel()` 和 `IDialogService.SetTopLevel()`
-4. 初始化 `ViewModelBase.Dialog`（静态）和 Logger
-5. 启动 `WatchdogService`，挂载 `ChineseInputNormalizer` 行为
-6. `RestoreSettingsAsync()` — 恢复主题、窗口位置/大小（语言已在步骤 1 应用）
+**Config loading behavior**: When loading persisted config rows, the matching filter uses a "match on whichever selectors have values" strategy: `(SelectedDataset is null || match) && (SelectedVenue is null || match)`. This means for `dataType: "Both"`, selecting only the dataset immediately loads the config (venue is treated as a wildcard until selected). When the user subsequently selects a venue, the filter re-runs with both values and narrows to the exact match. Student picker selections are deferred via `_pendingSelections` until the student list is loaded, avoiding lost selections from premature `SelectById` calls.
 
-## 关键模式
+New model types (all in `A_Pair.Core.Models`):
+- `StrategyParameterDefinition` / `StrategyCodeBlock` / `StrategyFieldDefinition` + enums (`StrategyFieldType`, `StrategyDataType`, `StrategyDisplayMode`)
+- `StrategyDatasetConfig` + `StrategyConfigRow` — persistence models stored under `{AppData}/StrategyConfig/{strategyId}/`.
 
-### CommunityToolkit.Mvvm 源代码生成器
-- 私有字段上的 `[ObservableProperty]` → 生成公共属性 + `On<PropertyName>Changed` 分部方法钩子
-- 方法上的 `[RelayCommand]` → 生成 `ICommand` 属性
-- `[NotifyPropertyChangedFor(nameof(OtherProp))]` → 触发依赖属性变更通知
-- 所有 ViewModel 继承 `ViewModelBase`（扩展 `ObservableObject`）
+**Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
+
+**App startup sequence**:
+1. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
+2. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
+3. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
+4. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
+5. Start `WatchdogService` with a 3s DispatcherTimer ping
+6. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
+7. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
+
+## Key Patterns
+
+### CommunityToolkit.Mvvm Source Generators
+- `[ObservableProperty]` on a private field generates a public property with `On<PropertyName>Changed` partial method hooks
+- `[RelayCommand]` on a method generates an `ICommand` property
+- `[NotifyPropertyChangedFor(nameof(OtherProp))]` triggers change notification for dependent properties
+- All ViewModels inherit `ViewModelBase` (extends `ObservableObject`)
 
 ### ViewModelBase.SafeExecuteAsync
 
-两个重载：
+Two overloads:
 
 ```csharp
-// 简单版：try-catch，自动弹错误对话框。errorTitle 默认取 Resources.Common_OperationFailed
+// Simple: try-catch, auto error dialog. errorTitle defaults to localized Resources.Common_OperationFailed
 protected async Task<bool> SafeExecuteAsync(Func<Task> action, string? errorTitle = null)
 
-// 超时版：通过 CancellationTokenSource 自动取消，超时弹提示
+// With timeout: auto-cancels via CancellationTokenSource, shows timeout dialog
 protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string? errorTitle = null)
 ```
 
-超时重载适合长时间运行的导出/导入操作。超时应远小于 WatchdogService 阈值（45s）。
+The timeout overload aborts the operation when exceeded — prefer it for long-running exports or imports. Keep the timeout well under the WatchdogService threshold (45s).
 
-`ViewModelBase` 使用静态 `IDialogService`，`App.axaml.cs` 必须在任何 ViewModel 使用 `SafeExecuteAsync` 之前调用 `ViewModelBase.InitializeDialogService(dialog)`。
+`ViewModelBase` uses a static `IDialogService` — `App.axaml.cs` must call `ViewModelBase.InitializeDialogService(dialog)` at startup before any ViewModel uses `SafeExecuteAsync`. **If you add a new window or test ViewModels in isolation, Dialog must be initialized first.**
 
 ### ViewModelBase.CanLeaveAsync
 ```csharp
 public virtual Task<bool> CanLeaveAsync()
 ```
-导航离开前由 `NavigationService` 调用。重写以提示用户未保存的更改。
+Called by `NavigationService` before navigating away. Override to prompt user about unsaved changes.
 
-### 主题与自定义资源
-- **主题字典**: App.axaml 通过 `ResourceDictionary.ThemeDictionaries` 定义 Light/Dark 变体
-- **画刷**: 通过 `DynamicResource` 引用主题色，始终使用画刷资源（如 `{StaticResource SuccessBrush}`），不硬编码颜色
-- **样式引用**: FluentTheme 之后引入 `Typography.axaml`、`Spacing.axaml`、`Colors.axaml`
-- **字体**: `Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif`
-- **阴影**: `CardShadowNone`、`CardShadowLarge`、`CardShadowSmall`
+### Theme & Custom Resources
+- **Theme dictionaries**: App.axaml defines `ResourceDictionary.ThemeDictionaries` with Light/Dark variants for sidebar colors, semantic colors (Success/Warning/Error/Info), surface colors, and shadows.
+- **Brushes**: SolidColorBrush resources reference theme colors via `DynamicResource`. Always use these brush resources (e.g., `{StaticResource SuccessBrush}`) — never hardcode hex colors.
+- **Style includes**: `Typography.axaml`, `Spacing.axaml`, `Colors.axaml` are included after FluentTheme.
+- **Font**: Global `Window` style sets `FontFamily` to `Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif` for CJK support.
+- **BoxShadows**: `CardShadowNone`, `CardShadowLarge`, `CardShadowSmall` are defined as `BoxShadows` resources.
 
-### UI 服务 (`A_Pair.Presentation.Avalonia/Services/`)
-- **INavigationService** — 页面切换。`NavigateTo()` 同步，`NavigateToAsync()` 先执行 `CanLeaveAsync()`
-- **IDialogService** — 错误/信息对话框，使用前需 `SetTopLevel(TopLevel)`
-- **IFileService** — 文件打开/保存选择器，同样需要 `SetTopLevel()`
-- **WatchdogService** — 后台轮询检测 UI 线程卡死，默认 45s 超时
+### UI Services (`A_Pair.Presentation.Avalonia/Services/`)
+- **INavigationService** — Page switching with `PageKey` enum. `NavigateTo()` is synchronous, `NavigateToAsync()` runs `CanLeaveAsync()` first.
+- **IDialogService** — Shows error/info dialogs. Requires `SetTopLevel(TopLevel)` before use.
+- **IFileService** — File open/save pickers. Also requires `SetTopLevel()`.
+- **WatchdogService** — Detects UI thread hangs via a background poll loop. Default timeout is 45 seconds; on expiry it dumps thread/process diagnostics to `err_<timestamp>.log` and force-exits the app. UI thread must call `Ping()` regularly (a `DispatcherTimer` does this in `App.axaml.cs`).
 
-### 实用窗口
-- `InputWindow` — 单行文本输入模态框
-- `DialogWindow` — 通用模态内容容器
+### Utility Windows
+- `InputWindow` — modal dialog for single-line text input (returns the entered string)
+- `DialogWindow` — general-purpose modal content host with title bar and close button
 
-### 行为 (`A_Pair.Presentation.Avalonia/Behaviors/`)
-- `CanvasZoomPan` — Canvas 缩放平移
-- `ZoomOnScroll` — Ctrl+滚轮缩放
-- `ChineseInputNormalizer` — 全角数字/符号转半角
+### Behaviors (`A_Pair.Presentation.Avalonia/Behaviors/`)
+- `CanvasZoomPan` — Pan and zoom for Canvas-based previews
+- `ZoomOnScroll` — Ctrl+Scroll to zoom
+- `ChineseInputNormalizer` — Converts full-width numbers/symbols to half-width on text input
 
-### 添加新页面
-1. 在 `INavigationService.cs` 的 `PageKey` 枚举中添加新值
-2. 创建 `ViewModels/NewThingViewModel.cs`（继承 `ViewModelBase`）
-3. 创建 `Views/NewThingView.axaml` + `.axaml.cs`（设置 `x:DataType="vm:NewThingViewModel"`）
-4. 在 `Program.cs` 中注册：`services.AddSingleton<NewThingViewModel>()`
-5. 在 `MainWindow.axaml` 侧边栏添加导航按钮
+### Adding a New Page
+1. Add a new value to `PageKey` enum in `INavigationService.cs`
+2. Create `ViewModels/NewThingViewModel.cs` (inherit `ViewModelBase`)
+3. Create `Views/NewThingView.axaml` + `.axaml.cs` (set `x:DataType="vm:NewThingViewModel"`)
+4. Register both in `Program.cs`: `services.AddSingleton<NewThingViewModel>()`
+5. Add navigation button in `MainWindow.axaml` sidebar
 
-### Axaml 绑定
-- 始终在根元素上使用 `x:DataType` 启用编译绑定
-- 图标：`<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>`
-- 转换器：`BoolConverters.cs`、`ValueConverters.cs`
+### Axaml Bindings
+- Always use `x:DataType` on the root element for compiled bindings
+- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md`)
+- Converters: `BoolConverters.cs` (Negate, TrueWhenNull, etc.) and `ValueConverters.cs`
 
-### 侧边栏
-- 宽度：展开 140px / 折叠 64px（由 `MainShellViewModel.SidebarWidth` 控制）
-- 窗口宽度 < 750px 时自动折叠
-- `MainShellViewModel.ToggleSidebar()` 手动切换
+### Sidebar
+- Width: 140px expanded / 64px collapsed (controlled by `MainShellViewModel.SidebarWidth`)
+- Auto-collapses when window width < 750px
+- `MainShellViewModel.ToggleSidebar()` command for manual toggle
 
-### 国际化 (i18n) — `Lang/`
+### i18n / Localization (`Lang/`)
 
-使用 .NET `.resx` 资源文件，位于 `A_Pair.Presentation.Avalonia/Lang/`：
-- `Resources.resx` — 中性语言 (zh-CN)，~570 键
-- `Resources.en-US.resx` — 英文卫星资源
-- `Resources.Designer.cs` — 手工维护的强类型访问器
+Uses standard .NET `.resx` resource files in `A_Pair.Presentation.Avalonia/Lang/`:
+- `Resources.resx` — neutral language (zh-CN), ~570 keys
+- `Resources.en-US.resx` — English satellite
+- `Resources.Designer.cs` — hand-maintained typed accessor class (Visual Studio's `PublicResXFileCodeGenerator` doesn't work with `dotnet build`)
 
-**XAML 用法**（仅属性语法）：
+**Adding a new language**: create `Resources.xx-XX.resx` with translations, no code changes needed.
+
+**Usage in XAML** (attribute syntax only — element content won't resolve):
 ```xml
 <TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
 <Button Content="{x:Static lang:Resources.Common_OK}" />
 ```
-**C# 用法**：
+Namespace: `xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"`
+
+**Usage in C#**:
 ```csharp
 StatusMessage = Resources.Settings_Saved;
 StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
 ```
-**键命名**: `{Page}_{Element}` 如 `Settings_Title`、`Nav_Home`。格式字符串用 `{0}` 占位符。
+**Important**: In classes inheriting from `Window` (DialogWindow, InputWindow), `Resources` resolves to `Window.Resources` (IResourceDictionary). Use fully-qualified `Lang.Resources.xxx` in those files.
 
-**语言切换**: `App.ApplyLanguageFromSettings()` 在 `Initialize()` 中 XAML 加载前调用，设置 `CurrentUICulture` + `Resources.Culture`。
+**Key naming**: `{Page}_{Element}` with PascalCase, e.g. `Settings_Title`, `Nav_Home`, `Common_OK`. Format strings use `{0}` placeholders.
 
-**注意**: `Window` 子类中 `Resources` 指 `Window.Resources`，需用 `Lang.Resources.xxx` 全限定名。
+**Language switching**: `App.ApplyLanguageFromSettings()` (called in `Initialize()` before XAML loading). Sets `CultureInfo.CurrentUICulture` and `Resources.Culture`.
 
-### 关于页面数据 (`Data/about.json`)
+### About Page Data (`Data/about.json`)
 
-多语言 JSON：顶层 `"zh-CN"` / `"en-US"` 各自含完整数据。`AboutViewModel.LoadAboutData()` 按 `CurrentUICulture.Name` 选择，回退 `"zh-CN"`。
+Multi-language JSON with top-level culture keys:
+```json
+{ "zh-CN": { "description": "...", "dependencies": [...] },
+  "en-US": { "description": "...", "dependencies": [...] } }
+```
+`AboutViewModel.LoadAboutData()` selects by `CultureInfo.CurrentUICulture.Name`, falls back to `"zh-CN"`.
 
-### 对话框窗口
+### Dialog Windows
 
-- `DialogWindow` — 按钮用 `Content="{x:Static}"` 属性语法（禁止元素内容写法）。代码仅控制可见性和 MultiOption 自定义文字。
-- `InputWindow` — 同上按钮模式。
+- `DialogWindow` — Confirm/Error/Warning/Info/MultiOption dialogs. Buttons use `Content="{x:Static}"` attribute syntax. Code-behind only controls visibility and MultiOption custom text. **Never** use `{x:Static}` as element content inside `<Button>...</Button>`.
+- `InputWindow` — Text input dialog. Same button pattern.
 
-## 文件版本与迁移
+## File Versions & Migration
 
-所有持久化 JSON 文件携带 `version` 字段，加载时通过 `FileMigrationService` 自动向前迁移。版本号定义在 `A_Pair.Infrastructure/Migration/file_versions.json`（嵌入资源，随程序编译）。`FileVersionInfo.GetCurrentVersion(fileType)` 在运行时读取最新版本。
+All persisted JSON files carry a `version` field. Current versions are defined in `A_Pair.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly). `FileVersionInfo.GetCurrentVersion(fileType)` reads the latest version at runtime.
 
-| 文件类型 | 版本 | 存储位置 | 包装类 |
+| File type | Version | Location | Wrapper class |
 |---|---|---|---|
 | Venue | `1.1` | `{data}/Venues/*.venue.json` | `VenueFile` |
 | Roster | `1.0` | `{data}/Rosters/*.roster.json` | `RosterFile` |
@@ -193,13 +219,13 @@ StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
 | AppSettings | `1.0` | `{data}/AppSettings.json` | `AppSettings` |
 | StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` | `StrategyConfig` |
 
-### 迁移管线
+### Migration pipeline
 
-加载时，各仓储将文件读取为 `JsonNode`，调用 `FileMigrationService.Migrate(fileType, node, fileVersion, targetVersion)`，再反序列化。迁移仅支持向前，不支持版本回退。服务查找注册的 `IFileMigrator` 实现，按 `FromVersion`→`ToVersion` 匹配后链式执行。
+On load, each repository reads the file as `JsonNode`, calls `FileMigrationService.Migrate(fileType, node, fileVersion, targetVersion)`, then deserializes. Migration is **forward-only** — no version rollback. The service finds registered `IFileMigrator` implementations and chains them by matching `FromVersion`/`ToVersion`.
 
-### 添加迁移的步骤
+### Adding a migration
 
-1. 在 `Migration/Migrators/{FileType}Migrators.cs` 的容器类中添加嵌套类：
+1. Add a nested class in `Migration/Migrators/{FileType}Migrators.cs` (one file per file type):
    ```csharp
    public static class VenueMigrators
    {
@@ -212,60 +238,124 @@ StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
        }
    }
    ```
-2. 在 `ServiceCollectionExtensions.cs` 中注册：`services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>()`
-3. 在 `file_versions.json` 中提升版本号
-4. 在 `Core/Models/` 对应模型类中更新默认 `Version` 属性
-5. 在 `Infrastructure.Tests/Migration/{FileType}MigratorsTests.cs` 添加覆盖测试
+2. Register in `ServiceCollectionExtensions.cs`: `services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>()`
+3. Bump the version in `file_versions.json`
+4. Update the model's default `Version` property in Core
+5. Add tests in `Infrastructure.Tests/Migration/{FileType}MigratorsTests.cs`
 
-### 已有迁移器
+### Existing migrators
 
-- `VenueMigrators.Step_1_0_to_1_1` — 将 Grid 布局座位从列主序重排为行主序（按 `Row` → `Column` 排序）
+- `VenueMigrators.Step_1_0_to_1_1` — Reorders Grid layout seats from column-major to row-major (sorted by `Row` then `Column`)
 
-### JSON 字段约定
+### JSON field conventions
 
-- 序列化使用 `JsonNamingPolicy.CamelCase`，JSON 中所有字段为小写驼峰（`row`、`column`、`layoutTypeString`）
-- `ClassroomLayoutDefinition.LayoutType` 同时序列化为数字（`layoutType`: 0=Grid, 1=Polar, 2=Freeform）和字符串（`layoutTypeString`: "Grid"/"Polar"/"Freeform"）— 迁移器中优先使用 `layoutTypeString`
-- `Seat` 多态序列化通过 `SeatJsonConverter`，写入 `Type`（大写）鉴别器字段；`type`（小写）为 `SeatType` 枚举的独立整数字段
-- `SeatingSnapshot.Version` 和 `VenueSnapshotInfo.Version` 为新增字段，旧快照文件默认回退为 `"1.0"`
-- `VenueFile.ContentHash` 和 `RosterFile.ContentHash` — 保存时计算 SHA256；学生数据集哈希排除 `importedAt`/`originalFileName` 时间戳
+- Serialization uses `JsonNamingPolicy.CamelCase` — all fields are lowercase in JSON (`row`, `column`, `layoutTypeString`, `logicalGroup`)
+- `ClassroomLayoutDefinition.LayoutType` is serialized as **both** a number (`layoutType`: 0=Grid, 1=Polar, 2=Freeform) and a string (`layoutTypeString`: "Grid"/"Polar"/"Freeform"). Migrators should read `layoutTypeString` for clarity.
+- `Seat` polymorphic serialization uses `SeatJsonConverter` which writes a `Type` discriminator (capital T, string: "Grid"/"Polar"/"Freeform") alongside each seat object. The `type` field (lowercase, camelCase of `SeatType` enum) is a separate integer.
+- `SeatingSnapshot.Version` and `VenueSnapshotInfo.Version` were added in this migration round — old snapshots without the field default to `"1.0"`.
+- `VenueFile.ContentHash` and `RosterFile.ContentHash` — SHA256 hashes computed on save (ContentHash null → serialize → hash → set → re-serialize). Student dataset hash excludes `importedAt`/`originalFileName` (unstable timestamps).
 
-### Grid 座位排序
+### Grid seat ordering
 
-`GridLayoutBuilder.BuildGrid` 以**行主序**创建座位（外层行，内层列）。不规则网格用 `maxRows = ColumnRowCounts.Max()` + `r <= rowsForCol` 检查。
+`GridLayoutBuilder.BuildGrid` creates seats in **row-major** order (outer loop: rows, inner loop: columns). This ensures `RandomFillStrategy` fills seats row-by-row (left-to-right, top-to-bottom). For irregular grids with `ColumnRowCounts`, `maxRows = ColumnRowCounts.Max()` and each column checks `r <= rowsForCol`.
 
-### 快照会场布局嵌入
+### Snapshot venue layout embedding
 
-快照创建时将完整 `ClassroomLayoutDefinition`（通过 `SeatJsonConverter` JSON 序列化）存入 `Metadata["venueLayout"]`。预览优先从嵌入数据读取；旧快照回退加载会场文件。确保编辑/删除会场不影响已有快照预览。
+Snapshots store the full `ClassroomLayoutDefinition` (JSON-serialized via `SeatJsonConverter`) in `Metadata["venueLayout"]` at creation time. The snapshot preview (`BuildPreviewAsync`) reads this embedded layout first; old snapshots without it fall back to loading the venue file. This ensures snapshots are self-contained — editing or deleting the venue file doesn't break existing snapshot previews.
 
-### 快照完整性检测
+### Snapshot integrity detection
 
-`BuildPreviewAsync` 对比 `Metadata["venueHash"]` 与当前会场文件哈希：
-- 会场删除 → 红色警告 "会场已删除，无法预览"，禁用回滚
-- 会场更改 → 黄色警告 "会场布局已更改，回滚可能失败"
-- 数据更改（学生 ID 缺失）→ 黄色警告 "数据已更改"，受影响的座位标黄
+`BuildPreviewAsync` compares `Metadata["venueHash"]` with the current venue file's `ContentHash`:
+- **Venue deleted** → red warning bar "会场已删除，无法预览", rollback button disabled
+- **Venue changed** → yellow warning bar "会场布局已更改，回滚可能失败"
+- **Data changed** (student IDs missing from current datasets) → yellow bar "数据已更改", affected seats highlighted in yellow
 
-`RollbackAsync` 回滚前检查完整性：会场删除→提示恢复，会场更改→提示导入新会场。
+`RollbackAsync` checks venue integrity before rolling back:
+- Venue deleted → dialog → restore venue from snapshot's `venueLayout`
+- Venue changed → dialog → import snapshot's venue as new venue
 
-### 快照轮转
+### Snapshot rotation
 
-`AppSettings.MaxSnapshotsPerVenue`（默认 30，0=不限）。保存后超出上限自动删除最旧快照。侧栏底部显示 `"{n}/{max}"`。
+`AppSettings.MaxSnapshotsPerVenue` (default 30, 0=unlimited). After saving a snapshot, `RotateSnapshotsAsync` deletes the oldest snapshots if the count exceeds the limit. Sidebar status bar shows `"{n}/{max}"` via `SnapshotQuotaDisplay`.
 
-### 会场编辑与座位 ID 保留
+### Venue editing & seat ID preservation
 
-加载会场时记录 `(Row, Column) → Id` 映射；保存时新座位按位置匹配旧 ID 并复用，避免快照失效。
+`VenueConfigurationViewModel` preserves seat IDs across edits: on load, records `(Row, Column) → Id` and `(Ring, Angle) → Id` maps; on save, newly-built seats match old seats by position and reuse their IDs. This prevents snapshot `SeatAssignments` from breaking after venue edits.
 
-### 学生数据集重命名
+### Student dataset rename
 
-`RenameStudentDatasetAsync` 原地修改 `RosterFile.Description`，保持 ID 不变（原子操作，无需删除+新建）。
+`RenameStudentDatasetAsync` renames in-place (updates `RosterFile.Description` only, preserves ID). Previously it deleted the old file and created a new one with a new ID.
 
-## 项目文档
+### Page navigability management
 
-- [INDEX.md](INDEX.md) — 文档导航地图（修改文档前先查阅）
-- [ARCHITECTURE.md](../ARCHITECTURE.md) — 项目目标与架构设计
-- [Phases.md](../Phases.md) — 实现阶段与详细规划
-- [README.md](../README.md) — 项目概览
-- [CONTRIBUTING.md](../CONTRIBUTING.md) — 开发参与指南
-- [docs/adr/](adr/) — 架构决策记录
-- [A_Pair.Presentation.Avalonia/docs/Design_Spec.md](../A_Pair.Presentation.Avalonia/docs/Design_Spec.md) — UI 设计规范
-- [A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md](../A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md) — 图标参考
-- [A_Pair.Plugins.Sdk/docs/README.md](../A_Pair.Plugins.Sdk/docs/README.md) — 插件开发 SDK
+A JSON config file `Data/page_navigation.json` (embedded resource) controls which navigation pages are enabled. Format:
+
+```json
+{ "version": "1.0", "pages": { "Home": true, "PluginManagement": false, ... } }
+```
+
+Key = `PageKey` enum value name. `MainShellViewModel.LoadPageNav()` loads it via `Assembly.GetManifestResourceStream` (same pattern as `about.json`). For each disabled page, add two properties to `MainShellViewModel`:
+
+```csharp
+public double PluginManagementOpacity => IsPageEnabled("PluginManagement") ? 1.0 : 0.4;
+public string? PluginManagementDisabledTip => IsPageEnabled("PluginManagement") ? null : Resources.Nav_PluginDisabled;
+```
+
+Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hide ToolTips in Avalonia) and `ToolTip.Tip`. `NavigateAsync` already checks `IsPageEnabled()` and returns early for disabled pages. Disabled message goes in `.resx` with key pattern `Nav_{PageName}Disabled`.
+
+### MemberManagement dataset flow
+
+**Click-to-load**: `OnSelectedDatasetChanged` auto-loads the dataset via `SwitchToDatasetAsync()`. No separate "Load" button.
+
+**Dirty tracking**: Uses JSON serialization snapshot comparison. `_originalStudentsJson` stores the state after load/save; `IsDirty` compares current `SerializeStudents()` against it. `MarkClean()` / `MarkDirty()` manage the snapshot.
+
+```csharp
+private bool IsDirty =>
+    IsNewStudentDirty ||
+    (_originalStudentsJson != null && SerializeStudents() != _originalStudentsJson);
+```
+
+**NewStudent dirty**: `IsNewStudentDirty` checks if any field on the bottom "add row" has been filled (name, height, gender, or front-row flag). Must be included in `IsDirty` so unsaved new-row data triggers the switch-dataset dialog.
+
+**Switch dataset flow**: `SwitchToDatasetAsync(target)` → if dirty → 3-btn dialog (Save / Discard / Cancel). Cancel reverts `SelectedDataset` to `_previousDataset` via `_suppressDatasetLoad` guard. After save or discard, `NewStudent` is reset to prevent data leaking between datasets.
+
+**Save flow**: `SaveAsync` checks `IsNewStudentDirty` first → if true, shows "Discard & Save" / "Cancel" dialog. If `CurrentDatasetId` is null (imported data), delegates to `RenameSaveAsync` (Save As). Otherwise calls `SaveInternalAsync` which deletes old file + saves new one without confirmation dialog. Both call `MarkClean()` after success.
+
+**Validation**: `ValidateStudents()` skips completely blank rows (name empty AND height null AND gender null AND needsFrontRow false). Partial rows with empty name still flagged.
+
+### About page version
+
+Version comes from `about.json` → `AboutData.Version` field, appended with git commit hash:
+
+```
+Version = $"{data.Version ?? "1.0.0"}+{GitCommit.Hash}"
+```
+
+`GitCommit.Hash` is a `const string` in auto-generated `GitCommit.g.cs`, produced by an MSBuild target (`GenerateGitCommit`) that runs `git rev-parse --short HEAD` before each build. Falls back to `"unknown-commit-id"` when git is unavailable. The generated file lives in `$(IntermediateOutputPath)Generated\` and is NOT committed.
+
+### Deterministic builds
+
+csproj settings for reproducible output across time/machines:
+
+```xml
+<Deterministic>true</Deterministic>
+<PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)'))=./</PathMap>
+```
+
+Same source code → same DLL hash regardless of build time or absolute path.
+
+### VenueConfiguration: NewVenue race condition
+
+`NewVenue()` must cancel any in-flight `SelectVenueAsync` from the previous selected venue before calling `ResetParameters()`. Otherwise the running async load can overwrite the reset parameters with the old venue's data. Pattern: `_selectVenueCts?.Cancel()` at the top of `NewVenue()`, and `ct.IsCancellationRequested` checks inside `SelectVenueAsync` before setting VM state.
+
+### DockPanel child order
+
+In Avalonia's `DockPanel`, `LastChildFill="True"` (default) means the LAST child fills remaining space. If the last child has `DockPanel.Dock="..."`, the previous undocked child fills instead. Always place `Dock` children BEFORE the filling child (typically a `ScrollViewer` or `ListBox`).
+
+## Documents
+- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
+- `ARCHITECTURE.md` — Project goals & architecture design
+- `Phases.md` — Implementation phases & detailed planning
+- `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
+- `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
+- `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use

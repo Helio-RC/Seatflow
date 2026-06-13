@@ -858,6 +858,42 @@ public interface IPluginExporter : IPlugin
 
 安装后自动出现在导出格式下拉框中。PluginManager 通过 `LoadPlugins("exporter")` 加载。
 
+### 策略能力声明
+
+策略可通过 manifest 声明**能力**来使用受保护的操作（如标记固定座位）：
+
+**Manifest 声明**（`manifest.json`）：
+```json
+{
+    "id": "MyPlugin",
+    "capabilities": ["MarkFixedSeat"],
+    ...
+}
+```
+
+**运行时调用**（通过 `IPluginWorkspace`）：
+```csharp
+public async Task<PluginStrategyResult> ExecuteAsync(IPluginWorkspace workspace, CancellationToken ct)
+{
+    // 标记座位为固定（需在 manifest 中声明 "MarkFixedSeat" 能力）
+    if (workspace.TryMarkFixed("seat-1", "student-A", Id, Name, out var error))
+    {
+        // 座位已锁定，后续策略（如碎片整理 Defrag）不会移动此座位
+    }
+    else
+    {
+        // 未声明能力 → error 包含 "未声明 MarkFixedSeat 能力"
+    }
+}
+```
+
+**可用能力**（定义在 `A_Pair.Core.Strategies.Capability`）：
+| 常量 | 接口方法 | 说明 |
+|------|----------|------|
+| `MarkFixedSeat` | `IPluginWorkspace.TryMarkFixed()` | 标记座位为固定，设置 `IsFixed=true`。被保护座位不会被 `GetEmptySeats()` 返回，不会被碎片整理策略移动 |
+
+未声明能力时调用会被拒绝（返回 false）并记录警告日志。
+
 ### 如何为新类别扩展
 
 `Category` 是自由格式字符串。添加新类别时：

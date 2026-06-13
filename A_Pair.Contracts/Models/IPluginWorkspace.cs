@@ -34,4 +34,16 @@ public interface IPluginWorkspace
     /// 记录一条错误消息，执行结束后展示在 UI 侧栏中。
     /// </summary>
     void LogError (string strategyId , string displayName , string messageKey , params object?[] args);
+
+    /// <summary>
+    /// 【能力：MarkFixedSeat】将指定座位标记为固定并（可选）分配学生。
+    /// 需要在 manifest <c>capabilities</c> 中声明 <c>"MarkFixedSeat"</c>。
+    /// 未声明时调用返回 false 并自动记录 LogWarning。
+    /// </summary>
+    /// <param name="seatId">座位 ID。</param>
+    /// <param name="studentId">学生 ID（可为 null，仅标记座位固定不分配学生）。</param>
+    /// <param name="strategyId">调用策略 ID。</param>
+    /// <param name="displayName">策略展示名称。</param>
+    /// <param name="error">失败原因。</param>
+    bool TryMarkFixed (string seatId , string? studentId , string strategyId , string displayName , out string error);
 }

@@ -113,6 +113,10 @@ namespace A_Pair.Application.Services
             services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
                 new FrontRowRotationStrategy.FrontRowRotationConfiguration() , sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
 
+            // 注册 Defrag 策略（Priority=0，在 RandomFill 之后最后执行）
+            services.AddSingleton<ISeatingStrategy>(sp => new DefragStrategy(
+                new DefragConfiguration() , sp.GetRequiredService<ILogger<DefragStrategy>>()));
+
             // 注册依赖策略（在 RandomFill 上下文中执行）
             services.AddSingleton<IDependentSeatingStrategy>(sp => new DeskMateStrategy(
                 new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));

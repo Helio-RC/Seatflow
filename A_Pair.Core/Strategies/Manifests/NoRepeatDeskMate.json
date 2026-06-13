@@ -10,6 +10,7 @@
     "defaultPriority": 40,
     "defaultEnabled": false,
     "visible": true,
+    "capabilities": [],
     "isIndependent": false,
     "parameters": [
         {

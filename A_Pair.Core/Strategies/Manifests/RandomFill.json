@@ -10,6 +10,7 @@
     "defaultPriority": 1,
     "defaultEnabled": true,
     "visible": true,
+    "capabilities": [],
     "isIndependent": true,
     "parameters": [],
     "codeBlocks": [],

@@ -10,6 +10,7 @@
     "defaultPriority": 50,
     "defaultEnabled": false,
     "visible": true,
+    "capabilities": [],
     "parameters": [
         {
             "name": "HistoryWeight",
