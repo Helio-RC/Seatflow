@@ -196,27 +196,32 @@
                               Margin="20,0,0,0">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:StrategyItemViewModel">
-                      <!-- 直接用 Border + Tapped 事件，避免 Button 导致的尺寸缩小 -->
-                      <Border Padding="8,6" CornerRadius="4" Margin="0,1"
-                              Background="Transparent"
-                              Cursor="Hand"
-                              PointerPressed="OnChildStrategyPressed">
-                        <DockPanel>
-                          <ToggleSwitch DockPanel.Dock="Right"
-                                        IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                        VerticalAlignment="Center"
-                                        Classes="small" />
-                          <StackPanel Spacing="2">
-                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                       TextTrimming="CharacterEllipsis" FontSize="13" />
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                              <TextBlock FontSize="11"
-                                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                         Text="{Binding PriorityDisplay}" />
+                      <!-- 子项：用 Grid 叠加选中高亮层，主题色取自 DynamicResource -->
+                      <Grid Margin="0,1" Cursor="Hand" PointerPressed="OnChildStrategyPressed">
+                        <!-- 选中高亮层：使用系统主题强调色 -->
+                        <Border CornerRadius="4"
+                                Background="{DynamicResource SystemControlHighlightAccentBrush}"
+                                Opacity="0.12"
+                                IsVisible="{Binding IsSelected}" />
+                        <!-- 内容层 -->
+                        <Border Padding="8,6" CornerRadius="4" Background="Transparent">
+                          <DockPanel>
+                            <ToggleSwitch DockPanel.Dock="Right"
+                                          IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                          VerticalAlignment="Center"
+                                          Classes="small" />
+                            <StackPanel Spacing="2">
+                              <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                         TextTrimming="CharacterEllipsis" FontSize="13" />
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock FontSize="11"
+                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding PriorityDisplay}" />
+                              </StackPanel>
                             </StackPanel>
-                          </StackPanel>
-                        </DockPanel>
-                      </Border>
+                          </DockPanel>
+                        </Border>
+                      </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

@@ -39,6 +39,10 @@ public partial class StrategyItemViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasChildren))]
     private bool _isExpanded;
 
+    /// <summary>是否被选中（用于高亮显示）。</summary>
+    [ObservableProperty]
+    private bool _isSelected;
+
     /// <summary>是否有可展开的子策略。</summary>
     public bool HasChildren => Children is { Count: > 0 };
 

@@ -19,7 +19,7 @@ namespace A_Pair.Presentation.Avalonia.Views
         /// </summary>
         private void OnChildStrategyPressed (object? sender , PointerPressedEventArgs e)
         {
-            if (sender is Border border && border.DataContext is StrategyItemViewModel child)
+            if (sender is Grid grid && grid.DataContext is StrategyItemViewModel child)
             {
                 child.SelectSelfCommand.Execute(null);
                 e.Handled = true;

@@ -184,15 +184,19 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// </summary>
     partial void OnSelectedStrategyChanged (StrategyItemViewModel? oldValue , StrategyItemViewModel? newValue)
     {
-        // 取消旧订阅
+        // 更新选中高亮
         if (oldValue is not null)
+        {
+            oldValue.IsSelected = false;
             oldValue.PropertyChanged -= OnSelectedStrategyItemPropertyChanged;
+        }
 
         if (newValue is null)
         {
             SelectedDetail = new();
             return;
         }
+        newValue.IsSelected = true;
         // 订阅新项的属性变更，以同步 PriorityDisplay
         newValue.PropertyChanged += OnSelectedStrategyItemPropertyChanged;
         // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
@@ -207,6 +211,9 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private void OnChildStrategySelected (StrategyItemViewModel child)
     {
         if (child == SelectedStrategy) return;
+        // 清除旧选中项的高亮
+        if (SelectedStrategy is not null)
+            SelectedStrategy.IsSelected = false;
         SelectedStrategy = child;
     }
 
