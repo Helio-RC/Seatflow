@@ -14,10 +14,9 @@ namespace A_Pair.Core.Strategies
     /// <remarks>
     /// <b>与 DeskMate 的关系</b>
     /// <para>
-    /// 本策略优先级（60）高于 DeskMate（50），先于 DeskMate 执行。
-    /// 所有学生（含 DeskMate 组成员）都会先经过重复检查。
-    /// DeskMate 返回 Handled 时会跳过后续依赖策略（含本策略），
-    /// 这是 Handled 机制的已知限制——组成员内部排列由 DeskMate 全权负责。
+    /// 本策略优先级（40）低于 DeskMate（50），后于 DeskMate 执行。
+    /// DeskMate 组内学生由 DeskMate 全权负责（返回 Handled 时跳过后续依赖策略）。
+    /// 非组学生经过本策略的历史重复检查。
     /// </para>
     /// <para>
     /// <b>同桌定义</b>
@@ -52,7 +51,7 @@ namespace A_Pair.Core.Strategies
         public string DisplayName => DisplayNameConst;
 
         /// <inheritdoc />
-        public int Priority { get; set; } = 60;
+        public int Priority { get; set; } = 40;
 
         /// <inheritdoc />
         public bool IsEnabled { get; set; } = true;
@@ -112,11 +111,22 @@ namespace A_Pair.Core.Strategies
             Seat targetSeat ,
             IRandomFillContext context)
         {
-            // 1. 无历史数据 → 放行
-            if (_pastDeskMatePairs.Count == 0)
+            // 1. 固定座位不干涉 — 由 FixedSeatStrategy 全权负责
+            if (targetSeat.IsFixed)
+            {
+                _logger.LogDebug(
+                    "NoRepeatDeskMate：座位 {Seat} 为固定座位，跳过检查" , targetSeat.Id);
                 return DependentResult.Approve();
+            }
 
-            // 2. 收集该学生的历史同桌 ID
+            // 2. 无历史数据 → 放行
+            if (_pastDeskMatePairs.Count == 0)
+            {
+                _logger.LogDebug("NoRepeatDeskMate：无历史同桌数据，跳过检查");
+                return DependentResult.Approve();
+            }
+
+            // 3. 收集该学生的历史同桌 ID
             var pastMates = new List<string>();
             foreach (var (a , b) in _pastDeskMatePairs)
             {
@@ -124,9 +134,13 @@ namespace A_Pair.Core.Strategies
                 else if (b == student.Id) pastMates.Add(a);
             }
             if (pastMates.Count == 0)
+            {
+                _logger.LogDebug(
+                    "NoRepeatDeskMate：学生 {Student} 无历史同桌记录，放行" , student.Name);
                 return DependentResult.Approve();
+            }
 
-            // 3. 查找 targetSeat 的相邻已占座位（桌边界感知）
+            // 4. 查找 targetSeat 的相邻已占座位（桌边界感知）
             // 注意：排除固定座位（IsFixed=true），因为固定座位由教师手动指定，
             // 其占位者不受同桌不重复策略约束。
             var adjacentOccupied = workspace.FindSeats(s =>
@@ -136,7 +150,7 @@ namespace A_Pair.Core.Strategies
                 && !s.IsFixed
                 && SeatAdjacencyHelper.AreDeskMates(s , targetSeat , _seatsPerDesk));
 
-            // 4. 检查是否有历史同桌在相邻座位
+            // 5. 检查是否有历史同桌在相邻座位
             foreach (var occSeat in adjacentOccupied)
             {
                 if (!pastMates.Contains(occSeat.OccupantId!))
@@ -148,6 +162,8 @@ namespace A_Pair.Core.Strategies
                     _logger.LogDebug(
                         "NoRepeatDeskMate：学生 {Student} 的目标座位 {Seat} 旁有过去的同桌 {Mate}，请求重掷" ,
                         student.Name , targetSeat.Id , occSeat.OccupantId);
+                    context.LogWarning(Id , DisplayNameConst , "NoRepeatDeskMate_Reject" ,
+                        student.Id , occSeat.OccupantId!);
                     return DependentResult.Reject();
                 }
 
@@ -161,7 +177,7 @@ namespace A_Pair.Core.Strategies
                 return DependentResult.Approve();
             }
 
-            // 5. 无冲突
+            // 6. 无冲突
             return DependentResult.Approve();
         }
 

@@ -123,6 +123,9 @@ namespace A_Pair.Core.Strategies
             // ── 场景3：该学生是组内唯一未分配成员（其余均已在之前迭代中分配） ──
             // 这种情况可能发生在之前的 EvaluateAsync 调用已处理了其他组员
             // 直接批准，由 RandomFill 正常分配
+            _logger.LogDebug(
+                "DeskMate：学生 {Student} 是组内最后未分配成员，批准由 RandomFill 处理" ,
+                student.Name);
             return DependentResult.Approve();
         }
 
@@ -146,6 +149,7 @@ namespace A_Pair.Core.Strategies
             {
                 // 理论上不应发生（已分配学生应有座位），容错处理
                 _logger.LogWarning("DeskMate：已分配组员未找到座位，批准当前分配");
+                context.LogWarning(Id , DisplayNameConst , "DeskMate_OccupiedSeatNotFound");
                 return DependentResult.Approve();
             }
 
@@ -180,6 +184,7 @@ namespace A_Pair.Core.Strategies
 
             // 无相邻空座可用，请求重掷
             _logger.LogDebug("DeskMate：学生 {Student} 无法在已分配组员旁找到空座，请求重掷" , student.Name);
+            context.LogWarning(Id , DisplayNameConst , "DeskMate_RejectNoAdjacent" , student.Id);
             return DependentResult.Reject();
         }
 
@@ -257,6 +262,8 @@ namespace A_Pair.Core.Strategies
                         _logger.LogInformation(
                             "DeskMate：腾挪占座者 {OccupantId} 从 {OldSeat} 到 {NewSeat}，释放座位给同桌" ,
                             occSeat.OccupantId ?? "?" , occSeat.Id , candidateEmpty.Id);
+                        context.LogWarning(Id , DisplayNameConst , "DeskMate_EvictSuccess" ,
+                            occSeat.Id , candidateEmpty.Id);
                     }
                 }
             }
@@ -296,6 +303,8 @@ namespace A_Pair.Core.Strategies
             {
                 _logger.LogWarning("DeskMate：分配学生 {Student} 到 {Seat} 失败：{Error}" ,
                     student.Name , targetSeat.Id , err);
+                context.LogWarning(Id , DisplayNameConst , "DeskMate_AssignFailed" ,
+                    student.Id , targetSeat.Id , err);
                 return DependentResult.Approve(); // 退回给 RandomFill 处理
             }
 
@@ -329,6 +338,12 @@ namespace A_Pair.Core.Strategies
             {
                 context.LogWarning(Id , DisplayNameConst , "DeskMate_PartialAssign" ,
                     student.Id , assignedMates , unassignedMates.Count);
+            }
+            else if (assignedMates > 0)
+            {
+                // 全部组员成功分配，写入信息性消息
+                context.LogWarning(Id , DisplayNameConst , "DeskMate_CoordinatedSuccess" ,
+                    student.Id , assignedMates + 1);
             }
 
             return DependentResult.Handled();

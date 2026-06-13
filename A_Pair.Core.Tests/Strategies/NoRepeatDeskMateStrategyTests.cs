@@ -246,7 +246,7 @@ public class NoRepeatDeskMateStrategyTests
         strategy.Id.Should().Be("NoRepeatDeskMate");
         strategy.Name.Should().Be("NoRepeatDeskMate");
         strategy.DisplayName.Should().Be("同桌不重复");
-        strategy.Priority.Should().Be(60);
+        strategy.Priority.Should().Be(40);
         strategy.IsEnabled.Should().BeTrue();
     }
 
