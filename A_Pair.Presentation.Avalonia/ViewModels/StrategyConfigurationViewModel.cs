@@ -237,9 +237,6 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 {
                     child.OnSelected = OnChildStrategySelected;
                 }
-                // 默认展开以显示依赖策略
-                randomFill.IsExpanded = true;
-
                 // 检测依赖策略内部优先级冲突（独立于外部管道优先级）
                 var depFixed = DetectAndFixDependentPriorityConflicts(children);
                 if (depFixed.Count > 0)

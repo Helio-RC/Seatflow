@@ -7,7 +7,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 侧栏策略列表中的单个策略项。追踪自身的优先级/启用状态变更。
-/// 支持嵌套子项（依赖策略在 RandomFill 内部展示）。
+/// 支持嵌套子项（依赖策略始终显示在宿主下方，用左侧竖线区分）。
 /// </summary>
 public partial class StrategyItemViewModel : ObservableObject
 {
@@ -30,24 +30,16 @@ public partial class StrategyItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasChanges;
 
-    /// <summary>子策略列表（RandomFill 展开时显示其内部的依赖策略）。</summary>
+    /// <summary>子策略列表（依赖策略始终显示在宿主下方）。</summary>
     [ObservableProperty]
     private ObservableCollection<StrategyItemViewModel>? _children;
 
-    /// <summary>是否展开子策略列表。</summary>
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasChildren))]
-    private bool _isExpanded;
+    /// <summary>是否有子策略（用于 UI 竖线显示判断）。</summary>
+    public bool HasChildren => Children is { Count: > 0 };
 
     /// <summary>是否被选中（用于高亮显示）。</summary>
     [ObservableProperty]
     private bool _isSelected;
-
-    /// <summary>是否有可展开的子策略。</summary>
-    public bool HasChildren => Children is { Count: > 0 };
-
-    /// <summary>是否为依赖策略的宿主（如 RandomFill）。依赖策略显示为其子项。</summary>
-    public bool IsHost => HasChildren;
 
     /// <summary>当用户点击选中此策略项时的回调。由父 ViewModel 设置，用于子项选中通知。</summary>
     public Action<StrategyItemViewModel>? OnSelected { get; set; }
@@ -81,12 +73,6 @@ public partial class StrategyItemViewModel : ObservableObject
     public string EnableTooltipDisplay => IsEnabled ? Lang.Resources.Common_Enabled : Lang.Resources.Common_Disabled;
 
     public void MarkClean () => HasChanges = false;
-
-    [RelayCommand]
-    private void ToggleExpand ()
-    {
-        IsExpanded = !IsExpanded;
-    }
 
     /// <summary>子项被点击时触发，通知父 ViewModel 切换选中项。</summary>
     [RelayCommand]
