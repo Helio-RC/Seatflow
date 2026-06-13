@@ -196,31 +196,27 @@
                               Margin="20,0,0,0">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:StrategyItemViewModel">
-                      <!-- Button 包裹：拦截点击 → SelectSelfCommand，而不是冒泡到父 ListBox -->
-                      <Button Command="{Binding SelectSelfCommand}"
+                      <!-- 直接用 Border + Tapped 事件，避免 Button 导致的尺寸缩小 -->
+                      <Border Padding="8,6" CornerRadius="4" Margin="0,1"
                               Background="Transparent"
-                              BorderThickness="0"
-                              Padding="0"
-                              HorizontalContentAlignment="Stretch"
-                              Cursor="Hand">
-                        <Border Padding="8,6" CornerRadius="4" Margin="0,1">
-                          <DockPanel>
-                            <ToggleSwitch DockPanel.Dock="Right"
-                                          IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                          VerticalAlignment="Center"
-                                          Classes="small" />
-                            <StackPanel Spacing="2">
-                              <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                         TextTrimming="CharacterEllipsis" FontSize="13" />
-                              <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock FontSize="11"
-                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           Text="{Binding PriorityDisplay}" />
-                              </StackPanel>
+                              Cursor="Hand"
+                              Tapped="OnChildStrategyTapped">
+                        <DockPanel>
+                          <ToggleSwitch DockPanel.Dock="Right"
+                                        IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                        VerticalAlignment="Center"
+                                        Classes="small" />
+                          <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" FontSize="13" />
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                              <TextBlock FontSize="11"
+                                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                         Text="{Binding PriorityDisplay}" />
                             </StackPanel>
-                          </DockPanel>
-                        </Border>
-                      </Button>
+                          </StackPanel>
+                        </DockPanel>
+                      </Border>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
