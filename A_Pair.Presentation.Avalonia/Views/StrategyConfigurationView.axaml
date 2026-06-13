@@ -15,19 +15,13 @@
   <Grid x:Name="SidebarGrid" Margin="16">
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="240" />
-      <ColumnDefinition Width="4" />
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
 
     <!-- ═══════════ 侧栏：策略列表 ═══════════ -->
-    <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0"
-            CornerRadius="6" ClipToBounds="True" HorizontalAlignment="Left"
+    <Border Grid.Column="0" Margin="0,0,8,0"
+            CornerRadius="6" ClipToBounds="True"
             Background="{DynamicResource SidebarBackgroundBrush}">
-      <Border.Transitions>
-        <Transitions>
-          <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
-        </Transitions>
-      </Border.Transitions>
 
       <DockPanel Margin="8">
         <!-- 标题 -->
@@ -36,83 +30,36 @@
 
         <!-- 底部操作按钮 -->
         <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
-          <Panel>
-            <!-- 展开状态 -->
-            <StackPanel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                        IsHitTestVisible="{Binding IsSidebarExpanded}"
-                        Spacing="4">
-              <StackPanel.Transitions>
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
-                </Transitions>
-              </StackPanel.Transitions>
-              <Button Command="{Binding MoveUpCommand}"
-                      CommandParameter="{Binding SelectedStrategy}"
-                      AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveUp}"
-                      HorizontalContentAlignment="Left" Padding="8,5">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
-                  <TextBlock Text="{x:Static lang:Resources.Strategy_MoveUp}" FontSize="13" />
-                </StackPanel>
-              </Button>
-              <Button Command="{Binding MoveDownCommand}"
-                      CommandParameter="{Binding SelectedStrategy}"
-                      AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveDown}"
-                      HorizontalContentAlignment="Left" Padding="8,5">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
-                  <TextBlock Text="{x:Static lang:Resources.Strategy_MoveDown}" FontSize="13" />
-                </StackPanel>
-              </Button>
-              <Separator Margin="0,2" />
-              <Button Command="{Binding SaveAllCommand}"
-                      IsEnabled="{Binding HasChanges}"
-                      AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
-                      HorizontalContentAlignment="Left" Padding="8,5">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
-                  <TextBlock Text="{x:Static lang:Resources.Strategy_SaveChanges}" FontSize="13" />
-                </StackPanel>
-              </Button>
-              <Button Command="{Binding ToggleSidebarCommand}"
-                      HorizontalContentAlignment="Left" Padding="8,5">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" />
-                  <TextBlock Text="{x:Static lang:Resources.Nav_CollapseSidebar}" FontSize="13" />
-                </StackPanel>
-              </Button>
-            </StackPanel>
-
-            <!-- 折叠状态 -->
-            <StackPanel Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                        IsHitTestVisible="{Binding IsSidebarCollapsed}"
-                        Spacing="4" HorizontalAlignment="Center">
-              <StackPanel.Transitions>
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseInOut" />
-                </Transitions>
-              </StackPanel.Transitions>
-              <Button Command="{Binding MoveUpCommand}"
-                      CommandParameter="{Binding SelectedStrategy}"
-                      ToolTip.Tip="{x:Static lang:Resources.Strategy_MoveUp}" HorizontalAlignment="Center">
+          <StackPanel Spacing="4">
+            <Button Command="{Binding MoveUpCommand}"
+                    CommandParameter="{Binding SelectedStrategy}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveUp}"
+                    HorizontalContentAlignment="Left" Padding="8,5">
+              <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
-              </Button>
-              <Button Command="{Binding MoveDownCommand}"
-                      CommandParameter="{Binding SelectedStrategy}"
-                      ToolTip.Tip="{x:Static lang:Resources.Strategy_MoveDown}" HorizontalAlignment="Center">
+                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveUp}" FontSize="13" />
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding MoveDownCommand}"
+                    CommandParameter="{Binding SelectedStrategy}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveDown}"
+                    HorizontalContentAlignment="Left" Padding="8,5">
+              <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
-              </Button>
-              <Button Command="{Binding SaveAllCommand}"
-                      IsEnabled="{Binding HasChanges}"
-                      ToolTip.Tip="{x:Static lang:Resources.Strategy_SaveChanges}" HorizontalAlignment="Center">
+                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveDown}" FontSize="13" />
+              </StackPanel>
+            </Button>
+            <Separator Margin="0,2" />
+            <Button Command="{Binding SaveAllCommand}"
+                    IsEnabled="{Binding HasChanges}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
+                    HorizontalContentAlignment="Left" Padding="8,5">
+              <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
-              </Button>
-              <Button Command="{Binding ToggleSidebarCommand}"
-                      ToolTip.Tip="{x:Static lang:Resources.Nav_ExpandSidebar}" HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" />
-              </Button>
-            </StackPanel>
-          </Panel>
+                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveChanges}" FontSize="13" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
         </Border>
 
         <!-- 策略列表 -->
@@ -125,14 +72,7 @@
               <StackPanel>
                 <Border Padding="8,6" CornerRadius="4">
                   <Grid>
-                    <!-- 展开状态：ToggleSwitch + 名称 + 优先级 -->
-                    <DockPanel Opacity="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                               IsHitTestVisible="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded}">
-                      <DockPanel.Transitions>
-                        <Transitions>
-                          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-                        </Transitions>
-                      </DockPanel.Transitions>
+                    <DockPanel>
                       <ToggleSwitch DockPanel.Dock="Right"
                                     IsChecked="{Binding IsEnabled, Mode=TwoWay}"
                                     VerticalAlignment="Center" />
@@ -172,22 +112,6 @@
                         </StackPanel>
                       </StackPanel>
                     </DockPanel>
-                    <!-- 折叠状态：名称 + CheckBox（单选模式） -->
-                    <StackPanel Opacity="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                                IsHitTestVisible="{ReflectionBinding $parent[ListBox].DataContext.IsSidebarCollapsed}" Orientation="Horizontal"
-                                HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
-                      <StackPanel.Transitions>
-                        <Transitions>
-                          <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
-                        </Transitions>
-                      </StackPanel.Transitions>
-                      <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                 TextTrimming="CharacterEllipsis" FontSize="13"
-                                 HorizontalAlignment="Left" VerticalAlignment="Center" />
-                      <CheckBox IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                ToolTip.Tip="{Binding EnableTooltipDisplay}"
-                                HorizontalAlignment="Right" VerticalAlignment="Center" />
-                    </StackPanel>
                   </Grid>
                 </Border>
                 <!-- 子策略列表（RandomFill 展开时显示依赖策略） -->
@@ -230,12 +154,8 @@
       </DockPanel>
     </Border>
 
-    <!-- ═══════════ 分隔条 ═══════════ -->
-    <GridSplitter Grid.Column="1" ResizeDirection="Columns"
-                  Background="Transparent" />
-
     <!-- ═══════════ 右侧详情 ═══════════ -->
-    <Grid Grid.Column="2">
+    <Grid Grid.Column="1">
       <!-- 空状态：未选中策略 -->
       <Border IsVisible="{Binding HasSelection, Converter={x:Static conv:BoolConverters.Negate}}"
               HorizontalAlignment="Center" VerticalAlignment="Center"
