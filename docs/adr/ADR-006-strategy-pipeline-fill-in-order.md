@@ -19,7 +19,7 @@
 
 实际管道行为：
 ```
-RandomFill(10)     → GetEmptySeats=全空 → 填满所有座位
+RandomFill(1)     → GetEmptySeats=全空 → 填满所有座位
 FrontRowRotation(30) → GetEmptySeats=0 → 跳过（死代码）
 DeskMate(50)       → GetEmptySeats=0 → 跳过（死代码）
 FixedSeat(100)     → 直接操控 OccupantId → 覆盖成功
@@ -41,9 +41,9 @@ FixedSeat(100)     → 直接操控 OccupantId → 覆盖成功
 | 策略 | Priority | 类型 | 执行顺序 | 职责 |
 |------|----------|------|----------|------|
 | FixedSeatStrategy | 100 | 独立 | 第1 | 锁定固定座位，IsFixed=true 自动保护 |
-| FrontRowRotationStrategy | 90 | 独立 | 第2 | 在非固定空座中填前排 |
-| DeskMateStrategy | 80 | 依赖 | — | 在 RandomFill 上下文中执行，检查同桌关系并协调相邻分配 |
-| RandomFillStrategy | 10 | 独立+宿主 | 最后 | 填满所有剩余空座；作为依赖策略宿主 |
+| FrontRowRotationStrategy | 50 | 独立 | 第2 | 在非固定空座中填前排 |
+| DeskMateStrategy | 50 | 依赖 | — | 在 RandomFill 上下文中执行，检查同桌关系并协调相邻分配 |
+| RandomFillStrategy | 1 | 独立+宿主 | 最后 | 填满所有剩余空座；作为依赖策略宿主 |
 
 ### 冲突解决
 

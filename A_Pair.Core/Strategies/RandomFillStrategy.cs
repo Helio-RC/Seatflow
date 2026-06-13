@@ -48,7 +48,7 @@ namespace A_Pair.Core.Strategies
         public string Name { get; } = "RandomFill";
 
         /// <inheritdoc />
-        public int Priority { get; set; } = 10;
+        public int Priority { get; set; } = 1;
 
         /// <inheritdoc />
         public bool IsEnabled { get; set; } = true;

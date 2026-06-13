@@ -7,7 +7,7 @@
     "description": "最后执行的兜底策略。将所有剩余未分配学生随机填入剩余空座。支持依赖策略在分配循环中进行评估。",
     "author": "A_Pair Team",
     "category": "fill",
-    "defaultPriority": 10,
+    "defaultPriority": 1,
     "defaultEnabled": true,
     "visible": true,
     "isIndependent": true,

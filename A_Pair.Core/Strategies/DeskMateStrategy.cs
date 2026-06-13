@@ -51,7 +51,7 @@ namespace A_Pair.Core.Strategies
         public string DisplayName => DisplayNameConst;
 
         /// <inheritdoc />
-        public int Priority { get; set; } = 80;
+        public int Priority { get; set; } = 50;
 
         /// <inheritdoc />
         public bool IsEnabled { get; set; } = true;
