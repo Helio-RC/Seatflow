@@ -29,7 +29,7 @@ internal class FrontRowHistoryLoader
     /// </summary>
     /// <param name="workspace">当前工作区（含已加载的学生列表）。</param>
     /// <param name="venueId">会场 ID。</param>
-    /// <param name="historyWindowSize">要加载的历史快照数量。</param>
+    /// <param name="historyWindowSize">参考历史快照个数。</param>
     /// <param name="ct">取消令牌。</param>
     public async Task PopulateFrontRowHistoryAsync (
         SeatingWorkspace workspace ,

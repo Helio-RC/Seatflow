@@ -189,8 +189,8 @@ namespace A_Pair.Core.Strategies
             public int FrontRowCount { get; set; } = 1;
 
             /// <summary>
-            /// 历史窗口大小：从最近多少个快照中读取前排座位记录。
-            /// 默认 10，范围 1~30。窗口越大，轮换周期越长。
+            /// 参考历史快照个数：从最近多少个快照中读取前排座位记录。
+            /// 默认 10，范围 1~30。
             /// </summary>
             public int HistoryWindowSize { get; set; } = 10;
         }
