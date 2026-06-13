@@ -271,13 +271,14 @@ namespace A_Pair.Core.Strategies
 
                 if (!assigned)
                 {
-                    // 重掷上限：兜底强制分配。确保使用当前已知的空座（而非可能已被占用的旧引用）
-                    var fallbackSeat = emptySeats.FirstOrDefault();
-                    if (fallbackSeat is null)
+                    // 重掷上限：兜底强制分配，随机选一个空座
+                    if (emptySeats.Count == 0)
                     {
                         _logger.LogWarning("RandomFill：无剩余空座，学生 {Student} 无法分配" , student.Name);
                         break;
                     }
+
+                    var fallbackSeat = emptySeats[_random.Next(emptySeats.Count)];
 
                     _logger.LogWarning(
                         "RandomFill：重掷次数达上限 {MaxRerolls}，学生 {Student} 强制分配到座位 {Seat}" ,
