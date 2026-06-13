@@ -368,11 +368,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private async Task MoveUpAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
-        var idx = sorted.IndexOf(item);
+        // 只在同类策略中查找邻居
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
         if (idx <= 0) return;
 
-        var neighbor = sorted[idx - 1];
+        var neighbor = sameGroup[idx - 1];
         await ResolveAndSwapPriorityAsync(item , neighbor);
         ReSort();
         StatusMessage = string.Format(Resources.Strategy_MovedUpFmt , item.DisplayName , item.Priority);
@@ -382,11 +383,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private async Task MoveDownAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
-        var idx = sorted.IndexOf(item);
-        if (idx < 0 || idx >= sorted.Count - 1) return;
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderBy(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
+        if (idx < 0 || idx >= sameGroup.Count - 1) return;
 
-        var neighbor = sorted[idx + 1];
+        var neighbor = sameGroup[idx + 1];
         await ResolveAndSwapPriorityAsync(neighbor , item);
         ReSort();
         StatusMessage = string.Format(Resources.Strategy_MovedDownFmt , item.DisplayName , item.Priority);
@@ -420,6 +421,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         }
     }
 
+    /// <summary>两个策略是否属于同一优先级命名空间（都是独立策略，或都是依赖策略）。</summary>
+    private static bool IsSamePriorityGroup (StrategyItemViewModel a , StrategyItemViewModel b)
+        => a.IsIndependent == b.IsIndependent;
+
     private void AssignWithCascade (StrategyItemViewModel higher , StrategyItemViewModel lower)
     {
         higher.Priority = Math.Max(0 , lower.Priority - 1);
@@ -431,10 +436,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// <summary>
     /// 保存单个策略前检查优先级是否与其他策略冲突。
     /// </summary>
-    private async Task<bool> ValidatePriorityBeforeSaveAsync (string strategyId , int newPriority)
+    private async Task<bool> ValidatePriorityBeforeSaveAsync (StrategyItemViewModel item , int newPriority)
     {
+        // 只在同类策略中检查冲突（独立 vs 独立，依赖 vs 依赖）
         var conflict = Strategies.FirstOrDefault(s =>
-            s.Id != strategyId && s.Priority == newPriority);
+            s.Id != item.Id
+            && s.Priority == newPriority
+            && IsSamePriorityGroup(s , item));
 
         if (conflict is null) return true;
 
@@ -463,13 +471,15 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             else
                 priority = s.Priority;
 
-            return (Id: s.Id , DisplayName: s.DisplayName , Priority: priority);
-        }).OrderBy(s => s.Priority).ToList();
+            return (Id: s.Id , DisplayName: s.DisplayName , Priority: priority , s.IsIndependent);
+        }).OrderBy(s => s.IsIndependent).ThenBy(s => s.Priority).ToList();
 
+        // 只在同类策略中检查冲突
         var duplicates = new List<string>();
         for (int i = 1; i < snapshot.Count; i++)
         {
-            if (snapshot[i].Priority <= snapshot[i - 1].Priority)
+            if (snapshot[i].IsIndependent == snapshot[i - 1].IsIndependent
+                && snapshot[i].Priority <= snapshot[i - 1].Priority)
                 duplicates.Add(string.Format(Resources.Strategy_DuplicateEntryFmt , snapshot[i].DisplayName , snapshot[i].Priority));
         }
 
@@ -484,16 +494,22 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// <summary>
     /// 确保所有策略优先级严格递增（无重复、无逆序），返回被修复的策略名列表。
     /// </summary>
+    /// <summary>
+    /// 检测并修复优先级冲突。独立策略和依赖策略分别检查，互不干扰。
+    /// </summary>
     private List<string> DetectAndFixPriorityConflicts ()
     {
         var fixedNames = new List<string>();
-        var ordered = Strategies.OrderBy(s => s.Priority).ToList();
-        for (int i = 1; i < ordered.Count; i++)
+        foreach (var group in Strategies.GroupBy(s => s.IsIndependent))
         {
-            if (ordered[i].Priority <= ordered[i - 1].Priority)
+            var ordered = group.OrderBy(s => s.Priority).ToList();
+            for (int i = 1; i < ordered.Count; i++)
             {
-                fixedNames.Add(ordered[i].DisplayName);
-                ordered[i].Priority = ordered[i - 1].Priority + 1;
+                if (ordered[i].Priority <= ordered[i - 1].Priority)
+                {
+                    fixedNames.Add(ordered[i].DisplayName);
+                    ordered[i].Priority = ordered[i - 1].Priority + 1;
+                }
             }
         }
         return fixedNames;
@@ -520,17 +536,24 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void EnsureUniquePriorities ()
     {
-        var ordered = Strategies.OrderBy(s => s.Priority).ToList();
-        for (int i = 1; i < ordered.Count; i++)
+        foreach (var group in Strategies.GroupBy(s => s.IsIndependent))
         {
-            if (ordered[i].Priority <= ordered[i - 1].Priority)
-                ordered[i].Priority = ordered[i - 1].Priority + 1;
+            var ordered = group.OrderBy(s => s.Priority).ToList();
+            for (int i = 1; i < ordered.Count; i++)
+            {
+                if (ordered[i].Priority <= ordered[i - 1].Priority)
+                    ordered[i].Priority = ordered[i - 1].Priority + 1;
+            }
         }
     }
 
     private void ReSort ()
     {
-        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
+        // 独立策略在前，依赖策略在后，各自按 Priority 升序
+        var sorted = Strategies
+            .OrderBy(s => s.IsIndependent ? 0 : 1)
+            .ThenBy(s => s.Priority)
+            .ToList();
         for (int i = 0; i < sorted.Count; i++)
         {
             var currentIdx = Strategies.IndexOf(sorted[i]);
@@ -550,7 +573,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         if (SelectedDetail is null || SelectedStrategy is null) return;
 
-        if (!await ValidatePriorityBeforeSaveAsync(SelectedStrategy.Id , EditPriority))
+        if (!await ValidatePriorityBeforeSaveAsync(SelectedStrategy , EditPriority))
             return;
 
         var savedName = SelectedDetail.DisplayName;
