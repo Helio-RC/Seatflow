@@ -565,27 +565,15 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         }
     }
 
-    private bool _isRefreshing;
-
     /// <summary>
     /// 刷新所有优先级相关数据：修复组内冲突 → 重排列表 → 刷新绑定。
-    /// 在任何涉及优先级变更的操作后调用此方法，确保独立/依赖分组、排序一致性。
-    /// _isRefreshing 守卫防止 EnsureUniquePriorities 修改 Priority 时触发 PropertyChanged 链式重入。
+    /// 在任何涉及优先级变更的操作后调用此方法。
     /// </summary>
     private void RefreshPriorities ()
     {
-        if (_isRefreshing) return;
-        _isRefreshing = true;
-        try
-        {
-            EnsureUniquePriorities();
-            ReSort();
-            OnPropertyChanged(nameof(HasChanges));
-        }
-        finally
-        {
-            _isRefreshing = false;
-        }
+        EnsureUniquePriorities();
+        ReSort();
+        OnPropertyChanged(nameof(HasChanges));
     }
 
     // ═══════════════ 保存当前（详情页） ═══════════════
