@@ -101,6 +101,7 @@ namespace A_Pair.Application.Services
                     sp.GetRequiredService<FileMigrationService>() ,
                     sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
             services.AddSingleton<FrontRowHistoryLoader>();
+            services.AddSingleton<NoRepeatDeskMateHistoryLoader>();
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 
@@ -115,6 +116,8 @@ namespace A_Pair.Application.Services
             // 注册依赖策略（在 RandomFill 上下文中执行）
             services.AddSingleton<IDependentSeatingStrategy>(sp => new DeskMateStrategy(
                 new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new NoRepeatDeskMateStrategy(
+                new NoRepeatDeskMateConfiguration() , sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
 
             // 注册导出器
             services.AddSingleton<ISeatingPlanExporter , ExcelSeatingExporter>();

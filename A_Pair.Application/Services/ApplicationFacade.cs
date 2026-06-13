@@ -173,6 +173,16 @@ namespace A_Pair.Application.Services
                 var historyLoader = _serviceProvider.GetRequiredService<FrontRowHistoryLoader>();
                 await historyLoader.PopulateFrontRowHistoryAsync(
                     workspace , request.LayoutId , windowSize , cancellationToken);
+
+                // 3c. 加载同桌不重复历史（过去的同桌对）
+                var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<NoRepeatDeskMateStrategy>().FirstOrDefault();
+                if (noRepeat != null && noRepeat.IsEnabled)
+                {
+                    var ndLoader = _serviceProvider.GetRequiredService<NoRepeatDeskMateHistoryLoader>();
+                    await ndLoader.PopulateDeskMateHistoryAsync(
+                        workspace , request.LayoutId , noRepeat.Config.HistoryWindowSize , noRepeat , cancellationToken);
+                }
             }
 
             // 4. 获取内置策略（缓存 D内置策略，不变异）
@@ -215,6 +225,10 @@ namespace A_Pair.Application.Services
                 var deskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
                     .OfType<DeskMateStrategy>().FirstOrDefault();
                 deskMate?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
+
+                var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<NoRepeatDeskMateStrategy>().FirstOrDefault();
+                noRepeat?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
             }
             else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
             {
@@ -953,6 +967,10 @@ namespace A_Pair.Application.Services
                     ["PreferHorizontal"] = d.Config.PreferHorizontal ,
                     ["AllowVertical"] = d.Config.AllowVertical
                 },
+                NoRepeatDeskMateStrategy nd => new Dictionary<string , object?>
+                {
+                    ["HistoryWindowSize"] = nd.Config.HistoryWindowSize
+                },
                 _ => []
             };
         }
@@ -980,6 +998,9 @@ namespace A_Pair.Application.Services
                 case DeskMateStrategy d:
                     d.Config.PreferHorizontal = GetParamBool(parameters , "PreferHorizontal");
                     d.Config.AllowVertical = GetParamBool(parameters , "AllowVertical");
+                    break;
+                case NoRepeatDeskMateStrategy nd:
+                    nd.Config.HistoryWindowSize = GetParamInt(parameters , "HistoryWindowSize");
                     break;
             }
         }

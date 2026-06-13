@@ -5,47 +5,19 @@ namespace A_Pair.Core.Tests.Strategies;
 
 public class DeskMateStrategyTests
 {
-    // ── 测试辅助 ──
-
-    private static List<Student> CreateStudents (params string[] ids)
-    {
-        return ids.Select(id => new Student { Id = id , Name = id }).ToList();
-    }
-
-    private static List<GridSeat> CreateGridSeats (params (int row , int col)[] positions)
-    {
-        return positions.Select(p => new GridSeat
-        {
-            Id = $"seat_{p.row}_{p.col}" ,
-            Row = p.row ,
-            Column = p.col
-        }).ToList();
-    }
-
-    /// <summary>创建一个简单的 IRandomFillContext 测试桩。</summary>
-    private static IRandomFillContext CreateContext (int rerollCount = 0 , int maxRerolls = 10)
-        => new TestContext(rerollCount , maxRerolls);
-
-    private sealed class TestContext (int rerollCount , int maxRerolls) : IRandomFillContext
-    {
-        public int RerollCount => rerollCount;
-        public int MaxRerolls => maxRerolls;
-        public void LogWarning (string strategyId , string displayName , string messageKey , params object?[] args) { }
-        public void LogError (string strategyId , string displayName , string messageKey , params object?[] args) { }
-    }
 
     // ═══════════════ EvaluateAsync 测试 ═══════════════
 
     [Fact]
     public async Task EvaluateAsync_StudentNoGroup_ShouldApprove ()
     {
-        var students = CreateStudents("s1" , "s2");
-        var seats = CreateGridSeats((1 , 1) , (1 , 2));
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
         var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
 
         var strategy = new DeskMateStrategy();
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeFalse();
@@ -54,9 +26,9 @@ public class DeskMateStrategyTests
     [Fact]
     public async Task EvaluateAsync_CoordinatedAssignment_SufficientAdjacent_ShouldHandle ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (1,2) are horizontally adjacent
-        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
         var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
 
         var config = new DeskMateConfiguration
@@ -69,7 +41,7 @@ public class DeskMateStrategyTests
 
         // 选择 s1 和座位 (1,1)；s2 应被分配到相邻座位 (1,2)
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();
@@ -83,9 +55,9 @@ public class DeskMateStrategyTests
     [Fact]
     public async Task EvaluateAsync_NoAdjacentSeatForMates_ShouldReject ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // Seats are NOT adjacent: (1,1) and (3,3) far apart, no adjacent empty for mate
-        var seats = CreateGridSeats((1 , 1) , (3 , 3));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (3 , 3));
         var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
 
         var config = new DeskMateConfiguration
@@ -98,7 +70,7 @@ public class DeskMateStrategyTests
 
         // (1,1) has no adjacent empty seat → should reject
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();
@@ -109,7 +81,7 @@ public class DeskMateStrategyTests
     {
         var s1 = new Student { Id = "s1" , Name = "s1" };
         var s2 = new Student { Id = "s2" , Name = "s2" };
-        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
         var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
 
         // Pre-assign s1 to (1,1) — simulating FixedSeat allocated s1
@@ -123,7 +95,7 @@ public class DeskMateStrategyTests
 
         // s2 proposed at (1,2) which is adjacent to s1 at (1,1) → should approve
         var result = await strategy.EvaluateAsync(
-            ws , s2 , seats[1] , CreateContext() , CancellationToken.None);
+            ws , s2 , seats[1] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeFalse(); // not handled, RandomFill does TryAssignSeat
@@ -135,7 +107,7 @@ public class DeskMateStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" };
         var s2 = new Student { Id = "s2" , Name = "s2" };
         // (1,1) occupied by s1, (1,2) is adjacent to (1,1), (2,2) is far
-        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 2));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 2));
         var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
 
         ws.TryAssignSeat(seats[0].Id , s1.Id , out _); // s1 at (1,1)
@@ -149,7 +121,7 @@ public class DeskMateStrategyTests
         // s2 proposed at (2,2) which is NOT adjacent to s1 at (1,1)
         // but (1,2) IS adjacent to s1's seat → should reassign s2 to (1,2) → Handled
         var result = await strategy.EvaluateAsync(
-            ws , s2 , seats[2] , CreateContext() , CancellationToken.None);
+            ws , s2 , seats[2] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();
@@ -163,11 +135,11 @@ public class DeskMateStrategyTests
     public async Task EvaluateAsync_NullWorkspace_ShouldThrowArgumentNullException ()
     {
         var strategy = new DeskMateStrategy();
-        var seats = CreateGridSeats((1 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
         var student = new Student { Id = "s1" };
 
         var act = async () => await strategy.EvaluateAsync(
-            null! , student , seats[0] , CreateContext() , CancellationToken.None);
+            null! , student , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
@@ -175,11 +147,11 @@ public class DeskMateStrategyTests
     public async Task EvaluateAsync_NullStudent_ShouldThrowArgumentNullException ()
     {
         var strategy = new DeskMateStrategy();
-        var seats = CreateGridSeats((1 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
         var ws = new SeatingWorkspace([] , seats.Cast<Seat>().ToList());
 
         var act = async () => await strategy.EvaluateAsync(
-            ws , null! , seats[0] , CreateContext() , CancellationToken.None);
+            ws , null! , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
@@ -191,12 +163,12 @@ public class DeskMateStrategyTests
         var s2 = new Student { Id = "s2" };
 
         // (1,1) and (1,2) are adjacent
-        var seats = CreateGridSeats((1 , 1) , (1 , 2));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
         var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
 
         var strategy = new DeskMateStrategy();
         var result = await strategy.EvaluateAsync(
-            ws , s1 , seats[0] , CreateContext() , CancellationToken.None);
+            ws , s1 , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();
@@ -209,20 +181,20 @@ public class DeskMateStrategyTests
     public async Task EvaluateAsync_Cancelled_ShouldThrowOperationCanceledException ()
     {
         var strategy = new DeskMateStrategy();
-        var seats = CreateGridSeats((1 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
         var ws = new SeatingWorkspace([] , seats.Cast<Seat>().ToList());
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
         var act = async () => await strategy.EvaluateAsync(
-            ws , new Student { Id = "s1" } , seats[0] , CreateContext() , cts.Token);
+            ws , new Student { Id = "s1" } , seats[0] , StrategyTestHelpers.CreateContext() , cts.Token);
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
     public async Task EvaluateAsync_PolarSeatsWithLogicalGroup_ShouldConsiderAdjacent ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         var seats = new List<Seat>
         {
             new PolarSeat { Id = "p1", Ring = 1, Radius = 1, AngleDegrees = 0, LogicalGroup = "A" },
@@ -239,7 +211,7 @@ public class DeskMateStrategyTests
 
         // p1 and p2 share LogicalGroup "A" → adjacent → Handled
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();
@@ -252,7 +224,7 @@ public class DeskMateStrategyTests
     [Fact]
     public async Task EvaluateAsync_FreeformSeatsWithLogicalGroup_ShouldConsiderAdjacent ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         var seats = new List<Seat>
         {
             new FreeformSeat { Id = "ff1", X = 0, Y = 0, LogicalGroup = "G1" },
@@ -268,7 +240,7 @@ public class DeskMateStrategyTests
         var strategy = new DeskMateStrategy(config);
 
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();
@@ -321,9 +293,9 @@ public class DeskMateStrategyTests
     [Fact]
     public async Task EvaluateAsync_AllowVerticalFalse_ShouldOnlyUseHorizontalAdjacent ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (2,1) are vertically adjacent; (1,2) is horizontally adjacent to (1,1)
-        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
         var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
 
         var config = new DeskMateConfiguration
@@ -337,7 +309,7 @@ public class DeskMateStrategyTests
         // (1,1) has horizontal neighbor (1,2) and vertical neighbor (2,1)
         // With AllowVertical=false, only (1,2) should be used → s2 assigned to (1,2)
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.AlreadyHandled.Should().BeTrue();
         var plan = ws.BuildSeatingPlan();
@@ -347,9 +319,9 @@ public class DeskMateStrategyTests
     [Fact]
     public async Task EvaluateAsync_VerticalOnly_ShouldUseVerticalAdjacent ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (2,1) are vertically adjacent
-        var seats = CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
         var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
 
         var config = new DeskMateConfiguration
@@ -362,7 +334,7 @@ public class DeskMateStrategyTests
 
         // With PreferHorizontal=false, AllowVertical=true, only (2,1) is adjacent → Handled
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.AlreadyHandled.Should().BeTrue();
         var plan = ws.BuildSeatingPlan();
@@ -374,9 +346,9 @@ public class DeskMateStrategyTests
     [Fact]
     public async Task EvaluateAsync_NoAdjacentWhenConfigRestricted_ShouldReject ()
     {
-        var students = CreateStudents("s1" , "s2");
+        var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (2,2) are NOT adjacent
-        var seats = CreateGridSeats((1 , 1) , (2 , 2));
+        var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (2 , 2));
         var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
 
         var config = new DeskMateConfiguration
@@ -389,7 +361,7 @@ public class DeskMateStrategyTests
 
         // (2,2) is not adjacent to (1,1) at all → should reject
         var result = await strategy.EvaluateAsync(
-            ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
+            ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.Approved.Should().BeTrue();
         result.AlreadyHandled.Should().BeTrue();

@@ -340,27 +340,7 @@ namespace A_Pair.Core.Strategies
         /// 控制 Grid 布局中的方向性。
         /// </summary>
         private bool IsAdjacentWithConfig (Seat a , Seat b)
-        {
-            // 非 Grid 布局使用通用 adjacency 判定（LogicalGroup / 几何距离）
-            if (a is not GridSeat ga || b is not GridSeat gb)
-                return AreSeatsAdjacent(a , b);
-
-            bool horizontalOk = _config.PreferHorizontal
-                && ga.Row == gb.Row && Math.Abs(ga.Column - gb.Column) == 1;
-            bool verticalOk = _config.AllowVertical
-                && ga.Column == gb.Column && Math.Abs(ga.Row - gb.Row) == 1;
-
-            // 横向邻接时检查同桌边界：同一桌的座位必须在同一个 SeatsPerDesk 分组内
-            if (horizontalOk && _config.SeatsPerDesk > 1)
-            {
-                int deskA = (ga.Column - 1) / _config.SeatsPerDesk;
-                int deskB = (gb.Column - 1) / _config.SeatsPerDesk;
-                if (deskA != deskB)
-                    horizontalOk = false;
-            }
-
-            return horizontalOk || verticalOk;
-        }
+            => SeatAdjacencyHelper.AreDeskMates(a , b , _config.SeatsPerDesk , _config.PreferHorizontal , _config.AllowVertical);
 
         /// <summary>
         /// 查找学生所属的同桌组。
@@ -407,57 +387,7 @@ namespace A_Pair.Core.Strategies
         /// 混合类型座位不视为相邻。
         /// </summary>
         private bool AreSeatsAdjacent (Seat a , Seat b)
-        {
-            if (a is GridSeat ga && b is GridSeat gb)
-            {
-                return (ga.Row == gb.Row && Math.Abs(ga.Column - gb.Column) == 1)
-                    || (ga.Column == gb.Column && Math.Abs(ga.Row - gb.Row) == 1);
-            }
-
-            if (a is PolarSeat pa && b is PolarSeat pb)
-            {
-                // 优先：LogicalGroup 判定（由布局构建器设置，反映通道划分）
-                bool hasGroups = !string.IsNullOrEmpty(pa.LogicalGroup)
-                              && !string.IsNullOrEmpty(pb.LogicalGroup);
-                if (hasGroups)
-                    return pa.LogicalGroup == pb.LogicalGroup;
-
-                // 回退：几何判定（无 LogicalGroup 的旧数据）
-                const double angleTolerance = 1e-6;
-                bool sameRing = Math.Abs(pa.Radius - pb.Radius) < 1e-6;
-                if (sameRing)
-                {
-                    double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
-                    double angleDiff = Math.Min(raw , 360.0 - raw);
-                    if (angleDiff <= 45.0) return true;
-                }
-                else
-                {
-                    double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
-                    double angleDiff = Math.Min(raw , 360.0 - raw);
-                    if (angleDiff < angleTolerance)
-                        return true;
-                }
-                return false;
-            }
-
-            if (a is FreeformSeat fa && b is FreeformSeat fb)
-            {
-                // 优先：LogicalGroup 判定（由布局构建器设置，反映分组划分）
-                bool hasGroups = !string.IsNullOrEmpty(fa.LogicalGroup)
-                              && !string.IsNullOrEmpty(fb.LogicalGroup);
-                if (hasGroups)
-                    return fa.LogicalGroup == fb.LogicalGroup;
-
-                // 回退：欧几里得距离判定
-                double dx = fa.X - fb.X;
-                double dy = fa.Y - fb.Y;
-                double distance = Math.Sqrt((dx * dx) + (dy * dy));
-                return distance <= 1.5;
-            }
-
-            return false;
-        }
+            => SeatAdjacencyHelper.AreSeatsAdjacent(a , b);
 
         /// <summary>
         /// Fisher-Yates 洗牌算法。

@@ -5,12 +5,12 @@ namespace A_Pair.Core.Tests.Services;
 public class StrategyManifestProviderTests
 {
     [Fact]
-    public void GetBuiltInManifests_ReturnsAllFour ()
+    public void GetBuiltInManifests_ReturnsAllFive ()
     {
         var provider = new StrategyManifestProvider();
         var manifests = provider.GetBuiltInManifests();
         manifests.Should().NotBeNull();
-        manifests.Should().HaveCount(4);
+        manifests.Should().HaveCount(5);
     }
 
     [Fact]
@@ -44,5 +44,6 @@ public class StrategyManifestProviderTests
         ids.Should().Contain("DeskMate");
         ids.Should().Contain("FrontRowRotation");
         ids.Should().Contain("RandomFill");
+        ids.Should().Contain("NoRepeatDeskMate");
     }
 }

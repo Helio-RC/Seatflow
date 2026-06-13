@@ -62,8 +62,8 @@ internal class FrontRowHistoryLoader
         int restoredCount = 0;
         foreach (var snapshot in Enumerable.Reverse(recentSnapshots))
         {
-            var layoutJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(
-                snapshot.Metadata , "venueFile");
+            var layoutJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
+                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
             if (string.IsNullOrEmpty(layoutJson))
             {
                 _logger.LogDebug("快照 {SnapshotId} 无嵌入会场布局，跳过" , snapshot.Id);
