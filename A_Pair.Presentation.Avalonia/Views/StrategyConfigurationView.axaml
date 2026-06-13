@@ -203,18 +203,20 @@
                               Padding="0"
                               HorizontalContentAlignment="Stretch"
                               Cursor="Hand">
-                        <Border Padding="6,4" CornerRadius="3" Margin="0,1">
+                        <Border Padding="8,6" CornerRadius="4" Margin="0,1">
                           <DockPanel>
                             <ToggleSwitch DockPanel.Dock="Right"
                                           IsChecked="{Binding IsEnabled, Mode=TwoWay}"
                                           VerticalAlignment="Center"
                                           Classes="small" />
-                            <StackPanel Spacing="1">
-                              <TextBlock Text="{Binding DisplayName}" FontSize="12"
-                                         TextTrimming="CharacterEllipsis" />
-                              <TextBlock FontSize="10"
-                                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                         Text="{Binding PriorityDisplay}" />
+                            <StackPanel Spacing="2">
+                              <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                         TextTrimming="CharacterEllipsis" FontSize="13" />
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock FontSize="11"
+                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                           Text="{Binding PriorityDisplay}" />
+                              </StackPanel>
                             </StackPanel>
                           </DockPanel>
                         </Border>
