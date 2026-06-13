@@ -47,17 +47,9 @@
             "zh-CN": "已分配组员的座位未找到（数据不一致），跳过同桌检查",
             "en-US": "Seats for pre-assigned group members not found (data inconsistency), skipping desk-mate check"
         },
-        "DeskMate_RejectNoAdjacent": {
-            "zh-CN": "学生 {0} 无法在已分配组员旁找到空座，请求重掷",
-            "en-US": "Student {0} cannot find empty seat near pre-assigned group members, requesting reroll"
-        },
         "DeskMate_NearOccupied": {
             "zh-CN": "学生 {0} 的同桌已分配，将其安置到相邻座位 {1}",
             "en-US": "Student {0} desk-mate already assigned, placing student at adjacent seat {1}"
-        },
-        "DeskMate_EvictSuccess": {
-            "zh-CN": "腾挪座位 {0} 的占座者到 {1}，为同桌组释放空间",
-            "en-US": "Evicted occupant from seat {0} to {1} to free space for desk-mate group"
         },
         "DeskMate_NotEnoughSeats": {
             "zh-CN": "学生 {0} 需要 {1} 个相邻座位但仅有 {2} 个可用，已尝试腾挪并部分分配",
@@ -66,10 +58,6 @@
         "DeskMate_PartialAssign": {
             "zh-CN": "学生 {0} 的同桌组部分分配：{1}/{2} 名组员已成功分配",
             "en-US": "Partial desk-mate assignment for student {0}: {1}/{2} members assigned"
-        },
-        "DeskMate_CoordinatedSuccess": {
-            "zh-CN": "学生 {0} 的同桌组已全部协调分配完成（共 {1} 人）",
-            "en-US": "Desk-mate group for student {0} fully coordinated ({1} members)"
         }
     }
 }

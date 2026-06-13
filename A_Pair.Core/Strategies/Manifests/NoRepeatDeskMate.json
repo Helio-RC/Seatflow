@@ -23,10 +23,6 @@
     ],
     "codeBlocks": [],
     "messages": {
-        "NoRepeatDeskMate_Reject": {
-            "zh-CN": "学生 {0} 的目标座位旁有过去的同桌 {1}，尝试重掷换座",
-            "en-US": "Student {0} target seat adjacent to past desk-mate {1}, requesting reroll"
-        },
         "NoRepeatDeskMate_Forced": {
             "zh-CN": "重掷次数已达上限，学生 {0} 被迫与过去的同桌 {1} 相邻",
             "en-US": "Reroll limit reached, student {0} forced adjacent to past desk-mate {1}"

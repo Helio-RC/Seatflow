@@ -184,7 +184,6 @@ namespace A_Pair.Core.Strategies
 
             // 无相邻空座可用，请求重掷
             _logger.LogDebug("DeskMate：学生 {Student} 无法在已分配组员旁找到空座，请求重掷" , student.Name);
-            context.LogWarning(Id , DisplayNameConst , "DeskMate_RejectNoAdjacent" , student.Id);
             return DependentResult.Reject();
         }
 
@@ -262,8 +261,6 @@ namespace A_Pair.Core.Strategies
                         _logger.LogInformation(
                             "DeskMate：腾挪占座者 {OccupantId} 从 {OldSeat} 到 {NewSeat}，释放座位给同桌" ,
                             occSeat.OccupantId ?? "?" , occSeat.Id , candidateEmpty.Id);
-                        context.LogWarning(Id , DisplayNameConst , "DeskMate_EvictSuccess" ,
-                            occSeat.Id , candidateEmpty.Id);
                     }
                 }
             }
@@ -338,12 +335,6 @@ namespace A_Pair.Core.Strategies
             {
                 context.LogWarning(Id , DisplayNameConst , "DeskMate_PartialAssign" ,
                     student.Id , assignedMates , unassignedMates.Count);
-            }
-            else if (assignedMates > 0)
-            {
-                // 全部组员成功分配，写入信息性消息
-                context.LogWarning(Id , DisplayNameConst , "DeskMate_CoordinatedSuccess" ,
-                    student.Id , assignedMates + 1);
             }
 
             return DependentResult.Handled();

@@ -162,8 +162,6 @@ namespace A_Pair.Core.Strategies
                     _logger.LogDebug(
                         "NoRepeatDeskMate：学生 {Student} 的目标座位 {Seat} 旁有过去的同桌 {Mate}，请求重掷" ,
                         student.Name , targetSeat.Id , occSeat.OccupantId);
-                    context.LogWarning(Id , DisplayNameConst , "NoRepeatDeskMate_Reject" ,
-                        student.Id , occSeat.OccupantId!);
                     return DependentResult.Reject();
                 }
 
