@@ -481,7 +481,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         for (int i = 1; i < snapshot.Count; i++)
         {
             if (snapshot[i].IsIndependent == snapshot[i - 1].IsIndependent
-                && snapshot[i].Priority <= snapshot[i - 1].Priority)
+                && snapshot[i].Priority >= snapshot[i - 1].Priority)
                 duplicates.Add(string.Format(Resources.Strategy_DuplicateEntryFmt , snapshot[i].DisplayName , snapshot[i].Priority));
         }
 

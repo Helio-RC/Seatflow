@@ -4,10 +4,10 @@ namespace A_Pair.Plugins.Sdk.Attributes;
 /// 标记一个类为插件，声明插件的元数据信息。
 /// 适用于所有插件类型（策略、数据提供者、导出器等）。
 /// 当应用于实现了 <see cref="A_Pair.Contracts.Interfaces.IPlugin"/> 的类时，
-/// 该特性数据可用于生成或校验 <c>plugin.manifest.json</c> 文件。
+/// 该特性数据可用于生成或校验插件包清单文件。
 /// </summary>
 /// <remarks>
-/// 字段与 <c>PluginManifest</c> 完全对应。仅 <see cref="Id"/> 为必选参数。
+/// 仅 <see cref="Id"/> 为必选参数。
 /// 当插件类同时继承 <see cref="A_Pair.Plugins.Sdk.Abstractions.PluginStrategyBase"/> 时，
 /// 基类会自动读取此特性来填充 <c>Id</c>、<c>Name</c>、<c>Priority</c>、<c>IsEnabled</c>。
 /// </remarks>
@@ -17,7 +17,7 @@ public sealed class PluginAttribute : Attribute
     /// <summary>
     /// 初始化插件特性，指定插件唯一标识符。
     /// </summary>
-    /// <param name="id">插件唯一标识符，对应 <c>plugin.manifest.json</c> 中的 <c>id</c> 字段。</param>
+    /// <param name="id">插件唯一标识符。</param>
     public PluginAttribute (string id)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));

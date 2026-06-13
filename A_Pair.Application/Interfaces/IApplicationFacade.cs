@@ -139,13 +139,10 @@ namespace A_Pair.Application.Interfaces
         /// <summary>设置插件的启用/禁用状态，并重载插件。</summary>
         Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default);
 
-        /// <summary>获取指定插件的原始清单。</summary>
-        Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default);
-
         /// <summary>清除当前工作区和布局状态，用于页面离开时重置。</summary>
         void ClearWorkspace ();
 
-        // ── 插件包管理（新格式） ──
+        // ── 插件包管理 ──
 
         /// <summary>获取所有已加载的插件包展示信息（含策略子组件）。</summary>
         Task<List<PluginPackageDisplayInfo>> GetPluginPackagesAsync (CancellationToken ct = default);
@@ -153,7 +150,7 @@ namespace A_Pair.Application.Interfaces
         /// <summary>设置插件包的整体启用/禁用状态。</summary>
         Task SetPluginPackageEnabledAsync (string packageId , bool enabled , CancellationToken ct = default);
 
-        /// <summary>安装 <c>.ap-plugin</c>（或旧 <c>.apairplugin</c>）插件包。</summary>
+        /// <summary>安装 <c>.ap-plugin</c> 插件包。</summary>
         /// <returns>安装后的插件包目录路径。</returns>
         Task<string> InstallPluginPackageAsync (string packagePath , CancellationToken ct = default);
 
@@ -285,9 +282,6 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>插件包整体是否启用。</summary>
         public bool IsEnabled { get; set; }
-
-        /// <summary>是否为旧格式（单策略）虚拟包。</summary>
-        public bool IsLegacy { get; set; }
 
         /// <summary>图标文件路径（icon.png），不存在则为 null。</summary>
         public string? IconPath { get; set; }

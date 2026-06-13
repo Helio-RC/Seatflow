@@ -4,7 +4,6 @@ namespace A_Pair.Application.Plugins
 {
     /// <summary>
     /// 插件包的启用状态文件（<c>data/enables.json</c>），管理包及各策略的运行时启用/禁用状态。
-    /// 仅用于新格式（<c>plugins-manifest.json</c>）的插件包，旧格式仍使用 manifest 内的 <c>enabled</c> 字段。
     /// </summary>
     public class PluginEnables
     {

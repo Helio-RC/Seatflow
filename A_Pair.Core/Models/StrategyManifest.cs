@@ -2,7 +2,7 @@ namespace A_Pair.Core.Models;
 
 /// <summary>
 /// 策略的不可变元数据，定义策略的默认配置和描述信息。
-/// 内置策略的 manifest 作为嵌入资源编译在 Core.dll 中；插件策略的 manifest 来自 plugin.manifest.json。
+/// 内置策略的 manifest 作为嵌入资源编译在 Core.dll 中；插件策略的 manifest 位于包内策略子目录。
 /// </summary>
 public sealed class StrategyManifest
 {

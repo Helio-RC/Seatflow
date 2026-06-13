@@ -7,7 +7,7 @@ namespace A_Pair.Application.Plugins
     /// 描述插件包的元数据及其包含的所有策略子组件。
     /// </summary>
     /// <remarks>
-    /// 与旧的 <see cref="PluginManifest"/> 不同，包清单不包含单一策略的加载指令，
+    /// 包清单不包含单一策略的加载指令，
     /// 而是通过 <see cref="Strategies"/> 数组声明多个策略子组件，
     /// 每个子组件有独立的 manifest 文件和加载方式。
     /// </remarks>

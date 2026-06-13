@@ -200,15 +200,15 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 5b. 排除标记为不可见（visible=false）的策略 — 它们既不显示也不执行
+            // 5b. 排除标记为不可见（visible=false）的策略
             var invisibleIds = _manifestProvider.GetBuiltInManifests()
                 .Where(m => !m.Visible)
                 .Select(m => m.Id)
                 .ToHashSet();
             foreach (var pi in loadedPlugins)
             {
-                if (!pi.Manifest.Visible)
-                    invisibleIds.Add(pi.Manifest.Id);
+                if (pi.StrategyManifest is { Visible: false })
+                    invisibleIds.Add(pi.StrategyManifest.Id);
             }
             strategies = strategies.Where(s => !invisibleIds.Contains(s.Id)).ToList();
 
@@ -246,14 +246,13 @@ namespace A_Pair.Application.Services
             var builtInDependents = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
             dependentStrategies.AddRange(builtInDependents);
 
-            // 收集插件依赖策略（manifest.IsIndependent == false 的插件）
+            // 收集插件依赖策略（IsIndependent == false 的插件）
             foreach (var pi in loadedPlugins)
             {
-                if (!pi.Manifest.IsIndependent && pi.Strategy.IsEnabled)
+                if (pi.StrategyManifest is { IsIndependent: false } && pi.Strategy.IsEnabled)
                 {
                     // TODO: 插件依赖策略适配器 — 当前插件无法实现 EvaluateAsync，默认 Approve
-                    // 未来需扩展 IPluginSeatingStrategy 添加 EvaluateAsync 支持
-                    logger.LogWarning("插件依赖策略 {PluginId} 尚不支持 EvaluateAsync，将默认批准所有分配" , pi.Manifest.Id);
+                    logger.LogWarning("插件依赖策略 {PluginId} 尚不支持 EvaluateAsync，将默认批准所有分配" , pi.Strategy.Id);
                 }
             }
 
@@ -606,12 +605,13 @@ namespace A_Pair.Application.Services
                 result.Add(info);
             }
 
-            // 收集插件策略（PluginManifest → StrategyManifest + 运行时配置）
+            // 收集插件策略
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             foreach (var pi in loadedPlugins)
             {
                 var (pkg, _) = _pluginManager.FindStrategy(pi.Strategy.Id);
                 var category = pkg?.PackageManifest?.Type ?? "strategy";
+                var sm = pi.StrategyManifest;
 
                 var pluginManifest = new StrategyManifest
                 {
@@ -624,12 +624,12 @@ namespace A_Pair.Application.Services
                     Category = category ,
                     DefaultPriority = pi.Strategy.Priority ,
                     DefaultEnabled = pi.Strategy.IsEnabled ,
-                    Parameters = pi.Manifest?.Parameters ,
-                    CodeBlocks = pi.Manifest?.CodeBlocks ,
-                    Messages = pi.Manifest?.Messages ,
-                    Visible = pi.Manifest?.Visible ?? true ,
-                    IsIndependent = pi.Manifest?.IsIndependent ?? true ,
-                    ManifestVersion = pi.Manifest?.ManifestVersion ?? "1.0"
+                    Parameters = sm?.Parameters ,
+                    CodeBlocks = sm?.CodeBlocks ,
+                    Messages = sm?.Messages ,
+                    Visible = sm?.Visible ?? true ,
+                    IsIndependent = sm?.IsIndependent ?? true ,
+                    ManifestVersion = sm?.ManifestVersion ?? "1.0"
                 };
 
                 var source = $"plugin:{pi.Strategy.Id}";
@@ -662,7 +662,7 @@ namespace A_Pair.Application.Services
 
             // 配置路由：插件策略 → PluginPackageConfigService，内置策略 → StrategyConfigFileRepository
             var (pkg , _) = _pluginManager.FindStrategy(strategyId);
-            if (pkg != null && !pkg.IsLegacyFormat)
+            if (pkg != null)
             {
                 await _pluginPackageConfigService.SaveConfigAsync(strategyId , config , ct);
             }
@@ -707,7 +707,7 @@ namespace A_Pair.Application.Services
         public async Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
         {
             var (pkg , _) = _pluginManager.FindStrategy(strategyId);
-            if (pkg != null && !pkg.IsLegacyFormat)
+            if (pkg != null)
                 return await _pluginPackageConfigService.LoadDatasetConfigsAsync(strategyId , ct);
             return await _datasetConfigRepo.LoadAllAsync(strategyId , ct);
         }
@@ -740,7 +740,7 @@ namespace A_Pair.Application.Services
 
             // 配置路由
             var (pkg , _) = _pluginManager.FindStrategy(config.StrategyId);
-            if (pkg != null && !pkg.IsLegacyFormat)
+            if (pkg != null)
                 await _pluginPackageConfigService.SaveDatasetConfigAsync(config , studentHash , venueHash , ct);
             else
                 await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
@@ -750,7 +750,7 @@ namespace A_Pair.Application.Services
         public async Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
         {
             var (pkg , _) = _pluginManager.FindStrategy(strategyId);
-            if (pkg != null && !pkg.IsLegacyFormat)
+            if (pkg != null)
                 await _pluginPackageConfigService.DeleteDatasetConfigAsync(strategyId , datasetId , venueId , ct);
             else
                 await _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
@@ -1179,13 +1179,8 @@ namespace A_Pair.Application.Services
 
                 foreach (var (strategyId , pluginInfo) in pkgInfo.Strategies)
                 {
-                    var loadKind = pkgInfo.IsLegacyFormat
-                        ? GetLoadKindFromManifest(pluginInfo.Manifest)
-                        : GetLoadKindFromEntry(pluginInfo.Entry);
-
-                    var scriptType = pkgInfo.IsLegacyFormat
-                        ? pluginInfo.Manifest?.ScriptType?.ToLowerInvariant()
-                        : pluginInfo.Entry?.ScriptType?.ToLowerInvariant();
+                    var loadKind = GetLoadKindFromEntry(pluginInfo.Entry);
+                    var scriptType = pluginInfo.Entry?.ScriptType?.ToLowerInvariant();
 
                     strategies.Add(new PluginDisplayInfo
                     {
@@ -1212,7 +1207,6 @@ namespace A_Pair.Application.Services
                     Author = pkgInfo.PackageManifest.Author ,
                     Description = pkgInfo.PackageManifest.Description ,
                     IsEnabled = pkgInfo.Enables?.Enabled ?? true ,
-                    IsLegacy = pkgInfo.IsLegacyFormat ,
                     IconPath = File.Exists(iconPath) ? iconPath : null ,
                     PackagePath = pkgInfo.PackagePath ,
                     Strategies = strategies
@@ -1252,39 +1246,15 @@ namespace A_Pair.Application.Services
             if (pkg == null || plugin == null)
                 throw new InvalidOperationException($"插件 {pluginId} 未加载");
 
-            string? scriptFile = null;
-            string? scriptType = null;
-
-            if (pkg.IsLegacyFormat)
-            {
-                var manifest = plugin.Manifest;
-                if (manifest != null)
-                {
-                    scriptFile = manifest.ScriptFile;
-                    scriptType = manifest.ScriptType;
-                }
-            }
-            else
-            {
-                var entry = plugin.Entry;
-                if (entry != null)
-                {
-                    scriptFile = entry.ScriptFile;
-                    scriptType = entry.ScriptType;
-                }
-            }
-
+            var entry = plugin.Entry;
+            var scriptFile = entry?.ScriptFile;
             if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
             // 优先从策略子目录查找（与 LoadStrategyFromEntry 的查找顺序一致）
             var scriptPath = (string?)null;
-            if (!pkg.IsLegacyFormat)
-            {
-                var entry = plugin.Entry;
-                if (entry != null && !string.IsNullOrEmpty(entry.Path))
-                    scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
-            }
+            if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
             // 回退到包根目录
             if (scriptPath == null || !File.Exists(scriptPath))
             {
@@ -1301,28 +1271,15 @@ namespace A_Pair.Application.Services
             if (pkg == null || plugin == null)
                 throw new InvalidOperationException($"插件 {pluginId} 未加载");
 
-            string? scriptFile = null;
-
-            if (pkg.IsLegacyFormat)
-            {
-                scriptFile = plugin.Manifest?.ScriptFile;
-            }
-            else
-            {
-                scriptFile = plugin.Entry?.ScriptFile;
-            }
-
+            var scriptFile = plugin.Entry?.ScriptFile;
             if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
             // 优先从策略子目录查找（与 LoadStrategyFromEntry 的查找顺序一致）
             var scriptPath = (string?)null;
-            if (!pkg.IsLegacyFormat)
-            {
-                var entry = plugin.Entry;
-                if (entry != null && !string.IsNullOrEmpty(entry.Path))
-                    scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
-            }
+            var entry = plugin.Entry;
+            if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
             // 回退到包根目录
             if (scriptPath == null || !File.Exists(scriptPath))
             {
@@ -1352,34 +1309,6 @@ namespace A_Pair.Application.Services
         public async Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default)
         {
             await _pluginManager.SetStrategyEnabledAsync(pluginId , enabled , ct);
-        }
-
-        /// <inheritdoc />
-        public Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default)
-        {
-            var (pkg , plugin) = _pluginManager.FindStrategy(pluginId);
-            if (pkg != null && pkg.IsLegacyFormat && plugin != null)
-            {
-#pragma warning disable CS0618
-                return Task.FromResult(plugin.Manifest)!;
-#pragma warning restore CS0618
-            }
-            return Task.FromResult<PluginManifest?>(null);
-        }
-
-        private static string GetLoadKindFromManifest (PluginManifest? manifest)
-        {
-            if (manifest == null) return "unknown";
-            if (!string.IsNullOrEmpty(manifest.ScriptFile))
-                return manifest.ScriptType?.ToLowerInvariant() switch
-                {
-                    "lua" => "lua",
-                    "csharp" => "csharp",
-                    _ => "script"
-                };
-            if (!string.IsNullOrEmpty(manifest.Assembly))
-                return "assembly";
-            return "unknown";
         }
 
         private static string GetLoadKindFromEntry (PluginStrategyEntry? entry)
