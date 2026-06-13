@@ -457,6 +457,8 @@ public class Resources
     public static string Strategy_FrontRowRotation => ResourceManager.GetString("Strategy_FrontRowRotation", Culture)!;
     public static string Strategy_HistoryWeight => ResourceManager.GetString("Strategy_HistoryWeight", Culture)!;
     public static string Strategy_List => ResourceManager.GetString("Strategy_List", Culture)!;
+    public static string Strategy_LegendPriority => ResourceManager.GetString("Strategy_LegendPriority", Culture)!;
+    public static string Strategy_LegendBar => ResourceManager.GetString("Strategy_LegendBar", Culture)!;
     public static string Strategy_LoadFailed => ResourceManager.GetString("Strategy_LoadFailed", Culture)!;
     public static string Strategy_LoadedFixedFmt => ResourceManager.GetString("Strategy_LoadedFixedFmt", Culture)!;
     public static string Strategy_LoadedFmt => ResourceManager.GetString("Strategy_LoadedFmt", Culture)!;

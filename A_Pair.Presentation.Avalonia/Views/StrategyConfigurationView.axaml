@@ -105,6 +105,20 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+
+        <!-- 图例说明：位于按钮上方 -->
+        <Border DockPanel.Dock="Bottom" Padding="8,6,8,2"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                BorderThickness="0,1,0,0" Margin="0,4,0,0">
+          <StackPanel Spacing="2">
+            <TextBlock Text="{x:Static lang:Resources.Strategy_LegendPriority}"
+                       FontSize="11"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            <TextBlock Text="{x:Static lang:Resources.Strategy_LegendBar}"
+                       FontSize="11"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+          </StackPanel>
+        </Border>
       </DockPanel>
     </Border>
 

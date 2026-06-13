@@ -1327,6 +1327,12 @@ Current seating will be overwritten.</value>
   <data name="Strategy_List" xml:space="preserve">
     <value>Strategy list</value>
   </data>
+  <data name="Strategy_LegendPriority" xml:space="preserve">
+    <value>Higher number = higher priority</value>
+  </data>
+  <data name="Strategy_LegendBar" xml:space="preserve">
+    <value>▌ Bar = executes during random fill</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>Failed to load strategies</value>
   </data>
