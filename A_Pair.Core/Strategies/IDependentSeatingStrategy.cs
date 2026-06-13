@@ -67,6 +67,12 @@ namespace A_Pair.Core.Strategies
         /// 验证策略配置是否有效。
         /// </summary>
         ValidationResult ValidateConfiguration ();
+
+        /// <summary>
+        /// 返回此策略认为有特殊约束、应优先分配以减少重掷的学生 ID 集合。
+        /// 默认返回空集。DeskMate 返回组内学生，NoRepeatDeskMate 返回有历史同桌的学生。
+        /// </summary>
+        HashSet<string> GetConstrainedStudentIds () => [];
     }
 
     /// <summary>

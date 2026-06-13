@@ -427,6 +427,18 @@ namespace A_Pair.Core.Strategies
 
             return new ValidationResult { IsValid = true };
         }
+
+        /// <inheritdoc />
+        public HashSet<string> GetConstrainedStudentIds ()
+        {
+            var ids = new HashSet<string>();
+            foreach (var g in _config.Groups)
+            {
+                foreach (var sid in g.StudentIds)
+                    ids.Add(sid);
+            }
+            return ids;
+        }
     }
 
     /// <summary>

@@ -125,11 +125,7 @@ namespace A_Pair.Core.Strategies
             CancellationToken ct)
         {
             // Fisher-Yates 洗牌
-            for (int i = students.Count - 1; i > 0; i--)
-            {
-                int j = _random.Next(i + 1);
-                (students[j] , students[i]) = (students[i] , students[j]);
-            }
+            FisherYatesShuffle(students);
 
             int assignCount = Math.Min(seats.Count , students.Count);
             for (int i = 0; i < assignCount && !ct.IsCancellationRequested; i++)
@@ -153,6 +149,29 @@ namespace A_Pair.Core.Strategies
             var emptySeats = new List<Seat>(initialEmptySeats);
             var unassignedStudents = new List<Student>(initialUnassigned);
             var enabledDependents = _dependentStrategies.Where(s => s.IsEnabled).ToList();
+
+            // 收集有特殊约束的学生 ID，优先分配以减少重掷
+            var constrainedIds = new HashSet<string>();
+            foreach (var dep in enabledDependents)
+            {
+                foreach (var id in dep.GetConstrainedStudentIds())
+                    constrainedIds.Add(id);
+            }
+
+            if (constrainedIds.Count > 0)
+            {
+                var constrained = unassignedStudents.Where(s => constrainedIds.Contains(s.Id)).ToList();
+                var unconstrained = unassignedStudents.Where(s => !constrainedIds.Contains(s.Id)).ToList();
+
+                // 两组各自洗牌
+                FisherYatesShuffle(constrained);
+                FisherYatesShuffle(unconstrained);
+
+                unassignedStudents = constrained.Concat(unconstrained).ToList();
+                _logger.LogInformation(
+                    "RandomFill：约束学生优先——{Constrained} 人先分配，{Unconstrained} 人后分配" ,
+                    constrained.Count , unconstrained.Count);
+            }
 
             int maxRerolls = DefaultMaxRerolls;
             int totalRerolls = 0;
@@ -292,6 +311,16 @@ namespace A_Pair.Core.Strategies
             unassignedStudents = workspace.Students
                 .Where(s => !assignedIds.Contains(s.Id))
                 .ToList();
+        }
+
+        /// <summary>Fisher-Yates 洗牌，原地修改列表。</summary>
+        private void FisherYatesShuffle<T> (IList<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = _random.Next(i + 1);
+                (list[j] , list[i]) = (list[i] , list[j]);
+            }
         }
 
         private void LogCompletion (SeatingWorkspace workspace)
