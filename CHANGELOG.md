@@ -4,6 +4,22 @@
 
 ## [1.0.0] — 2026-06-07
 
+### Changed
+- **插件系统重构**：从单策略插件改为多策略插件包架构（`plugins-manifest.json` + 策略 `manifest.json` 双层清单），支持一个包承载多个策略和热插拔。旧格式 `plugin.manifest.json` 向后兼容，自动转换为虚拟包。新增 `.ap-plugin` 打包格式（旧 `.apairplugin` 仍受支持）。
+
+### Added
+- 插件包级管理 API（`GetPluginPackagesAsync`、`InstallPluginPackageAsync`、`UninstallPluginPackageAsync`、`RefreshPluginPackageAsync`）
+- `PluginPackageConfigService` — 插件策略配置存储路由（与内置策略物理分离）
+- `PluginEnables` — 运行时启用状态管理（`data/enables.json`）
+- ADR-007 — 多策略插件包架构决策记录
+- `PluginManager` 支持单个包热重载（`RefreshPackageAsync`）和策略级启用/禁用（`SetStrategyEnabledAsync`）
+- 包级配置路由：内置策略 → `AppData/StrategyConfig/`，插件策略 → `Plugins/{pkgId}/{strategyPath}/`
+
+### Obsoleted
+- `PluginManifest` 标记为 `[Obsolete]`，新代码应使用 `PluginPackageManifest` + 策略 `manifest.json`
+
+## [1.0.0] — 2026-06-07
+
 ### Added
 - 导航区页面可导航性管理（`Data/page_navigation.json`），支持禁用页面并提示原因
 - 确定性构建（`<Deterministic>true` + `<PathMap>`），相同源码产生相同 DLL

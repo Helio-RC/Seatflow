@@ -133,6 +133,7 @@ namespace A_Pair.Application.Services
                 new PluginManager(pluginsPath , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
             services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath ,
                 sp.GetRequiredService<ILogger<PluginConfigurationService>>()));
+            services.AddSingleton<PluginPackageConfigService>();
 
             // 注册场地仓储（全局单例，使用有效数据路径）
             var venuesPath = Path.Combine(effectiveDataPath , "Venues");

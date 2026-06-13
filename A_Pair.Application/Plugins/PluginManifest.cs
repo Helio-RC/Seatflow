@@ -4,13 +4,15 @@ using A_Pair.Core.Models;
 namespace A_Pair.Application.Plugins
 {
     /// <summary>
-    /// 插件清单，描述插件的元数据、加载方式和运行时配置。
+    /// 旧版插件清单（对应 <c>plugin.manifest.json</c>），描述单策略插件的元数据、加载方式和运行时配置。
     /// </summary>
     /// <remarks>
-    /// 清单文件 <c>plugin.manifest.json</c> 必须位于插件根目录下。
-    /// 支持程序集插件（通过 <see cref="Assembly"/> 和 <see cref="Type"/> 指定入口类型）
-    /// 和脚本插件（通过 <see cref="ScriptFile"/> 和 <see cref="ScriptType"/> 指定脚本文件）。
+    /// <para><b>已废弃（Obsolete）</b> — 新插件应使用 <c>plugins-manifest.json</c>（<see cref="PluginPackageManifest"/>）+ 策略 <c>manifest.json</c>（<see cref="StrategyManifest"/>）双层清单格式。</para>
+    /// <para>旧清单文件 <c>plugin.manifest.json</c> 必须位于插件根目录下。</para>
+    /// <para>支持程序集插件（通过 <see cref="Assembly"/> 和 <see cref="Type"/> 指定入口类型）
+    /// 和脚本插件（通过 <see cref="ScriptFile"/> 和 <see cref="ScriptType"/> 指定脚本文件）。</para>
     /// </remarks>
+    [Obsolete("新插件应使用 PluginPackageManifest + 策略 manifest.json 双层格式。旧格式仍受支持，通过 ToPackageEntry() 自动转换为虚拟包。")]
     public class PluginManifest
     {
         /// <summary>
@@ -124,5 +126,37 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         [JsonPropertyName("manifestVersion")]
         public string ManifestVersion { get; set; } = "1.0";
+
+        /// <summary>
+        /// 将旧格式的 <see cref="PluginManifest"/> 转换为新格式的 <see cref="PluginPackageManifest"/> 和 <see cref="PluginStrategyEntry"/>。
+        /// 旧格式中包 ID = 策略 ID，策略路径为空字符串（即直接位于包根目录）。
+        /// </summary>
+        /// <returns>包含虚拟包清单和策略条目的元组。</returns>
+        public (PluginPackageManifest PackageManifest , PluginStrategyEntry StrategyEntry) ToPackageEntry ()
+        {
+            var packageManifest = new PluginPackageManifest
+            {
+                Id = Id ,
+                Name = Name ,
+                Version = Version ,
+                Author = Author ,
+                Description = Description ,
+                Type = Category ,
+                Strategies = []
+            };
+
+            var strategyEntry = new PluginStrategyEntry
+            {
+                Path = string.Empty ,  // 旧格式策略直接位于包根目录
+                Manifest = string.Empty , // 旧格式无独立 manifest 文件
+                Assembly = string.IsNullOrEmpty(Assembly) ? null : Assembly ,
+                EntryType = string.IsNullOrEmpty(Type) ? null : Type ,
+                ScriptFile = ScriptFile ,
+                ScriptType = ScriptType
+            };
+
+            packageManifest.Strategies.Add(strategyEntry);
+            return (packageManifest , strategyEntry);
+        }
     }
 }

@@ -20,6 +20,7 @@ public partial class PluginManagementViewModel : ViewModelBase
 
 
     public string PluginCountDisplay => string.Format(Resources.Plugin_FoundFmt , Plugins.Count);
+    public string PackageCountDisplay => string.Format(Resources.Plugin_FoundFmt , Packages.Count);
     public string SelectedPluginVersionDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_VersionFmt , SelectedPlugin.Version) : "";
     public string SelectedPluginAuthorDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_AuthorFmt , SelectedPlugin.Author) : "";
 
@@ -32,7 +33,32 @@ public partial class PluginManagementViewModel : ViewModelBase
     /// <summary>页面标题。</summary>
     public string Title { get; } = Resources.Plugin_Title;
 
-    // ── 插件列表 ──
+    // ── 包列表 ──
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPackages))]
+    private ObservableCollection<PluginPackageDisplayInfo> _packages = [];
+
+    /// <summary>是否有已发现的插件包。</summary>
+    public bool HasPackages => Packages.Count > 0;
+
+    // ── 选中包 ──
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPackageSelected))]
+    [NotifyPropertyChangedFor(nameof(PackageStrategies))]
+    private PluginPackageDisplayInfo? _selectedPackage;
+
+    /// <summary>是否有选中的包。</summary>
+    public bool HasPackageSelected => SelectedPackage != null;
+
+    /// <summary>选中包内的策略列表（展平）。</summary>
+    public ObservableCollection<PluginDisplayInfo> PackageStrategies =>
+        SelectedPackage != null
+            ? new ObservableCollection<PluginDisplayInfo>(SelectedPackage.Strategies)
+            : [];
+
+    // ── 插件列表（展平视图，保留向后兼容） ──
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPlugins))]
@@ -93,20 +119,41 @@ public partial class PluginManagementViewModel : ViewModelBase
     {
         await SafeExecuteAsync(async () =>
         {
-            var plugins = await _facade.GetPluginsAsync();
-            // 保留当前选中插件的 Id
-            var selectedId = SelectedPlugin?.Id;
+            // 加载包级数据
+            var packages = await _facade.GetPluginPackagesAsync();
+            var selectedPkgId = SelectedPackage?.PackageId;
 
+            Packages.Clear();
+            foreach (var p in packages.OrderByDescending(p => p.Strategies.FirstOrDefault()?.Priority ?? 0).ThenBy(p => p.PackageName))
+                Packages.Add(p);
+
+            // 展平到 Plugins 列表（向后兼容）
+            var selectedId = SelectedPlugin?.Id;
             Plugins.Clear();
-            foreach (var p in plugins.OrderByDescending(p => p.Priority).ThenBy(p => p.Name))
-                Plugins.Add(p);
+            foreach (var p in packages)
+            {
+                foreach (var s in p.Strategies.OrderByDescending(s => s.Priority).ThenBy(s => s.Name))
+                    Plugins.Add(s);
+            }
 
             OnPropertyChanged(nameof(HasPlugins));
             OnPropertyChanged(nameof(EmptyHintVisible));
+            OnPropertyChanged(nameof(HasPackages));
 
+            if (selectedPkgId != null)
+                SelectedPackage = Packages.FirstOrDefault(p => p.PackageId == selectedPkgId);
             if (selectedId != null)
-                SelectedPlugin = Plugins.FirstOrDefault(p => p.Id == selectedId);
+                SelectedPlugin = Plugins.FirstOrDefault(s => s.Id == selectedId);
         });
+    }
+
+    /// <summary>选中包变更时刷新策略子列表。</summary>
+    partial void OnSelectedPackageChanged (PluginPackageDisplayInfo? value)
+    {
+        OnPropertyChanged(nameof(PackageStrategies));
+        // 自动选中第一个策略
+        if (value != null && value.Strategies.Count > 0 && SelectedPlugin == null)
+            SelectedPlugin = value.Strategies[0];
     }
 
     /// <summary>选中插件变更时加载脚本和配置。</summary>
@@ -177,6 +224,33 @@ public partial class PluginManagementViewModel : ViewModelBase
             await _facade.SetPluginEnabledAsync(SelectedPlugin.Id , newEnabled);
             SelectedPlugin.IsEnabled = newEnabled;
             StatusMessage = string.Format(Resources.Plugin_ToggledFmt , SelectedPlugin.Name , newEnabled ? Resources.Common_Enabled : Resources.Common_Disabled);
+        } , Resources.Plugin_ToggleFailed);
+    }
+
+    [RelayCommand]
+    private async Task TogglePackageEnabled ()
+    {
+        if (SelectedPackage == null) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            var newEnabled = !SelectedPackage.IsEnabled;
+            await _facade.SetPluginPackageEnabledAsync(SelectedPackage.PackageId , newEnabled);
+            SelectedPackage.IsEnabled = newEnabled;
+            StatusMessage = string.Format(Resources.Plugin_ToggledFmt , SelectedPackage.PackageName , newEnabled ? Resources.Common_Enabled : Resources.Common_Disabled);
+        } , Resources.Plugin_ToggleFailed);
+    }
+
+    [RelayCommand]
+    private async Task UninstallPackage ()
+    {
+        if (SelectedPackage == null) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            await _facade.UninstallPluginPackageAsync(SelectedPackage.PackageId);
+            StatusMessage = string.Format(Resources.Plugin_ToggledFmt , SelectedPackage.PackageName , "已卸载");
+            await RefreshPlugins();
         } , Resources.Plugin_ToggleFailed);
     }
 

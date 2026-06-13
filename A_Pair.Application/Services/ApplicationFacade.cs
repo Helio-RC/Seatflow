@@ -44,6 +44,7 @@ namespace A_Pair.Application.Services
         StrategyManifestProvider manifestProvider ,
         StrategyConfigFileRepository strategyConfigRepo ,
         StrategyDatasetConfigRepository datasetConfigRepo ,
+        PluginPackageConfigService pluginPackageConfigService ,
         ILogger<ApplicationFacade> logger) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -58,6 +59,7 @@ namespace A_Pair.Application.Services
         private readonly StrategyManifestProvider _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private readonly StrategyDatasetConfigRepository _datasetConfigRepo = datasetConfigRepo ?? throw new ArgumentNullException(nameof(datasetConfigRepo));
+        private readonly PluginPackageConfigService _pluginPackageConfigService = pluginPackageConfigService ?? throw new ArgumentNullException(nameof(pluginPackageConfigService));
         private SeatingWorkspace? _currentWorkspace;
         // 注意：以下字段假定单线程访问（桌面 UI 线程）。
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
@@ -641,7 +643,16 @@ namespace A_Pair.Application.Services
             logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}" ,
                 strategyId , config.Priority , config.IsEnabled);
 
-            await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
+            // 配置路由：插件策略 → PluginPackageConfigService，内置策略 → StrategyConfigFileRepository
+            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            if (pkg != null && !pkg.IsLegacyFormat)
+            {
+                await _pluginPackageConfigService.SaveConfigAsync(strategyId , config , ct);
+            }
+            else
+            {
+                await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
+            }
 
             var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
@@ -662,12 +673,26 @@ namespace A_Pair.Application.Services
                 depStrategy.IsEnabled = config.IsEnabled;
                 ApplyDependentConfiguration(depStrategy , config.Parameters);
             }
+
+            // 尝试从插件策略更新运行时状态
+            if (pkg != null)
+            {
+                var pluginInfo = _pluginManager.GetLoadedPlugin(strategyId);
+                if (pluginInfo is not null)
+                {
+                    pluginInfo.Strategy.Priority = config.Priority;
+                    pluginInfo.Strategy.IsEnabled = config.IsEnabled;
+                }
+            }
         }
 
         /// <inheritdoc />
-        public Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
+        public async Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
         {
-            return _datasetConfigRepo.LoadAllAsync(strategyId , ct);
+            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            if (pkg != null && !pkg.IsLegacyFormat)
+                return await _pluginPackageConfigService.LoadDatasetConfigsAsync(strategyId , ct);
+            return await _datasetConfigRepo.LoadAllAsync(strategyId , ct);
         }
 
         private static readonly JsonSerializerOptions StudentHashOptions = new()
@@ -696,13 +721,22 @@ namespace A_Pair.Application.Services
             if (!string.IsNullOrEmpty(config.VenueId))
                 venueHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
 
-            await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
+            // 配置路由
+            var (pkg , _) = _pluginManager.FindStrategy(config.StrategyId);
+            if (pkg != null && !pkg.IsLegacyFormat)
+                await _pluginPackageConfigService.SaveDatasetConfigAsync(config , studentHash , venueHash , ct);
+            else
+                await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
         }
 
         /// <inheritdoc />
-        public Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
+        public async Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
         {
-            return _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
+            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            if (pkg != null && !pkg.IsLegacyFormat)
+                await _pluginPackageConfigService.DeleteDatasetConfigAsync(strategyId , datasetId , venueId , ct);
+            else
+                await _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
         }
 
         /// <inheritdoc />
@@ -1098,55 +1132,181 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default)
         {
-            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
+            // 从包级 API 展平所有策略
+            var packages = await GetPluginPackagesAsync(ct);
             var result = new List<PluginDisplayInfo>();
-            foreach (var pi in loadedPlugins)
+            foreach (var pkg in packages)
             {
-                var iconPath = Path.Combine(pi.PluginPath , "icon.png");
-                result.Add(new PluginDisplayInfo
+                result.AddRange(pkg.Strategies);
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<PluginPackageDisplayInfo>> GetPluginPackagesAsync (CancellationToken ct = default)
+        {
+            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
+            var result = new List<PluginPackageDisplayInfo>();
+
+            foreach (var (packageId , pkgInfo) in _pluginManager.LoadedPackages)
+            {
+                var iconPath = Path.Combine(pkgInfo.PackagePath , "icon.png");
+                var strategies = new List<PluginDisplayInfo>();
+
+                foreach (var (strategyId , pluginInfo) in pkgInfo.Strategies)
                 {
-                    Id = pi.Manifest.Id ,
-                    Name = pi.Manifest.Name ,
-                    Version = pi.Manifest.Version ,
-                    Category = pi.Manifest.Category ,
-                    LoadKind = GetLoadKind(pi.Manifest) ,
-                    IsEnabled = pi.Strategy.IsEnabled ,
-                    Description = pi.Manifest.Description ,
-                    Author = pi.Manifest.Author ,
-                    Priority = pi.Strategy.Priority ,
-                    ScriptType = pi.Manifest.ScriptType?.ToLowerInvariant() ,
-                    PluginPath = pi.PluginPath ,
-                    IconPath = File.Exists(iconPath) ? iconPath : null
+                    var loadKind = pkgInfo.IsLegacyFormat
+                        ? GetLoadKindFromManifest(pluginInfo.Manifest)
+                        : GetLoadKindFromEntry(pkgInfo.PackageManifest.Strategies
+                            .FirstOrDefault(s => pkgInfo.Strategies.ContainsKey(strategyId)));
+
+                    var scriptType = pkgInfo.IsLegacyFormat
+                        ? pluginInfo.Manifest?.ScriptType?.ToLowerInvariant()
+                        : pkgInfo.PackageManifest.Strategies
+                            .FirstOrDefault(s => pkgInfo.Strategies.ContainsKey(strategyId))?.ScriptType?.ToLowerInvariant();
+
+                    strategies.Add(new PluginDisplayInfo
+                    {
+                        Id = strategyId ,
+                        Name = pluginInfo.Strategy.Name ,
+                        Version = pkgInfo.PackageManifest.Version ,
+                        Category = pkgInfo.PackageManifest.Type ,
+                        LoadKind = loadKind ,
+                        IsEnabled = pluginInfo.Strategy.IsEnabled ,
+                        Description = pkgInfo.PackageManifest.Description ,
+                        Author = pkgInfo.PackageManifest.Author ,
+                        Priority = pluginInfo.Strategy.Priority ,
+                        ScriptType = scriptType ,
+                        PluginPath = pkgInfo.PackagePath ,
+                        IconPath = File.Exists(iconPath) ? iconPath : null
+                    });
+                }
+
+                result.Add(new PluginPackageDisplayInfo
+                {
+                    PackageId = packageId ,
+                    PackageName = pkgInfo.PackageManifest.Name ,
+                    Version = pkgInfo.PackageManifest.Version ,
+                    Author = pkgInfo.PackageManifest.Author ,
+                    Description = pkgInfo.PackageManifest.Description ,
+                    IsEnabled = pkgInfo.Enables?.Enabled ?? true ,
+                    IsLegacy = pkgInfo.IsLegacyFormat ,
+                    IconPath = File.Exists(iconPath) ? iconPath : null ,
+                    PackagePath = pkgInfo.PackagePath ,
+                    Strategies = strategies
                 });
             }
             return result;
         }
 
         /// <inheritdoc />
+        public async Task SetPluginPackageEnabledAsync (string packageId , bool enabled , CancellationToken ct = default)
+        {
+            await _pluginManager.SetPackageEnabledAsync(packageId , enabled , ct);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> InstallPluginPackageAsync (string packagePath , CancellationToken ct = default)
+        {
+            return await _pluginManager.InstallFromPackageAsync(packagePath);
+        }
+
+        /// <inheritdoc />
+        public async Task UninstallPluginPackageAsync (string packageId , CancellationToken ct = default)
+        {
+            await _pluginManager.UnloadPackageAsync(packageId);
+        }
+
+        /// <inheritdoc />
+        public async Task RefreshPluginPackageAsync (string packageId , CancellationToken ct = default)
+        {
+            await _pluginManager.RefreshPackageAsync(packageId , ct);
+        }
+
+        /// <inheritdoc />
         public async Task<string> GetPluginScriptAsync (string pluginId , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
-            if (string.IsNullOrEmpty(manifest.ScriptFile))
+            var (pkg , plugin) = _pluginManager.FindStrategy(pluginId);
+            if (pkg == null || plugin == null)
+                throw new InvalidOperationException($"插件 {pluginId} 未加载");
+
+            string? scriptFile = null;
+            string? scriptType = null;
+
+            if (pkg.IsLegacyFormat)
+            {
+                var manifest = plugin.Manifest;
+                if (manifest != null)
+                {
+                    scriptFile = manifest.ScriptFile;
+                    scriptType = manifest.ScriptType;
+                }
+            }
+            else
+            {
+                var entry = pkg.PackageManifest.Strategies
+                    .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
+                if (entry != null)
+                {
+                    scriptFile = entry.ScriptFile;
+                    scriptType = entry.ScriptType;
+                }
+            }
+
+            if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
-            var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
+            var scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
+            if (!File.Exists(scriptPath))
+            {
+                // 尝试从策略子目录查找
+                if (!pkg.IsLegacyFormat)
+                {
+                    var entry = pkg.PackageManifest.Strategies
+                        .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
+                    if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                        scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
+                }
+            }
+
             return await File.ReadAllTextAsync(scriptPath , ct);
         }
 
         /// <inheritdoc />
         public async Task SavePluginScriptAsync (string pluginId , string script , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
-            if (string.IsNullOrEmpty(manifest.ScriptFile))
+            var (pkg , plugin) = _pluginManager.FindStrategy(pluginId);
+            if (pkg == null || plugin == null)
+                throw new InvalidOperationException($"插件 {pluginId} 未加载");
+
+            string? scriptFile = null;
+
+            if (pkg.IsLegacyFormat)
+            {
+                scriptFile = plugin.Manifest?.ScriptFile;
+            }
+            else
+            {
+                var entry = pkg.PackageManifest.Strategies
+                    .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
+                scriptFile = entry?.ScriptFile;
+            }
+
+            if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
-            var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
+            var scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
+            if (!File.Exists(scriptPath))
+            {
+                if (!pkg.IsLegacyFormat)
+                {
+                    var entry = pkg.PackageManifest.Strategies
+                        .FirstOrDefault(s => pkg.Strategies.ContainsKey(pluginId));
+                    if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                        scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
+                }
+            }
+
             await File.WriteAllTextAsync(scriptPath , script , ct);
         }
 
@@ -1169,31 +1329,25 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
-
-            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
-
-            // 更新运行时策略和内存中的清单
-            plugin.Strategy.IsEnabled = enabled;
-            manifest.Enabled = enabled;
-
-            // 持久化到 manifest 文件
-            var manifestPath = Path.Combine(plugin.PluginPath , "plugin.manifest.json");
-            var json = System.Text.Json.JsonSerializer.Serialize(manifest , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(manifestPath , json , ct);
+            await _pluginManager.SetStrategyEnabledAsync(pluginId , enabled , ct);
         }
 
         /// <inheritdoc />
         public Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId);
-            return Task.FromResult(manifest);
+            var (pkg , plugin) = _pluginManager.FindStrategy(pluginId);
+            if (pkg != null && pkg.IsLegacyFormat && plugin != null)
+            {
+#pragma warning disable CS0618
+                return Task.FromResult(plugin.Manifest)!;
+#pragma warning restore CS0618
+            }
+            return Task.FromResult<PluginManifest?>(null);
         }
 
-        private static string GetLoadKind (PluginManifest manifest)
+        private static string GetLoadKindFromManifest (PluginManifest? manifest)
         {
+            if (manifest == null) return "unknown";
             if (!string.IsNullOrEmpty(manifest.ScriptFile))
                 return manifest.ScriptType?.ToLowerInvariant() switch
                 {
@@ -1202,6 +1356,21 @@ namespace A_Pair.Application.Services
                     _ => "script"
                 };
             if (!string.IsNullOrEmpty(manifest.Assembly))
+                return "assembly";
+            return "unknown";
+        }
+
+        private static string GetLoadKindFromEntry (PluginStrategyEntry? entry)
+        {
+            if (entry == null) return "unknown";
+            if (!string.IsNullOrEmpty(entry.ScriptFile) && !string.IsNullOrEmpty(entry.ScriptType))
+                return entry.ScriptType.ToLowerInvariant() switch
+                {
+                    "lua" => "lua",
+                    "csharp" => "csharp",
+                    _ => "script"
+                };
+            if (!string.IsNullOrEmpty(entry.Assembly) && !string.IsNullOrEmpty(entry.EntryType))
                 return "assembly";
             return "unknown";
         }

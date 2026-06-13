@@ -145,6 +145,24 @@ namespace A_Pair.Application.Interfaces
         /// <summary>清除当前工作区和布局状态，用于页面离开时重置。</summary>
         void ClearWorkspace ();
 
+        // ── 插件包管理（新格式） ──
+
+        /// <summary>获取所有已加载的插件包展示信息（含策略子组件）。</summary>
+        Task<List<PluginPackageDisplayInfo>> GetPluginPackagesAsync (CancellationToken ct = default);
+
+        /// <summary>设置插件包的整体启用/禁用状态。</summary>
+        Task SetPluginPackageEnabledAsync (string packageId , bool enabled , CancellationToken ct = default);
+
+        /// <summary>安装 <c>.ap-plugin</c>（或旧 <c>.apairplugin</c>）插件包。</summary>
+        /// <returns>安装后的插件包目录路径。</returns>
+        Task<string> InstallPluginPackageAsync (string packagePath , CancellationToken ct = default);
+
+        /// <summary>卸载指定插件包（删除目录并释放资源）。</summary>
+        Task UninstallPluginPackageAsync (string packageId , CancellationToken ct = default);
+
+        /// <summary>热重载指定插件包：卸载后重新扫描加载。</summary>
+        Task RefreshPluginPackageAsync (string packageId , CancellationToken ct = default);
+
         /// <summary>检查快照关联会场的完整性。返回 (文件是否存在, 哈希是否匹配)。</summary>
         Task<(bool Exists , bool HashMatch)> CheckVenueIntegrityAsync (string venueId , string? snapshotVenueHash , CancellationToken ct = default);
 
@@ -242,5 +260,42 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>图标文件路径（icon.png），不存在则为 null。</summary>
         public string? IconPath { get; set; }
+    }
+
+    /// <summary>
+    /// 插件包展示信息，用于插件管理界面包层级展示。
+    /// 新格式包可包含多个策略子组件。
+    /// </summary>
+    public class PluginPackageDisplayInfo
+    {
+        /// <summary>插件包唯一标识符。</summary>
+        public string PackageId { get; set; } = string.Empty;
+
+        /// <summary>插件包显示名称。</summary>
+        public string PackageName { get; set; } = string.Empty;
+
+        /// <summary>插件包版本号。</summary>
+        public string Version { get; set; } = string.Empty;
+
+        /// <summary>插件包作者。</summary>
+        public string Author { get; set; } = string.Empty;
+
+        /// <summary>插件包描述。</summary>
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>插件包整体是否启用。</summary>
+        public bool IsEnabled { get; set; }
+
+        /// <summary>是否为旧格式（单策略）虚拟包。</summary>
+        public bool IsLegacy { get; set; }
+
+        /// <summary>图标文件路径（icon.png），不存在则为 null。</summary>
+        public string? IconPath { get; set; }
+
+        /// <summary>插件包目录路径。</summary>
+        public string PackagePath { get; set; } = string.Empty;
+
+        /// <summary>包内包含的策略子组件列表。</summary>
+        public List<PluginDisplayInfo> Strategies { get; set; } = [];
     }
 }

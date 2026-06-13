@@ -64,4 +64,60 @@ public class PluginManifestTests
         manifest.ScriptFile.Should().Be("script.lua");
         manifest.ScriptType.Should().Be("lua");
     }
+
+    [Fact]
+    public void ToPackageEntry_ShouldMapAllFields ()
+    {
+        var manifest = new PluginManifest
+        {
+            Id = "my-plugin" ,
+            Name = "My Plugin" ,
+            Version = "2.0.0" ,
+            Author = "Author" ,
+            Description = "Desc" ,
+            Category = "strategy" ,
+            Assembly = "MyPlugin.dll" ,
+            Type = "MyPlugin.MyStrategy" ,
+            Priority = 30 ,
+            Enabled = true
+        };
+
+        var (pkg , entry) = manifest.ToPackageEntry();
+
+        // 包清单映射
+        pkg.Id.Should().Be("my-plugin");
+        pkg.Name.Should().Be("My Plugin");
+        pkg.Version.Should().Be("2.0.0");
+        pkg.Author.Should().Be("Author");
+        pkg.Description.Should().Be("Desc");
+        pkg.Type.Should().Be("strategy");
+
+        // 策略条目映射
+        entry.Path.Should().BeEmpty(); // 旧格式无子目录
+        entry.Manifest.Should().BeEmpty();
+        entry.Assembly.Should().Be("MyPlugin.dll");
+        entry.EntryType.Should().Be("MyPlugin.MyStrategy");
+
+        // 包清单应包含该策略
+        pkg.Strategies.Should().ContainSingle();
+    }
+
+    [Fact]
+    public void ToPackageEntry_ScriptPlugin_ShouldMapScriptFields ()
+    {
+        var manifest = new PluginManifest
+        {
+            Id = "lua-plugin" ,
+            Name = "Lua Plugin" ,
+            ScriptFile = "strategy.lua" ,
+            ScriptType = "lua"
+        };
+
+        var (pkg , entry) = manifest.ToPackageEntry();
+
+        entry.ScriptFile.Should().Be("strategy.lua");
+        entry.ScriptType.Should().Be("lua");
+        entry.Assembly.Should().BeNull();
+        entry.EntryType.Should().BeNull();
+    }
 }
