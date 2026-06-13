@@ -18,7 +18,7 @@ namespace A_Pair.Core.Strategies
     /// <item>低 Priority（后执行）= 在剩余空座中工作。最终兜底策略确保全场填满</item>
     /// </list>
     /// <para>
-    /// 内置策略：FixedSeat(100) → FrontRowRotation(90) → DeskMate(80) → RandomFill(10)。
+    /// 内置策略：FixedSeat(100) → FrontRowRotation(50) → DeskMate(50) → RandomFill(1)。
     /// 策略间的冲突解决 = Priority 数值本身——先到先得。
     /// 参见 docs/adr/ADR-006.md。
     /// </para>
@@ -34,8 +34,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>
         /// 执行优先级，数值越大越先执行（降序）。
         /// 管道采用"按优先级填空"模型：先执行的策略先占用座位，后执行的在剩余空座中择优。
-        /// 内置策略：FixedSeat=100（锁定固定座）, FrontRowRotation=90（填前排）,
-        /// DeskMate=80（同桌分组）, RandomFill=10（最终兜底）。
+        /// 内置策略：FixedSeat=100（锁定固定座）, FrontRowRotation=50（填前排）,
+        /// DeskMate=50（同桌分组）, RandomFill=1（最终兜底）。
         /// </summary>
         int Priority { get; set; }
 

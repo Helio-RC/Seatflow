@@ -100,8 +100,8 @@ public class DeskMateStrategyTests
         var result = await strategy.EvaluateAsync(
             ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
 
-        result.Approved.Should().BeFalse();
-        result.AlreadyHandled.Should().BeFalse();
+        result.Approved.Should().BeTrue();
+        result.AlreadyHandled.Should().BeTrue();
     }
 
     [Fact]
@@ -391,8 +391,8 @@ public class DeskMateStrategyTests
         var result = await strategy.EvaluateAsync(
             ws , students[0] , seats[0] , CreateContext() , CancellationToken.None);
 
-        result.Approved.Should().BeFalse();
-        result.AlreadyHandled.Should().BeFalse();
+        result.Approved.Should().BeTrue();
+        result.AlreadyHandled.Should().BeTrue();
     }
 
     [Fact]

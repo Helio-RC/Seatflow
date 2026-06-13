@@ -48,9 +48,9 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 | Order | Strategy | Priority | Type | Role |
 |-------|----------|----------|------|------|
 | 1st | `FixedSeatStrategy` | 100 | Independent | Locks fixed seats (IsFixed=true), excluded from all later GetEmptySeats |
-| 2nd | `FrontRowRotationStrategy` | 90 | Independent | Fills front-row seats from remaining empty non-fixed seats |
-| — | `DeskMateStrategy` | 80 (context) | Dependent | Runs inside RandomFill: checks desk-mate groups on each (student,seat) pair, coordinates adjacent assignments, requests reroll |
-| 3rd | `RandomFillStrategy` | 10 | Independent + Host | Fills remaining seats; hosts dependent strategies in its assignment loop (`IDependentSeatingStrategy`) |
+| 2nd | `FrontRowRotationStrategy` | 50 | Independent | Fills front-row seats from remaining empty non-fixed seats |
+| — | `DeskMateStrategy` | 50 (context) | Dependent | Runs inside RandomFill: checks desk-mate groups on each (student,seat) pair, coordinates adjacent assignments, requests reroll |
+| 3rd | `RandomFillStrategy` | 1 | Independent + Host | Fills remaining seats; hosts dependent strategies in its assignment loop (`IDependentSeatingStrategy`) |
 
 Conflict resolution = Priority number (first-come-first-served). Dependent strategies have their own internal priority ordering within RandomFill's context (independent from external pipeline priority). See `docs/adr/ADR-006.md`.
 

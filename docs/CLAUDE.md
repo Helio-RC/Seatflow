@@ -44,9 +44,9 @@ A_Pair 是基于 .NET 10 + Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4 的
 | 执行顺序 | 策略 | Priority | 类型 | 职责 |
 |----------|------|----------|------|------|
 | 第1 | FixedSeatStrategy | 100 | 独立 | 锁定固定座位（IsFixed=true） |
-| 第2 | FrontRowRotationStrategy | 90 | 独立 | 在非固定空座中填前排 |
-| — | DeskMateStrategy | 80 (上下文) | 依赖 | 在 RandomFill 上下文中执行：检查同桌关系，协调相邻分配，必要时请求重掷 |
-| 第3 | RandomFillStrategy | 10 | 独立+宿主 | 最终兜底填满剩余；同时作为依赖策略宿主 |
+| 第2 | FrontRowRotationStrategy | 50 | 独立 | 在非固定空座中填前排 |
+| — | DeskMateStrategy | 50 (上下文) | 依赖 | 在 RandomFill 上下文中执行：检查同桌关系，协调相邻分配，必要时请求重掷 |
+| 第3 | RandomFillStrategy | 1 | 独立+宿主 | 最终兜底填满剩余；同时作为依赖策略宿主 |
 
 **策略执行消息**: 策略可通过 `workspace.LogWarning(id, displayName, messageKey, args)` / `workspace.LogError(...)` 报告警告和错误。`messageKey` 对应 manifest `messages` 字典中的 i18n 键，模板用 `{0} {1}` 占位。消息（含 `StrategyId`、`StrategyDisplayName`、`MessageKey`、`Args`）收集在 `SeatingWorkspace.Messages` 中，执行完成后汇总到座位安排页侧栏。内建和插件统一使用此机制——内建策略在 `Manifests/{Id}.json` 中声明 `messages`，插件在 `plugin.manifest.json` 中声明。
 

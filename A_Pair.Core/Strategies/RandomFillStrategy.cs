@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 随机填充策略（Priority=10，最后执行，填满所有剩余座位）。
+    /// 随机填充策略（Priority=1，最后执行，填满所有剩余座位）。
     /// 作为管道中的兜底策略，在所有独立策略完成分配后运行。
     /// </summary>
     /// <remarks>

@@ -47,6 +47,10 @@
             "zh-CN": "学生 {0} 的同桌已分配，将其安置到相邻座位 {1}",
             "en-US": "Student {0} desk-mate already assigned, placing student at adjacent seat {1}"
         },
+        "DeskMate_NotEnoughSeats": {
+            "zh-CN": "学生 {0} 需要 {1} 个相邻座位但仅有 {2} 个可用，已尝试腾挪并部分分配",
+            "en-US": "Student {0} needs {1} adjacent seats but only {2} available, eviction attempted with partial assignment"
+        },
         "DeskMate_PartialAssign": {
             "zh-CN": "学生 {0} 的同桌组部分分配失败：{1}/{2} 名组员已分配",
             "en-US": "Partial desk-mate assignment for student {0}: {1}/{2} members assigned"

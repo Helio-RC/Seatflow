@@ -17,9 +17,9 @@ namespace A_Pair.Application.Services
     /// </para>
     /// <list type="number">
     /// <item><b>FixedSeat(100)</b>：锁定固定座位，标记 IsFixed=true。后续策略的 GetEmptySeats() 自动排除</item>
-    /// <item><b>FrontRowRotation(90)</b>：在非固定空座中填前排</item>
-    /// <item><b>DeskMate(80)</b>：在剩余空座中拼连续块</item>
-    /// <item><b>RandomFill(10)</b>：最终兜底，填满所有剩余空座</item>
+    /// <item><b>FrontRowRotation(50)</b>：在非固定空座中填前排</item>
+    /// <item><b>DeskMate(50)</b>：在剩余空座中拼连续块</item>
+    /// <item><b>RandomFill(1)</b>：最终兜底，填满所有剩余空座</item>
     /// </list>
     /// <para>
     /// 策略间冲突解决 = Priority 数值（先到先得）。该设计是一个有意妥协——"后可覆盖"模型

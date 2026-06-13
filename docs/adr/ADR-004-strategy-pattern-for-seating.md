@@ -40,7 +40,7 @@
 - 拒绝：策略模式的优先级 + 覆盖语义更匹配需求（后执行策略可以覆盖之前的分配）
 
 ## 后果
-- 四个内置策略按执行优先级排序（高→低）：`FixedSeatStrategy`(100) > `FrontRowRotationStrategy`(90) > `DeskMateStrategy`(80, 依赖) > `RandomFillStrategy`(10)。依赖策略在 RandomFill 上下文中运行，详见 ADR-006
+- 四个内置策略按执行优先级排序（高→低）：`FixedSeatStrategy`(100) > `FrontRowRotationStrategy`(50) > `DeskMateStrategy`(50, 依赖) > `RandomFillStrategy`(1)。依赖策略在 RandomFill 上下文中运行，详见 ADR-006
 - 插件策略通过 `IPluginSeatingStrategy`（继承 `ISeatingStrategy`）融入同一管道
 - `SeatingWorkspace` 提供隔离的座位视图 — 策略修改的是副本，原始数据不受影响
 - 每步执行后记录变更日志，支持细粒度的撤销/重做

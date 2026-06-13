@@ -182,9 +182,10 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>
         /// 处理协调分配场景：所有组员均未分配。
-        /// 检查 targetSeat 周围是否有足够相邻空座容纳全部组员。
-        /// 若足够 → 同时分配 student + 组员（Handled）。
-        /// 若不足 → 请求重掷（Reject）。
+        /// 逐级尝试：
+        /// 1. 相邻空座足够 → 直接分配全部组员
+        /// 2. 空座不足 → 尝试腾挪相邻被占座位（非固定、非组内成员）到附近空座
+        /// 3. 仍不足 → 部分分配 + 警告（不再 Reject 拆散组）
         /// </summary>
         private DependentEvaluationResult HandleCoordinatedAssignment (
             SeatingWorkspace workspace ,
@@ -195,65 +196,123 @@ namespace A_Pair.Core.Strategies
         {
             int neededAdjacent = unassignedMates.Count;
 
-            // 收集 targetSeat 周围的空座位
-            var emptySeats = workspace.GetEmptySeats()
-                .Where(s => s.Id != targetSeat.Id)
+            // ── 收集相邻空座和被占座 ──
+            var allSeatsAround = workspace.FindSeats(s =>
+                s.Id != targetSeat.Id && IsAdjacentWithConfig(targetSeat , s)).ToList();
+            var adjacentEmpty = allSeatsAround.Where(s => s.IsAvailable && !s.IsFixed).ToList();
+            var adjacentOccupied = allSeatsAround
+                .Where(s => !s.IsAvailable && !s.IsFixed && s.OccupantId is not null)
                 .ToList();
-            var adjacentEmpty = FindAdjacentEmptySeats(targetSeat , emptySeats);
 
-            if (adjacentEmpty.Count < neededAdjacent)
+            // 过滤掉已被组内成员占用的座位（不应腾挪自己的同桌）
+            adjacentOccupied = adjacentOccupied
+                .Where(s => !unassignedMates.Contains(s.OccupantId!))
+                .ToList();
+
+            _logger.LogDebug(
+                "DeskMate：相邻空座 {Empty} 个，相邻被占座 {Occupied} 个，需要 {Needed} 个" ,
+                adjacentEmpty.Count , adjacentOccupied.Count , neededAdjacent);
+
+            // ── 层级1：相邻空座足够 → 直接分配 ──
+            if (adjacentEmpty.Count >= neededAdjacent)
             {
-                // 相邻空座不足，请求重掷
-                _logger.LogDebug(
-                    "DeskMate：目标座位 {SeatId} 周围仅有 {Adjacent} 个相邻空座，需要 {Needed} 个，请求重掷" ,
-                    targetSeat.Id , adjacentEmpty.Count , neededAdjacent);
-
-                // 仅在首次和接近上限时记录警告，避免刷屏
-                if (context.RerollCount == 0 || context.RerollCount >= context.MaxRerolls - 1)
-                {
-                    context.LogWarning(Id , DisplayNameConst , "DeskMate_RerollNoAdjacent" ,
-                        student.Id , neededAdjacent , adjacentEmpty.Count);
-                }
-
-                return DependentResult.Reject();
+                return AssignMatesToAdjacentSeats(
+                    workspace , student , targetSeat , unassignedMates ,
+                    adjacentEmpty , neededAdjacent , context);
             }
 
-            // 随机打乱相邻空座，优先取前 N 个，剩余作为回退池
-            Shuffle(adjacentEmpty , _random);
-            var mateSeats = adjacentEmpty.Take(neededAdjacent).ToList();
-            var fallbackPool = adjacentEmpty.Skip(neededAdjacent).ToList();
+            // ── 层级2：空座不足，尝试腾挪被占座 ──
+            int shortage = neededAdjacent - adjacentEmpty.Count;
+            var freedSeats = new List<Seat>();
 
+            if (adjacentOccupied.Count > 0 && shortage > 0)
+            {
+                var allEmpty = workspace.GetEmptySeats()
+                    .Where(s => s.Id != targetSeat.Id)
+                    .ToList();
+
+                // 打乱被占座顺序，避免总是腾挪同一个位置
+                Shuffle(adjacentOccupied , _random);
+
+                foreach (var occSeat in adjacentOccupied)
+                {
+                    if (freedSeats.Count >= shortage) break;
+                    if (occSeat.OccupantId is null) continue;
+
+                    // 在附近找空座给占座者（不需要相邻，任何空座都可以）
+                    var candidateEmpty = allEmpty
+                        .Where(s => s.IsAvailable && !s.IsFixed)
+                        .FirstOrDefault(s => !adjacentEmpty.Contains(s) && !freedSeats.Contains(s));
+
+                    if (candidateEmpty is not null
+                        && workspace.TryAssignSeat(candidateEmpty.Id , occSeat.OccupantId , out _))
+                    {
+                        // 腾出被占座，加入可用列表
+                        occSeat.OccupantId = null;
+                        occSeat.IsAvailable = true;
+                        freedSeats.Add(occSeat);
+                        _logger.LogInformation(
+                            "DeskMate：腾挪占座者 {OccupantId} 从 {OldSeat} 到 {NewSeat}，释放座位给同桌" ,
+                            occSeat.OccupantId ?? "?" , occSeat.Id , candidateEmpty.Id);
+                    }
+                }
+            }
+
+            // 合并空座和腾出的座位
+            var availableSeats = adjacentEmpty.Concat(freedSeats).Distinct().ToList();
+
+            // ── 层级3：分配所有可用的相邻座位 ──
+            var result = AssignMatesToAdjacentSeats(
+                workspace , student , targetSeat , unassignedMates ,
+                availableSeats , neededAdjacent , context);
+
+            // 如果腾挪后仍然不足，记录警告但不 Reject（部分分配优于拆散）
+            if (availableSeats.Count < neededAdjacent && context.RerollCount == 0)
+            {
+                context.LogWarning(Id , DisplayNameConst , "DeskMate_NotEnoughSeats" ,
+                    student.Id , neededAdjacent , availableSeats.Count);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 将组员分配到相邻座位列表，返回 Handled 结果。
+        /// </summary>
+        private DependentEvaluationResult AssignMatesToAdjacentSeats (
+            SeatingWorkspace workspace ,
+            Student student ,
+            Seat targetSeat ,
+            List<string> unassignedMates ,
+            List<Seat> seatPool ,
+            int needed ,
+            IRandomFillContext context)
+        {
             // 先分配 student 到 targetSeat
             if (!workspace.TryAssignSeat(targetSeat.Id , student.Id , out var err))
             {
                 _logger.LogWarning("DeskMate：分配学生 {Student} 到 {Seat} 失败：{Error}" ,
                     student.Name , targetSeat.Id , err);
-                return DependentResult.Reject();
+                return DependentResult.Approve(); // 退回给 RandomFill 处理
             }
 
-            // 将组员分配到相邻空座；失败时尝试回退池中的其他相邻座位
+            // 分配组员
             int assignedMates = 0;
             var unassignedIds = new List<string>(unassignedMates);
             Shuffle(unassignedIds , _random);
+            Shuffle(seatPool , _random);
 
-            for (int i = 0; i < unassignedIds.Count; i++)
+            var pool = new List<Seat>(seatPool);
+            foreach (var mateId in unassignedIds)
             {
                 bool assigned = false;
-                if (i < mateSeats.Count)
+                for (int i = 0; i < pool.Count; i++)
                 {
-                    assigned = workspace.TryAssignSeat(mateSeats[i].Id , unassignedIds[i] , out _);
-                }
-                // 失败或座位不够时尝试回退池
-                if (!assigned && fallbackPool.Count > 0)
-                {
-                    for (int fb = 0; fb < fallbackPool.Count; fb++)
+                    if (pool[i].IsAvailable && workspace.TryAssignSeat(pool[i].Id , mateId , out _))
                     {
-                        if (fallbackPool[fb].IsAvailable && workspace.TryAssignSeat(fallbackPool[fb].Id , unassignedIds[i] , out _))
-                        {
-                            assigned = true;
-                            fallbackPool.RemoveAt(fb);
-                            break;
-                        }
+                        assigned = true;
+                        pool.RemoveAt(i);
+                        break;
                     }
                 }
                 if (assigned) assignedMates++;
@@ -270,23 +329,6 @@ namespace A_Pair.Core.Strategies
             }
 
             return DependentResult.Handled();
-        }
-
-        /// <summary>
-        /// 查找指定座位周围的相邻空座，根据配置过滤方向偏好。
-        /// </summary>
-        /// <param name="seat">参考座位。</param>
-        /// <param name="emptySeats">空座位列表。</param>
-        /// <returns>与参考座位相邻的空座位列表（未排序）。</returns>
-        private List<Seat> FindAdjacentEmptySeats (Seat seat , List<Seat> emptySeats)
-        {
-            var result = new List<Seat>();
-            foreach (var empty in emptySeats)
-            {
-                if (IsAdjacentWithConfig(seat , empty))
-                    result.Add(empty);
-            }
-            return result;
         }
 
         /// <summary>
