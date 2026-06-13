@@ -561,7 +561,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         {
             var currentIdx = Strategies.IndexOf(sorted[i]);
             if (currentIdx != i)
-                Strategies.Move(currentIdx , i);
+            {
+                // RemoveAt + Insert 替代 Move，确保 Avalonia ListBox 正确响应排序变化
+                var item = Strategies[currentIdx];
+                Strategies.RemoveAt(currentIdx);
+                Strategies.Insert(i , item);
+            }
         }
     }
 
