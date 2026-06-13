@@ -551,21 +551,23 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void ReSort ()
     {
-        // 独立策略在前，依赖策略在后，各自按 Priority 升序。
-        // 依赖策略的 IsIndependent=false，必然排在所有独立策略之后。
-        var sorted = Strategies
-            .OrderBy(s => s.IsIndependent ? 0 : 1)
-            .ThenBy(s => s.Priority)
-            .ToList();
-        for (int i = 0; i < sorted.Count; i++)
+        // 独立策略按 Priority 升序，每个宿主的依赖子项紧跟其后。
+        var result = new List<StrategyItemViewModel>();
+        foreach (var item in Strategies.Where(s => s.IsIndependent).OrderBy(s => s.Priority))
         {
-            var currentIdx = Strategies.IndexOf(sorted[i]);
+            result.Add(item);
+            if (item.Children is { Count: > 0 })
+                result.AddRange(item.Children.OrderBy(c => c.Priority));
+        }
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            var currentIdx = Strategies.IndexOf(result[i]);
             if (currentIdx != i)
             {
-                // RemoveAt + Insert 替代 Move，确保 Avalonia ListBox 正确响应排序变化
-                var item = Strategies[currentIdx];
+                var it = Strategies[currentIdx];
                 Strategies.RemoveAt(currentIdx);
-                Strategies.Insert(i , item);
+                Strategies.Insert(i , it);
             }
         }
     }
