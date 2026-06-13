@@ -474,6 +474,8 @@ public class Resources
     public static string Strategy_PriorityConflictChoice2 => ResourceManager.GetString("Strategy_PriorityConflictChoice2", Culture)!;
     public static string Strategy_PriorityConflictMsg => ResourceManager.GetString("Strategy_PriorityConflictMsg", Culture)!;
     public static string Strategy_PriorityConflictMsgFmt => ResourceManager.GetString("Strategy_PriorityConflictMsgFmt", Culture)!;
+    public static string Strategy_PipelinePriorityFmt => ResourceManager.GetString("Strategy_PipelinePriorityFmt", Culture)!;
+    public static string Strategy_ContextPriorityFmt => ResourceManager.GetString("Strategy_ContextPriorityFmt", Culture)!;
     public static string Strategy_PriorityFmt => ResourceManager.GetString("Strategy_PriorityFmt", Culture)!;
     public static string Strategy_PriorityLabel => ResourceManager.GetString("Strategy_PriorityLabel", Culture)!;
     public static string Strategy_PriorityTakenFmt => ResourceManager.GetString("Strategy_PriorityTakenFmt", Culture)!;

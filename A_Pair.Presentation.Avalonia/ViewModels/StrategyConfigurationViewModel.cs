@@ -272,6 +272,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 }
                 // 默认展开以显示依赖策略
                 randomFill.IsExpanded = true;
+
+                // 检测依赖策略内部优先级冲突（独立于外部管道优先级）
+                var depFixed = DetectAndFixDependentPriorityConflicts(children);
+                if (depFixed.Count > 0)
+                {
+                    var names = string.Join("\n" , depFixed.Select(n => $"• {n}"));
+                    _logger.LogWarning("依赖策略优先级冲突已修复：{Names}" , names);
+                }
             }
 
             foreach (var item in items)
@@ -541,6 +549,25 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         var fixedNames = new List<string>();
         var ordered = Strategies.OrderBy(s => s.Priority).ToList();
+        for (int i = 1; i < ordered.Count; i++)
+        {
+            if (ordered[i].Priority <= ordered[i - 1].Priority)
+            {
+                fixedNames.Add(ordered[i].DisplayName);
+                ordered[i].Priority = ordered[i - 1].Priority + 1;
+            }
+        }
+        return fixedNames;
+    }
+
+    /// <summary>
+    /// 检测依赖策略（同宿主内）的优先级冲突，确保严格递增不重复。
+    /// 依赖策略的优先级仅与同宿主下的其他依赖策略比较，与独立策略完全分离。
+    /// </summary>
+    private static List<string> DetectAndFixDependentPriorityConflicts (List<StrategyItemViewModel> children)
+    {
+        var fixedNames = new List<string>();
+        var ordered = children.OrderBy(s => s.Priority).ToList();
         for (int i = 1; i < ordered.Count; i++)
         {
             if (ordered[i].Priority <= ordered[i - 1].Priority)

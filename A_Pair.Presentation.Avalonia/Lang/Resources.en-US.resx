@@ -1380,6 +1380,12 @@ Current seating will be overwritten.</value>
 
 {0}</value>
   </data>
+  <data name="Strategy_PipelinePriorityFmt" xml:space="preserve">
+    <value>Pipeline Priority: {0}</value>
+  </data>
+  <data name="Strategy_ContextPriorityFmt" xml:space="preserve">
+    <value>Context Priority: {0}</value>
+  </data>
   <data name="Strategy_PriorityFmt" xml:space="preserve">
     <value>Priority: {0}</value>
   </data>

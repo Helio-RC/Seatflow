@@ -198,11 +198,9 @@
                     <DataTemplate x:DataType="vm:StrategyItemViewModel">
                       <!-- 子项：用 Grid 叠加选中高亮层，主题色取自 DynamicResource -->
                       <Grid Margin="0,1" Cursor="Hand" PointerPressed="OnChildStrategyPressed">
-                        <!-- 选中高亮层：使用系统主题强调色 -->
-                        <Border CornerRadius="4"
-                                Background="{DynamicResource SystemControlHighlightAccentBrush}"
-                                Opacity="0.12"
-                                IsVisible="{Binding IsSelected}" />
+                        <!-- 选中高亮层：与系统 ListBox 选中使用同一主题资源 -->
+                        <Border CornerRadius="4" IsVisible="{Binding IsSelected}"
+                                Background="{DynamicResource SystemControlHighlightAccentBrush}" />
                         <!-- 内容层 -->
                         <Border Padding="8,6" CornerRadius="4" Background="Transparent">
                           <DockPanel>

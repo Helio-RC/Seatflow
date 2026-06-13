@@ -1382,6 +1382,12 @@
 
 {0}</value>
   </data>
+  <data name="Strategy_PipelinePriorityFmt" xml:space="preserve">
+    <value>管道优先级: {0}</value>
+  </data>
+  <data name="Strategy_ContextPriorityFmt" xml:space="preserve">
+    <value>上下文优先级: {0}</value>
+  </data>
   <data name="Strategy_PriorityFmt" xml:space="preserve">
     <value>优先级: {0}</value>
   </data>

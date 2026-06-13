@@ -636,10 +636,14 @@ namespace A_Pair.Application.Services
                 result.Add(info);
             }
 
-            var sorted = result.OrderBy(d => d.Priority).ToList();
-            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，共 {Total} 个" ,
-                builtInManifests.Count , loadedPlugins.Count() , sorted.Count);
-            return sorted;
+            // 独立策略和依赖策略按各自的 Priority 分组排序，不交叉比较
+            var independents = result.Where(d => d.IsIndependent).OrderBy(d => d.Priority).ToList();
+            var dependents = result.Where(d => !d.IsIndependent).OrderBy(d => d.Priority).ToList();
+            // 独立策略在前（外部管道），依赖策略在后（将被 ViewModel 嵌套到宿主下）
+            independents.AddRange(dependents);
+            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，独立 {Ind} 个，依赖 {Dep} 个" ,
+                builtInManifests.Count , loadedPlugins.Count() , independents.Count , dependents.Count);
+            return independents;
         }
 
         /// <inheritdoc />
