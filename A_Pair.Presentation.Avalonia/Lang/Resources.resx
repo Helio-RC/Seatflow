@@ -1280,9 +1280,6 @@
   <data name="Snapshot_VenuesLoadedFmt" xml:space="preserve">
     <value>已加载 {0} 个会场</value>
   </data>
-  <data name="Strategy_AllowVertical" xml:space="preserve">
-    <value>允许垂直相邻</value>
-  </data>
   <data name="Strategy_AuthorFmt" xml:space="preserve">
     <value>作者: {0}</value>
   </data>
@@ -1364,9 +1361,6 @@
   </data>
   <data name="Strategy_Plugin" xml:space="preserve">
     <value>插件</value>
-  </data>
-  <data name="Strategy_PreferHorizontal" xml:space="preserve">
-    <value>优先水平相邻</value>
   </data>
   <data name="Strategy_PriorityConflict" xml:space="preserve">
     <value>优先级冲突</value>

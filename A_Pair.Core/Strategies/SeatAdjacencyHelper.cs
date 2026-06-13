@@ -69,41 +69,30 @@ namespace A_Pair.Core.Strategies
         }
 
         /// <summary>
-        /// 根据方向偏好和桌边界判断两个座位是否属于同一桌（同桌）。
-        /// Grid 布局：根据 <paramref name="preferHorizontal"/> 和 <paramref name="allowVertical"/> 控制方向，
-        /// 并通过 <paramref name="seatsPerDesk"/> 检查桌边界。
-        /// 非 Grid 布局委托给 <see cref="AreSeatsAdjacent"/>。
+        /// 判断两个座位是否属于同一桌（同桌）。
+        /// Grid 布局：同行、相邻列、同一 SeatsPerDesk 分组。
+        /// 非 Grid 布局委托给 <see cref="AreSeatsAdjacent"/>（LogicalGroup / 几何判定）。
         /// </summary>
-        /// <param name="a">座位 A。</param>
-        /// <param name="b">座位 B。</param>
-        /// <param name="seatsPerDesk">每桌座位数（≥1）。大于 1 时检查同桌边界。</param>
-        /// <param name="preferHorizontal">是否优先水平相邻（同行相邻列）。</param>
-        /// <param name="allowVertical">是否允许垂直相邻（同列相邻行）。</param>
-        public static bool AreDeskMates (
-            Seat a , Seat b ,
-            int seatsPerDesk ,
-            bool preferHorizontal = true ,
-            bool allowVertical = false)
+        public static bool AreDeskMates (Seat a , Seat b , int seatsPerDesk)
         {
             // 非 Grid 布局使用通用 adjacency 判定（LogicalGroup / 几何距离）
             if (a is not GridSeat ga || b is not GridSeat gb)
                 return AreSeatsAdjacent(a , b);
 
-            bool horizontalOk = preferHorizontal
-                && ga.Row == gb.Row && Math.Abs(ga.Column - gb.Column) == 1;
-            bool verticalOk = allowVertical
-                && ga.Column == gb.Column && Math.Abs(ga.Row - gb.Row) == 1;
+            // 必须同行且相邻列
+            if (ga.Row != gb.Row || Math.Abs(ga.Column - gb.Column) != 1)
+                return false;
 
-            // 横向邻接时检查同桌边界：同一桌的座位必须在同一个 SeatsPerDesk 分组内
-            if (horizontalOk && seatsPerDesk > 1)
+            // 检查同桌边界：同一桌的座位必须在同一个 SeatsPerDesk 分组内
+            if (seatsPerDesk > 1)
             {
                 int deskA = (ga.Column - 1) / seatsPerDesk;
                 int deskB = (gb.Column - 1) / seatsPerDesk;
                 if (deskA != deskB)
-                    horizontalOk = false;
+                    return false;
             }
 
-            return horizontalOk || verticalOk;
+            return true;
         }
     }
 }

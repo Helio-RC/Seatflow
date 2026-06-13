@@ -11,20 +11,7 @@
     "defaultEnabled": true,
     "visible": true,
     "isIndependent": false,
-    "parameters": [
-        {
-            "name": "PreferHorizontal",
-            "fieldType": "ToggleSwitch",
-            "label": { "zh-CN": "优先水平相邻", "en-US": "Prefer Horizontal" },
-            "defaultValue": true
-        },
-        {
-            "name": "AllowVertical",
-            "fieldType": "ToggleSwitch",
-            "label": { "zh-CN": "允许垂直相邻", "en-US": "Allow Vertical" },
-            "defaultValue": false
-        }
-    ],
+    "parameters": [],
     "codeBlocks": [
         {
             "title": { "zh-CN": "同桌组", "en-US": "Desk Mate Groups" },

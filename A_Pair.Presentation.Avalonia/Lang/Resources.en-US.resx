@@ -1280,9 +1280,6 @@ Current seating will be overwritten.</value>
   <data name="Snapshot_VenuesLoadedFmt" xml:space="preserve">
     <value>{0} venues loaded</value>
   </data>
-  <data name="Strategy_AllowVertical" xml:space="preserve">
-    <value>Allow Vertical</value>
-  </data>
   <data name="Strategy_AuthorFmt" xml:space="preserve">
     <value>Author: {0}</value>
   </data>
@@ -1362,9 +1359,6 @@ Current seating will be overwritten.</value>
   </data>
   <data name="Strategy_Plugin" xml:space="preserve">
     <value>Plugin</value>
-  </data>
-  <data name="Strategy_PreferHorizontal" xml:space="preserve">
-    <value>Prefer Horizontal</value>
   </data>
   <data name="Strategy_PriorityConflict" xml:space="preserve">
     <value>Priority conflict</value>

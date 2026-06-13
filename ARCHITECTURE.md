@@ -212,8 +212,8 @@ public class SeatingWorkspace
 后执行的策略在剩余空座中择优。不存在"覆盖"语义。
 
 依赖策略不在外部管道中执行，而是在 RandomFill 的分配循环中按上下文内部优先级
-依次评估。当 RandomFill 随机选出 (student, seat) 对时，先运行依赖策略评估，
-再决定是否分配或重掷。
+依次评估（DeskMate 50 → NoRepeatDeskMate 40）。Handled 后仍继续运行后续依赖策略
+以供检查/警告。
 
 ```
 独立策略 Priority 降序 →
@@ -221,7 +221,8 @@ public class SeatingWorkspace
   FrontRowRotation(50)  ← 第二执行：在非固定空座中填前排
   RandomFill(1)       ← 最后执行：
     └─ 内部上下文 (依赖策略按 Priority 降序) →
-       DeskMate(50)     ← 检查同桌关系，协调相邻分配，必要时请求重掷
+       DeskMate(50)          ← 检查同桌关系，协调同行分配（连携修改/腾挪）
+       NoRepeatDeskMate(40)  ← 检查相邻已占座是否与历史同桌重复，重复则重掷
 ```
 
 > **关键设计决策**：高 Priority = 先执行 = 优先挑选座位。冲突解决 = Priority 数值（先到先得）。
@@ -252,6 +253,9 @@ public class StrategyExecutionPipeline
 |------|----------|------|------|
 | FixedSeatStrategy | 100 | 独立 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
 | FrontRowRotationStrategy | 50 | 独立 | 在非固定空座中识别前排，按需求分数选出学生后 Fisher-Yates 洗牌，随机分布在各列 |
+| DeskMateStrategy | 50 (context) | 依赖 | 在 RandomFill 中协调同桌组分配，同行+邻列+同 SeatsPerDesk 分组为同桌；可腾挪 RandomFill 已分配学生但不移动前序策略安置者 |
+| NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 中检查历史同桌重复，从快照提取过去的同桌对；重复时请求重掷，耗尽则强制分配 |
+| RandomFillStrategy | 1 | 独立+Host | 兜底填充剩余空座，约束学生（DeskMate 组）优先分配；托管依赖策略执行 |
 | DeskMateStrategy | 50 | 依赖 | 在 RandomFill 上下文中执行。当随机分配学生时检查同桌关系：若有同桌组，尝试将同组学生分配到相邻座位（连携修改）；若目标座位周围无足够相邻空座则请求重掷。解决了旧版受前序策略碎片化影响的根本性问题 |
 | RandomFillStrategy | 1 | 独立+宿主 | 兜底策略，将剩余未分配学生随机填入剩余空座。同时作为依赖策略的宿主，其内部上下文循环按优先级依次调用依赖策略评估 |
 

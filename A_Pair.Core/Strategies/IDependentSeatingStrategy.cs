@@ -69,8 +69,15 @@ namespace A_Pair.Core.Strategies
         ValidationResult ValidateConfiguration ();
 
         /// <summary>
+        /// 告知策略在 RandomFill 循环开始前已被前序策略（FixedSeat/FrontRowRotation）分配的学生 ID。
+        /// 策略在执行时不应修改这些学生的座位。
+        /// 默认不处理。
+        /// </summary>
+        void SetPriorAssignedStudentIds (HashSet<string> ids) { }
+
+        /// <summary>
         /// 返回此策略认为有特殊约束、应优先分配以减少重掷的学生 ID 集合。
-        /// 默认返回空集。DeskMate 返回组内学生，NoRepeatDeskMate 返回有历史同桌的学生。
+        /// 默认返回空集。DeskMate 覆写返回组内学生。
         /// </summary>
         HashSet<string> GetConstrainedStudentIds () => [];
     }

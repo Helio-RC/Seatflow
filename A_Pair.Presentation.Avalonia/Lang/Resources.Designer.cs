@@ -442,7 +442,6 @@ public class Resources
     public static string Snapshot_VenuesLoadedFmt => ResourceManager.GetString("Snapshot_VenuesLoadedFmt", Culture)!;
     public static string Startup_DotNetVersion => ResourceManager.GetString("Startup_DotNetVersion", Culture)!;
     public static string Startup_UnsupportedOS => ResourceManager.GetString("Startup_UnsupportedOS", Culture)!;
-    public static string Strategy_AllowVertical => ResourceManager.GetString("Strategy_AllowVertical", Culture)!;
     public static string Strategy_AuthorFmt => ResourceManager.GetString("Strategy_AuthorFmt", Culture)!;
     public static string Strategy_BasicConfig => ResourceManager.GetString("Strategy_BasicConfig", Culture)!;
     public static string Strategy_CategoryFmt => ResourceManager.GetString("Strategy_CategoryFmt", Culture)!;
@@ -469,7 +468,6 @@ public class Resources
     public static string Strategy_MovedUpFmt => ResourceManager.GetString("Strategy_MovedUpFmt", Culture)!;
     public static string Strategy_NoChanges => ResourceManager.GetString("Strategy_NoChanges", Culture)!;
     public static string Strategy_Plugin => ResourceManager.GetString("Strategy_Plugin", Culture)!;
-    public static string Strategy_PreferHorizontal => ResourceManager.GetString("Strategy_PreferHorizontal", Culture)!;
     public static string Strategy_PriorityConflict => ResourceManager.GetString("Strategy_PriorityConflict", Culture)!;
     public static string Strategy_PriorityConflictAutoFixed => ResourceManager.GetString("Strategy_PriorityConflictAutoFixed", Culture)!;
     public static string Strategy_PriorityConflictChoice1 => ResourceManager.GetString("Strategy_PriorityConflictChoice1", Culture)!;

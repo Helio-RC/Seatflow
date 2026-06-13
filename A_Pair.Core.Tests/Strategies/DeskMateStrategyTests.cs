@@ -33,9 +33,7 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
-            PreferHorizontal = true ,
-            AllowVertical = false
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }]
         };
         var strategy = new DeskMateStrategy(config);
 
@@ -62,9 +60,7 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
-            PreferHorizontal = true ,
-            AllowVertical = false
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }]
         };
         var strategy = new DeskMateStrategy(config);
 
@@ -300,14 +296,11 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
-            PreferHorizontal = true ,
-            AllowVertical = false  // vertical should NOT be used
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }]
         };
         var strategy = new DeskMateStrategy(config);
 
-        // (1,1) has horizontal neighbor (1,2) and vertical neighbor (2,1)
-        // With AllowVertical=false, only (1,2) should be used → s2 assigned to (1,2)
+        // (1,1) has horizontal neighbor (1,2) — same desk. (2,1) is vertical — NOT desk-mate.
         var result = await strategy.EvaluateAsync(
             ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
@@ -326,21 +319,18 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
-            PreferHorizontal = false ,
-            AllowVertical = true  // only vertical
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }]
         };
         var strategy = new DeskMateStrategy(config);
 
-        // With PreferHorizontal=false, AllowVertical=true, only (2,1) is adjacent → Handled
+        // Vertical adjacency is NOT desk-mate — group can't coordinate, partial assignment
         var result = await strategy.EvaluateAsync(
             ws , students[0] , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
 
         result.AlreadyHandled.Should().BeTrue();
+        // s1 assigned to (1,1), s2 NOT at (2,1) — vertical not desk-mate
         var plan = ws.BuildSeatingPlan();
-        plan.Assignments.Should().HaveCount(2);
-        // s2 should be at (2,1) — vertical adjacent
-        plan.Assignments[seats[2].Id].Should().Be("s2");
+        plan.Assignments.Should().ContainKey(seats[0].Id);
     }
 
     [Fact]
@@ -353,9 +343,7 @@ public class DeskMateStrategyTests
 
         var config = new DeskMateConfiguration
         {
-            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }] ,
-            PreferHorizontal = true ,
-            AllowVertical = false
+            Groups = [new DeskMateGroup { StudentIds = ["s1" , "s2"] }]
         };
         var strategy = new DeskMateStrategy(config);
 

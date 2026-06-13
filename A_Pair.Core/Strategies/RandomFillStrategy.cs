@@ -169,9 +169,15 @@ namespace A_Pair.Core.Strategies
 
                 unassignedStudents = constrained.Concat(unconstrained).ToList();
                 _logger.LogInformation(
-                    "RandomFill：约束学生优先——{Constrained} 人先分配，{Unconstrained} 人后分配" ,
-                    constrained.Count , unconstrained.Count);
+                    "RandomFill：约束学生优先——总约束 {Total} 人，待分配 {Constrained} 人，其余 {Unconstrained} 人" ,
+                    constrainedIds.Count , constrained.Count , unconstrained.Count);
             }
+
+            // 快照前序策略（FixedSeat/FrontRowRotation）已分配的学生 ID，传递给依赖策略
+            // 依赖策略（DeskMate）腾挪时不会移动这些学生
+            var priorAssignedIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
+            foreach (var dep in enabledDependents)
+                dep.SetPriorAssignedStudentIds(priorAssignedIds);
 
             int maxRerolls = DefaultMaxRerolls;
             int totalRerolls = 0;
@@ -197,6 +203,13 @@ namespace A_Pair.Core.Strategies
                     foreach (var dep in enabledDependents)
                     {
                         ct.ThrowIfCancellationRequested();
+
+                        // 前序依赖策略已处理分配，后续策略仅能做检查（拒绝/处理均忽略）
+                        if (alreadyHandled)
+                        {
+                            await dep.EvaluateAsync(workspace , student , seat , context , ct);
+                            continue;
+                        }
 
                         var result = await dep.EvaluateAsync(
                             workspace , student , seat , context , ct);
@@ -236,7 +249,7 @@ namespace A_Pair.Core.Strategies
                             _logger.LogDebug(
                                 "RandomFill：策略 {StrategyId} 已处理分配，学生 {Student} → {Seat}" ,
                                 dep.Id , student.Name , seat.Id);
-                            break; // 不再检查后续依赖策略
+                            // 不 break — 继续让后续依赖策略检查结果
                         }
                     }
 

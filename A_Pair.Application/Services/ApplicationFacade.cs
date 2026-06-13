@@ -971,11 +971,6 @@ namespace A_Pair.Application.Services
         {
             return strategy switch
             {
-                DeskMateStrategy d => new Dictionary<string , object?>
-                {
-                    ["PreferHorizontal"] = d.Config.PreferHorizontal ,
-                    ["AllowVertical"] = d.Config.AllowVertical
-                },
                 NoRepeatDeskMateStrategy nd => new Dictionary<string , object?>
                 {
                     ["HistoryWindowSize"] = nd.Config.HistoryWindowSize
@@ -1004,10 +999,6 @@ namespace A_Pair.Application.Services
 
             switch (strategy)
             {
-                case DeskMateStrategy d:
-                    d.Config.PreferHorizontal = GetParamBool(parameters , "PreferHorizontal");
-                    d.Config.AllowVertical = GetParamBool(parameters , "AllowVertical");
-                    break;
                 case NoRepeatDeskMateStrategy nd:
                     nd.Config.HistoryWindowSize = GetParamInt(parameters , "HistoryWindowSize");
                     break;

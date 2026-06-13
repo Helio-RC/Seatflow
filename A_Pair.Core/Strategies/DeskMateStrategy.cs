@@ -24,6 +24,7 @@ namespace A_Pair.Core.Strategies
         private readonly DeskMateConfiguration _config;
         private readonly ILogger<DeskMateStrategy> _logger;
         private readonly Random _random;
+        private HashSet<string> _priorAssignedIds = [];
 
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public DeskMateConfiguration Config => _config;
@@ -154,7 +155,7 @@ namespace A_Pair.Core.Strategies
             }
 
             // 检查 targetSeat 是否与任何组员的座位相邻
-            bool isAdjacent = occupiedSeats.Any(occ => IsAdjacentWithConfig(occ , targetSeat));
+            bool isAdjacent = occupiedSeats.Any(occ => SeatAdjacencyHelper.AreDeskMates(occ , targetSeat , _config.SeatsPerDesk));
             if (isAdjacent)
             {
                 _logger.LogDebug("DeskMate：目标座位 {SeatId} 与已分配组员相邻，批准" , targetSeat.Id);
@@ -166,7 +167,7 @@ namespace A_Pair.Core.Strategies
             var candidates = new List<Seat>();
             foreach (var occSeat in occupiedSeats)
             {
-                var nearby = emptySeats.Where(e => IsAdjacentWithConfig(occSeat , e)).ToList();
+                var nearby = emptySeats.Where(e => SeatAdjacencyHelper.AreDeskMates(occSeat , e , _config.SeatsPerDesk)).ToList();
                 candidates.AddRange(nearby);
             }
 
@@ -205,7 +206,7 @@ namespace A_Pair.Core.Strategies
 
             // ── 收集相邻空座和被占座 ──
             var allSeatsAround = workspace.FindSeats(s =>
-                s.Id != targetSeat.Id && IsAdjacentWithConfig(targetSeat , s)).ToList();
+                s.Id != targetSeat.Id && SeatAdjacencyHelper.AreDeskMates(targetSeat , s , _config.SeatsPerDesk)).ToList();
             var adjacentEmpty = allSeatsAround.Where(s => s.IsAvailable && !s.IsFixed).ToList();
             var adjacentOccupied = allSeatsAround
                 .Where(s => !s.IsAvailable && !s.IsFixed && s.OccupantId is not null)
@@ -246,6 +247,15 @@ namespace A_Pair.Core.Strategies
                     if (freedSeats.Count >= shortage) break;
                     if (occSeat.OccupantId is null) continue;
 
+                    // 不腾挪前序策略（FixedSeat/FrontRowRotation）已安置的学生
+                    if (_priorAssignedIds.Contains(occSeat.OccupantId))
+                    {
+                        _logger.LogDebug(
+                            "DeskMate：跳过前序策略已安置的学生 {Student}（座位 {Seat}），不腾挪" ,
+                            occSeat.OccupantId , occSeat.Id);
+                        continue;
+                    }
+
                     // 在附近找空座给占座者（不需要相邻，任何空座都可以）
                     var candidateEmpty = allEmpty
                         .Where(s => s.IsAvailable && !s.IsFixed)
@@ -263,6 +273,14 @@ namespace A_Pair.Core.Strategies
                             occSeat.OccupantId ?? "?" , occSeat.Id , candidateEmpty.Id);
                     }
                 }
+            }
+
+            // 腾挪尝试结束：若需要腾挪但未释放任何座位，记录原因
+            if (shortage > 0 && freedSeats.Count == 0)
+            {
+                _logger.LogDebug(
+                    "DeskMate：需要腾挪 {Shortage} 个座位但无可腾挪的候选（前序分配或无非组占座者）" ,
+                    shortage);
             }
 
             // 合并空座和腾出的座位
@@ -340,13 +358,6 @@ namespace A_Pair.Core.Strategies
             return DependentResult.Handled();
         }
 
-        /// <summary>
-        /// 根据配置偏好判断两个座位是否相邻。
-        /// <see cref="DeskMateConfiguration.PreferHorizontal"/> 和 <see cref="DeskMateConfiguration.AllowVertical"/>
-        /// 控制 Grid 布局中的方向性。
-        /// </summary>
-        private bool IsAdjacentWithConfig (Seat a , Seat b)
-            => SeatAdjacencyHelper.AreDeskMates(a , b , _config.SeatsPerDesk , _config.PreferHorizontal , _config.AllowVertical);
 
         /// <summary>
         /// 查找学生所属的同桌组。
@@ -429,6 +440,9 @@ namespace A_Pair.Core.Strategies
         }
 
         /// <inheritdoc />
+        public void SetPriorAssignedStudentIds (HashSet<string> ids) => _priorAssignedIds = ids;
+
+        /// <inheritdoc />
         public HashSet<string> GetConstrainedStudentIds ()
         {
             var ids = new HashSet<string>();
@@ -448,12 +462,6 @@ namespace A_Pair.Core.Strategies
     {
         /// <summary>同桌组列表。</summary>
         public List<DeskMateGroup> Groups { get; set; } = [];
-
-        /// <summary>是否优先水平相邻分配（同行相邻列）。</summary>
-        public bool PreferHorizontal { get; set; } = true;
-
-        /// <summary>是否允许垂直相邻分配（同列相邻行）。</summary>
-        public bool AllowVertical { get; set; } = false;
 
         /// <summary>每桌座位数（来自会场 GridLayoutMetadata.SeatsPerDesk）。大于 1 时检查同桌边界。</summary>
         public int SeatsPerDesk { get; set; } = 2;
