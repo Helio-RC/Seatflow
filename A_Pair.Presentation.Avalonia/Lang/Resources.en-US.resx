@@ -1419,6 +1419,9 @@ Current seating will be overwritten.</value>
   <data name="Strategy_SaveConfigFailed" xml:space="preserve">
     <value>Failed to save strategy config</value>
   </data>
+  <data name="Strategy_SaveBlockFailed" xml:space="preserve">
+    <value>Auto-save of code block config failed, please save manually before leaving</value>
+  </data>
   <data name="Strategy_SaveFailed" xml:space="preserve">
     <value>Save failed</value>
   </data>

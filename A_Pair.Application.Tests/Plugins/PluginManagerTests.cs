@@ -57,6 +57,18 @@ public class PluginManagerTests : IDisposable
         File.Delete(zipPath);
     }
 
+    [Fact]
+    public void ValidateZipSafety_PathTraversal_ShouldThrow ()
+    {
+        var zipPath = CreatePathTraversalZip();
+
+        var action = () => InvokeValidateZipSafety(zipPath);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*非法路径*");
+        File.Delete(zipPath);
+    }
+
     // ── InstallFromPackageAsync ──
 
     [Fact]
@@ -327,6 +339,17 @@ public class PluginManagerTests : IDisposable
             // 解包反射层异常，重新抛出内部异常以匹配 .Should().Throw<InvalidDataException>()
             throw ex.InnerException;
         }
+    }
+
+    private static string CreatePathTraversalZip ()
+    {
+        var path = Path.Combine(Path.GetTempPath() , $"test_traversal_{Guid.NewGuid():N}.zip");
+        using var archive = ZipFile.Open(path , ZipArchiveMode.Create);
+        // 创建包含 ../ 路径的条目（ZIP Slip 攻击）
+        var entry = archive.CreateEntry("../etc/malicious.txt" , CompressionLevel.Optimal);
+        using (var writer = new StreamWriter(entry.Open()))
+            writer.Write("traversal");
+        return path;
     }
 
     // ── SetPackageEnabledAsync (需要先加载包) ──

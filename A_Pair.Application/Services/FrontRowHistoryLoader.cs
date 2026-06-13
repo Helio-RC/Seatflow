@@ -1,3 +1,4 @@
+using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Core.Workspace;
@@ -105,54 +106,19 @@ internal class FrontRowHistoryLoader
 
     /// <summary>
     /// 识别会场布局中的前排座位 ID 集合。
-    /// 逻辑与 <see cref="Core.Strategies.FrontRowRotationStrategy.ExecuteAsync"/> 保持一致，
-    /// 但遍历布局的全部座位（而非仅空座）。
+    /// 逻辑与 <see cref="Core.Strategies.FrontRowRotationStrategy.ExecuteAsync"/> 保持一致。
     /// </summary>
     /// <param name="layout">会场布局定义。</param>
     /// <returns>前排座位 ID 的集合。</returns>
     public static HashSet<string> IdentifyFrontRowSeats (ClassroomLayoutDefinition layout)
     {
         ArgumentNullException.ThrowIfNull(layout);
-        var seats = layout.Seats;
-        var frontRowSeats = new HashSet<string>();
-
-        // 从布局元数据获取 FrontRowCount
         int frontRowCount = layout.Metadata switch
         {
             GridLayoutMetadata gm => gm.FrontRowCount ,
             PolarLayoutMetadata pm => pm.FrontRowCount ,
             _ => 1
         };
-
-        // Grid 座位：Row 最小的 N 行为前排
-        var gridSeats = seats.OfType<GridSeat>().ToList();
-        if (gridSeats.Count > 0)
-        {
-            int frontRowMin = gridSeats.Min(s => s.Row);
-            int frontRowMax = frontRowMin + frontRowCount - 1;
-            foreach (var s in gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax))
-                frontRowSeats.Add(s.Id);
-        }
-
-        // Polar 座位：Ring=1 为最内环（靠近讲台），即前排
-        var polarSeats = seats.OfType<PolarSeat>().ToList();
-        if (polarSeats.Count > 0)
-        {
-            int frontRingMax = frontRowCount;
-            foreach (var s in polarSeats.Where(s => s.Ring <= frontRingMax))
-                frontRowSeats.Add(s.Id);
-        }
-
-        // Freeform 座位：有 Row 属性的座位中，Row 最小的 N 行为前排
-        var freeformSeats = seats.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();
-        if (freeformSeats.Count > 0)
-        {
-            int frontRowMin = freeformSeats.Min(s => s.Row!.Value);
-            int frontRowMax = frontRowMin + frontRowCount - 1;
-            foreach (var s in freeformSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax))
-                frontRowSeats.Add(s.Id);
-        }
-
-        return frontRowSeats;
+        return SeatGeometryHelper.IdentifyFrontRowSeats(layout.Seats , frontRowCount);
     }
 }

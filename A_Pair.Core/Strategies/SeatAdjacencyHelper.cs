@@ -8,6 +8,15 @@ namespace A_Pair.Core.Strategies
     /// </summary>
     public static class SeatAdjacencyHelper
     {
+        /// <summary>极坐标同环角度差阈值（度），用于判定相邻座位。</summary>
+        public const double PolarSameRingAngleThreshold = 45.0;
+
+        /// <summary>极坐标跨环角度差容差，角度几乎相同时视为相邻。</summary>
+        public const double PolarCrossRingAngleTolerance = 1e-6;
+
+        /// <summary>自由点座位的欧几里得距离阈值，距离在此之内视为相邻。</summary>
+        public const double FreeformDistanceThreshold = 1.5;
+
         /// <summary>
         /// 判断两个座位是否几何相邻（不含桌边界或方向偏好限制）。
         /// 网格座位：同行左右相邻或同列上下相邻。
@@ -32,19 +41,18 @@ namespace A_Pair.Core.Strategies
                     return pa.LogicalGroup == pb.LogicalGroup;
 
                 // 回退：几何判定（无 LogicalGroup 的旧数据）
-                const double angleTolerance = 1e-6;
                 bool sameRing = Math.Abs(pa.Radius - pb.Radius) < 1e-6;
                 if (sameRing)
                 {
                     double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
                     double angleDiff = Math.Min(raw , 360.0 - raw);
-                    if (angleDiff <= 45.0) return true;
+                    if (angleDiff <= PolarSameRingAngleThreshold) return true;
                 }
                 else
                 {
                     double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
                     double angleDiff = Math.Min(raw , 360.0 - raw);
-                    if (angleDiff < angleTolerance)
+                    if (angleDiff < PolarCrossRingAngleTolerance)
                         return true;
                 }
                 return false;
@@ -62,7 +70,7 @@ namespace A_Pair.Core.Strategies
                 double dx = fa.X - fb.X;
                 double dy = fa.Y - fb.Y;
                 double distance = Math.Sqrt((dx * dx) + (dy * dy));
-                return distance <= 1.5;
+                return distance <= FreeformDistanceThreshold;
             }
 
             return false;

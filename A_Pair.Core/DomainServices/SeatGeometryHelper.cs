@@ -77,5 +77,51 @@ namespace A_Pair.Core.DomainServices
             double y = polarMeta.OriginY + (seat.Radius * Math.Sin(rad));
             return (x , y);
         }
+
+        /// <summary>
+        /// 从座位集合中识别前排座位 ID 集合。
+        /// 被 <see cref="FrontRowRotationStrategy"/>（空座子集）和
+        /// <see cref="FrontRowHistoryLoader"/>（全部座位）共用。
+        /// </summary>
+        /// <param name="seats">座位集合。</param>
+        /// <param name="frontRowCount">前排行数。</param>
+        /// <returns>前排座位 ID 的集合。</returns>
+        public static HashSet<string> IdentifyFrontRowSeats (IEnumerable<Seat> seats , int frontRowCount)
+        {
+            ArgumentNullException.ThrowIfNull(seats);
+            var seatList = seats as IReadOnlyCollection<Seat> ?? seats.ToList();
+            var frontRowSeats = new HashSet<string>();
+
+            // Grid 座位：Row 最小的 N 行为前排
+            var gridSeats = seatList.OfType<GridSeat>().ToList();
+            if (gridSeats.Count > 0)
+            {
+                int frontRowMin = gridSeats.Min(s => s.Row);
+                int frontRowMax = frontRowMin + frontRowCount - 1;
+                foreach (var s in gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax))
+                    frontRowSeats.Add(s.Id);
+            }
+
+            // Polar 座位：Ring=1 为最内环（靠近讲台），即前排
+            var polarSeats = seatList.OfType<PolarSeat>().ToList();
+            if (polarSeats.Count > 0)
+            {
+                int frontRingMax = frontRowCount;
+                foreach (var s in polarSeats.Where(s => s.Ring <= frontRingMax))
+                    frontRowSeats.Add(s.Id);
+            }
+
+            // Freeform 座位：有 Row 属性的座位中，Row 最小的 N 行为前排
+            var freeformSeats = seatList.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();
+            if (freeformSeats.Count > 0)
+            {
+                int frontRowMin = freeformSeats.Min(s => s.Row!.Value);
+                int frontRowMax = frontRowMin + frontRowCount - 1;
+                foreach (var s in freeformSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax))
+                    frontRowSeats.Add(s.Id);
+            }
+
+            return frontRowSeats;
+        }
     }
 }

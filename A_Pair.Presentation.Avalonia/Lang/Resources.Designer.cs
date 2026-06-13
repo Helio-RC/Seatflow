@@ -487,6 +487,7 @@ public class Resources
     public static string Strategy_SaveChangesHint => ResourceManager.GetString("Strategy_SaveChangesHint", Culture)!;
     public static string Strategy_SaveConfig => ResourceManager.GetString("Strategy_SaveConfig", Culture)!;
     public static string Strategy_SaveConfigFailed => ResourceManager.GetString("Strategy_SaveConfigFailed", Culture)!;
+    public static string Strategy_SaveBlockFailed => ResourceManager.GetString("Strategy_SaveBlockFailed", Culture)!;
     public static string Strategy_SaveFailed => ResourceManager.GetString("Strategy_SaveFailed", Culture)!;
     public static string Strategy_SavedCountFmt => ResourceManager.GetString("Strategy_SavedCountFmt", Culture)!;
     public static string Strategy_SavedFmt => ResourceManager.GetString("Strategy_SavedFmt", Culture)!;

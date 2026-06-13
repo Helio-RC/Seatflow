@@ -1423,6 +1423,9 @@
   <data name="Strategy_SaveConfigFailed" xml:space="preserve">
     <value>保存策略配置失败</value>
   </data>
+  <data name="Strategy_SaveBlockFailed" xml:space="preserve">
+    <value>自动保存代码块配置失败，离开前请手动保存</value>
+  </data>
   <data name="Strategy_SaveFailed" xml:space="preserve">
     <value>保存失败</value>
   </data>

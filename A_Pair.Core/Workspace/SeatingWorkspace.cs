@@ -69,8 +69,12 @@ public class SeatingWorkspace : IPluginWorkspace , IFixedSeatCapability
     /// <param name="seatId">座位 ID。</param>
     /// <param name="studentId">学生 ID。</param>
     /// <param name="error">分配失败时的错误描述。</param>
+    /// <param name="updateHistory">
+    /// 是否更新学生的座位历史。中间腾挪操作应传入 <c>false</c> 避免污染历史；
+    /// 最终分配和快照恢复应保留默认 <c>true</c>。
+    /// </param>
     /// <returns>是否分配成功。</returns>
-    public bool TryAssignSeat (string seatId , string studentId , out string error)
+    public bool TryAssignSeat (string seatId , string studentId , out string error , bool updateHistory = true)
     {
         error = string.Empty;
         var seat = _seats.FirstOrDefault(s => s.Id == seatId);
@@ -91,7 +95,8 @@ public class SeatingWorkspace : IPluginWorkspace , IFixedSeatCapability
 
         seat.OccupantId = studentId;
         seat.IsAvailable = false;
-        student.RecentSeatHistory.Add(seatId);
+        if (updateHistory)
+            student.RecentSeatHistory.Add(seatId);
         return true;
     }
 
@@ -203,6 +208,9 @@ public class SeatingWorkspace : IPluginWorkspace , IFixedSeatCapability
     }
 
     IReadOnlyList<IPluginStudent> IPluginWorkspace.Students => Students;
+
+    bool IPluginWorkspace.TryAssignSeat (string seatId , string studentId , out string error)
+        => TryAssignSeat(seatId , studentId , out error , updateHistory: true);
 
     IEnumerable<IPluginSeat> IPluginWorkspace.GetEmptySeats () => GetEmptySeats();
 

@@ -518,7 +518,9 @@ namespace A_Pair.Application.Plugins
         }
 
         /// <summary>
-        /// 验证 ZIP 文件安全性：检查压缩炸弹、总大小、条目数。
+        /// 验证 ZIP 文件安全性：检查压缩炸弹、总大小、条目数、路径遍历。
+        /// 注意：此方法与 <see cref="A_Pair.Plugins.Sdk.Models.PluginPackage.ValidateZipSafety"/> 逻辑对应，
+        /// 因 Application 层不引用 Plugins.Sdk 而在此独立维护。SDK 侧的打包流程复用 SDK 版本。
         /// </summary>
         private static void ValidateZipSafety (string archivePath)
         {
@@ -536,6 +538,10 @@ namespace A_Pair.Application.Plugins
             {
                 if (string.IsNullOrEmpty(entry.Name) && entry.FullName.EndsWith('/'))
                     continue;
+
+                // ZIP Slip 防护：禁止路径遍历和绝对路径
+                if (entry.FullName.Contains("..") || Path.IsPathRooted(entry.FullName))
+                    throw new InvalidDataException($"条目 \"{entry.FullName}\" 包含非法路径（禁止 ../ 或绝对路径）");
 
                 totalUncompressed += entry.Length;
                 if (totalUncompressed > maxUncompressedSize)

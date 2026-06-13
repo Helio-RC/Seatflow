@@ -1,3 +1,4 @@
+using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 using Microsoft.Extensions.Logging;
@@ -68,32 +69,9 @@ namespace A_Pair.Core.Strategies
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
-            // 收集前排座位（Grid + Polar）
-            var frontRowSeats = new List<Seat>();
-
-            var gridSeats = emptySeats.OfType<GridSeat>().ToList();
-            if (gridSeats.Count > 0)
-            {
-                int frontRowMin = gridSeats.Min(s => s.Row);
-                int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
-                frontRowSeats.AddRange(gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax));
-            }
-
-            var polarSeats = emptySeats.OfType<PolarSeat>().ToList();
-            if (polarSeats.Count > 0)
-            {
-                // Ring=1 为最内环（靠近讲台），即前排
-                int frontRingMax = _config.FrontRowCount;
-                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring <= frontRingMax));
-            }
-
-            var freeformSeats = emptySeats.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();
-            if (freeformSeats.Count > 0)
-            {
-                int frontRowMin = freeformSeats.Min(s => s.Row!.Value);
-                int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
-                frontRowSeats.AddRange(freeformSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax));
-            }
+            // 收集前排座位（复用 SeatGeometryHelper 共享逻辑）
+            var frontRowIds = SeatGeometryHelper.IdentifyFrontRowSeats(emptySeats , _config.FrontRowCount);
+            var frontRowSeats = emptySeats.Where(s => frontRowIds.Contains(s.Id)).ToList();
 
             if (frontRowSeats.Count == 0)
             {

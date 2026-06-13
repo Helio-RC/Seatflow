@@ -62,6 +62,10 @@ public static class PluginPackage
                 if (string.IsNullOrEmpty(entry.Name) && entry.FullName.EndsWith('/'))
                     continue;
 
+                // ZIP Slip 防护：禁止路径遍历和绝对路径
+                if (entry.FullName.Contains("..") || Path.IsPathRooted(entry.FullName))
+                    return $"条目 \"{entry.FullName}\" 包含非法路径（禁止 ../ 或绝对路径）";
+
                 var compressed = entry.CompressedLength;
                 var uncompressed = entry.Length;
 

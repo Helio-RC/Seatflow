@@ -27,12 +27,29 @@ public class CircularHistory<T> : IEnumerable<T>
 
     /// <summary>
     /// 添加一个元素到缓冲区。如果已满，覆盖最旧的元素。
+    /// 若元素已存在于缓冲区中，则忽略本次添加（去重）。
     /// </summary>
     public void Add (T item)
     {
+        // 去重：避免快照回滚等场景下同一元素重复出现
+        if (_count > 0 && Contains(item)) return;
+
         _buffer[_index] = item;
         _index = (_index + 1) % _buffer.Length;
         if (_count < _buffer.Length) _count++;
+    }
+
+    /// <summary>
+    /// 检查元素是否已存在于缓冲区中。
+    /// </summary>
+    private bool Contains (T item)
+    {
+        foreach (var existing in this)
+        {
+            if (EqualityComparer<T>.Default.Equals(existing , item))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>

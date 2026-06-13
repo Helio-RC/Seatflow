@@ -31,6 +31,11 @@ public static class Capability
 /// 由 <see cref="Workspace.SeatingWorkspace"/> 显式实现，
 /// 通过 <see cref="Contracts.Models.IPluginWorkspace"/> 暴露给插件。
 /// </summary>
+/// <remarks>
+/// <b>安全模型：</b>能力检查仅在 <c>TryMarkFixedImpl</c> 入口进行。
+/// 内置策略被视为受信任，可以直接操作 <c>Seat.IsFixed</c>；
+/// 插件策略必须通过本接口的声明-校验机制来修改座位固定状态。
+/// </remarks>
 public interface IFixedSeatCapability
 {
     /// <summary>

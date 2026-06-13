@@ -161,7 +161,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         {
             oldValue.PropertyChanged -= OnSelectedStrategyItemPropertyChanged;
             // 切换前自动保存旧策略的脏代码块，避免编辑内容丢失
-            SaveDirtyBlockEditors(oldValue);
+            _ = SaveDirtyBlockEditorsAsync(oldValue);
         }
 
         if (newValue is null)
@@ -177,15 +177,30 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
 
     /// <summary>自动保存旧策略的脏代码块，失败时标记策略项为脏以确保离开时提示保存。</summary>
-    private void SaveDirtyBlockEditors (StrategyItemViewModel oldItem)
+    private async Task SaveDirtyBlockEditorsAsync (StrategyItemViewModel oldItem)
     {
         var dirtyEditors = ConfigBlockEditors.Where(ce => ce.IsDirty && ce.IsLoaded).ToList();
         if (dirtyEditors.Count == 0) return;
 
+        bool anyFailed = false;
         foreach (var editor in dirtyEditors)
-            _ = editor.SaveConfigCommand.ExecuteAsync(null);
+        {
+            try
+            {
+                await editor.SaveConfigCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex , "切换策略时自动保存代码块编辑器失败" );
+                anyFailed = true;
+            }
+        }
 
-        oldItem.HasChanges = true;
+        if (anyFailed)
+        {
+            oldItem.HasChanges = true;
+            StatusMessage = Resources.Strategy_SaveBlockFailed;
+        }
     }
 
     private void OnSelectedStrategyItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)

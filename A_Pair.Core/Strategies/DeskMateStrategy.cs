@@ -262,9 +262,9 @@ namespace A_Pair.Core.Strategies
                         .FirstOrDefault(s => !adjacentEmpty.Contains(s) && !freedSeats.Contains(s));
 
                     if (candidateEmpty is not null
-                        && workspace.TryAssignSeat(candidateEmpty.Id , occSeat.OccupantId , out _))
+                        && workspace.TryAssignSeat(candidateEmpty.Id , occSeat.OccupantId , out _ , updateHistory: false))
                     {
-                        // 腾出被占座，加入可用列表
+                        // 腾出被占座，加入可用列表（中间腾挪不更新历史，防止污染 RecentSeatHistory）
                         occSeat.OccupantId = null;
                         occSeat.IsAvailable = true;
                         freedSeats.Add(occSeat);
@@ -395,16 +395,6 @@ namespace A_Pair.Core.Strategies
 
             return null;
         }
-
-        /// <summary>
-        /// 判断两个座位是否相邻。
-        /// 网格座位：同行左右相邻或同列上下相邻。
-        /// 极坐标座位：同环角度差 ≤45°，或相邻环角度几乎相同。
-        /// 自由点座位：欧几里得距离 ≤1.5 或同 LogicalGroup。
-        /// 混合类型座位不视为相邻。
-        /// </summary>
-        private bool AreSeatsAdjacent (Seat a , Seat b)
-            => SeatAdjacencyHelper.AreSeatsAdjacent(a , b);
 
         /// <summary>
         /// Fisher-Yates 洗牌算法。

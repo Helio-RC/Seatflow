@@ -65,8 +65,15 @@ namespace A_Pair.Application.Services
         // 注意：以下字段假定单线程访问（桌面 UI 线程）。
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
         private ClassroomLayoutDefinition? _currentLayout;
+        // 注意：以下缓存假设 DI 容器在应用生命周期内保持稳定。
+        // 若运行时热加载了新策略/插件，需调用对应刷新方法重建缓存。
         private List<ISeatingStrategy>? _cachedStrategies;
         private List<IDependentSeatingStrategy>? _cachedDependentStrategies;
+
+        // GetStrategiesAsync 短期缓存，避免侧栏切换时频繁 I/O 和 DI 解析
+        private List<StrategyDisplayInfo>? _cachedStrategyDisplayInfos;
+        private DateTime _cachedStrategyDisplayInfosAt = DateTime.MinValue;
+        private static readonly TimeSpan StrategyDisplayCacheDuration = TimeSpan.FromSeconds(30);
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -628,6 +635,15 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default)
         {
+            // 短期缓存：侧栏频繁切换时避免重复 I/O 和 DI 解析
+            if (_cachedStrategyDisplayInfos is not null
+                && DateTime.Now - _cachedStrategyDisplayInfosAt < StrategyDisplayCacheDuration)
+            {
+                logger.LogDebug("GetStrategiesAsync：返回缓存结果（{Age:F0}s 前）" ,
+                    (DateTime.Now - _cachedStrategyDisplayInfosAt).TotalSeconds);
+                return _cachedStrategyDisplayInfos;
+            }
+
             var persisted = await _strategyConfigRepo.LoadAllAsync(ct);
             var result = new List<StrategyDisplayInfo>();
 
@@ -687,12 +703,15 @@ namespace A_Pair.Application.Services
             independents.AddRange(dependents);
             logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，独立 {Ind} 个，依赖 {Dep} 个" ,
                 builtInManifests.Count , loadedPlugins.Count() , indCount , depCount);
+            _cachedStrategyDisplayInfos = independents;
+            _cachedStrategyDisplayInfosAt = DateTime.Now;
             return independents;
         }
 
         /// <inheritdoc />
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null; // 使 GetStrategiesAsync 缓存失效
             // 如果 Parameters 为 null（仅保存优先级/开关），保留已有参数
             if (config.Parameters == null)
             {
@@ -845,7 +864,11 @@ namespace A_Pair.Application.Services
             // 处理独立策略的代码块配置（FixedSeat）
             foreach (var strategy in strategies)
             {
-                var config = await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
+                // 配置读写路径：插件策略 → PluginPackageConfigService，内置策略 → StrategyDatasetConfigRepository
+                var (pkg , _) = _pluginManager.FindStrategy(strategy.Id);
+                var config = pkg != null
+                    ? await _pluginPackageConfigService.LoadDatasetConfigAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct)
+                    : await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
                 if (config?.Rows is not { Count: > 0 }) continue;
 
                 switch (strategy)
@@ -1293,24 +1316,28 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task SetPluginPackageEnabledAsync (string packageId , bool enabled , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null;
             await _pluginManager.SetPackageEnabledAsync(packageId , enabled , ct);
         }
 
         /// <inheritdoc />
         public async Task<string> InstallPluginPackageAsync (string packagePath , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null;
             return await _pluginManager.InstallFromPackageAsync(packagePath , ct);
         }
 
         /// <inheritdoc />
         public async Task UninstallPluginPackageAsync (string packageId , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null;
             await _pluginManager.UnloadPackageAsync(packageId);
         }
 
         /// <inheritdoc />
         public async Task RefreshPluginPackageAsync (string packageId , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null;
             await _pluginManager.RefreshPackageAsync(packageId , ct);
         }
 
@@ -1383,6 +1410,7 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null;
             await _pluginManager.SetStrategyEnabledAsync(pluginId , enabled , ct);
         }
 
