@@ -28,9 +28,22 @@
         <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Strategy_List}" Classes="sectionTitle"
                    Margin="0,0,0,8" />
 
-        <!-- 底部操作按钮 -->
+        <!-- 底部：图例 + 操作按钮 -->
         <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
           <StackPanel Spacing="4">
+            <!-- 图例说明 -->
+            <Border Padding="8,4,8,6"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                    BorderThickness="0,1,0,0">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{x:Static lang:Resources.Strategy_LegendPriority}"
+                           FontSize="11"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_LegendBar}"
+                           FontSize="11"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              </StackPanel>
+            </Border>
             <Button Command="{Binding MoveUpCommand}"
                     CommandParameter="{Binding SelectedStrategy}"
                     AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveUp}"
@@ -105,20 +118,6 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
-
-        <!-- 图例说明：位于按钮上方 -->
-        <Border DockPanel.Dock="Bottom" Padding="8,6,8,2"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                BorderThickness="0,1,0,0" Margin="0,4,0,0">
-          <StackPanel Spacing="2">
-            <TextBlock Text="{x:Static lang:Resources.Strategy_LegendPriority}"
-                       FontSize="11"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="{x:Static lang:Resources.Strategy_LegendBar}"
-                       FontSize="11"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-          </StackPanel>
-        </Border>
       </DockPanel>
     </Border>
 
@@ -154,7 +153,8 @@
                         Background="{DynamicResource SystemControlAccentBrush}"
                         VerticalAlignment="Center">
                   <TextBlock Text="{Binding DetailSourceDisplay}"
-                             FontSize="11" Foreground="White" />
+                             FontSize="11"
+                             Foreground="{DynamicResource SystemControlBackgroundChromeWhiteBrush}" />
                 </Border>
               </DockPanel>
               <TextBlock Text="{Binding SelectedDetail.Description}"
