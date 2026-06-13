@@ -200,7 +200,7 @@
                       <Border Padding="8,6" CornerRadius="4" Margin="0,1"
                               Background="Transparent"
                               Cursor="Hand"
-                              Tapped="OnChildStrategyTapped">
+                              PointerPressed="OnChildStrategyPressed">
                         <DockPanel>
                           <ToggleSwitch DockPanel.Dock="Right"
                                         IsChecked="{Binding IsEnabled, Mode=TwoWay}"
