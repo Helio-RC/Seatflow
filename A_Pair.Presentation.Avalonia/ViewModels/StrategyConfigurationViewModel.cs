@@ -243,7 +243,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 await Dialog.ShowWarningAsync(
                     Resources.Strategy_PriorityConflictAutoFixed ,
                     string.Format(Resources.Strategy_PriorityConflictMsgFmt , names));
-                ReSort();
+                RefreshPriorities();
                 StatusMessage = string.Format(Resources.Strategy_LoadedFixedFmt , Strategies.Count , fixedList.Count);
             }
             else
@@ -377,7 +377,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
         var neighbor = sameGroup[idx - 1];
         await ResolveAndSwapPriorityAsync(item , neighbor);
-        ReSort();
+        RefreshPriorities();
         StatusMessage = string.Format(Resources.Strategy_MovedUpFmt , item.DisplayName , item.Priority);
     }
 
@@ -391,7 +391,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
         var neighbor = sameGroup[idx + 1];
         await ResolveAndSwapPriorityAsync(neighbor , item);
-        ReSort();
+        RefreshPriorities();
         StatusMessage = string.Format(Resources.Strategy_MovedDownFmt , item.DisplayName , item.Priority);
     }
 
@@ -430,7 +430,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private void AssignWithCascade (StrategyItemViewModel higher , StrategyItemViewModel lower)
     {
         higher.Priority = Math.Max(0 , lower.Priority - 1);
-        EnsureUniquePriorities();
+        RefreshPriorities();
     }
 
     // ═══════════════ 优先级冲突验证 ═══════════════
@@ -565,6 +565,17 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 刷新所有优先级相关数据：修复组内冲突 → 重排列表 → 刷新绑定。
+    /// 在任何涉及优先级变更的操作后调用此方法，确保独立/依赖分组、排序一致性。
+    /// </summary>
+    private void RefreshPriorities ()
+    {
+        EnsureUniquePriorities();
+        RefreshPriorities();
+        OnPropertyChanged(nameof(HasChanges));
+    }
+
     // ═══════════════ 保存当前（详情页） ═══════════════
 
     /// <summary>
@@ -601,7 +612,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             await _facade.SaveStrategyConfigAsync(SelectedDetail.Id , config , ct);
             SelectedStrategy.MarkClean();
             _hasDetailChanges = false;
-            ReSort();
+            RefreshPriorities();
 
             // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
             foreach (var ce in ConfigBlockEditors)
@@ -678,7 +689,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             }
 
             _hasDetailChanges = false;
-            ReSort();
+            RefreshPriorities();
 
             // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
             foreach (var ce in ConfigBlockEditors)
