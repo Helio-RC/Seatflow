@@ -1330,6 +1330,9 @@ Current seating will be overwritten.</value>
   <data name="Strategy_LegendBar" xml:space="preserve">
     <value>▌ Bar = executes during random fill</value>
   </data>
+  <data name="Strategy_ConfigInvalidHint" xml:space="preserve">
+    <value>⚠ Venue or roster changes may invalidate current strategy settings. Please review before execution.</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>Failed to load strategies</value>
   </data>

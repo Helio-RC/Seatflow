@@ -28,6 +28,16 @@
         <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Strategy_List}" Classes="sectionTitle"
                    Margin="0,0,0,8" />
 
+        <!-- 配置失效提示 -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="8,6"
+                CornerRadius="4"
+                Background="{DynamicResource WarningBackgroundBrush}">
+          <TextBlock Text="{x:Static lang:Resources.Strategy_ConfigInvalidHint}"
+                     FontSize="11"
+                     TextWrapping="Wrap"
+                     Foreground="{DynamicResource WarningForegroundBrush}" />
+        </Border>
+
         <!-- 底部：图例 + 操作按钮 -->
         <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
           <StackPanel Spacing="4">

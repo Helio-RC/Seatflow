@@ -1332,6 +1332,9 @@
   <data name="Strategy_LegendBar" xml:space="preserve">
     <value>▌ 竖线标识策略在随机填充时执行</value>
   </data>
+  <data name="Strategy_ConfigInvalidHint" xml:space="preserve">
+    <value>⚠ 会场或人员变动后，当前的策略配置可能失效，请在执行前检查和更新。</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>加载策略列表失败</value>
   </data>
