@@ -164,7 +164,7 @@ public class PluginManagerTests : IDisposable
         var zipPath = CreateMinimalValidZip("enables-test.ap-plugin");
 
         var manager = CreateManager();
-        var targetDir = await manager.InstallFromPackageAsync(zipPath , CancellationToken.None);
+        await manager.InstallFromPackageAsync(zipPath , CancellationToken.None);
 
         var enables = await manager.LoadEnablesAsync("enables-test" , CancellationToken.None);
         enables.Strategies["strat1"] = false;

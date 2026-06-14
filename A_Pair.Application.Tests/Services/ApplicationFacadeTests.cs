@@ -85,8 +85,8 @@ public class ApplicationFacadeTests
     [Fact]
     public async Task ExecuteCommandAsync_ShouldDelegateToHistory ()
     {
-        var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
+        var facade = CreateFacade(out _ , out _ , out _ ,
+            out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _);
         var cmd = Substitute.For<IUndoableCommand>();
         cmd.ExecuteAsync(Arg.Any<SeatingWorkspace>() , Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
@@ -103,8 +103,8 @@ public class ApplicationFacadeTests
     [Fact]
     public async Task UndoAsync_NoWorkspace_ReturnsFalse ()
     {
-        var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
+        var facade = CreateFacade(out _ , out _ , out _ ,
+            out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _);
         var result = await facade.UndoAsync(CancellationToken.None);
         result.Should().BeFalse();
     }

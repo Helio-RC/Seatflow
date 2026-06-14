@@ -143,7 +143,7 @@ public class SeatingWorkspaceTests
         var ws = new SeatingWorkspace(students , seats);
         ws.RegisterCapabilities("TestStrategy" , ["MarkFixedSeat"]);
 
-        var ok = ((IFixedSeatCapability)ws).TryMarkFixed("seat1" , "s1" , "TestStrategy" , "测试策略" , out var error);
+        var ok = ((IFixedSeatCapability)ws).TryMarkFixed("seat1" , "s1" , "TestStrategy" , "测试策略" , out _);
 
         ok.Should().BeTrue();
         seats[0].IsFixed.Should().BeTrue();
