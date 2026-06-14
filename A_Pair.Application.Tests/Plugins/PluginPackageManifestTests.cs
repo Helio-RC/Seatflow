@@ -1,13 +1,10 @@
 using System.Text.Json;
+using A_Pair.Infrastructure.Serialization;
 
 namespace A_Pair.Application.Tests.Plugins;
 
 public class PluginPackageManifestTests
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     [Fact]
     public void DefaultValues_ShouldBeExpected ()
@@ -44,7 +41,7 @@ public class PluginPackageManifestTests
             ]
         };
 
-        var json = JsonSerializer.Serialize(manifest , JsonOptions);
+        var json = JsonSerializer.Serialize(manifest , JsonOptions.CaseInsensitiveRead);
 
         json.Should().Contain("\"id\":");
         json.Should().Contain("\"name\":");
@@ -83,7 +80,7 @@ public class PluginPackageManifestTests
         }
         """;
 
-        var manifest = JsonSerializer.Deserialize<PluginPackageManifest>(json , JsonOptions);
+        var manifest = JsonSerializer.Deserialize<PluginPackageManifest>(json , JsonOptions.CaseInsensitiveRead);
         manifest.Should().NotBeNull();
         manifest!.Id.Should().Be("my-pkg");
         manifest.Name.Should().Be("My Package");
@@ -137,11 +134,7 @@ public class PluginPackageManifestTests
             }
         };
 
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true ,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+        var options = JsonOptions.CamelCaseReadWrite;
         var json = JsonSerializer.Serialize(enables , options);
         var deserialized = JsonSerializer.Deserialize<PluginEnables>(json , options);
 

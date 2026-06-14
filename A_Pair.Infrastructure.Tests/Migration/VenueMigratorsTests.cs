@@ -7,7 +7,6 @@ public class VenueMigratorsTests
 {
     private static JsonObject MakeVenueJson (
         string layoutTypeString ,
-        int columns ,
         List<(int Row , int Col)> seats)
     {
         var seatsArray = new JsonArray();
@@ -46,7 +45,7 @@ public class VenueMigratorsTests
             (1 , 1) , (2 , 1) ,  // col 1
             (1 , 2) , (2 , 2) ,  // col 2
         };
-        var root = MakeVenueJson("Grid" , 2 , columnMajor);
+        var root = MakeVenueJson("Grid" , columnMajor);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -76,7 +75,7 @@ public class VenueMigratorsTests
             for (int r = 1; r <= rowsForCol; r++)
                 columnMajor.Add((r , c));
         }
-        var root = MakeVenueJson("Grid" , 8 , columnMajor);
+        var root = MakeVenueJson("Grid" , columnMajor);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -100,7 +99,7 @@ public class VenueMigratorsTests
     [Fact]
     public void Migrate_PolarLayout_ShouldUpdateVersionOnly ()
     {
-        var root = MakeVenueJson("Polar" , 1 , [(1 , 1)]);
+        var root = MakeVenueJson("Polar" , [(1 , 1)]);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -113,7 +112,7 @@ public class VenueMigratorsTests
     [Fact]
     public void Migrate_FreeformLayout_ShouldUpdateVersionOnly ()
     {
-        var root = MakeVenueJson("Freeform" , 1 , [(1 , 1)]);
+        var root = MakeVenueJson("Freeform" , [(1 , 1)]);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -124,7 +123,7 @@ public class VenueMigratorsTests
     [Fact]
     public void Migrate_EmptySeats_ShouldNotThrow ()
     {
-        var root = MakeVenueJson("Grid" , 3 , []);
+        var root = MakeVenueJson("Grid" , []);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -136,7 +135,7 @@ public class VenueMigratorsTests
     [Fact]
     public void Migrate_SingleSeat_ShouldNotThrow ()
     {
-        var root = MakeVenueJson("Grid" , 1 , [(1 , 1)]);
+        var root = MakeVenueJson("Grid" , [(1 , 1)]);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);

@@ -115,5 +115,6 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
     public void Dispose ()
     {
         try { Directory.Delete(_tempDir , true); } catch { }
+        GC.SuppressFinalize(this);
     }
 }

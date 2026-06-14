@@ -148,5 +148,6 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
     {
         _cts.Cancel();
         _cts.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

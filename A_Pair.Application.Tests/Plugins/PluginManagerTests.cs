@@ -18,6 +18,7 @@ public class PluginManagerTests : IDisposable
     {
         try { Directory.Delete(_pluginsDir , recursive: true); }
         catch { /* ignore */ }
+        GC.SuppressFinalize(this);
     }
 
     // ── ValidateZipSafety ──

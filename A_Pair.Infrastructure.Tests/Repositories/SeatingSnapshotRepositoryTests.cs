@@ -15,6 +15,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
     {
         if (Directory.Exists(_testDir))
             Directory.Delete(_testDir , true);
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
