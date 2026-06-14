@@ -4,6 +4,7 @@ param(
     [string]$Mode,
     [ValidateSet("Release","Debug")][string]$Configuration="Release",
     [string]$Suffix="",
+    [string]$Version="",
     [switch]$Optimize, [switch]$HashOnly, [switch]$Clean
 )
 $ErrorActionPreference="Stop"
@@ -22,7 +23,7 @@ function ShaTable{
 function Publish-One($SC,$Label,$Rids){
     $base="publish/$Label";mkdir -Force $base|Out-Null
     foreach($rid in $Rids){
-        $sf=if($rid-like"win*"){".exe"}else{""};$tmp="$base/.tmp_$rid";$fn=if($Suffix){"$AppName-$Label-$rid-$Suffix$sf"}else{"$AppName-$Label-$rid$sf"}
+        $sf=if($rid-like"win*"){".exe"}else{""};$tmp="$base/.tmp_$rid";$fn=if($Version){"$AppName-$Version-$Label-$rid"}else{"$AppName-$Label-$rid"};if($Suffix){$fn="$fn-$Suffix"};$fn="$fn$sf"
         $Host.UI.RawUI.WindowTitle="A_Pair: $Label / $rid"
         Write-Host "`n══════════════════════════════════════════" -F Cyan
         Write-Host "  $Label / $rid" -F Cyan
@@ -51,7 +52,7 @@ if($Mode-or$HashOnly){
 # TUI 模式
 [Console]::Clear()
 Write-Host "  A_Pair 发布"
-$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cl=$false;$cu=0;$suf=$Suffix;$ii=14
+$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cl=$false;$cu=0;$suf=$Suffix;$ver=$Version;$ii=15
 
 function Draw{
     [Console]::SetCursorPosition(0,1)
@@ -82,13 +83,16 @@ function Draw{
     $sx=if($cu-eq10){">"}else{" "}
     $sd=if($suf){"[$suf]"}else{"[未设置]"}
     $o+="     $sx$sd 文件名后缀（Enter 设置）"
+    $vx=if($cu-eq11){">"}else{" "}
+    $vd=if($ver){"[$ver]"}else{"[未设置]"}
+    $o+="     $vx$vd 版本号（Enter 设置）"
     $o+=""
     $o+="  操作："
-    $cb=if($cl){"[*]"}else{"[ ]"}; $ci=if($cu-eq11){">"}else{" "}
+    $cb=if($cl){"[*]"}else{"[ ]"}; $ci=if($cu-eq12){">"}else{" "}
     $o+="     $ci$cb 编译前清空 publish/ 目录"
-    $b1=if($cu-eq12){">"}else{" "}
+    $b1=if($cu-eq13){">"}else{" "}
     $o+="     $b1[ 开始编译 ]"
-    $b2=if($cu-eq13){">"}else{" "}
+    $b2=if($cu-eq14){">"}else{" "}
     $o+="     $b2[ 仅计算哈希 ]"
     $o+=""
     foreach($l in $o){ [Console]::WriteLine($l) }
@@ -102,14 +106,15 @@ while(-not $run){
     switch($k.Key){
         UpArrow{$cu=($cu-1+$ii)%$ii;Draw}
         DownArrow{$cu=($cu+1)%$ii;Draw}
-        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-ge6-and$cu-le8){$ti=$cu-6}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq11){$cl=!$cl};Draw}
+        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-ge6-and$cu-le8){$ti=$cu-6}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq12){$cl=!$cl};Draw}
         A{if($cu-eq4){0..3|%{$P[$_].Sel=$true};Draw}}
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
         Escape{[Console]::CursorVisible=$true;Pop-Location;exit 0}
         Enter{
             if($cu-eq10){[Console]::CursorVisible=$true;Write-Host "";Write-Host "文件名后缀: " -NoNewline;$Suffix=[Console]::ReadLine().Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
-            elseif($cu-eq12){$run=$true}
-            elseif($cu-eq13){[Console]::CursorVisible=$true;ShaTable;Pop-Location;exit 0}
+            elseif($cu-eq11){[Console]::CursorVisible=$true;Write-Host "";Write-Host "版本号 (如 1.1.0): " -NoNewline;$Version=[Console]::ReadLine().Trim();$ver=$Version;[Console]::CursorVisible=$false;Draw}
+            elseif($cu-eq13){$run=$true}
+            elseif($cu-eq14){[Console]::CursorVisible=$true;ShaTable;Pop-Location;exit 0}
             elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================
 # A_Pair 多平台发布 — TUI 交互 / CLI 兼容
-# 用法: ./publish.sh                   # TUI
-#        ./publish.sh both Release opt  # CLI
-#        ./publish.sh hash              # 仅哈希
+# 用法: ./publish.sh                         # TUI
+#        ./publish.sh both Release opt "" "1.1.0" clean  # CLI
+#        ./publish.sh hash                     # 仅哈希
 # ============================================================
 set -euo pipefail
 OLDPWD="$PWD"; trap 'cd "$OLDPWD"' EXIT
@@ -12,7 +12,7 @@ cd ..
 APP_NAME="A_Pair"; PROJECT="A_Pair.Presentation.Avalonia"; CONFIG="Release"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 SUFFIXES=(".exe" "" "" ""); SEL=(0 0 0 0)
-TYPE_IDX=2; TRIM_SEL=0; CLEAN=0; CURSOR=0; SUFFIX=""; ITEMS=14
+TYPE_IDX=2; TRIM_SEL=0; CLEAN=0; CURSOR=0; SUFFIX=""; VERSION=""; ITEMS=15
 
 step(){ echo -e "  [$(date +%H:%M:%S)] \e[${2:-37}m$1\e[0m"; }
 
@@ -30,7 +30,7 @@ publish_one(){
     local base="publish/$label"; mkdir -p "$base"
     for rid in "${rids[@]}"; do
         sf=""; [ "${rid:0:3}" = "win" ] && sf=".exe"
-        tmp="$base/.tmp_$rid"; fn="$APP_NAME-$label-$rid${SUFFIX:+-$SUFFIX}$sf"
+        tmp="$base/.tmp_$rid"; fn="$APP_NAME${VERSION:+-$VERSION}-$label-$rid${SUFFIX:+-$SUFFIX}$sf"
         echo -ne "\033]0;A_Pair: $label / $rid\007"
         echo ""; echo -e "\e[36m══════════════════════════════════════════\e[0m"
         echo -e "\e[36m  $label / $rid\e[0m"
@@ -51,7 +51,7 @@ publish_one(){
 # CLI 模式
 if [ $# -gt 0 ]; then
     if [ "${1:-}" = "hash" ]; then sha_table; exit 0; fi
-    MODE="${1:-both}"; CONFIG="${2:-Release}"; [ "${3:-}" = "opt" ] && TRIM_SEL=1; SUFFIX="${4:-}"; [ "${5:-}" = "clean" ] && CLEAN=1
+    MODE="${1:-both}"; CONFIG="${2:-Release}"; [ "${3:-}" = "opt" ] && TRIM_SEL=1; SUFFIX="${4:-}"; VERSION="${5:-}"; [ "${6:-}" = "clean" ] && CLEAN=1
     if [ "$CLEAN" = "1" ] && [ -d publish ]; then find publish -type f | while read -r f; do echo -e "\e[90m  $f\e[0m"; done; read -r -p "确认删除以上文件? (y/N) " c; [ "$c" = "y" ] && { rm -rf publish; echo -e "\e[33m已清空\e[0m"; } || echo -e "\e[90m已取消\e[0m"; fi
     S=$(date +%s)
     if [ "$MODE" != "fd" ]; then echo -e "\n\e[35m--- 自包含 ---\e[0m"; publish_one "true" "self-contained" "${RIDS[@]}"; fi
@@ -109,13 +109,16 @@ draw(){
     local sx=" "; [ "$CURSOR" = "10" ] && sx=">"
     local sd="[未设置]"; [ -n "$SUFFIX" ] && sd="[$SUFFIX]"
     echo "     $sx$sd 文件名后缀（Enter 设置）"
+    local vx=" "; [ "$CURSOR" = "11" ] && vx=">"
+    local vd="[未设置]"; [ -n "$VERSION" ] && vd="[$VERSION]"
+    echo "     $vx$vd 版本号（Enter 设置）"
     echo ""
     echo "  操作："
-    mk="[ ]"; [ "$CLEAN" = "1" ] && mk="[*]"; ci=" "; [ "$CURSOR" = "11" ] && ci=">"
+    mk="[ ]"; [ "$CLEAN" = "1" ] && mk="[*]"; ci=" "; [ "$CURSOR" = "12" ] && ci=">"
     echo "     $ci$mk 编译前清空 publish/ 目录"
-    local b1=" "; [ "$CURSOR" = "12" ] && b1=">"
+    local b1=" "; [ "$CURSOR" = "13" ] && b1=">"
     echo "     $b1[ 开始编译 ]"
-    local b2=" "; [ "$CURSOR" = "13" ] && b2=">"
+    local b2=" "; [ "$CURSOR" = "14" ] && b2=">"
     echo "     $b2[ 仅计算哈希 ]"
     echo ""
     echo "  ↑↓移动  Space切换  Enter确认  Esc退出"
@@ -132,13 +135,14 @@ while true; do
             elif [ "$CURSOR" = "5" ]; then for i in 0 1 2 3; do SEL[$i]=0; done
             elif [ "$CURSOR" -ge 6 ] && [ "$CURSOR" -le 8 ]; then TYPE_IDX=$((CURSOR-6))
             elif [ "$CURSOR" = "9" ]; then [ "$TRIM_SEL" = "1" ] && TRIM_SEL=0 || TRIM_SEL=1
-            elif [ "$CURSOR" = "11" ]; then [ "$CLEAN" = "1" ] && CLEAN=0 || CLEAN=1; fi; draw ;;
+            elif [ "$CURSOR" = "12" ]; then [ "$CLEAN" = "1" ] && CLEAN=0 || CLEAN=1; fi; draw ;;
         A_KEY) [ "$CURSOR" = "4" ] && { for i in 0 1 2 3; do SEL[$i]=1; done; draw; } ;;
         N_KEY) [ "$CURSOR" = "5" ] && { for i in 0 1 2 3; do SEL[$i]=0; done; draw; } ;;
         ESC) stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h\e[2J"; exit 0 ;;
         ENT) if [ "$CURSOR" = "10" ]; then printf "\e[?25h"; stty "$OLD" 2>/dev/null||stty sane; read -r -p "文件名后缀: " SUFFIX; stty -echo -icanon min 1 time 1 2>/dev/null; printf "\e[?25l"; draw
-            elif [ "$CURSOR" = "12" ]; then break
-            elif [ "$CURSOR" = "13" ]; then stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h\n"; sha_table; exit 0
+            elif [ "$CURSOR" = "11" ]; then printf "\e[?25h"; stty "$OLD" 2>/dev/null||stty sane; read -r -p "版本号 (如 1.1.0): " VERSION; stty -echo -icanon min 1 time 1 2>/dev/null; printf "\e[?25l"; draw
+            elif [ "$CURSOR" = "13" ]; then break
+            elif [ "$CURSOR" = "14" ]; then stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h\n"; sha_table; exit 0
             elif [ "$CURSOR" -ge 6 ] && [ "$CURSOR" -le 8 ]; then TYPE_IDX=$((CURSOR-6)); draw; fi ;;
     esac
 done
