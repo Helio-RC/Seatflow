@@ -80,9 +80,14 @@ namespace A_Pair.Presentation.Avalonia
 
         if (extra.Length == 0) return;
 
+        const int maxShow = 5;
+        var display = extra.Take(maxShow).ToArray();
         var message = "程序所在目录不应有其他文件或文件夹。\n\n" +
             $"请将 {exeName} 单独放入一个空目录后再运行。\n\n" +
-            $"当前目录多余项：\n{string.Join('\n' , extra)}";
+            $"当前目录多余项：\n{string.Join('\n' , display)}";
+
+        if (extra.Length > maxShow)
+            message += $"\n（还有 {extra.Length - maxShow} 项未显示）";
 
         ShowFatalDialog("运行环境错误" , message);
         Environment.Exit(1);
