@@ -9,7 +9,7 @@ public class StrategyExecutionPipelineTests
         var strat1 = Substitute.For<ISeatingStrategy>();
         strat1.Id.Returns("s1");
         strat1.Name.Returns("Strat1");
-        strat1.Priority.Returns(10);
+        strat1.Priority.Returns(5);
         strat1.IsEnabled.Returns(true);
         strat1.ExecuteAsync(Arg.Any<SeatingWorkspace>() , Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new StrategyExecutionResult { Success = true }));
@@ -17,7 +17,7 @@ public class StrategyExecutionPipelineTests
         var strat2 = Substitute.For<ISeatingStrategy>();
         strat2.Id.Returns("s2");
         strat2.Name.Returns("Strat2");
-        strat2.Priority.Returns(5);
+        strat2.Priority.Returns(10);
         strat2.IsEnabled.Returns(true);
         strat2.ExecuteAsync(Arg.Any<SeatingWorkspace>() , Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new StrategyExecutionResult { Success = true }));
@@ -28,7 +28,7 @@ public class StrategyExecutionPipelineTests
         // Act
         await pipeline.ExecuteAsync(workspace , cancellationToken: CancellationToken.None);
 
-        // Assert: strat2 (priority 5) called before strat1 (priority 10)
+        // Assert: strat2 (priority 10) called before strat1 (priority 5)
         Received.InOrder(() =>
         {
             strat2.ExecuteAsync(workspace , Arg.Any<CancellationToken>());

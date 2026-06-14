@@ -204,7 +204,7 @@ public interface IPluginSeatingStrategy : IPlugin
     string IPlugin.Category => "strategy";   // 默认类别
     string IPlugin.Version => "1.0.0";       // 默认版本
 
-    int Priority { get; set; }               // 执行优先级（数值越小越先执行）
+    int Priority { get; set; }               // 执行优先级（数值越大越先执行）
     bool IsEnabled { get; set; }             // 是否启用
 
     Task<PluginStrategyResult> ExecuteAsync(
@@ -302,16 +302,32 @@ public class MyStrategy : PluginStrategyBase { ... }
 | `author` | string | 否 | `""` | 插件作者 |
 | `assembly` | string | 见注 | `""` | DLL 文件名（程序集插件） |
 | `type` | string | 见注 | `""` | 入口类型的完全限定名（程序集插件） |
-| `priority` | int | 否 | `50` | 执行优先级，越小越先执行 |
+| `priority` | int | 否 | `50` | 执行优先级，越大越先执行 |
 | `enabled` | bool | 否 | `true` | 加载时是否默认启用 |
 | `dependencies` | string[] | 否 | `[]` | 依赖的插件 ID 列表 |
 | `scriptFile` | string | 见注 | null | 脚本文件名（脚本插件） |
 | `scriptType` | string | 见注 | null | 脚本类型：`"lua"` 或 `"csharp"` |
-| `visible` | bool | 否 | `true` | 控制策略是否参与管道。`false` 时从 UI（配置页、座位安排侧栏）和执行管道中完全排除 |
+| `visible` | bool | 否 | `true` | 控制策略是否参与管道。`false` 时从 UI 和执行管道中完全排除 |
+| `isIndependent` | bool | 否 | `true` | `true`=独立策略（外部管道执行）；`false`=依赖策略（在 RandomFill 分配循环中执行）。详见下方"依赖策略" |
+| `manifestVersion` | string | 否 | `"1.0"` | Manifest 格式版本号，用于运行时兼容性校验 |
 | `parameters` | array | 否 | null | 策略级全局参数声明（见下方"声明式配置"） |
 | `codeBlocks` | array | 否 | null | 按数据集/会场的配置块声明（见下方"声明式配置"） |
 
 > **注：** 程序集插件需同时提供 `assembly` + `type`；脚本插件需同时提供 `scriptFile` + `scriptType`。两者互斥。
+
+### 依赖策略（Dependent Strategy）
+
+设置 `"isIndependent": false` 可使插件策略作为**依赖策略**执行。依赖策略不在外部管道中执行，而是在 RandomFill 的分配循环中运行：
+
+```
+RandomFill 随机选 (student, seat) →
+  依次调用依赖策略 EvaluateAsync (按内部 Priority) →
+    批准 (Approve) → 继续分配
+    拒绝 (Reject) → 换座位重试（有上限）
+    已处理 (Handled) → 策略已完成分配（含连携修改），跳过 TryAssignSeat
+```
+
+**注意：** 当前版本的 `IPluginSeatingStrategy` 接口尚未支持 `EvaluateAsync`，因此插件依赖策略将默认批准所有分配。后续版本会扩展该接口。
 
 ### 声明式配置与 i18n
 
@@ -805,7 +821,7 @@ A_Pair/
 |------|----------|----------|
 | 插件未出现在列表中 | 清单缺失或无效 | 检查 `plugin.manifest.json` 是否存在且为有效 JSON |
 | 插件加载失败 | `assembly`/`type` 字段不匹配 | 确保 `type` 是完整命名空间限定名 |
-| 脚本执行无效果 | 优先级过高或未启用 | 检查 `priority`（越小越先）和 `enabled` |
+| 脚本执行无效果 | 优先级过高或未启用 | 检查 `priority`（越大越先）和 `enabled` |
 | Lua 脚本报错 | 调用了不可用的库 | `io/os/package/debug` 已移除，仅用 `workspace` API |
 | C# 脚本编译失败 | 使用了白名单外的 API | 仅用 `System`、`System.Linq`、`Collection` 等 |
 | .apairplugin 安装失败 | 同 ID 插件已存在 | 先卸载旧版本再安装 |
@@ -841,6 +857,42 @@ public interface IPluginExporter : IPlugin
 ```
 
 安装后自动出现在导出格式下拉框中。PluginManager 通过 `LoadPlugins("exporter")` 加载。
+
+### 策略能力声明
+
+策略可通过 manifest 声明**能力**来使用受保护的操作（如标记固定座位）：
+
+**Manifest 声明**（`manifest.json`）：
+```json
+{
+    "id": "MyPlugin",
+    "capabilities": ["MarkFixedSeat"],
+    ...
+}
+```
+
+**运行时调用**（通过 `IPluginWorkspace`）：
+```csharp
+public async Task<PluginStrategyResult> ExecuteAsync(IPluginWorkspace workspace, CancellationToken ct)
+{
+    // 标记座位为固定（需在 manifest 中声明 "MarkFixedSeat" 能力）
+    if (workspace.TryMarkFixed("seat-1", "student-A", Id, Name, out var error))
+    {
+        // 座位已锁定，后续策略（如碎片整理 Defrag）不会移动此座位
+    }
+    else
+    {
+        // 未声明能力 → error 包含 "未声明 MarkFixedSeat 能力"
+    }
+}
+```
+
+**可用能力**（定义在 `A_Pair.Core.Strategies.Capability`）：
+| 常量 | 接口方法 | 说明 |
+|------|----------|------|
+| `MarkFixedSeat` | `IPluginWorkspace.TryMarkFixed()` | 标记座位为固定，设置 `IsFixed=true`。被保护座位不会被 `GetEmptySeats()` 返回，不会被碎片整理策略移动 |
+
+未声明能力时调用会被拒绝（返回 false）并记录警告日志。
 
 ### 如何为新类别扩展
 

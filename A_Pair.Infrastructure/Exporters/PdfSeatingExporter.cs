@@ -9,7 +9,7 @@ using QuestPDF.Infrastructure;
 
 namespace A_Pair.Infrastructure.Exporters;
 
-public class PdfSeatingExporter : ISeatingPlanExporter
+public class PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null) : ISeatingPlanExporter
 {
     private const float DefaultCellWidth = 22f;
     private const float CompactCellWidth = 11f;
@@ -19,12 +19,7 @@ public class PdfSeatingExporter : ISeatingPlanExporter
     private const float PageMargin = 10f;
     private const float FooterHeight = 10f;
 
-    private readonly ILogger<PdfSeatingExporter> _logger;
-
-    public PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null)
-    {
-        _logger = logger ?? NullLogger<PdfSeatingExporter>.Instance;
-    }
+    private readonly ILogger<PdfSeatingExporter> _logger = logger ?? NullLogger<PdfSeatingExporter>.Instance;
 
     public ExportFormat Format => ExportFormat.Pdf;
 

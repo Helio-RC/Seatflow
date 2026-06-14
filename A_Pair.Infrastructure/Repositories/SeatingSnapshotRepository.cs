@@ -3,29 +3,23 @@ using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Repositories
 {
-    public class SeatingSnapshotRepository : ISeatingSnapshotRepository
+    public class SeatingSnapshotRepository (
+        string basePath ,
+        FileMigrationService migration ,
+        ILogger<SeatingSnapshotRepository>? logger = null) : ISeatingSnapshotRepository
     {
-        private readonly string _basePath;
-        private readonly FileMigrationService _migration;
+        private readonly string _basePath = basePath;
+        private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
         private readonly Dictionary<string , string> _index = [];
         private bool _indexBuilt;
-        private readonly object _indexLock = new();
-        private readonly ILogger<SeatingSnapshotRepository> _logger;
-
-        public SeatingSnapshotRepository (
-            string basePath ,
-            FileMigrationService migration ,
-            ILogger<SeatingSnapshotRepository>? logger = null)
-        {
-            _basePath = basePath;
-            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-            _logger = logger ?? NullLogger<SeatingSnapshotRepository>.Instance;
-        }
+        private readonly Lock _indexLock = new();
+        private readonly ILogger<SeatingSnapshotRepository> _logger = logger ?? NullLogger<SeatingSnapshotRepository>.Instance;
 
         private static string GetFilePath (string venueId , DateTime date , string id)
             => Path.Combine(venueId , date.ToString("yyyyMMdd") , id + ".json");
@@ -54,16 +48,16 @@ namespace A_Pair.Infrastructure.Repositories
 
         public async Task SaveAsync (SeatingSnapshot snapshot , CancellationToken ct = default)
         {
+            BuildIndex();
             var dir = Path.Combine(_basePath , snapshot.LayoutId , snapshot.CreatedAt.ToString("yyyyMMdd"));
             Directory.CreateDirectory(dir);
             var path = Path.Combine(_basePath , GetFilePath(snapshot.LayoutId , snapshot.CreatedAt , snapshot.Id));
             snapshot.Version = FileVersionInfo.GetCurrentVersion("snapshot");
-            var json = JsonSerializer.Serialize(snapshot , new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(snapshot , JsonOptions.WriteIndented);
             await File.WriteAllTextAsync(path , json , ct);
             lock (_indexLock)
             {
                 _index[snapshot.Id] = path;
-                _indexBuilt = true;
             }
             _logger.LogInformation("快照已保存：{SnapshotId} → {Path}" , snapshot.Id , path);
         }
@@ -74,7 +68,7 @@ namespace A_Pair.Infrastructure.Repositories
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir , "_venue.json");
             info.Version = FileVersionInfo.GetCurrentVersion("venueInfo");
-            var json = JsonSerializer.Serialize(info , new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(info , JsonOptions.WriteIndented);
             await File.WriteAllTextAsync(path , json , ct);
         }
 
@@ -102,7 +96,7 @@ namespace A_Pair.Infrastructure.Repositories
             ct.ThrowIfCancellationRequested();
             var snapshots = LoadFromDir(Path.Combine(_basePath , venueId));
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
-                snapshots.OrderByDescending(s => s.CreatedAt).ToList());
+                [.. snapshots.OrderByDescending(s => s.CreatedAt)]);
         }
 
         public Task<IReadOnlyList<SeatingSnapshot>> ListAllAsync ()
@@ -111,7 +105,7 @@ namespace A_Pair.Infrastructure.Repositories
             foreach (var venueDir in SafeEnumerateDirectories(_basePath))
                 snapshots.AddRange(LoadFromDir(venueDir));
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
-                snapshots.OrderByDescending(s => s.CreatedAt).ToList());
+                [.. snapshots.OrderByDescending(s => s.CreatedAt)]);
         }
 
         public Task DeleteAsync (string id , CancellationToken ct = default)

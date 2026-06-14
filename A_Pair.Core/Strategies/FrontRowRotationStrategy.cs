@@ -1,4 +1,4 @@
-using A_Pair.Core.Models;
+using A_Pair.Core.DomainServices;
 using A_Pair.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -6,22 +6,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 前排轮换策略（Priority=20，第二执行，在非固定空座中填前排）。
+    /// 前排轮换策略（Priority=50，第二执行，在非固定空座中填前排）。
     /// 在 FixedSeat 锁定固定座位后执行，从剩余空座中识别前排座位，
     /// 按需求分数分配给最需要的学生。分数公式与前相同。
     /// </summary>
-    public class FrontRowRotationStrategy : ISeatingStrategy
+    public class FrontRowRotationStrategy (FrontRowRotationStrategy.FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null , Random? random = null) : ISeatingStrategy
     {
-        private readonly FrontRowRotationConfiguration _config;
-        private readonly ILogger<FrontRowRotationStrategy> _logger;
-        private readonly Random _random;
-
-        public FrontRowRotationStrategy (FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null , Random? random = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
-            _random = random ?? new Random();
-        }
+        private readonly FrontRowRotationConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<FrontRowRotationStrategy> _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
+        private readonly Random _random = random ?? new Random();
 
         /// <summary>
         /// 使用默认配置创建实例。
@@ -43,11 +36,11 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："FrontRowRotation"。</summary>
         public string Name { get; } = "FrontRowRotation";
 
-        /// <summary>执行优先级：20（第二执行，在非固定空座中填前排）。</summary>
-        public int Priority { get; set; } = 20;
+        /// <summary>执行优先级：50（第二执行，在非固定空座中填前排）。</summary>
+        public int Priority { get; set; } = 50;
 
         /// <summary>是否启用。</summary>
-        public bool IsEnabled { get; set; } = true;
+        public bool IsEnabled { get; set; } = false;
 
         /// <summary>
         /// 执行前排轮换：
@@ -68,32 +61,9 @@ namespace A_Pair.Core.Strategies
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
-            // 收集前排座位（Grid + Polar）
-            var frontRowSeats = new List<Seat>();
-
-            var gridSeats = emptySeats.OfType<GridSeat>().ToList();
-            if (gridSeats.Count > 0)
-            {
-                int frontRowMin = gridSeats.Min(s => s.Row);
-                int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
-                frontRowSeats.AddRange(gridSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax));
-            }
-
-            var polarSeats = emptySeats.OfType<PolarSeat>().ToList();
-            if (polarSeats.Count > 0)
-            {
-                // Ring=1 为最内环（靠近讲台），即前排
-                int frontRingMax = _config.FrontRowCount;
-                frontRowSeats.AddRange(polarSeats.Where(s => s.Ring <= frontRingMax));
-            }
-
-            var freeformSeats = emptySeats.OfType<FreeformSeat>().Where(s => s.Row.HasValue).ToList();
-            if (freeformSeats.Count > 0)
-            {
-                int frontRowMin = freeformSeats.Min(s => s.Row!.Value);
-                int frontRowMax = frontRowMin + _config.FrontRowCount - 1;
-                frontRowSeats.AddRange(freeformSeats.Where(s => s.Row >= frontRowMin && s.Row <= frontRowMax));
-            }
+            // 收集前排座位（复用 SeatGeometryHelper 共享逻辑）
+            var frontRowIds = SeatGeometryHelper.IdentifyFrontRowSeats(emptySeats , _config.FrontRowCount);
+            var frontRowSeats = emptySeats.Where(s => frontRowIds.Contains(s.Id)).ToList();
 
             if (frontRowSeats.Count == 0)
             {
@@ -187,6 +157,12 @@ namespace A_Pair.Core.Strategies
             /// 前排行数。默认为 1（仅第 1 行），可根据教室布局配置。
             /// </summary>
             public int FrontRowCount { get; set; } = 1;
+
+            /// <summary>
+            /// 参考历史快照个数：从最近多少个快照中读取前排座位记录。
+            /// 默认 10，范围 1~30。
+            /// </summary>
+            public int HistoryWindowSize { get; set; } = 10;
         }
     }
 }

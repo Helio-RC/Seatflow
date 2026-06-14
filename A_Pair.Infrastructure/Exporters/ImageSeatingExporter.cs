@@ -7,7 +7,7 @@ using SkiaSharp;
 
 namespace A_Pair.Infrastructure.Exporters;
 
-public class ImageSeatingExporter : ISeatingPlanExporter
+public class ImageSeatingExporter (ILogger<ImageSeatingExporter>? logger = null) : ISeatingPlanExporter
 {
     private const int CellWidth = 76;
     private const int CellHeight = 32;
@@ -15,12 +15,7 @@ public class ImageSeatingExporter : ISeatingPlanExporter
     private const int Margin = 20;
     private const float TextSize = 11;
 
-    private readonly ILogger<ImageSeatingExporter> _logger;
-
-    public ImageSeatingExporter (ILogger<ImageSeatingExporter>? logger = null)
-    {
-        _logger = logger ?? NullLogger<ImageSeatingExporter>.Instance;
-    }
+    private readonly ILogger<ImageSeatingExporter> _logger = logger ?? NullLogger<ImageSeatingExporter>.Instance;
 
     /// <summary>跨平台 CJK 字体，通过 MatchCharacter 动态匹配系统可用字体。</summary>
     private static readonly SKTypeface CjkTypeface = ResolveCjkTypeface();

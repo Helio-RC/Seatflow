@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
+using A_Pair.Core.Strategies;
 using A_Pair.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -23,28 +24,15 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
-    private ObservableCollection<StrategyItemViewModel> _strategies = [];
+    public partial ObservableCollection<StrategyItemViewModel> Strategies { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
     [NotifyPropertyChangedFor(nameof(PriorityDisplay))]
     [NotifyPropertyChangedFor(nameof(EnableTooltipDisplay))]
-    private StrategyItemViewModel? _selectedStrategy;
+    public partial StrategyItemViewModel? SelectedStrategy { get; set; }
 
     public bool HasSelection => SelectedStrategy is not null;
-
-    // ═══════════════ 侧栏折叠 ═══════════════
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
-    private bool _isSidebarExpanded = true;
-
-    public bool IsSidebarCollapsed => !IsSidebarExpanded;
-
-    [ObservableProperty]
-    private double _sidebarListWidth = 240;
-
-    private bool _userWantsSidebarExpanded = true;
 
     // ═══════════════ 详情区域 ═══════════════
 
@@ -54,16 +42,16 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(DetailAuthorDisplay))]
     [NotifyPropertyChangedFor(nameof(DetailCategoryDisplay))]
     [NotifyPropertyChangedFor(nameof(DetailDefaultPriorityDisplay))]
-    private StrategyDisplayInfo? _selectedDetail;
+    public partial StrategyDisplayInfo? SelectedDetail { get; set; }
 
     public bool HasDetail => SelectedDetail is not null && !string.IsNullOrEmpty(SelectedDetail.Id);
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotLoading))]
-    private bool _isLoading;
+    public partial bool IsLoading { get; set; }
 
     public bool IsNotLoading => !IsLoading;
 
@@ -84,20 +72,20 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     // ═══════════════ 详情编辑属性 ═══════════════
 
     [ObservableProperty]
-    private int _editPriority;
+    public partial int EditPriority { get; set; }
 
     [ObservableProperty]
-    private bool _editIsEnabled;
+    public partial bool EditIsEnabled { get; set; }
 
     // ═══════════════ 声明式配置编辑器 ═══════════════
 
     /// <summary>策略级参数编辑器（manifest parameters[] 驱动）。</summary>
     [ObservableProperty]
-    private ParameterEditorViewModel? _parameterEditor;
+    public partial ParameterEditorViewModel? ParameterEditor { get; set; }
 
     /// <summary>配置块编辑器列表（manifest codeBlocks[] 驱动），每项对应一个 codeBlock。</summary>
     [ObservableProperty]
-    private ObservableCollection<ConfigBlockEditorViewModel> _configBlockEditors = [];
+    public partial ObservableCollection<ConfigBlockEditorViewModel> ConfigBlockEditors { get; set; } = [];
 
     /// <summary>是否有参数或配置块可显示。</summary>
     public bool HasParameters => ParameterEditor is not null && ParameterEditor.Parameters.Count > 0;
@@ -138,7 +126,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         _facade = facade;
         _logger = logger ?? NullLogger<StrategyConfigurationViewModel>.Instance;
-        _selectedDetail = new();
+        SelectedDetail = new();
         _ = LoadAsync(CancellationToken.None);
     }
 
@@ -154,29 +142,14 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             Resources.Strategy_UnsavedChangesMsg);
 
         if (choice)
+        {
             await SaveAllCommand.ExecuteAsync(null);
+            // 保存后再次检查是否仍有未保存内容（保存可能部分失败）
+            if (HasChanges)
+                return false;
+        }
 
         return true;
-    }
-
-    // ═══════════════ 响应式 ═══════════════
-
-    public void OnWindowWidthChanged (double windowWidth)
-    {
-        if (windowWidth < 750)
-            IsSidebarExpanded = false;
-        else
-            IsSidebarExpanded = _userWantsSidebarExpanded;
-    }
-
-    partial void OnIsSidebarExpandedChanged (bool value)
-        => SidebarListWidth = value ? 240 : 120;
-
-    [RelayCommand]
-    private void ToggleSidebar ()
-    {
-        _userWantsSidebarExpanded = !_userWantsSidebarExpanded;
-        IsSidebarExpanded = _userWantsSidebarExpanded;
     }
 
     /// <summary>
@@ -184,9 +157,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// </summary>
     partial void OnSelectedStrategyChanged (StrategyItemViewModel? oldValue , StrategyItemViewModel? newValue)
     {
-        // 取消旧订阅
         if (oldValue is not null)
+        {
             oldValue.PropertyChanged -= OnSelectedStrategyItemPropertyChanged;
+            // 切换前自动保存旧策略的脏代码块，避免编辑内容丢失
+            _ = SaveDirtyBlockEditorsAsync(oldValue);
+        }
 
         if (newValue is null)
         {
@@ -198,6 +174,33 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         // 丢弃未保存的详情编辑（旧策略数据不应污染新策略配置）
         _hasDetailChanges = false;
         _ = LoadDetailAsync(newValue);
+    }
+
+    /// <summary>自动保存旧策略的脏代码块，失败时标记策略项为脏以确保离开时提示保存。</summary>
+    private async Task SaveDirtyBlockEditorsAsync (StrategyItemViewModel oldItem)
+    {
+        var dirtyEditors = ConfigBlockEditors.Where(ce => ce.IsDirty && ce.IsLoaded).ToList();
+        if (dirtyEditors.Count == 0) return;
+
+        bool anyFailed = false;
+        foreach (var editor in dirtyEditors)
+        {
+            try
+            {
+                await editor.SaveConfigCommand.ExecuteAsync(null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex , "切换策略时自动保存代码块编辑器失败");
+                anyFailed = true;
+            }
+        }
+
+        if (anyFailed)
+        {
+            oldItem.HasChanges = true;
+            StatusMessage = Resources.Strategy_SaveBlockFailed;
+        }
     }
 
     private void OnSelectedStrategyItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
@@ -219,33 +222,57 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             StatusMessage = Resources.Strategy_Loading;
 
             var displayInfos = await _facade.GetStrategiesAsync(ct);
-            var items = displayInfos
-                .Where(d => d.Visible)
+
+            // 分类：独立策略 vs 依赖策略
+            var independentInfos = displayInfos
+                .Where(d => d.Visible && d.IsIndependent)
+                .ToList();
+            var dependentInfos = displayInfos
+                .Where(d => d.Visible && !d.IsIndependent)
+                .ToList();
+
+            // 构建独立策略的 ViewModel
+            var items = independentInfos
                 .Select(d => new StrategyItemViewModel(
                     d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
-                    d.Priority , d.DefaultPriority , d.IsEnabled)).ToList();
+                    d.Priority , d.DefaultPriority , d.IsEnabled ,
+                    isIndependent: true))
+                .ToList();
+
+            // 将依赖策略展平插入到宿主（RandomFill）后面，避免 hover 冒泡
+            var randomFill = items.FirstOrDefault(i => i.Id == RandomFillStrategy.StrategyId);
+            if (randomFill != null && dependentInfos.Count > 0)
+            {
+                var children = dependentInfos
+                    .OrderByDescending(d => d.Priority)
+                    .Select(d => new StrategyItemViewModel(
+                        d.Id , d.DisplayName , d.Source , d.IsBuiltIn ,
+                        d.Priority , d.DefaultPriority , d.IsEnabled ,
+                        isIndependent: false , isDependentChild: true))
+                    .ToList();
+
+                // 设置 Children 保留引用（SeatingArrangement 页面使用）
+                randomFill.Children = new ObservableCollection<StrategyItemViewModel>(children);
+
+                // 展平：在宿主后面插入依赖策略
+                var hostIndex = items.IndexOf(randomFill);
+                items.InsertRange(hostIndex + 1 , children);
+
+                // 检测依赖策略内部优先级冲突
+                var depFixed = DetectAndFixDependentPriorityConflicts(children);
+                if (depFixed.Count > 0)
+                {
+                    var names = string.Join("\n" , depFixed.Select(n => $"• {n}"));
+                    _logger.LogWarning("依赖策略优先级冲突已修复：{Names}" , names);
+                }
+            }
 
             foreach (var item in items)
-            {
-                item.PropertyChanged += (_ , e) =>
-                {
-                    OnPropertyChanged(nameof(HasChanges));
-                    // 侧栏变更联动详情面板
-                    if (item == SelectedStrategy)
-                    {
-                        _suppressChangeTracking = true;
-                        if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled))
-                            EditIsEnabled = item.IsEnabled;
-                        else if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
-                            EditPriority = item.Priority;
-                        _suppressChangeTracking = false;
-                    }
-                };
-            }
+                AttachChangeTracking(item);
 
             Strategies = new ObservableCollection<StrategyItemViewModel>(items);
 
-            // 检测并修复初始优先级冲突
+            // 检测并修复初始优先级冲突（仅独立策略）
             var fixedList = DetectAndFixPriorityConflicts();
             if (fixedList.Count > 0)
             {
@@ -253,7 +280,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 await Dialog.ShowWarningAsync(
                     Resources.Strategy_PriorityConflictAutoFixed ,
                     string.Format(Resources.Strategy_PriorityConflictMsgFmt , names));
-                ReSort();
+                RefreshPriorities();
                 StatusMessage = string.Format(Resources.Strategy_LoadedFixedFmt , Strategies.Count , fixedList.Count);
             }
             else
@@ -268,6 +295,25 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>为策略项附加属性变更追踪。</summary>
+    private void AttachChangeTracking (StrategyItemViewModel item)
+    {
+        item.PropertyChanged += (_ , e) =>
+        {
+            OnPropertyChanged(nameof(HasChanges));
+            // 侧栏变更联动详情面板
+            if (item == SelectedStrategy)
+            {
+                _suppressChangeTracking = true;
+                if (e.PropertyName == nameof(StrategyItemViewModel.IsEnabled))
+                    EditIsEnabled = item.IsEnabled;
+                else if (e.PropertyName == nameof(StrategyItemViewModel.Priority))
+                    EditPriority = item.Priority;
+                _suppressChangeTracking = false;
+            }
+        };
     }
 
     private async Task LoadDetailAsync (StrategyItemViewModel item)
@@ -288,10 +334,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             if (detail.ParameterDefinitions is { Count: > 0 })
             {
                 var pe = new ParameterEditorViewModel();
-                pe.LoadParameters(detail.ParameterDefinitions, detail.Parameters);
-                pe.Parameters.CollectionChanged += (_, _) => MarkDetailChanged();
+                pe.LoadParameters(detail.ParameterDefinitions , detail.Parameters);
+                pe.Parameters.CollectionChanged += (_ , _) => MarkDetailChanged();
                 foreach (var p in pe.Parameters)
-                    p.PropertyChanged += (_, _) => MarkDetailChanged();
+                    p.PropertyChanged += (_ , _) => MarkDetailChanged();
                 ParameterEditor = pe;
             }
             else
@@ -305,20 +351,20 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             if (detail.CodeBlocks is { Count: > 0 })
             {
                 var datasets = await _facade.ListStudentDatasetsAsync(CancellationToken.None);
-                var datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id, Name = d.Name }).ToList();
+                var datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id , Name = d.Name }).ToList();
                 var venueIds = await _facade.ListVenueIdsAsync(CancellationToken.None);
                 var venueItems = new List<DatasetItem>();
                 foreach (var vid in venueIds)
                 {
                     var name = vid; // 简化：用 ID 作为名称
-                    venueItems.Add(new DatasetItem { Id = vid, Name = name });
+                    venueItems.Add(new DatasetItem { Id = vid , Name = name });
                 }
 
                 foreach (var cb in detail.CodeBlocks)
                 {
                     var ce = new ConfigBlockEditorViewModel(_facade);
-                    ce.Initialize(cb, detail.Id, datasetItems, venueItems);
-                    ce.PropertyChanged += (_, e) =>
+                    ce.Initialize(cb , detail.Id , datasetItems , venueItems);
+                    ce.PropertyChanged += (_ , e) =>
                     {
                         if (e.PropertyName == nameof(ConfigBlockEditorViewModel.IsDirty))
                             MarkDetailChanged();
@@ -344,28 +390,31 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     public bool CanMoveUp (StrategyItemViewModel? item)
     {
         if (item is null) return false;
-        var idx = Strategies.IndexOf(item);
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
         return idx > 0;
     }
 
     public bool CanMoveDown (StrategyItemViewModel? item)
     {
         if (item is null) return false;
-        var idx = Strategies.IndexOf(item);
-        return idx >= 0 && idx < Strategies.Count - 1;
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
+        return idx >= 0 && idx < sameGroup.Count - 1;
     }
 
     [RelayCommand]
     private async Task MoveUpAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
-        var idx = sorted.IndexOf(item);
+        // 只在同类策略中查找邻居
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
         if (idx <= 0) return;
 
-        var neighbor = sorted[idx - 1];
+        var neighbor = sameGroup[idx - 1];
         await ResolveAndSwapPriorityAsync(item , neighbor);
-        ReSort();
+        RefreshPriorities();
         StatusMessage = string.Format(Resources.Strategy_MovedUpFmt , item.DisplayName , item.Priority);
     }
 
@@ -373,13 +422,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     private async Task MoveDownAsync (StrategyItemViewModel? item)
     {
         if (item is null) return;
-        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
-        var idx = sorted.IndexOf(item);
-        if (idx < 0 || idx >= sorted.Count - 1) return;
+        var sameGroup = Strategies.Where(s => IsSamePriorityGroup(s , item)).OrderByDescending(s => s.Priority).ToList();
+        var idx = sameGroup.IndexOf(item);
+        if (idx < 0 || idx >= sameGroup.Count - 1) return;
 
-        var neighbor = sorted[idx + 1];
+        var neighbor = sameGroup[idx + 1];
         await ResolveAndSwapPriorityAsync(neighbor , item);
-        ReSort();
+        RefreshPriorities();
         StatusMessage = string.Format(Resources.Strategy_MovedDownFmt , item.DisplayName , item.Priority);
     }
 
@@ -411,10 +460,16 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         }
     }
 
+    /// <summary>两个策略是否属于同一优先级命名空间（都是独立策略，或都是依赖策略）。</summary>
+    private static bool IsSamePriorityGroup (StrategyItemViewModel a , StrategyItemViewModel b)
+        => a.IsIndependent == b.IsIndependent;
+
     private void AssignWithCascade (StrategyItemViewModel higher , StrategyItemViewModel lower)
     {
-        higher.Priority = Math.Max(0 , lower.Priority - 1);
-        EnsureUniquePriorities();
+        higher.Priority = lower.Priority == int.MaxValue
+            ? int.MaxValue
+            : lower.Priority + 1;
+        RefreshPriorities();
     }
 
     // ═══════════════ 优先级冲突验证 ═══════════════
@@ -422,10 +477,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// <summary>
     /// 保存单个策略前检查优先级是否与其他策略冲突。
     /// </summary>
-    private async Task<bool> ValidatePriorityBeforeSaveAsync (string strategyId , int newPriority)
+    private async Task<bool> ValidatePriorityBeforeSaveAsync (StrategyItemViewModel item , int newPriority)
     {
+        // 只在同类策略中检查冲突（独立 vs 独立，依赖 vs 依赖）
         var conflict = Strategies.FirstOrDefault(s =>
-            s.Id != strategyId && s.Priority == newPriority);
+            s.Id != item.Id
+            && s.Priority == newPriority
+            && IsSamePriorityGroup(s , item));
 
         if (conflict is null) return true;
 
@@ -454,13 +512,15 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             else
                 priority = s.Priority;
 
-            return (Id: s.Id , DisplayName: s.DisplayName , Priority: priority);
-        }).OrderBy(s => s.Priority).ToList();
+            return (s.Id , s.DisplayName , Priority: priority , s.IsIndependent);
+        }).OrderBy(s => s.IsIndependent).ThenByDescending(s => s.Priority).ToList();
 
+        // 只在同类策略中检查冲突
         var duplicates = new List<string>();
         for (int i = 1; i < snapshot.Count; i++)
         {
-            if (snapshot[i].Priority <= snapshot[i - 1].Priority)
+            if (snapshot[i].IsIndependent == snapshot[i - 1].IsIndependent
+                && snapshot[i].Priority >= snapshot[i - 1].Priority)
                 duplicates.Add(string.Format(Resources.Strategy_DuplicateEntryFmt , snapshot[i].DisplayName , snapshot[i].Priority));
         }
 
@@ -473,18 +533,43 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 确保所有策略优先级严格递增（无重复、无逆序），返回被修复的策略名列表。
+    /// 确保所有策略优先级严格递减（无重复、无逆序），返回被修复的策略名列表。
+    /// </summary>
+    /// <summary>
+    /// 检测并修复优先级冲突。独立策略和依赖策略分别检查，互不干扰。
     /// </summary>
     private List<string> DetectAndFixPriorityConflicts ()
     {
         var fixedNames = new List<string>();
-        var ordered = Strategies.OrderBy(s => s.Priority).ToList();
+        foreach (var group in Strategies.GroupBy(s => s.IsIndependent))
+        {
+            var ordered = group.OrderByDescending(s => s.Priority).ToList();
+            for (int i = 1; i < ordered.Count; i++)
+            {
+                if (ordered[i].Priority >= ordered[i - 1].Priority)
+                {
+                    fixedNames.Add(ordered[i].DisplayName);
+                    ordered[i].Priority = Math.Max(int.MinValue + 1 , ordered[i - 1].Priority - 1);
+                }
+            }
+        }
+        return fixedNames;
+    }
+
+    /// <summary>
+    /// 检测依赖策略（同宿主内）的优先级冲突，确保严格递减不重复。
+    /// 依赖策略的优先级仅与同宿主下的其他依赖策略比较，与独立策略完全分离。
+    /// </summary>
+    private static List<string> DetectAndFixDependentPriorityConflicts (List<StrategyItemViewModel> children)
+    {
+        var fixedNames = new List<string>();
+        var ordered = children.OrderByDescending(s => s.Priority).ToList();
         for (int i = 1; i < ordered.Count; i++)
         {
-            if (ordered[i].Priority <= ordered[i - 1].Priority)
+            if (ordered[i].Priority >= ordered[i - 1].Priority)
             {
                 fixedNames.Add(ordered[i].DisplayName);
-                ordered[i].Priority = ordered[i - 1].Priority + 1;
+                ordered[i].Priority = Math.Max(int.MinValue + 1 , ordered[i - 1].Priority - 1);
             }
         }
         return fixedNames;
@@ -492,23 +577,49 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     private void EnsureUniquePriorities ()
     {
-        var ordered = Strategies.OrderBy(s => s.Priority).ToList();
-        for (int i = 1; i < ordered.Count; i++)
+        foreach (var group in Strategies.GroupBy(s => s.IsIndependent))
         {
-            if (ordered[i].Priority <= ordered[i - 1].Priority)
-                ordered[i].Priority = ordered[i - 1].Priority + 1;
+            var ordered = group.OrderByDescending(s => s.Priority).ToList();
+            for (int i = 1; i < ordered.Count; i++)
+            {
+                if (ordered[i].Priority >= ordered[i - 1].Priority)
+                    ordered[i].Priority = Math.Max(int.MinValue + 1 , ordered[i - 1].Priority - 1);
+            }
         }
     }
 
     private void ReSort ()
     {
-        var sorted = Strategies.OrderBy(s => s.Priority).ToList();
-        for (int i = 0; i < sorted.Count; i++)
+        // 独立策略按 Priority 降序，每个宿主的依赖子项紧跟其后。
+        var result = new List<StrategyItemViewModel>();
+        foreach (var item in Strategies.Where(s => s.IsIndependent).OrderByDescending(s => s.Priority))
         {
-            var currentIdx = Strategies.IndexOf(sorted[i]);
-            if (currentIdx != i)
-                Strategies.Move(currentIdx , i);
+            result.Add(item);
+            if (item.Children is { Count: > 0 })
+                result.AddRange(item.Children.OrderByDescending(c => c.Priority));
         }
+
+        for (int i = 0; i < result.Count; i++)
+        {
+            var currentIdx = Strategies.IndexOf(result[i]);
+            if (currentIdx != i)
+            {
+                var it = Strategies[currentIdx];
+                Strategies.RemoveAt(currentIdx);
+                Strategies.Insert(i , it);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 刷新所有优先级相关数据：修复组内冲突 → 重排列表 → 刷新绑定。
+    /// 在任何涉及优先级变更的操作后调用此方法。
+    /// </summary>
+    private void RefreshPriorities ()
+    {
+        EnsureUniquePriorities();
+        ReSort();
+        OnPropertyChanged(nameof(HasChanges));
     }
 
     // ═══════════════ 保存当前（详情页） ═══════════════
@@ -522,7 +633,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         if (SelectedDetail is null || SelectedStrategy is null) return;
 
-        if (!await ValidatePriorityBeforeSaveAsync(SelectedStrategy.Id , EditPriority))
+        if (!await ValidatePriorityBeforeSaveAsync(SelectedStrategy , EditPriority))
             return;
 
         var savedName = SelectedDetail.DisplayName;
@@ -546,8 +657,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
             await _facade.SaveStrategyConfigAsync(SelectedDetail.Id , config , ct);
             SelectedStrategy.MarkClean();
-            _hasDetailChanges = false;
-            ReSort();
+            RefreshPriorities();
 
             // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
             foreach (var ce in ConfigBlockEditors)
@@ -556,6 +666,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     await ce.SaveConfigCommand.ExecuteAsync(null);
             }
 
+            _hasDetailChanges = false;
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = string.Format(Resources.Strategy_SavedFmt , savedName);
         }
@@ -617,14 +728,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     Source = item.Source ,
                     Priority = item.Priority ,
                     IsEnabled = item.IsEnabled ,
-                    Parameters = parameters ?? []
+                    Parameters = parameters!
                 };
                 await _facade.SaveStrategyConfigAsync(item.Id , config , ct);
                 item.MarkClean();
             }
 
-            _hasDetailChanges = false;
-            ReSort();
+            RefreshPriorities();
 
             // 同时保存所有 dirty 的代码块配置（DeskMate、FixedSeat 等）
             foreach (var ce in ConfigBlockEditors)
@@ -633,6 +743,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                     await ce.SaveConfigCommand.ExecuteAsync(null);
             }
 
+            _hasDetailChanges = false;
             OnPropertyChanged(nameof(HasChanges));
             StatusMessage = string.Format(Resources.Strategy_SavedCountFmt , dirtyItems.Count);
         }
@@ -662,7 +773,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         // 重置参数为默认值
         if (SelectedDetail.ParameterDefinitions is { Count: > 0 })
         {
-            ParameterEditor?.LoadParameters(SelectedDetail.ParameterDefinitions, null);
+            ParameterEditor?.LoadParameters(SelectedDetail.ParameterDefinitions , null);
         }
 
         // 确认后直接保存

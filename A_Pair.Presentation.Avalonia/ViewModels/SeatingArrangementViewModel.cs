@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
+using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
+using A_Pair.Infrastructure.Serialization;
 using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
@@ -45,37 +47,37 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 左侧面板 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
-    private ObservableCollection<VenueItem> _venueItems = [];
+    public partial ObservableCollection<VenueItem> VenueItems { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
-    private VenueItem? _selectedVenue;
+    public partial VenueItem? SelectedVenue { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
-    private ObservableCollection<StudentDatasetInfo> _datasetItems = [];
+    public partial ObservableCollection<StudentDatasetInfo> DatasetItems { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
-    private StudentDatasetInfo? _selectedDataset;
+    public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedDataset => SelectedDataset != null;
 
     // ── Canvas ──
     [ObservableProperty]
-    private ObservableCollection<SeatDisplayItem> _seatItems = [];
+    public partial ObservableCollection<SeatDisplayItem> SeatItems { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<SeatDisplayItem> _overlayItems = [];
+    public partial ObservableCollection<SeatDisplayItem> OverlayItems { get; set; } = [];
 
     [ObservableProperty]
-    private double _canvasWidth = 800;
+    public partial double CanvasWidth { get; set; } = 800;
 
     [ObservableProperty]
-    private double _canvasHeight = 600;
+    public partial double CanvasHeight { get; set; } = 600;
 
     private double _contentCenterX, _contentCenterY;
     private double _defaultZoomLevel = 1.0;
@@ -89,16 +91,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
-    private bool _isGenerating;
+    public partial bool IsGenerating { get; set; }
 
     [ObservableProperty]
-    private bool _hasGenerated;
+    public partial bool HasGenerated { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanUndo))]
     [NotifyPropertyChangedFor(nameof(CanRedo))]
     [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
-    private bool _hasHistoryUnsaved;
+    public partial bool HasHistoryUnsaved { get; set; }
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
     public bool CanUndo => _currentHistoryIndex > 0;
@@ -106,46 +108,46 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 右侧面板 ──
     [ObservableProperty]
-    private ObservableCollection<StrategyDisplayInfo> _activeStrategies = [];
+    public partial ObservableCollection<StrategyDisplayInfo> ActiveStrategies { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<Student> _unassignedStudents = [];
+    public partial ObservableCollection<Student> UnassignedStudents { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isStrategiesExpanded = true;
+    public partial bool IsStrategiesExpanded { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isUnassignedExpanded = true;
+    public partial bool IsUnassignedExpanded { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isHistoryExpanded = true;
+    public partial bool IsHistoryExpanded { get; set; } = true;
 
     [ObservableProperty]
-    private ObservableCollection<StrategyMessageGroup> _messageGroups = [];
+    public partial ObservableCollection<StrategyMessageGroup> MessageGroups { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isMessagesExpanded = true;
+    public partial bool IsMessagesExpanded { get; set; } = true;
 
     public bool HasMessages => MessageGroups.Count > 0;
 
     // ── 状态栏 ──
     [ObservableProperty]
-    private string _statusMessage = Resources.Seating_Ready;
+    public partial string StatusMessage { get; set; } = Resources.Seating_Ready;
 
     [ObservableProperty]
-    private int _totalSeats;
+    public partial int TotalSeats { get; set; }
 
     [ObservableProperty]
-    private int _assignedSeats;
+    public partial int AssignedSeats { get; set; }
 
     public int UnassignedStudentCount => UnassignedStudents.Count;
 
     // ── 交换模式 ──
     [ObservableProperty]
-    private bool _isSwapMode;
+    public partial bool IsSwapMode { get; set; }
 
     [ObservableProperty]
-    private string _swapHintText = string.Empty;
+    public partial string SwapHintText { get; set; } = string.Empty;
 
     public SeatingArrangementViewModel (IApplicationFacade facade , IFileService fileService , INavigationService navigation , ILogger<SeatingArrangementViewModel>? logger = null)
     {
@@ -292,11 +294,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             // 2. 写入临时 JSON 文件（RosterFile 格式）
             var roster = new RosterFile { Version = "1.0" , Students = students };
-            var jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true ,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
+            var jsonOptions = JsonOptions.WriteIndentedCamelCase;
             var tempPath = Path.Combine(Path.GetTempPath() , $"a_pair_gen_{Guid.NewGuid():N}.json");
             await File.WriteAllTextAsync(tempPath , JsonSerializer.Serialize(roster , jsonOptions) , ct);
 
@@ -561,8 +559,23 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     {
         // 策略列表
         var allStrategies = await _facade.GetStrategiesAsync();
-        ActiveStrategies = new ObservableCollection<StrategyDisplayInfo>(
-            allStrategies.Where(s => s.IsEnabled && s.Visible).OrderBy(s => s.Priority));
+
+        // 分离独立策略和依赖策略
+        var enabledVisible = allStrategies
+            .Where(s => s.IsEnabled && s.Visible)
+            .OrderByDescending(s => s.Priority)
+            .ToList();
+        var independents = enabledVisible.Where(s => s.IsIndependent).ToList();
+        var dependents = enabledVisible.Where(s => !s.IsIndependent).ToList();
+
+        // 将依赖策略注入到 RandomFill 的 DependentChildren
+        var randomFill = independents.FirstOrDefault(s => s.Id == RandomFillStrategy.StrategyId);
+        if (randomFill != null && dependents.Count > 0)
+        {
+            randomFill.DependentChildren = [.. dependents.OrderByDescending(d => d.Priority)];
+        }
+
+        ActiveStrategies = new ObservableCollection<StrategyDisplayInfo>(independents);
 
         // 未分配学生
         if (_workspace != null && _currentPlan != null)
@@ -586,7 +599,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             }
 
             var messages = _workspace.Messages;
-            var studentNames = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
+            var studentNames = _workspace.Students.ToDictionary(s => s.Id , s => s.Name);
             var errors = messages.Where(m => m.Severity == StrategyMessageSeverity.Error).ToList();
             var warnings = messages.Where(m => m.Severity == StrategyMessageSeverity.Warning).ToList();
 
@@ -594,26 +607,26 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (errors.Count > 0)
                 groups.Add(new StrategyMessageGroup
                 {
-                    Severity = StrategyMessageSeverity.Error,
-                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})",
+                    Severity = StrategyMessageSeverity.Error ,
+                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})" ,
                     Messages = new ObservableCollection<StrategyMessageItem>(
                         errors.Select(m => new StrategyMessageItem
                         {
-                            StrategyName = m.StrategyDisplayName,
-                            Message = FormatStrategyMessage(m, studentNames, templates),
+                            StrategyName = m.StrategyDisplayName ,
+                            Message = FormatStrategyMessage(m , studentNames , templates) ,
                             Severity = m.Severity
                         }))
                 });
             if (warnings.Count > 0)
                 groups.Add(new StrategyMessageGroup
                 {
-                    Severity = StrategyMessageSeverity.Warning,
-                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})",
+                    Severity = StrategyMessageSeverity.Warning ,
+                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})" ,
                     Messages = new ObservableCollection<StrategyMessageItem>(
                         warnings.Select(m => new StrategyMessageItem
                         {
-                            StrategyName = m.StrategyDisplayName,
-                            Message = FormatStrategyMessage(m, studentNames, templates),
+                            StrategyName = m.StrategyDisplayName ,
+                            Message = FormatStrategyMessage(m , studentNames , templates) ,
                             Severity = m.Severity
                         }))
                 });
@@ -686,10 +699,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [RelayCommand]
     private void CancelSwap ()
     {
-        if (_swapSourceSeat != null)
-        {
-            _swapSourceSeat.IsSelectedForSwap = false;
-        }
+        _swapSourceSeat?.IsSelectedForSwap = false;
         _swapSourceSeat = null;
         IsSwapMode = false;
         SwapHintText = string.Empty;
@@ -713,7 +723,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedHistory))]
-    private HistoryEntry? _selectedHistory;
+    public partial HistoryEntry? SelectedHistory { get; set; }
 
     public bool HasSelectedHistory => SelectedHistory != null;
 
@@ -909,20 +919,20 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// 将 StrategyMessage 的 MessageKey + Args 格式化为可读消息。
     /// Args 中的学生 ID 会被解析为姓名。
     /// </summary>
-    private static string FormatStrategyMessage(StrategyMessage m,
-        Dictionary<string, string> studentNames,
-        Dictionary<string, string> templates)
+    private static string FormatStrategyMessage (StrategyMessage m ,
+        Dictionary<string , string> studentNames ,
+        Dictionary<string , string> templates)
     {
-        var template = templates.TryGetValue(m.MessageKey, out var t) ? t : m.MessageKey;
+        var template = templates.TryGetValue(m.MessageKey , out var t) ? t : m.MessageKey;
         var resolved = m.Args.Select(a =>
         {
             if (a is not string s) return a;
             // 拆分逗号分隔的 ID 列表，逐个解析为姓名
-            return string.Join(", ",
+            return string.Join(", " ,
                 s.Split(',').Select(part =>
-                    studentNames.TryGetValue(part.Trim(), out var n) ? n : part.Trim()));
+                    studentNames.TryGetValue(part.Trim() , out var n) ? n : part.Trim()));
         }).ToArray();
-        try { return string.Format(template, resolved); }
+        try { return string.Format(template , resolved); }
         catch { return template; }
     }
 }
@@ -934,7 +944,7 @@ public partial class HistoryEntry (string description , Dictionary<string , stri
     public Dictionary<string , string> Assignments { get; set; } = assignments;
     public bool IsCurrent { get; set; }
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }
 
 public class StrategyMessageGroup

@@ -11,22 +11,16 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 /// 座位交换命令，实现 <see cref="IUndoableCommand"/>，支持撤销/重做。
 /// 支持空座位参与交换（一端为空 = 移动学生到空位）。
 /// </summary>
-public class SwapSeatCommand : IUndoableCommand
+/// <param name="seatA">源座位（SeatId, StudentId，StudentId为null表示空位）。</param>
+/// <param name="seatB">目标座位。</param>
+public class SwapSeatCommand (
+    (string SeatId , string? StudentId) seatA ,
+    (string SeatId , string? StudentId) seatB) : IUndoableCommand
 {
     public string Id { get; } = Guid.NewGuid().ToString();
 
-    private readonly (string SeatId , string? StudentId) _seatA;
-    private readonly (string SeatId , string? StudentId) _seatB;
-
-    /// <param name="seatA">源座位（SeatId, StudentId，StudentId为null表示空位）。</param>
-    /// <param name="seatB">目标座位。</param>
-    public SwapSeatCommand (
-        (string SeatId , string? StudentId) seatA ,
-        (string SeatId , string? StudentId) seatB)
-    {
-        _seatA = seatA;
-        _seatB = seatB;
-    }
+    private readonly (string SeatId , string? StudentId) _seatA = seatA;
+    private readonly (string SeatId , string? StudentId) _seatB = seatB;
 
     /// <inheritdoc />
     public Task<bool> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default)

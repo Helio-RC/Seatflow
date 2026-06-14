@@ -5,12 +5,12 @@ namespace A_Pair.Core.Tests.Services;
 public class StrategyManifestProviderTests
 {
     [Fact]
-    public void GetBuiltInManifests_ReturnsAllFour ()
+    public void GetBuiltInManifests_ReturnsAllBuiltIn ()
     {
         var provider = new StrategyManifestProvider();
         var manifests = provider.GetBuiltInManifests();
         manifests.Should().NotBeNull();
-        manifests.Should().HaveCount(4);
+        manifests.Should().HaveCount(7);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class StrategyManifestProviderTests
             m.Id.Should().NotBeNullOrEmpty();
             m.DisplayName.Should().NotBeNullOrEmpty();
             m.Category.Should().NotBeNullOrEmpty();
-            m.DefaultPriority.Should().BeGreaterThan(0);
+            m.DefaultPriority.Should().BeGreaterThanOrEqualTo(0);
             m.Version.Should().NotBeNullOrEmpty();
         }
     }
@@ -44,5 +44,7 @@ public class StrategyManifestProviderTests
         ids.Should().Contain("DeskMate");
         ids.Should().Contain("FrontRowRotation");
         ids.Should().Contain("RandomFill");
+        ids.Should().Contain("NoRepeatDeskMate");
+        ids.Should().Contain("Defrag");
     }
 }

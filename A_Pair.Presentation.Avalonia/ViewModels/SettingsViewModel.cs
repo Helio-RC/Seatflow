@@ -27,17 +27,15 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
-    private ThemeMode _theme;
+    public partial ThemeMode Theme { get; set; }
 
     [ObservableProperty]
-    private int _themeIndex;
-
+    public partial int ThemeIndex { get; set; }
     public List<string> ThemeOptions { get; } = [Resources.Theme_System , Resources.Theme_Light , Resources.Theme_Dark];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedLanguage))]
-    private string _language = string.Empty;
-
+    public partial string Language { get; set; } = string.Empty;
     public List<LanguageOption> LanguageOptions { get; } =
     [
         new("", () => Resources.Lang_System) ,
@@ -58,14 +56,13 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private string _dataDirectory = string.Empty;
+    public partial string DataDirectory { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _confirmBeforeClear = true;
+    public partial bool ConfirmBeforeClear { get; set; } = true;
 
     [ObservableProperty]
-    private int _zoomIndex = 1;
-
+    public partial int ZoomIndex { get; set; } = 1;
     public List<string> ZoomOptions { get; } = [Resources.Zoom_75 , Resources.Zoom_100 , Resources.Zoom_125 , Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
@@ -73,13 +70,13 @@ public partial class SettingsViewModel : ViewModelBase
     private string _originalLanguage = string.Empty;
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private int _maxSnapshotsPerVenue = 30;
+    public partial int MaxSnapshotsPerVenue { get; set; } = 30;
 
     [ObservableProperty]
-    private bool _isSaving;
+    public partial bool IsSaving { get; set; }
 
     public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , ILogger<SettingsViewModel>? logger = null)
     {
@@ -250,7 +247,7 @@ public partial class SettingsViewModel : ViewModelBase
                 await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]

@@ -1280,9 +1280,6 @@
   <data name="Snapshot_VenuesLoadedFmt" xml:space="preserve">
     <value>已加载 {0} 个会场</value>
   </data>
-  <data name="Strategy_AllowVertical" xml:space="preserve">
-    <value>允许垂直相邻</value>
-  </data>
   <data name="Strategy_AuthorFmt" xml:space="preserve">
     <value>作者: {0}</value>
   </data>
@@ -1329,6 +1326,15 @@
   <data name="Strategy_List" xml:space="preserve">
     <value>策略列表</value>
   </data>
+  <data name="Strategy_LegendPriority" xml:space="preserve">
+    <value>数值越大越先执行</value>
+  </data>
+  <data name="Strategy_LegendBar" xml:space="preserve">
+    <value>▌ 竖线标识策略在随机填充时执行</value>
+  </data>
+  <data name="Strategy_ConfigInvalidHint" xml:space="preserve">
+    <value>⚠ 会场或人员变动后，当前的策略配置可能失效，请在执行前检查和更新。</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>加载策略列表失败</value>
   </data>
@@ -1359,9 +1365,6 @@
   <data name="Strategy_Plugin" xml:space="preserve">
     <value>插件</value>
   </data>
-  <data name="Strategy_PreferHorizontal" xml:space="preserve">
-    <value>优先水平相邻</value>
-  </data>
   <data name="Strategy_PriorityConflict" xml:space="preserve">
     <value>优先级冲突</value>
   </data>
@@ -1381,6 +1384,12 @@
     <value>以下策略的优先级存在冲突，已自动调整为递增：
 
 {0}</value>
+  </data>
+  <data name="Strategy_PipelinePriorityFmt" xml:space="preserve">
+    <value>执行优先级: {0}</value>
+  </data>
+  <data name="Strategy_ContextPriorityFmt" xml:space="preserve">
+    <value>上下文优先级: {0}</value>
   </data>
   <data name="Strategy_PriorityFmt" xml:space="preserve">
     <value>优先级: {0}</value>
@@ -1417,6 +1426,9 @@
   <data name="Strategy_SaveConfigFailed" xml:space="preserve">
     <value>保存策略配置失败</value>
   </data>
+  <data name="Strategy_SaveBlockFailed" xml:space="preserve">
+    <value>自动保存代码块配置失败，离开前请手动保存</value>
+  </data>
   <data name="Strategy_SaveFailed" xml:space="preserve">
     <value>保存失败</value>
   </data>
@@ -1447,8 +1459,8 @@
   <data name="Strategy_UnsavedChangesMsg" xml:space="preserve">
     <value>策略配置有未保存的更改，是否保存？
 
-选择「是」保存并离开
-选择「否」放弃更改并离开</value>
+选择「确认」保存并离开
+选择「取消」放弃更改并离开</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
     <value>深色</value>

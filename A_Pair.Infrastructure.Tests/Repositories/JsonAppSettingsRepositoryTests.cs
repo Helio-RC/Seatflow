@@ -3,7 +3,7 @@ namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonAppSettingsRepositoryTests
 {
-    private string GetTempFilePath () => Path.GetTempFileName() + ".json";
+    private static string GetTempFilePath () => Path.GetTempFileName() + ".json";
 
     [Fact]
     public async Task LoadAsync_FileMissing_ShouldReturnDefault ()

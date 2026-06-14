@@ -73,7 +73,7 @@ internal partial class DialogWindow : Window
         }
     }
 
-    private Color GetThemeColor (string key)
+    private static Color GetThemeColor (string key)
     {
         if (global::Avalonia.Application.Current is { } app && app.FindResource(key) is Color c)
             return c;

@@ -5,16 +5,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Services
 {
-    public class CommandHistory
+    public class CommandHistory (ILogger<CommandHistory>? logger = null)
     {
         private readonly Stack<IUndoableCommand> _undo = new();
         private readonly Stack<IUndoableCommand> _redo = new();
-        private readonly ILogger<CommandHistory> _logger;
-
-        public CommandHistory (ILogger<CommandHistory>? logger = null)
-        {
-            _logger = logger ?? NullLogger<CommandHistory>.Instance;
-        }
+        private readonly ILogger<CommandHistory> _logger = logger ?? NullLogger<CommandHistory>.Instance;
 
         /// <summary>
         /// 获取一个值，指示当前是否有可撤销的命令。

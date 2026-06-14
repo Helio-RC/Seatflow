@@ -22,18 +22,12 @@ namespace A_Pair.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
     #pragma warning disable AVLN3001
-    public partial class App : AvaloniaApplication
+    public partial class App (IServiceProvider serviceProvider , bool isFirstInstance = true) : AvaloniaApplication
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly bool _isFirstInstance;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private readonly bool _isFirstInstance = isFirstInstance;
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
-
-        public App (IServiceProvider serviceProvider , bool isFirstInstance = true)
-        {
-            _serviceProvider = serviceProvider;
-            _isFirstInstance = isFirstInstance;
-        }
 
         public override void Initialize ()
         {

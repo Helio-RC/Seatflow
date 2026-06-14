@@ -1280,9 +1280,6 @@ Current seating will be overwritten.</value>
   <data name="Snapshot_VenuesLoadedFmt" xml:space="preserve">
     <value>{0} venues loaded</value>
   </data>
-  <data name="Strategy_AllowVertical" xml:space="preserve">
-    <value>Allow Vertical</value>
-  </data>
   <data name="Strategy_AuthorFmt" xml:space="preserve">
     <value>Author: {0}</value>
   </data>
@@ -1327,6 +1324,15 @@ Current seating will be overwritten.</value>
   <data name="Strategy_List" xml:space="preserve">
     <value>Strategy list</value>
   </data>
+  <data name="Strategy_LegendPriority" xml:space="preserve">
+    <value>Higher number = higher priority</value>
+  </data>
+  <data name="Strategy_LegendBar" xml:space="preserve">
+    <value>▌ Bar = executes during random fill</value>
+  </data>
+  <data name="Strategy_ConfigInvalidHint" xml:space="preserve">
+    <value>⚠ Venue or roster changes may invalidate current strategy settings. Please review before execution.</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>Failed to load strategies</value>
   </data>
@@ -1357,9 +1363,6 @@ Current seating will be overwritten.</value>
   <data name="Strategy_Plugin" xml:space="preserve">
     <value>Plugin</value>
   </data>
-  <data name="Strategy_PreferHorizontal" xml:space="preserve">
-    <value>Prefer Horizontal</value>
-  </data>
   <data name="Strategy_PriorityConflict" xml:space="preserve">
     <value>Priority conflict</value>
   </data>
@@ -1379,6 +1382,12 @@ Current seating will be overwritten.</value>
     <value>Priority conflicts detected and auto-resolved:
 
 {0}</value>
+  </data>
+  <data name="Strategy_PipelinePriorityFmt" xml:space="preserve">
+    <value>Execution Priority: {0}</value>
+  </data>
+  <data name="Strategy_ContextPriorityFmt" xml:space="preserve">
+    <value>Context Priority: {0}</value>
   </data>
   <data name="Strategy_PriorityFmt" xml:space="preserve">
     <value>Priority: {0}</value>
@@ -1412,6 +1421,9 @@ Current seating will be overwritten.</value>
   </data>
   <data name="Strategy_SaveConfigFailed" xml:space="preserve">
     <value>Failed to save strategy config</value>
+  </data>
+  <data name="Strategy_SaveBlockFailed" xml:space="preserve">
+    <value>Auto-save of code block config failed, please save manually before leaving</value>
   </data>
   <data name="Strategy_SaveFailed" xml:space="preserve">
     <value>Save failed</value>

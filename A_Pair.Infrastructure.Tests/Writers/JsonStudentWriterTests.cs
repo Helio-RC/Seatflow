@@ -1,4 +1,5 @@
 using System.Text.Json;
+using A_Pair.Infrastructure.Serialization;
 
 namespace A_Pair.Infrastructure.Tests.Writers;
 
@@ -21,7 +22,7 @@ public class JsonStudentWriterTests
             var json = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
             // camelCase 命名策略，验证包含 "name": "Alice"
             json.Should().Contain("\"name\": \"Alice\"");
-            var roster = JsonSerializer.Deserialize<RosterFile>(json , new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var roster = JsonSerializer.Deserialize<RosterFile>(json , JsonOptions.CaseInsensitiveRead);
             roster.Should().NotBeNull();
             roster!.Students.Should().HaveCount(2);
         }

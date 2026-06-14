@@ -7,7 +7,7 @@ public class VenueSnapshotInfoTests
     {
         var v = new VenueSnapshotInfo();
         v.Name.Should().BeEmpty();
-        v.LayoutType.Should().Be(default(LayoutType));
+        v.LayoutType.Should().Be(default);
         v.SeatCount.Should().Be(0);
         v.ObstacleCount.Should().Be(0);
     }

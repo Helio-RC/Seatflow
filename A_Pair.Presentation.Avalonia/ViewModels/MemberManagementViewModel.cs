@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.Json;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Lang;
@@ -28,66 +28,66 @@ public partial class MemberManagementViewModel : ViewModelBase
     private readonly ILogger<MemberManagementViewModel> _logger;
 
     [ObservableProperty]
-    private ObservableCollection<Student> _students = [];
+    public partial ObservableCollection<Student> Students { get; set; } = [];
 
     /// <summary>底部新增行的绑定源，用户填写后通过 AddNewStudentCommand 加入表格。</summary>
     [ObservableProperty]
-    private Student _newStudent = new();
+    public partial Student NewStudent { get; set; } = new();
 
     [ObservableProperty]
-    private string _filePath = string.Empty;
+    public partial string FilePath { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotLoading))]
-    private bool _isLoading;
+    public partial bool IsLoading { get; set; }
 
     public bool IsNotLoading => !IsLoading;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasData))]
-    private bool _isEmpty = true;
+    public partial bool IsEmpty { get; set; } = true;
 
     public bool HasData => !IsEmpty;
 
     [ObservableProperty]
-    private string _statusMessage = Resources.Member_Ready;
+    public partial string StatusMessage { get; set; } = Resources.Member_Ready;
 
     [ObservableProperty]
-    private string _errorMessage = string.Empty;
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private int _studentCount;
+    public partial int StudentCount { get; set; }
 
     [ObservableProperty]
-    private ObservableCollection<StudentDatasetInfo> _savedDatasets = [];
+    public partial ObservableCollection<StudentDatasetInfo> SavedDatasets { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
-    private StudentDatasetInfo? _selectedDataset;
+    public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     [ObservableProperty]
-    private bool _isLoadingDatasets;
+    public partial bool IsLoadingDatasets { get; set; }
 
     [ObservableProperty]
-    private string? _currentDatasetId;
+    public partial string? CurrentDatasetId { get; set; }
 
     [ObservableProperty]
-    private string? _currentDatasetName;
+    public partial string? CurrentDatasetName { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasExpanded))]
-    private bool _isCompact;
+    public partial bool IsCompact { get; set; }
 
     public bool HasExpanded => !IsCompact;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
-    private bool _isSidebarExpanded = true;
+    public partial bool IsSidebarExpanded { get; set; } = true;
 
     public bool IsSidebarCollapsed => !IsSidebarExpanded;
 
     [ObservableProperty]
-    private double _sidebarListWidth = 240;
+    public partial double SidebarListWidth { get; set; } = 240;
 
     private bool _userWantsSidebarExpanded = true;
 
@@ -279,7 +279,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
@@ -364,7 +364,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]
@@ -428,7 +428,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]
@@ -621,7 +621,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             if (CurrentDatasetId is not null)
                 await _facade.DeleteStudentDatasetAsync(CurrentDatasetId , ct);
 
-            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
+            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , [.. Students] , null , ct);
             CurrentDatasetName = datasetName;
             MarkClean();
             await RefreshDatasetsAsync(ct);
@@ -670,7 +670,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
         try
         {
-            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , Students.ToList() , null , ct);
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , [.. Students] , null , ct);
             CurrentDatasetId = newId;
             CurrentDatasetName = newName.Trim();
             MarkClean();

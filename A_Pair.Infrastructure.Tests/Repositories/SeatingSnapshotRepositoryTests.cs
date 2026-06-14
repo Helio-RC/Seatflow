@@ -15,6 +15,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
     {
         if (Directory.Exists(_testDir))
             Directory.Delete(_testDir , true);
+        GC.SuppressFinalize(this);
     }
 
     [Fact]
@@ -54,6 +55,50 @@ public class SeatingSnapshotRepositoryTests : IDisposable
         var repo = new SeatingSnapshotRepository(_testDir , new FileMigrationService([]));
         var snap = new SeatingSnapshot();
         await repo.SaveAsync(snap , TestContext.Current.CancellationToken);
+        await repo.DeleteAsync(snap.Id , TestContext.Current.CancellationToken);
+        repo.Load(snap.Id).Should().BeNull();
+    }
+
+    /// <summary>
+    /// 跨会话场景：磁盘上已有旧快照文件，新会话中 SaveAsync 后
+    /// DeleteAsync 仍应能通过全盘扫描找到并删除旧快照。
+    /// 修复前失败——SaveAsync 错误设置 _indexBuilt=true 阻止了 BuildIndex 全盘扫描。
+    /// </summary>
+    [Fact]
+    public async Task DeleteAsync_ShouldDeleteOldSnapshotAfterNewSave ()
+    {
+        // 1) 第一个会话：保存旧快照
+        var repo1 = new SeatingSnapshotRepository(_testDir , new FileMigrationService([]));
+        var oldSnapshot = new SeatingSnapshot { LayoutId = "venue-a" , Description = "old" };
+        await repo1.SaveAsync(oldSnapshot , TestContext.Current.CancellationToken);
+
+        // 2) 第二个会话：新 repo 实例（模拟应用重启），先 SaveAsync 新快照
+        var repo2 = new SeatingSnapshotRepository(_testDir , new FileMigrationService([]));
+        var newSnapshot = new SeatingSnapshot { LayoutId = "venue-a" , Description = "new" };
+        await repo2.SaveAsync(newSnapshot , TestContext.Current.CancellationToken);
+
+        // 3) 删除旧快照——应通过全盘扫描找到并删除
+        await repo2.DeleteAsync(oldSnapshot.Id , TestContext.Current.CancellationToken);
+
+        repo2.Load(oldSnapshot.Id).Should().BeNull();
+        // 新快照不受影响
+        repo2.Load(newSnapshot.Id).Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// SaveAsync 后立即 LoadAsync / DeleteAsync 应能正常工作，
+    /// 因为 SaveAsync 调用 BuildIndex() 确保索引完整性。
+    /// </summary>
+    [Fact]
+    public async Task SaveAndDelete_ShouldWorkWithoutPriorIndexBuild ()
+    {
+        var repo = new SeatingSnapshotRepository(_testDir , new FileMigrationService([]));
+
+        // 仅 SaveAsync（不经过 Load/Delete 等其他触发 BuildIndex 的操作）
+        var snap = new SeatingSnapshot { LayoutId = "venue-x" };
+        await repo.SaveAsync(snap , TestContext.Current.CancellationToken);
+
+        // Delete 应能通过 BuildIndex 全盘扫描找到并删除
         await repo.DeleteAsync(snap.Id , TestContext.Current.CancellationToken);
         repo.Load(snap.Id).Should().BeNull();
     }

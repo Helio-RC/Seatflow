@@ -47,7 +47,7 @@ public class PolarLayoutBuilderTests
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
         layout.Seats.Count.Should().Be(6);
-        foreach (PolarSeat s in layout.Seats)
+        foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
         {
             s.AngleDegrees.Should().BeGreaterThanOrEqualTo(0);
             s.AngleDegrees.Should().BeLessThan(180);
@@ -155,7 +155,7 @@ public class PolarLayoutBuilderTests
             HasPodium = false
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
-        foreach (PolarSeat s in layout.Seats)
+        foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
         {
             s.AngleDegrees.Should().BeGreaterThanOrEqualTo(0);
             s.AngleDegrees.Should().BeLessThan(90);

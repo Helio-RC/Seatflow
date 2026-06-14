@@ -5,21 +5,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace A_Pair.Core.Strategies
 {
     /// <summary>
-    /// 固定座位策略（Priority=10，最先执行，锁定固定座位）。
+    /// 固定座位策略（Priority=100，最先执行，锁定固定座位）。
     /// 将指定学生强制分配到固定座位，标记 IsFixed=true。
     /// 因为最先执行且通过 IsFixed 锁定，后续策略的 GetEmptySeats() 自动排除这些座位，
     /// 确保固定分配不受其他任何策略影响。适用于特殊需求学生（如残障学生固定前排座位）。
     /// </summary>
-    public class FixedSeatStrategy : ISeatingStrategy
+    public class FixedSeatStrategy (FixedSeatConfiguration config , ILogger<FixedSeatStrategy>? logger = null) : ISeatingStrategy
     {
-        private readonly FixedSeatConfiguration _config;
-        private readonly ILogger<FixedSeatStrategy> _logger;
-
-        public FixedSeatStrategy (FixedSeatConfiguration config , ILogger<FixedSeatStrategy>? logger = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<FixedSeatStrategy>.Instance;
-        }
+        private readonly FixedSeatConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<FixedSeatStrategy> _logger = logger ?? NullLogger<FixedSeatStrategy>.Instance;
 
         /// <summary>
         /// 使用默认空配置创建实例。
@@ -38,8 +32,8 @@ namespace A_Pair.Core.Strategies
         /// <summary>策略名称："FixedSeat"。</summary>
         public string Name { get; } = "FixedSeat";
 
-        /// <summary>执行优先级：10（最先执行，锁定固定座位后 IsFixed=true 自动保护）。</summary>
-        public int Priority { get; set; } = 10;
+        /// <summary>执行优先级：100（最先执行，锁定固定座位后 IsFixed=true 自动保护）。</summary>
+        public int Priority { get; set; } = 100;
 
         /// <summary>是否启用。</summary>
         public bool IsEnabled { get; set; } = true;
@@ -51,7 +45,7 @@ namespace A_Pair.Core.Strategies
         /// </summary>
         public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            if (workspace is null) throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
             _logger.LogInformation("FixedSeat 策略开始执行：{AssignmentCount} 个固定分配" ,
                 _config.FixedAssignments.Count);
 
@@ -80,7 +74,7 @@ namespace A_Pair.Core.Strategies
                     bool success = workspace.TryAssignSeat(seat.Id , kv.Value , out _);
                     if (success)
                     {
-                        seat.IsFixed = true;
+                        ((IFixedSeatCapability)workspace).TryMarkFixed(seat.Id , null , Id , DisplayNameConst , out _);
                         assignedCount++;
                     }
                     else
@@ -91,7 +85,7 @@ namespace A_Pair.Core.Strategies
                 }
                 else
                 {
-                    seat.IsFixed = true;
+                    ((IFixedSeatCapability)workspace).TryMarkFixed(seat.Id , null , Id , DisplayNameConst , out _);
                 }
             }
 

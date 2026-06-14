@@ -1,21 +1,16 @@
 using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Plugins
 {
-    public class PluginConfigurationService : IPluginConfigurationService
+    public class PluginConfigurationService (string pluginsBasePath , ILogger<PluginConfigurationService>? logger = null) : IPluginConfigurationService
     {
-        private readonly string _pluginsBasePath;
+        private readonly string _pluginsBasePath = pluginsBasePath;
         private readonly Dictionary<string , FileSystemWatcher> _watchers = [];
-        private readonly ILogger<PluginConfigurationService> _logger;
-
-        public PluginConfigurationService (string pluginsBasePath , ILogger<PluginConfigurationService>? logger = null)
-        {
-            _pluginsBasePath = pluginsBasePath;
-            _logger = logger ?? NullLogger<PluginConfigurationService>.Instance;
-        }
+        private readonly ILogger<PluginConfigurationService> _logger = logger ?? NullLogger<PluginConfigurationService>.Instance;
 
         /// <inheritdoc />
         public async Task<T?> LoadConfigurationAsync<T> (string pluginId , CancellationToken cancellationToken = default) where T : class, new()
@@ -40,7 +35,7 @@ namespace A_Pair.Application.Plugins
             if (!string.IsNullOrEmpty(configDir) && !Directory.Exists(configDir))
                 Directory.CreateDirectory(configDir);
 
-            var json = JsonSerializer.Serialize(configuration , new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(configuration , JsonOptions.WriteIndented);
             await File.WriteAllTextAsync(configPath , json , cancellationToken);
             _logger.LogInformation("插件配置已保存：{PluginId}" , pluginId);
         }

@@ -146,7 +146,9 @@ displayMode：`Table`（表格）、`ValuePair`（值对行）。
 `loadTrigger`（可选，默认 `Both`）：控制 `dataType:Both` 时配置加载时机——`Both`=两个选择器都需有值后精确匹配加载，`Any`=任一选择器有值即模糊匹配加载。
 fieldType 在 codeBlock 中额外支持 `StudentPicker`、`SeatPosition`。
 
-**⚠️ DeskMate 策略已隐藏（visible=false）**，以下内容为历史参考——该策略存在根本性缺陷，不建议使用。
+**依赖策略（`isIndependent: false`）**：不同于独立策略通过外部管道执行，依赖策略在 RandomFill 的分配循环中按内部 Priority 评估每个 (student, seat) 对。依赖策略实现 `IDependentSeatingStrategy` 接口（而非 `ISeatingStrategy`），其 `EvaluateAsync` 方法返回 `Approve`、`Reject`（请求重掷）或 `Handled`（已完成分配含连携修改）。在 DI 中需注册为 `IDependentSeatingStrategy`。
+
+**DeskMate 策略**（依赖策略，`isIndependent: false`）：在 RandomFill 上下文中执行。当 RandomFill 随机分配学生时检查同桌关系——若有同桌组，尝试将同组学生分配到相邻座位（连携修改）。若目标座位无足够相邻空座则请求重掷。彻底解决了旧版受前序策略碎片化的问题。
 
 **DeskMate 特殊处理**：当 `dataType: "Both"` 且选中会场后，UI 读取 `GridLayoutMetadata.SeatsPerDesk` 动态决定每行的 StudentPicker 数量。`SeatsPerDesk` 变化时自动清除不兼容的旧配置行。
 同行内多个学生选择器通过 `preventDuplicateInRow` 互相排除已选学生，确保一桌多人不能是同一个人。

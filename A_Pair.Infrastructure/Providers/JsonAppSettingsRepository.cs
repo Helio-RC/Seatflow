@@ -3,26 +3,20 @@ using System.Text.Json.Nodes;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
 using A_Pair.Infrastructure.Migration;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Providers
 {
-    public class JsonAppSettingsRepository : IAppSettingsRepository
+    public class JsonAppSettingsRepository (
+        string filePath ,
+        FileMigrationService migration ,
+        ILogger<JsonAppSettingsRepository>? logger = null) : IAppSettingsRepository
     {
-        private readonly string _filePath;
-        private readonly FileMigrationService _migration;
-        private readonly ILogger<JsonAppSettingsRepository> _logger;
-
-        public JsonAppSettingsRepository (
-            string filePath ,
-            FileMigrationService migration ,
-            ILogger<JsonAppSettingsRepository>? logger = null)
-        {
-            _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-            _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
-        }
+        private readonly string _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+        private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
+        private readonly ILogger<JsonAppSettingsRepository> _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
 
         public string SettingsFilePath => _filePath;
 
@@ -59,7 +53,7 @@ namespace A_Pair.Infrastructure.Providers
                 Directory.CreateDirectory(dir);
 
             settings.Version = FileVersionInfo.GetCurrentVersion("appSettings");
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            var options = JsonOptions.WriteIndented;
             var json = JsonSerializer.Serialize(settings , options);
             await File.WriteAllTextAsync(_filePath , json , cancellationToken);
             _logger.LogInformation("AppSettings 已保存：{Path}" , _filePath);

@@ -3,12 +3,14 @@
     "name": "FrontRowRotation",
     "displayName": "前排轮换",
     "version": "1.0.0",
+    "manifestVersion": "1.0",
     "description": "在非固定空座中按需求分数分配前排座位。需前排的学生优先，坐过前排的学生通过历史惩罚自动轮换。",
     "author": "A_Pair Team",
     "category": "rotation",
-    "defaultPriority": 20,
-    "defaultEnabled": true,
+    "defaultPriority": 50,
+    "defaultEnabled": false,
     "visible": true,
+    "capabilities": [],
     "parameters": [
         {
             "name": "HistoryWeight",
@@ -33,6 +35,14 @@
             "defaultValue": 1,
             "minValue": 1,
             "maxValue": 10
+        },
+        {
+            "name": "HistoryWindowSize",
+            "fieldType": "NumberInput",
+            "label": { "zh-CN": "参考历史快照个数", "en-US": "Reference Snapshot Count" },
+            "defaultValue": 10,
+            "minValue": 1,
+            "maxValue": 30
         }
     ],
     "codeBlocks": [],

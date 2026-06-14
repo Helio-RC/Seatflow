@@ -41,7 +41,7 @@ public class PolarLayoutBuilderTests
         var layout = PolarLayoutBuilder.BuildPolar(meta);
 
         layout.Seats.Count.Should().Be(6);
-        foreach (PolarSeat s in layout.Seats)
+        foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
         {
             s.AngleDegrees.Should().BeGreaterThanOrEqualTo(0);
             s.AngleDegrees.Should().BeLessThan(180);
@@ -71,7 +71,7 @@ public class PolarLayoutBuilderTests
         groups.Should().AllSatisfy(g => g.Should().Contain("R1S"));
 
         // No seat should fall inside an aisle (within 2.5° of aisle center)
-        foreach (PolarSeat s in layout.Seats)
+        foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
         {
             foreach (double aisleAngle in meta.AisleRadialAngles)
             {
@@ -197,7 +197,7 @@ public class PolarLayoutBuilderTests
         var layout = PolarLayoutBuilder.BuildPolar(meta);
 
         layout.Seats.Count.Should().Be(10);
-        foreach (PolarSeat s in layout.Seats)
+        foreach (PolarSeat s in layout.Seats.Cast<PolarSeat>())
         {
             s.AngleDegrees.Should().BeGreaterThanOrEqualTo(0);
             s.AngleDegrees.Should().BeLessThan(90);

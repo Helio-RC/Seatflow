@@ -47,8 +47,7 @@ namespace A_Pair.Presentation.Avalonia.Views
         {
             try
             {
-                var appInstance = global::Avalonia.Application.Current as App;
-                if (appInstance is null) return;
+                if (global::Avalonia.Application.Current is not App appInstance) return;
                 var facade = appInstance.ServiceProvider.GetRequiredService<IApplicationFacade>();
                 Task.Run(async () =>
                 {

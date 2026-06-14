@@ -14,6 +14,7 @@ public class PluginConfigurationServiceTests : IDisposable
     {
         if (Directory.Exists(_tempDir))
             Directory.Delete(_tempDir , true);
+        GC.SuppressFinalize(this);
     }
 
     [Fact]

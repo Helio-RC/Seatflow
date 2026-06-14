@@ -8,6 +8,7 @@ using A_Pair.Core.Providers;
 using A_Pair.Core.Services;
 using A_Pair.Core.Strategies;
 using A_Pair.Infrastructure.Exporters;
+using A_Pair.Infrastructure.Serialization;
 using A_Pair.Infrastructure.Migration;
 using A_Pair.Infrastructure.Migration.Migrators;
 using A_Pair.Infrastructure.Providers;
@@ -27,7 +28,8 @@ namespace A_Pair.Application.Services
     /// 此扩展方法一次性注册以下组件：
     /// <list type="bullet">
     ///   <item><see cref="IApplicationFacade"/> — 应用程序外观</item>
-    ///   <item>内置策略（<see cref="FixedSeatStrategy"/>、<see cref="RandomFillStrategy"/>、<see cref="FrontRowRotationStrategy"/>、<see cref="DeskMateStrategy"/>)</item>
+    ///   <item>内置策略（<see cref="FixedSeatStrategy"/>、<see cref="RandomFillStrategy"/>、<see cref="FrontRowRotationStrategy"/> 作为 <see cref="ISeatingStrategy"/>）</item>
+    ///   <item>依赖策略（<see cref="DeskMateStrategy"/> 作为 <see cref="IDependentSeatingStrategy"/>，在 RandomFill 上下文中执行）</item>
     ///   <item>导出器（Excel、CSV、PDF）</item>
     ///   <item>学生写入器（JSON、CSV、XLSX）</item>
     ///   <item><see cref="IConflictResolver"/> — 冲突解决器</item>
@@ -59,7 +61,7 @@ namespace A_Pair.Application.Services
                 {
                     var json = File.ReadAllText(defaultSettingsPath);
                     var existing = JsonSerializer.Deserialize<AppSettings>(json ,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        JsonOptions.CaseInsensitiveRead);
                     if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
                         effectiveDataPath = customPath;
                     if (existing?.Logging is { } ls)
@@ -99,6 +101,8 @@ namespace A_Pair.Application.Services
                 new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
                     sp.GetRequiredService<FileMigrationService>() ,
                     sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
+            services.AddSingleton<FrontRowHistoryLoader>();
+            services.AddSingleton<NoRepeatDeskMateHistoryLoader>();
             services.AddSingleton<IApplicationFacade , ApplicationFacade>();
 
 
@@ -109,8 +113,18 @@ namespace A_Pair.Application.Services
                 new Random() , sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
                 new FrontRowRotationStrategy.FrontRowRotationConfiguration() , sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
-            services.AddSingleton<ISeatingStrategy>(sp => new DeskMateStrategy(
+
+            // 注册 Defrag 策略（Priority=0，在 RandomFill 之后最后执行）
+            services.AddSingleton<ISeatingStrategy>(sp => new DefragStrategy(
+                new DefragConfiguration() , sp.GetRequiredService<ILogger<DefragStrategy>>()));
+
+            // 注册依赖策略（在 RandomFill 上下文中执行）
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new DeskMateStrategy(
                 new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new GenderRestrictedSeatStrategy(
+                new GenderRestrictedSeatConfiguration() , sp.GetRequiredService<ILogger<GenderRestrictedSeatStrategy>>()));
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new NoRepeatDeskMateStrategy(
+                new NoRepeatDeskMateConfiguration() , sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
 
             // 注册导出器
             services.AddSingleton<ISeatingPlanExporter , ExcelSeatingExporter>();
@@ -129,6 +143,7 @@ namespace A_Pair.Application.Services
                 new PluginManager(pluginsPath , sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<PluginManager>>()));
             services.AddSingleton<IPluginConfigurationService>(sp => new PluginConfigurationService(pluginsPath ,
                 sp.GetRequiredService<ILogger<PluginConfigurationService>>()));
+            services.AddSingleton<PluginPackageConfigService>();
 
             // 注册场地仓储（全局单例，使用有效数据路径）
             var venuesPath = Path.Combine(effectiveDataPath , "Venues");

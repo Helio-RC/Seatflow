@@ -4,6 +4,7 @@ using A_Pair.Application.Interfaces;
 using A_Pair.Application.Plugins;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.DomainServices;
+using A_Pair.Core.Enums;
 using A_Pair.Core.Exporters;
 using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
@@ -45,6 +46,7 @@ namespace A_Pair.Application.Services
         StrategyManifestProvider manifestProvider ,
         StrategyConfigFileRepository strategyConfigRepo ,
         StrategyDatasetConfigRepository datasetConfigRepo ,
+        PluginPackageConfigService pluginPackageConfigService ,
         ILogger<ApplicationFacade> logger) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -59,43 +61,20 @@ namespace A_Pair.Application.Services
         private readonly StrategyManifestProvider _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private readonly StrategyDatasetConfigRepository _datasetConfigRepo = datasetConfigRepo ?? throw new ArgumentNullException(nameof(datasetConfigRepo));
+        private readonly PluginPackageConfigService _pluginPackageConfigService = pluginPackageConfigService ?? throw new ArgumentNullException(nameof(pluginPackageConfigService));
         private SeatingWorkspace? _currentWorkspace;
         // 注意：以下字段假定单线程访问（桌面 UI 线程）。
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
         private ClassroomLayoutDefinition? _currentLayout;
+        // 注意：以下缓存假设 DI 容器在应用生命周期内保持稳定。
+        // 若运行时热加载了新策略/插件，需调用对应刷新方法重建缓存。
         private List<ISeatingStrategy>? _cachedStrategies;
+        private List<IDependentSeatingStrategy>? _cachedDependentStrategies;
 
-        private static readonly JsonSerializerOptions VenueFileReadOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        static ApplicationFacade ()
-        {
-            VenueFileReadOptions.Converters.Add(new SeatJsonConverter());
-        }
-
-        private static ClassroomLayoutDefinition? DeserializeVenueFromEmbeddedJson (string json)
-        {
-            // venueFile 格式（VenueFile 包装）
-            var venueFile = JsonSerializer.Deserialize<VenueFile>(json , VenueFileReadOptions);
-            if (venueFile?.Layout != null)
-                return venueFile.Layout;
-            // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）
-            return JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueFileReadOptions);
-        }
-
-        private static string? GetMetaStringFromMetadata (Dictionary<string , object> meta , string key)
-        {
-            if (!meta.TryGetValue(key , out var value) || value is null) return null;
-            return value switch
-            {
-                string s => s ,
-                System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
-                    ? je.GetString()
-                    : je.GetRawText() ,
-                _ => null
-            };
-        }
+        // GetStrategiesAsync 短期缓存，避免侧栏切换时频繁 I/O 和 DI 解析
+        private List<StrategyDisplayInfo>? _cachedStrategyDisplayInfos;
+        private DateTime _cachedStrategyDisplayInfosAt = DateTime.MinValue;
+        private static readonly TimeSpan StrategyDisplayCacheDuration = TimeSpan.FromSeconds(30);
 
         /// <inheritdoc />
         public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
@@ -195,8 +174,29 @@ namespace A_Pair.Application.Services
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
+            // 3b. 从历史快照恢复前排历史，实现跨会话轮换
+            if (!string.IsNullOrEmpty(request.LayoutId))
+            {
+                var frontRowStrategy = _serviceProvider
+                    .GetServices<ISeatingStrategy>().OfType<FrontRowRotationStrategy>().FirstOrDefault();
+                int windowSize = frontRowStrategy?.Config.HistoryWindowSize ?? 10;
+                var historyLoader = _serviceProvider.GetRequiredService<FrontRowHistoryLoader>();
+                await historyLoader.PopulateFrontRowHistoryAsync(
+                    workspace , request.LayoutId , windowSize , cancellationToken);
+
+                // 3c. 加载同桌不重复历史（过去的同桌对）
+                var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<NoRepeatDeskMateStrategy>().FirstOrDefault();
+                if (noRepeat != null && noRepeat.IsEnabled)
+                {
+                    var ndLoader = _serviceProvider.GetRequiredService<NoRepeatDeskMateHistoryLoader>();
+                    await ndLoader.PopulateDeskMateHistoryAsync(
+                        workspace , request.LayoutId , noRepeat.Config.HistoryWindowSize , noRepeat , cancellationToken);
+                }
+            }
+
             // 4. 获取内置策略（缓存 D内置策略，不变异）
-            var builtInStrategies = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInStrategies = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
 
             // 5. 加载插件策略并适配（加入独立列表，不污染缓存）
             var strategies = new List<ISeatingStrategy>(builtInStrategies);
@@ -210,27 +210,35 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 5b. 排除标记为不可见（visible=false）的策略 — 它们既不显示也不执行
+            // 5b. 排除标记为不可见（visible=false）的策略
             var invisibleIds = _manifestProvider.GetBuiltInManifests()
                 .Where(m => !m.Visible)
                 .Select(m => m.Id)
                 .ToHashSet();
             foreach (var pi in loadedPlugins)
             {
-                if (!pi.Manifest.Visible)
-                    invisibleIds.Add(pi.Manifest.Id);
+                if (pi.StrategyManifest is { Visible: false })
+                    invisibleIds.Add(pi.StrategyManifest.Id);
             }
-            strategies = strategies.Where(s => !invisibleIds.Contains(s.Id)).ToList();
+            strategies = [.. strategies.Where(s => !invisibleIds.Contains(s.Id))];
 
             // 6. 按请求过滤策略
             if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
-                strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
+                strategies = [.. strategies.Where(s => request.StrategyIds.Contains(s.Id))];
 
-            // 6b. 同步 FrontRowCount 到策略配置
+            // 6b. 同步 FrontRowCount / SeatsPerDesk 到策略配置
             if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
             {
                 var frontRowStrategy = strategies.OfType<FrontRowRotationStrategy>().FirstOrDefault();
                 frontRowStrategy?.SetFrontRowCount(gridMeta.FrontRowCount);
+
+                var deskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<DeskMateStrategy>().FirstOrDefault();
+                deskMate?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
+
+                var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<NoRepeatDeskMateStrategy>().FirstOrDefault();
+                noRepeat?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
             }
             else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
             {
@@ -240,6 +248,70 @@ namespace A_Pair.Application.Services
 
             // 6c. 加载代码块配置并应用到 FixedSeat / DeskMate 策略
             await ApplyCodeBlockConfigsAsync(strategies , request , venueLayout , cancellationToken);
+
+            // 6c-b. 收集约束学生 ID 并注入 DefragStrategy（固定座位 + DeskMate 组）
+            var defragStrategy = strategies.OfType<DefragStrategy>().FirstOrDefault();
+            if (defragStrategy != null && defragStrategy.IsEnabled)
+            {
+                var constrainedIds = new HashSet<string>();
+                // 固定座位上的学生
+                foreach (var seat in workspace.FindSeats(s => s.IsFixed && s.OccupantId is not null))
+                    constrainedIds.Add(seat.OccupantId!);
+                // DeskMate 组内学生
+                var deskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<DeskMateStrategy>().FirstOrDefault();
+                if (deskMate != null)
+                {
+                    foreach (var group in deskMate.Config.Groups)
+                    {
+                        foreach (var sid in group.StudentIds)
+                            constrainedIds.Add(sid);
+                    }
+                }
+                defragStrategy.SetConstrainedStudentIds(constrainedIds);
+                logger.LogInformation("Defrag：已注入 {Count} 个约束学生 ID" , constrainedIds.Count);
+            }
+
+            // 6d. 收集依赖策略并注入到 RandomFill
+            var dependentStrategies = new List<IDependentSeatingStrategy>();
+
+            // 收集内置依赖策略（从 DI 缓存），排除标记为不可见的策略
+            var cachedDeps = _cachedDependentStrategies ??= [.. _serviceProvider.GetServices<IDependentSeatingStrategy>()];
+            var builtInDependents = cachedDeps
+                .Where(d => !invisibleIds.Contains(d.Id))
+                .ToList();
+            dependentStrategies.AddRange(builtInDependents);
+
+            // 收集插件依赖策略（IsIndependent == false 的插件）
+            foreach (var pi in loadedPlugins)
+            {
+                if (pi.StrategyManifest is { IsIndependent: false } && pi.Strategy.IsEnabled)
+                {
+                    // TODO: 插件依赖策略适配器 — 当前插件无法实现 EvaluateAsync，默认 Approve
+                    logger.LogWarning("插件依赖策略 {PluginId} 尚不支持 EvaluateAsync，将默认批准所有分配" , pi.Strategy.Id);
+                }
+            }
+
+            // 注入依赖策略到 RandomFill
+            var randomFill = strategies.OfType<RandomFillStrategy>().FirstOrDefault();
+            if (randomFill != null && dependentStrategies.Count > 0)
+            {
+                randomFill.LoadDependentStrategies(dependentStrategies);
+                logger.LogInformation("已将 {Count} 个依赖策略注入 RandomFill" , dependentStrategies.Count);
+            }
+
+            // 6e. 注册策略能力到 workspace（从 manifest 读取）
+            foreach (var s in strategies)
+            {
+                var m = _manifestProvider.GetBuiltInManifest(s.Id);
+                if (m?.Capabilities is { Count: > 0 })
+                    workspace.RegisterCapabilities(s.Id , m.Capabilities);
+            }
+            foreach (var pi in loadedPlugins)
+            {
+                if (pi.StrategyManifest?.Capabilities is { Count: > 0 })
+                    workspace.RegisterCapabilities(pi.Strategy.Id , pi.StrategyManifest.Capabilities);
+            }
 
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
@@ -263,13 +335,13 @@ namespace A_Pair.Application.Services
 
             // 9. 保存快照（含内容哈希用于完整性检测）
             var studentNames = workspace.Students
-                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .Where(s => plan.Assignments.ContainsValue(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
             var venueHash = request.LayoutId != null
                 ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
                 : null;
             var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(workspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                string.Concat(workspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
             if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
             snapshotMeta["studentHash"] = studentHash;
@@ -302,7 +374,7 @@ namespace A_Pair.Application.Services
                     LayoutType = venueLayout.LayoutType ,
                     SeatCount = venueLayout.Seats.Count(s => s.IsAvailable) ,
                     ObstacleCount = venueLayout.Obstacles.Count
-                });
+                } , cancellationToken);
             }
 
             progress?.Report(new SeatingProgress
@@ -323,10 +395,7 @@ namespace A_Pair.Application.Services
     ExportOptions options ,
     CancellationToken cancellationToken = default)
         {
-            ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format);
-            if (exporter == null)
-                throw new NotSupportedException($"No exporter registered for format {options.Format}.");
-
+            ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format) ?? throw new NotSupportedException($"No exporter registered for format {options.Format}.");
             if (layout != null)
             {
                 var assignments = workspace.BuildSeatingPlan().Assignments;
@@ -408,7 +477,7 @@ namespace A_Pair.Application.Services
         public async Task<string> ImportVenueFromSnapshotAsync (
             string venueLayoutJson , string? newName = null , CancellationToken ct = default)
         {
-            var layout = DeserializeVenueFromEmbeddedJson(venueLayoutJson)
+            var layout = SnapshotLayoutHelper.DeserializeVenueFromEmbeddedJson(venueLayoutJson)
                 ?? throw new InvalidOperationException("无法反序列化快照中的会场布局");
             var venueId = Guid.NewGuid().ToString("N")[..8];
             layout.Id = venueId;
@@ -438,10 +507,10 @@ namespace A_Pair.Application.Services
 
             var plan = _currentWorkspace.BuildSeatingPlan();
             var studentNames = _currentWorkspace.Students
-                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .Where(s => plan.Assignments.ContainsValue(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
             var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
             var venueId = _currentLayout?.Id;
             if (!string.IsNullOrEmpty(venueId))
@@ -473,15 +542,15 @@ namespace A_Pair.Application.Services
             // 回滚前自动保存当前状态为备份快照，确保可撤销
             if (_currentWorkspace != null)
             {
-                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}"); } catch { }
+                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}" , cancellationToken); } catch { }
             }
 
             // 优先使用快照中嵌入的会场布局（自包含，不依赖外部会场文件）
             ClassroomLayoutDefinition? layout = null;
-            var venueFileJson = GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
-                ?? GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+            var venueFileJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
+                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
             if (!string.IsNullOrEmpty(venueFileJson))
-                layout = DeserializeVenueFromEmbeddedJson(venueFileJson);
+                layout = SnapshotLayoutHelper.DeserializeVenueFromEmbeddedJson(venueFileJson);
 
             // 无嵌入时回退到加载会场文件
             if (layout == null
@@ -536,9 +605,8 @@ namespace A_Pair.Application.Services
             }
             catch { /* 数据集读取失败不影响回滚 */ }
 
-            return studentIds.Select(id =>
-                studentMap.TryGetValue(id , out var real) ? real : new Student { Id = id , Name = id }
-            ).ToList();
+            return [.. studentIds.Select(id =>
+                studentMap.TryGetValue(id , out var real) ? real : new Student { Id = id , Name = id } )];
         }
 
         public async Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
@@ -564,55 +632,83 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default)
         {
+            // 短期缓存：侧栏频繁切换时避免重复 I/O 和 DI 解析
+            if (_cachedStrategyDisplayInfos is not null
+                && DateTime.Now - _cachedStrategyDisplayInfosAt < StrategyDisplayCacheDuration)
+            {
+                logger.LogDebug("GetStrategiesAsync：返回缓存结果（{Age:F0}s 前）" ,
+                    (DateTime.Now - _cachedStrategyDisplayInfosAt).TotalSeconds);
+                return _cachedStrategyDisplayInfos;
+            }
+
             var persisted = await _strategyConfigRepo.LoadAllAsync(ct);
             var result = new List<StrategyDisplayInfo>();
 
             // 收集内置策略（Manifest + 运行时实例配置）
             var builtInManifests = _manifestProvider.GetBuiltInManifests();
-            var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInInstances = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
+            var builtInDependents = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+
             foreach (var manifest in builtInManifests)
             {
+                // 优先从独立策略查找，其次从依赖策略查找
                 var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
-                var info = BuildDisplayInfo(manifest , "builtin" , persisted , runtimeStrategy);
+                var depStrategy = builtInDependents.FirstOrDefault(d => d.Id == manifest.Id);
+
+                var info = BuildDisplayInfo(manifest , "builtin" , persisted , runtimeStrategy , depStrategy);
                 result.Add(info);
             }
 
-            // 收集插件策略（PluginManifest → StrategyManifest + 运行时配置）
+            // 收集插件策略
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             foreach (var pi in loadedPlugins)
             {
+                var (pkg , _) = _pluginManager.FindStrategy(pi.Strategy.Id);
+                var category = pkg?.PackageManifest?.Type ?? "strategy";
+                var sm = pi.StrategyManifest;
+
                 var pluginManifest = new StrategyManifest
                 {
-                    Id = pi.Manifest.Id ,
-                    Name = pi.Manifest.Name ,
-                    DisplayName = pi.Manifest.Name ,
-                    Version = pi.Manifest.Version ,
-                    Description = pi.Manifest.Description ,
-                    Author = pi.Manifest.Author ,
-                    Category = "plugin" ,
-                    DefaultPriority = pi.Manifest.Priority ,
-                    DefaultEnabled = pi.Manifest.Enabled ,
-                    Parameters = pi.Manifest.Parameters ,
-                    CodeBlocks = pi.Manifest.CodeBlocks ,
-                    Messages = pi.Manifest.Messages ,
-                    Visible = pi.Manifest.Visible
+                    Id = pi.Strategy.Id ,
+                    Name = pi.Strategy.Name ,
+                    DisplayName = pi.Strategy.Name ,
+                    Version = pkg?.PackageManifest?.Version ?? "1.0.0" ,
+                    Description = pkg?.PackageManifest?.Description ?? string.Empty ,
+                    Author = pkg?.PackageManifest?.Author ?? string.Empty ,
+                    Category = category ,
+                    DefaultPriority = sm?.DefaultPriority ?? pi.Strategy.Priority ,
+                    DefaultEnabled = pi.Strategy.IsEnabled ,
+                    Parameters = sm?.Parameters ,
+                    CodeBlocks = sm?.CodeBlocks ,
+                    Messages = sm?.Messages ,
+                    Visible = sm?.Visible ?? true ,
+                    IsIndependent = sm?.IsIndependent ?? true ,
+                    ManifestVersion = sm?.ManifestVersion ?? "1.0"
                 };
 
-                var runtimePluginConfig = pi.Strategy;
-                var source = $"plugin:{pi.Manifest.Id}";
-                var info = BuildDisplayInfo(pluginManifest , source , persisted , null);
+                var source = $"plugin:{pi.Strategy.Id}";
+                var info = BuildDisplayInfo(pluginManifest , source , persisted , null , null);
                 result.Add(info);
             }
 
-            var sorted = result.OrderBy(d => d.Priority).ToList();
-            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，共 {Total} 个" ,
-                builtInManifests.Count , loadedPlugins.Count() , sorted.Count);
-            return sorted;
+            // 独立策略和依赖策略按各自的 Priority 分组排序，不交叉比较
+            var independents = result.Where(d => d.IsIndependent).OrderByDescending(d => d.Priority).ToList();
+            var dependents = result.Where(d => !d.IsIndependent).OrderByDescending(d => d.Priority).ToList();
+            var indCount = independents.Count;
+            var depCount = dependents.Count;
+            // 独立策略在前（外部管道），依赖策略在后（将被 ViewModel 嵌套到宿主下）
+            independents.AddRange(dependents);
+            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，插件 {Plugin} 个，独立 {Ind} 个，依赖 {Dep} 个" ,
+                builtInManifests.Count , loadedPlugins.Count() , indCount , depCount);
+            _cachedStrategyDisplayInfos = independents;
+            _cachedStrategyDisplayInfosAt = DateTime.Now;
+            return independents;
         }
 
         /// <inheritdoc />
         public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
+            _cachedStrategyDisplayInfos = null; // 使 GetStrategiesAsync 缓存失效
             // 如果 Parameters 为 null（仅保存优先级/开关），保留已有参数
             if (config.Parameters == null)
             {
@@ -623,27 +719,61 @@ namespace A_Pair.Application.Services
             logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}" ,
                 strategyId , config.Priority , config.IsEnabled);
 
-            await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
+            // 配置路由：插件策略 → PluginPackageConfigService，内置策略 → StrategyConfigFileRepository
+            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            if (pkg != null)
+            {
+                await _pluginPackageConfigService.SaveConfigAsync(strategyId , config , ct);
+            }
+            else
+            {
+                await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
+            }
 
-            var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInInstances = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
             {
                 strategy.Priority = config.Priority;
                 strategy.IsEnabled = config.IsEnabled;
                 ApplyConfiguration(strategy , config.Parameters);
+                return;
+            }
+
+            // 尝试从依赖策略查找（缓存，与独立策略对称）
+            var cachedDeps = _cachedDependentStrategies ??= [.. _serviceProvider.GetServices<IDependentSeatingStrategy>()];
+            var depStrategy = cachedDeps.FirstOrDefault(d => d.Id == strategyId);
+            if (depStrategy is not null)
+            {
+                depStrategy.Priority = config.Priority;
+                depStrategy.IsEnabled = config.IsEnabled;
+                ApplyDependentConfiguration(depStrategy , config.Parameters);
+            }
+
+            // 尝试从插件策略更新运行时状态
+            if (pkg != null)
+            {
+                var pluginInfo = _pluginManager.GetLoadedPlugin(strategyId);
+                if (pluginInfo is not null)
+                {
+                    pluginInfo.Strategy.Priority = config.Priority;
+                    pluginInfo.Strategy.IsEnabled = config.IsEnabled;
+                }
             }
         }
 
         /// <inheritdoc />
-        public Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
+        public async Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
         {
-            return _datasetConfigRepo.LoadAllAsync(strategyId , ct);
+            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            if (pkg != null)
+                return await _pluginPackageConfigService.LoadDatasetConfigsAsync(strategyId , ct);
+            return await _datasetConfigRepo.LoadAllAsync(strategyId , ct);
         }
 
         private static readonly JsonSerializerOptions StudentHashOptions = new()
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase ,
             WriteIndented = true
         };
 
@@ -654,26 +784,35 @@ namespace A_Pair.Application.Services
 
             if (!string.IsNullOrEmpty(config.DatasetId))
             {
-                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
+                var students = await _datasetRepo.LoadAsync(config.DatasetId , ct);
                 if (students is { Count: > 0 })
                 {
                     var sorted = students.OrderBy(s => s.Id).ToList();
-                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
+                    var json = JsonSerializer.Serialize(sorted , StudentHashOptions);
                     studentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
                 }
             }
 
             string? venueHash = null;
             if (!string.IsNullOrEmpty(config.VenueId))
-                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
+                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId , ct);
 
-            await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
+            // 配置路由
+            var (pkg , _) = _pluginManager.FindStrategy(config.StrategyId);
+            if (pkg != null)
+                await _pluginPackageConfigService.SaveDatasetConfigAsync(config , studentHash , venueHash , ct);
+            else
+                await _datasetConfigRepo.SaveAsync(config , studentHash , venueHash , ct);
         }
 
         /// <inheritdoc />
-        public Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
+        public async Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
         {
-            return _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
+            var (pkg , _) = _pluginManager.FindStrategy(strategyId);
+            if (pkg != null)
+                await _pluginPackageConfigService.DeleteDatasetConfigAsync(strategyId , datasetId , venueId , ct);
+            else
+                await _datasetConfigRepo.DeleteAsync(strategyId , datasetId , venueId , ct);
         }
 
         /// <inheritdoc />
@@ -684,12 +823,12 @@ namespace A_Pair.Application.Services
 
             if (!string.IsNullOrEmpty(config.DatasetId) && !string.IsNullOrEmpty(config.StudentsHash))
             {
-                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
+                var students = await _datasetRepo.LoadAsync(config.DatasetId , ct);
                 string? currentHash = null;
                 if (students is { Count: > 0 })
                 {
                     var sorted = students.OrderBy(s => s.Id).ToList();
-                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
+                    var json = JsonSerializer.Serialize(sorted , StudentHashOptions);
                     currentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
                 }
                 studentOk = currentHash == config.StudentsHash;
@@ -697,11 +836,11 @@ namespace A_Pair.Application.Services
 
             if (!string.IsNullOrEmpty(config.VenueId) && !string.IsNullOrEmpty(config.ContentHash))
             {
-                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
+                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId , ct);
                 venueOk = currentHash == config.ContentHash;
             }
 
-            return (studentOk, venueOk);
+            return (studentOk , venueOk);
         }
 
         #region Strategy Helpers
@@ -719,9 +858,14 @@ namespace A_Pair.Application.Services
             string? venueId = request.LayoutId;
             if (string.IsNullOrEmpty(datasetId) && string.IsNullOrEmpty(venueId)) return;
 
+            // 处理独立策略的代码块配置（FixedSeat）
             foreach (var strategy in strategies)
             {
-                var config = await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
+                // 配置读写路径：插件策略 → PluginPackageConfigService，内置策略 → StrategyDatasetConfigRepository
+                var (pkg , _) = _pluginManager.FindStrategy(strategy.Id);
+                var config = pkg != null
+                    ? await _pluginPackageConfigService.LoadDatasetConfigAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct)
+                    : await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
                 if (config?.Rows is not { Count: > 0 }) continue;
 
                 switch (strategy)
@@ -729,10 +873,20 @@ namespace A_Pair.Application.Services
                     case FixedSeatStrategy fs:
                         ApplyFixedSeatConfig(fs , config , venueLayout);
                         break;
-                    case DeskMateStrategy ds:
-                        ApplyDeskMateConfig(ds , config);
-                        break;
                 }
+            }
+
+            // 处理依赖策略的代码块配置（DeskMate）
+            var dependentStrategies = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            foreach (var dep in dependentStrategies)
+            {
+                var config = await _datasetConfigRepo.LoadAsync(dep.Id , datasetId ?? string.Empty , venueId , ct);
+                if (config?.Rows is not { Count: > 0 }) continue;
+
+                if (dep is DeskMateStrategy ds)
+                    ApplyDeskMateConfig(ds , config);
+                else if (dep is GenderRestrictedSeatStrategy grs)
+                    ApplyGenderRestrictionConfig(grs , config , venueLayout);
             }
         }
 
@@ -782,6 +936,38 @@ namespace A_Pair.Application.Services
         }
 
         /// <summary>
+        /// 将 StrategyDatasetConfig 的 Rows 转换为 GenderRestrictedSeatConfiguration.SeatGenderRestrictions。
+        /// 每行通过座位位置查找实际 Seat.Id，Gender 字段值映射为 Gender 枚举，构建限制字典。
+        /// </summary>
+        private static void ApplyGenderRestrictionConfig (
+            GenderRestrictedSeatStrategy strategy ,
+            StrategyDatasetConfig config ,
+            ClassroomLayoutDefinition? venueLayout)
+        {
+            var restrictions = new Dictionary<string , Gender>();
+            foreach (var row in config.Rows)
+            {
+                var seat = FindSeatByPosition(venueLayout , row);
+                if (seat is null) continue;
+
+                if (row.Values?.TryGetValue("Gender" , out var genderObj) != true || genderObj is null)
+                    continue;
+
+                var genderStr = genderObj.ToString();
+                Gender? parsed = null;
+                if (string.Equals(genderStr , "Male" , StringComparison.OrdinalIgnoreCase))
+                    parsed = Gender.Male;
+                else if (string.Equals(genderStr , "Female" , StringComparison.OrdinalIgnoreCase))
+                    parsed = Gender.Female;
+
+                if (parsed is null) continue;
+                restrictions[seat.Id] = parsed.Value;
+            }
+
+            strategy.SetRestrictions(restrictions);
+        }
+
+        /// <summary>
         /// 根据 ConfigRow 中的座位位置信息在会场布局中查找对应的 Seat 对象。
         /// </summary>
         private static Seat? FindSeatByPosition (ClassroomLayoutDefinition? layout , StrategyConfigRow row)
@@ -816,7 +1002,8 @@ namespace A_Pair.Application.Services
             StrategyManifest manifest ,
             string source ,
             Dictionary<string , StrategyConfig> persisted ,
-            ISeatingStrategy? runtimeStrategy)
+            ISeatingStrategy? runtimeStrategy ,
+            IDependentSeatingStrategy? depStrategy = null)
         {
             var info = new StrategyDisplayInfo
             {
@@ -833,7 +1020,8 @@ namespace A_Pair.Application.Services
                 ParameterDefinitions = manifest.Parameters ,
                 CodeBlocks = manifest.CodeBlocks ,
                 Messages = manifest.Messages ,
-                Visible = manifest.Visible
+                Visible = manifest.Visible ,
+                IsIndependent = manifest.IsIndependent
             };
 
             // 用持久化的配置覆盖默认值
@@ -847,6 +1035,10 @@ namespace A_Pair.Application.Services
             else if (runtimeStrategy is not null)
             {
                 info.Parameters = ExtractParameters(runtimeStrategy);
+            }
+            else if (depStrategy is not null)
+            {
+                info.Parameters = ExtractDependentParameters(depStrategy);
             }
 
             return info;
@@ -862,11 +1054,20 @@ namespace A_Pair.Application.Services
                     ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus ,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
-                DeskMateStrategy d => new Dictionary<string , object?>
+                DefragStrategy => [],
+                _ => []
+            };
+        }
+
+        private static Dictionary<string , object?> ExtractDependentParameters (IDependentSeatingStrategy strategy)
+        {
+            return strategy switch
+            {
+                NoRepeatDeskMateStrategy nd => new Dictionary<string , object?>
                 {
-                    ["PreferHorizontal"] = d.Config.PreferHorizontal ,
-                    ["AllowVertical"] = d.Config.AllowVertical
+                    ["HistoryWindowSize"] = nd.Config.HistoryWindowSize
                 },
+                GenderRestrictedSeatStrategy => [],
                 _ => []
             };
         }
@@ -882,10 +1083,22 @@ namespace A_Pair.Application.Services
                     fr.Config.NeedsFrontRowBonus = GetParamInt(parameters , "NeedsFrontRowBonus");
                     fr.Config.FrontRowCount = GetParamInt(parameters , "FrontRowCount");
                     break;
+                case DefragStrategy:
+                    break; // 零参数策略
+            }
+        }
 
-                case DeskMateStrategy d:
-                    d.Config.PreferHorizontal = GetParamBool(parameters , "PreferHorizontal");
-                    d.Config.AllowVertical = GetParamBool(parameters , "AllowVertical");
+        private static void ApplyDependentConfiguration (IDependentSeatingStrategy strategy , Dictionary<string , object?> parameters)
+        {
+            if (parameters.Count == 0) return;
+
+            switch (strategy)
+            {
+                case NoRepeatDeskMateStrategy nd:
+                    nd.Config.HistoryWindowSize = GetParamInt(parameters , "HistoryWindowSize");
+                    break;
+                case GenderRestrictedSeatStrategy:
+                    // 无策略级参数
                     break;
             }
         }
@@ -916,7 +1129,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="request">座位生成请求。</param>
         /// <returns>生成的座位列表。</returns>
-        private List<Seat> BuildSeatsFromRequest (SeatingRequest request)
+        private static List<Seat> BuildSeatsFromRequest (SeatingRequest request)
         {
             ClassroomLayoutDefinition layout = request.LayoutType switch
             {
@@ -935,7 +1148,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "Rows" 和 "Columns" 键。</param>
         /// <returns>网格布局定义。</returns>
-        private ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
         {
             int rows = GetParameter(parameters , "Rows" , 3);
             int columns = GetParameter(parameters , "Columns" , 3);
@@ -968,7 +1181,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "RadiusStep"、"Rings" 和 "SeatsPerRing" 键。</param>
         /// <returns>极坐标布局定义。</returns>
-        private ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
         {
             var meta = new PolarLayoutMetadata
             {
@@ -988,7 +1201,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "Points" 键（坐标点列表）。</param>
         /// <returns>自由形式布局定义。</returns>
-        private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
             var points = new List<(double X , double Y , int? Row , int? Column , int? GroupId)>();
             if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
@@ -999,9 +1212,9 @@ namespace A_Pair.Application.Services
                     {
                         double x = GetParameter(dict , "X" , 0.0);
                         double y = GetParameter(dict , "Y" , 0.0);
-                        int? row = dict.ContainsKey("Row") ? GetParameter<int>(dict , "Row" , 0) : null;
-                        int? col = dict.ContainsKey("Column") ? GetParameter<int>(dict , "Column" , 0) : null;
-                        int? groupId = dict.ContainsKey("GroupId") ? GetParameter<int>(dict , "GroupId" , 0) : null;
+                        int? row = dict.ContainsKey("Row") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Row" , 0) : null;
+                        int? col = dict.ContainsKey("Column") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Column" , 0) : null;
+                        int? groupId = dict.ContainsKey("GroupId") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "GroupId" , 0) : null;
                         points.Add((x , y , row , col , groupId));
                     }
                 }
@@ -1017,7 +1230,7 @@ namespace A_Pair.Application.Services
         /// <param name="key">键名。</param>
         /// <param name="defaultValue">默认值。</param>
         /// <returns>转换后的值或默认值。</returns>
-        private T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
+        private static T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
         {
             if (parameters.TryGetValue(key , out var value))
             {
@@ -1038,55 +1251,139 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default)
         {
-            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
+            // 从包级 API 展平所有策略
+            var packages = await GetPluginPackagesAsync(ct);
             var result = new List<PluginDisplayInfo>();
-            foreach (var pi in loadedPlugins)
+            foreach (var pkg in packages)
             {
-                var iconPath = Path.Combine(pi.PluginPath , "icon.png");
-                result.Add(new PluginDisplayInfo
+                result.AddRange(pkg.Strategies);
+            }
+            return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<PluginPackageDisplayInfo>> GetPluginPackagesAsync (CancellationToken ct = default)
+        {
+            var result = new List<PluginPackageDisplayInfo>();
+
+            foreach (var (packageId , pkgInfo) in _pluginManager.LoadedPackages)
+            {
+                var iconPath = Path.Combine(pkgInfo.PackagePath , "icon.png");
+                var strategies = new List<PluginDisplayInfo>();
+
+                foreach (var (strategyId , pluginInfo) in pkgInfo.Strategies)
                 {
-                    Id = pi.Manifest.Id ,
-                    Name = pi.Manifest.Name ,
-                    Version = pi.Manifest.Version ,
-                    Category = pi.Manifest.Category ,
-                    LoadKind = GetLoadKind(pi.Manifest) ,
-                    IsEnabled = pi.Strategy.IsEnabled ,
-                    Description = pi.Manifest.Description ,
-                    Author = pi.Manifest.Author ,
-                    Priority = pi.Strategy.Priority ,
-                    ScriptType = pi.Manifest.ScriptType?.ToLowerInvariant() ,
-                    PluginPath = pi.PluginPath ,
-                    IconPath = File.Exists(iconPath) ? iconPath : null
+                    var loadKind = GetLoadKindFromEntry(pluginInfo.Entry);
+                    var scriptType = pluginInfo.Entry?.ScriptType?.ToLowerInvariant();
+
+                    strategies.Add(new PluginDisplayInfo
+                    {
+                        Id = strategyId ,
+                        Name = pluginInfo.Strategy.Name ,
+                        Version = pkgInfo.PackageManifest.Version ,
+                        Category = pkgInfo.PackageManifest.Type ,
+                        LoadKind = loadKind ,
+                        IsEnabled = pluginInfo.Strategy.IsEnabled ,
+                        Description = pkgInfo.PackageManifest.Description ,
+                        Author = pkgInfo.PackageManifest.Author ,
+                        Priority = pluginInfo.Strategy.Priority ,
+                        ScriptType = scriptType ,
+                        PluginPath = pkgInfo.PackagePath ,
+                        IconPath = File.Exists(iconPath) ? iconPath : null
+                    });
+                }
+
+                result.Add(new PluginPackageDisplayInfo
+                {
+                    PackageId = packageId ,
+                    PackageName = pkgInfo.PackageManifest.Name ,
+                    Version = pkgInfo.PackageManifest.Version ,
+                    Author = pkgInfo.PackageManifest.Author ,
+                    Description = pkgInfo.PackageManifest.Description ,
+                    IsEnabled = pkgInfo.Enables?.Enabled ?? true ,
+                    IconPath = File.Exists(iconPath) ? iconPath : null ,
+                    PackagePath = pkgInfo.PackagePath ,
+                    Strategies = strategies
                 });
             }
             return result;
         }
 
         /// <inheritdoc />
+        public async Task SetPluginPackageEnabledAsync (string packageId , bool enabled , CancellationToken ct = default)
+        {
+            _cachedStrategyDisplayInfos = null;
+            await _pluginManager.SetPackageEnabledAsync(packageId , enabled , ct);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> InstallPluginPackageAsync (string packagePath , CancellationToken ct = default)
+        {
+            _cachedStrategyDisplayInfos = null;
+            return await _pluginManager.InstallFromPackageAsync(packagePath , ct);
+        }
+
+        /// <inheritdoc />
+        public async Task UninstallPluginPackageAsync (string packageId , CancellationToken ct = default)
+        {
+            _cachedStrategyDisplayInfos = null;
+            await _pluginManager.UnloadPackageAsync(packageId);
+        }
+
+        /// <inheritdoc />
+        public async Task RefreshPluginPackageAsync (string packageId , CancellationToken ct = default)
+        {
+            _cachedStrategyDisplayInfos = null;
+            await _pluginManager.RefreshPackageAsync(packageId , ct);
+        }
+
+        /// <inheritdoc />
         public async Task<string> GetPluginScriptAsync (string pluginId , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
-            if (string.IsNullOrEmpty(manifest.ScriptFile))
+            var (pkg , plugin) = _pluginManager.FindStrategy(pluginId);
+            if (pkg == null || plugin == null)
+                throw new InvalidOperationException($"插件 {pluginId} 未加载");
+
+            var entry = plugin.Entry;
+            var scriptFile = entry?.ScriptFile;
+            if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
-            var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
+            // 优先从策略子目录查找（与 LoadStrategyFromEntry 的查找顺序一致）
+            var scriptPath = (string?)null;
+            if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
+            // 回退到包根目录
+            if (scriptPath == null || !File.Exists(scriptPath))
+            {
+                scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
+            }
+
             return await File.ReadAllTextAsync(scriptPath , ct);
         }
 
         /// <inheritdoc />
         public async Task SavePluginScriptAsync (string pluginId , string script , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
-            if (string.IsNullOrEmpty(manifest.ScriptFile))
+            var (pkg , plugin) = _pluginManager.FindStrategy(pluginId);
+            if (pkg == null || plugin == null)
+                throw new InvalidOperationException($"插件 {pluginId} 未加载");
+
+            var scriptFile = plugin.Entry?.ScriptFile;
+            if (string.IsNullOrEmpty(scriptFile))
                 throw new InvalidOperationException($"插件 {pluginId} 不是脚本插件");
 
-            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
-            var scriptPath = Path.Combine(plugin.PluginPath , manifest.ScriptFile);
+            // 优先从策略子目录查找（与 LoadStrategyFromEntry 的查找顺序一致）
+            var scriptPath = (string?)null;
+            var entry = plugin.Entry;
+            if (entry != null && !string.IsNullOrEmpty(entry.Path))
+                scriptPath = Path.Combine(pkg.PackagePath , entry.Path , scriptFile);
+            // 回退到包根目录
+            if (scriptPath == null || !File.Exists(scriptPath))
+            {
+                scriptPath = Path.Combine(pkg.PackagePath , scriptFile);
+            }
+
             await File.WriteAllTextAsync(scriptPath , script , ct);
         }
 
@@ -1094,7 +1391,7 @@ namespace A_Pair.Application.Services
         public async Task<string> GetPluginConfigJsonAsync (string pluginId , CancellationToken ct = default)
         {
             var config = await _pluginConfigService.LoadConfigurationAsync<object>(pluginId , ct);
-            return System.Text.Json.JsonSerializer.Serialize(config , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            return System.Text.Json.JsonSerializer.Serialize(config , JsonOptions.WriteIndented);
         }
 
         /// <inheritdoc />
@@ -1109,39 +1406,21 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task SetPluginEnabledAsync (string pluginId , bool enabled , CancellationToken ct = default)
         {
-            var manifest = _pluginManager.GetManifest(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未加载");
-
-            var plugin = _pluginManager.GetLoadedPlugin(pluginId)
-                ?? throw new InvalidOperationException($"插件 {pluginId} 未找到");
-
-            // 更新运行时策略和内存中的清单
-            plugin.Strategy.IsEnabled = enabled;
-            manifest.Enabled = enabled;
-
-            // 持久化到 manifest 文件
-            var manifestPath = Path.Combine(plugin.PluginPath , "plugin.manifest.json");
-            var json = System.Text.Json.JsonSerializer.Serialize(manifest , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(manifestPath , json , ct);
+            _cachedStrategyDisplayInfos = null;
+            await _pluginManager.SetStrategyEnabledAsync(pluginId , enabled , ct);
         }
 
-        /// <inheritdoc />
-        public Task<PluginManifest?> GetPluginManifestAsync (string pluginId , CancellationToken ct = default)
+        private static string GetLoadKindFromEntry (PluginStrategyEntry? entry)
         {
-            var manifest = _pluginManager.GetManifest(pluginId);
-            return Task.FromResult(manifest);
-        }
-
-        private static string GetLoadKind (PluginManifest manifest)
-        {
-            if (!string.IsNullOrEmpty(manifest.ScriptFile))
-                return manifest.ScriptType?.ToLowerInvariant() switch
+            if (entry == null) return "unknown";
+            if (!string.IsNullOrEmpty(entry.ScriptFile) && !string.IsNullOrEmpty(entry.ScriptType))
+                return entry.ScriptType.ToLowerInvariant() switch
                 {
                     "lua" => "lua",
                     "csharp" => "csharp",
                     _ => "script"
                 };
-            if (!string.IsNullOrEmpty(manifest.Assembly))
+            if (!string.IsNullOrEmpty(entry.Assembly) && !string.IsNullOrEmpty(entry.EntryType))
                 return "assembly";
             return "unknown";
         }

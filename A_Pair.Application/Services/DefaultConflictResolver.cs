@@ -5,14 +5,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Services
 {
-    public class DefaultConflictResolver : IConflictResolver
+    public class DefaultConflictResolver (ILogger<DefaultConflictResolver>? logger = null) : IConflictResolver
     {
-        private readonly ILogger<DefaultConflictResolver> _logger;
-
-        public DefaultConflictResolver (ILogger<DefaultConflictResolver>? logger = null)
-        {
-            _logger = logger ?? NullLogger<DefaultConflictResolver>.Instance;
-        }
+        private readonly ILogger<DefaultConflictResolver> _logger = logger ?? NullLogger<DefaultConflictResolver>.Instance;
 
         /// <inheritdoc />
         public ConflictResolutionResult Resolve (SeatingWorkspace workspace)

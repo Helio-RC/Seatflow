@@ -53,6 +53,11 @@
                                         IsVisible="{Binding ShowSeatPosition}">
                                 <views:SeatPositionPickerView DataContext="{Binding SeatPicker}" />
                             </StackPanel>
+                            <ComboBox DockPanel.Dock="Left" Margin="4,0"
+                                      MinWidth="100"
+                                      ItemsSource="{x:Static vm:ConfigBlockRowViewModel.GenderOptions}"
+                                      SelectedItem="{Binding GenderValue}"
+                                      IsVisible="{Binding ShowGenderPicker}" />
                             <Button Content="-" Width="28"
                                     DockPanel.Dock="Left" Margin="4,0,0,0"
                                     VerticalAlignment="Center"
