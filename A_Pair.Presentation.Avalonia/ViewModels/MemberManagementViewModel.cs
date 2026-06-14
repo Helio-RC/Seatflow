@@ -279,7 +279,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     private async Task<(string Suffix , string DisplayName)> ResolveTemplateLocaleAsync (CancellationToken ct)
@@ -364,7 +364,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]
@@ -428,7 +428,7 @@ public partial class MemberManagementViewModel : ViewModelBase
                     await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
             }
         }
-        finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
     [RelayCommand]

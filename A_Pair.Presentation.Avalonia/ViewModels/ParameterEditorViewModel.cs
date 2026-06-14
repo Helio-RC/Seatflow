@@ -100,12 +100,12 @@ public partial class EditableParameter (StrategyParameterDefinition definition ,
 
     public bool ToggleValue
     {
-        get => Value is bool b ? b
-             : Value is System.Text.Json.JsonElement je
-                ? je.ValueKind is System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False
-                    ? je.GetBoolean()
-                    : false
-             : false;
+        get => Value switch
+        {
+            bool b => b ,
+            System.Text.Json.JsonElement je when je.ValueKind is System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False => je.GetBoolean() ,
+            _ => false
+        };
         set => Value = value;
     }
 

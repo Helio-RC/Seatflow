@@ -253,7 +253,7 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
     {
         if (SelectedPlugin == null) return;
 
-        await SafeExecuteAsync(async (CancellationToken ct) =>
+        await SafeExecuteAsync(async ct =>
         {
             await _facade.SavePluginScriptAsync(SelectedPlugin.Id , ScriptEditorText , ct);
             IsScriptDirty = false;
@@ -266,7 +266,7 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
     {
         if (SelectedPlugin == null) return;
 
-        await SafeExecuteAsync(async (CancellationToken ct) =>
+        await SafeExecuteAsync(async ct =>
         {
             // 预验证 JSON 格式
             try

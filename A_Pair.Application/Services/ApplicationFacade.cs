@@ -13,6 +13,7 @@ using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Layouts;
 using A_Pair.Infrastructure.Providers;
+using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -373,7 +374,7 @@ namespace A_Pair.Application.Services
                     LayoutType = venueLayout.LayoutType ,
                     SeatCount = venueLayout.Seats.Count(s => s.IsAvailable) ,
                     ObstacleCount = venueLayout.Obstacles.Count
-                });
+                } , cancellationToken);
             }
 
             progress?.Report(new SeatingProgress
@@ -541,7 +542,7 @@ namespace A_Pair.Application.Services
             // 回滚前自动保存当前状态为备份快照，确保可撤销
             if (_currentWorkspace != null)
             {
-                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}"); } catch { }
+                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}" , cancellationToken); } catch { }
             }
 
             // 优先使用快照中嵌入的会场布局（自包含，不依赖外部会场文件）
@@ -1263,7 +1264,6 @@ namespace A_Pair.Application.Services
         /// <inheritdoc />
         public async Task<List<PluginPackageDisplayInfo>> GetPluginPackagesAsync (CancellationToken ct = default)
         {
-            var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             var result = new List<PluginPackageDisplayInfo>();
 
             foreach (var (packageId , pkgInfo) in _pluginManager.LoadedPackages)
@@ -1391,7 +1391,7 @@ namespace A_Pair.Application.Services
         public async Task<string> GetPluginConfigJsonAsync (string pluginId , CancellationToken ct = default)
         {
             var config = await _pluginConfigService.LoadConfigurationAsync<object>(pluginId , ct);
-            return System.Text.Json.JsonSerializer.Serialize(config , new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            return System.Text.Json.JsonSerializer.Serialize(config , JsonOptions.WriteIndented);
         }
 
         /// <inheritdoc />

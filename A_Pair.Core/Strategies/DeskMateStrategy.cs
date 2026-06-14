@@ -217,7 +217,7 @@ namespace A_Pair.Core.Strategies
             {
                 return AssignMatesToAdjacentSeats(
                     workspace , student , targetSeat , unassignedMates ,
-                    adjacentEmpty , neededAdjacent , context);
+                    adjacentEmpty , context);
             }
 
             // ── 层级2：空座不足，尝试腾挪被占座 ──
@@ -280,7 +280,7 @@ namespace A_Pair.Core.Strategies
             // ── 层级3：分配所有可用的相邻座位 ──
             var result = AssignMatesToAdjacentSeats(
                 workspace , student , targetSeat , unassignedMates ,
-                availableSeats , neededAdjacent , context);
+                availableSeats , context);
 
             // 如果腾挪后仍然不足，记录警告但不 Reject（部分分配优于拆散）
             if (availableSeats.Count < neededAdjacent && context.RerollCount == 0)
@@ -301,7 +301,6 @@ namespace A_Pair.Core.Strategies
             Seat targetSeat ,
             List<string> unassignedMates ,
             List<Seat> seatPool ,
-            int needed ,
             IRandomFillContext context)
         {
             // 先分配 student 到 targetSeat
