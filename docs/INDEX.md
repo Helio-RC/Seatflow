@@ -20,7 +20,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │       ├── ADR-003.md        ← 分层架构 + 插件化决策
 │       ├── ADR-004.md        ← 策略模式座位安排决策
 │       ├── ADR-005.md        ← 命令模式撤销/重做决策
-│       ├── ADR-006.md        ← 策略管道 Fill-in-Order + 可见性排除
+│       ├── ADR-006.md        ← 策略管道 Fill-in-Order + 依赖策略三态 + 能力声明系统
 │       └── ADR-007.md        ← 多策略插件包架构
 ├── A_Pair.Presentation.Avalonia/docs/
 │   ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
