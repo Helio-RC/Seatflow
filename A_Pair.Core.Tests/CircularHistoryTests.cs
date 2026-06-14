@@ -10,7 +10,7 @@ public class CircularHistoryTests
         history.Add(2);
         history.Add(3);
 
-        history.GetAll().Should().BeEquivalentTo(new[] { 1 , 2 , 3 });
+        history.GetAll().Should().BeEquivalentTo([1 , 2 , 3]);
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class CircularHistoryTests
         history.Add(2);
         history.Add(3);
 
-        history.GetAll().Should().BeEquivalentTo(new[] { 2 , 3 });
+        history.GetAll().Should().BeEquivalentTo([2 , 3]);
     }
 
     [Fact]

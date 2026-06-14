@@ -13,23 +13,16 @@ namespace A_Pair.Presentation.Avalonia.Services;
 /// <summary>
 /// UI 线程看门狗：定期检查 UI 线程心跳，若超过阈值无响应则记录诊断信息并强制退出。
 /// </summary>
-public sealed class WatchdogService : IDisposable
+public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogService>? logger = null) : IDisposable
 {
-    private readonly int _timeoutSeconds;
+    private readonly int _timeoutSeconds = timeoutSeconds;
     private readonly CancellationTokenSource _cts = new();
-    private long _heartbeatTicks;
+    private long _heartbeatTicks = DateTime.UtcNow.Ticks;
     private Task? _watchTask;
-    private readonly ILogger<WatchdogService> _logger;
+    private readonly ILogger<WatchdogService> _logger = logger ?? NullLogger<WatchdogService>.Instance;
     private static IDialogService? _dialog;
 
     public static void SetDialogService (IDialogService dialog) => _dialog = dialog;
-
-    public WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogService>? logger = null)
-    {
-        _timeoutSeconds = timeoutSeconds;
-        _heartbeatTicks = DateTime.UtcNow.Ticks;
-        _logger = logger ?? NullLogger<WatchdogService>.Instance;
-    }
 
     /// <summary>启动看门狗（后台线程）。</summary>
     public void Start ()

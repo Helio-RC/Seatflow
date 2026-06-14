@@ -18,8 +18,7 @@ public partial class MemberManagementView : UserControl
     protected override void OnDataContextChanged (EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (_vm != null)
-            _vm.PropertyChanged -= OnSidebarWidthChanged;
+        _vm?.PropertyChanged -= OnSidebarWidthChanged;
         _vm = DataContext as ViewModels.MemberManagementViewModel;
         if (_vm != null)
         {
@@ -57,11 +56,8 @@ public partial class MemberManagementView : UserControl
     protected override void OnDetachedFromVisualTree (VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        if (_vm != null)
-        {
-            _vm.PropertyChanged -= OnSidebarWidthChanged;
-            _vm = null;
-        }
+        _vm?.PropertyChanged -= OnSidebarWidthChanged;
+        _vm = null;
     }
 
     protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)

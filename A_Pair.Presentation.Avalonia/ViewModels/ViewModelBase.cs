@@ -28,7 +28,7 @@ public abstract class ViewModelBase : ObservableObject
     }
 
     /// <summary>在 try-catch 中执行操作，出错时弹窗并记录日志。</summary>
-    protected async Task<bool> SafeExecuteAsync (Func<Task> action , string? errorTitle = null)
+    protected static async Task<bool> SafeExecuteAsync (Func<Task> action , string? errorTitle = null)
     {
         errorTitle ??= Resources.Common_OperationFailed;
         try
@@ -50,7 +50,7 @@ public abstract class ViewModelBase : ObservableObject
     /// <param name="action">接受 CancellationToken 的异步操作，超时后 token 会被取消</param>
     /// <param name="timeout">超时阈值，应小于 UI 看门狗的 45 秒</param>
     /// <param name="errorTitle">错误弹窗标题</param>
-    protected async Task<bool> SafeExecuteAsync (Func<CancellationToken , Task> action , TimeSpan timeout , string? errorTitle = null)
+    protected static async Task<bool> SafeExecuteAsync (Func<CancellationToken , Task> action , TimeSpan timeout , string? errorTitle = null)
     {
         errorTitle ??= Resources.Common_OperationFailed;
         using var cts = new CancellationTokenSource(timeout);

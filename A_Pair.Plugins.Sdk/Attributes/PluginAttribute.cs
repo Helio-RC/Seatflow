@@ -11,20 +11,16 @@ namespace A_Pair.Plugins.Sdk.Attributes;
 /// 当插件类同时继承 <see cref="A_Pair.Plugins.Sdk.Abstractions.PluginStrategyBase"/> 时，
 /// 基类会自动读取此特性来填充 <c>Id</c>、<c>Name</c>、<c>Priority</c>、<c>IsEnabled</c>。
 /// </remarks>
+/// <remarks>
+/// 初始化插件特性，指定插件唯一标识符。
+/// </remarks>
+/// <param name="id">插件唯一标识符。</param>
 [AttributeUsage(AttributeTargets.Class , Inherited = false , AllowMultiple = false)]
-public sealed class PluginAttribute : Attribute
+public sealed class PluginAttribute (string id) : Attribute
 {
-    /// <summary>
-    /// 初始化插件特性，指定插件唯一标识符。
-    /// </summary>
-    /// <param name="id">插件唯一标识符。</param>
-    public PluginAttribute (string id)
-    {
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-    }
 
     /// <summary>插件唯一标识符。</summary>
-    public string Id { get; }
+    public string Id { get; } = id ?? throw new ArgumentNullException(nameof(id));
 
     /// <summary>插件显示名称（可选，默认为类名）。</summary>
     public string? Name { get; set; }

@@ -262,8 +262,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 case FreeformLayoutMetadata:
                     _existingGridSeatMap = null;
                     _existingPolarSeatMap = null;
-                    _freeformPreviewSeats = layout.Seats.OfType<FreeformSeat>().ToList();
-                    _freeformPreviewObstacles = layout.Obstacles.ToList();
+                    _freeformPreviewSeats = [.. layout.Seats.OfType<FreeformSeat>()];
+                    _freeformPreviewObstacles = [.. layout.Obstacles];
                     break;
             }
 
@@ -867,25 +867,23 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private static List<int> ParseIntList (string csv)
     {
         if (string.IsNullOrWhiteSpace(csv)) return [];
-        return csv.Split(',' , StringSplitOptions.RemoveEmptyEntries)
+        return [.. csv.Split(',' , StringSplitOptions.RemoveEmptyEntries)
             .Select(s => int.TryParse(s.Trim() , out var n) ? n : -1)
-            .Where(n => n > 0)
-            .ToList();
+            .Where(n => n > 0)];
     }
 
     private static List<double> ParseDoubleList (string csv)
     {
         if (string.IsNullOrWhiteSpace(csv)) return [];
-        return csv.Split(',' , StringSplitOptions.RemoveEmptyEntries)
+        return [.. csv.Split(',' , StringSplitOptions.RemoveEmptyEntries)
             .Select(s => double.TryParse(s.Trim() , out var n) ? n : -1)
-            .Where(n => n >= 0)
-            .ToList();
+            .Where(n => n >= 0)];
     }
 
     private static List<GridPosition> ParseGridEmptyPositions (string spec)
     {
         if (string.IsNullOrWhiteSpace(spec)) return [];
-        return spec.Split(';' , StringSplitOptions.RemoveEmptyEntries)
+        return [.. spec.Split(';' , StringSplitOptions.RemoveEmptyEntries)
             .Select(part =>
             {
                 var parts = part.Split(',');
@@ -897,14 +895,13 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 return null;
             })
             .Where(p => p != null)
-            .Cast<GridPosition>()
-            .ToList();
+            .Cast<GridPosition>()];
     }
 
     private static List<PolarRingAngle> ParsePolarEmptyPositions (string spec)
     {
         if (string.IsNullOrWhiteSpace(spec)) return [];
-        return spec.Split(';' , StringSplitOptions.RemoveEmptyEntries)
+        return [.. spec.Split(';' , StringSplitOptions.RemoveEmptyEntries)
             .Select(part =>
             {
                 var parts = part.Split(',');
@@ -916,20 +913,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 return null;
             })
             .Where(p => p != null)
-            .Cast<PolarRingAngle>()
-            .ToList();
+            .Cast<PolarRingAngle>()];
     }
 
     /// <summary>过滤掉行列号超出有效范围的禁用位置。</summary>
     private static List<GridPosition> FilterGridEmptyPositions (List<GridPosition> raw , int columns , int defaultRows , List<int> columnRowCounts)
     {
         if (raw.Count == 0) return raw;
-        return raw.Where(p =>
+        return [.. raw.Where(p =>
         {
             int maxRows = columnRowCounts is { Count: > 0 } && p.Column <= columnRowCounts.Count
                 ? columnRowCounts[p.Column - 1] : defaultRows;
             return p.Row >= 1 && p.Column >= 1 && p.Row <= maxRows && p.Column <= columns;
-        }).ToList();
+        })];
     }
 
     /// <summary>过滤掉环号超出有效范围的禁用位置。</summary>
@@ -937,7 +933,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         if (raw.Count == 0) return raw;
         int totalRings = ringSeatCounts.Count > 0 ? ringSeatCounts.Count : defaultRings;
-        return raw.Where(p => p.Ring >= 1 && p.Ring <= totalRings).ToList();
+        return [.. raw.Where(p => p.Ring >= 1 && p.Ring <= totalRings)];
     }
 
     partial void OnSelectedVenueItemChanged (VenueItem? value)
@@ -970,20 +966,13 @@ public partial class DoorItem : ObservableObject
     }
 }
 
-public partial class AisleOption : ObservableObject
+public partial class AisleOption (string label , int seatColumn , bool selected = false) : ObservableObject
 {
-    public string Label { get; set; } = "";
-    public int SeatColumn { get; set; }
+    public string Label { get; set; } = label;
+    public int SeatColumn { get; set; } = seatColumn;
 
     [ObservableProperty]
-    private bool _isSelected;
-
-    public AisleOption (string label , int seatColumn , bool selected = false)
-    {
-        Label = label;
-        SeatColumn = seatColumn;
-        _isSelected = selected;
-    }
+    private bool _isSelected = selected;
 }
 
 public class SeatPreview

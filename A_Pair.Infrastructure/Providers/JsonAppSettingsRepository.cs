@@ -9,21 +9,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Providers
 {
-    public class JsonAppSettingsRepository : IAppSettingsRepository
+    public class JsonAppSettingsRepository (
+        string filePath ,
+        FileMigrationService migration ,
+        ILogger<JsonAppSettingsRepository>? logger = null) : IAppSettingsRepository
     {
-        private readonly string _filePath;
-        private readonly FileMigrationService _migration;
-        private readonly ILogger<JsonAppSettingsRepository> _logger;
-
-        public JsonAppSettingsRepository (
-            string filePath ,
-            FileMigrationService migration ,
-            ILogger<JsonAppSettingsRepository>? logger = null)
-        {
-            _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-            _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
-        }
+        private readonly string _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+        private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
+        private readonly ILogger<JsonAppSettingsRepository> _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
 
         public string SettingsFilePath => _filePath;
 

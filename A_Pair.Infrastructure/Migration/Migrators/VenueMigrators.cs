@@ -12,14 +12,9 @@ public static class VenueMigrators
     /// <summary>
     /// 1.0 → 1.1：将 Grid 布局座位的 JSON 数组从列主序重排为行主序（按 Row → Column 排序）。
     /// </summary>
-    public sealed class Step_1_0_to_1_1 : IFileMigrator
+    public sealed class Step_1_0_to_1_1 (ILogger<VenueMigrators.Step_1_0_to_1_1>? logger = null) : IFileMigrator
     {
-        private readonly ILogger<Step_1_0_to_1_1> _logger;
-
-        public Step_1_0_to_1_1 (ILogger<Step_1_0_to_1_1>? logger = null)
-        {
-            _logger = logger ?? NullLogger<Step_1_0_to_1_1>.Instance;
-        }
+        private readonly ILogger<Step_1_0_to_1_1> _logger = logger ?? NullLogger<Step_1_0_to_1_1>.Instance;
 
         public string FileType => "venue";
         public string FromVersion => "1.0";

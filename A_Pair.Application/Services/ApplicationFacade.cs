@@ -195,7 +195,7 @@ namespace A_Pair.Application.Services
             }
 
             // 4. 获取内置策略（缓存 D内置策略，不变异）
-            var builtInStrategies = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInStrategies = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
 
             // 5. 加载插件策略并适配（加入独立列表，不污染缓存）
             var strategies = new List<ISeatingStrategy>(builtInStrategies);
@@ -219,11 +219,11 @@ namespace A_Pair.Application.Services
                 if (pi.StrategyManifest is { Visible: false })
                     invisibleIds.Add(pi.StrategyManifest.Id);
             }
-            strategies = strategies.Where(s => !invisibleIds.Contains(s.Id)).ToList();
+            strategies = [.. strategies.Where(s => !invisibleIds.Contains(s.Id))];
 
             // 6. 按请求过滤策略
             if (!request.UseDefaultStrategies && request.StrategyIds.Count != 0)
-                strategies = strategies.Where(s => request.StrategyIds.Contains(s.Id)).ToList();
+                strategies = [.. strategies.Where(s => request.StrategyIds.Contains(s.Id))];
 
             // 6b. 同步 FrontRowCount / SeatsPerDesk 到策略配置
             if (venueLayout?.Metadata is GridLayoutMetadata gridMeta)
@@ -275,7 +275,7 @@ namespace A_Pair.Application.Services
             var dependentStrategies = new List<IDependentSeatingStrategy>();
 
             // 收集内置依赖策略（从 DI 缓存），排除标记为不可见的策略
-            var cachedDeps = _cachedDependentStrategies ??= _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            var cachedDeps = _cachedDependentStrategies ??= [.. _serviceProvider.GetServices<IDependentSeatingStrategy>()];
             var builtInDependents = cachedDeps
                 .Where(d => !invisibleIds.Contains(d.Id))
                 .ToList();
@@ -334,13 +334,13 @@ namespace A_Pair.Application.Services
 
             // 9. 保存快照（含内容哈希用于完整性检测）
             var studentNames = workspace.Students
-                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .Where(s => plan.Assignments.ContainsValue(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
             var venueHash = request.LayoutId != null
                 ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
                 : null;
             var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(workspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                string.Concat(workspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
             if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
             snapshotMeta["studentHash"] = studentHash;
@@ -394,10 +394,7 @@ namespace A_Pair.Application.Services
     ExportOptions options ,
     CancellationToken cancellationToken = default)
         {
-            ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format);
-            if (exporter == null)
-                throw new NotSupportedException($"No exporter registered for format {options.Format}.");
-
+            ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format) ?? throw new NotSupportedException($"No exporter registered for format {options.Format}.");
             if (layout != null)
             {
                 var assignments = workspace.BuildSeatingPlan().Assignments;
@@ -509,10 +506,10 @@ namespace A_Pair.Application.Services
 
             var plan = _currentWorkspace.BuildSeatingPlan();
             var studentNames = _currentWorkspace.Students
-                .Where(s => plan.Assignments.Values.Contains(s.Id))
+                .Where(s => plan.Assignments.ContainsValue(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
             var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.Values.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
+                string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
             var venueId = _currentLayout?.Id;
             if (!string.IsNullOrEmpty(venueId))
@@ -607,9 +604,8 @@ namespace A_Pair.Application.Services
             }
             catch { /* 数据集读取失败不影响回滚 */ }
 
-            return studentIds.Select(id =>
-                studentMap.TryGetValue(id , out var real) ? real : new Student { Id = id , Name = id }
-            ).ToList();
+            return [.. studentIds.Select(id =>
+                studentMap.TryGetValue(id , out var real) ? real : new Student { Id = id , Name = id } )];
         }
 
         public async Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
@@ -649,7 +645,7 @@ namespace A_Pair.Application.Services
 
             // 收集内置策略（Manifest + 运行时实例配置）
             var builtInManifests = _manifestProvider.GetBuiltInManifests();
-            var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInInstances = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
             var builtInDependents = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
 
             foreach (var manifest in builtInManifests)
@@ -666,7 +662,7 @@ namespace A_Pair.Application.Services
             var loadedPlugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
             foreach (var pi in loadedPlugins)
             {
-                var (pkg, _) = _pluginManager.FindStrategy(pi.Strategy.Id);
+                var (pkg , _) = _pluginManager.FindStrategy(pi.Strategy.Id);
                 var category = pkg?.PackageManifest?.Type ?? "strategy";
                 var sm = pi.StrategyManifest;
 
@@ -733,7 +729,7 @@ namespace A_Pair.Application.Services
                 await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
             }
 
-            var builtInInstances = _cachedStrategies ??= _serviceProvider.GetServices<ISeatingStrategy>().ToList();
+            var builtInInstances = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
             {
@@ -744,7 +740,7 @@ namespace A_Pair.Application.Services
             }
 
             // 尝试从依赖策略查找（缓存，与独立策略对称）
-            var cachedDeps = _cachedDependentStrategies ??= _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
+            var cachedDeps = _cachedDependentStrategies ??= [.. _serviceProvider.GetServices<IDependentSeatingStrategy>()];
             var depStrategy = cachedDeps.FirstOrDefault(d => d.Id == strategyId);
             if (depStrategy is not null)
             {
@@ -776,7 +772,7 @@ namespace A_Pair.Application.Services
 
         private static readonly JsonSerializerOptions StudentHashOptions = new()
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase ,
             WriteIndented = true
         };
 
@@ -787,25 +783,25 @@ namespace A_Pair.Application.Services
 
             if (!string.IsNullOrEmpty(config.DatasetId))
             {
-                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
+                var students = await _datasetRepo.LoadAsync(config.DatasetId , ct);
                 if (students is { Count: > 0 })
                 {
                     var sorted = students.OrderBy(s => s.Id).ToList();
-                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
+                    var json = JsonSerializer.Serialize(sorted , StudentHashOptions);
                     studentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
                 }
             }
 
             string? venueHash = null;
             if (!string.IsNullOrEmpty(config.VenueId))
-                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
+                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId , ct);
 
             // 配置路由
             var (pkg , _) = _pluginManager.FindStrategy(config.StrategyId);
             if (pkg != null)
                 await _pluginPackageConfigService.SaveDatasetConfigAsync(config , studentHash , venueHash , ct);
             else
-                await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
+                await _datasetConfigRepo.SaveAsync(config , studentHash , venueHash , ct);
         }
 
         /// <inheritdoc />
@@ -815,7 +811,7 @@ namespace A_Pair.Application.Services
             if (pkg != null)
                 await _pluginPackageConfigService.DeleteDatasetConfigAsync(strategyId , datasetId , venueId , ct);
             else
-                await _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
+                await _datasetConfigRepo.DeleteAsync(strategyId , datasetId , venueId , ct);
         }
 
         /// <inheritdoc />
@@ -826,12 +822,12 @@ namespace A_Pair.Application.Services
 
             if (!string.IsNullOrEmpty(config.DatasetId) && !string.IsNullOrEmpty(config.StudentsHash))
             {
-                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
+                var students = await _datasetRepo.LoadAsync(config.DatasetId , ct);
                 string? currentHash = null;
                 if (students is { Count: > 0 })
                 {
                     var sorted = students.OrderBy(s => s.Id).ToList();
-                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
+                    var json = JsonSerializer.Serialize(sorted , StudentHashOptions);
                     currentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
                 }
                 studentOk = currentHash == config.StudentsHash;
@@ -839,11 +835,11 @@ namespace A_Pair.Application.Services
 
             if (!string.IsNullOrEmpty(config.VenueId) && !string.IsNullOrEmpty(config.ContentHash))
             {
-                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
+                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId , ct);
                 venueOk = currentHash == config.ContentHash;
             }
 
-            return (studentOk, venueOk);
+            return (studentOk , venueOk);
         }
 
         #region Strategy Helpers
@@ -1057,7 +1053,7 @@ namespace A_Pair.Application.Services
                     ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus ,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
-                DefragStrategy => [] ,
+                DefragStrategy => [],
                 _ => []
             };
         }
@@ -1132,7 +1128,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="request">座位生成请求。</param>
         /// <returns>生成的座位列表。</returns>
-        private List<Seat> BuildSeatsFromRequest (SeatingRequest request)
+        private static List<Seat> BuildSeatsFromRequest (SeatingRequest request)
         {
             ClassroomLayoutDefinition layout = request.LayoutType switch
             {
@@ -1151,7 +1147,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "Rows" 和 "Columns" 键。</param>
         /// <returns>网格布局定义。</returns>
-        private ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
         {
             int rows = GetParameter(parameters , "Rows" , 3);
             int columns = GetParameter(parameters , "Columns" , 3);
@@ -1184,7 +1180,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "RadiusStep"、"Rings" 和 "SeatsPerRing" 键。</param>
         /// <returns>极坐标布局定义。</returns>
-        private ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
         {
             var meta = new PolarLayoutMetadata
             {
@@ -1204,7 +1200,7 @@ namespace A_Pair.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "Points" 键（坐标点列表）。</param>
         /// <returns>自由形式布局定义。</returns>
-        private ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
         {
             var points = new List<(double X , double Y , int? Row , int? Column , int? GroupId)>();
             if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
@@ -1215,9 +1211,9 @@ namespace A_Pair.Application.Services
                     {
                         double x = GetParameter(dict , "X" , 0.0);
                         double y = GetParameter(dict , "Y" , 0.0);
-                        int? row = dict.ContainsKey("Row") ? GetParameter<int>(dict , "Row" , 0) : null;
-                        int? col = dict.ContainsKey("Column") ? GetParameter<int>(dict , "Column" , 0) : null;
-                        int? groupId = dict.ContainsKey("GroupId") ? GetParameter<int>(dict , "GroupId" , 0) : null;
+                        int? row = dict.ContainsKey("Row") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Row" , 0) : null;
+                        int? col = dict.ContainsKey("Column") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Column" , 0) : null;
+                        int? groupId = dict.ContainsKey("GroupId") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "GroupId" , 0) : null;
                         points.Add((x , y , row , col , groupId));
                     }
                 }
@@ -1233,7 +1229,7 @@ namespace A_Pair.Application.Services
         /// <param name="key">键名。</param>
         /// <param name="defaultValue">默认值。</param>
         /// <returns>转换后的值或默认值。</returns>
-        private T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
+        private static T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
         {
             if (parameters.TryGetValue(key , out var value))
             {

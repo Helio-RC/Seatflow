@@ -6,19 +6,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Providers;
 
-public class JsonStudentProvider : IStudentProvider
+public class JsonStudentProvider (ILogger<JsonStudentProvider>? logger = null) : IStudentProvider
 {
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly ILogger<JsonStudentProvider> _logger;
-
-    public JsonStudentProvider (ILogger<JsonStudentProvider>? logger = null)
-    {
-        _logger = logger ?? NullLogger<JsonStudentProvider>.Instance;
-    }
+    private readonly ILogger<JsonStudentProvider> _logger = logger ?? NullLogger<JsonStudentProvider>.Instance;
 
     public async Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
     {

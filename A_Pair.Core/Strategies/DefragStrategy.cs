@@ -14,10 +14,12 @@ namespace A_Pair.Core.Strategies
     /// <b>警告：</b>此策略可能导致前面的策略安排结果（同桌分组、同桌不重复等）失效。
     /// 最优解是使会场座位数和人员数量相近/匹配，以从根本上规避碎片化座位安排结果。
     /// </remarks>
-    public class DefragStrategy : ISeatingStrategy
+    public class DefragStrategy (
+        DefragConfiguration config ,
+        ILogger<DefragStrategy>? logger = null) : ISeatingStrategy
     {
-        private readonly DefragConfiguration _config;
-        private readonly ILogger<DefragStrategy> _logger;
+        private readonly DefragConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<DefragStrategy> _logger = logger ?? NullLogger<DefragStrategy>.Instance;
         private HashSet<string> _constrainedStudentIds = [];
 
         /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
@@ -25,14 +27,6 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>获取策略配置对象。</summary>
         public DefragConfiguration Config => _config;
-
-        public DefragStrategy (
-            DefragConfiguration config ,
-            ILogger<DefragStrategy>? logger = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<DefragStrategy>.Instance;
-        }
 
         /// <summary>使用默认配置创建实例。</summary>
         public DefragStrategy () : this(new DefragConfiguration()) { }
@@ -207,9 +201,9 @@ namespace A_Pair.Core.Strategies
         {
             return seat switch
             {
-                GridSeat g => g.Row ,
-                PolarSeat p => p.Ring ,
-                FreeformSeat f => f.Row ?? double.MaxValue ,
+                GridSeat g => g.Row,
+                PolarSeat p => p.Ring,
+                FreeformSeat f => f.Row ?? double.MaxValue,
                 _ => double.MaxValue
             };
         }

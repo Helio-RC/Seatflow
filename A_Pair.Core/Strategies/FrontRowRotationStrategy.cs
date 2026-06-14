@@ -1,5 +1,4 @@
 using A_Pair.Core.DomainServices;
-using A_Pair.Core.Models;
 using A_Pair.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,18 +10,11 @@ namespace A_Pair.Core.Strategies
     /// 在 FixedSeat 锁定固定座位后执行，从剩余空座中识别前排座位，
     /// 按需求分数分配给最需要的学生。分数公式与前相同。
     /// </summary>
-    public class FrontRowRotationStrategy : ISeatingStrategy
+    public class FrontRowRotationStrategy (FrontRowRotationStrategy.FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null , Random? random = null) : ISeatingStrategy
     {
-        private readonly FrontRowRotationConfiguration _config;
-        private readonly ILogger<FrontRowRotationStrategy> _logger;
-        private readonly Random _random;
-
-        public FrontRowRotationStrategy (FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null , Random? random = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
-            _random = random ?? new Random();
-        }
+        private readonly FrontRowRotationConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<FrontRowRotationStrategy> _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
+        private readonly Random _random = random ?? new Random();
 
         /// <summary>
         /// 使用默认配置创建实例。

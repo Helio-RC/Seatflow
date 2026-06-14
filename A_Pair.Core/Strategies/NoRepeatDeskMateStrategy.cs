@@ -24,10 +24,12 @@ namespace A_Pair.Core.Strategies
     /// 历史提取也使用相同的邻接逻辑，确保判定一致。
     /// </para>
     /// </remarks>
-    public class NoRepeatDeskMateStrategy : IDependentSeatingStrategy
+    public class NoRepeatDeskMateStrategy (
+        NoRepeatDeskMateConfiguration config ,
+        ILogger<NoRepeatDeskMateStrategy>? logger = null) : IDependentSeatingStrategy
     {
-        private readonly NoRepeatDeskMateConfiguration _config;
-        private readonly ILogger<NoRepeatDeskMateStrategy> _logger;
+        private readonly NoRepeatDeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<NoRepeatDeskMateStrategy> _logger = logger ?? NullLogger<NoRepeatDeskMateStrategy>.Instance;
 
         /// <summary>
         /// 过去的同桌对集合。存储规范化后的 (smallerId, largerId) 元组，
@@ -58,14 +60,6 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>获取策略配置对象。</summary>
         public NoRepeatDeskMateConfiguration Config => _config;
-
-        public NoRepeatDeskMateStrategy (
-            NoRepeatDeskMateConfiguration config ,
-            ILogger<NoRepeatDeskMateStrategy>? logger = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<NoRepeatDeskMateStrategy>.Instance;
-        }
 
         /// <summary>使用默认配置创建实例。</summary>
         public NoRepeatDeskMateStrategy () : this(new NoRepeatDeskMateConfiguration()) { }

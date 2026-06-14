@@ -107,7 +107,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             foreach (var s in layout.Seats.OfType<FreeformSeat>())
             {
                 int? groupId = null;
-                if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
+                if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith('G')
                     && int.TryParse(s.LogicalGroup[1..] , out var gid))
                 {
                     groupId = gid;
@@ -300,7 +300,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 foreach (var s in layout.Seats.OfType<FreeformSeat>())
                 {
                     int? groupId = null;
-                    if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith("G")
+                    if (!string.IsNullOrEmpty(s.LogicalGroup) && s.LogicalGroup.StartsWith('G')
                         && int.TryParse(s.LogicalGroup[1..] , out var gid))
                         groupId = gid;
                     pts.Add(new FreeformPoint(s.X , s.Y , s.Id)

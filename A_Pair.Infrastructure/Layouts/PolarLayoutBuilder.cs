@@ -58,16 +58,16 @@ namespace A_Pair.Infrastructure.Layouts
 
                 for (int segIdx = 0; segIdx < segments.Count; segIdx++)
                 {
-                    var seg = segments[segIdx];
+                    var (Start , End) = segments[segIdx];
                     int segSeats = segSeatCounts[segIdx];
                     if (segSeats <= 0) continue;
 
-                    double segRange = seg.End - seg.Start;
+                    double segRange = End - Start;
                     string logicalGroup = $"R{ringNum}S{segIdx}";
 
                     for (int j = 0; j < segSeats; j++)
                     {
-                        double angle = seg.Start + (segRange * (j + 0.5) / segSeats);
+                        double angle = Start + (segRange * (j + 0.5) / segSeats);
                         // 规范化到 [0, 360)
                         angle = ((angle % 360) + 360) % 360;
 

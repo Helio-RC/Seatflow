@@ -5,7 +5,7 @@ namespace A_Pair.Infrastructure.Tests.Migration;
 
 public class VenueMigratorsTests
 {
-    private static JsonNode MakeVenueJson (
+    private static JsonObject MakeVenueJson (
         string layoutTypeString ,
         int columns ,
         List<(int Row , int Col)> seats)

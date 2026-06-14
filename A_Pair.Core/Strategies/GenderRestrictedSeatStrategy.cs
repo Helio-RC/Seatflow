@@ -26,11 +26,14 @@ namespace A_Pair.Core.Strategies
     /// 仅当无可用的匹配受限空座时才触发 Reject。
     /// </para>
     /// </remarks>
-    public class GenderRestrictedSeatStrategy : IDependentSeatingStrategy
+    public class GenderRestrictedSeatStrategy (
+        GenderRestrictedSeatConfiguration config ,
+        ILogger<GenderRestrictedSeatStrategy>? logger = null ,
+        Random? random = null) : IDependentSeatingStrategy
     {
-        private readonly GenderRestrictedSeatConfiguration _config;
-        private readonly ILogger<GenderRestrictedSeatStrategy> _logger;
-        private readonly Random _random;
+        private readonly GenderRestrictedSeatConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<GenderRestrictedSeatStrategy> _logger = logger ?? NullLogger<GenderRestrictedSeatStrategy>.Instance;
+        private readonly Random _random = random ?? new Random();
         private HashSet<string> _priorAssignedIds = [];
 
         /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
@@ -53,16 +56,6 @@ namespace A_Pair.Core.Strategies
 
         /// <summary>获取策略配置对象。</summary>
         public GenderRestrictedSeatConfiguration Config => _config;
-
-        public GenderRestrictedSeatStrategy (
-            GenderRestrictedSeatConfiguration config ,
-            ILogger<GenderRestrictedSeatStrategy>? logger = null ,
-            Random? random = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<GenderRestrictedSeatStrategy>.Instance;
-            _random = random ?? new Random();
-        }
 
         /// <summary>使用默认配置创建实例。</summary>
         public GenderRestrictedSeatStrategy () : this(new GenderRestrictedSeatConfiguration()) { }
@@ -163,7 +156,7 @@ namespace A_Pair.Core.Strategies
             if (context.RerollCount < context.MaxRerolls - 1)
             {
                 _logger.LogDebug(
-                    "GenderRestrictedSeat：无匹配性别的受限空座，请求重掷" );
+                    "GenderRestrictedSeat：无匹配性别的受限空座，请求重掷");
                 return DependentResult.Reject();
             }
 

@@ -17,11 +17,14 @@ namespace A_Pair.Application.Plugins
     ///   <item>数据集配置：<c>Plugins/{pkgId}/{strategyPath}/{strategyId}/{...}.config.json</c></item>
     /// </list>
     /// </remarks>
-    public class PluginPackageConfigService
+    public class PluginPackageConfigService (
+        IPluginManager pluginManager ,
+        FileMigrationService migration ,
+        ILogger<PluginPackageConfigService> logger)
     {
-        private readonly IPluginManager _pluginManager;
-        private readonly FileMigrationService _migration;
-        private readonly ILogger<PluginPackageConfigService> _logger;
+        private readonly IPluginManager _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
+        private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
+        private readonly ILogger<PluginPackageConfigService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -35,16 +38,6 @@ namespace A_Pair.Application.Plugins
             PropertyNameCaseInsensitive = true ,
             WriteIndented = true
         };
-
-        public PluginPackageConfigService (
-            IPluginManager pluginManager ,
-            FileMigrationService migration ,
-            ILogger<PluginPackageConfigService> logger)
-        {
-            _pluginManager = pluginManager ?? throw new ArgumentNullException(nameof(pluginManager));
-            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
 
         /// <summary>
         /// 加载插件策略的运行时配置（优先级、启用状态、参数）。
@@ -64,10 +57,7 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         public async Task SaveConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
         {
-            var filePath = GetConfigFilePath(strategyId);
-            if (filePath == null)
-                throw new InvalidOperationException($"无法确定插件策略 {strategyId} 的配置路径");
-
+            var filePath = GetConfigFilePath(strategyId) ?? throw new InvalidOperationException($"无法确定插件策略 {strategyId} 的配置路径");
             var dir = Path.GetDirectoryName(filePath);
             if (dir != null && !Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
@@ -121,10 +111,7 @@ namespace A_Pair.Application.Plugins
             string? venueHash ,
             CancellationToken ct = default)
         {
-            var dir = GetDatasetConfigDir(config.StrategyId);
-            if (dir == null)
-                throw new InvalidOperationException($"无法确定插件策略 {config.StrategyId} 的配置路径");
-
+            var dir = GetDatasetConfigDir(config.StrategyId) ?? throw new InvalidOperationException($"无法确定插件策略 {config.StrategyId} 的配置路径");
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
@@ -234,8 +221,8 @@ namespace A_Pair.Application.Plugins
 
             if (!string.IsNullOrEmpty(datasetId) && !string.IsNullOrEmpty(venueId))
             {
-                var dHalf = datasetId[..(datasetId.Length / 2 + 1)];
-                var vHalf = venueId[..(venueId.Length / 2 + 1)];
+                var dHalf = datasetId[..((datasetId.Length / 2) + 1)];
+                var vHalf = venueId[..((venueId.Length / 2) + 1)];
                 return $"{dHalf}-{vHalf}.config.json";
             }
             if (!string.IsNullOrEmpty(datasetId))

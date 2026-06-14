@@ -1,6 +1,3 @@
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
-
 namespace A_Pair.Core.Tests.Strategies;
 
 public class DeskMateStrategyTests
@@ -13,7 +10,7 @@ public class DeskMateStrategyTests
     {
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         var strategy = new DeskMateStrategy();
         var result = await strategy.EvaluateAsync(
@@ -29,7 +26,7 @@ public class DeskMateStrategyTests
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (1,2) are horizontally adjacent
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         var config = new DeskMateConfiguration
         {
@@ -56,7 +53,7 @@ public class DeskMateStrategyTests
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // Seats are NOT adjacent: (1,1) and (3,3) far apart, no adjacent empty for mate
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (3 , 3));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         var config = new DeskMateConfiguration
         {
@@ -78,7 +75,7 @@ public class DeskMateStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" };
         var s2 = new Student { Id = "s2" , Name = "s2" };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         // Pre-assign s1 to (1,1) — simulating FixedSeat allocated s1
         ws.TryAssignSeat(seats[0].Id , s1.Id , out _);
@@ -104,7 +101,7 @@ public class DeskMateStrategyTests
         var s2 = new Student { Id = "s2" , Name = "s2" };
         // (1,1) occupied by s1, (1,2) is adjacent to (1,1), (2,2) is far
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 2));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         ws.TryAssignSeat(seats[0].Id , s1.Id , out _); // s1 at (1,1)
 
@@ -144,7 +141,7 @@ public class DeskMateStrategyTests
     {
         var strategy = new DeskMateStrategy();
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([] , [.. seats.Cast<Seat>()]);
 
         var act = async () => await strategy.EvaluateAsync(
             ws , null! , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
@@ -160,7 +157,7 @@ public class DeskMateStrategyTests
 
         // (1,1) and (1,2) are adjacent
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         var strategy = new DeskMateStrategy();
         var result = await strategy.EvaluateAsync(
@@ -178,7 +175,7 @@ public class DeskMateStrategyTests
     {
         var strategy = new DeskMateStrategy();
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([] , [.. seats.Cast<Seat>()]);
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -227,7 +224,7 @@ public class DeskMateStrategyTests
             new FreeformSeat { Id = "ff2", X = 10, Y = 10, LogicalGroup = "G1" },
             new FreeformSeat { Id = "ff3", X = 50, Y = 50, LogicalGroup = "G2" },
         };
-        var ws = new SeatingWorkspace(students , seats);
+        var ws = new SeatingWorkspace(students , [.. seats]);
 
         var config = new DeskMateConfiguration
         {
@@ -292,7 +289,7 @@ public class DeskMateStrategyTests
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (2,1) are vertically adjacent; (1,2) is horizontally adjacent to (1,1)
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         var config = new DeskMateConfiguration
         {
@@ -315,7 +312,7 @@ public class DeskMateStrategyTests
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (2,1) are vertically adjacent
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (2 , 1));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         var config = new DeskMateConfiguration
         {
@@ -339,7 +336,7 @@ public class DeskMateStrategyTests
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         // (1,1) and (2,2) are NOT adjacent
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (2 , 2));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         var config = new DeskMateConfiguration
         {

@@ -21,20 +21,14 @@ namespace A_Pair.Core.Strategies
     /// 若没有依赖策略，回退到原始的 Fisher-Yates 洗牌 + 顺序分配路径（快速路径）。
     /// </para>
     /// </remarks>
-    public class RandomFillStrategy : ISeatingStrategy
+    public class RandomFillStrategy (Random random , ILogger<RandomFillStrategy>? logger = null) : ISeatingStrategy
     {
-        private readonly Random _random;
-        private readonly ILogger<RandomFillStrategy> _logger;
+        private readonly Random _random = random ?? throw new ArgumentNullException(nameof(random));
+        private readonly ILogger<RandomFillStrategy> _logger = logger ?? NullLogger<RandomFillStrategy>.Instance;
         private readonly List<IDependentSeatingStrategy> _dependentStrategies = [];
 
         /// <summary>每个 (student, seat) 对的最大重掷次数。</summary>
         private const int DefaultMaxRerolls = 10;
-
-        public RandomFillStrategy (Random random , ILogger<RandomFillStrategy>? logger = null)
-        {
-            _random = random ?? throw new ArgumentNullException(nameof(random));
-            _logger = logger ?? NullLogger<RandomFillStrategy>.Instance;
-        }
 
         /// <summary>
         /// 使用默认随机数种子创建实例。
@@ -167,7 +161,7 @@ namespace A_Pair.Core.Strategies
                 FisherYatesShuffle(constrained);
                 FisherYatesShuffle(unconstrained);
 
-                unassignedStudents = constrained.Concat(unconstrained).ToList();
+                unassignedStudents = [.. constrained , .. unconstrained];
                 _logger.LogInformation(
                     "RandomFill：约束学生优先——总约束 {Total} 人，待分配 {Constrained} 人，其余 {Unconstrained} 人" ,
                     constrainedIds.Count , constrained.Count , unconstrained.Count);
@@ -236,7 +230,7 @@ namespace A_Pair.Core.Strategies
                             }
 
                             _logger.LogDebug(
-                                "RandomFill：策略 {StrategyId} 拒绝 ({Reason})，重掷 #{Reroll}/{Max}，学生 {Student}",
+                                "RandomFill：策略 {StrategyId} 拒绝 ({Reason})，重掷 #{Reroll}/{Max}，学生 {Student}" ,
                                 dep.Id , result.Message ?? "无原因" ,
                                 rerollCount , maxRerolls , student.Name);
                             break; // 重新开始依赖策略评估循环
@@ -265,7 +259,7 @@ namespace A_Pair.Core.Strategies
                             // 安全检查：依赖策略声称已处理，但学生可能未实际分配
                             // 这种情况下补调 TryAssignSeat 防止无限循环
                             var alreadyAssigned = workspace.BuildSeatingPlan()
-                                .Assignments.Values.Contains(student.Id);
+                                .Assignments.ContainsValue(student.Id);
                             if (!alreadyAssigned)
                             {
                                 _logger.LogWarning(
@@ -319,12 +313,10 @@ namespace A_Pair.Core.Strategies
             ref List<Seat> emptySeats ,
             ref List<Student> unassignedStudents)
         {
-            emptySeats = workspace.GetEmptySeats().ToList();
+            emptySeats = [.. workspace.GetEmptySeats()];
             var plan = workspace.BuildSeatingPlan();
             var assignedIds = plan.Assignments.Values.ToHashSet();
-            unassignedStudents = workspace.Students
-                .Where(s => !assignedIds.Contains(s.Id))
-                .ToList();
+            unassignedStudents = [.. workspace.Students.Where(s => !assignedIds.Contains(s.Id))];
         }
 
         /// <summary>Fisher-Yates 洗牌，原地修改列表。</summary>
@@ -341,7 +333,7 @@ namespace A_Pair.Core.Strategies
         {
             var remainingSeats = workspace.GetEmptySeats().Count();
             var remainingStudents = workspace.Students.Count(s =>
-                !workspace.BuildSeatingPlan().Assignments.Values.Contains(s.Id));
+                !workspace.BuildSeatingPlan().Assignments.ContainsValue(s.Id));
             _logger.LogInformation(
                 "RandomFill 策略完成：{Unfilled} 个座位空置，{Unassigned} 名学生未分配" ,
                 remainingSeats , remainingStudents);
@@ -355,22 +347,15 @@ namespace A_Pair.Core.Strategies
         /// <summary>
         /// <see cref="IRandomFillContext"/> 的内部实现，代理日志调用到 workspace。
         /// </summary>
-        private sealed class RandomFillContextImpl : IRandomFillContext
+        private sealed class RandomFillContextImpl (SeatingWorkspace workspace , int rerollCount , int maxRerolls) : IRandomFillContext
         {
-            private readonly SeatingWorkspace _workspace;
-
-            public RandomFillContextImpl (SeatingWorkspace workspace , int rerollCount , int maxRerolls)
-            {
-                _workspace = workspace;
-                RerollCount = rerollCount;
-                MaxRerolls = maxRerolls;
-            }
+            private readonly SeatingWorkspace _workspace = workspace;
 
             /// <inheritdoc />
-            public int RerollCount { get; }
+            public int RerollCount { get; } = rerollCount;
 
             /// <inheritdoc />
-            public int MaxRerolls { get; }
+            public int MaxRerolls { get; } = maxRerolls;
 
             /// <inheritdoc />
             public void LogWarning (string strategyId , string displayName , string messageKey , params object?[] args)

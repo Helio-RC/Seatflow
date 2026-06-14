@@ -23,7 +23,7 @@ public partial class StudentPickerViewModel : ViewModelBase
     [ObservableProperty]
     private StudentPickerItem? _selectedStudent;
 
-    partial void OnSelectedStudentChanged(StudentPickerItem? value)
+    partial void OnSelectedStudentChanged (StudentPickerItem? value)
     {
         SelectedStudentId = value?.Id;
     }
@@ -34,9 +34,9 @@ public partial class StudentPickerViewModel : ViewModelBase
     /// <summary>
     /// 从 Core.Models.Student 列表加载学生项。缓存完整列表并刷新过滤视图。
     /// </summary>
-    public void LoadStudents(IEnumerable<A_Pair.Core.Models.Student> students)
+    public void LoadStudents (IEnumerable<A_Pair.Core.Models.Student> students)
     {
-        _allStudents = students.Select(s => new StudentPickerItem { Id = s.Id, Name = s.Name }).ToList();
+        _allStudents = [.. students.Select(s => new StudentPickerItem { Id = s.Id , Name = s.Name })];
         RefreshFilteredStudents();
     }
 
@@ -44,7 +44,7 @@ public partial class StudentPickerViewModel : ViewModelBase
     /// 设置排除的学生 ID 集合。排除的 ID 不会出现在下拉列表中（但当前选中项始终保留）。
     /// </summary>
     /// <param name="excludedIds">要排除的学生 ID 集合。传入空集合或 null 则不排除任何学生。</param>
-    public void SetExcludedIds(HashSet<string> excludedIds)
+    public void SetExcludedIds (HashSet<string> excludedIds)
     {
         _excludedStudentIds = excludedIds ?? [];
         // 保留当前选择（可能在保存前切换数据集时丢失）
@@ -58,7 +58,7 @@ public partial class StudentPickerViewModel : ViewModelBase
     /// <summary>
     /// 按 ID 设置选中项。
     /// </summary>
-    public void SelectById(string? studentId)
+    public void SelectById (string? studentId)
     {
         if (studentId is null)
         {
@@ -72,7 +72,7 @@ public partial class StudentPickerViewModel : ViewModelBase
     /// 刷新过滤后的学生列表：从 <see cref="_allStudents"/> 中排除 <see cref="_excludedStudentIds"/>，
     /// 但保留当前选中的学生（确保选中项始终在自己的下拉列表中可见）。
     /// </summary>
-    private void RefreshFilteredStudents()
+    private void RefreshFilteredStudents ()
     {
         var selectedId = SelectedStudent?.Id;
         var filtered = _allStudents

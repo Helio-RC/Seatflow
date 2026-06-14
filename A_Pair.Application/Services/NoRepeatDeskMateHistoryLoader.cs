@@ -12,18 +12,12 @@ namespace A_Pair.Application.Services
     /// 注入到 <see cref="NoRepeatDeskMateStrategy"/> 中，
     /// 使其在 RandomFill 分配循环中能检测并避免重复的同桌配对。
     /// </summary>
-    internal class NoRepeatDeskMateHistoryLoader
+    internal class NoRepeatDeskMateHistoryLoader (
+        ISeatingSnapshotRepository snapshotRepository ,
+        ILogger<NoRepeatDeskMateHistoryLoader>? logger = null)
     {
-        private readonly ISeatingSnapshotRepository _snapshotRepository;
-        private readonly ILogger<NoRepeatDeskMateHistoryLoader> _logger;
-
-        public NoRepeatDeskMateHistoryLoader (
-            ISeatingSnapshotRepository snapshotRepository ,
-            ILogger<NoRepeatDeskMateHistoryLoader>? logger = null)
-        {
-            _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
-            _logger = logger ?? NullLogger<NoRepeatDeskMateHistoryLoader>.Instance;
-        }
+        private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
+        private readonly ILogger<NoRepeatDeskMateHistoryLoader> _logger = logger ?? NullLogger<NoRepeatDeskMateHistoryLoader>.Instance;
 
         /// <summary>
         /// 从会场最近 <paramref name="historyWindowSize"/> 个快照中提取过去的同桌对，

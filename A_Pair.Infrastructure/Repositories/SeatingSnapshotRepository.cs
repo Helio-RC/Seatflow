@@ -9,24 +9,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Repositories
 {
-    public class SeatingSnapshotRepository : ISeatingSnapshotRepository
+    public class SeatingSnapshotRepository (
+        string basePath ,
+        FileMigrationService migration ,
+        ILogger<SeatingSnapshotRepository>? logger = null) : ISeatingSnapshotRepository
     {
-        private readonly string _basePath;
-        private readonly FileMigrationService _migration;
+        private readonly string _basePath = basePath;
+        private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
         private readonly Dictionary<string , string> _index = [];
         private bool _indexBuilt;
-        private readonly object _indexLock = new();
-        private readonly ILogger<SeatingSnapshotRepository> _logger;
-
-        public SeatingSnapshotRepository (
-            string basePath ,
-            FileMigrationService migration ,
-            ILogger<SeatingSnapshotRepository>? logger = null)
-        {
-            _basePath = basePath;
-            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-            _logger = logger ?? NullLogger<SeatingSnapshotRepository>.Instance;
-        }
+        private readonly Lock _indexLock = new();
+        private readonly ILogger<SeatingSnapshotRepository> _logger = logger ?? NullLogger<SeatingSnapshotRepository>.Instance;
 
         private static string GetFilePath (string venueId , DateTime date , string id)
             => Path.Combine(venueId , date.ToString("yyyyMMdd") , id + ".json");
@@ -103,7 +96,7 @@ namespace A_Pair.Infrastructure.Repositories
             ct.ThrowIfCancellationRequested();
             var snapshots = LoadFromDir(Path.Combine(_basePath , venueId));
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
-                snapshots.OrderByDescending(s => s.CreatedAt).ToList());
+                [.. snapshots.OrderByDescending(s => s.CreatedAt)]);
         }
 
         public Task<IReadOnlyList<SeatingSnapshot>> ListAllAsync ()
@@ -112,7 +105,7 @@ namespace A_Pair.Infrastructure.Repositories
             foreach (var venueDir in SafeEnumerateDirectories(_basePath))
                 snapshots.AddRange(LoadFromDir(venueDir));
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
-                snapshots.OrderByDescending(s => s.CreatedAt).ToList());
+                [.. snapshots.OrderByDescending(s => s.CreatedAt)]);
         }
 
         public Task DeleteAsync (string id , CancellationToken ct = default)

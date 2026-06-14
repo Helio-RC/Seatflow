@@ -19,22 +19,15 @@ namespace A_Pair.Core.Strategies
     /// 在随机填充过程中实时检测同桌关系并协调分配，不再依赖预先存在的连续块。
     /// </para>
     /// </remarks>
-    public class DeskMateStrategy : IDependentSeatingStrategy
+    public class DeskMateStrategy (DeskMateConfiguration config , ILogger<DeskMateStrategy>? logger = null , Random? random = null) : IDependentSeatingStrategy
     {
-        private readonly DeskMateConfiguration _config;
-        private readonly ILogger<DeskMateStrategy> _logger;
-        private readonly Random _random;
+        private readonly DeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly ILogger<DeskMateStrategy> _logger = logger ?? NullLogger<DeskMateStrategy>.Instance;
+        private readonly Random _random = random ?? new Random();
         private HashSet<string> _priorAssignedIds = [];
 
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public DeskMateConfiguration Config => _config;
-
-        public DeskMateStrategy (DeskMateConfiguration config , ILogger<DeskMateStrategy>? logger = null , Random? random = null)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _logger = logger ?? NullLogger<DeskMateStrategy>.Instance;
-            _random = random ?? new Random();
-        }
 
         /// <summary>使用默认配置创建实例。</summary>
         public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
@@ -213,9 +206,7 @@ namespace A_Pair.Core.Strategies
                 .ToList();
 
             // 过滤掉已被组内成员占用的座位（不应腾挪自己的同桌）
-            adjacentOccupied = adjacentOccupied
-                .Where(s => !unassignedMates.Contains(s.OccupantId!))
-                .ToList();
+            adjacentOccupied = [.. adjacentOccupied.Where(s => !unassignedMates.Contains(s.OccupantId!))];
 
             _logger.LogDebug(
                 "DeskMate：相邻空座 {Empty} 个，相邻被占座 {Occupied} 个，需要 {Needed} 个" ,

@@ -2,7 +2,6 @@ using System.IO.Compression;
 using System.Text.Json;
 using A_Pair.Contracts.Interfaces;
 using A_Pair.Core.Models;
-using A_Pair.Core.Services;
 using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -207,7 +206,7 @@ namespace A_Pair.Application.Plugins
         /// <inheritdoc />
         public async Task SetStrategyEnabledAsync (string strategyId , bool enabled , CancellationToken ct = default)
         {
-            var (pkg, plugin) = FindStrategy(strategyId);
+            var (pkg , plugin) = FindStrategy(strategyId);
             if (pkg == null || plugin == null)
                 throw new InvalidOperationException($"策略 {strategyId} 未找到");
 
@@ -326,7 +325,7 @@ namespace A_Pair.Application.Plugins
         /// <inheritdoc />
         public async Task UnloadAllAsync ()
         {
-            foreach (var (_, pkgInfo) in _loadedPackages)
+            foreach (var (_ , pkgInfo) in _loadedPackages)
             {
                 await UnloadSinglePackageInternal(pkgInfo);
             }
@@ -501,7 +500,7 @@ namespace A_Pair.Application.Plugins
         /// </summary>
         private async Task UnloadSinglePackageInternal (LoadedPackageInfo pkgInfo)
         {
-            foreach (var (_, pluginInfo) in pkgInfo.Strategies)
+            foreach (var (_ , pluginInfo) in pkgInfo.Strategies)
             {
                 if (pluginInfo.Strategy is IPluginLifecycle lifecycle)
                 {
@@ -629,15 +628,9 @@ namespace A_Pair.Application.Plugins
     /// <summary>
     /// 插件宿主的默认实现，在插件初始化时传递给 <see cref="IPluginLifecycle.InitializeAsync"/>。
     /// </summary>
-    internal class PluginHost : IPluginHost
+    internal class PluginHost (string pluginsBasePath , string pluginDir) : IPluginHost
     {
-        public PluginHost (string pluginsBasePath , string pluginDir)
-        {
-            PluginDirectory = pluginDir;
-            Configuration = new PluginConfigurationService(pluginsBasePath);
-        }
-
-        public IPluginConfigurationService Configuration { get; }
-        public string PluginDirectory { get; }
+        public IPluginConfigurationService Configuration { get; } = new PluginConfigurationService(pluginsBasePath);
+        public string PluginDirectory { get; } = pluginDir;
     }
 }

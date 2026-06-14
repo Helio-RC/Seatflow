@@ -3,7 +3,7 @@ namespace A_Pair.Infrastructure.Tests.Repositories;
 
 public class JsonVenueRepositoryTests
 {
-    private string CreateTempDirectory ()
+    private static string CreateTempDirectory ()
     {
         var dir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString());
         Directory.CreateDirectory(dir);

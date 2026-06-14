@@ -13,22 +13,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
 
-public partial class PluginManagementViewModel : ViewModelBase
+public partial class PluginManagementViewModel (IApplicationFacade facade , ILogger<PluginManagementViewModel>? logger = null) : ViewModelBase
 {
-    private readonly IApplicationFacade _facade;
-    private readonly ILogger<PluginManagementViewModel> _logger;
+    private readonly IApplicationFacade _facade = facade;
+    private readonly ILogger<PluginManagementViewModel> _logger = logger ?? NullLogger<PluginManagementViewModel>.Instance;
 
 
     public string PluginCountDisplay => string.Format(Resources.Plugin_FoundFmt , Plugins.Count);
     public string PackageCountDisplay => string.Format(Resources.Plugin_FoundFmt , Packages.Count);
     public string SelectedPluginVersionDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_VersionFmt , SelectedPlugin.Version) : "";
     public string SelectedPluginAuthorDisplay => SelectedPlugin != null ? string.Format(Resources.Plugin_AuthorFmt , SelectedPlugin.Author) : "";
-
-    public PluginManagementViewModel (IApplicationFacade facade , ILogger<PluginManagementViewModel>? logger = null)
-    {
-        _facade = facade;
-        _logger = logger ?? NullLogger<PluginManagementViewModel>.Instance;
-    }
 
     /// <summary>页面标题。</summary>
     public string Title { get; } = Resources.Plugin_Title;

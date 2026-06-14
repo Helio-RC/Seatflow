@@ -11,18 +11,12 @@ namespace A_Pair.Application.Services;
 /// 前排轮换历史加载器。从该会场最近 N 个快照中恢复学生的前排座位历史，
 /// 使 <see cref="Core.Strategies.FrontRowRotationStrategy"/> 的历史惩罚机制在跨会话场景下也能生效。
 /// </summary>
-internal class FrontRowHistoryLoader
+internal class FrontRowHistoryLoader (
+    ISeatingSnapshotRepository snapshotRepository ,
+    ILogger<FrontRowHistoryLoader>? logger = null)
 {
-    private readonly ISeatingSnapshotRepository _snapshotRepository;
-    private readonly ILogger<FrontRowHistoryLoader> _logger;
-
-    public FrontRowHistoryLoader (
-        ISeatingSnapshotRepository snapshotRepository ,
-        ILogger<FrontRowHistoryLoader>? logger = null)
-    {
-        _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
-        _logger = logger ?? NullLogger<FrontRowHistoryLoader>.Instance;
-    }
+    private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
+    private readonly ILogger<FrontRowHistoryLoader> _logger = logger ?? NullLogger<FrontRowHistoryLoader>.Instance;
 
     /// <summary>
     /// 从该会场最近 <paramref name="historyWindowSize"/> 个快照中恢复学生的前排座位历史。
@@ -115,8 +109,8 @@ internal class FrontRowHistoryLoader
         ArgumentNullException.ThrowIfNull(layout);
         int frontRowCount = layout.Metadata switch
         {
-            GridLayoutMetadata gm => gm.FrontRowCount ,
-            PolarLayoutMetadata pm => pm.FrontRowCount ,
+            GridLayoutMetadata gm => gm.FrontRowCount,
+            PolarLayoutMetadata pm => pm.FrontRowCount,
             _ => 1
         };
         return SeatGeometryHelper.IdentifyFrontRowSeats(layout.Seats , frontRowCount);

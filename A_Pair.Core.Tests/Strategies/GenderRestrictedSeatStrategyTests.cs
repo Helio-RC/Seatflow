@@ -1,7 +1,4 @@
 using A_Pair.Core.Enums;
-using A_Pair.Core.Models;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
 
 namespace A_Pair.Core.Tests.Strategies;
 
@@ -14,7 +11,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         // 无限制配置 → 全部放行
         var strategy = new GenderRestrictedSeatStrategy();
@@ -30,7 +27,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var students = StrategyTestHelpers.CreateStudents("s1" , "s2");
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace(students , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace(students , [.. seats.Cast<Seat>()]);
 
         // 仅限制 seat (1,2)，目标座位是 (1,1)
         var strategy = new GenderRestrictedSeatStrategy();
@@ -51,7 +48,7 @@ public class GenderRestrictedSeatStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var s2 = new Student { Id = "s2" , Name = "s2" , Gender = Gender.Female };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         // 座位(1,1)限制 Male，学生 s1 是 Male → 匹配
         var strategy = new GenderRestrictedSeatStrategy();
@@ -72,7 +69,7 @@ public class GenderRestrictedSeatStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var s2 = new Student { Id = "s2" , Name = "s2" , Gender = Gender.Female };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (1 , 3));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         // 座位(1,1)限制 Female，座位(1,2)限制 Male（空座）
         var strategy = new GenderRestrictedSeatStrategy();
@@ -97,7 +94,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([s1] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1] , [.. seats.Cast<Seat>()]);
 
         // 座位仅限制 Female，没有 Male 受限座位可用
         var strategy = new GenderRestrictedSeatStrategy();
@@ -117,7 +114,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace([s1] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1] , [.. seats.Cast<Seat>()]);
 
         // 两个座位都限制 Female，无 Male 受限座位 — 重掷耗尽
         var strategy = new GenderRestrictedSeatStrategy();
@@ -142,7 +139,7 @@ public class GenderRestrictedSeatStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
         seats[0].IsFixed = true;
-        var ws = new SeatingWorkspace([s1] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1] , [.. seats.Cast<Seat>()]);
 
         // 固定座位限制 Female，但固定座位不干涉
         var strategy = new GenderRestrictedSeatStrategy();
@@ -162,7 +159,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = null };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([s1] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1] , [.. seats.Cast<Seat>()]);
 
         // 座位限制 Female，学生无性别 → 不匹配
         var strategy = new GenderRestrictedSeatStrategy();
@@ -183,7 +180,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Other };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([s1] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1] , [.. seats.Cast<Seat>()]);
 
         var strategy = new GenderRestrictedSeatStrategy();
         strategy.SetRestrictions(new Dictionary<string , Gender>
@@ -203,7 +200,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace([s1] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1] , [.. seats.Cast<Seat>()]);
 
         var strategy = new GenderRestrictedSeatStrategy();
         // 第一次设置：座位(1,1)限制 Female
@@ -231,7 +228,7 @@ public class GenderRestrictedSeatStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var s2 = new Student { Id = "s2" , Name = "s2" , Gender = Gender.Female };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (1 , 3));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         // (1,1)限制 Female, (1,2)限制 Male 但已被 s2(Female)占（实际不可能但假设占位）
         // (1,3) 无限制
@@ -259,7 +256,7 @@ public class GenderRestrictedSeatStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var s2 = new Student { Id = "s2" , Name = "s2" , Gender = Gender.Female };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2) , (1 , 3) , (1 , 4));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         // (1,1)限制 Female, (1,2)/(1,3)/(1,4)限制 Male
         var strategy = new GenderRestrictedSeatStrategy();
@@ -277,7 +274,7 @@ public class GenderRestrictedSeatStrategyTests
         {
             // 重置座位状态
             foreach (var s in seats) { s.OccupantId = null; s.IsAvailable = true; }
-            var w = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+            var w = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
             var result = await strategy.EvaluateAsync(
                 w , s1 , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
@@ -296,7 +293,7 @@ public class GenderRestrictedSeatStrategyTests
         var s1 = new Student { Id = "s1" , Name = "s1" , Gender = Gender.Male };
         var s2 = new Student { Id = "s2" , Name = "s2" , Gender = Gender.Female };
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1) , (1 , 2));
-        var ws = new SeatingWorkspace([s1 , s2] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([s1 , s2] , [.. seats.Cast<Seat>()]);
 
         var strategy = new GenderRestrictedSeatStrategy();
         strategy.SetRestrictions(new Dictionary<string , Gender>
@@ -335,7 +332,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var strategy = new GenderRestrictedSeatStrategy();
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([] , [.. seats.Cast<Seat>()]);
 
         var act = async () => await strategy.EvaluateAsync(
             ws , null! , seats[0] , StrategyTestHelpers.CreateContext() , CancellationToken.None);
@@ -359,7 +356,7 @@ public class GenderRestrictedSeatStrategyTests
     {
         var strategy = new GenderRestrictedSeatStrategy();
         var seats = StrategyTestHelpers.CreateGridSeats((1 , 1));
-        var ws = new SeatingWorkspace([] , seats.Cast<Seat>().ToList());
+        var ws = new SeatingWorkspace([] , [.. seats.Cast<Seat>()]);
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 

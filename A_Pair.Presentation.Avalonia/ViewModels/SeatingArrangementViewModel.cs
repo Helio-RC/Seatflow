@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
-using A_Pair.Infrastructure.Serialization;
 using A_Pair.Core.Strategies;
 using A_Pair.Core.Workspace;
+using A_Pair.Infrastructure.Serialization;
 using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
@@ -572,9 +572,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var randomFill = independents.FirstOrDefault(s => s.Id == RandomFillStrategy.StrategyId);
         if (randomFill != null && dependents.Count > 0)
         {
-            randomFill.DependentChildren = dependents
-                .OrderByDescending(d => d.Priority)
-                .ToList();
+            randomFill.DependentChildren = [.. dependents.OrderByDescending(d => d.Priority)];
         }
 
         ActiveStrategies = new ObservableCollection<StrategyDisplayInfo>(independents);
@@ -601,7 +599,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             }
 
             var messages = _workspace.Messages;
-            var studentNames = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
+            var studentNames = _workspace.Students.ToDictionary(s => s.Id , s => s.Name);
             var errors = messages.Where(m => m.Severity == StrategyMessageSeverity.Error).ToList();
             var warnings = messages.Where(m => m.Severity == StrategyMessageSeverity.Warning).ToList();
 
@@ -609,26 +607,26 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (errors.Count > 0)
                 groups.Add(new StrategyMessageGroup
                 {
-                    Severity = StrategyMessageSeverity.Error,
-                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})",
+                    Severity = StrategyMessageSeverity.Error ,
+                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})" ,
                     Messages = new ObservableCollection<StrategyMessageItem>(
                         errors.Select(m => new StrategyMessageItem
                         {
-                            StrategyName = m.StrategyDisplayName,
-                            Message = FormatStrategyMessage(m, studentNames, templates),
+                            StrategyName = m.StrategyDisplayName ,
+                            Message = FormatStrategyMessage(m , studentNames , templates) ,
                             Severity = m.Severity
                         }))
                 });
             if (warnings.Count > 0)
                 groups.Add(new StrategyMessageGroup
                 {
-                    Severity = StrategyMessageSeverity.Warning,
-                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})",
+                    Severity = StrategyMessageSeverity.Warning ,
+                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})" ,
                     Messages = new ObservableCollection<StrategyMessageItem>(
                         warnings.Select(m => new StrategyMessageItem
                         {
-                            StrategyName = m.StrategyDisplayName,
-                            Message = FormatStrategyMessage(m, studentNames, templates),
+                            StrategyName = m.StrategyDisplayName ,
+                            Message = FormatStrategyMessage(m , studentNames , templates) ,
                             Severity = m.Severity
                         }))
                 });
@@ -701,10 +699,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [RelayCommand]
     private void CancelSwap ()
     {
-        if (_swapSourceSeat != null)
-        {
-            _swapSourceSeat.IsSelectedForSwap = false;
-        }
+        _swapSourceSeat?.IsSelectedForSwap = false;
         _swapSourceSeat = null;
         IsSwapMode = false;
         SwapHintText = string.Empty;
@@ -924,20 +919,20 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// 将 StrategyMessage 的 MessageKey + Args 格式化为可读消息。
     /// Args 中的学生 ID 会被解析为姓名。
     /// </summary>
-    private static string FormatStrategyMessage(StrategyMessage m,
-        Dictionary<string, string> studentNames,
-        Dictionary<string, string> templates)
+    private static string FormatStrategyMessage (StrategyMessage m ,
+        Dictionary<string , string> studentNames ,
+        Dictionary<string , string> templates)
     {
-        var template = templates.TryGetValue(m.MessageKey, out var t) ? t : m.MessageKey;
+        var template = templates.TryGetValue(m.MessageKey , out var t) ? t : m.MessageKey;
         var resolved = m.Args.Select(a =>
         {
             if (a is not string s) return a;
             // 拆分逗号分隔的 ID 列表，逐个解析为姓名
-            return string.Join(", ",
+            return string.Join(", " ,
                 s.Split(',').Select(part =>
-                    studentNames.TryGetValue(part.Trim(), out var n) ? n : part.Trim()));
+                    studentNames.TryGetValue(part.Trim() , out var n) ? n : part.Trim()));
         }).ToArray();
-        try { return string.Format(template, resolved); }
+        try { return string.Format(template , resolved); }
         catch { return template; }
     }
 }

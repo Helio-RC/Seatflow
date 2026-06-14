@@ -8,14 +8,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Infrastructure.Exporters
 {
-    public class CsvSeatingExporter : ISeatingPlanExporter
+    public class CsvSeatingExporter (ILogger<CsvSeatingExporter>? logger = null) : ISeatingPlanExporter
     {
-        private readonly ILogger<CsvSeatingExporter> _logger;
-
-        public CsvSeatingExporter (ILogger<CsvSeatingExporter>? logger = null)
-        {
-            _logger = logger ?? NullLogger<CsvSeatingExporter>.Instance;
-        }
+        private readonly ILogger<CsvSeatingExporter> _logger = logger ?? NullLogger<CsvSeatingExporter>.Instance;
 
         public ExportFormat Format => ExportFormat.Csv;
         public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)

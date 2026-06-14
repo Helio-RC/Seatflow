@@ -92,7 +92,7 @@ namespace A_Pair.Application.Scripting.CSharp
         /// 获取允许引用的程序集白名单，限制脚本可使用的 API 范围。
         /// </summary>
         /// <returns>允许引用的程序集数组。</returns>
-        private Assembly[] GetAllowedReferences ()
+        private static Assembly[] GetAllowedReferences ()
         {
             // 仅允许必要的程序集
             var allowed = new List<Assembly>
@@ -104,14 +104,14 @@ namespace A_Pair.Application.Scripting.CSharp
             };
 
             // 可根据配置添加额外引用
-            return allowed.ToArray();
+            return [.. allowed];
         }
 
         /// <summary>
         /// 获取允许导入的命名空间白名单。
         /// </summary>
         /// <returns>允许导入的命名空间数组。</returns>
-        private string[] GetAllowedImports () =>
+        private static string[] GetAllowedImports () =>
             [
                 "System",
                 "System.Linq",

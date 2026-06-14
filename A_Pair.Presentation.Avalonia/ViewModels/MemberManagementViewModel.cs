@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text.Json;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.Models;
 using A_Pair.Presentation.Avalonia.Lang;
@@ -621,7 +621,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             if (CurrentDatasetId is not null)
                 await _facade.DeleteStudentDatasetAsync(CurrentDatasetId , ct);
 
-            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , Students.ToList() , null , ct);
+            CurrentDatasetId = await _facade.SaveStudentDatasetAsync(datasetName , [.. Students] , null , ct);
             CurrentDatasetName = datasetName;
             MarkClean();
             await RefreshDatasetsAsync(ct);
@@ -670,7 +670,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
         try
         {
-            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , Students.ToList() , null , ct);
+            var newId = await _facade.SaveStudentDatasetAsync(newName.Trim() , [.. Students] , null , ct);
             CurrentDatasetId = newId;
             CurrentDatasetName = newName.Trim();
             MarkClean();

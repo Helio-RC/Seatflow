@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using A_Pair.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.Input;
@@ -50,7 +49,7 @@ public partial class AboutViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void OpenUrl (string url)
+    private static void OpenUrl (string url)
     {
         if (!string.IsNullOrWhiteSpace(url))
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
@@ -99,20 +98,11 @@ public partial class AboutViewModel : ViewModelBase
     }
 }
 
-public class DependencyInfo
+public class DependencyInfo (string name , string version , string purpose , string license , string url)
 {
-    public string Name { get; }
-    public string Version { get; }
-    public string Purpose { get; }
-    public string License { get; }
-    public string Url { get; }
-
-    public DependencyInfo (string name , string version , string purpose , string license , string url)
-    {
-        Name = name;
-        Version = version;
-        Purpose = purpose;
-        License = license;
-        Url = url;
-    }
+    public string Name { get; } = name;
+    public string Version { get; } = version;
+    public string Purpose { get; } = purpose;
+    public string License { get; } = license;
+    public string Url { get; } = url;
 }

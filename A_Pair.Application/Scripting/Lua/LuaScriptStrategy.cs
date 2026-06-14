@@ -38,7 +38,7 @@ namespace A_Pair.Application.Scripting.Lua
         /// <inheritdoc />
         public async Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
         {
-            if (workspace == null) throw new ArgumentNullException(nameof(workspace));
+            ArgumentNullException.ThrowIfNull(workspace);
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(_config.TimeoutMilliseconds);
@@ -90,7 +90,7 @@ namespace A_Pair.Application.Scripting.Lua
         /// 内存限制尚未实现（TODO）。
         /// </remarks>
         /// <returns>受限的 Lua 状态实例。</returns>
-        private global::NLua.Lua CreateRestrictedLuaState ()
+        private static global::NLua.Lua CreateRestrictedLuaState ()
         {
             var lua = new global::NLua.Lua();
             lua.DoString(@"
@@ -123,10 +123,9 @@ namespace A_Pair.Application.Scripting.Lua
         public string[] GetUnassignedStudentIds ()
         {
             var assignedIds = _workspace.BuildSeatingPlan().Assignments.Values;
-            return _workspace.Students
+            return [.. _workspace.Students
                 .Select(s => s.Id)
-                .Where(id => !assignedIds.Contains(id))
-                .ToArray();
+                .Where(id => !assignedIds.Contains(id))];
         }
 
         /// <summary>
@@ -135,7 +134,7 @@ namespace A_Pair.Application.Scripting.Lua
         /// <returns>空座位的 ID 数组。</returns>
         public string[] GetEmptySeatIds ()
         {
-            return _workspace.GetEmptySeats().Select(s => s.Id).ToArray();
+            return [.. _workspace.GetEmptySeats().Select(s => s.Id)];
         }
 
         /// <summary>

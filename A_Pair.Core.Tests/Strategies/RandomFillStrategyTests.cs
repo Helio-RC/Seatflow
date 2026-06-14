@@ -4,7 +4,7 @@ public class RandomFillStrategyTests
 {
     private static List<Student> CreateStudents (int count)
     {
-        return Enumerable.Range(1 , count).Select(i => new Student { Id = $"s{i}" , Name = $"Student{i}" }).ToList();
+        return [.. Enumerable.Range(1 , count).Select(i => new Student { Id = $"s{i}" , Name = $"Student{i}" })];
     }
 
     private static List<Seat> CreateGridSeats (int rows , int cols)
@@ -227,23 +227,14 @@ public class RandomFillStrategyTests
     // ═══════════ Mock 实现 ═══════════
 
     /// <summary>Mock 依赖策略，返回预设的评估结果。</summary>
-    private sealed class MockDependent : IDependentSeatingStrategy
+    private sealed class MockDependent (string id , int priority , DependentEvaluationResult presetResult) : IDependentSeatingStrategy
     {
-        private readonly DependentEvaluationResult _presetResult;
+        private readonly DependentEvaluationResult _presetResult = presetResult;
 
-        public MockDependent (string id , int priority , DependentEvaluationResult presetResult)
-        {
-            Id = id;
-            Name = id;
-            DisplayName = id;
-            Priority = priority;
-            _presetResult = presetResult;
-        }
-
-        public string Id { get; }
-        public string Name { get; }
-        public string DisplayName { get; }
-        public int Priority { get; set; }
+        public string Id { get; } = id;
+        public string Name { get; } = id;
+        public string DisplayName { get; } = id;
+        public int Priority { get; set; } = priority;
         public bool IsEnabled { get; set; } = true;
         public int EvaluateCallCount { get; private set; }
 
@@ -259,23 +250,14 @@ public class RandomFillStrategyTests
     }
 
     /// <summary>记录调用顺序的依赖策略（始终 Approve）。</summary>
-    private sealed class TracingDependent : IDependentSeatingStrategy
+    private sealed class TracingDependent (string id , int priority , List<string> callOrder) : IDependentSeatingStrategy
     {
-        private readonly List<string> _callOrder;
+        private readonly List<string> _callOrder = callOrder;
 
-        public TracingDependent (string id , int priority , List<string> callOrder)
-        {
-            Id = id;
-            Name = id;
-            DisplayName = id;
-            Priority = priority;
-            _callOrder = callOrder;
-        }
-
-        public string Id { get; }
-        public string Name { get; }
-        public string DisplayName { get; }
-        public int Priority { get; set; }
+        public string Id { get; } = id;
+        public string Name { get; } = id;
+        public string DisplayName { get; } = id;
+        public int Priority { get; set; } = priority;
         public bool IsEnabled { get; set; } = true;
 
         public Task<DependentEvaluationResult> EvaluateAsync (
@@ -290,20 +272,12 @@ public class RandomFillStrategyTests
     }
 
     /// <summary>实际执行分配的依赖策略（Handled 场景）。</summary>
-    private sealed class AssigningDependent : IDependentSeatingStrategy
+    private sealed class AssigningDependent (string id , int priority) : IDependentSeatingStrategy
     {
-        public AssigningDependent (string id , int priority)
-        {
-            Id = id;
-            Name = id;
-            DisplayName = id;
-            Priority = priority;
-        }
-
-        public string Id { get; }
-        public string Name { get; }
-        public string DisplayName { get; }
-        public int Priority { get; set; }
+        public string Id { get; } = id;
+        public string Name { get; } = id;
+        public string DisplayName { get; } = id;
+        public int Priority { get; set; } = priority;
         public bool IsEnabled { get; set; } = true;
         public int EvaluateCallCount { get; private set; }
 

@@ -1,6 +1,3 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Strategies;
-
 namespace A_Pair.Core.Tests.Strategies;
 
 /// <summary>
@@ -10,17 +7,17 @@ public static class StrategyTestHelpers
 {
     public static List<Student> CreateStudents (params string[] ids)
     {
-        return ids.Select(id => new Student { Id = id , Name = id }).ToList();
+        return [.. ids.Select(id => new Student { Id = id , Name = id })];
     }
 
     public static List<GridSeat> CreateGridSeats (params (int row , int col)[] positions)
     {
-        return positions.Select(p => new GridSeat
+        return [.. positions.Select(p => new GridSeat
         {
             Id = $"seat_{p.row}_{p.col}" ,
             Row = p.row ,
             Column = p.col
-        }).ToList();
+        })];
     }
 
     /// <summary>创建一个 IRandomFillContext 测试桩。</summary>

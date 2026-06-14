@@ -368,8 +368,7 @@ public class PluginManagerTests : IDisposable
 
         await manager.SetPackageEnabledAsync("pkg-enable2" , false , CancellationToken.None);
 
-        var enablesJson = await File.ReadAllTextAsync(
-            Path.Combine(_pluginsDir , "pkg-enable2" , "data" , "enables.json"));
+        var enablesJson = await File.ReadAllTextAsync(Path.Combine(_pluginsDir , "pkg-enable2" , "data" , "enables.json") , TestContext.Current.CancellationToken);
         enablesJson.Should().Contain("\"enabled\"").And.Contain("false");
 
         File.Delete(zipPath);

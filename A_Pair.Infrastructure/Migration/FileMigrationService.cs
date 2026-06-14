@@ -7,20 +7,14 @@ namespace A_Pair.Infrastructure.Migration;
 /// <summary>
 /// 文件版本迁移服务。根据文件的当前版本和目标版本，查找并执行迁移链路。
 /// </summary>
-public class FileMigrationService
+public class FileMigrationService (
+    IEnumerable<IFileMigrator> migrators ,
+    ILogger<FileMigrationService>? logger = null)
 {
-    private readonly IReadOnlyDictionary<string , List<IFileMigrator>> _migrators;
-    private readonly ILogger<FileMigrationService> _logger;
-
-    public FileMigrationService (
-        IEnumerable<IFileMigrator> migrators ,
-        ILogger<FileMigrationService>? logger = null)
-    {
-        _logger = logger ?? NullLogger<FileMigrationService>.Instance;
-        _migrators = migrators
+    private readonly IReadOnlyDictionary<string , List<IFileMigrator>> _migrators = migrators
             .GroupBy(m => m.FileType , StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key , g => g.ToList() , StringComparer.OrdinalIgnoreCase);
-    }
+    private readonly ILogger<FileMigrationService> _logger = logger ?? NullLogger<FileMigrationService>.Instance;
 
     /// <summary>
     /// 将 JSON 节点从 <paramref name="currentVersion"/> 迁移到 <paramref name="targetVersion"/>。

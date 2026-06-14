@@ -17,8 +17,7 @@ public partial class VenueConfigurationView : UserControl
     protected override void OnDataContextChanged (EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (_vm != null)
-            _vm.PropertyChanged -= OnSidebarWidthChanged;
+        _vm?.PropertyChanged -= OnSidebarWidthChanged;
         _vm = DataContext as ViewModels.VenueConfigurationViewModel;
         if (_vm != null)
         {
@@ -46,11 +45,8 @@ public partial class VenueConfigurationView : UserControl
     protected override void OnDetachedFromVisualTree (VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        if (_vm != null)
-        {
-            _vm.PropertyChanged -= OnSidebarWidthChanged;
-            _vm = null;
-        }
+        _vm?.PropertyChanged -= OnSidebarWidthChanged;
+        _vm = null;
     }
 
     protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)

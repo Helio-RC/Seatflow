@@ -227,10 +227,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 layout = DeserializeLayout(embeddedVenueJson);
             }
             // 嵌入布局无效时回退到加载会场文件
-            if (layout == null)
-            {
-                layout = await _facade.LoadVenueAsync(snapshot.LayoutId);
-            }
+            layout ??= await _facade.LoadVenueAsync(snapshot.LayoutId);
 
             if (layout == null || layout.Seats.Count == 0)
             {
@@ -427,10 +424,10 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         if (!meta.TryGetValue(key , out var value) || value is null) return null;
         return value switch
         {
-            string s => s ,
+            string s => s,
             System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
                 ? je.GetString()
-                : je.GetRawText() ,
+                : je.GetRawText(),
             _ => null
         };
     }

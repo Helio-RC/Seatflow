@@ -6,17 +6,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace A_Pair.Application.Plugins
 {
-    public class PluginConfigurationService : IPluginConfigurationService
+    public class PluginConfigurationService (string pluginsBasePath , ILogger<PluginConfigurationService>? logger = null) : IPluginConfigurationService
     {
-        private readonly string _pluginsBasePath;
+        private readonly string _pluginsBasePath = pluginsBasePath;
         private readonly Dictionary<string , FileSystemWatcher> _watchers = [];
-        private readonly ILogger<PluginConfigurationService> _logger;
-
-        public PluginConfigurationService (string pluginsBasePath , ILogger<PluginConfigurationService>? logger = null)
-        {
-            _pluginsBasePath = pluginsBasePath;
-            _logger = logger ?? NullLogger<PluginConfigurationService>.Instance;
-        }
+        private readonly ILogger<PluginConfigurationService> _logger = logger ?? NullLogger<PluginConfigurationService>.Instance;
 
         /// <inheritdoc />
         public async Task<T?> LoadConfigurationAsync<T> (string pluginId , CancellationToken cancellationToken = default) where T : class, new()

@@ -191,7 +191,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex , "切换策略时自动保存代码块编辑器失败" );
+                _logger.LogWarning(ex , "切换策略时自动保存代码块编辑器失败");
                 anyFailed = true;
             }
         }
@@ -334,10 +334,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             if (detail.ParameterDefinitions is { Count: > 0 })
             {
                 var pe = new ParameterEditorViewModel();
-                pe.LoadParameters(detail.ParameterDefinitions, detail.Parameters);
-                pe.Parameters.CollectionChanged += (_, _) => MarkDetailChanged();
+                pe.LoadParameters(detail.ParameterDefinitions , detail.Parameters);
+                pe.Parameters.CollectionChanged += (_ , _) => MarkDetailChanged();
                 foreach (var p in pe.Parameters)
-                    p.PropertyChanged += (_, _) => MarkDetailChanged();
+                    p.PropertyChanged += (_ , _) => MarkDetailChanged();
                 ParameterEditor = pe;
             }
             else
@@ -351,20 +351,20 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             if (detail.CodeBlocks is { Count: > 0 })
             {
                 var datasets = await _facade.ListStudentDatasetsAsync(CancellationToken.None);
-                var datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id, Name = d.Name }).ToList();
+                var datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id , Name = d.Name }).ToList();
                 var venueIds = await _facade.ListVenueIdsAsync(CancellationToken.None);
                 var venueItems = new List<DatasetItem>();
                 foreach (var vid in venueIds)
                 {
                     var name = vid; // 简化：用 ID 作为名称
-                    venueItems.Add(new DatasetItem { Id = vid, Name = name });
+                    venueItems.Add(new DatasetItem { Id = vid , Name = name });
                 }
 
                 foreach (var cb in detail.CodeBlocks)
                 {
                     var ce = new ConfigBlockEditorViewModel(_facade);
-                    ce.Initialize(cb, detail.Id, datasetItems, venueItems);
-                    ce.PropertyChanged += (_, e) =>
+                    ce.Initialize(cb , detail.Id , datasetItems , venueItems);
+                    ce.PropertyChanged += (_ , e) =>
                     {
                         if (e.PropertyName == nameof(ConfigBlockEditorViewModel.IsDirty))
                             MarkDetailChanged();
@@ -512,7 +512,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             else
                 priority = s.Priority;
 
-            return (Id: s.Id , DisplayName: s.DisplayName , Priority: priority , s.IsIndependent);
+            return (s.Id , s.DisplayName , Priority: priority , s.IsIndependent);
         }).OrderBy(s => s.IsIndependent).ThenByDescending(s => s.Priority).ToList();
 
         // 只在同类策略中检查冲突
@@ -773,7 +773,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         // 重置参数为默认值
         if (SelectedDetail.ParameterDefinitions is { Count: > 0 })
         {
-            ParameterEditor?.LoadParameters(SelectedDetail.ParameterDefinitions, null);
+            ParameterEditor?.LoadParameters(SelectedDetail.ParameterDefinitions , null);
         }
 
         // 确认后直接保存
