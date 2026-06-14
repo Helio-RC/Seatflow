@@ -239,7 +239,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = string.Empty;
 
-    public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation , ILogger<VenueConfigurationViewModel>? logger = null)
+    public VenueConfigurationViewModel (IApplicationFacade facade , INavigationService navigation , ILogger<VenueConfigurationViewModel>? logger = null)
     {
         _facade = facade;
         _navigation = navigation;
