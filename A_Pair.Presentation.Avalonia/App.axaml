@@ -3,6 +3,7 @@
              x:Class="A_Pair.Presentation.Avalonia.App"
              xmlns:local="using:A_Pair.Presentation.Avalonia"
              xmlns:behaviors="using:A_Pair.Presentation.Avalonia.Behaviors"
+             xmlns:codewf="https://codewf.com"
              RequestedThemeVariant="Default">
   <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
@@ -117,6 +118,7 @@
   </Application.DataTemplates>
   <Application.Styles>
     <FluentTheme />
+    <codewf:ACSemiTheme />
     <StyleInclude Source="/Styles/Typography.axaml" />
     <StyleInclude Source="/Styles/Spacing.axaml" />
     <StyleInclude Source="/Styles/Colors.axaml" />

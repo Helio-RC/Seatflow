@@ -49,7 +49,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
     <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="12.0.0.11" />
-    <PackageReference Include="CodeWF.AvaloniaControls" Version="12.0.4.4" />
+    <PackageReference Include="CodeWF.AvaloniaControls" Version="12.0.4.11" />
+    <PackageReference Include="CodeWF.AvaloniaControls.Themes" Version="12.0.4.11" />
   </ItemGroup>
 
   <ItemGroup>
