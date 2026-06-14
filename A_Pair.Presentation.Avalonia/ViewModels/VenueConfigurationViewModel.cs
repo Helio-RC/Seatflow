@@ -26,7 +26,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public string Title { get; } = Resources.Venue_Title;
 
     [ObservableProperty]
-    private ObservableCollection<VenueItem> _venueItems = [];
+    public partial ObservableCollection<VenueItem> VenueItems { get; set; } = [];
 
     private bool _suppressAutoLoad;
     private CancellationTokenSource? _selectVenueCts;
@@ -40,19 +40,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(SelectedVenueId))]
-    private VenueItem? _selectedVenueItem;
+    public partial VenueItem? SelectedVenueItem { get; set; }
 
     public string? SelectedVenueId => SelectedVenueItem?.Id;
     public bool HasSelectedVenue => SelectedVenueItem != null;
 
     [ObservableProperty]
-    private string _layoutName = string.Empty;
+    public partial string LayoutName { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsGridSelected))]
     [NotifyPropertyChangedFor(nameof(IsPolarSelected))]
     [NotifyPropertyChangedFor(nameof(IsFreeformSelected))]
-    private LayoutType _selectedLayoutType = LayoutType.Grid;
+    public partial LayoutType SelectedLayoutType { get; set; } = LayoutType.Grid;
 
     public bool IsGridSelected => SelectedLayoutType == LayoutType.Grid;
     public bool IsPolarSelected => SelectedLayoutType == LayoutType.Polar;
@@ -60,7 +60,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public bool IsDoorPanelVisible => IsGridSelected || IsPolarSelected || IsFreeformSelected;
 
     [ObservableProperty]
-    private bool _isFreeformVenue;
+    public partial bool IsFreeformVenue { get; set; }
 
     public bool CanChangeLayoutType => !IsFreeformVenue;
 
@@ -75,12 +75,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     // ── 侧边栏折叠 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
-    private bool _isSidebarExpanded = true;
+    public partial bool IsSidebarExpanded { get; set; } = true;
 
     public bool IsSidebarCollapsed => !IsSidebarExpanded;
 
     [ObservableProperty]
-    private double _sidebarListWidth = 240;
+    public partial double SidebarListWidth { get; set; } = 240;
 
     private bool _userWantsSidebarExpanded = true;
 
@@ -103,63 +103,141 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     }
 
     // ── Grid 基础参数 ──
-    [ObservableProperty] private int _gridRows = 5;
-    [ObservableProperty] private int _gridColumns = 8;
-    [ObservableProperty] private double _gridHorizontalSpacing = 40;
-    [ObservableProperty] private double _gridVerticalSpacing = 36;
-    [ObservableProperty] private double _gridOriginX = 200;
-    [ObservableProperty] private double _gridOriginY = 200;
+    [ObservableProperty]
+    public partial int GridRows { get; set; } = 5;
+
+    [ObservableProperty]
+    public partial int GridColumns { get; set; } = 8;
+
+    [ObservableProperty]
+    public partial double GridHorizontalSpacing { get; set; } = 40;
+
+    [ObservableProperty]
+    public partial double GridVerticalSpacing { get; set; } = 36;
+
+    [ObservableProperty]
+    public partial double GridOriginX { get; set; } = 200;
+
+    [ObservableProperty]
+    public partial double GridOriginY { get; set; } = 200;
 
     // ── Grid 桌面配置 ──
-    [ObservableProperty] private int _gridSeatsPerDesk = 2;
-    [ObservableProperty] private double _gridIntraDeskSpacing = 12;
-    [ObservableProperty] private double _gridInterDeskSpacing = 40;
+    [ObservableProperty]
+    public partial int GridSeatsPerDesk { get; set; } = 2;
+
+    [ObservableProperty]
+    public partial double GridIntraDeskSpacing { get; set; } = 12;
+
+    [ObservableProperty]
+    public partial double GridInterDeskSpacing { get; set; } = 40;
 
     // ── Grid 过道配置 ──
-    [ObservableProperty] private string _gridAisleAfterColumns = "";
-    [ObservableProperty] private string _gridAisleAfterRows = "";
-    [ObservableProperty] private double _gridAisleWidth = 60;
-    [ObservableProperty] private ObservableCollection<AisleOption> _aisleColumnOptions = [];
-    [ObservableProperty] private ObservableCollection<AisleOption> _aisleRowOptions = [];
+    [ObservableProperty]
+    public partial string GridAisleAfterColumns { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string GridAisleAfterRows { get; set; } = "";
+
+    [ObservableProperty]
+    public partial double GridAisleWidth { get; set; } = 60;
+
+    [ObservableProperty]
+    public partial ObservableCollection<AisleOption> AisleColumnOptions { get; set; } = [];
+
+    [ObservableProperty]
+    public partial ObservableCollection<AisleOption> AisleRowOptions { get; set; } = [];
 
     // ── Grid 教室特征 ──
-    [ObservableProperty] private int _gridFrontRowCount = 1;
-    [ObservableProperty] private bool _gridHasPodium = true;
-    [ObservableProperty] private bool _gridHasFrontDoor;
-    [ObservableProperty] private double _gridPodiumWidth = 60;
-    [ObservableProperty] private double _gridPodiumHeight = 40;
+    [ObservableProperty]
+    public partial int GridFrontRowCount { get; set; } = 1;
+
+    [ObservableProperty]
+    public partial bool GridHasPodium { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool GridHasFrontDoor { get; set; }
+
+    [ObservableProperty]
+    public partial double GridPodiumWidth { get; set; } = 60;
+
+    [ObservableProperty]
+    public partial double GridPodiumHeight { get; set; } = 40;
 
     // ── Grid 每列行数 & 禁用座位 ──
-    [ObservableProperty] private string _gridColumnRowCountsSpec = "";
-    [ObservableProperty] private string _gridEmptyPositionsSpec = "";
+    [ObservableProperty]
+    public partial string GridColumnRowCountsSpec { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string GridEmptyPositionsSpec { get; set; } = "";
 
     // ── 门配置（支持多门、自定义位置）──
-    [ObservableProperty] private ObservableCollection<DoorItem> _doorItems = [];
+    [ObservableProperty]
+    public partial ObservableCollection<DoorItem> DoorItems { get; set; } = [];
 
     // ── Polar 参数 ──
-    [ObservableProperty] private int _polarRings = 3;
-    [ObservableProperty] private int _polarSeatsPerRing = 12;
-    [ObservableProperty] private double _polarRadiusStep = 40;
-    [ObservableProperty] private double _polarStartAngle = 0;
-    [ObservableProperty] private double _polarEndAngle = 360;
-    [ObservableProperty] private double _polarOriginX = 200;
-    [ObservableProperty] private double _polarOriginY = 200;
-    [ObservableProperty] private string _polarRingSeatCountsSpec = "";   // 每环座位数逗号分隔，空=用均匀环
-    [ObservableProperty] private string _polarEmptyPositionsSpec = "";   // 禁用座位：分号分隔的 Ring,Angle 对
-    [ObservableProperty] private bool _polarHasPodium = true;
-    [ObservableProperty] private double _polarPodiumRadius = 30;
-    [ObservableProperty] private string _polarAisleRadialAngles = "";
-    [ObservableProperty] private double _polarAisleRadialWidth = 5;
-    [ObservableProperty] private string _polarAisleCircularRings = "";
-    [ObservableProperty] private double _polarAisleCircularWidth = 20;
-    [ObservableProperty] private int _polarFrontRowCount = 1;
+    [ObservableProperty]
+    public partial int PolarRings { get; set; } = 3;
+
+    [ObservableProperty]
+    public partial int PolarSeatsPerRing { get; set; } = 12;
+
+    [ObservableProperty]
+    public partial double PolarRadiusStep { get; set; } = 40;
+
+    [ObservableProperty]
+    public partial double PolarStartAngle { get; set; } = 0;
+
+    [ObservableProperty]
+    public partial double PolarEndAngle { get; set; } = 360;
+
+    [ObservableProperty]
+    public partial double PolarOriginX { get; set; } = 200;
+
+    [ObservableProperty]
+    public partial double PolarOriginY { get; set; } = 200;
+
+    [ObservableProperty]
+    public partial string PolarRingSeatCountsSpec { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string PolarEmptyPositionsSpec { get; set; } = "";
+
+    [ObservableProperty]
+    public partial bool PolarHasPodium { get; set; } = true;
+
+    [ObservableProperty]
+    public partial double PolarPodiumRadius { get; set; } = 30;
+
+    [ObservableProperty]
+    public partial string PolarAisleRadialAngles { get; set; } = "";
+
+    [ObservableProperty]
+    public partial double PolarAisleRadialWidth { get; set; } = 5;
+
+    [ObservableProperty]
+    public partial string PolarAisleCircularRings { get; set; } = "";
+
+    [ObservableProperty]
+    public partial double PolarAisleCircularWidth { get; set; } = 20;
+
+    [ObservableProperty]
+    public partial int PolarFrontRowCount { get; set; } = 1;
 
     // ── 预览 ──
-    [ObservableProperty] private ObservableCollection<SeatPreview> _previewSeats = [];
-    [ObservableProperty] private ObservableCollection<SeatPreview> _previewOverlays = [];
-    [ObservableProperty] private double _canvasWidth = 600;
-    [ObservableProperty] private double _canvasHeight = 600;
-    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty]
+    public partial ObservableCollection<SeatPreview> PreviewSeats { get; set; } = [];
+
+    [ObservableProperty]
+    public partial ObservableCollection<SeatPreview> PreviewOverlays { get; set; } = [];
+
+    [ObservableProperty]
+    public partial double CanvasWidth { get; set; } = 600;
+
+    [ObservableProperty]
+    public partial double CanvasHeight { get; set; } = 600;
+
+    [ObservableProperty]
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     public VenueConfigurationViewModel (IApplicationFacade facade , IDialogService dialog , INavigationService navigation , ILogger<VenueConfigurationViewModel>? logger = null)
     {
@@ -955,14 +1033,21 @@ public record VenueItem (string Id , string Name);
 
 public partial class DoorItem : ObservableObject
 {
-    [ObservableProperty] private double _x;
-    [ObservableProperty] private double _y;
-    [ObservableProperty] private string _label = Resources.Freeform_Door;
+    [ObservableProperty]
+    public partial double X { get; set; }
+
+    [ObservableProperty]
+    public partial double Y { get; set; }
+
+    [ObservableProperty]
+    public partial string Label { get; set; } = Resources.Freeform_Door;
 
     public DoorItem () { }
     public DoorItem (double x , double y , string? label = null)
     {
-        _x = x; _y = y; _label = label ?? Resources.Freeform_Door;
+        X = x;
+        Y = y;
+        Label = label ?? Resources.Freeform_Door;
     }
 }
 
@@ -972,7 +1057,7 @@ public partial class AisleOption (string label , int seatColumn , bool selected 
     public int SeatColumn { get; set; } = seatColumn;
 
     [ObservableProperty]
-    private bool _isSelected = selected;
+    public partial bool IsSelected { get; set; } = selected;
 }
 
 public class SeatPreview

@@ -33,17 +33,17 @@ public partial class StrategyItemViewModel (
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PriorityDisplay))]
-    private int _priority = priority;
+    public partial int Priority { get; set; } = priority;
 
     [ObservableProperty]
-    private bool _isEnabled = isEnabled;
+    public partial bool IsEnabled { get; set; } = isEnabled;
 
     [ObservableProperty]
-    private bool _hasChanges;
+    public partial bool HasChanges { get; set; }
 
     /// <summary>子策略列表（依赖策略始终显示在宿主下方）。</summary>
     [ObservableProperty]
-    private ObservableCollection<StrategyItemViewModel>? _children;
+    public partial ObservableCollection<StrategyItemViewModel>? Children { get; set; }
 
     /// <summary>是否有子策略（用于 UI 竖线显示判断）。</summary>
     public bool HasChildren => Children is { Count: > 0 };

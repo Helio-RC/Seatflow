@@ -28,21 +28,21 @@ public partial class FreeformManagementViewModel : ViewModelBase
     public string Title { get; } = Resources.Freeform_Title;
 
     [ObservableProperty]
-    private ObservableCollection<VenueItem> _savedLayouts = [];
+    public partial ObservableCollection<VenueItem> SavedLayouts { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedLayout))]
-    private VenueItem? _selectedLayout;
+    public partial VenueItem? SelectedLayout { get; set; }
 
     [ObservableProperty]
-    private string _layoutName = string.Empty;
+    public partial string LayoutName { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<FreeformPoint> _points = [];
+    public partial ObservableCollection<FreeformPoint> Points { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPoints))]
-    private bool _isEmpty = true;
+    public partial bool IsEmpty { get; set; } = true;
 
     public bool HasSelectedLayout => SelectedLayout != null;
     public bool HasPoints => !IsEmpty;
@@ -54,7 +54,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private string _statusMessage = Resources.Freeform_ReadyHint;
+    public partial string StatusMessage { get; set; } = Resources.Freeform_ReadyHint;
 
     private int _dialogLock;
     private static readonly string[] GroupColors =

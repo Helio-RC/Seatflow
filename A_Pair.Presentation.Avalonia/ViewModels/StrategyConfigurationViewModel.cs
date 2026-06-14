@@ -24,13 +24,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
-    private ObservableCollection<StrategyItemViewModel> _strategies = [];
+    public partial ObservableCollection<StrategyItemViewModel> Strategies { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
     [NotifyPropertyChangedFor(nameof(PriorityDisplay))]
     [NotifyPropertyChangedFor(nameof(EnableTooltipDisplay))]
-    private StrategyItemViewModel? _selectedStrategy;
+    public partial StrategyItemViewModel? SelectedStrategy { get; set; }
 
     public bool HasSelection => SelectedStrategy is not null;
 
@@ -42,16 +42,16 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(DetailAuthorDisplay))]
     [NotifyPropertyChangedFor(nameof(DetailCategoryDisplay))]
     [NotifyPropertyChangedFor(nameof(DetailDefaultPriorityDisplay))]
-    private StrategyDisplayInfo? _selectedDetail;
+    public partial StrategyDisplayInfo? SelectedDetail { get; set; }
 
     public bool HasDetail => SelectedDetail is not null && !string.IsNullOrEmpty(SelectedDetail.Id);
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotLoading))]
-    private bool _isLoading;
+    public partial bool IsLoading { get; set; }
 
     public bool IsNotLoading => !IsLoading;
 
@@ -72,20 +72,20 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     // ═══════════════ 详情编辑属性 ═══════════════
 
     [ObservableProperty]
-    private int _editPriority;
+    public partial int EditPriority { get; set; }
 
     [ObservableProperty]
-    private bool _editIsEnabled;
+    public partial bool EditIsEnabled { get; set; }
 
     // ═══════════════ 声明式配置编辑器 ═══════════════
 
     /// <summary>策略级参数编辑器（manifest parameters[] 驱动）。</summary>
     [ObservableProperty]
-    private ParameterEditorViewModel? _parameterEditor;
+    public partial ParameterEditorViewModel? ParameterEditor { get; set; }
 
     /// <summary>配置块编辑器列表（manifest codeBlocks[] 驱动），每项对应一个 codeBlock。</summary>
     [ObservableProperty]
-    private ObservableCollection<ConfigBlockEditorViewModel> _configBlockEditors = [];
+    public partial ObservableCollection<ConfigBlockEditorViewModel> ConfigBlockEditors { get; set; } = [];
 
     /// <summary>是否有参数或配置块可显示。</summary>
     public bool HasParameters => ParameterEditor is not null && ParameterEditor.Parameters.Count > 0;
@@ -126,7 +126,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     {
         _facade = facade;
         _logger = logger ?? NullLogger<StrategyConfigurationViewModel>.Instance;
-        _selectedDetail = new();
+        SelectedDetail = new();
         _ = LoadAsync(CancellationToken.None);
     }
 

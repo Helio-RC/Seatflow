@@ -26,75 +26,75 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public string Title { get; } = Resources.Snapshot_Title;
 
     [ObservableProperty]
-    private ObservableCollection<VenueItem> _venues = [];
+    public partial ObservableCollection<VenueItem> Venues { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(NoSnapshotDisplay))]
-    private VenueItem? _selectedVenue;
+    public partial VenueItem? SelectedVenue { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSnapshots))]
     [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
     [NotifyPropertyChangedFor(nameof(SnapshotCountDisplay))]
     [NotifyPropertyChangedFor(nameof(SnapshotQuotaDisplay))]
-    private ObservableCollection<SeatingSnapshot> _snapshots = [];
+    public partial ObservableCollection<SeatingSnapshot> Snapshots { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedSnapshot))]
-    private SeatingSnapshot? _selectedSnapshot;
+    public partial SeatingSnapshot? SelectedSnapshot { get; set; }
 
     [ObservableProperty]
-    private bool _isLoading;
+    public partial bool IsLoading { get; set; }
 
     [ObservableProperty]
-    private string _statusMessage = Resources.Snapshot_VenueHint;
+    public partial string StatusMessage { get; set; } = Resources.Snapshot_VenueHint;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBatchMode))]
     [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
-    private bool _isBatchDeleteMode;
+    public partial bool IsBatchDeleteMode { get; set; }
 
     public bool IsNotBatchMode => !IsBatchDeleteMode;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectAllDisplay))]
-    private ObservableCollection<SelectableItem> _checkableItems = [];
+    public partial ObservableCollection<SelectableItem> CheckableItems { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isAllSelected;
+    public partial bool IsAllSelected { get; set; }
 
     // ── 预览 ──
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPreview))]
-    private ObservableCollection<SeatDisplayItem> _previewSeats = [];
+    public partial ObservableCollection<SeatDisplayItem> PreviewSeats { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<SeatDisplayItem> _previewOverlays = [];
+    public partial ObservableCollection<SeatDisplayItem> PreviewOverlays { get; set; } = [];
 
     public bool HasPreview => PreviewSeats.Count > 0;
 
     [ObservableProperty]
-    private double _previewCanvasWidth;
+    public partial double PreviewCanvasWidth { get; set; }
 
     [ObservableProperty]
-    private double _previewCanvasHeight;
+    public partial double PreviewCanvasHeight { get; set; }
 
     // ── 完整性状态 ──
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRollbackDisabled))]
-    private bool _isVenueDeleted;
+    public partial bool IsVenueDeleted { get; set; }
 
     [ObservableProperty]
-    private bool _isVenueChanged;
+    public partial bool IsVenueChanged { get; set; }
 
     [ObservableProperty]
-    private bool _isDataChanged;
+    public partial bool IsDataChanged { get; set; }
 
     [ObservableProperty]
-    private string _venueWarningText = string.Empty;
+    public partial string VenueWarningText { get; set; } = string.Empty;
 
     public bool HasRollbackDisabled => IsVenueDeleted;
 
@@ -596,5 +596,5 @@ public partial class SelectableItem (SeatingSnapshot snapshot) : ObservableObjec
     public SeatingSnapshot Snapshot { get; } = snapshot;
 
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }

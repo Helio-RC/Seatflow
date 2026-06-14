@@ -19,28 +19,28 @@ public partial class MainShellViewModel : ViewModelBase
     private readonly ILogger<MainShellViewModel> _logger;
 
     [ObservableProperty]
-    private ViewModelBase _currentViewModel = default!;
+    public partial ViewModelBase CurrentViewModel { get; set; } = default!;
 
     [ObservableProperty]
-    private PageKey _currentPage;
+    public partial PageKey CurrentPage { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsSidebarCollapsed))]
-    private bool _isSidebarExpanded = true;
+    public partial bool IsSidebarExpanded { get; set; } = true;
 
     public bool IsSidebarCollapsed => !IsSidebarExpanded;
 
     [ObservableProperty]
-    private double _sidebarWidth = 140;
+    public partial double SidebarWidth { get; set; } = 140;
 
     [ObservableProperty]
-    private bool _isPageLoading;
+    public partial bool IsPageLoading { get; set; }
 
     [ObservableProperty]
-    private bool _isLoadingContentVisible;
+    public partial bool IsLoadingContentVisible { get; set; }
 
     [ObservableProperty]
-    private double _pageOpacity = 1.0;
+    public partial double PageOpacity { get; set; } = 1.0;
 
     private readonly Dictionary<string, bool> _pageNav = [];
     private bool _userWantsExpanded = true;

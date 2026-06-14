@@ -24,35 +24,35 @@ public partial class SeatDisplayItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(DisplayText))]
     [NotifyPropertyChangedFor(nameof(TooltipText))]
     [NotifyPropertyChangedFor(nameof(IsOccupied))]
-    private string? _studentName;
+    public partial string? StudentName { get; set; }
 
     [ObservableProperty]
-    private string? _studentId;
+    public partial string? StudentId { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
     [NotifyPropertyChangedFor(nameof(TooltipText))]
-    private bool _isOccupied;
+    public partial bool IsOccupied { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BorderBrush))]
-    private bool _isFixed;
+    public partial bool IsFixed { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
     [NotifyPropertyChangedFor(nameof(BorderBrush))]
-    private SeatOccupancyStatus _occupancyStatus;
+    public partial SeatOccupancyStatus OccupancyStatus { get; set; }
 
     // ── 交互状态 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BorderBrush))]
     [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
-    private bool _isSelectedForSwap;
+    public partial bool IsSelectedForSwap { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BorderBrush))]
     [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
-    private bool _isDataStale;
+    public partial bool IsDataStale { get; set; }
 
     // ── 计算属性 ──
     public string DisplayText => IsOccupied ? (StudentName ?? "") : SeatLabel;

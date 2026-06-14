@@ -31,7 +31,7 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPackages))]
-    private ObservableCollection<PluginPackageDisplayInfo> _packages = [];
+    public partial ObservableCollection<PluginPackageDisplayInfo> Packages { get; set; } = [];
 
     /// <summary>是否有已发现的插件包。</summary>
     public bool HasPackages => Packages.Count > 0;
@@ -41,7 +41,7 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPackageSelected))]
     [NotifyPropertyChangedFor(nameof(PackageStrategies))]
-    private PluginPackageDisplayInfo? _selectedPackage;
+    public partial PluginPackageDisplayInfo? SelectedPackage { get; set; }
 
     /// <summary>是否有选中的包。</summary>
     public bool HasPackageSelected => SelectedPackage != null;
@@ -57,7 +57,7 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPlugins))]
     [NotifyPropertyChangedFor(nameof(EmptyHintVisible))]
-    private ObservableCollection<PluginDisplayInfo> _plugins = [];
+    public partial ObservableCollection<PluginDisplayInfo> Plugins { get; set; } = [];
 
     /// <summary>是否有已发现的插件。</summary>
     public bool HasPlugins => Plugins.Count > 0;
@@ -72,7 +72,7 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
     [NotifyPropertyChangedFor(nameof(HasScript))]
     [NotifyPropertyChangedFor(nameof(ScriptEditorVisible))]
     [NotifyPropertyChangedFor(nameof(ConfigEditorVisible))]
-    private PluginDisplayInfo? _selectedPlugin;
+    public partial PluginDisplayInfo? SelectedPlugin { get; set; }
 
     /// <summary>是否有选中的插件。</summary>
     public bool HasPluginSelected => SelectedPlugin != null;
@@ -89,19 +89,19 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
     // ── 编辑器内容 ──
 
     [ObservableProperty]
-    private string _scriptEditorText = string.Empty;
+    public partial string ScriptEditorText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _configEditorText = string.Empty;
+    public partial string ConfigEditorText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isScriptDirty;
+    public partial bool IsScriptDirty { get; set; }
 
     [ObservableProperty]
-    private bool _isConfigDirty;
+    public partial bool IsConfigDirty { get; set; }
 
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    public partial string StatusMessage { get; set; } = string.Empty;
 
     private bool _isLoadingContent;
     private CancellationTokenSource? _loadCts;

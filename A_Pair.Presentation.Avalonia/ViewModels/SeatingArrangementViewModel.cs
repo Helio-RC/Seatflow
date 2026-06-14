@@ -47,37 +47,37 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 左侧面板 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
-    private ObservableCollection<VenueItem> _venueItems = [];
+    public partial ObservableCollection<VenueItem> VenueItems { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
-    private VenueItem? _selectedVenue;
+    public partial VenueItem? SelectedVenue { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
-    private ObservableCollection<StudentDatasetInfo> _datasetItems = [];
+    public partial ObservableCollection<StudentDatasetInfo> DatasetItems { get; set; } = [];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
-    private StudentDatasetInfo? _selectedDataset;
+    public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedDataset => SelectedDataset != null;
 
     // ── Canvas ──
     [ObservableProperty]
-    private ObservableCollection<SeatDisplayItem> _seatItems = [];
+    public partial ObservableCollection<SeatDisplayItem> SeatItems { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<SeatDisplayItem> _overlayItems = [];
+    public partial ObservableCollection<SeatDisplayItem> OverlayItems { get; set; } = [];
 
     [ObservableProperty]
-    private double _canvasWidth = 800;
+    public partial double CanvasWidth { get; set; } = 800;
 
     [ObservableProperty]
-    private double _canvasHeight = 600;
+    public partial double CanvasHeight { get; set; } = 600;
 
     private double _contentCenterX, _contentCenterY;
     private double _defaultZoomLevel = 1.0;
@@ -91,16 +91,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
-    private bool _isGenerating;
+    public partial bool IsGenerating { get; set; }
 
     [ObservableProperty]
-    private bool _hasGenerated;
+    public partial bool HasGenerated { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanUndo))]
     [NotifyPropertyChangedFor(nameof(CanRedo))]
     [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
-    private bool _hasHistoryUnsaved;
+    public partial bool HasHistoryUnsaved { get; set; }
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
     public bool CanUndo => _currentHistoryIndex > 0;
@@ -108,46 +108,46 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 右侧面板 ──
     [ObservableProperty]
-    private ObservableCollection<StrategyDisplayInfo> _activeStrategies = [];
+    public partial ObservableCollection<StrategyDisplayInfo> ActiveStrategies { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<Student> _unassignedStudents = [];
+    public partial ObservableCollection<Student> UnassignedStudents { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isStrategiesExpanded = true;
+    public partial bool IsStrategiesExpanded { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isUnassignedExpanded = true;
+    public partial bool IsUnassignedExpanded { get; set; } = true;
 
     [ObservableProperty]
-    private bool _isHistoryExpanded = true;
+    public partial bool IsHistoryExpanded { get; set; } = true;
 
     [ObservableProperty]
-    private ObservableCollection<StrategyMessageGroup> _messageGroups = [];
+    public partial ObservableCollection<StrategyMessageGroup> MessageGroups { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isMessagesExpanded = true;
+    public partial bool IsMessagesExpanded { get; set; } = true;
 
     public bool HasMessages => MessageGroups.Count > 0;
 
     // ── 状态栏 ──
     [ObservableProperty]
-    private string _statusMessage = Resources.Seating_Ready;
+    public partial string StatusMessage { get; set; } = Resources.Seating_Ready;
 
     [ObservableProperty]
-    private int _totalSeats;
+    public partial int TotalSeats { get; set; }
 
     [ObservableProperty]
-    private int _assignedSeats;
+    public partial int AssignedSeats { get; set; }
 
     public int UnassignedStudentCount => UnassignedStudents.Count;
 
     // ── 交换模式 ──
     [ObservableProperty]
-    private bool _isSwapMode;
+    public partial bool IsSwapMode { get; set; }
 
     [ObservableProperty]
-    private string _swapHintText = string.Empty;
+    public partial string SwapHintText { get; set; } = string.Empty;
 
     public SeatingArrangementViewModel (IApplicationFacade facade , IFileService fileService , INavigationService navigation , ILogger<SeatingArrangementViewModel>? logger = null)
     {
@@ -723,7 +723,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedHistory))]
-    private HistoryEntry? _selectedHistory;
+    public partial HistoryEntry? SelectedHistory { get; set; }
 
     public bool HasSelectedHistory => SelectedHistory != null;
 
@@ -944,7 +944,7 @@ public partial class HistoryEntry (string description , Dictionary<string , stri
     public Dictionary<string , string> Assignments { get; set; } = assignments;
     public bool IsCurrent { get; set; }
     [ObservableProperty]
-    private bool _isSelected;
+    public partial bool IsSelected { get; set; }
 }
 
 public class StrategyMessageGroup

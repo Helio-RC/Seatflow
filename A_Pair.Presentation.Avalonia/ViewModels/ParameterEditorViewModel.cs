@@ -12,7 +12,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 public partial class ParameterEditorViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private ObservableCollection<EditableParameter> _parameters = [];
+    public partial ObservableCollection<EditableParameter> Parameters { get; set; } = [];
 
     /// <summary>
     /// 从 manifest 的 ParameterDefinitions 加载，用已有值填充。
@@ -66,10 +66,10 @@ public partial class EditableParameter (StrategyParameterDefinition definition ,
     public StrategyParameterDefinition Definition { get; } = definition;
 
     [ObservableProperty]
-    private object? _value = value;
+    public partial object? Value { get; set; } = value;
 
     [ObservableProperty]
-    private bool _isDirty;
+    public partial bool IsDirty { get; set; }
 
     private readonly object? _originalValue = value;
 

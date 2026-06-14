@@ -18,10 +18,10 @@ public partial class StudentPickerViewModel : ViewModelBase
     private HashSet<string> _excludedStudentIds = [];
 
     [ObservableProperty]
-    private ObservableCollection<StudentPickerItem> _students = [];
+    public partial ObservableCollection<StudentPickerItem> Students { get; set; } = [];
 
     [ObservableProperty]
-    private StudentPickerItem? _selectedStudent;
+    public partial StudentPickerItem? SelectedStudent { get; set; }
 
     partial void OnSelectedStudentChanged (StudentPickerItem? value)
     {
@@ -29,7 +29,7 @@ public partial class StudentPickerViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private string? _selectedStudentId;
+    public partial string? SelectedStudentId { get; set; }
 
     /// <summary>
     /// 从 Core.Models.Student 列表加载学生项。缓存完整列表并刷新过滤视图。

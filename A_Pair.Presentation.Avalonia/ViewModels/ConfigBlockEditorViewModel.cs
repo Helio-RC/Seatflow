@@ -25,7 +25,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     // ── CodeBlock 定义 ──
 
     [ObservableProperty]
-    private StrategyCodeBlock? _codeBlock;
+    public partial StrategyCodeBlock? CodeBlock { get; set; }
 
     public string LocalizedTitle => Helpers.LocalizeHelper.SafeResolve(CodeBlock?.Title);
     public string LocalizedDescription => Helpers.LocalizeHelper.SafeResolve(CodeBlock?.Description);
@@ -44,19 +44,19 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
 
     /// <summary>策略 ID（用于持久化路径）。</summary>
     [ObservableProperty]
-    private string _strategyId = string.Empty;
+    public partial string StrategyId { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<DatasetItem> _availableDatasets = [];
+    public partial ObservableCollection<DatasetItem> AvailableDatasets { get; set; } = [];
 
     [ObservableProperty]
-    private DatasetItem? _selectedDataset;
+    public partial DatasetItem? SelectedDataset { get; set; }
 
     [ObservableProperty]
-    private ObservableCollection<DatasetItem> _availableVenues = [];
+    public partial ObservableCollection<DatasetItem> AvailableVenues { get; set; } = [];
 
     [ObservableProperty]
-    private DatasetItem? _selectedVenue;
+    public partial DatasetItem? SelectedVenue { get; set; }
 
     partial void OnSelectedDatasetChanged (DatasetItem? value)
     {
@@ -87,17 +87,17 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     // ── 配置行 ──
 
     [ObservableProperty]
-    private ObservableCollection<ConfigBlockRowViewModel> _rows = [];
+    public partial ObservableCollection<ConfigBlockRowViewModel> Rows { get; set; } = [];
 
     [ObservableProperty]
-    private bool _isLoaded;
+    public partial bool IsLoaded { get; set; }
 
     [ObservableProperty]
-    private bool _isDirty;
+    public partial bool IsDirty { get; set; }
 
     /// <summary>每行学生选择器数量。初始值为 StudentPickerCount，SeatsPerDeskFromVenue 时从会场读取。</summary>
     [ObservableProperty]
-    private int _seatsPerDesk = 1;
+    public partial int SeatsPerDesk { get; set; } = 1;
 
     public bool SeatsPerDeskFromVenue => CodeBlock?.SeatsPerDeskFromVenue == true;
 
@@ -425,7 +425,7 @@ public partial class ConfigBlockRowViewModel : ObservableObject
 
     public ConfigBlockRowViewModel (StrategyCodeBlock? codeBlock , int seatsPerDesk = 1)
     {
-        _codeBlock = codeBlock;
+        CodeBlock = codeBlock;
         SeatsPerDesk = seatsPerDesk;
         SeatPicker = new SeatPositionPickerViewModel();
         for (int i = 0; i < seatsPerDesk; i++)
@@ -457,9 +457,9 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     private void ApplyRowLevelDedup ()
     {
         if (_applyingRowDedup) return;
-        if (_codeBlock?.PreventDuplicateInRow != true) return;
+        if (CodeBlock?.PreventDuplicateInRow != true) return;
         // 若编辑器侧已启用全局防重复，则由 ApplyGlobalDedup 统一处理
-        if (_codeBlock.PreventDuplicateAcrossRows) return;
+        if (CodeBlock.PreventDuplicateAcrossRows) return;
 
         _applyingRowDedup = true;
         try
@@ -511,8 +511,7 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     }
 
     [ObservableProperty]
-    private int _index;
-
+    public partial int Index { get; set; }
     public int SeatsPerDesk { get; }
 
     /// <summary>动态数量的学生选择器（由 SeatsPerDesk 决定）。</summary>
@@ -521,23 +520,23 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     public SeatPositionPickerViewModel SeatPicker { get; }
 
     /// <summary>CodeBlock 是否声明了性别选择器。</summary>
-    public bool ShowGenderPicker => _codeBlock?.ShowGenderPicker == true;
+    public bool ShowGenderPicker => CodeBlock?.ShowGenderPicker == true;
 
     /// <summary>性别下拉选项列表（静态）。</summary>
     public static List<string> GenderOptions { get; } = ["Male" , "Female"];
 
     /// <summary>性别选择器的当前值（"Male" / "Female" / null），直接读写 CustomValues["Gender"]。</summary>
     [ObservableProperty]
-    private string? _genderValue;
+    public partial string? GenderValue { get; set; }
 
     partial void OnGenderValueChanged (string? value)
     {
-        _customValues["Gender"] = value;
+        CustomValues["Gender"] = value;
     }
 
     /// <summary>自定义字段值。</summary>
     [ObservableProperty]
-    private Dictionary<string , object?> _customValues = [];
+    public partial Dictionary<string , object?> CustomValues { get; set; } = [];
 
     public void SetCustomValue (string name , object? value)
     {
@@ -545,10 +544,10 @@ public partial class ConfigBlockRowViewModel : ObservableObject
         OnPropertyChanged(nameof(CustomValues));
     }
 
-    public bool ShowStudentPicker => _codeBlock?.ShowStudentPicker
-        ?? _codeBlock?.DataType is StrategyDataType.Student or StrategyDataType.Both;
-    public bool ShowSeatPosition => _codeBlock?.ShowSeatPosition != false
-        && _codeBlock?.DataType is StrategyDataType.Venue or StrategyDataType.Both;
+    public bool ShowStudentPicker => CodeBlock?.ShowStudentPicker
+        ?? CodeBlock?.DataType is StrategyDataType.Student or StrategyDataType.Both;
+    public bool ShowSeatPosition => CodeBlock?.ShowSeatPosition != false
+        && CodeBlock?.DataType is StrategyDataType.Venue or StrategyDataType.Both;
 
     /// <summary>加载学生到所有 StudentPicker，加载后自动应用待定的持久化选择。</summary>
     public void LoadStudents (IEnumerable<A_Pair.Core.Models.Student> students)
