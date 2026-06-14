@@ -418,7 +418,8 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
 /// </summary>
 public partial class ConfigBlockRowViewModel : ObservableObject
 {
-    private readonly StrategyCodeBlock? _codeBlock;
+    [ObservableProperty]
+    public partial StrategyCodeBlock? CodeBlock { get; set; }
     private bool _applyingRowDedup;
     /// <summary>待定学生选择（索引→学生ID），在 LoadStudents 完成后自动应用。</summary>
     private Dictionary<int , string?>? _pendingSelections;
