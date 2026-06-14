@@ -25,7 +25,7 @@
               <TextBlock Text="{x:Static lang:Resources.Common_Delete}" FontSize="14" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding SaveVenueCommand}"
+          <Button x:Name="SaveVenueButton" Command="{Binding SaveVenueCommand}"
                   IsEnabled="{Binding HasSelectedVenue}"
                   AutomationProperties.Name="{x:Static lang:Resources.Venue_SaveVenue}"
                   HorizontalContentAlignment="Center" Classes="accent">
@@ -81,7 +81,7 @@
                       <TextBlock Text="{x:Static lang:Resources.Venue_Refresh}" FontSize="13" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
-                  <Button Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
+                  <Button x:Name="NewVenueButton" Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
                           AutomationProperties.Name="{x:Static lang:Resources.Venue_New}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
@@ -176,7 +176,7 @@
                 <TextBlock Text="{x:Static lang:Resources.Venue_Name}" FontSize="13" VerticalAlignment="Center"/>
                 <TextBox Text="{Binding LayoutName, Mode=TwoWay}" Width="200" FontSize="14"/>
               </StackPanel>
-              <StackPanel Spacing="8">
+              <StackPanel x:Name="LayoutTypePanel" Spacing="8">
                 <TextBlock Text="{x:Static lang:Resources.Venue_LayoutType}" FontSize="14" FontWeight="SemiBold"/>
                 <StackPanel Orientation="Horizontal" Spacing="16">
                   <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"

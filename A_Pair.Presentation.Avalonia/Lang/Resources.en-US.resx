@@ -1879,4 +1879,10 @@ Diagnostics saved to: {1}</value>
   <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
     <value>Choose a venue</value>
   </data>
+  <data name="Settings_RestartGuide" xml:space="preserve">
+    <value>Restart Guide</value>
+  </data>
+  <data name="Settings_RestartGuideHint" xml:space="preserve">
+    <value>Re-run the first-time onboarding guide</value>
+  </data>
 </root>

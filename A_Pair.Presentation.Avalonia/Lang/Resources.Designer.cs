@@ -628,4 +628,6 @@ public class Resources
     public static string Zoom_125 => ResourceManager.GetString("Zoom_125", Culture)!;
     public static string Zoom_150 => ResourceManager.GetString("Zoom_150", Culture)!;
     public static string Zoom_75 => ResourceManager.GetString("Zoom_75", Culture)!;
+    public static string Settings_RestartGuide => ResourceManager.GetString("Settings_RestartGuide", Culture)!;
+    public static string Settings_RestartGuideHint => ResourceManager.GetString("Settings_RestartGuideHint", Culture)!;
 }

@@ -152,6 +152,27 @@
                           HorizontalAlignment="Right" />
           </DockPanel>
         </Border>
+
+        <!-- 重新开始引导 -->
+        <Border Classes="settingRow" BorderThickness="0">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Left" Spacing="2">
+              <TextBlock Text="{x:Static lang:Resources.Settings_RestartGuide}"
+                         Classes="body" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static lang:Resources.Settings_RestartGuideHint}"
+                         Classes="caption"
+                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </StackPanel>
+            <Button Command="{Binding RestartGuideCommand}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Settings_RestartGuide}"
+                    HorizontalAlignment="Right" Padding="12,6">
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Info}" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Settings_RestartGuide}" FontSize="13" />
+              </StackPanel>
+            </Button>
+          </DockPanel>
+        </Border>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>

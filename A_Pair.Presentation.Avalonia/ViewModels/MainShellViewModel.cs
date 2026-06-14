@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using A_Pair.Application.Interfaces;
 using A_Pair.Presentation.Avalonia.Lang;
 using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -41,6 +43,10 @@ public partial class MainShellViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial double PageOpacity { get; set; } = 1.0;
+
+    /// <summary>是否处于首次启动引导模式。</summary>
+    [ObservableProperty]
+    public partial bool IsOnboardingActive { get; set; }
 
     private readonly Dictionary<string, bool> _pageNav = [];
     private bool _userWantsExpanded = true;
@@ -113,6 +119,14 @@ public partial class MainShellViewModel : ViewModelBase
         var newVm = _navigation.CurrentViewModel;
         var newPage = _navigation.CurrentPage;
 
+        // 引导模式下跳过动画，直接切换
+        if (IsOnboardingActive)
+        {
+            CurrentViewModel = newVm;
+            CurrentPage = newPage;
+            return;
+        }
+
         try
         {
             // 阶段1：遮罩先淡入 → 旧页随后淡出（错开）
@@ -153,6 +167,10 @@ public partial class MainShellViewModel : ViewModelBase
 
     public void OnWindowWidthChanged (double windowWidth)
     {
+        // 引导期间不自动折叠侧边栏
+        if (IsOnboardingActive)
+            return;
+
         if (windowWidth < 750)
             IsSidebarExpanded = false;
         else
@@ -178,5 +196,46 @@ public partial class MainShellViewModel : ViewModelBase
                 return;
             await _navigation.NavigateToAsync(key);
         }
+    }
+
+    /// <summary>强制展开侧边栏（引导期间使用）。</summary>
+    public void EnsureSidebarExpanded ()
+    {
+        _userWantsExpanded = true;
+        IsSidebarExpanded = true;
+    }
+
+    /// <summary>引导模式下的页面导航（同步，无动画）。</summary>
+    public void OnboardingNavigateTo (PageKey page)
+    {
+        _navigation.NavigateTo(page);
+    }
+
+    /// <summary>完成引导：关闭引导模式，持久化标记，回到首页。</summary>
+    public async Task CompleteOnboardingAsync ()
+    {
+        IsOnboardingActive = false;
+
+        try
+        {
+            // 通过 App 的 ServiceProvider 获取 Facade
+            if (global::Avalonia.Application.Current is App app)
+            {
+                var facade = app.ServiceProvider.GetRequiredService<IApplicationFacade>();
+                var settings = await facade.LoadAppSettingsAsync();
+                if (settings.IsFirstLaunch)
+                {
+                    settings.IsFirstLaunch = false;
+                    await facade.SaveAppSettingsAsync(settings);
+                }
+            }
+        }
+        catch
+        {
+            // 保存失败不影响用户体验
+        }
+
+        // 回到首页
+        _navigation.NavigateTo(PageKey.Home);
     }
 }

@@ -1886,4 +1886,10 @@
   <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
     <value>请选择一个会场</value>
   </data>
+  <data name="Settings_RestartGuide" xml:space="preserve">
+    <value>重新开始引导</value>
+  </data>
+  <data name="Settings_RestartGuideHint" xml:space="preserve">
+    <value>重新显示首次使用的功能引导</value>
+  </data>
 </root>

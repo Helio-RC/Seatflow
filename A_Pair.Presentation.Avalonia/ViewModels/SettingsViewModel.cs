@@ -16,6 +16,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using A_Pair.Presentation.Avalonia.Views;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
@@ -248,6 +249,27 @@ public partial class SettingsViewModel : ViewModelBase
             }
         }
         finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
+    }
+
+    [RelayCommand]
+    private async Task RestartGuideAsync ()
+    {
+        try
+        {
+            var settings = await _facade.LoadAppSettingsAsync();
+            settings.IsFirstLaunch = true;
+            await _facade.SaveAppSettingsAsync(settings);
+
+            if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+                && desktop.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.StartOnboarding();
+            }
+        }
+        catch
+        {
+            await _dialog.ShowErrorAsync("" , "");
+        }
     }
 
     [RelayCommand]

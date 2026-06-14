@@ -18,7 +18,7 @@
                    VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <!-- 导出按钮 + Flyout -->
-          <Button IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
+          <Button x:Name="ExportButton" IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Data_Export}">
             <Button.Flyout>
               <MenuFlyout>
@@ -134,7 +134,7 @@
         <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="8">
           <!-- 会场选择 -->
           <TextBlock Grid.Row="0" Text="{x:Static lang:Resources.Seating_Venue}" Classes="sectionTitle" Margin="3,0,0,8" />
-          <ListBox Grid.Row="1" ItemsSource="{Binding VenueItems}"
+          <ListBox x:Name="VenueListBox" Grid.Row="1" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
@@ -150,7 +150,7 @@
 
           <!-- 数据集选择 -->
           <TextBlock Grid.Row="3" Text="{x:Static lang:Resources.Seating_MemberData}" Classes="sectionTitle" Margin="3,0,0,8" />
-          <ListBox Grid.Row="4" ItemsSource="{Binding DatasetItems}"
+          <ListBox x:Name="DatasetListBox" Grid.Row="4" ItemsSource="{Binding DatasetItems}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
@@ -166,7 +166,7 @@
           <Panel Grid.Row="5" />
 
           <!-- 生成按钮 -->
-          <Button Grid.Row="6"
+          <Button x:Name="GenerateButton" Grid.Row="6"
                   Command="{Binding GenerateSeatingCommand}"
                   IsEnabled="{Binding CanGenerate}"
                   HorizontalAlignment="Stretch"

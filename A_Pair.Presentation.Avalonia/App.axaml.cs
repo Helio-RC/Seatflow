@@ -14,6 +14,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using AvaloniaApplication = Avalonia.Application;
@@ -167,6 +168,9 @@ namespace A_Pair.Presentation.Avalonia
 
                 // 启动时恢复已保存的设置（主题、语言等）
                 _ = RestoreSettingsAsync();
+
+                // 检查并启动首次使用引导
+                _ = CheckAndStartOnboardingAsync(mainWindow);
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -217,6 +221,39 @@ namespace A_Pair.Presentation.Avalonia
                         }
                     }
                 }
+            }
+        }
+
+        private async Task CheckAndStartOnboardingAsync (MainWindow mainWindow)
+        {
+            try
+            {
+                // 检测是否需要显示引导：
+                // 1. 设置文件不存在 → 真正的首次启动
+                // 2. 用户通过设置页面请求重新引导（IsFirstLaunch = true）
+                var repo = _serviceProvider.GetRequiredService<IAppSettingsRepository>();
+                var isTrueFirstLaunch = repo is Infrastructure.Providers.JsonAppSettingsRepository jsonRepo
+                    && !File.Exists(jsonRepo.SettingsFilePath);
+
+                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+                var settings = await facade.LoadAppSettingsAsync();
+
+                if (isTrueFirstLaunch || settings.IsFirstLaunch)
+                {
+                    // 立即标记完成（崩溃安全）
+                    settings.IsFirstLaunch = false;
+                    await facade.SaveAppSettingsAsync(settings);
+
+                    // 在 UI 线程启动引导，给 UI 一些时间完成初始渲染
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        mainWindow.StartOnboarding();
+                    }, DispatcherPriority.Background);
+                }
+            }
+            catch
+            {
+                // 设置读取失败则跳过引导
             }
         }
     }
