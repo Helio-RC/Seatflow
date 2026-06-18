@@ -203,8 +203,18 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var ctrl = ResolveTarget(stepDef.Target);
             step.Target = ctrl;
-            _logger.LogInformation("[Onboarding] StepOpen {Idx}: target='{Name}' → {Found} Bounds={Bounds}",
-                stepIndex, stepDef.Target, ctrl?.GetType().Name ?? "null", ctrl?.Bounds);
+
+            // 跨阶段首步：页面刚切换还未渲染，延迟重试
+            if (ctrl is null && IsPhaseFirstStep(stepIndex))
+            {
+                var capturedStep = step;
+                var capturedName = stepDef.Target;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    var retry = ResolveTarget(capturedName);
+                    capturedStep.Target = retry;
+                }, DispatcherPriority.Background);
+            }
         }
 
         // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
@@ -382,6 +392,11 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             if (_activePhaseBoundaries[i] <= stepIndex)
                 return i;
         return 0;
+    }
+
+    private bool IsPhaseFirstStep(int stepIndex)
+    {
+        return _activePhaseBoundaries.Contains(stepIndex) && stepIndex > 0;
     }
 
     /// <summary>
