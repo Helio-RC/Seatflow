@@ -13,8 +13,8 @@ public class JsonAppSettingsRepositoryTests
         {
             var repo = new JsonAppSettingsRepository(path , new FileMigrationService([]));
             var settings = await repo.LoadAsync(CancellationToken.None);
-            settings.WindowState.Width.Should().Be(1024);
-            settings.WindowState.Height.Should().Be(768);
+            settings.WindowState.Width.Should().Be(1200);
+            settings.WindowState.Height.Should().Be(800);
         }
         finally
         {
