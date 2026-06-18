@@ -18,6 +18,7 @@ public partial class MainShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
     private readonly IApplicationFacade _facade;
+    private readonly IOnboardingService _onboarding;
     private readonly ILogger<MainShellViewModel> _logger;
 
     [ObservableProperty]
@@ -92,15 +93,18 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>内容切换后延迟显示进度条。</summary>
     private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
 
-    public MainShellViewModel (INavigationService navigation , IApplicationFacade facade , ILogger<MainShellViewModel>? logger = null)
+    public MainShellViewModel (INavigationService navigation , IApplicationFacade facade , IOnboardingService onboarding , ILogger<MainShellViewModel>? logger = null)
     {
         _navigation = navigation;
         _facade = facade;
+        _onboarding = onboarding;
         _logger = logger ?? NullLogger<MainShellViewModel>.Instance;
         _pageNav = LoadPageNav();
         _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
+        // 初始页面加载后检查页面引导
+        SchedulePageGuideCheck();
     }
 
     /// <summary>
@@ -164,6 +168,18 @@ public partial class MainShellViewModel : ViewModelBase
         }
 
         IsPageLoading = false;
+
+        // 页面切换完成后，检查是否需要展示页面引导
+        SchedulePageGuideCheck();
+    }
+
+    /// <summary>延迟触发页面引导检查（等页面渲染完成）。</summary>
+    private void SchedulePageGuideCheck()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            _onboarding.TryShowPageGuide(CurrentPage);
+        }, DispatcherPriority.Background);
     }
 
     public void OnWindowWidthChanged (double windowWidth)

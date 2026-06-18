@@ -50,7 +50,7 @@
             </StackPanel>
           </Button>
           <!-- 保存到快照 -->
-          <Button Command="{Binding SaveToSnapshotCommand}"
+          <Button x:Name="SaveSnapshotButton" Command="{Binding SaveToSnapshotCommand}"
                   IsEnabled="{Binding HasUnsavedChanges}"
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}">
@@ -60,7 +60,7 @@
             </StackPanel>
           </Button>
           <!-- 撤销 -->
-          <Button Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}"
+          <Button x:Name="UndoButton" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}"
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_UndoSwap}">
             <StackPanel Orientation="Horizontal" Spacing="6">

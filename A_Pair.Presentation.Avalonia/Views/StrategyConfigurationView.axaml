@@ -73,7 +73,7 @@
               </StackPanel>
             </Button>
             <Separator Margin="0,2" />
-            <Button Command="{Binding SaveAllCommand}"
+            <Button x:Name="SaveAllButton" Command="{Binding SaveAllCommand}"
                     IsEnabled="{Binding HasChanges}"
                     AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
                     HorizontalContentAlignment="Left" Padding="8,5">

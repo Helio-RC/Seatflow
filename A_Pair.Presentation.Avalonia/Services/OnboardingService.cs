@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +20,7 @@ namespace A_Pair.Presentation.Avalonia.Services;
 
 /// <summary>
 /// 引导服务——纯机械式桥接 JSON 配置与 Guide 控件。
-/// JSON 是步骤定义的唯一权威来源，代码不做任何键名拼接或 ID 推断。
+/// 支持启动引导（startupPhases）和页面独立引导块（pageGuides，首次访问触发）。
 /// </summary>
 public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 {
@@ -31,8 +30,13 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private readonly ILogger<OnboardingService> _logger;
 
     private OnboardingConfig? _config;
-    private List<OnboardingStepDefinition> _flatStepDefs = [];
-    private List<int> _phaseBoundaries = []; // 每个阶段在全量列表中的起始索引
+    // 当前活跃的步骤定义列表（启动引导=全量平铺，页面引导=单页面步骤）
+    private List<OnboardingStepDefinition> _activeStepDefs = [];
+    // 各阶段在 _activeStepDefs 中的起始索引（仅启动引导有效）
+    private List<int> _activePhaseBoundaries = [];
+    private Dictionary<string, bool> _completedPageGuides = []; // PageKey名称 → true
+    private bool _completedPageGuidesLoaded; // LoadCompletedPageGuidesAsync 是否已完成
+    private string? _currentPageGuide; // null=启动引导, 非null=页面引导的PageKey名称
     private Guide? _guide;
     private bool _isCompleting;
 
@@ -60,10 +64,12 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         if (_config is null)
         {
             _config = LoadConfig();
-            FlattenSteps();
+            _ = LoadCompletedPageGuidesAsync(); // 不阻塞 UI；TryShowPageGuide 有守卫
+            FlattenStartupSteps();
         }
 
         _isCompleting = false;
+        _currentPageGuide = null;
         IsActive = true;
 
         var mainWindow = GetMainWindow();
@@ -82,33 +88,104 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         Dispatcher.UIThread.Post(() =>
         {
             if (_guide is null) return;
-            _guide.StepsSource = BuildAllSteps();
+            _guide.StepsSource = BuildAllStartupSteps();
             _guide.GoTo(0);
             _guide.IsVisible = true;
             _guide.Show();
         }, DispatcherPriority.Loaded);
     }
 
+    /// <summary>检查并触发页面的独立引导块（首次访问时）。返回 true 表示触发了引导。</summary>
+    public bool TryShowPageGuide(PageKey page)
+    {
+        if (IsActive) return false;
+
+        // 延迟加载：首次访问页面时可能尚未触发过启动引导
+        if (_config is null)
+        {
+            _config = LoadConfig();
+            _ = LoadCompletedPageGuidesAsync();
+        }
+
+        var pageKey = page.ToString();
+        if (!_config.PageGuides.TryGetValue(pageKey, out var guideBlock))
+            return false;
+
+        // 已展示过则跳过。若 CompletedPageGuides 尚未加载完成，
+        // 内存中的 _completedPageGuides 为空，首次访问会触发引导；
+        // 后续访问时 LoadCompletedPageGuidesAsync 已完成，正确跳过。
+        if (_completedPageGuidesLoaded && _completedPageGuides.ContainsKey(pageKey))
+            return false;
+
+        var mainWindow = GetMainWindow();
+        var guideControl = mainWindow?.OnboardingGuide;
+        if (guideControl is null) return false;
+
+        _isCompleting = false;
+        _currentPageGuide = pageKey;
+        IsActive = true;
+
+        // 构建仅此页面的步骤
+        _activeStepDefs.Clear();
+        _activePhaseBoundaries.Clear();
+        _activeStepDefs.AddRange(guideBlock.Steps);
+
+        _guide = guideControl;
+        _guide.StepOpening += OnStepOpening;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_guide is null) return;
+            _guide.StepsSource = BuildStepsFromDefs(_activeStepDefs);
+            _guide.GoTo(0);
+            _guide.IsVisible = true;
+            _guide.Show();
+        }, DispatcherPriority.Background);
+
+        return true;
+    }
+
+    /// <summary>标记页面引导已完成并持久化。</summary>
+    public async Task MarkPageGuideShownAsync(PageKey page)
+    {
+        var pageKey = page.ToString();
+        _completedPageGuides[pageKey] = true;
+
+        try
+        {
+            var settings = await _facade.LoadAppSettingsAsync();
+            settings.CompletedPageGuides[pageKey] = true;
+            await _facade.SaveAppSettingsAsync(settings);
+        }
+        catch
+        {
+            // 持久化失败不影响用户体验
+        }
+    }
+
     public void HandleStepOpening(int stepIndex, IGuideStepOption step)
     {
-        if (stepIndex < 0 || stepIndex >= _flatStepDefs.Count) return;
+        if (stepIndex < 0 || stepIndex >= _activeStepDefs.Count) return;
 
-        var stepDef = _flatStepDefs[stepIndex];
+        var stepDef = _activeStepDefs[stepIndex];
 
         // 1. 解析 Target 控件名 → 实际 Control
         if (!string.IsNullOrEmpty(stepDef.Target))
             step.Target = ResolveTarget(stepDef.Target);
 
-        // 2. 若跨阶段边界，导航到目标页面（跳过首个阶段，它已在 StartOnboarding 中导航）
-        var phaseIndex = GetPhaseIndex(stepIndex);
-        if (phaseIndex > 0 && _phaseBoundaries[phaseIndex] == stepIndex)
+        // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
+        if (_currentPageGuide is null)
         {
-            var phase = _config!.Phases[phaseIndex];
-            if (phase.Page is not null
-                && Enum.TryParse<PageKey>(phase.Page, out var pageKey)
-                && _navigation.CurrentPage != pageKey)
+            var phaseIndex = GetPhaseIndex(stepIndex);
+            if (phaseIndex > 0 && _activePhaseBoundaries[phaseIndex] == stepIndex)
             {
-                _navigation.NavigateTo(pageKey);
+                var phase = _config!.StartupPhases[phaseIndex];
+                if (phase.Page is not null
+                    && Enum.TryParse<PageKey>(phase.Page, out var pageKey)
+                    && _navigation.CurrentPage != pageKey)
+                {
+                    _navigation.NavigateTo(pageKey);
+                }
             }
         }
     }
@@ -121,7 +198,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     public async Task<bool> HandleGuideClosedAsync()
     {
-        // 用户正常点击"完成"触发的关闭，不需要确认
         if (_isCompleting) return true;
 
         try
@@ -131,10 +207,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                 Resources.Guide_CloseConfirm_Message);
             if (!confirmed) return false;
         }
-        catch
-        {
-            // 对话框显示失败，允许关闭
-        }
+        catch { }
 
         _ = CompleteOnboardingAsync();
         return true;
@@ -142,7 +215,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     // ──────────────────────── 内部实现 ────────────────────────
 
-    /// <summary>从嵌入资源加载 JSON 配置。</summary>
     private OnboardingConfig LoadConfig()
     {
         try
@@ -166,71 +238,84 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
     }
 
-    /// <summary>将阶段→步骤树形结构平铺为全量列表，记录阶段边界。</summary>
-    private void FlattenSteps()
+    private async Task LoadCompletedPageGuidesAsync()
     {
-        _flatStepDefs.Clear();
-        _phaseBoundaries.Clear();
-
-        foreach (var phase in _config!.Phases)
+        try
         {
-            _phaseBoundaries.Add(_flatStepDefs.Count);
-            _flatStepDefs.AddRange(phase.Steps);
+            var settings = await _facade.LoadAppSettingsAsync();
+            _completedPageGuides = settings.CompletedPageGuides ?? [];
         }
-        _phaseBoundaries.Add(_flatStepDefs.Count); // 哨兵
+        catch
+        {
+            _completedPageGuides = [];
+        }
+        finally
+        {
+            _completedPageGuidesLoaded = true;
+        }
     }
 
-    /// <summary>构造全量 GuideStepOption 列表。文本通过 resx 资源键查找。</summary>
-    private List<IGuideStepOption> BuildAllSteps()
+    /// <summary>将启动引导的阶段→步骤平铺为全量列表，记录阶段边界。</summary>
+    private void FlattenStartupSteps()
+    {
+        _activeStepDefs.Clear();
+        _activePhaseBoundaries.Clear();
+
+        foreach (var phase in _config!.StartupPhases)
+        {
+            _activePhaseBoundaries.Add(_activeStepDefs.Count);
+            _activeStepDefs.AddRange(phase.Steps);
+        }
+        _activePhaseBoundaries.Add(_activeStepDefs.Count); // 哨兵
+    }
+
+    /// <summary>构造启动引导的全量 GuideStepOption 列表。</summary>
+    private List<IGuideStepOption> BuildAllStartupSteps()
+        => BuildStepsFromDefs(_activeStepDefs);
+
+    /// <summary>从步骤定义列表构造 GuideStepOption 列表。纯机械转换。</summary>
+    private static List<IGuideStepOption> BuildStepsFromDefs(List<OnboardingStepDefinition> defs)
     {
         var steps = new List<IGuideStepOption>();
         var resMgr = global::A_Pair.Presentation.Avalonia.Lang.Resources.ResourceManager;
         var culture = global::A_Pair.Presentation.Avalonia.Lang.Resources.Culture;
 
-        // 委托：从键名获取字符串，优先当前 culture，回退 zh-CN
         string R(string key)
         {
             try { return resMgr.GetString(key, culture) ?? key; }
             catch { return key; }
         }
 
-        foreach (var stepDef in _flatStepDefs)
+        foreach (var stepDef in defs)
         {
             var placement = Enum.TryParse<GuidePlacementMode>(stepDef.Placement, ignoreCase: true, out var p)
                 ? p
                 : (GuidePlacementMode?)null;
 
-            var option = new GuideStepOption
+            steps.Add(new GuideStepOption
             {
                 Title = R(stepDef.TitleKey),
                 Description = R(stepDef.DescKey),
                 Placement = placement,
                 IsShowMask = stepDef.ShowMask,
                 IsArrowVisible = stepDef.ShowArrow,
-                // Target 留空——在 StepOpening 事件中延迟解析
-            };
-
-            steps.Add(option);
+            });
         }
 
         return steps;
     }
 
-    /// <summary>查找目标控件：先在 MainWindow 名字域找，再在当前页面找。</summary>
-    /// <remarks>支持分号分隔的多个候选名，取第一个找到的。</remarks>
     private Control? ResolveTarget(string name)
     {
         var mainWindow = GetMainWindow();
         if (mainWindow is null) return null;
 
-        // 支持分号分隔的候选项
         var names = name.Split(';');
 
         foreach (var n in names)
         {
             var trimmed = n.Trim();
 
-            // 1. 先在 MainWindow 的名字域中找
             var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
             if (mainScope is not null)
             {
@@ -238,7 +323,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                 if (element is Control c) return c;
             }
 
-            // 2. 再在当前页面中找
             if (mainWindow.PageHost.Content is Control page)
             {
                 var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(page);
@@ -253,27 +337,51 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return null;
     }
 
-    /// <summary>获取步骤所在阶段的索引。</summary>
     private int GetPhaseIndex(int stepIndex)
     {
-        for (int i = _phaseBoundaries.Count - 2; i >= 0; i--)
-            if (_phaseBoundaries[i] <= stepIndex)
+        for (int i = _activePhaseBoundaries.Count - 2; i >= 0; i--)
+            if (_activePhaseBoundaries[i] <= stepIndex)
                 return i;
         return 0;
     }
 
-    /// <summary>完成引导：清理事件订阅、恢复 UI 状态、持久化标记。</summary>
+    /// <summary>
+    /// 完成引导：清理事件订阅、恢复 UI 状态、持久化标记。
+    /// 关键：IsActive 和 _currentPageGuide 的清理必须在第一个 await 之前，
+    /// 否则在 I/O 挂起期间用户触发 RestartGuide 会导致竞态条件。
+    /// </summary>
     private async Task CompleteOnboardingAsync()
     {
         if (_guide is not null)
             _guide.StepOpening -= OnStepOpening;
 
-        IsActive = false;
+        var wasPageGuide = _currentPageGuide;
 
-        var mainWindow = GetMainWindow();
-        if (mainWindow?.DataContext is MainShellViewModel vm)
+        // ✅ 在任何 await 之前清理可变状态，防止与 StartOnboarding 竞态
+        IsActive = false;
+        _currentPageGuide = null;
+
+        // 持久化页面引导标记（可在后台安全执行，不影响竞态）
+        if (wasPageGuide is not null)
         {
-            await vm.CompleteOnboardingAsync();
+            _completedPageGuides[wasPageGuide] = true;
+            try
+            {
+                var settings = await _facade.LoadAppSettingsAsync();
+                settings.CompletedPageGuides[wasPageGuide] = true;
+                await _facade.SaveAppSettingsAsync(settings);
+            }
+            catch { }
+        }
+
+        // 启动引导完成：恢复 UI 状态
+        if (wasPageGuide is null)
+        {
+            var mainWindow = GetMainWindow();
+            if (mainWindow?.DataContext is MainShellViewModel vm)
+            {
+                await vm.CompleteOnboardingAsync();
+            }
         }
 
         if (_guide is not null)
@@ -284,13 +392,11 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
     }
 
-    /// <summary>Guide.StepOpening 事件处理器。</summary>
     private void OnStepOpening(object? sender, GuideStepEventArgs e)
     {
         HandleStepOpening(e.Index, e.Step);
     }
 
-    /// <summary>获取当前 MainWindow 实例。</summary>
     private static MainWindow? GetMainWindow()
     {
         if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

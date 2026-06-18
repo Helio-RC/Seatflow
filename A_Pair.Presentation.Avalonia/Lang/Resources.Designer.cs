@@ -692,4 +692,24 @@ public class Resources
     public static string Guide_Close => ResourceManager.GetString("Guide_Close", Culture)!;
     public static string Guide_CloseConfirm_Title => ResourceManager.GetString("Guide_CloseConfirm_Title", Culture)!;
     public static string Guide_CloseConfirm_Message => ResourceManager.GetString("Guide_CloseConfirm_Message", Culture)!;
+    public static string Guide_Members_AddStudent_Title => ResourceManager.GetString("Guide_Members_AddStudent_Title", Culture)!;
+    public static string Guide_Members_AddStudent_Desc => ResourceManager.GetString("Guide_Members_AddStudent_Desc", Culture)!;
+    public static string Guide_Strategy_SaveAll_Title => ResourceManager.GetString("Guide_Strategy_SaveAll_Title", Culture)!;
+    public static string Guide_Strategy_SaveAll_Desc => ResourceManager.GetString("Guide_Strategy_SaveAll_Desc", Culture)!;
+    public static string Guide_Seating_SelectVenue_Title => ResourceManager.GetString("Guide_Seating_SelectVenue_Title", Culture)!;
+    public static string Guide_Seating_SelectVenue_Desc => ResourceManager.GetString("Guide_Seating_SelectVenue_Desc", Culture)!;
+    public static string Guide_Seating_SelectDataset_Title => ResourceManager.GetString("Guide_Seating_SelectDataset_Title", Culture)!;
+    public static string Guide_Seating_SelectDataset_Desc => ResourceManager.GetString("Guide_Seating_SelectDataset_Desc", Culture)!;
+    public static string Guide_Snapshot_SelectVenue_Title => ResourceManager.GetString("Guide_Snapshot_SelectVenue_Title", Culture)!;
+    public static string Guide_Snapshot_SelectVenue_Desc => ResourceManager.GetString("Guide_Snapshot_SelectVenue_Desc", Culture)!;
+    public static string Guide_Freeform_Import_Title => ResourceManager.GetString("Guide_Freeform_Import_Title", Culture)!;
+    public static string Guide_Freeform_Import_Desc => ResourceManager.GetString("Guide_Freeform_Import_Desc", Culture)!;
+    public static string Guide_Freeform_AddPoint_Title => ResourceManager.GetString("Guide_Freeform_AddPoint_Title", Culture)!;
+    public static string Guide_Freeform_AddPoint_Desc => ResourceManager.GetString("Guide_Freeform_AddPoint_Desc", Culture)!;
+    public static string Guide_Freeform_Save_Title => ResourceManager.GetString("Guide_Freeform_Save_Title", Culture)!;
+    public static string Guide_Freeform_Save_Desc => ResourceManager.GetString("Guide_Freeform_Save_Desc", Culture)!;
+    public static string Guide_Plugin_List_Title => ResourceManager.GetString("Guide_Plugin_List_Title", Culture)!;
+    public static string Guide_Plugin_List_Desc => ResourceManager.GetString("Guide_Plugin_List_Desc", Culture)!;
+    public static string Guide_Plugin_Enable_Title => ResourceManager.GetString("Guide_Plugin_Enable_Title", Culture)!;
+    public static string Guide_Plugin_Enable_Desc => ResourceManager.GetString("Guide_Plugin_Enable_Desc", Culture)!;
 }

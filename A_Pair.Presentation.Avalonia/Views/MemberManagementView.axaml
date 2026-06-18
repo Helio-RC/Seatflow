@@ -63,7 +63,7 @@
                 <TextBlock Text="{x:Static lang:Resources.Member_ImportFromFile}" Classes="body" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
+            <Button x:Name="SaveButton" Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
                     AutomationProperties.Name="{x:Static lang:Resources.Member_SaveDataset}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
@@ -389,7 +389,7 @@
           </Border>
 
           <!-- 底部新增行（必须放在 ScrollViewer 之前，否则 DockPanel LastChildFill 冲突） -->
-          <Border DockPanel.Dock="Bottom" Padding="6,3"
+          <Border x:Name="NewStudentRow" DockPanel.Dock="Bottom" Padding="6,3"
                   BorderThickness="0,0,0,1"
                   BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
                   Background="{DynamicResource SystemAltMediumLowBrush}">

@@ -1974,79 +1974,133 @@ Diagnostics saved to: {1}</value>
     <value>Navigation</value>
   </data>
   <data name="Guide_Welcome_Navigation_Desc" xml:space="preserve">
-    <value>The left sidebar contains all feature entries. Pages will switch automatically during the guide — just follow along. You can also click × at any time to exit.</value>
+    <value>This is the navigation sidebar. Pages switch automatically during the guide — just follow along. Click × at any time to exit.</value>
   </data>
   <data name="Guide_Members_Import_Title" xml:space="preserve">
-    <value>Import Students</value>
+    <value>Click here to import students</value>
   </data>
   <data name="Guide_Members_Import_Desc" xml:space="preserve">
-    <value>First, import your student data. Click the Import button — CSV and Excel formats are supported. You can also download a template first.</value>
+    <value>Click this button to import student data from a CSV or Excel file. You can also download a template first.</value>
   </data>
   <data name="Guide_Members_Manage_Title" xml:space="preserve">
-    <value>Manage Students</value>
+    <value>Manage students in this list</value>
   </data>
   <data name="Guide_Members_Manage_Desc" xml:space="preserve">
-    <value>After importing, student data appears in this list. You can manually edit, add, or remove students. Use the new row at the bottom to add entries.</value>
+    <value>Imported students appear here. Click any cell to edit, or click the delete button on each row to remove a student.</value>
+  </data>
+  <data name="Guide_Members_AddStudent_Title" xml:space="preserve">
+    <value>Add new students here</value>
+  </data>
+  <data name="Guide_Members_AddStudent_Desc" xml:space="preserve">
+    <value>This is the add-new-student row. Fill in name, height, gender and click + to add a student to the list.</value>
   </data>
   <data name="Guide_Venue_New_Title" xml:space="preserve">
-    <value>Create a Venue</value>
+    <value>Click here to create a venue</value>
   </data>
   <data name="Guide_Venue_New_Desc" xml:space="preserve">
-    <value>Now create a seating layout for your classroom or exam hall. Click New Venue to begin.</value>
+    <value>Create a seating layout for your classroom or exam hall. Click this button to start.</value>
   </data>
   <data name="Guide_Venue_Layout_Title" xml:space="preserve">
-    <value>Set Grid Parameters</value>
+    <value>Choose a layout type here</value>
   </data>
   <data name="Guide_Venue_Layout_Desc" xml:space="preserve">
-    <value>Choose a layout type (usually Grid), then set rows and columns to define the seating arrangement. The preview on the right updates in real time.</value>
+    <value>Select a layout type (usually Grid), then set rows and columns. The preview updates in real time.</value>
   </data>
   <data name="Guide_Venue_Save_Title" xml:space="preserve">
-    <value>Save the Venue</value>
+    <value>Click here to save the venue</value>
   </data>
   <data name="Guide_Venue_Save_Desc" xml:space="preserve">
-    <value>Click Save when done. You can create multiple venues (e.g., different classrooms) and choose which one to use when generating seating.</value>
+    <value>Click Save when done. You can create multiple venues and select which one to use for seating.</value>
   </data>
   <data name="Guide_Strategy_List_Title" xml:space="preserve">
-    <value>Seating Strategies</value>
+    <value>Select a strategy from this list</value>
   </data>
   <data name="Guide_Strategy_List_Desc" xml:space="preserve">
-    <value>Select and configure seating strategies. Strategies are ordered by priority (higher = earlier assignment).</value>
+    <value>Click a strategy to view its details. Strategies are ordered by priority (higher = earlier assignment).</value>
   </data>
   <data name="Guide_Strategy_Adjust_Title" xml:space="preserve">
-    <value>Enable &amp; Adjust Strategies</value>
+    <value>Toggle to enable the strategy</value>
   </data>
   <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
-    <value>Click a strategy to view and modify its parameters. Use the toggle to enable/disable strategies. We recommend keeping the defaults for first-time use — just click Save All.</value>
+    <value>After selecting a strategy, toggle this switch to enable or disable it. Adjust parameters in the right panel.</value>
   </data>
-  <data name="Guide_Seating_Select_Title" xml:space="preserve">
-    <value>Select Dataset &amp; Venue</value>
+  <data name="Guide_Strategy_SaveAll_Title" xml:space="preserve">
+    <value>Click here to save all strategies</value>
   </data>
-  <data name="Guide_Seating_Select_Desc" xml:space="preserve">
-    <value>Choose a student dataset and venue layout in the left panel. These are required before generating seating.</value>
+  <data name="Guide_Strategy_SaveAll_Desc" xml:space="preserve">
+    <value>After configuring strategies, click Save All to apply changes. Keep defaults for first-time use.</value>
+  </data>
+  <data name="Guide_Seating_SelectVenue_Title" xml:space="preserve">
+    <value>Select a venue here</value>
+  </data>
+  <data name="Guide_Seating_SelectVenue_Desc" xml:space="preserve">
+    <value>Pick a venue from the list. This is required before generating a seating plan.</value>
+  </data>
+  <data name="Guide_Seating_SelectDataset_Title" xml:space="preserve">
+    <value>Select a student dataset here</value>
+  </data>
+  <data name="Guide_Seating_SelectDataset_Desc" xml:space="preserve">
+    <value>Pick the student dataset to assign seats to. Once both venue and dataset are selected, you can generate.</value>
   </data>
   <data name="Guide_Seating_Generate_Title" xml:space="preserve">
-    <value>Generate Seating</value>
+    <value>Click here to generate seating</value>
   </data>
   <data name="Guide_Seating_Generate_Desc" xml:space="preserve">
-    <value>Click the Generate button to automatically arrange seats according to your configured strategies. You can then view and manually adjust seats on the central canvas.</value>
+    <value>Click this button after selecting a venue and dataset. The system arranges seats based on your strategies.</value>
   </data>
   <data name="Guide_Seating_Export_Title" xml:space="preserve">
-    <value>Export Results</value>
+    <value>Click here to export results</value>
   </data>
   <data name="Guide_Seating_Export_Desc" xml:space="preserve">
-    <value>Export the seating chart to Excel, CSV, PDF, or image formats. You can also save it as a snapshot for future reference.</value>
+    <value>After generating seating, click here to export as Excel, CSV, PDF, or image format.</value>
+  </data>
+  <data name="Guide_Snapshot_SelectVenue_Title" xml:space="preserve">
+    <value>Select a venue from this dropdown</value>
+  </data>
+  <data name="Guide_Snapshot_SelectVenue_Desc" xml:space="preserve">
+    <value>First pick a venue from this dropdown. The list below will show all saved seating snapshots for that venue.</value>
   </data>
   <data name="Guide_Snapshot_Browse_Title" xml:space="preserve">
-    <value>Browse Snapshots</value>
+    <value>Browse historical snapshots here</value>
   </data>
   <data name="Guide_Snapshot_Browse_Desc" xml:space="preserve">
-    <value>Every seating plan you generate is automatically saved as a snapshot. Here you can browse your history, preview past plans, or roll back to a previous arrangement when needed.</value>
+    <value>Every generated seating plan is auto-saved. Click a snapshot to preview it, then use Rollback to restore.</value>
   </data>
   <data name="Guide_Closing_Finish_Title" xml:space="preserve">
     <value>You're All Set!</value>
   </data>
   <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
-    <value>You now know the core workflow of A_Pair. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
+    <value>You've completed the A_Pair core workflow guide. You're ready to create seating arrangements on your own! Check Settings for documentation if needed.</value>
+  </data>
+  <data name="Guide_Freeform_Import_Title" xml:space="preserve">
+    <value>Click here to import coordinates</value>
+  </data>
+  <data name="Guide_Freeform_Import_Desc" xml:space="preserve">
+    <value>Import seat coordinates from a CSV or JSON file. The file should include X, Y positions and row/column groupings.</value>
+  </data>
+  <data name="Guide_Freeform_AddPoint_Title" xml:space="preserve">
+    <value>Click here to add a point manually</value>
+  </data>
+  <data name="Guide_Freeform_AddPoint_Desc" xml:space="preserve">
+    <value>Add seat coordinates manually. Enter X, Y position and row/column, then click this button.</value>
+  </data>
+  <data name="Guide_Freeform_Save_Title" xml:space="preserve">
+    <value>Click here to save the layout</value>
+  </data>
+  <data name="Guide_Freeform_Save_Desc" xml:space="preserve">
+    <value>After editing the freeform layout, click this button to save. Saved layouts can be used in the seating page.</value>
+  </data>
+  <data name="Guide_Plugin_List_Title" xml:space="preserve">
+    <value>Browse plugins in this list</value>
+  </data>
+  <data name="Guide_Plugin_List_Desc" xml:space="preserve">
+    <value>Installed plugins appear here. Click a plugin to view details, configuration, and script editor.</value>
+  </data>
+  <data name="Guide_Plugin_Enable_Title" xml:space="preserve">
+    <value>Toggle to enable the plugin</value>
+  </data>
+  <data name="Guide_Plugin_Enable_Desc" xml:space="preserve">
+    <value>After selecting a plugin, toggle this switch to enable or disable it in the seating strategy pipeline.</value>
   </data>
   <data name="Guide_Previous" xml:space="preserve">
     <value>Previous</value>

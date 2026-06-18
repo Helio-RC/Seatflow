@@ -7,10 +7,15 @@ namespace A_Pair.Presentation.Avalonia.Services;
 public sealed class OnboardingConfig
 {
     [JsonPropertyName("version")]
-    public string Version { get; set; } = "2.0";
+    public string Version { get; set; } = "3.0";
 
-    [JsonPropertyName("phases")]
-    public List<OnboardingPhaseDefinition> Phases { get; set; } = [];
+    /// <summary>启动引导阶段列表（完整工作流）。</summary>
+    [JsonPropertyName("startupPhases")]
+    public List<OnboardingPhaseDefinition> StartupPhases { get; set; } = [];
+
+    /// <summary>页面独立引导块（PageKey 名称 → 引导阶段定义）。首次访问时触发。</summary>
+    [JsonPropertyName("pageGuides")]
+    public Dictionary<string, OnboardingPhaseDefinition> PageGuides { get; set; } = [];
 }
 
 /// <summary>引导的一个阶段（对应一个页面）。</summary>

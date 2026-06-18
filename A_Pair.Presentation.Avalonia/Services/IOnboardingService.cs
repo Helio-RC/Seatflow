@@ -9,8 +9,18 @@ public interface IOnboardingService
     /// <summary>引导是否当前活跃。</summary>
     bool IsActive { get; }
 
-    /// <summary>启动（或重新启动）引导。</summary>
+    /// <summary>启动（或重新启动）启动引导。</summary>
     void StartOnboarding();
+
+    /// <summary>
+    /// 检查并触发页面的独立引导块（首次访问时）。
+    /// 启动引导进行中或该页面已展示过则跳过。
+    /// </summary>
+    /// <returns>true 表示触发了页面引导。</returns>
+    bool TryShowPageGuide(PageKey page);
+
+    /// <summary>标记页面引导已完成并持久化。</summary>
+    Task MarkPageGuideShownAsync(PageKey page);
 
     /// <summary>
     /// 在 Guide 控件显示步骤前调用。解析 Target 控件并处理跨阶段页面导航。

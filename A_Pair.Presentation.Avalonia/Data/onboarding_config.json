@@ -1,6 +1,6 @@
 {
-  "version": "2.0",
-  "phases": [
+  "version": "3.0",
+  "startupPhases": [
     {
       "page": null,
       "steps": [
@@ -31,6 +31,12 @@
           "titleKey": "Guide_Members_Manage_Title",
           "descKey": "Guide_Members_Manage_Desc",
           "target": "StudentListBox"
+        },
+        {
+          "titleKey": "Guide_Members_AddStudent_Title",
+          "descKey": "Guide_Members_AddStudent_Desc",
+          "target": "NewStudentRow",
+          "placement": "Bottom"
         }
       ]
     },
@@ -68,6 +74,11 @@
           "descKey": "Guide_Strategy_Adjust_Desc",
           "target": "EditEnabledSwitch",
           "placement": "Left"
+        },
+        {
+          "titleKey": "Guide_Strategy_SaveAll_Title",
+          "descKey": "Guide_Strategy_SaveAll_Desc",
+          "target": "SaveAllButton"
         }
       ]
     },
@@ -75,9 +86,14 @@
       "page": "SeatingArrangement",
       "steps": [
         {
-          "titleKey": "Guide_Seating_Select_Title",
-          "descKey": "Guide_Seating_Select_Desc",
-          "target": "VenueListBox;DatasetListBox"
+          "titleKey": "Guide_Seating_SelectVenue_Title",
+          "descKey": "Guide_Seating_SelectVenue_Desc",
+          "target": "VenueListBox"
+        },
+        {
+          "titleKey": "Guide_Seating_SelectDataset_Title",
+          "descKey": "Guide_Seating_SelectDataset_Desc",
+          "target": "DatasetListBox"
         },
         {
           "titleKey": "Guide_Seating_Generate_Title",
@@ -97,10 +113,14 @@
       "page": "SnapshotHistory",
       "steps": [
         {
+          "titleKey": "Guide_Snapshot_SelectVenue_Title",
+          "descKey": "Guide_Snapshot_SelectVenue_Desc",
+          "target": "VenueComboBox"
+        },
+        {
           "titleKey": "Guide_Snapshot_Browse_Title",
           "descKey": "Guide_Snapshot_Browse_Desc",
-          "placement": "Center",
-          "showArrow": false
+          "target": "SnapshotListBox"
         }
       ]
     },
@@ -116,5 +136,45 @@
         }
       ]
     }
-  ]
+  ],
+  "pageGuides": {
+    "FreeformManagement": {
+      "page": "FreeformManagement",
+      "steps": [
+        {
+          "titleKey": "Guide_Freeform_Import_Title",
+          "descKey": "Guide_Freeform_Import_Desc",
+          "target": "ImportCsvButton",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Freeform_AddPoint_Title",
+          "descKey": "Guide_Freeform_AddPoint_Desc",
+          "target": "AddPointButton",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Freeform_Save_Title",
+          "descKey": "Guide_Freeform_Save_Desc",
+          "target": "SaveLayoutButton"
+        }
+      ]
+    },
+    "PluginManagement": {
+      "page": "PluginManagement",
+      "steps": [
+        {
+          "titleKey": "Guide_Plugin_List_Title",
+          "descKey": "Guide_Plugin_List_Desc",
+          "target": "PluginListBox"
+        },
+        {
+          "titleKey": "Guide_Plugin_Enable_Title",
+          "descKey": "Guide_Plugin_Enable_Desc",
+          "target": "PluginEnabledSwitch",
+          "placement": "Left"
+        }
+      ]
+    }
+  }
 }
