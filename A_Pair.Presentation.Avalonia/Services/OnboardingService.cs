@@ -203,6 +203,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var ctrl = ResolveTarget(stepDef.Target);
             step.Target = ctrl;
+            _logger.LogInformation("[Onboarding] StepOpen {Idx}: target='{Name}' → {Found} Bounds={Bounds}",
+                stepIndex, stepDef.Target, ctrl?.GetType().Name ?? "null", ctrl?.Bounds);
         }
 
         // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
@@ -435,14 +437,18 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         HandleStepOpening(e.Index, e.Step);
     }
 
-    /// <summary>步骤打开后：诊断 TargetRegion 状态。</summary>
+    /// <summary>步骤打开后：若 TargetRegion 仍为空，Guide 内部重试已达上限，手动刷新一次。</summary>
     private void OnStepOpened(object? sender, GuideStepEventArgs e)
     {
-        if (sender is Guide guide)
+        if (sender is not Guide guide || guide.TargetRegionVisible) return;
+        if (e.Step.Target is null) return;
+
+        // Guide 已尝试并放弃；此时页面已渲染完，再给一次机会
+        Dispatcher.UIThread.Post(() =>
         {
-            _logger.LogInformation("[Onboarding] StepOpened: TargetRegionVisible={Vis}, TargetRegion={Region}",
-                guide.TargetRegionVisible, guide.TargetRegion);
-        }
+            if (!guide.TargetRegionVisible)
+                guide.Refresh();
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
