@@ -68,9 +68,11 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             _config = LoadConfig();
             _logger.LogInformation("[Onboarding] 配置已加载，StartupPhases={Count}", _config.StartupPhases.Count);
             _ = LoadCompletedPageGuidesAsync();
-            FlattenStartupSteps();
-            _logger.LogInformation("[Onboarding] 步骤已平铺，共 {Count} 步", _activeStepDefs.Count);
         }
+        // 始终重新平铺——_config 可能已被 TryShowPageGuide 提前加载（MainShellViewModel 构造时触发），
+        // 此时 _activeStepDefs 存的是页面引导的步骤而非启动引导步骤，必须重建
+        FlattenStartupSteps();
+        _logger.LogInformation("[Onboarding] 步骤已平铺，共 {Count} 步", _activeStepDefs.Count);
 
         _isCompleting = false;
         _currentPageGuide = null;

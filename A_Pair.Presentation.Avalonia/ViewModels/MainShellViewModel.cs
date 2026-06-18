@@ -103,8 +103,10 @@ public partial class MainShellViewModel : ViewModelBase
         _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
-        // 初始页面加载后检查页面引导
-        SchedulePageGuideCheck();
+        // 不在此触发页面引导：初始页是 Home，无对应的 pageGuide；
+        // 且此时 _config 尚未加载，触发 TryShowPageGuide 会提前消耗 LoadConfig，
+        // 导致后续 StartOnboarding 在 _config 已非 null 时跳过 FlattenStartupSteps。
+        // 页面引导的触发统一在 RunTransitionAsync 末尾处理。
     }
 
     /// <summary>
