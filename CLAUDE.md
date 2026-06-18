@@ -303,6 +303,22 @@ public string? PluginManagementDisabledTip => IsPageEnabled("PluginManagement") 
 
 Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hide ToolTips in Avalonia) and `ToolTip.Tip`. `NavigateAsync` already checks `IsPageEnabled()` and returns early for disabled pages. Disabled message goes in `.resx` with key pattern `Nav_{PageName}Disabled`.
 
+### Onboarding Guide System
+
+Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING_GUIDE.md` for full details.
+
+**Two types of guides:**
+- **启动引导 (`startupPhases`)** — 18-step full workflow at first launch: Home→MemberManagement→VenueConfiguration→StrategyConfiguration→SeatingArrangement→SnapshotHistory→Closing
+- **页面引导 (`pageGuides`)** — Triggered on first visit to a page (FreeformManagement, PluginManagement). Tracked in `AppSettings.CompletedPageGuides`.
+
+**Key classes:** `IOnboardingService` / `OnboardingService` (implements both `IOnboardingService` and `IOnboardingStarter`), `OnboardingPhaseDefinition` / `OnboardingStepDefinition` (models). `MainWindow.axaml.cs` has 3 thin event wrappers only — all logic in `OnboardingService`.
+
+**JSON-driven code:** `BuildStepsFromDefs()` converts `OnboardingStepDefinition` → `GuideStepOption` via pure `ResourceManager.GetString(step.titleKey)`. Zero key-name inference in C#. Target resolution deferred to Guide's `StepOpening` event. Each step explicitly declares `titleKey`, `descKey`, `target`, `placement`, `showMask`, `showArrow`.
+
+**Adding/modifying guide steps:** Edit `onboarding_config.json` + add resx keys + update `Designer.cs`. No C# changes needed. If a target control is missing `x:Name`, add it to the `.axaml` file.
+
+**DI:** `services.AddSingleton<IOnboardingService, OnboardingService>()`, with `IOnboardingStarter` bridged to the same instance. `MainShellViewModel` injects `IOnboardingService` to trigger page guides after navigation.
+
 ### MemberManagement dataset flow
 
 **Click-to-load**: `OnSelectedDatasetChanged` auto-loads the dataset via `SwitchToDatasetAsync()`. No separate "Load" button.

@@ -14,6 +14,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 ├── docs/
 │   ├── INDEX.md               ← 本文件
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
+│   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
 │   └── adr/
 │       ├── ADR-001.md        ← 选择 Avalonia UI 的决策
 │       ├── ADR-002.md        ← 选择 CommunityToolkit.Mvvm 的决策
