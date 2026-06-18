@@ -260,39 +260,6 @@
         </ContentControl.Transitions>
       </ContentControl>
 
-      <!-- 加载遮罩：深色背景压暗旧页 + 浮层阴影 + 加载条 -->
-      <Border IsVisible="{Binding IsPageLoading}"
-              IsHitTestVisible="{Binding IsPageLoading}"
-              BoxShadow="{DynamicResource CardShadowLarge}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              Margin="1">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Easing="CubicEaseInOut" />
-          </Transitions>
-        </Border.Transitions>
-
-        <Grid>
-          <!-- 压暗底层 -->
-          <Border Background="{StaticResource OverlayBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-
-          <!-- 加载内容：在遮罩之后渐显 -->
-          <Border Opacity="{Binding IsLoadingContentVisible, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseInOut" />
-              </Transitions>
-            </Border.Transitions>
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-              <ProgressBar IsIndeterminate="True" Width="200" Height="6" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Loading}" Classes="body"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                         HorizontalAlignment="Center" />
-            </StackPanel>
-          </Border>
-        </Grid>
-      </Border>
     </Grid>
   </DockPanel>
 

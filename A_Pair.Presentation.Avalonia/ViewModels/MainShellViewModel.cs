@@ -37,12 +37,6 @@ public partial class MainShellViewModel : ViewModelBase
     public partial double SidebarWidth { get; set; } = 140;
 
     [ObservableProperty]
-    public partial bool IsPageLoading { get; set; }
-
-    [ObservableProperty]
-    public partial bool IsLoadingContentVisible { get; set; }
-
-    [ObservableProperty]
     public partial double PageOpacity { get; set; } = 1.0;
 
     /// <summary>是否处于首次启动引导模式。</summary>
@@ -83,15 +77,10 @@ public partial class MainShellViewModel : ViewModelBase
     public string? PluginManagementDisabledTip =>
         IsPageEnabled("PluginManagement") ? null : Resources.Nav_PluginDisabled;
 
-    /// <summary>页面淡出时长（对应 AXAML ContentControl Opacity 0.35s）。</summary>
-    private static readonly TimeSpan StaggerDelay = TimeSpan.FromMilliseconds(150);
-    private static readonly TimeSpan FadeOutDuration = TimeSpan.FromMilliseconds(350);
-
-    /// <summary>遮罩最短显示时间。</summary>
-    private static readonly TimeSpan MinLoadDuration = TimeSpan.FromMilliseconds(500);
-
-    /// <summary>内容切换后延迟显示进度条。</summary>
-    private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
+    /// <summary>页面淡出时长。</summary>
+    private static readonly TimeSpan FadeOutDuration = TimeSpan.FromMilliseconds(200);
+    /// <summary>新旧页切换间隙。</summary>
+    private static readonly TimeSpan StaggerDelay = TimeSpan.FromMilliseconds(100);
 
     public MainShellViewModel (INavigationService navigation , IApplicationFacade facade , IOnboardingService onboarding , ILogger<MainShellViewModel>? logger = null)
     {
@@ -109,19 +98,12 @@ public partial class MainShellViewModel : ViewModelBase
         // 页面引导的触发统一在 RunTransitionAsync 末尾处理。
     }
 
-    /// <summary>
-    /// ===== 阶段1：旧页淡出 ‖ 遮罩淡入（并行） =====
-    /// ===== 阶段2：内容切换（遮罩背后）           =====
-    /// ===== 阶段3：进度条渐显 + 等待加载          =====
-    /// ===== 阶段4：进度条渐隐                     =====
-    /// ===== 阶段5：新页淡入 ‖ 遮罩淡出（并行）   =====
-    /// </summary>
+    /// <summary>页面切换：旧页淡出 → 内容切换 → 新页淡入。</summary>
     private async Task RunTransitionAsync ()
     {
         _pageLoadCts?.Cancel();
         _pageLoadCts = new CancellationTokenSource();
         var ct = _pageLoadCts.Token;
-        IsLoadingContentVisible = false;
 
         var newVm = _navigation.CurrentViewModel;
         var newPage = _navigation.CurrentPage;
@@ -136,40 +118,23 @@ public partial class MainShellViewModel : ViewModelBase
 
         try
         {
-            // 阶段1：遮罩先淡入 → 旧页随后淡出（错开）
-            IsPageLoading = true;
-            await Task.Delay(StaggerDelay , ct);
+            // 旧页淡出
             PageOpacity = 0;
             await Task.Delay(FadeOutDuration , ct);
 
-            // 阶段2：内容切换（遮罩背后，不可见）
+            // 内容切换
             CurrentViewModel = newVm;
             CurrentPage = newPage;
 
-            // 阶段3：进度条渐显 + 等待加载
-            await Task.Delay(ProgressBarDelay , ct);
-            IsLoadingContentVisible = true;
-
-            var layoutDone = new TaskCompletionSource();
-            Dispatcher.UIThread.Post(() => layoutDone.TrySetResult() , DispatcherPriority.Loaded);
-            await Task.WhenAll(Task.Delay(MinLoadDuration , ct) , layoutDone.Task);
-
-            // 阶段4：进度条渐隐
-            IsLoadingContentVisible = false;
-
-            // 阶段5：新页先淡入 → 遮罩随后淡出（错开）
+            // 新页淡入
             PageOpacity = 1;
             await Task.Delay(StaggerDelay , ct);
         }
         catch (OperationCanceledException)
         {
-            IsLoadingContentVisible = false;
             PageOpacity = 1;
-            IsPageLoading = false;
             return;
         }
-
-        IsPageLoading = false;
 
         // 页面切换完成后，检查是否需要展示页面引导
         SchedulePageGuideCheck();
