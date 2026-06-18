@@ -108,14 +108,6 @@ public partial class MainShellViewModel : ViewModelBase
         var newVm = _navigation.CurrentViewModel;
         var newPage = _navigation.CurrentPage;
 
-        // 引导模式下跳过动画，直接切换
-        if (IsOnboardingActive)
-        {
-            CurrentViewModel = newVm;
-            CurrentPage = newPage;
-            return;
-        }
-
         try
         {
             // 旧页淡出

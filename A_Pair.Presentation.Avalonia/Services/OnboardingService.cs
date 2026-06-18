@@ -118,8 +118,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             _guide.GoTo(0);
             _guide.IsVisible = true;
             _guide.Show();
-            // 首次出场：卡片缩放弹出动画
-            AnimateCardBounce(_guide, delayMs: 16);
+            // 首次出场：卡片缩放弹出动画（无延迟）
             _logger.LogInformation("[Onboarding] Guide.Show() 已调用，IsOpen={IsOpen}", _guide.IsOpen);
         }, DispatcherPriority.Background);
     }
