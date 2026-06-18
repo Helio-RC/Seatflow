@@ -110,7 +110,6 @@
       <SolidColorBrush x:Key="PreviewBackgroundBrush" Color="{DynamicResource PreviewBackgroundColor}" />
 
       <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="/Styles/Guide.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

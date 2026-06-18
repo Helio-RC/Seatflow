@@ -5,7 +5,6 @@
         xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-        xmlns:codewf="using:CodeWF.AvaloniaControls.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -263,28 +262,68 @@
     </Grid>
   </DockPanel>
 
-    <!-- 首次启动引导覆盖层 -->
-    <codewf:Guide x:Name="OnboardingGuide"
-                  Placement="Right"
-                  PopupOffset="14"
+    <!-- 引导遮罩：与主页面同级 Grid 层，非 Popup -->
+    <Border x:Name="GuideMaskOverlay"
+            IsVisible="False"
+            IsHitTestVisible="False"
+            Background="#80000000">
+      <Border.Transitions>
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseOut" />
+        </Transitions>
+      </Border.Transitions>
+    </Border>
+
+    <!-- 引导卡片：与主页面同级，非 Popup -->
+    <Border x:Name="GuideCardOverlay"
+            IsVisible="False"
+            MinWidth="280"
+            MaxWidth="420"
+            Padding="18"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="{DynamicResource SurfaceCardBrush}"
+            BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
+            BorderThickness="1"
+            BoxShadow="{DynamicResource CardShadowLarge}"
+            CornerRadius="8"
+            Focusable="True">
+      <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock x:Name="GuideCardTitle"
+                     Classes="bodyLarge" FontWeight="SemiBold"
+                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                     TextWrapping="Wrap" />
+          <Button x:Name="GuideCardCloseButton"
+                  Grid.Column="1" Width="28" Height="28"
+                  Margin="12,-4,-8,0" Padding="0"
+                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                  ToolTip.Tip="{x:Static lang:Resources.Guide_Close}"
+                 >
+            <PathIcon Width="13" Height="13"
+                      Data="M18.3,5.71L12,12L18.3,18.29L16.89,19.7L10.59,13.41L4.29,19.71L2.88,18.3L9.17,12L2.88,5.7L4.29,4.29L10.59,10.59L16.89,4.29L18.3,5.71Z" />
+          </Button>
+        </Grid>
+        <TextBlock x:Name="GuideCardDesc"
+                   Grid.Row="1"
+                   Classes="body" TextWrapping="Wrap"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   LineHeight="21" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+          <Button x:Name="GuideCardPrevButton"
+                  Content="{x:Static lang:Resources.Guide_Previous}"
+                  />
+          <Button x:Name="GuideCardNextButton"
+                  Content="{x:Static lang:Resources.Guide_Next}"
+                  Classes="accent"
+                  />
+          <Button x:Name="GuideCardFinishButton"
+                  Content="{x:Static lang:Resources.Guide_Finish}"
+                  Classes="accent"
                   IsVisible="False"
-                  MissingTargetBehavior="Center"
-                  GapRadius="6"
-                  GapOffsetX="4"
-                  GapOffsetY="4"
-                  IsPointAtCenter="True"
-                  IsScrollIntoView="True"
-                  IsShowMask="False"
-                  MaskColor="#80000000"
-                  TargetBorderBrush="{DynamicResource SystemAccentColor}"
-                  TargetBorderThickness="3"
-                  TargetResolveDelay="0:0:0"
-                  PreviousText="{x:Static lang:Resources.Guide_Previous}"
-                  NextText="{x:Static lang:Resources.Guide_Next}"
-                  FinishText="{x:Static lang:Resources.Guide_Finish}"
-                  CloseText="{x:Static lang:Resources.Guide_Close}"
-                  Completed="OnGuideCompleted"
-                  Closed="OnGuideClosed"
-                  StepOpening="OnGuideStepOpening" />
+                  />
+        </StackPanel>
+      </Grid>
+    </Border>
   </Grid>
 </Window>
