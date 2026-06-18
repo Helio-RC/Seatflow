@@ -73,8 +73,8 @@ namespace A_Pair.Core.Models
     {
         public double Left { get; set; }
         public double Top { get; set; }
-        public double Width { get; set; } = 1024;
-        public double Height { get; set; } = 768;
+        public double Width { get; set; } = 1200;
+        public double Height { get; set; } = 800;
         public bool IsMaximized { get; set; }
     }
 
