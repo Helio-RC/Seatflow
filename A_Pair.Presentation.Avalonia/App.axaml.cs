@@ -221,7 +221,7 @@ namespace A_Pair.Presentation.Avalonia
             }
         }
 
-        private async Task CheckAndStartOnboardingAsync (MainWindow mainWindow)
+        private async Task CheckAndStartOnboardingAsync ()
         {
             try
             {
@@ -242,9 +242,10 @@ namespace A_Pair.Presentation.Avalonia
                     await facade.SaveAppSettingsAsync(settings);
 
                     // 在 UI 线程启动引导，给 UI 一些时间完成初始渲染
+                    var onboarding = _serviceProvider.GetRequiredService<IOnboardingService>();
                     Dispatcher.UIThread.Post(() =>
                     {
-                        mainWindow.StartOnboarding();
+                        onboarding.StartOnboarding();
                     }, DispatcherPriority.Background);
                 }
             }
@@ -257,7 +258,7 @@ namespace A_Pair.Presentation.Avalonia
         private async Task InitializeAsync (MainWindow mainWindow)
         {
             // 先检查引导，再恢复设置；确保首次启动检测在文件创建之前
-            await CheckAndStartOnboardingAsync(mainWindow);
+            await CheckAndStartOnboardingAsync();
             await RestoreSettingsAsync();
         }
     }

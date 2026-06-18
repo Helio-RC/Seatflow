@@ -24,7 +24,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
-    private readonly IOnboardingStarter _onboarding;
+    private readonly IOnboardingService _onboarding;
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
@@ -79,7 +79,7 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsSaving { get; set; }
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingStarter onboarding , ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;

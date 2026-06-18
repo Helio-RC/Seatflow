@@ -656,4 +656,40 @@ public class Resources
     public static string Guide_Phase4_Step2_Desc => ResourceManager.GetString("Guide_Phase4_Step2_Desc", Culture)!;
     public static string Guide_Phase5_Step0_Title => ResourceManager.GetString("Guide_Phase5_Step0_Title", Culture)!;
     public static string Guide_Phase5_Step0_Desc => ResourceManager.GetString("Guide_Phase5_Step0_Desc", Culture)!;
+
+    // ===== 新版引导资源键（语义化命名，JSON 驱动） =====
+    public static string Guide_Welcome_Greeting_Title => ResourceManager.GetString("Guide_Welcome_Greeting_Title", Culture)!;
+    public static string Guide_Welcome_Greeting_Desc => ResourceManager.GetString("Guide_Welcome_Greeting_Desc", Culture)!;
+    public static string Guide_Welcome_Navigation_Title => ResourceManager.GetString("Guide_Welcome_Navigation_Title", Culture)!;
+    public static string Guide_Welcome_Navigation_Desc => ResourceManager.GetString("Guide_Welcome_Navigation_Desc", Culture)!;
+    public static string Guide_Members_Import_Title => ResourceManager.GetString("Guide_Members_Import_Title", Culture)!;
+    public static string Guide_Members_Import_Desc => ResourceManager.GetString("Guide_Members_Import_Desc", Culture)!;
+    public static string Guide_Members_Manage_Title => ResourceManager.GetString("Guide_Members_Manage_Title", Culture)!;
+    public static string Guide_Members_Manage_Desc => ResourceManager.GetString("Guide_Members_Manage_Desc", Culture)!;
+    public static string Guide_Venue_New_Title => ResourceManager.GetString("Guide_Venue_New_Title", Culture)!;
+    public static string Guide_Venue_New_Desc => ResourceManager.GetString("Guide_Venue_New_Desc", Culture)!;
+    public static string Guide_Venue_Layout_Title => ResourceManager.GetString("Guide_Venue_Layout_Title", Culture)!;
+    public static string Guide_Venue_Layout_Desc => ResourceManager.GetString("Guide_Venue_Layout_Desc", Culture)!;
+    public static string Guide_Venue_Save_Title => ResourceManager.GetString("Guide_Venue_Save_Title", Culture)!;
+    public static string Guide_Venue_Save_Desc => ResourceManager.GetString("Guide_Venue_Save_Desc", Culture)!;
+    public static string Guide_Strategy_List_Title => ResourceManager.GetString("Guide_Strategy_List_Title", Culture)!;
+    public static string Guide_Strategy_List_Desc => ResourceManager.GetString("Guide_Strategy_List_Desc", Culture)!;
+    public static string Guide_Strategy_Adjust_Title => ResourceManager.GetString("Guide_Strategy_Adjust_Title", Culture)!;
+    public static string Guide_Strategy_Adjust_Desc => ResourceManager.GetString("Guide_Strategy_Adjust_Desc", Culture)!;
+    public static string Guide_Seating_Select_Title => ResourceManager.GetString("Guide_Seating_Select_Title", Culture)!;
+    public static string Guide_Seating_Select_Desc => ResourceManager.GetString("Guide_Seating_Select_Desc", Culture)!;
+    public static string Guide_Seating_Generate_Title => ResourceManager.GetString("Guide_Seating_Generate_Title", Culture)!;
+    public static string Guide_Seating_Generate_Desc => ResourceManager.GetString("Guide_Seating_Generate_Desc", Culture)!;
+    public static string Guide_Seating_Export_Title => ResourceManager.GetString("Guide_Seating_Export_Title", Culture)!;
+    public static string Guide_Seating_Export_Desc => ResourceManager.GetString("Guide_Seating_Export_Desc", Culture)!;
+    public static string Guide_Snapshot_Browse_Title => ResourceManager.GetString("Guide_Snapshot_Browse_Title", Culture)!;
+    public static string Guide_Snapshot_Browse_Desc => ResourceManager.GetString("Guide_Snapshot_Browse_Desc", Culture)!;
+    public static string Guide_Closing_Finish_Title => ResourceManager.GetString("Guide_Closing_Finish_Title", Culture)!;
+    public static string Guide_Closing_Finish_Desc => ResourceManager.GetString("Guide_Closing_Finish_Desc", Culture)!;
+    public static string Guide_Previous => ResourceManager.GetString("Guide_Previous", Culture)!;
+    public static string Guide_Next => ResourceManager.GetString("Guide_Next", Culture)!;
+    public static string Guide_Finish => ResourceManager.GetString("Guide_Finish", Culture)!;
+    public static string Guide_Close => ResourceManager.GetString("Guide_Close", Culture)!;
+    public static string Guide_CloseConfirm_Title => ResourceManager.GetString("Guide_CloseConfirm_Title", Culture)!;
+    public static string Guide_CloseConfirm_Message => ResourceManager.GetString("Guide_CloseConfirm_Message", Culture)!;
 }

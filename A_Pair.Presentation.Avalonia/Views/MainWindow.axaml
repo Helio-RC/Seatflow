@@ -301,7 +301,13 @@
                   Placement="Right"
                   PopupOffset="14"
                   IsVisible="False"
+                  MissingTargetBehavior="Center"
+                  PreviousText="{x:Static lang:Resources.Guide_Previous}"
+                  NextText="{x:Static lang:Resources.Guide_Next}"
+                  FinishText="{x:Static lang:Resources.Guide_Finish}"
+                  CloseText="{x:Static lang:Resources.Guide_Close}"
                   Completed="OnGuideCompleted"
-                  Closed="OnGuideClosed" />
+                  Closed="OnGuideClosed"
+                  StepOpening="OnGuideStepOpening" />
   </Grid>
 </Window>

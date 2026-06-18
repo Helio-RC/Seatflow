@@ -1970,4 +1970,107 @@
   <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
     <value>您已经了解了 A_Pair 的核心工作流程。现在可以独立完成座位编排了！如需帮助，请随时查阅文档。</value>
   </data>
+  <!-- ===== 新版引导资源键（语义化命名，JSON 驱动） ===== -->
+  <data name="Guide_Welcome_Greeting_Title" xml:space="preserve">
+    <value>欢迎使用 A_Pair</value>
+  </data>
+  <data name="Guide_Welcome_Greeting_Desc" xml:space="preserve">
+    <value>A_Pair 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Title" xml:space="preserve">
+    <value>功能导航</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Desc" xml:space="preserve">
+    <value>左侧导航栏包含所有功能入口。引导过程中会自动切换页面，跟随指引操作即可。您也可以随时点击右上角 × 退出引导。</value>
+  </data>
+  <data name="Guide_Members_Import_Title" xml:space="preserve">
+    <value>导入学生名单</value>
+  </data>
+  <data name="Guide_Members_Import_Desc" xml:space="preserve">
+    <value>首先需要导入学生数据。点击「导入」按钮，支持 CSV、Excel 格式。您也可以先下载模板按格式填写。</value>
+  </data>
+  <data name="Guide_Members_Manage_Title" xml:space="preserve">
+    <value>管理学生信息</value>
+  </data>
+  <data name="Guide_Members_Manage_Desc" xml:space="preserve">
+    <value>导入后学生信息会显示在此列表中。您可以手动编辑、添加或删除学生。新增行在列表底部，填写后点击 + 按钮即可添加。</value>
+  </data>
+  <data name="Guide_Venue_New_Title" xml:space="preserve">
+    <value>创建会场</value>
+  </data>
+  <data name="Guide_Venue_New_Desc" xml:space="preserve">
+    <value>接下来为教室/考场创建座位布局。点击「新建会场」开始。</value>
+  </data>
+  <data name="Guide_Venue_Layout_Title" xml:space="preserve">
+    <value>设置网格参数</value>
+  </data>
+  <data name="Guide_Venue_Layout_Desc" xml:space="preserve">
+    <value>选择布局类型（通常为网格），设置行列数来定义座位排布。右侧预览区会实时显示布局效果。</value>
+  </data>
+  <data name="Guide_Venue_Save_Title" xml:space="preserve">
+    <value>保存会场</value>
+  </data>
+  <data name="Guide_Venue_Save_Desc" xml:space="preserve">
+    <value>配置完成后点击保存。您可以创建多个会场（如不同教室），在排座时选择使用。</value>
+  </data>
+  <data name="Guide_Strategy_List_Title" xml:space="preserve">
+    <value>排座策略</value>
+  </data>
+  <data name="Guide_Strategy_List_Desc" xml:space="preserve">
+    <value>选择并配置排座策略。列表中的策略按优先级从高到低排列，高优先级策略先分配座位。</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Title" xml:space="preserve">
+    <value>启用并调整策略</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
+    <value>点击策略可查看和修改其参数。使用开关启用/禁用策略。建议首次使用保持默认配置，点击「保存全部」。</value>
+  </data>
+  <data name="Guide_Seating_Select_Title" xml:space="preserve">
+    <value>选择名单和会场</value>
+  </data>
+  <data name="Guide_Seating_Select_Desc" xml:space="preserve">
+    <value>在左侧面板中选择学生名单和会场布局，这是生成座位的前置条件。</value>
+  </data>
+  <data name="Guide_Seating_Generate_Title" xml:space="preserve">
+    <value>一键生成座位</value>
+  </data>
+  <data name="Guide_Seating_Generate_Desc" xml:space="preserve">
+    <value>点击「生成座位」按钮，系统将按照您配置的策略自动编排座位。生成后可在中央画布查看和手动调整。</value>
+  </data>
+  <data name="Guide_Seating_Export_Title" xml:space="preserve">
+    <value>导出结果</value>
+  </data>
+  <data name="Guide_Seating_Export_Desc" xml:space="preserve">
+    <value>完成后可将座位表导出为 Excel、CSV、PDF 或图片格式。也可以保存为快照，方便日后回溯。</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Title" xml:space="preserve">
+    <value>浏览历史快照</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Desc" xml:space="preserve">
+    <value>每次生成的座位表都会自动保存为快照。在此页面可以查看历史记录、预览座位表，或在需要时回滚到之前的排座方案。</value>
+  </data>
+  <data name="Guide_Closing_Finish_Title" xml:space="preserve">
+    <value>开始使用吧！</value>
+  </data>
+  <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
+    <value>您已经了解了 A_Pair 的核心工作流程。现在可以独立完成座位编排了！如需帮助，请随时查阅文档。</value>
+  </data>
+  <data name="Guide_Previous" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="Guide_Next" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="Guide_Finish" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Guide_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Guide_CloseConfirm_Title" xml:space="preserve">
+    <value>退出引导</value>
+  </data>
+  <data name="Guide_CloseConfirm_Message" xml:space="preserve">
+    <value>确定要退出引导吗？您可以在设置页面重新开始。</value>
+  </data>
 </root>

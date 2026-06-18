@@ -21,6 +21,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Data\about.json" />
     <EmbeddedResource Include="Data\page_navigation.json" />
+    <EmbeddedResource Include="Data\onboarding_config.json" />
   </ItemGroup>
 
   <ItemGroup>

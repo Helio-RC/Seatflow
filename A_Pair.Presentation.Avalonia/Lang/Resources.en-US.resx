@@ -1963,4 +1963,107 @@ Diagnostics saved to: {1}</value>
   <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
     <value>You now know the core workflow of A_Pair. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
   </data>
+  <!-- ===== New Guide Resource Keys (semantic naming, JSON-driven) ===== -->
+  <data name="Guide_Welcome_Greeting_Title" xml:space="preserve">
+    <value>Welcome to A_Pair</value>
+  </data>
+  <data name="Guide_Welcome_Greeting_Desc" xml:space="preserve">
+    <value>A_Pair is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3–5 minutes.</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Title" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Desc" xml:space="preserve">
+    <value>The left sidebar contains all feature entries. Pages will switch automatically during the guide — just follow along. You can also click × at any time to exit.</value>
+  </data>
+  <data name="Guide_Members_Import_Title" xml:space="preserve">
+    <value>Import Students</value>
+  </data>
+  <data name="Guide_Members_Import_Desc" xml:space="preserve">
+    <value>First, import your student data. Click the Import button — CSV and Excel formats are supported. You can also download a template first.</value>
+  </data>
+  <data name="Guide_Members_Manage_Title" xml:space="preserve">
+    <value>Manage Students</value>
+  </data>
+  <data name="Guide_Members_Manage_Desc" xml:space="preserve">
+    <value>After importing, student data appears in this list. You can manually edit, add, or remove students. Use the new row at the bottom to add entries.</value>
+  </data>
+  <data name="Guide_Venue_New_Title" xml:space="preserve">
+    <value>Create a Venue</value>
+  </data>
+  <data name="Guide_Venue_New_Desc" xml:space="preserve">
+    <value>Now create a seating layout for your classroom or exam hall. Click New Venue to begin.</value>
+  </data>
+  <data name="Guide_Venue_Layout_Title" xml:space="preserve">
+    <value>Set Grid Parameters</value>
+  </data>
+  <data name="Guide_Venue_Layout_Desc" xml:space="preserve">
+    <value>Choose a layout type (usually Grid), then set rows and columns to define the seating arrangement. The preview on the right updates in real time.</value>
+  </data>
+  <data name="Guide_Venue_Save_Title" xml:space="preserve">
+    <value>Save the Venue</value>
+  </data>
+  <data name="Guide_Venue_Save_Desc" xml:space="preserve">
+    <value>Click Save when done. You can create multiple venues (e.g., different classrooms) and choose which one to use when generating seating.</value>
+  </data>
+  <data name="Guide_Strategy_List_Title" xml:space="preserve">
+    <value>Seating Strategies</value>
+  </data>
+  <data name="Guide_Strategy_List_Desc" xml:space="preserve">
+    <value>Select and configure seating strategies. Strategies are ordered by priority (higher = earlier assignment).</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Title" xml:space="preserve">
+    <value>Enable &amp; Adjust Strategies</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
+    <value>Click a strategy to view and modify its parameters. Use the toggle to enable/disable strategies. We recommend keeping the defaults for first-time use — just click Save All.</value>
+  </data>
+  <data name="Guide_Seating_Select_Title" xml:space="preserve">
+    <value>Select Dataset &amp; Venue</value>
+  </data>
+  <data name="Guide_Seating_Select_Desc" xml:space="preserve">
+    <value>Choose a student dataset and venue layout in the left panel. These are required before generating seating.</value>
+  </data>
+  <data name="Guide_Seating_Generate_Title" xml:space="preserve">
+    <value>Generate Seating</value>
+  </data>
+  <data name="Guide_Seating_Generate_Desc" xml:space="preserve">
+    <value>Click the Generate button to automatically arrange seats according to your configured strategies. You can then view and manually adjust seats on the central canvas.</value>
+  </data>
+  <data name="Guide_Seating_Export_Title" xml:space="preserve">
+    <value>Export Results</value>
+  </data>
+  <data name="Guide_Seating_Export_Desc" xml:space="preserve">
+    <value>Export the seating chart to Excel, CSV, PDF, or image formats. You can also save it as a snapshot for future reference.</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Title" xml:space="preserve">
+    <value>Browse Snapshots</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Desc" xml:space="preserve">
+    <value>Every seating plan you generate is automatically saved as a snapshot. Here you can browse your history, preview past plans, or roll back to a previous arrangement when needed.</value>
+  </data>
+  <data name="Guide_Closing_Finish_Title" xml:space="preserve">
+    <value>You're All Set!</value>
+  </data>
+  <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
+    <value>You now know the core workflow of A_Pair. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
+  </data>
+  <data name="Guide_Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Guide_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Guide_Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Guide_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Guide_CloseConfirm_Title" xml:space="preserve">
+    <value>Exit Guide</value>
+  </data>
+  <data name="Guide_CloseConfirm_Message" xml:space="preserve">
+    <value>Exit the onboarding guide? You can restart it anytime from Settings.</value>
+  </data>
 </root>
