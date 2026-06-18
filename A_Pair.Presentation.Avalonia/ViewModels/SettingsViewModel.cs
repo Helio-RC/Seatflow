@@ -16,7 +16,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using A_Pair.Presentation.Avalonia.Views;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace A_Pair.Presentation.Avalonia.ViewModels;
@@ -25,6 +24,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
+    private readonly IOnboardingStarter _onboarding;
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
@@ -79,10 +79,11 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsSaving { get; set; }
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingStarter onboarding , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
+        _onboarding = onboarding;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
@@ -260,15 +261,11 @@ public partial class SettingsViewModel : ViewModelBase
             settings.IsFirstLaunch = true;
             await _facade.SaveAppSettingsAsync(settings);
 
-            if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
-                && desktop.MainWindow is MainWindow mainWindow)
-            {
-                mainWindow.StartOnboarding();
-            }
+            _onboarding.StartOnboarding();
         }
         catch
         {
-            await _dialog.ShowErrorAsync("" , "");
+            // 引导启动失败静默处理
         }
     }
 

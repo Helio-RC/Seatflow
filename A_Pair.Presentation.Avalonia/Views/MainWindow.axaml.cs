@@ -14,58 +14,36 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace A_Pair.Presentation.Avalonia.Views
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window , IOnboardingStarter
     {
         private int _onboardingPhase = 0;
 
-        // 各阶段引导文本（中文，后续可改为从 Resources 读取）
-        private static readonly (string Title, string Desc)[][] PhaseTexts =
-        [
-            // 阶段 0：欢迎 & 导航
-            [
-                ("欢迎使用 A_Pair",
-                 "A_Pair 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。"),
-                ("功能导航",
-                 "左侧导航栏包含所有功能入口。引导过程中会自动切换页面，跟随指引操作即可。您也可以随时点击右上角 × 退出引导。"),
-            ],
-            // 阶段 1：成员管理
-            [
-                ("导入学生名单",
-                 "首先需要导入学生数据。点击「导入」按钮，支持 CSV、Excel 格式。您也可以先下载模板按格式填写。"),
-                ("管理学生信息",
-                 "导入后学生信息会显示在此列表中。您可以手动编辑、添加或删除学生。新增行在列表底部，填写后点击 + 按钮即可添加。"),
-            ],
-            // 阶段 2：会场配置
-            [
-                ("创建会场",
-                 "接下来为教室/考场创建座位布局。点击「新建会场」开始。"),
-                ("设置网格参数",
-                 "选择布局类型（通常为网格），设置行列数来定义座位排布。右侧预览区会实时显示布局效果。"),
-                ("保存会场",
-                 "配置完成后点击保存。您可以创建多个会场（如不同教室），在排座时选择使用。"),
-            ],
-            // 阶段 3：策略配置
-            [
-                ("排座策略",
-                 "选择并配置排座策略。列表中的策略按优先级从高到低排列，高优先级策略先分配座位。"),
-                ("启用并调整策略",
-                 "点击策略可查看和修改其参数。使用开关启用/禁用策略。建议首次使用保持默认配置，点击「保存全部」。"),
-            ],
-            // 阶段 4：生成座位 & 导出
-            [
-                ("选择名单和会场",
-                 "在左侧面板中选择学生名单和会场布局，这是生成座位的前置条件。"),
-                ("一键生成座位",
-                 "点击「生成座位」按钮，系统将按照您配置的策略自动编排座位。生成后可在中央画布查看和手动调整。"),
-                ("导出结果",
-                 "完成后可将座位表导出为 Excel、CSV、PDF 或图片格式。也可以保存为快照，方便日后回溯。"),
-            ],
-            // 阶段 5：完成
-            [
-                ("开始使用吧！",
-                 "您已经了解了 A_Pair 的核心工作流程。现在可以独立完成座位编排了！如需帮助，请随时查阅文档。"),
-            ],
-        ];
+        // 各阶段引导文本（通过静态属性延迟加载以支持 i18n）
+        private static (string Title, string Desc)[][] PhaseTexts => _phaseTexts ??= BuildPhaseTexts();
+        private static (string Title, string Desc)[][]? _phaseTexts;
+
+        private static (string Title, string Desc)[][] BuildPhaseTexts ()
+        {
+            // 使用完全限定名称避免 Window.Resources 属性遮蔽 Lang.Resources 类
+            var resMgr = global::A_Pair.Presentation.Avalonia.Lang.Resources.ResourceManager;
+            var culture = global::A_Pair.Presentation.Avalonia.Lang.Resources.Culture;
+            string T(string key) => resMgr.GetString(key, culture)!;
+            return [
+                [(T("Guide_Phase0_Step0_Title"), T("Guide_Phase0_Step0_Desc")),
+                 (T("Guide_Phase0_Step1_Title"), T("Guide_Phase0_Step1_Desc"))],
+                [(T("Guide_Phase1_Step0_Title"), T("Guide_Phase1_Step0_Desc")),
+                 (T("Guide_Phase1_Step1_Title"), T("Guide_Phase1_Step1_Desc"))],
+                [(T("Guide_Phase2_Step0_Title"), T("Guide_Phase2_Step0_Desc")),
+                 (T("Guide_Phase2_Step1_Title"), T("Guide_Phase2_Step1_Desc")),
+                 (T("Guide_Phase2_Step2_Title"), T("Guide_Phase2_Step2_Desc"))],
+                [(T("Guide_Phase3_Step0_Title"), T("Guide_Phase3_Step0_Desc")),
+                 (T("Guide_Phase3_Step1_Title"), T("Guide_Phase3_Step1_Desc"))],
+                [(T("Guide_Phase4_Step0_Title"), T("Guide_Phase4_Step0_Desc")),
+                 (T("Guide_Phase4_Step1_Title"), T("Guide_Phase4_Step1_Desc")),
+                 (T("Guide_Phase4_Step2_Title"), T("Guide_Phase4_Step2_Desc"))],
+                [(T("Guide_Phase5_Step0_Title"), T("Guide_Phase5_Step0_Desc"))],
+            ];
+        }
 
         // 每个阶段需要导航到的页面（null 表示不导航）
         private static readonly PageKey?[] PhasePages =
@@ -193,6 +171,9 @@ namespace A_Pair.Presentation.Avalonia.Views
         }
 
         /// <summary>查找目标控件：先在 MainWindow 中找，再到当前页面中找。</summary>
+        /// <remarks>
+        /// 使用 global:: 前缀以避免与 CodeWF.AvaloniaControls.Controls 命名空间中的 Controls 冲突。
+        /// </remarks>
         private Control? ResolveTarget (string name)
         {
             // 先在 MainWindow 的名字域中找（侧边栏按钮等）
@@ -214,7 +195,7 @@ namespace A_Pair.Presentation.Avalonia.Views
                 }
             }
 
-            return null!;
+            return null;
         }
 
         private async void CompleteOnboarding ()

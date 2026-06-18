@@ -9,7 +9,6 @@ using A_Pair.Presentation.Avalonia.Services;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -18,6 +17,7 @@ namespace A_Pair.Presentation.Avalonia.ViewModels;
 public partial class MainShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
+    private readonly IApplicationFacade _facade;
     private readonly ILogger<MainShellViewModel> _logger;
 
     [ObservableProperty]
@@ -92,9 +92,10 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>内容切换后延迟显示进度条。</summary>
     private static readonly TimeSpan ProgressBarDelay = TimeSpan.FromMilliseconds(120);
 
-    public MainShellViewModel (INavigationService navigation , ILogger<MainShellViewModel>? logger = null)
+    public MainShellViewModel (INavigationService navigation , IApplicationFacade facade , ILogger<MainShellViewModel>? logger = null)
     {
         _navigation = navigation;
+        _facade = facade;
         _logger = logger ?? NullLogger<MainShellViewModel>.Instance;
         _pageNav = LoadPageNav();
         _navigation.CurrentViewModelChanged += () => _ = RunTransitionAsync();
@@ -218,16 +219,11 @@ public partial class MainShellViewModel : ViewModelBase
 
         try
         {
-            // 通过 App 的 ServiceProvider 获取 Facade
-            if (global::Avalonia.Application.Current is App app)
+            var settings = await _facade.LoadAppSettingsAsync();
+            if (settings.IsFirstLaunch)
             {
-                var facade = app.ServiceProvider.GetRequiredService<IApplicationFacade>();
-                var settings = await facade.LoadAppSettingsAsync();
-                if (settings.IsFirstLaunch)
-                {
-                    settings.IsFirstLaunch = false;
-                    await facade.SaveAppSettingsAsync(settings);
-                }
+                settings.IsFirstLaunch = false;
+                await _facade.SaveAppSettingsAsync(settings);
             }
         }
         catch

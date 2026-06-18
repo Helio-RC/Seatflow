@@ -36,6 +36,7 @@ namespace A_Pair.Presentation.Avalonia
 
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<IOnboardingStarter>(sp => sp.GetRequiredService<MainWindow>());
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<HomeViewModel>();
             services.AddSingleton<MemberManagementViewModel>();
