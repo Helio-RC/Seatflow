@@ -96,13 +96,7 @@
               Topmost="False"
               WindowManagerAddShadowHint="False">
             <codewf:GuideOverlay Name="PART_Overlay"
-                MaskBrush="{TemplateBinding CurrentMaskColor}">
-              <codewf:GuideOverlay.Transitions>
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
-                </Transitions>
-              </codewf:GuideOverlay.Transitions>
-            </codewf:GuideOverlay>
+                MaskBrush="{TemplateBinding CurrentMaskColor}" />
           </Popup>
 
           <!-- 目标高亮层：绑定额外的 TargetRegion 属性以渲染镂空边框 -->
@@ -116,13 +110,7 @@
                 MaskBrush="{TemplateBinding CurrentMaskColor}"
                 TargetRegion="{TemplateBinding TargetRegion}"
                 TargetRegionBorderBrush="{TemplateBinding TargetBorderBrush}"
-                TargetRegionBorderThickness="{TemplateBinding TargetBorderThickness}">
-              <codewf:GuideOverlay.Transitions>
-                <Transitions>
-                  <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
-                </Transitions>
-              </codewf:GuideOverlay.Transitions>
-            </codewf:GuideOverlay>
+                TargetRegionBorderThickness="{TemplateBinding TargetBorderThickness}" />
           </Popup>
 
           <!-- 卡片 + 箭头 -->
@@ -139,13 +127,7 @@
                   Height="20"
                   Fill="{DynamicResource SurfaceCardBrush}"
                   Stroke="{DynamicResource SystemAccentColorLight1}"
-                  StrokeThickness="1.5">
-                <codewf:GuideArrow.Transitions>
-                  <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseOut" />
-                  </Transitions>
-                </codewf:GuideArrow.Transitions>
-              </codewf:GuideArrow>
+                  StrokeThickness="1.5" />
 
               <!-- 卡片：surfaceCard + CardShadowLarge + 过渡动画 -->
               <Border
@@ -162,15 +144,15 @@
                   RenderTransformOrigin="50%,50%">
                 <Border.Transitions>
                   <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" Easing="CubicEaseOut" />
                   </Transitions>
                 </Border.Transitions>
                 <Border.RenderTransform>
                   <ScaleTransform ScaleX="1" ScaleY="1">
                     <ScaleTransform.Transitions>
                       <Transitions>
-                        <DoubleTransition Property="ScaleX" Duration="0:0:0.25" Easing="CubicEaseOut" />
-                        <DoubleTransition Property="ScaleY" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                        <DoubleTransition Property="ScaleX" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                        <DoubleTransition Property="ScaleY" Duration="0:0:0.15" Easing="CubicEaseOut" />
                       </Transitions>
                     </ScaleTransform.Transitions>
                   </ScaleTransform>

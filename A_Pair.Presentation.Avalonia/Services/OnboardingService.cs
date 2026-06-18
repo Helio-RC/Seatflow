@@ -119,7 +119,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             _guide.IsVisible = true;
             _guide.Show();
             // 首次出场：卡片缩放弹出动画
-            AnimateCardBounce(_guide, delayMs: 50);
+            AnimateCardBounce(_guide, delayMs: 16);
             _logger.LogInformation("[Onboarding] Guide.Show() 已调用，IsOpen={IsOpen}", _guide.IsOpen);
         }, DispatcherPriority.Background);
     }
@@ -199,39 +199,11 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         var stepDef = _activeStepDefs[stepIndex];
 
-        // 1. Target 延迟解析：StepOpening 触发时页面可能尚未渲染完，
-        //    先置空，等 Guide 的 TargetResolveDelay + 重试机制在页面渲染后自动找到
+        // 解析 Target 控件名 → 实际 Control
         if (!string.IsNullOrEmpty(stepDef.Target))
         {
-            // 先立即尝试一次（MainWindow 内控件可即时找到）
             var ctrl = ResolveTarget(stepDef.Target);
-            if (ctrl is not null)
-            {
-                step.Target = ctrl;
-                _logger.LogInformation("[Onboarding] Step {Idx}: Target '{Name}' → {Type}",
-                    stepIndex, stepDef.Target, ctrl.GetType().Name);
-            }
-            else
-            {
-                // 延迟重试：页面渲染需要时间，在 Background 优先级重试
-                var capturedStep = step;
-                var capturedName = stepDef.Target;
-                var capturedIdx = stepIndex;
-                Dispatcher.UIThread.Post(() =>
-                {
-                    var resolved = ResolveTarget(capturedName);
-                    if (resolved is not null)
-                    {
-                        capturedStep.Target = resolved;
-                        _logger.LogInformation("[Onboarding] Step {Idx}: 延迟找到 Target '{Name}' → {Type}",
-                            capturedIdx, capturedName, resolved.GetType().Name);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("[Onboarding] Step {Idx}: Target '{Name}' 未找到", capturedIdx, capturedName);
-                    }
-                }, DispatcherPriority.Background);
-            }
+            step.Target = ctrl;
         }
 
         // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
@@ -468,7 +440,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private static void OnStepOpened(object? sender, GuideStepEventArgs e)
     {
         if (sender is Guide guide)
-            AnimateCardBounce(guide, delayMs: 30);
+            AnimateCardBounce(guide, delayMs: 0);
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
