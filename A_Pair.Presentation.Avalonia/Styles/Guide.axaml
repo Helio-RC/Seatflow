@@ -2,6 +2,7 @@
   Guide 控件主题 — 直接引用 FluentTheme Brush 资源 + 项目令牌，支持 Light/Dark 双主题。
   通过 App.axaml ResourceDictionary.MergedDictionaries 的 ResourceInclude 加载。
   不依赖 Semi.Avalonia。
+  含过渡动画：遮罩淡入、卡片缩放弹出、步骤间内容切换。
 -->
 <ResourceDictionary
     xmlns="https://github.com/avaloniaui"
@@ -81,43 +82,67 @@
   <ControlTheme x:Key="{x:Type codewf:Guide}" TargetType="codewf:Guide">
     <Setter Property="TargetBorderBrush" Value="{DynamicResource SystemAccentColor}" />
     <Setter Property="TargetBorderThickness" Value="3" />
+    <Setter Property="GapRadius" Value="6" />
+    <Setter Property="IsPointAtCenter" Value="True" />
+    <Setter Property="IsScrollIntoView" Value="True" />
     <Setter Property="Template">
       <ControlTemplate TargetType="codewf:Guide">
-        <Grid>
+        <Grid Background="Transparent">
+          <!-- 遮罩层：全屏半透明 -->
           <Popup
               Name="PART_MaskPopup"
               IsLightDismissEnabled="False"
               ShouldUseOverlayLayer="False"
               Topmost="False"
               WindowManagerAddShadowHint="False">
-            <codewf:GuideOverlay Name="PART_Overlay" />
+            <codewf:GuideOverlay Name="PART_Overlay">
+              <codewf:GuideOverlay.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                </Transitions>
+              </codewf:GuideOverlay.Transitions>
+            </codewf:GuideOverlay>
           </Popup>
 
+          <!-- 目标高亮层 -->
           <Popup
               Name="PART_TargetMaskPopup"
               IsLightDismissEnabled="False"
               ShouldUseOverlayLayer="False"
               Topmost="True"
               WindowManagerAddShadowHint="False">
-            <codewf:GuideOverlay Name="PART_TargetOverlay" />
+            <codewf:GuideOverlay Name="PART_TargetOverlay">
+              <codewf:GuideOverlay.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                </Transitions>
+              </codewf:GuideOverlay.Transitions>
+            </codewf:GuideOverlay>
           </Popup>
 
+          <!-- 卡片 + 箭头 -->
           <Popup
               Name="PART_Popup"
               IsLightDismissEnabled="False"
               ShouldUseOverlayLayer="False"
               Topmost="True"
               WindowManagerAddShadowHint="False">
-            <Grid>
+            <Grid Background="Transparent">
               <codewf:GuideArrow
                   Name="PART_Arrow"
                   Width="20"
                   Height="20"
                   Fill="{DynamicResource SurfaceCardBrush}"
                   Stroke="{DynamicResource SystemAccentColorLight1}"
-                  StrokeThickness="1.5" />
+                  StrokeThickness="1.5">
+                <codewf:GuideArrow.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                  </Transitions>
+                </codewf:GuideArrow.Transitions>
+              </codewf:GuideArrow>
 
-              <!-- 卡片：使用项目令牌 surfaceCard + CardShadowLarge -->
+              <!-- 卡片：surfaceCard + CardShadowLarge + 过渡动画 -->
               <Border
                   Name="PART_CardRoot"
                   MinWidth="280"
@@ -128,7 +153,23 @@
                   BorderThickness="{StaticResource GuideControlBorderThickness}"
                   BoxShadow="{DynamicResource CardShadowLarge}"
                   CornerRadius="{StaticResource GuideBorderRadiusMedium}"
-                  Focusable="True">
+                  Focusable="True"
+                  RenderTransformOrigin="50%,50%">
+                <Border.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                  </Transitions>
+                </Border.Transitions>
+                <Border.RenderTransform>
+                  <ScaleTransform ScaleX="1" ScaleY="1">
+                    <ScaleTransform.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="ScaleX" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                        <DoubleTransition Property="ScaleY" Duration="0:0:0.25" Easing="CubicEaseOut" />
+                      </Transitions>
+                    </ScaleTransform.Transitions>
+                  </ScaleTransform>
+                </Border.RenderTransform>
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBlock

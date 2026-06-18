@@ -11,8 +11,10 @@ using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CodeWF.AvaloniaControls.Controls;
 using Microsoft.Extensions.Logging;
 
@@ -95,7 +97,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _guide = mainWindow?.OnboardingGuide;
         _logger.LogInformation("[Onboarding] Guide 控件={NotNull}", _guide is not null);
         if (_guide is not null)
+        {
             _guide.StepOpening += OnStepOpening;
+            _guide.StepOpened += OnStepOpened;
+        }
         else
             _logger.LogError("[Onboarding] OnboardingGuide 控件为 null！无法显示引导");
 
@@ -112,6 +117,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             _guide.GoTo(0);
             _guide.IsVisible = true;
             _guide.Show();
+            // 首次出场：卡片缩放弹出动画
+            AnimateCardBounce(_guide, delayMs: 50);
             _logger.LogInformation("[Onboarding] Guide.Show() 已调用，IsOpen={IsOpen}", _guide.IsOpen);
         }, DispatcherPriority.Background);
     }
@@ -153,6 +160,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         _guide = guideControl;
         _guide.StepOpening += OnStepOpening;
+        _guide.StepOpened += OnStepOpened;
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -375,6 +383,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     {
         if (_guide is not null)
             _guide.StepOpening -= OnStepOpening;
+            _guide.StepOpened -= OnStepOpened;
 
         var wasPageGuide = _currentPageGuide;
 
@@ -416,6 +425,41 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private void OnStepOpening(object? sender, GuideStepEventArgs e)
     {
         HandleStepOpening(e.Index, e.Step);
+    }
+
+    /// <summary>步骤打开后触发卡片弹出动画。</summary>
+    private static void OnStepOpened(object? sender, GuideStepEventArgs e)
+    {
+        if (sender is Guide guide)
+            AnimateCardBounce(guide, delayMs: 30);
+    }
+
+    /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
+    private static async void AnimateCardBounce(Guide guide, int delayMs)
+    {
+        // 查找模板中的卡片 Border
+        var card = FindTemplateChild<Border>(guide, "PART_CardRoot");
+        if (card?.RenderTransform is ScaleTransform scale)
+        {
+            scale.ScaleX = 0.96;
+            scale.ScaleY = 0.96;
+            await Task.Delay(delayMs);
+            scale.ScaleX = 1.0;
+            scale.ScaleY = 1.0;
+        }
+    }
+
+    /// <summary>从控件模板中按名称查找子元素。</summary>
+    private static T? FindTemplateChild<T>(Control control, string name) where T : class
+    {
+        // 遍历视觉树查找命名元素
+        var children = control.GetVisualDescendants();
+        foreach (var child in children)
+        {
+            if (child is T typed && child.Name == name)
+                return typed;
+        }
+        return null;
     }
 
     private static MainWindow? GetMainWindow()
