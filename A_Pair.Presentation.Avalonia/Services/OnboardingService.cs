@@ -435,10 +435,14 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         HandleStepOpening(e.Index, e.Step);
     }
 
-    /// <summary>步骤打开后（只做清理/诊断，不触发动画——避免闪烁）。</summary>
-    private static void OnStepOpened(object? sender, GuideStepEventArgs e)
+    /// <summary>步骤打开后：诊断 TargetRegion 状态。</summary>
+    private void OnStepOpened(object? sender, GuideStepEventArgs e)
     {
-        // 不再触发动画；仅首次出场有弹出动画
+        if (sender is Guide guide)
+        {
+            _logger.LogInformation("[Onboarding] StepOpened: TargetRegionVisible={Vis}, TargetRegion={Region}",
+                guide.TargetRegionVisible, guide.TargetRegion);
+        }
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>

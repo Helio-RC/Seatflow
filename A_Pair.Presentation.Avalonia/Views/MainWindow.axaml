@@ -278,7 +278,7 @@
                   MaskColor="#80000000"
                   TargetBorderBrush="{DynamicResource SystemAccentColor}"
                   TargetBorderThickness="3"
-                  TargetResolveDelay="0:0:0"
+                  TargetResolveDelay="0:0:0.10"
                   PreviousText="{x:Static lang:Resources.Guide_Previous}"
                   NextText="{x:Static lang:Resources.Guide_Next}"
                   FinishText="{x:Static lang:Resources.Guide_Finish}"
