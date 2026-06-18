@@ -43,6 +43,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     // MainWindow 中的 Grid 层控件（非 Popup）
     private Border? _mask;
     private Border? _card;
+    private Border? _highlight;
     private TextBlock? _cardTitle;
     private TextBlock? _cardDesc;
     private Button? _prevBtn;
@@ -176,6 +177,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         if (mw is null || _mask is not null) return;
         _mask = mw.GuideMaskOverlay;
         _card = mw.GuideCardOverlay;
+        _highlight = mw.GuideTargetHighlight;
         _cardTitle = mw.GuideCardTitle;
         _cardDesc = mw.GuideCardDesc;
         _prevBtn = mw.GuideCardPrevButton;
@@ -225,15 +227,16 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _mask.IsVisible = true;
         _mask.Opacity = 1;
 
-        // 定位卡片
+        // 定位高亮 + 卡片
         var target = ResolveTarget(def.Target);
         if (target is not null)
         {
+            PositionHighlight(target);
             PositionCardNear(target, def.Placement);
         }
         else
         {
-            // 居中
+            if (_highlight is not null) _highlight.IsVisible = false;
             _card.HorizontalAlignment = HorizontalAlignment.Center;
             _card.VerticalAlignment = VerticalAlignment.Center;
             _card.Margin = new Thickness(0);
@@ -241,6 +244,19 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         _card.IsVisible = true;
         _card.Focus();
+    }
+
+    private void PositionHighlight(Control target)
+    {
+        if (_highlight is null) return;
+        var mw = GetMainWindow();
+        if (mw is null) return;
+        var pt = target.TranslatePoint(new Point(0, 0), mw) ?? new Point(0, 0);
+        var padding = 4; // GapRadius
+        _highlight.Margin = new Thickness(pt.X - padding, pt.Y - padding, 0, 0);
+        _highlight.Width = target.Bounds.Width + padding * 2;
+        _highlight.Height = target.Bounds.Height + padding * 2;
+        _highlight.IsVisible = true;
     }
 
     private void PositionCardNear(Control target, string placement)
@@ -352,6 +368,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _currentPageGuide = null;
 
         if (_mask is not null) _mask.IsVisible = false;
+        if (_highlight is not null) _highlight.IsVisible = false;
         if (_card is not null) _card.IsVisible = false;
 
         if (wasPageGuide is not null)

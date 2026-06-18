@@ -274,6 +274,17 @@
       </Border.Transitions>
     </Border>
 
+    <!-- 目标高亮边框：与主页面同级 -->
+    <Border x:Name="GuideTargetHighlight"
+            IsVisible="False"
+            IsHitTestVisible="False"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            BorderBrush="{DynamicResource SystemAccentColor}"
+            BorderThickness="3"
+            CornerRadius="4"
+            Background="Transparent" />
+
     <!-- 引导卡片：与主页面同级，非 Popup -->
     <Border x:Name="GuideCardOverlay"
             IsVisible="False"
