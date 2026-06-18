@@ -203,18 +203,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var ctrl = ResolveTarget(stepDef.Target);
             step.Target = ctrl;
-
-            // 跨阶段首步：页面刚切换还未渲染，延迟重试
-            if (ctrl is null && IsPhaseFirstStep(stepIndex))
-            {
-                var capturedStep = step;
-                var capturedName = stepDef.Target;
-                Dispatcher.UIThread.Post(() =>
-                {
-                    var retry = ResolveTarget(capturedName);
-                    capturedStep.Target = retry;
-                }, DispatcherPriority.Background);
-            }
         }
 
         // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
@@ -349,40 +337,38 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return steps;
     }
 
-    private Control? ResolveTarget(string name)
+    private static Control? ResolveTarget(string name)
     {
         var mainWindow = GetMainWindow();
         if (mainWindow is null) return null;
 
         var names = name.Split(';');
-        var trimmed = names[0].Trim();
 
-        // 1. MainWindow NameScope
-        var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
-        if (mainScope is not null)
+        foreach (var n in names)
         {
-            var element = mainScope.Find(trimmed);
-            if (element is Control c) return c;
-        }
+            var trimmed = n.Trim();
 
-        // 2. 通过 ContentPresenter → Child → NameScope
-        var presenters = mainWindow.PageHost.GetVisualDescendants()
-            .OfType<ContentPresenter>().ToList();
-        _logger.LogInformation("[Onboarding] ResolveTarget '{Name}': ContentPresenters={Count}", trimmed, presenters.Count);
+            // 1. MainWindow 的 NameScope（ToggleSidebarButton 等）
+            var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
+            if (mainScope is not null)
+            {
+                var element = mainScope.Find(trimmed);
+                if (element is Control c) return c;
+            }
 
-        foreach (var presenter in presenters)
-        {
-            var child = presenter.Child;
-            _logger.LogInformation("[Onboarding]   Presenter.Child={Type}", child?.GetType().Name ?? "null");
-            if (child is not Control pageView) continue;
-
-            var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(pageView);
-            _logger.LogInformation("[Onboarding]   PageView={Type}, NameScope={NotNull}", pageView.GetType().Name, pageScope is not null);
-            if (pageScope is null) continue;
-
-            var element = pageScope.Find(trimmed);
-            _logger.LogInformation("[Onboarding]   Find('{Name}') = {Found}", trimmed, element?.GetType().Name ?? "null");
-            if (element is Control c) return c;
+            // 2. 通过 ContentPresenter → Child → 当前页面 View → NameScope
+            var presenter = mainWindow.PageHost.GetVisualDescendants()
+                .OfType<ContentPresenter>()
+                .FirstOrDefault();
+            if (presenter?.Child is Control pageView)
+            {
+                var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(pageView);
+                if (pageScope is not null)
+                {
+                    var element = pageScope.Find(trimmed);
+                    if (element is Control c) return c;
+                }
+            }
         }
 
         return null;
@@ -394,11 +380,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             if (_activePhaseBoundaries[i] <= stepIndex)
                 return i;
         return 0;
-    }
-
-    private bool IsPhaseFirstStep(int stepIndex)
-    {
-        return _activePhaseBoundaries.Contains(stepIndex) && stepIndex > 0;
     }
 
     /// <summary>
@@ -454,18 +435,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         HandleStepOpening(e.Index, e.Step);
     }
 
-    /// <summary>步骤打开后：若 TargetRegion 仍为空，Guide 内部重试已达上限，手动刷新一次。</summary>
-    private void OnStepOpened(object? sender, GuideStepEventArgs e)
+    /// <summary>步骤打开后（只做清理/诊断，不触发动画——避免闪烁）。</summary>
+    private static void OnStepOpened(object? sender, GuideStepEventArgs e)
     {
-        if (sender is not Guide guide || guide.TargetRegionVisible) return;
-        if (e.Step.Target is null) return;
-
-        // Guide 已尝试并放弃；此时页面已渲染完，再给一次机会
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (!guide.TargetRegionVisible)
-                guide.Refresh();
-        }, DispatcherPriority.Background);
+        // 不再触发动画；仅首次出场有弹出动画
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>

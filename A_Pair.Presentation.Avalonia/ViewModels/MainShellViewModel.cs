@@ -108,19 +108,24 @@ public partial class MainShellViewModel : ViewModelBase
         var newVm = _navigation.CurrentViewModel;
         var newPage = _navigation.CurrentPage;
 
+        // 引导模式：极快淡出→切换→淡入，有动画但不拖沓
+        var fadeDuration = IsOnboardingActive
+            ? TimeSpan.FromMilliseconds(50)
+            : FadeOutDuration;
+        var stagger = IsOnboardingActive
+            ? TimeSpan.Zero
+            : StaggerDelay;
+
         try
         {
-            // 旧页淡出
             PageOpacity = 0;
-            await Task.Delay(FadeOutDuration , ct);
+            await Task.Delay(fadeDuration, ct);
 
-            // 内容切换
             CurrentViewModel = newVm;
             CurrentPage = newPage;
 
-            // 新页淡入
             PageOpacity = 1;
-            await Task.Delay(StaggerDelay , ct);
+            await Task.Delay(stagger, ct);
         }
         catch (OperationCanceledException)
         {

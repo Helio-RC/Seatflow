@@ -263,7 +263,7 @@
     </Grid>
   </DockPanel>
 
-    <!-- 首次启动引导（含镂空遮罩 + 目标高亮 + 卡片弹窗） -->
+    <!-- 首次启动引导覆盖层 -->
     <codewf:Guide x:Name="OnboardingGuide"
                   Placement="Right"
                   PopupOffset="14"
@@ -274,7 +274,7 @@
                   GapOffsetY="4"
                   IsPointAtCenter="True"
                   IsScrollIntoView="True"
-                  IsShowMask="True"
+                  IsShowMask="False"
                   MaskColor="#80000000"
                   TargetBorderBrush="{DynamicResource SystemAccentColor}"
                   TargetBorderThickness="3"
