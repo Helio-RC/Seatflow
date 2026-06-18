@@ -349,38 +349,40 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return steps;
     }
 
-    private static Control? ResolveTarget(string name)
+    private Control? ResolveTarget(string name)
     {
         var mainWindow = GetMainWindow();
         if (mainWindow is null) return null;
 
         var names = name.Split(';');
+        var trimmed = names[0].Trim();
 
-        foreach (var n in names)
+        // 1. MainWindow NameScope
+        var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
+        if (mainScope is not null)
         {
-            var trimmed = n.Trim();
+            var element = mainScope.Find(trimmed);
+            if (element is Control c) return c;
+        }
 
-            // 1. MainWindow 的 NameScope（ToggleSidebarButton 等）
-            var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
-            if (mainScope is not null)
-            {
-                var element = mainScope.Find(trimmed);
-                if (element is Control c) return c;
-            }
+        // 2. 通过 ContentPresenter → Child → NameScope
+        var presenters = mainWindow.PageHost.GetVisualDescendants()
+            .OfType<ContentPresenter>().ToList();
+        _logger.LogInformation("[Onboarding] ResolveTarget '{Name}': ContentPresenters={Count}", trimmed, presenters.Count);
 
-            // 2. 通过 ContentPresenter → Child → 当前页面 View → NameScope
-            var presenter = mainWindow.PageHost.GetVisualDescendants()
-                .OfType<ContentPresenter>()
-                .FirstOrDefault();
-            if (presenter?.Child is Control pageView)
-            {
-                var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(pageView);
-                if (pageScope is not null)
-                {
-                    var element = pageScope.Find(trimmed);
-                    if (element is Control c) return c;
-                }
-            }
+        foreach (var presenter in presenters)
+        {
+            var child = presenter.Child;
+            _logger.LogInformation("[Onboarding]   Presenter.Child={Type}", child?.GetType().Name ?? "null");
+            if (child is not Control pageView) continue;
+
+            var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(pageView);
+            _logger.LogInformation("[Onboarding]   PageView={Type}, NameScope={NotNull}", pageView.GetType().Name, pageScope is not null);
+            if (pageScope is null) continue;
+
+            var element = pageScope.Find(trimmed);
+            _logger.LogInformation("[Onboarding]   Find('{Name}') = {Found}", trimmed, element?.GetType().Name ?? "null");
+            if (element is Control c) return c;
         }
 
         return null;
