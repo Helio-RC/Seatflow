@@ -166,11 +166,8 @@ namespace A_Pair.Presentation.Avalonia
                     });
                 };
 
-                // 启动时恢复已保存的设置（主题、语言等）
-                _ = RestoreSettingsAsync();
-
-                // 检查并启动首次使用引导
-                _ = CheckAndStartOnboardingAsync(mainWindow);
+                // 按序执行：先检查引导（此时文件不存在=首次启动），再恢复设置
+                _ = InitializeAsync(mainWindow);
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -255,6 +252,13 @@ namespace A_Pair.Presentation.Avalonia
             {
                 // 设置读取失败则跳过引导
             }
+        }
+
+        private async Task InitializeAsync (MainWindow mainWindow)
+        {
+            // 先检查引导，再恢复设置；确保首次启动检测在文件创建之前
+            await CheckAndStartOnboardingAsync(mainWindow);
+            await RestoreSettingsAsync();
         }
     }
 
