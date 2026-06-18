@@ -11,6 +11,7 @@ using A_Pair.Presentation.Avalonia.ViewModels;
 using A_Pair.Presentation.Avalonia.Views;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Media;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
@@ -198,16 +199,39 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         var stepDef = _activeStepDefs[stepIndex];
 
-        // 1. 解析 Target 控件名 → 实际 Control
+        // 1. Target 延迟解析：StepOpening 触发时页面可能尚未渲染完，
+        //    先置空，等 Guide 的 TargetResolveDelay + 重试机制在页面渲染后自动找到
         if (!string.IsNullOrEmpty(stepDef.Target))
         {
+            // 先立即尝试一次（MainWindow 内控件可即时找到）
             var ctrl = ResolveTarget(stepDef.Target);
-            step.Target = ctrl;
             if (ctrl is not null)
-                _logger.LogInformation("[Onboarding] Step {Idx}: Target '{Name}' → {Type} Bounds={Bounds}",
-                    stepIndex, stepDef.Target, ctrl.GetType().Name, ctrl.Bounds);
+            {
+                step.Target = ctrl;
+                _logger.LogInformation("[Onboarding] Step {Idx}: Target '{Name}' → {Type}",
+                    stepIndex, stepDef.Target, ctrl.GetType().Name);
+            }
             else
-                _logger.LogWarning("[Onboarding] Step {Idx}: 未找到 Target '{Name}'", stepIndex, stepDef.Target);
+            {
+                // 延迟重试：页面渲染需要时间，在 Background 优先级重试
+                var capturedStep = step;
+                var capturedName = stepDef.Target;
+                var capturedIdx = stepIndex;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    var resolved = ResolveTarget(capturedName);
+                    if (resolved is not null)
+                    {
+                        capturedStep.Target = resolved;
+                        _logger.LogInformation("[Onboarding] Step {Idx}: 延迟找到 Target '{Name}' → {Type}",
+                            capturedIdx, capturedName, resolved.GetType().Name);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("[Onboarding] Step {Idx}: Target '{Name}' 未找到", capturedIdx, capturedName);
+                    }
+                }, DispatcherPriority.Background);
+            }
         }
 
         // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
@@ -342,7 +366,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return steps;
     }
 
-    private Control? ResolveTarget(string name)
+    private static Control? ResolveTarget(string name)
     {
         var mainWindow = GetMainWindow();
         if (mainWindow is null) return null;
@@ -353,7 +377,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var trimmed = n.Trim();
 
-            // 1. MainWindow 自身 NameScope（侧边栏按钮等）
+            // 1. MainWindow 的 NameScope（ToggleSidebarButton 等）
             var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
             if (mainScope is not null)
             {
@@ -361,27 +385,21 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                 if (element is Control c) return c;
             }
 
-            // 2. 当前页面视觉树中按 Name 查找（绕过 NameScope，后者对动态加载页面常为 null）
-            if (mainWindow.PageHost.Content is Control page)
+            // 2. 通过 ContentPresenter → Child → 当前页面 View → NameScope
+            var presenter = mainWindow.PageHost.GetVisualDescendants()
+                .OfType<ContentPresenter>()
+                .FirstOrDefault();
+            if (presenter?.Child is Control pageView)
             {
-                var found = FindByNameInVisualTree(page, trimmed);
-                if (found is not null) return found;
+                var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(pageView);
+                if (pageScope is not null)
+                {
+                    var element = pageScope.Find(trimmed);
+                    if (element is Control c) return c;
+                }
             }
         }
 
-        return null;
-    }
-
-    /// <summary>在当前页面的视觉树中按 Name 递归查找控件。</summary>
-    private static Control? FindByNameInVisualTree(Control root, string name)
-    {
-        if (root.Name == name) return root;
-
-        foreach (var child in root.GetVisualDescendants())
-        {
-            if (child is Control c && c.Name == name)
-                return c;
-        }
         return null;
     }
 
