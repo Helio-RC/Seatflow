@@ -61,11 +61,15 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     public void StartOnboarding()
     {
+        _logger.LogInformation("[Onboarding] StartOnboarding 开始");
+
         if (_config is null)
         {
             _config = LoadConfig();
-            _ = LoadCompletedPageGuidesAsync(); // 不阻塞 UI；TryShowPageGuide 有守卫
+            _logger.LogInformation("[Onboarding] 配置已加载，StartupPhases={Count}", _config.StartupPhases.Count);
+            _ = LoadCompletedPageGuidesAsync();
             FlattenStartupSteps();
+            _logger.LogInformation("[Onboarding] 步骤已平铺，共 {Count} 步", _activeStepDefs.Count);
         }
 
         _isCompleting = false;
@@ -73,26 +77,41 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         IsActive = true;
 
         var mainWindow = GetMainWindow();
+        _logger.LogInformation("[Onboarding] MainWindow={NotNull}", mainWindow is not null);
         if (mainWindow?.DataContext is MainShellViewModel vm)
         {
+            _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到 Home");
             vm.IsOnboardingActive = true;
             vm.EnsureSidebarExpanded();
             vm.OnboardingNavigateTo(PageKey.Home);
         }
+        else
+        {
+            _logger.LogWarning("[Onboarding] MainShellViewModel 不可用！DataContext={Type}", mainWindow?.DataContext?.GetType().FullName);
+        }
 
         _guide = mainWindow?.OnboardingGuide;
+        _logger.LogInformation("[Onboarding] Guide 控件={NotNull}", _guide is not null);
         if (_guide is not null)
             _guide.StepOpening += OnStepOpening;
+        else
+            _logger.LogError("[Onboarding] OnboardingGuide 控件为 null！无法显示引导");
 
-        // 等待首页渲染后显示引导
+        // 使用 Background 优先级（而非 Loaded），因为 Loaded 依赖布局 pass，
+        // 但如果当前页面已是 Home，NavigateTo 会跳过导航，不触发布局 pass，
+        // 导致 Loaded 回调永远不执行。Guide 控件自带 TargetResolveDelay 重试。
         Dispatcher.UIThread.Post(() =>
         {
+            _logger.LogInformation("[Onboarding] Post 回调执行，_guide={NotNull}", _guide is not null);
             if (_guide is null) return;
-            _guide.StepsSource = BuildAllStartupSteps();
+            var steps = BuildAllStartupSteps();
+            _logger.LogInformation("[Onboarding] 构建了 {Count} 个 GuideStepOption", steps.Count);
+            _guide.StepsSource = steps;
             _guide.GoTo(0);
             _guide.IsVisible = true;
             _guide.Show();
-        }, DispatcherPriority.Loaded);
+            _logger.LogInformation("[Onboarding] Guide.Show() 已调用，IsOpen={IsOpen}", _guide.IsOpen);
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>检查并触发页面的独立引导块（首次访问时）。返回 true 表示触发了引导。</summary>

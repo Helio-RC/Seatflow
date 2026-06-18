@@ -225,6 +225,7 @@ namespace A_Pair.Presentation.Avalonia
         {
             try
             {
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
                 // 检测是否需要显示引导：
                 // 1. 设置文件不存在 → 真正的首次启动
                 // 2. 用户通过设置页面请求重新引导（IsFirstLaunch = true）
@@ -235,8 +236,10 @@ namespace A_Pair.Presentation.Avalonia
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
 
+                logger.LogInformation("[Onboarding] isTrueFirstLaunch={A}, IsFirstLaunch={B}", isTrueFirstLaunch, settings.IsFirstLaunch);
                 if (isTrueFirstLaunch || settings.IsFirstLaunch)
                 {
+                    logger.LogInformation("[Onboarding] 触发启动引导");
                     // 立即标记完成（崩溃安全）
                     settings.IsFirstLaunch = false;
                     await facade.SaveAppSettingsAsync(settings);
@@ -249,9 +252,10 @@ namespace A_Pair.Presentation.Avalonia
                     }, DispatcherPriority.Background);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // 设置读取失败则跳过引导
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogError(ex, "[Onboarding] CheckAndStartOnboardingAsync 异常");
             }
         }
 
