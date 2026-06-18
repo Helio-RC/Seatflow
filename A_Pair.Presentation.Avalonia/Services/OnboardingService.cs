@@ -200,7 +200,15 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         // 1. 解析 Target 控件名 → 实际 Control
         if (!string.IsNullOrEmpty(stepDef.Target))
-            step.Target = ResolveTarget(stepDef.Target);
+        {
+            var ctrl = ResolveTarget(stepDef.Target);
+            step.Target = ctrl;
+            if (ctrl is not null)
+                _logger.LogInformation("[Onboarding] Step {Idx}: Target '{Name}' → {Type} Bounds={Bounds}",
+                    stepIndex, stepDef.Target, ctrl.GetType().Name, ctrl.Bounds);
+            else
+                _logger.LogWarning("[Onboarding] Step {Idx}: 未找到 Target '{Name}'", stepIndex, stepDef.Target);
+        }
 
         // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
         if (_currentPageGuide is null)

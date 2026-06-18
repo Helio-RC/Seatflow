@@ -95,7 +95,8 @@
               ShouldUseOverlayLayer="False"
               Topmost="False"
               WindowManagerAddShadowHint="False">
-            <codewf:GuideOverlay Name="PART_Overlay">
+            <codewf:GuideOverlay Name="PART_Overlay"
+                MaskBrush="{TemplateBinding CurrentMaskColor}">
               <codewf:GuideOverlay.Transitions>
                 <Transitions>
                   <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseOut" />
@@ -104,14 +105,18 @@
             </codewf:GuideOverlay>
           </Popup>
 
-          <!-- 目标高亮层 -->
+          <!-- 目标高亮层：绑定额外的 TargetRegion 属性以渲染镂空边框 -->
           <Popup
               Name="PART_TargetMaskPopup"
               IsLightDismissEnabled="False"
-              ShouldUseOverlayLayer="False"
+              ShouldUseOverlayLayer="True"
               Topmost="True"
               WindowManagerAddShadowHint="False">
-            <codewf:GuideOverlay Name="PART_TargetOverlay">
+            <codewf:GuideOverlay Name="PART_TargetOverlay"
+                MaskBrush="{TemplateBinding CurrentMaskColor}"
+                TargetRegion="{TemplateBinding TargetRegion}"
+                TargetRegionBorderBrush="{TemplateBinding TargetBorderBrush}"
+                TargetRegionBorderThickness="{TemplateBinding TargetBorderThickness}">
               <codewf:GuideOverlay.Transitions>
                 <Transitions>
                   <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
