@@ -436,11 +436,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         HandleStepOpening(e.Index, e.Step);
     }
 
-    /// <summary>步骤打开后触发卡片弹出动画。</summary>
+    /// <summary>步骤打开后（只做清理/诊断，不触发动画——避免闪烁）。</summary>
     private static void OnStepOpened(object? sender, GuideStepEventArgs e)
     {
-        if (sender is Guide guide)
-            AnimateCardBounce(guide, delayMs: 0);
+        // 不再触发动画；仅首次出场有弹出动画
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>

@@ -103,8 +103,8 @@
           <Popup
               Name="PART_TargetMaskPopup"
               IsLightDismissEnabled="False"
-              ShouldUseOverlayLayer="True"
-              Topmost="True"
+              ShouldUseOverlayLayer="False"
+              Topmost="False"
               WindowManagerAddShadowHint="False">
             <codewf:GuideOverlay Name="PART_TargetOverlay"
                 MaskBrush="{TemplateBinding CurrentMaskColor}"
@@ -118,7 +118,7 @@
               Name="PART_Popup"
               IsLightDismissEnabled="False"
               ShouldUseOverlayLayer="False"
-              Topmost="True"
+              Topmost="False"
               WindowManagerAddShadowHint="False">
             <Grid Background="Transparent">
               <codewf:GuideArrow
@@ -142,11 +142,6 @@
                   CornerRadius="{StaticResource GuideBorderRadiusMedium}"
                   Focusable="True"
                   RenderTransformOrigin="50%,50%">
-                <Border.Transitions>
-                  <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.12" Easing="CubicEaseOut" />
-                  </Transitions>
-                </Border.Transitions>
                 <Border.RenderTransform>
                   <ScaleTransform ScaleX="1" ScaleY="1">
                     <ScaleTransform.Transitions>
