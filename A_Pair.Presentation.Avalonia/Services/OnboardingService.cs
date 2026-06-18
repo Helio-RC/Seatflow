@@ -353,6 +353,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var trimmed = n.Trim();
 
+            // 1. MainWindow 自身 NameScope（侧边栏按钮等）
             var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
             if (mainScope is not null)
             {
@@ -360,17 +361,27 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                 if (element is Control c) return c;
             }
 
+            // 2. 当前页面视觉树中按 Name 查找（绕过 NameScope，后者对动态加载页面常为 null）
             if (mainWindow.PageHost.Content is Control page)
             {
-                var pageScope = global::Avalonia.Controls.NameScope.GetNameScope(page);
-                if (pageScope is not null)
-                {
-                    var element = pageScope.Find(trimmed);
-                    if (element is Control c) return c;
-                }
+                var found = FindByNameInVisualTree(page, trimmed);
+                if (found is not null) return found;
             }
         }
 
+        return null;
+    }
+
+    /// <summary>在当前页面的视觉树中按 Name 递归查找控件。</summary>
+    private static Control? FindByNameInVisualTree(Control root, string name)
+    {
+        if (root.Name == name) return root;
+
+        foreach (var child in root.GetVisualDescendants())
+        {
+            if (child is Control c && c.Name == name)
+                return c;
+        }
         return null;
     }
 
