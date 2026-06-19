@@ -1,5 +1,3 @@
-using A_Pair.Core.Models;
-
 namespace A_Pair.Application.Tests.Services;
 
 public class ConfigCleanupTests

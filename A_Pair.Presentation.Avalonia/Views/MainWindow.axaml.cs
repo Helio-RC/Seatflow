@@ -6,7 +6,6 @@ using A_Pair.Presentation.Avalonia.Services;
 using A_Pair.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using CodeWF.AvaloniaControls.Controls;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +17,7 @@ namespace A_Pair.Presentation.Avalonia.Views
         private readonly INavigationService _navigation;
         private bool _isClosingConfirmed;
 
-        public MainWindow(IOnboardingService onboarding , INavigationService navigation)
+        public MainWindow (IOnboardingService onboarding , INavigationService navigation)
         {
             _onboarding = onboarding;
             _navigation = navigation;
@@ -27,26 +26,26 @@ namespace A_Pair.Presentation.Avalonia.Views
             // 引导期间窗口最小化/Alt+Tab 时，Guide 的 Popup
             // (ShouldUseOverlayLayer=False) 可能残留为孤儿 OS 窗口。
             // 订阅窗口激活/失活事件以同步隐藏/恢复。
-            Activated += (_, _) => _onboarding.HandleWindowActivated();
-            Deactivated += (_, _) => _onboarding.HandleWindowDeactivated();
+            Activated += (_ , _) => _onboarding.HandleWindowActivated();
+            Deactivated += (_ , _) => _onboarding.HandleWindowDeactivated();
         }
 
         /// <summary>Guide 步骤全部完成（用户点击最后一步的"完成"按钮）。</summary>
-        private void OnGuideCompleted(object? sender, EventArgs e)
+        private void OnGuideCompleted (object? sender , EventArgs e)
             => _onboarding.HandleGuideCompleted();
 
         /// <summary>Guide 被用户关闭（点击 × 或按 Esc）。</summary>
-        private async void OnGuideClosed(object? sender, EventArgs e)
+        private async void OnGuideClosed (object? sender , EventArgs e)
         {
             if (!await _onboarding.HandleGuideClosedAsync())
                 OnboardingGuide.Show();
         }
 
         /// <summary>Guide 步骤切换前，解析 Target、处理跨阶段页面导航。</summary>
-        private void OnGuideStepOpening(object? sender, GuideStepEventArgs e)
-            => _onboarding.HandleStepOpening(e.Index, e.Step);
+        private void OnGuideStepOpening (object? sender , GuideStepEventArgs e)
+            => _onboarding.HandleStepOpening(e.Index , e.Step);
 
-        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
 
@@ -54,17 +53,17 @@ namespace A_Pair.Presentation.Avalonia.Views
                 vm.OnWindowWidthChanged(Bounds.Width);
         }
 
-        protected override async void OnClosing(WindowClosingEventArgs e)
+        protected override async void OnClosing (WindowClosingEventArgs e)
         {
             // 已确认关闭：保存窗口状态并真正退出
             if (_isClosingConfirmed)
             {
                 var state = new WindowStateSettings
                 {
-                    Left = Position.X,
-                    Top = Position.Y,
-                    Width = Width,
-                    Height = Height,
+                    Left = Position.X ,
+                    Top = Position.Y ,
+                    Width = Width ,
+                    Height = Height ,
                     IsMaximized = WindowState == WindowState.Maximized
                 };
 
@@ -97,7 +96,7 @@ namespace A_Pair.Presentation.Avalonia.Views
         /// 异步 continuation 无法回发到 UI 线程，导致写入丢失。
         /// 使用 Task.Run 将整个操作放到线程池，避免阻塞 UI 线程时发生死锁。
         /// </remarks>
-        private static void SaveWindowStateBlocking(WindowStateSettings state)
+        private static void SaveWindowStateBlocking (WindowStateSettings state)
         {
             try
             {

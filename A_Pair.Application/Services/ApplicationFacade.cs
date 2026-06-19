@@ -457,7 +457,7 @@ namespace A_Pair.Application.Services
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
-            logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位",
+            logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位" ,
                 layoutId , students.Count , seats.Count);
 
             return workspace;
@@ -1384,7 +1384,7 @@ namespace A_Pair.Application.Services
                         continue;
 
                     logger.LogWarning(
-                        "清理孤立策略配置：{StrategyId} / Dataset={DatasetId} / Venue={VenueId}（数据集存在={DsOk}，会场存在={VOk}）",
+                        "清理孤立策略配置：{StrategyId} / Dataset={DatasetId} / Venue={VenueId}（数据集存在={DsOk}，会场存在={VOk}）" ,
                         sid , config.DatasetId , config.VenueId , !datasetGone , !venueGone);
 
                     if (pkg != null)

@@ -59,5 +59,5 @@ public sealed class StrategyConfigRow
     public double? SeatY { get; set; }
 
     /// <summary>声明的字段值（由 StrategyFieldDefinition.Name 索引）。</summary>
-    public Dictionary<string, object?> Values { get; set; } = [];
+    public Dictionary<string , object?> Values { get; set; } = [];
 }

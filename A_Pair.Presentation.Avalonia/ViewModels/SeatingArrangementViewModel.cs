@@ -725,7 +725,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             await SafeExecuteAsync(async () =>
             {
                 var assignCmd = new AssignSeatCommand(clickedSeat.SeatId , student.Id);
-                var ok = await _facade.ExecuteCommandAsync(assignCmd, recordInHistory: false);
+                var ok = await _facade.ExecuteCommandAsync(assignCmd , recordInHistory: false);
                 if (ok)
                 {
                     await FinalizeManualOperationAsync(
@@ -765,7 +765,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 (source.SeatId , source.StudentId) ,
                 (clickedSeat.SeatId , clickedSeat.IsOccupied ? clickedSeat.StudentId : null));
 
-            var ok = await _facade.ExecuteCommandAsync(swapCmd, recordInHistory: false);
+            var ok = await _facade.ExecuteCommandAsync(swapCmd , recordInHistory: false);
             if (ok)
             {
                 await FinalizeManualOperationAsync(
@@ -800,7 +800,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var removeCmd = new RemoveStudentCommand(_swapSourceSeat.SeatId);
-            var ok = await _facade.ExecuteCommandAsync(removeCmd, recordInHistory: false);
+            var ok = await _facade.ExecuteCommandAsync(removeCmd , recordInHistory: false);
             if (ok)
             {
                 await FinalizeManualOperationAsync(
@@ -866,7 +866,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             return false;
         }
 
-        var ok = await _facade.ExecuteCommandAsync(cmd, ct, recordInHistory: false);
+        var ok = await _facade.ExecuteCommandAsync(cmd , ct , recordInHistory: false);
         if (ok)
         {
             await FinalizeManualOperationAsync(
@@ -891,7 +891,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var seatLabel = item.SeatLabel;
 
         var cmd = new RemoveStudentCommand(seatId);
-        var ok = await _facade.ExecuteCommandAsync(cmd, ct, recordInHistory: false);
+        var ok = await _facade.ExecuteCommandAsync(cmd , ct , recordInHistory: false);
         if (ok)
         {
             await FinalizeManualOperationAsync(

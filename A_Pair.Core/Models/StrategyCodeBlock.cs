@@ -13,7 +13,7 @@ public sealed class StrategyParameterDefinition
     public StrategyFieldType FieldType { get; init; }
 
     /// <summary>多语言标签。key 为语言代码（zh-CN / en-US 等）。</summary>
-    public Dictionary<string, string> Label { get; init; } = [];
+    public Dictionary<string , string> Label { get; init; } = [];
 
     /// <summary>默认值。</summary>
     public object? DefaultValue { get; init; }
@@ -38,10 +38,10 @@ public sealed class StrategyParameterDefinition
 public sealed class StrategyCodeBlock
 {
     /// <summary>块标题的多语言文本。</summary>
-    public Dictionary<string, string> Title { get; init; } = [];
+    public Dictionary<string , string> Title { get; init; } = [];
 
     /// <summary>块描述的多语言文本（可选）。</summary>
-    public Dictionary<string, string>? Description { get; init; }
+    public Dictionary<string , string>? Description { get; init; }
 
     /// <summary>引用的数据类型。</summary>
     public StrategyDataType DataType { get; init; }
@@ -103,7 +103,7 @@ public sealed class StrategyFieldDefinition
     public StrategyFieldType FieldType { get; init; }
 
     /// <summary>多语言标签（模板文字）。</summary>
-    public Dictionary<string, string> Label { get; init; } = [];
+    public Dictionary<string , string> Label { get; init; } = [];
 
     /// <summary>下拉框数据源（仅 FieldType=Dropdown 时有效）。</summary>
     public string? DropdownSource { get; init; }

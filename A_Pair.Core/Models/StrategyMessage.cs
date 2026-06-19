@@ -19,10 +19,10 @@ public enum StrategyMessageSeverity
 /// <param name="StrategyDisplayName">策略展示名称（如 "同桌分组"），便于 UI 层直接使用无需反查。</param>
 /// <param name="MessageKey">对应 manifest messages 中的 i18n 键。</param>
 /// <param name="Args">string.Format 参数。</param>
-public record StrategyMessage(
-    StrategyMessageSeverity Severity,
-    string StrategyId,
-    string StrategyDisplayName,
-    string MessageKey,
+public record StrategyMessage (
+    StrategyMessageSeverity Severity ,
+    string StrategyId ,
+    string StrategyDisplayName ,
+    string MessageKey ,
     object?[] Args
 );

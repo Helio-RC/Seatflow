@@ -2,9 +2,8 @@ using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 
@@ -60,25 +59,27 @@ public partial class SeatingArrangementView : UserControl
         var isDark = global::Avalonia.Application.Current!.ActualThemeVariant == global::Avalonia.Styling.ThemeVariant.Dark;
         var cardShadow = new BoxShadows(new BoxShadow
         {
-            OffsetX = 0 , OffsetY = 2 , Blur = 8 ,
+            OffsetX = 0 ,
+            OffsetY = 2 ,
+            Blur = 8 ,
             Color = Color.FromArgb(isDark ? (byte)0x40 : (byte)0x18 , 0 , 0 , 0)
         });
 
         _dragPopup = new Popup
         {
-            PlacementTarget = placementTarget,
-            Placement = PlacementMode.Pointer,
-            IsLightDismissEnabled = false,
-            HorizontalOffset = 12,
-            VerticalOffset = 12,
+            PlacementTarget = placementTarget ,
+            Placement = PlacementMode.Pointer ,
+            IsLightDismissEnabled = false ,
+            HorizontalOffset = 12 ,
+            VerticalOffset = 12 ,
             Child = new Border
             {
-                Background = cardBg,
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0 , accentColor.R , accentColor.G , accentColor.B)),
-                BorderThickness = new Thickness(2),
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(10 , 5),
-                BoxShadow = cardShadow,
+                Background = cardBg ,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0 , accentColor.R , accentColor.G , accentColor.B)) ,
+                BorderThickness = new Thickness(2) ,
+                CornerRadius = new CornerRadius(4) ,
+                Padding = new Thickness(10 , 5) ,
+                BoxShadow = cardShadow ,
                 Child = new TextBlock
                 {
                     Text = name ,

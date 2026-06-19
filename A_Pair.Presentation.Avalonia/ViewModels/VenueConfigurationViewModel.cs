@@ -1076,7 +1076,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
 
     private void SubscribeToDoorCollection (ObservableCollection<DoorItem> doors)
     {
-        doors.CollectionChanged += (_, e) =>
+        doors.CollectionChanged += (_ , e) =>
         {
             if (e.NewItems != null)
             {

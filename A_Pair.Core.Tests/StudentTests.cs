@@ -21,7 +21,7 @@ public class StudentTests
     {
         var s = new Student();
         // 默认容量为 10，填充超过容量以验证环形覆盖行为
-        for (int i = 1 ; i <= 12 ; i++)
+        for (int i = 1; i <= 12; i++)
             s.RecentSeatHistory.Add($"seat{i}");
         // 最旧的 seat1, seat2 被覆盖，保留最新的 10 条
         var expected = Enumerable.Range(3 , 10).Select(i => $"seat{i}").ToArray();

@@ -4,7 +4,7 @@ namespace A_Pair.Presentation.Avalonia.Views;
 
 public partial class StudentPickerView : UserControl
 {
-    public StudentPickerView()
+    public StudentPickerView ()
     {
         InitializeComponent();
     }

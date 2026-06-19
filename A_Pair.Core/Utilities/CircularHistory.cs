@@ -77,7 +77,7 @@ public class CircularHistory<T> : IEnumerable<T>
 
         // 缩容时只保留最新的 newCapacity 条；扩容时全部保留
         int start = Math.Max(0 , oldEntries.Count - newCapacity);
-        for (int i = start ; i < oldEntries.Count ; i++)
+        for (int i = start; i < oldEntries.Count; i++)
             Add(oldEntries[i]);
     }
 

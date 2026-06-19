@@ -43,12 +43,12 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsOnboardingActive { get; set; }
 
-    private readonly Dictionary<string, bool> _pageNav = [];
+    private readonly Dictionary<string , bool> _pageNav = [];
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
 
     /// <summary>加载页面导航配置（page_navigation.json 嵌入资源）。</summary>
-    private static Dictionary<string, bool> LoadPageNav ()
+    private static Dictionary<string , bool> LoadPageNav ()
     {
         try
         {
@@ -58,7 +58,7 @@ public partial class MainShellViewModel : ViewModelBase
             if (stream == null) return [];
             using var doc = JsonDocument.Parse(stream);
             var pages = doc.RootElement.GetProperty("pages");
-            var result = new Dictionary<string, bool>();
+            var result = new Dictionary<string , bool>();
             foreach (var p in pages.EnumerateObject())
                 result[p.Name] = p.Value.GetBoolean();
             return result;
@@ -119,13 +119,13 @@ public partial class MainShellViewModel : ViewModelBase
         try
         {
             PageOpacity = 0;
-            await Task.Delay(FadeOutDuration, ct);
+            await Task.Delay(FadeOutDuration , ct);
 
             CurrentViewModel = newVm;
             CurrentPage = newPage;
 
             PageOpacity = 1;
-            await Task.Delay(StaggerDelay, ct);
+            await Task.Delay(StaggerDelay , ct);
         }
         catch (OperationCanceledException)
         {
@@ -138,12 +138,12 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>延迟触发页面引导检查（等页面渲染完成）。</summary>
-    private void SchedulePageGuideCheck()
+    private void SchedulePageGuideCheck ()
     {
         Dispatcher.UIThread.Post(() =>
         {
             _onboarding.TryShowPageGuide(CurrentPage);
-        }, DispatcherPriority.Background);
+        } , DispatcherPriority.Background);
     }
 
     public void OnWindowWidthChanged (double windowWidth)

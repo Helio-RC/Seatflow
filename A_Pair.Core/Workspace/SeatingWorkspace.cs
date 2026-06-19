@@ -10,7 +10,7 @@ namespace A_Pair.Core.Workspace;
 /// 包含学生列表和座位列表，提供座位分配、查询和快照恢复功能。
 /// 策略通过 <see cref="TryAssignSeat"/> 方法修改工作区状态。
 /// </summary>
-public class SeatingWorkspace : IPluginWorkspace , IFixedSeatCapability
+public class SeatingWorkspace : IPluginWorkspace, IFixedSeatCapability
 {
     private readonly List<Student> _students = [];
     private readonly List<Seat> _seats = [];
@@ -197,7 +197,7 @@ public class SeatingWorkspace : IPluginWorkspace , IFixedSeatCapability
             return string.Join(", " , s.Split(',').Select(part =>
             {
                 var id = part.Trim();
-                return studentMap.TryGetValue(id, out var student) ? $"{student.Name}({id})" : id;
+                return studentMap.TryGetValue(id , out var student) ? $"{student.Name}({id})" : id;
             }));
         }).ToList();
     }

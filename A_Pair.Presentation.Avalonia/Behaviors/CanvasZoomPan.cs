@@ -1,9 +1,9 @@
 using System;
+using A_Pair.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using A_Pair.Presentation.Avalonia.ViewModels;
 
 namespace A_Pair.Presentation.Avalonia.Behaviors;
 

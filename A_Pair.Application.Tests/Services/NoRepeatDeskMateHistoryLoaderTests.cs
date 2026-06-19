@@ -1,9 +1,6 @@
 using System.Text.Json;
-using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
-using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace A_Pair.Application.Tests.Services;
 
@@ -62,7 +59,8 @@ public class NoRepeatDeskMateHistoryLoaderTests
         var (layout , s1 , s2) = Create2SeatGridLayout();
         var snapshot = CreateSnapshot("snap-1" , layout , new Dictionary<string , string>
         {
-            [s1.Id] = "s1" , [s2.Id] = "s2"
+            [s1.Id] = "s1" ,
+            [s2.Id] = "s2"
         });
 
         var snapshotRepo = Substitute.For<ISeatingSnapshotRepository>();

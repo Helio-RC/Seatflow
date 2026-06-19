@@ -4,7 +4,7 @@ namespace A_Pair.Presentation.Avalonia.Views;
 
 public partial class ConfigBlockEditorView : UserControl
 {
-    public ConfigBlockEditorView()
+    public ConfigBlockEditorView ()
     {
         InitializeComponent();
     }

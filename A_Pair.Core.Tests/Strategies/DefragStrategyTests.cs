@@ -1,6 +1,3 @@
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
-
 namespace A_Pair.Core.Tests.Strategies;
 
 public class DefragStrategyTests

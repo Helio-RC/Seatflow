@@ -22,7 +22,7 @@ using AvaloniaApplication = Avalonia.Application;
 namespace A_Pair.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
-    #pragma warning disable AVLN3001
+#pragma warning disable AVLN3001
     public partial class App (IServiceProvider serviceProvider , bool isFirstInstance = true) : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
@@ -236,7 +236,7 @@ namespace A_Pair.Presentation.Avalonia
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
 
-                logger.LogInformation("[Onboarding] isTrueFirstLaunch={A}, IsFirstLaunch={B}", isTrueFirstLaunch, settings.IsFirstLaunch);
+                logger.LogInformation("[Onboarding] isTrueFirstLaunch={A}, IsFirstLaunch={B}" , isTrueFirstLaunch , settings.IsFirstLaunch);
                 if (isTrueFirstLaunch || settings.IsFirstLaunch)
                 {
                     logger.LogInformation("[Onboarding] 触发启动引导");
@@ -249,13 +249,13 @@ namespace A_Pair.Presentation.Avalonia
                     Dispatcher.UIThread.Post(() =>
                     {
                         onboarding.StartOnboarding();
-                    }, DispatcherPriority.Background);
+                    } , DispatcherPriority.Background);
                 }
             }
             catch (Exception ex)
             {
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
-                logger.LogError(ex, "[Onboarding] CheckAndStartOnboardingAsync 异常");
+                logger.LogError(ex , "[Onboarding] CheckAndStartOnboardingAsync 异常");
             }
         }
 

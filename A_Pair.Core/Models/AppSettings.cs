@@ -47,7 +47,7 @@ namespace A_Pair.Core.Models
         public bool IsFirstLaunch { get; set; }
 
         /// <summary>已展示过引导的页面（PageKey 名称 → true，或 true 表示该页面的独立引导已展示）。</summary>
-        public Dictionary<string, bool> CompletedPageGuides { get; set; } = [];
+        public Dictionary<string , bool> CompletedPageGuides { get; set; } = [];
 
         /// <summary>日志配置（不暴露到设置 UI）。</summary>
         public LogSettings Logging { get; set; } = new();

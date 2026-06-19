@@ -15,13 +15,13 @@ public static class LocalizeHelper
     /// 根据 <see cref="CultureInfo.CurrentUICulture"/> 从多语言字典中选取最佳匹配文本。
     /// 回退顺序：当前语言 → zh-CN → 字典第一个值 → 空字符串。
     /// </summary>
-    public static string Resolve(Dictionary<string, string> dict)
+    public static string Resolve (Dictionary<string , string> dict)
     {
         if (dict.Count == 0)
             return string.Empty;
 
         var culture = CultureInfo.CurrentUICulture.Name;
-        if (dict.TryGetValue(culture, out var value))
+        if (dict.TryGetValue(culture , out var value))
             return value;
 
         // 尝试仅匹配语言前缀（如 "zh" 匹配 "zh-CN"）
@@ -30,12 +30,12 @@ public static class LocalizeHelper
             var prefix = culture[..culture.IndexOf('-')];
             foreach (var kv in dict)
             {
-                if (kv.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                if (kv.Key.StartsWith(prefix , StringComparison.OrdinalIgnoreCase))
                     return kv.Value;
             }
         }
 
-        if (dict.TryGetValue("zh-CN", out var fallback))
+        if (dict.TryGetValue("zh-CN" , out var fallback))
             return fallback;
 
         return dict.Values.FirstOrDefault() ?? string.Empty;
@@ -44,6 +44,6 @@ public static class LocalizeHelper
     /// <summary>
     /// 安全解析可能为 null 的字典。
     /// </summary>
-    public static string SafeResolve(Dictionary<string, string>? dict)
+    public static string SafeResolve (Dictionary<string , string>? dict)
         => dict is not null ? Resolve(dict) : string.Empty;
 }
