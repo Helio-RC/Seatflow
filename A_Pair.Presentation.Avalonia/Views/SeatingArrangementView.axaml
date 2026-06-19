@@ -22,57 +22,64 @@
                   AutomationProperties.Name="{x:Static lang:Resources.Data_Export}">
             <Button.Flyout>
               <MenuFlyout>
-                <!-- 学生视角子菜单 -->
-                <MenuItem Header="{x:Static lang:Resources.Seating_StudentView}">
+                <!-- 学生视角 -->
+                <MenuItem IsEnabled="False" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}">
+                  <MenuItem.Header>
+                    <TextBlock Text="{x:Static lang:Resources.Seating_StudentView}" />
+                  </MenuItem.Header>
                   <MenuItem.Icon>
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Person}" FontSize="14" />
                   </MenuItem.Icon>
-                  <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportExcelCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="CSV (.csv)" Command="{Binding ExportCsvCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="PDF (.pdf)" Command="{Binding ExportPdfCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportImageCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
                 </MenuItem>
-                <!-- 教师视角子菜单 -->
-                <MenuItem Header="{x:Static lang:Resources.Seating_TeacherView}">
+                <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportExcelCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="CSV (.csv)" Command="{Binding ExportCsvCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="PDF (.pdf)" Command="{Binding ExportPdfCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportImageCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <!-- 教师视角 -->
+                <MenuItem IsEnabled="False" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}">
+                  <MenuItem.Header>
+                    <TextBlock Text="{x:Static lang:Resources.Seating_TeacherView}" />
+                  </MenuItem.Header>
                   <MenuItem.Icon>
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PersonBoard}" FontSize="14" />
                   </MenuItem.Icon>
-                  <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportTeacherExcelCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="CSV (.csv)" Command="{Binding ExportTeacherCsvCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="PDF (.pdf)" Command="{Binding ExportTeacherPdfCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportTeacherImageCommand}">
-                    <MenuItem.Icon>
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
-                    </MenuItem.Icon>
-                  </MenuItem>
+                </MenuItem>
+                <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportTeacherExcelCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="CSV (.csv)" Command="{Binding ExportTeacherCsvCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="PDF (.pdf)" Command="{Binding ExportTeacherPdfCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportTeacherImageCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
+                  </MenuItem.Icon>
                 </MenuItem>
               </MenuFlyout>
             </Button.Flyout>
