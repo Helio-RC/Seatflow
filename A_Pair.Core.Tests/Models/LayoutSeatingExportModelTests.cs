@@ -173,10 +173,15 @@ public class LayoutSeatingExportModelTests
                 layout.Seats.Add(new GridSeat { Row = r , Column = c });
 
         var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
+        // 教师视角：行前后反转 + 列左右镜像
         model.Rows.Reverse();
+        foreach (var row in model.Rows)
+            row.Cells.Reverse();
 
-        // 教师视角：讲台在最后一行
+        // 行反转：讲台在最后一行
         model.Rows[^1].Cells.Any(c => c.IsPodium).Should().BeTrue();
+        // 列镜像：讲台行 cells 左右颠倒，讲台应移至最左侧
+        model.Rows[^1].Cells[0].IsPodium.Should().BeTrue();
     }
 
     [Fact]
@@ -202,9 +207,12 @@ public class LayoutSeatingExportModelTests
         }
 
         var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
+        // 教师视角：行前后反转 + 列左右镜像
         model.Rows.Reverse();
+        foreach (var row in model.Rows)
+            row.Cells.Reverse();
 
-        // 教师视角：讲台在最后一行
+        // 教师视角：讲台在最后一行（Polar 讲台居中有填充，不做列级断言）
         model.Rows[^1].Cells.Any(c => c.IsPodium).Should().BeTrue();
     }
 }

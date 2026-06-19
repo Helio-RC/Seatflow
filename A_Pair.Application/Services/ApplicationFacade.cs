@@ -370,9 +370,13 @@ namespace A_Pair.Application.Services
                 var assignments = workspace.BuildSeatingPlan().Assignments;
                 var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
                 var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
-                // 教师视角：原地反转行顺序，讲台移至底部、后排移至顶部
+                // 教师视角：行前后反转（讲台移至底部）+ 列左右镜像（教师左侧对应学生右侧）
                 if (options.Perspective == LayoutPerspective.TeacherView)
+                {
                     model.Rows.Reverse();
+                    foreach (var row in model.Rows)
+                        row.Cells.Reverse();
+                }
                 await exporter.ExportLayoutAsync(model , path , options , cancellationToken);
             }
             else

@@ -83,7 +83,7 @@ public class ApplicationFacadeTests
     }
 
     [Fact]
-    public async Task ExportSeatingPlanAsync_TeacherView_ShouldReverseRows ()
+    public async Task ExportSeatingPlanAsync_TeacherView_ShouldReverseRowsAndColumns ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
             out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
@@ -110,7 +110,10 @@ public class ApplicationFacadeTests
 
         await exporter.Received(1).ExportLayoutAsync(
             Arg.Is<LayoutSeatingExportModel>(m =>
-                m.Rows[m.Rows.Count - 1].Cells.Any(c => c.IsPodium)) , // 教师视角：讲台在最后
+                // 行反转：讲台移至最后一行
+                m.Rows[m.Rows.Count - 1].Cells.Any(c => c.IsPodium) &&
+                // 列镜像：讲台行内 cells 左右颠倒，讲台从中间移至另一侧
+                m.Rows[m.Rows.Count - 1].Cells[0].IsPodium) ,
             "test.xlsx" ,
             Arg.Is<ExportOptions>(o => o.Perspective == LayoutPerspective.TeacherView) ,
             Arg.Any<CancellationToken>());
