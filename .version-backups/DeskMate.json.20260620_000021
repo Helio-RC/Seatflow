@@ -1,0 +1,51 @@
+{
+    "id": "DeskMate",
+    "name": "DeskMate",
+    "displayName": "同桌分组",
+    "version": "1.0.0",
+    "manifestVersion": "1.0",
+    "description": "作为依赖策略在随机填充上下文中执行。当 RandomFill 随机分配学生时检查该学生是否有同桌组，若有则尝试将同组学生分配到相邻座位（连携修改）。若目标座位周围无足够相邻空座则请求重掷。",
+    "author": "A_Pair Team",
+    "category": "grouping",
+    "defaultPriority": 50,
+    "defaultEnabled": true,
+    "visible": true,
+    "capabilities": [],
+    "isIndependent": false,
+    "parameters": [],
+    "codeBlocks": [
+        {
+            "title": { "zh-CN": "同桌组", "en-US": "Desk Mate Groups" },
+            "description": { "zh-CN": "每行配置一桌学生。学生选择器数量由会场文件的每桌人数自动决定。", "en-US": "Each row configures one desk of students. The number of student pickers is determined by the venue's seats-per-desk setting." },
+            "dataType": "Both",
+            "displayMode": "ValuePair",
+            "showSeatPosition": false,
+            "studentPickerCount": 2,
+            "seatsPerDeskFromVenue": true,
+            "preventDuplicateInRow": true,
+            "fields": []
+        }
+    ],
+    "messages": {
+        "DeskMate_AssignFailed": {
+            "zh-CN": "无法将学生 {0} 分配到座位 {1}：{2}，退回由 RandomFill 处理",
+            "en-US": "Failed to assign student {0} to seat {1}: {2}, falling back to RandomFill"
+        },
+        "DeskMate_OccupiedSeatNotFound": {
+            "zh-CN": "已分配组员的座位未找到（数据不一致），跳过同桌检查",
+            "en-US": "Seats for pre-assigned group members not found (data inconsistency), skipping desk-mate check"
+        },
+        "DeskMate_NearOccupied": {
+            "zh-CN": "学生 {0} 的同桌已分配，将其安置到相邻座位 {1}",
+            "en-US": "Student {0} desk-mate already assigned, placing student at adjacent seat {1}"
+        },
+        "DeskMate_NotEnoughSeats": {
+            "zh-CN": "学生 {0} 需要 {1} 个相邻座位但仅有 {2} 个可用，已尝试腾挪并部分分配",
+            "en-US": "Student {0} needs {1} adjacent seats but only {2} available, eviction attempted with partial assignment"
+        },
+        "DeskMate_PartialAssign": {
+            "zh-CN": "学生 {0} 的同桌组部分分配：{1}/{2} 名组员已成功分配",
+            "en-US": "Partial desk-mate assignment for student {0}: {1}/{2} members assigned"
+        }
+    }
+}

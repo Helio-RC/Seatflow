@@ -18,7 +18,7 @@ namespace A_Pair.Infrastructure.Providers
         {
             var roster = new RosterFile
             {
-                Version = "1.1" ,
+                Version = "1.0" ,
                 Students = new List<Student>(students)
             };
 

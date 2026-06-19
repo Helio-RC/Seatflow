@@ -9,7 +9,8 @@
 - **拖拽换座**：座位排布画布支持拖放交换（`DoDragDropAsync` + `PointerPressed` 模式），拖放期间 CanvasZoomPan 通过 NaN 哨兵机制自动忽略平移。详见 `docs/DragDrop.md`
 - **教师/学生视角导出**：`LayoutPerspective` 枚举（StudentView / TeacherView），Excel/CSV/PDF/PNG 导出支持选择视角，座位位置标签按视角翻转
 - **`RemoveStudentCommand`**：可撤销的学生移除命令（`IUndoableCommand`），集成到 CommandHistory 支持撤销/重做
-- **i18n 管理脚本**（`scripts/i18n.py`）：Python 3，支持 .resx 三文件同步 CRUD + `Resources.Designer.cs` 自动生成。自动备份到 `Lang/.backup/`（已 gitignore）。45 个单元测试。完整文档 `scripts/I18N.md`
+- **i18n 管理脚本**（`scripts/i18n.py`）：Python 3，支持 .resx 三文件同步 CRUD + `Resources.Designer.cs` 自动生成。自动备份到 `Lang/.backup/`（已 gitignore）。45 个单元测试。完整文档 `scripts/ToolsCollection.md`
+- **版本号管理脚本**（`scripts/version.py`）：Python 3，统一管理 App 版本 / 文件格式版本 / 策略清单版本 / 引导配置版本。`bump-file` 自动同步 JSON + Model 类 + JsonStudentWriter。26 个单元测试。文档 `scripts/ToolsCollection.md`
 - **策略配置清理**（`ConfigCleanupService`）：自动检测并清理无效策略配置（已删除的数据集/会场），集成 `NoRepeatDeskMateHistoryLoader` 历史清理
 - **引导重启**：`Settings_RestartGuide` 设置入口，用户可手动重新运行启动引导
 - **Guide 样式系统**（`Guide.axaml`）：Popup 主体、箭头、ControlHighlight 边框的完整样式定义
@@ -43,6 +44,7 @@
 - 修复无法拖动座位的问题
 - 修复 `Guide_Seating_Select_Title` / `Guide_Seating_Select_Desc` 在 Designer.cs 中存在但 .resx 缺失的问题
 - 修复 .resx 文件 XML 注释影响解析器的问题
+- 修复 `JsonStudentWriter.cs` 硬编码 `Version = "1.0"` 与 roster `1.1` 不一致
 
 ## [1.1.0] — 2026-06-14
 

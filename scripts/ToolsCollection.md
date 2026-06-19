@@ -1,15 +1,21 @@
-# i18n Resource Manager
+# 工具集 (Tools Collection)
 
-管理 A_Pair 项目的三文件同步本地化资源：
-
-- `A_Pair.Presentation.Avalonia/Lang/Resources.resx` — zh-CN（中性语言）
-- `A_Pair.Presentation.Avalonia/Lang/Resources.en-US.resx` — English
-- `A_Pair.Presentation.Avalonia/Lang/Resources.Designer.cs` — 强类型访问器
+A_Pair 项目的 Python 脚本工具集。
 
 ## 前置条件
 
 - Python 3.10+
 - （可选）.NET 10 SDK — 用于 `dotnet build` 编译验证
+
+---
+
+# i18n — 本地化资源管理
+
+管理三文件同步本地化资源：
+
+- `A_Pair.Presentation.Avalonia/Lang/Resources.resx` — zh-CN（中性语言）
+- `A_Pair.Presentation.Avalonia/Lang/Resources.en-US.resx` — English
+- `A_Pair.Presentation.Avalonia/Lang/Resources.Designer.cs` — 强类型访问器
 
 ## 快速开始
 
@@ -274,14 +280,75 @@ python3 i18n.py check
 
 ```
 scripts/
-├── i18n.py          # 主脚本
-├── I18N.md          # 本文档
+├── i18n.py          # 本地化资源管理
+├── version.py       # 版本号管理
+├── ToolsCollection.md  # 本文档
 └── tests/
-    └── test_i18n.py # 单元测试
+    ├── test_i18n.py     # i18n 单元测试
+    └── test_version.py  # 版本管理单元测试
 
 A_Pair.Presentation.Avalonia/Lang/
 ├── Resources.resx          # zh-CN 资源文件
 ├── Resources.en-US.resx    # en-US 资源文件
 ├── Resources.Designer.cs   # 强类型访问器（由 sync 命令生成）
 └── .backup/                # 自动备份目录（已 gitignore）
+```
+
+---
+
+# version — 版本号统一管理
+
+管理项目中的 4 类版本号：App 版本、文件格式版本、策略清单版本、引导配置版本。
+
+## 快速开始
+
+```bash
+cd scripts
+
+# 查看版本概览
+python3 version.py show
+
+# 校验一致性
+python3 version.py check
+
+# 调整 App 版本
+python3 version.py bump-app patch --dry-run
+python3 version.py bump-app minor --force
+
+# 调整文件格式版本（自动同步 Model 类）
+python3 version.py bump-file roster --set 1.2 --dry-run
+python3 version.py bump-file roster --set 1.2 --force
+
+# 调整策略清单版本
+python3 version.py bump-strategy FixedSeat --set 1.1.0 --force
+
+# 同步 Model 类默认值
+python3 version.py sync --dry-run
+python3 version.py sync --force
+```
+
+## 子命令
+
+| 命令 | 功能 |
+|------|------|
+| `show` | 显示全部版本号概览（App / 文件格式 / 策略 / 引导配置） |
+| `check` | 校验 15+ 处版本定义的一致性 |
+| `bump-app [major\|minor\|patch\|--set X.Y.Z]` | 调整 App 版本 |
+| `bump-file TYPE --set X.Y` | 调整文件格式版本（自动同步 Model 类 + JsonStudentWriter） |
+| `bump-strategy ID --set X.Y.Z` | 调整策略清单版本（ID 或 ALL） |
+| `bump-onboarding --set X.Y` | 调整引导配置版本 |
+| `sync` | 从 file_versions.json 同步所有 Model 类默认值 |
+
+## 受管文件
+
+| 体系 | 文件 |
+|------|------|
+| App 版本 | `A_Pair.Presentation.Avalonia/Data/about.json` (zh-CN + en-US) |
+| 文件格式版本 | `file_versions.json` + 7 个 Model C# 类 + `JsonStudentWriter.cs` |
+| 策略清单版本 | 7 个 `Manifests/*.json` |
+| 引导配置版本 | `onboarding_config.json` |
+
+## 安全机制
+
+与 i18n 脚本一致：自动备份到 `.version-backups/`、`--dry-run` 预览、`--force` 跳过确认。
 ```

@@ -436,17 +436,35 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         vm.StatusMessage = "找到 1 个快照（演示数据）";
     }
 
-    /// <summary>清除注入到 ViewModel 的示例数据。</summary>
+    /// <summary>清除注入到所有页面 ViewModel 的示例数据。</summary>
     private static void ClearPageData ()
     {
-        var mainWindow = GetMainWindow();
-        if (mainWindow?.DataContext is not MainShellViewModel shell)
-            return;
+        if (global::Avalonia.Application.Current is not App app) return;
+        var sp = app.ServiceProvider;
 
-        if (shell.CurrentViewModel is SeatingArrangementViewModel seatVm)
+        if (sp.GetService(typeof(MemberManagementViewModel)) is MemberManagementViewModel memberVm)
+        {
+            memberVm.Students.Clear();
+            memberVm.StudentCount = 0;
+            memberVm.IsEmpty = true;
+        }
+        if (sp.GetService(typeof(VenueConfigurationViewModel)) is VenueConfigurationViewModel venueVm)
+        {
+            venueVm.VenueItems.Clear();
+            venueVm.SelectedVenueItem = null;
+            venueVm.PreviewSeats.Clear();
+            venueVm.PreviewOverlays.Clear();
+            venueVm.StatusMessage = string.Empty;
+        }
+        if (sp.GetService(typeof(StrategyConfigurationViewModel)) is StrategyConfigurationViewModel stratVm)
+        {
+            stratVm.SelectedStrategy = null;
+        }
+        if (sp.GetService(typeof(SeatingArrangementViewModel)) is SeatingArrangementViewModel seatVm)
         {
             seatVm.HasGenerated = false;
-            seatVm.SeatItems = new ObservableCollection<SeatDisplayItem>();
+            seatVm.SeatItems.Clear();
+            seatVm.OverlayItems.Clear();
             seatVm.TotalSeats = 0;
             seatVm.AssignedSeats = 0;
             seatVm.VenueItems.Clear();
@@ -454,7 +472,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             seatVm.SelectedVenue = null;
             seatVm.SelectedDataset = null;
         }
-        if (shell.CurrentViewModel is SnapshotHistoryViewModel snapVm)
+        if (sp.GetService(typeof(SnapshotHistoryViewModel)) is SnapshotHistoryViewModel snapVm)
         {
             snapVm.Snapshots.Clear();
             snapVm.Venues.Clear();

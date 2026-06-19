@@ -12,7 +12,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   └── docs/CLAUDE.md         ← CLAUDE.md 的人类可读副本（同步维护）
 ├── scripts/
 │   ├── i18n.py                ← i18n 资源管理脚本
-│   ├── I18N.md                ← i18n 脚本完整文档
+│   ├── ToolsCollection.md                ← i18n 脚本完整文档
 │   ├── clean.sh / clean.ps1   ← 清理 bin/obj
 │   └── publish.sh / publish.ps1 ← 多平台发布
 ├── ARCHITECTURE.md            ← 架构设计、分层、数据流、安全策略
@@ -91,7 +91,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **何时更新**: 推翻或重大修改既有决策时
 - **关联文档**: ARCHITECTURE.md（引用 ADR）
 
-### scripts/I18N.md
+### scripts/ToolsCollection.md
 - **覆盖**: i18n 管理脚本的完整参考，包括子命令、安全机制、命名规范、常见工作流
 - **何时更新**: 脚本新增子命令、修改校验规则、修改工作流
 - **关联文档**: CLAUDE.md（i18n 节）
@@ -120,7 +120,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 
 | 变更场景 | 需更新的文档 |
 |---|---|
-| 新增/修改/删除 .resx 资源 key | scripts/I18N.md（如新增工作流）、CLAUDE.md（i18n 节工具链） |
+| 新增/修改/删除 .resx 资源 key | scripts/ToolsCollection.md（如新增工作流）、CLAUDE.md（i18n 节工具链） |
 | 新增文件类型版本迁移 | CLAUDE.md、docs/CLAUDE.md、ARCHITECTURE.md（5.3 节）、CONTRIBUTING.md（示例代码）、Phases.md（Phase 7 状态） |
 | 新增策略实现 | ARCHITECTURE.md（4.4/4.5 节）、Phases.md、CLAUDE.md（架构摘要） |
 | 新增/修改策略配置 | 更新 manifest JSON（`Manifests/{Id}.json`）中的 `parameters`/`codeBlocks`；CONTRIBUTING.md（声明式配置）；Plugins.Sdk README（i18n + codeBlocks） |
