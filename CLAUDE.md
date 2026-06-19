@@ -305,17 +305,23 @@ Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hi
 
 ### Onboarding Guide System
 
-Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING_GUIDE.md` for full details.
+Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING_GUIDE.md` for full details. See `docs/adr/ADR-008.md` for the demo data injection decision.
 
 **Two types of guides:**
-- **启动引导 (`startupPhases`)** — 18-step full workflow at first launch: Home→MemberManagement→VenueConfiguration→StrategyConfiguration→SeatingArrangement→SnapshotHistory→Closing
+- **启动引导 (`startupPhases`)** — 19-step full workflow at first launch: Home→MemberManagement→VenueConfiguration→StrategyConfiguration (含策略冲突提示居中步骤)→SeatingArrangement→SnapshotHistory→Closing
 - **页面引导 (`pageGuides`)** — Triggered on first visit to a page (FreeformManagement, PluginManagement). Tracked in `AppSettings.CompletedPageGuides`.
 
-**Key classes:** `IOnboardingService` / `OnboardingService` (implements both `IOnboardingService` and `IOnboardingStarter`), `OnboardingPhaseDefinition` / `OnboardingStepDefinition` (models). `MainWindow.axaml.cs` has 3 thin event wrappers only — all logic in `OnboardingService`.
+**Key classes:** `IOnboardingService` / `OnboardingService` (implements both `IOnboardingService` and `IOnboardingStarter`), `OnboardingPhaseDefinition` / `OnboardingStepDefinition` (models). `MainWindow.axaml.cs` has 5 thin event wrappers — all logic in `OnboardingService`.
+
+**Navigation ordering (Phase 1 fix):** `HandleStepOpening` must navigate to the new page **before** resolving the target control's x:Name. The original order (resolve → navigate) caused `ContentPresenter.Child` to reference the old page, failing NameScope lookups for the first step of each phase. Together with `OnboardingNavigateTo`'s synchronous `CurrentViewModel` setting (skipping `RunTransitionAsync` animation via `IsOnboardingActive` guard), targets resolve correctly on the first attempt.
 
 **JSON-driven code:** `BuildStepsFromDefs()` converts `OnboardingStepDefinition` → `GuideStepOption` via pure `ResourceManager.GetString(step.titleKey)`. Zero key-name inference in C#. Target resolution deferred to Guide's `StepOpening` event. Each step explicitly declares `titleKey`, `descKey`, `target`, `placement`, `showMask`, `showArrow`.
 
 **Adding/modifying guide steps:** Edit `onboarding_config.json` + add resx keys + update `Designer.cs`. No C# changes needed. If a target control is missing `x:Name`, add it to the `.axaml` file.
+
+**Demo data seeding (v3.1):** `OnboardingService.SeedPageData()` injects pure in-memory demo data into page ViewModels during startup guide phase transitions. Cleared by `ClearPageData()` on guide completion. For ViewModels with fire-and-forget async init in constructors (SeatingArrangement, VenueConfiguration, StrategyConfiguration), injection is deferred via `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)` to run after the async `LoadXxxAsync()` overwrites. Uses only Core models + ViewModel public APIs — no Infrastructure-layer or disk I/O dependencies. See ADR-008.
+
+**Window state sync (v3.1):** `MainWindow` subscribes to `Activated`/`Deactivated` events → forwarded to `OnboardingService.HandleWindowActivated()`/`HandleWindowDeactivated()`. On deactivate (minimize/Alt+Tab): `_isWindowObscured=true`, `Guide.Close()` silently closes Popups (no confirm dialog, no completion). On activate (restore): re-opens Guide from preserved `CurrentIndex`. Prevents the 3 Popups (`ShouldUseOverlayLayer=False`, native OS windows) from lingering as orphan windows.
 
 **DI:** `services.AddSingleton<IOnboardingService, OnboardingService>()`, with `IOnboardingStarter` bridged to the same instance. `MainShellViewModel` injects `IOnboardingService` to trigger page guides after navigation.
 

@@ -97,14 +97,14 @@ Program.cs:
 
 ### 当前引导内容概览
 
-**启动引导 (startupPhases)** — 7 阶段 18 步：
+**启动引导 (startupPhases)** — 7 阶段 19 步：
 
 | 阶段 | 页面 | 步骤数 | 目标控件 |
 |------|------|--------|---------|
 | 欢迎 | Home | 2 | (centered), ToggleSidebarButton |
 | 成员管理 | MemberManagement | 3 | ImportButton, StudentListBox, NewStudentRow |
 | 会场配置 | VenueConfiguration | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
-| 策略配置 | StrategyConfiguration | 3 | StrategyListBox, EditEnabledSwitch, SaveAllButton |
+| 策略配置 | StrategyConfiguration | 4 | StrategyListBox, EditEnabledSwitch, (centered conflict info), SaveAllButton |
 | 排座生成 | SeatingArrangement | 4 | VenueListBox, DatasetListBox, GenerateButton, ExportButton |
 | 快照历史 | SnapshotHistory | 2 | VenueComboBox, SnapshotListBox |
 | 结束 | Home | 1 | (centered) |
@@ -271,6 +271,29 @@ OnboardingService.CompleteOnboardingAsync()
 | "点击此开关启用策略" | "使用开关启用/禁用策略" |
 
 每一步的 `title` 应该提示**要执行的操作**，`description` 应该提供**简短的上下文说明**。
+
+## 示例数据注入（v3.1 新增）
+
+引导启动时，`OnboardingService.SeedPageData()` 向各页面 ViewModel 注入纯内存示例数据，使条件可见的目标控件（如 `LayoutTypePanel`、`StudentListBox`）在引导期间正常显示。引导完成时 `ClearPageData()` 清除所有注入数据，不留磁盘痕迹。
+
+| 页面 | 注入数据 | 延迟策略 |
+|------|---------|---------|
+| MemberManagement | 6 名示例学生 → `Students` ObservableCollection | 同步 |
+| VenueConfiguration | 执行 `NewVenueCommand` 创建演示会场 | 命名/状态消息延迟到 `Background` |
+| StrategyConfiguration | 选中 `Strategies[0]`（首个策略） | 延迟到 `Background` |
+| SeatingArrangement | 演示会场+数据集 + 4×3 座位预览 | 延迟到 `Background` |
+| SnapshotHistory | 1 个演示快照 → `Snapshots` | 同步 |
+
+延迟注入使用 `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)`，确保在 ViewModel 构造函数中的 fire-and-forget 异步初始化完成后执行，防止被覆盖。详见 [ADR-008](adr/ADR-008-onboarding-demo-data-injection.md)。
+
+## 窗口状态同步（v3.1 新增）
+
+MainWindow 订阅 `Activated` / `Deactivated` 事件，转发到 `OnboardingService`：
+
+- **失活（最小化/Alt+Tab）**：`HandleWindowDeactivated()` 设 `_isWindowObscured=true`，调用 `Guide.Close()` 静默关闭 Popup。`HandleGuideClosedAsync()` 检测到此标志后跳过确认对话框，不结束引导。
+- **激活（恢复/切回）**：`HandleWindowActivated()` 重置标志，调用 `Guide.Show()` 从保留的 `CurrentIndex` 恢复。
+
+这解决了 Guide 的 3 个 Popup（`ShouldUseOverlayLayer=False`，原生 OS 窗口）在窗口最小化时可能残留为孤儿窗口的问题。
 
 ## 测试验证
 
