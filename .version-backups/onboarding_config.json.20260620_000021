@@ -1,0 +1,187 @@
+{
+  "version": "3.0",
+  "startupPhases": [
+    {
+      "page": null,
+      "steps": [
+        {
+          "titleKey": "Guide_Welcome_Greeting_Title",
+          "descKey": "Guide_Welcome_Greeting_Desc",
+          "placement": "Center",
+          "showMask": false,
+          "showArrow": false
+        },
+        {
+          "titleKey": "Guide_Welcome_Navigation_Title",
+          "descKey": "Guide_Welcome_Navigation_Desc",
+          "target": "ToggleSidebarButton"
+        }
+      ]
+    },
+    {
+      "page": "MemberManagement",
+      "steps": [
+        {
+          "titleKey": "Guide_Members_Import_Title",
+          "descKey": "Guide_Members_Import_Desc",
+          "target": "ImportButton",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Members_Manage_Title",
+          "descKey": "Guide_Members_Manage_Desc",
+          "target": "StudentListBox"
+        },
+        {
+          "titleKey": "Guide_Members_AddStudent_Title",
+          "descKey": "Guide_Members_AddStudent_Desc",
+          "target": "NewStudentRow",
+          "placement": "Bottom"
+        }
+      ]
+    },
+    {
+      "page": "VenueConfiguration",
+      "steps": [
+        {
+          "titleKey": "Guide_Venue_New_Title",
+          "descKey": "Guide_Venue_New_Desc",
+          "target": "NewVenueButton"
+        },
+        {
+          "titleKey": "Guide_Venue_Layout_Title",
+          "descKey": "Guide_Venue_Layout_Desc",
+          "target": "LayoutTypePanel",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Venue_Save_Title",
+          "descKey": "Guide_Venue_Save_Desc",
+          "target": "SaveVenueButton"
+        }
+      ]
+    },
+    {
+      "page": "StrategyConfiguration",
+      "steps": [
+        {
+          "titleKey": "Guide_Strategy_List_Title",
+          "descKey": "Guide_Strategy_List_Desc",
+          "target": "StrategyListBox"
+        },
+        {
+          "titleKey": "Guide_Strategy_Adjust_Title",
+          "descKey": "Guide_Strategy_Adjust_Desc",
+          "target": "EditEnabledSwitch",
+          "placement": "Left"
+        },
+        {
+          "titleKey": "Guide_Strategy_Conflict_Title",
+          "descKey": "Guide_Strategy_Conflict_Desc",
+          "placement": "Center",
+          "showMask": false,
+          "showArrow": false
+        },
+        {
+          "titleKey": "Guide_Strategy_SaveAll_Title",
+          "descKey": "Guide_Strategy_SaveAll_Desc",
+          "target": "SaveAllButton"
+        }
+      ]
+    },
+    {
+      "page": "SeatingArrangement",
+      "steps": [
+        {
+          "titleKey": "Guide_Seating_SelectVenue_Title",
+          "descKey": "Guide_Seating_SelectVenue_Desc",
+          "target": "VenueListBox"
+        },
+        {
+          "titleKey": "Guide_Seating_SelectDataset_Title",
+          "descKey": "Guide_Seating_SelectDataset_Desc",
+          "target": "DatasetListBox"
+        },
+        {
+          "titleKey": "Guide_Seating_Generate_Title",
+          "descKey": "Guide_Seating_Generate_Desc",
+          "target": "GenerateButton",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Seating_Export_Title",
+          "descKey": "Guide_Seating_Export_Desc",
+          "target": "ExportButton",
+          "placement": "Bottom"
+        }
+      ]
+    },
+    {
+      "page": "SnapshotHistory",
+      "steps": [
+        {
+          "titleKey": "Guide_Snapshot_SelectVenue_Title",
+          "descKey": "Guide_Snapshot_SelectVenue_Desc",
+          "target": "VenueComboBox"
+        },
+        {
+          "titleKey": "Guide_Snapshot_Browse_Title",
+          "descKey": "Guide_Snapshot_Browse_Desc",
+          "target": "SnapshotListBox"
+        }
+      ]
+    },
+    {
+      "page": null,
+      "steps": [
+        {
+          "titleKey": "Guide_Closing_Finish_Title",
+          "descKey": "Guide_Closing_Finish_Desc",
+          "placement": "Center",
+          "showMask": false,
+          "showArrow": false
+        }
+      ]
+    }
+  ],
+  "pageGuides": {
+    "FreeformManagement": {
+      "page": "FreeformManagement",
+      "steps": [
+        {
+          "titleKey": "Guide_Freeform_Import_Title",
+          "descKey": "Guide_Freeform_Import_Desc",
+          "target": "ImportCsvButton",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Freeform_AddPoint_Title",
+          "descKey": "Guide_Freeform_AddPoint_Desc",
+          "target": "AddPointButton",
+          "placement": "Bottom"
+        },
+        {
+          "titleKey": "Guide_Freeform_Save_Title",
+          "descKey": "Guide_Freeform_Save_Desc",
+          "target": "SaveLayoutButton"
+        }
+      ]
+    },
+    "PluginManagement": {
+      "page": "PluginManagement",
+      "steps": [
+        {
+          "titleKey": "Guide_Plugin_List_Title",
+          "descKey": "Guide_Plugin_List_Desc",
+          "target": "PluginListBox"
+        },
+        {
+          "titleKey": "Guide_Plugin_Enable_Title",
+          "descKey": "Guide_Plugin_Enable_Desc",
+          "target": "PluginEnabledSwitch",
+          "placement": "Left"
+        }
+      ]
+    }
+  }
+}
