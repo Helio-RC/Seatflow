@@ -343,49 +343,8 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 9. 保存快照（含内容哈希用于完整性检测）
-            var studentNames = workspace.Students
-                .Where(s => plan.Assignments.ContainsValue(s.Id))
-                .ToDictionary(s => s.Id , s => s.Name);
-            var venueHash = request.LayoutId != null
-                ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
-                : null;
-            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(workspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
-            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
-            if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
-            snapshotMeta["studentHash"] = studentHash;
-            // 嵌入会场原始文件内容：预览和回滚不依赖外部会场文件
-            if (!string.IsNullOrEmpty(request.LayoutId))
-            {
-                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(request.LayoutId , cancellationToken);
-                if (rawVenueJson != null)
-                    snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
-            }
-            var snapshot = new SeatingSnapshot
-            {
-                Description = request.Description ?? $"Generated at {DateTime.Now:yyyy-MM-dd HH:mm}" ,
-                LayoutId = request.LayoutId ?? "unknown" ,
-                SeatAssignments = plan.Assignments ,
-                Metadata = snapshotMeta
-            };
-            await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
-
-            // 9b. 轮转旧快照
-            if (!string.IsNullOrEmpty(request.LayoutId))
-                await RotateSnapshotsAsync(request.LayoutId , cancellationToken);
-
-            // 9c. 保存会场摘要到快照目录
-            if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
-            {
-                await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId , new VenueSnapshotInfo
-                {
-                    Name = venueLayout.Name ,
-                    LayoutType = venueLayout.LayoutType ,
-                    SeatCount = venueLayout.Seats.Count(s => s.IsAvailable) ,
-                    ObstacleCount = venueLayout.Obstacles.Count
-                } , cancellationToken);
-            }
+            // 9. 快照不再自动保存，由用户手动触发 SaveToSnapshot 命令
+            // CreateSnapshotAsync 会在保存时生成完整的元数据（哈希、嵌入会场等）
 
             progress?.Report(new SeatingProgress
             {

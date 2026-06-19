@@ -941,7 +941,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var snapshot = CaptureSnapshot();
         _historyEntries.Add(new HistoryEntry(description , snapshot));
         _currentHistoryIndex = 0;
-        _lastSavedIndex = 0; // 生成时 facade 已自动保存快照
+        _lastSavedIndex = -1; // 快照需用户手动保存，初始状态标记为"未保存"
         UpdateHistoryState();
     }
 
