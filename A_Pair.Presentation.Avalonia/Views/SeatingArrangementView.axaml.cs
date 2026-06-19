@@ -27,8 +27,8 @@ public partial class SeatingArrangementView : UserControl
 
     internal static class DragFormats
     {
-        public static readonly DataFormat<string> StudentDrag = DataFormat.CreateStringApplicationFormat("A_Pair_Student");
-        public static readonly DataFormat<string> SeatDrag = DataFormat.CreateStringApplicationFormat("A_Pair_Seat");
+        public static readonly DataFormat<string> StudentDrag = DataFormat.CreateInProcessFormat<string>("A_Pair_Student");
+        public static readonly DataFormat<string> SeatDrag = DataFormat.CreateInProcessFormat<string>("A_Pair_Seat");
     }
 
     // ── 拖放辅助方法 ──
