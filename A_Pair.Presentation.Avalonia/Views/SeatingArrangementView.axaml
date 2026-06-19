@@ -23,22 +23,22 @@
             <Button.Flyout>
               <MenuFlyout>
                 <!-- 学生视角 -->
-                <MenuItem IsEnabled="False" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}">
+                <MenuItem IsEnabled="False" Classes="sectionTitle" Foreground="{DynamicResource SystemAccentColor}">
                   <MenuItem.Header>
                     <TextBlock Text="{x:Static lang:Resources.Seating_StudentView}" />
                   </MenuItem.Header>
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Person}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Person}" FontSize="16" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportExcelCommand}">
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTableCube}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="CSV (.csv)" Command="{Binding ExportCsvCommand}">
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTable}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="PDF (.pdf)" Command="{Binding ExportPdfCommand}">
@@ -53,22 +53,22 @@
                 </MenuItem>
                 <Separator />
                 <!-- 教师视角 -->
-                <MenuItem IsEnabled="False" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}">
+                <MenuItem IsEnabled="False" Classes="sectionTitle" Foreground="{DynamicResource SystemAccentColor}">
                   <MenuItem.Header>
                     <TextBlock Text="{x:Static lang:Resources.Seating_TeacherView}" />
                   </MenuItem.Header>
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PersonBoard}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PeopleTeamToolbox}" FontSize="16" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportTeacherExcelCommand}">
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTableCube}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="CSV (.csv)" Command="{Binding ExportTeacherCsvCommand}">
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTable}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="PDF (.pdf)" Command="{Binding ExportTeacherPdfCommand}">
@@ -214,7 +214,7 @@
                     VerticalContentAlignment="Center"
                     AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
                     ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="18" />
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.TableAdd}" FontSize="18" />
             </Button>
             <Button x:Name="GenerateButton"
                     Command="{Binding GenerateSeatingCommand}"
@@ -224,8 +224,8 @@
                     AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
                     Height="36" Margin="0,0,4,0"
                     Classes="accent">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />
+              <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
                 <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
               </StackPanel>
             </Button>
