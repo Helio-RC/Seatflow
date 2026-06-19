@@ -19,6 +19,12 @@ namespace A_Pair.Presentation.Avalonia.Views
         {
             _onboarding = onboarding;
             InitializeComponent();
+
+            // 引导期间窗口最小化/Alt+Tab 时，Guide 的 Popup
+            // (ShouldUseOverlayLayer=False) 可能残留为孤儿 OS 窗口。
+            // 订阅窗口激活/失活事件以同步隐藏/恢复。
+            Activated += (_, _) => _onboarding.HandleWindowActivated();
+            Deactivated += (_, _) => _onboarding.HandleWindowDeactivated();
         }
 
         /// <summary>Guide 步骤全部完成（用户点击最后一步的"完成"按钮）。</summary>

@@ -42,6 +42,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private string? _currentPageGuide; // null=启动引导, 非null=页面引导的PageKey名称
     private Guide? _guide;
     private bool _isCompleting;
+    /// <summary>窗口失焦/最小化时设为 true，静默关闭 Popup 防孤儿窗口。</summary>
+    private bool _isWindowObscured;
 
     public bool IsActive { get; private set; }
 
@@ -239,6 +241,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     public async Task<bool> HandleGuideClosedAsync()
     {
         if (_isCompleting) return true;
+        if (_isWindowObscured) return true;
 
         try
         {
@@ -251,6 +254,29 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         _ = CompleteOnboardingAsync();
         return true;
+    }
+
+    /// <summary>窗口失活（最小化/Alt+Tab）时静默隐藏 Guide Popup，不结束引导。</summary>
+    public void HandleWindowDeactivated()
+    {
+        if (!IsActive || _isCompleting || _guide is null || !_guide.IsOpen)
+            return;
+
+        _isWindowObscured = true;
+        _guide.Close();
+    }
+
+    /// <summary>窗口激活（恢复/Alt+Tab回）时重新显示 Guide，从同一步骤继续。</summary>
+    public void HandleWindowActivated()
+    {
+        if (!IsActive || _guide is null)
+            return;
+        if (!_isWindowObscured)
+            return;
+
+        _isWindowObscured = false;
+        if (!_guide.IsOpen)
+            _guide.Show();
     }
 
     // ──────────────────────── 内部实现 ────────────────────────
