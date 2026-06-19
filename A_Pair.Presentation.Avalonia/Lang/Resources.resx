@@ -879,7 +879,7 @@
     <value>取消交换</value>
   </data>
   <data name="Seating_CanvasHint" xml:space="preserve">
-    <value>左键拖动，滚轮缩放</value>
+    <value>左键拖动，滚轮缩放；拖动或点击人员以调换位置</value>
   </data>
   <data name="Seating_CurrentStrategy" xml:space="preserve">
     <value>当前策略</value>

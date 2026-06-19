@@ -879,7 +879,7 @@ Place plugins in the Plugins directory</value>
     <value>Cancel swap</value>
   </data>
   <data name="Seating_CanvasHint" xml:space="preserve">
-    <value>Drag to pan, scroll to zoom</value>
+    <value>Drag to pan, scroll to zoom; Drag a menber to switch his seating.</value>
   </data>
   <data name="Seating_CurrentStrategy" xml:space="preserve">
     <value>Current strategy</value>
