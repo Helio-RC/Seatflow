@@ -74,7 +74,7 @@ public partial class SeatingArrangementView : UserControl
             Child = new Border
             {
                 Background = cardBg,
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0x40 , accentColor.R , accentColor.G , accentColor.B)),
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0 , accentColor.R , accentColor.G , accentColor.B)),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(10 , 5),
