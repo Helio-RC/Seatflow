@@ -198,14 +198,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         var stepDef = _activeStepDefs[stepIndex];
 
-        // 解析 Target 控件名 → 实际 Control
-        if (!string.IsNullOrEmpty(stepDef.Target))
-        {
-            var ctrl = ResolveTarget(stepDef.Target);
-            step.Target = ctrl;
-        }
-
-        // 2. 仅启动引导需要跨阶段页面导航（页面引导已在其目标页面上）
+        // 1. 先处理跨阶段页面导航（在解析 Target 之前），
+        //    确保目标控件所在的新页面 View 已创建，NameScope 可用。
+        //    OnboardingNavigateTo 同步设置 CurrentViewModel 触发 ViewLocator，
+        //    RunTransitionAsync 因 IsOnboardingActive=true 提前返回，无闪烁。
         if (_currentPageGuide is null)
         {
             var phaseIndex = GetPhaseIndex(stepIndex);
@@ -216,9 +212,21 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                     && Enum.TryParse<PageKey>(phase.Page, out var pageKey)
                     && _navigation.CurrentPage != pageKey)
                 {
-                    _navigation.NavigateTo(pageKey);
+                    var mainWindow = GetMainWindow();
+                    if (mainWindow?.DataContext is MainShellViewModel vm)
+                        vm.OnboardingNavigateTo(pageKey);
+                    else
+                        _navigation.NavigateTo(pageKey);
                 }
             }
+        }
+
+        // 2. 解析 Target 控件名 → 实际 Control
+        //    此时新页面 View 已在可视化树中（步骤 1 的同步导航确保），NameScope 可用。
+        if (!string.IsNullOrEmpty(stepDef.Target))
+        {
+            var ctrl = ResolveTarget(stepDef.Target);
+            step.Target = ctrl;
         }
     }
 
@@ -390,8 +398,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private async Task CompleteOnboardingAsync()
     {
         if (_guide is not null)
+        {
             _guide.StepOpening -= OnStepOpening;
             _guide.StepOpened -= OnStepOpened;
+        }
 
         var wasPageGuide = _currentPageGuide;
 

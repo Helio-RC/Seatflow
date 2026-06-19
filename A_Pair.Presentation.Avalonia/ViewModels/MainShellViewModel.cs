@@ -108,24 +108,24 @@ public partial class MainShellViewModel : ViewModelBase
         var newVm = _navigation.CurrentViewModel;
         var newPage = _navigation.CurrentPage;
 
-        // 引导模式：极快淡出→切换→淡入，有动画但不拖沓
-        var fadeDuration = IsOnboardingActive
-            ? TimeSpan.FromMilliseconds(50)
-            : FadeOutDuration;
-        var stagger = IsOnboardingActive
-            ? TimeSpan.Zero
-            : StaggerDelay;
+        // 引导模式：OnboardingNavigateTo 已同步设置 CurrentViewModel，
+        // 跳过动画以避免 PageOpacity=0 闪烁并确保 View 立即可用。
+        if (IsOnboardingActive)
+        {
+            SchedulePageGuideCheck();
+            return;
+        }
 
         try
         {
             PageOpacity = 0;
-            await Task.Delay(fadeDuration, ct);
+            await Task.Delay(FadeOutDuration, ct);
 
             CurrentViewModel = newVm;
             CurrentPage = newPage;
 
             PageOpacity = 1;
-            await Task.Delay(stagger, ct);
+            await Task.Delay(StaggerDelay, ct);
         }
         catch (OperationCanceledException)
         {
@@ -187,9 +187,20 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>引导模式下的页面导航（同步，无动画）。</summary>
+    /// <remarks>
+    /// NavigateTo 触发 CurrentViewModelChanged → RunTransitionAsync 检测到
+    /// IsOnboardingActive 并立即返回。然后直接设置 CurrentViewModel 触发 ViewLocator
+    /// 同步创建新页面 View，确保目标解析时 NameScope 可用。
+    /// </remarks>
     public void OnboardingNavigateTo (PageKey page)
     {
         _navigation.NavigateTo(page);
+        // NavigateTo 的 CurrentViewModelChanged 事件已触发 RunTransitionAsync，
+        // 后者因 IsOnboardingActive=true 在 PageOpacity=0 之前立即返回。
+        // 在此直接设置 CurrentViewModel → ViewLocator 同步创建 View。
+        CurrentViewModel = _navigation.CurrentViewModel;
+        CurrentPage = page;
+        PageOpacity = 1;
     }
 
     /// <summary>完成引导：关闭引导模式，持久化标记，回到首页。</summary>
