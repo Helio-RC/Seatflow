@@ -345,7 +345,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 	    if (vm is null) return;
 	    vm.NewVenueCommand.Execute(null);
 	    vm.LayoutName = "演示教室";
-	    vm.StatusMessage = string.Format(Resources.Venue_SavedFmt, "演示教室");
+	    vm.StatusMessage = "已创建演示会场（演示数据）";
 	}
 
 	private static void SeedSeatingArrangementData(SeatingArrangementViewModel? vm)
