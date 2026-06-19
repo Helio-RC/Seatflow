@@ -26,6 +26,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │       └── ADR-008.md        ← 引导系统纯内存示例数据注入
 ├── A_Pair.Presentation.Avalonia/docs/
 │   ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
+│   ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
 │   └── Fluent_Icons.md       ← 已使用的 FluentUI 图标清单
 └── A_Pair.Plugins.Sdk/docs/
     └── README.md             ← 插件开发 SDK 指南
@@ -93,6 +94,11 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **覆盖**: 项目中已使用的所有 FluentUI 图标名称
 - **何时更新**: 新增或替换图标时
 - **关联文档**: Design_Spec.md
+
+### A_Pair.Presentation.Avalonia/docs/DragDrop.md
+- **覆盖**: Avalonia 12 拖放 API 正确用法、`PointerPressed` + `DoDragDropAsync` 模式、数据格式创建/读写、CanvasZoomPan 冲突处理、常见坑及修复
+- **何时更新**: 新增拖放交互、Avalonia 版本升级后 API 变更、发现新的拖放坑
+- **关联文档**: CLAUDE.md（Behaviors 节）、SeatingArrangementView.axaml.cs
 
 ### A_Pair.Plugins.Sdk/docs/README.md
 - **覆盖**: 插件开发指南、接口参考、打包格式

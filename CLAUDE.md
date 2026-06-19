@@ -144,7 +144,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - `DialogWindow` — general-purpose modal content host with title bar and close button
 
 ### Behaviors (`A_Pair.Presentation.Avalonia/Behaviors/`)
-- `CanvasZoomPan` — Pan and zoom for Canvas-based previews
+- `CanvasZoomPan` — Pan and zoom for Canvas-based previews. **拖放座位时通过 NaN 哨兵机制跳过平移**（详见 `docs/DragDrop.md`）
 - `ZoomOnScroll` — Ctrl+Scroll to zoom
 - `ChineseInputNormalizer` — Converts full-width numbers/symbols to half-width on text input
 
@@ -380,4 +380,5 @@ In Avalonia's `DockPanel`, `LastChildFill="True"` (default) means the LAST child
 - `Phases.md` — Implementation phases & detailed planning
 - `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
 - `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
+- `A_Pair.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, CanvasZoomPan interaction
 - `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use
