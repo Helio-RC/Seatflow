@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using A_Pair.Presentation.Avalonia.ViewModels;
 
 namespace A_Pair.Presentation.Avalonia.Behaviors;
 
@@ -52,6 +53,8 @@ public static class CanvasZoomPan
     private static void OnPointerPressed (object? sender , PointerPressedEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
+        // 若按下的是座位元素，跳过来让拖放逻辑接管
+        if (e.Source is StyledElement src && src.DataContext is SeatDisplayItem) return;
         if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
         EnsureTransform(sv);
         sv.SetValue(PanOriginProperty , e.GetPosition(sv));

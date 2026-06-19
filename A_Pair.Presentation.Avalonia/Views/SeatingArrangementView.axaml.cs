@@ -73,6 +73,7 @@ public partial class SeatingArrangementView : UserControl
         _seatDragPressArgs = e;
         _seatDragItem = item;
         _seatWasDrag = false;
+        e.Pointer.Capture(border);
         e.Handled = true;
     }
 
@@ -134,6 +135,7 @@ public partial class SeatingArrangementView : UserControl
         _listDragStart = e.GetPosition(this);
         _listDragPressArgs = e;
         _listDragStudent = student;
+        e.Pointer.Capture(tb);
     }
 
     private async void UnassignedStudent_PointerMoved (object? sender , PointerEventArgs e)
