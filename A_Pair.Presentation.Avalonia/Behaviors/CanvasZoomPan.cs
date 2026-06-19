@@ -71,8 +71,9 @@ public static class CanvasZoomPan
             sv.SetValue(IsPanningProperty , true);
             e.Handled = true;
         }
+        var translate = sv.GetValue(TranslateProperty);
+        if (translate == null) return;
         var origTrans = sv.GetValue(OriginalTranslateProperty);
-        var translate = sv.GetValue(TranslateProperty)!;
         translate.X = origTrans.X + (pos.X - origin.X);
         translate.Y = origTrans.Y + (pos.Y - origin.Y);
     }
