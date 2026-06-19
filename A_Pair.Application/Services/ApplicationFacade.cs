@@ -421,9 +421,16 @@ namespace A_Pair.Application.Services
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default)
+        public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true)
         {
             if (_currentWorkspace == null) return false;
+
+            if (!recordInHistory)
+            {
+                // 直接在工作区上执行命令，不记录到 CommandHistory，避免与 ViewModel 的快照历史双重累积
+                return await command.ExecuteAsync(_currentWorkspace , cancellationToken);
+            }
+
             return await _history.ExecuteAsync(command , _currentWorkspace , cancellationToken);
         }
 
@@ -454,6 +461,40 @@ namespace A_Pair.Application.Services
         {
             _currentWorkspace = null;
             _currentLayout = null;
+        }
+
+        /// <inheritdoc />
+        public async Task<SeatingWorkspace> CreateEmptyWorkspaceAsync (
+            string layoutId , string datasetId , CancellationToken cancellationToken = default)
+        {
+            // 1. 加载会场布局
+            var layout = await _venueRepo.LoadAsync(layoutId , cancellationToken);
+            _currentLayout = layout;
+
+            // 2. 加载学生数据
+            var students = await _datasetRepo.LoadAsync(datasetId , cancellationToken) ?? [];
+
+            // 3. 获取座位列表
+            List<Seat> seats;
+            if (layout != null)
+            {
+                seats = layout.Seats;
+                ObstacleProcessor.ApplyObstacles(layout);
+            }
+            else
+            {
+                seats = [];
+            }
+
+            // 4. 创建工作区（不执行策略管道）
+            var workspace = new SeatingWorkspace(students , seats ,
+                _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
+            _currentWorkspace = workspace;
+
+            logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位",
+                layoutId , students.Count , seats.Count);
+
+            return workspace;
         }
 
         /// <summary>轮转旧快照：超出上限删除最旧的。</summary>

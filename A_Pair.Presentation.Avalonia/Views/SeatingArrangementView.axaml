@@ -165,19 +165,32 @@
           <!-- 填充 spacer -->
           <Panel Grid.Row="5" />
 
-          <!-- 生成按钮 -->
-          <Button x:Name="GenerateButton" Grid.Row="6"
-                  Command="{Binding GenerateSeatingCommand}"
-                  IsEnabled="{Binding CanGenerate}"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
-                  Margin="0,8" Classes="accent" Height="36">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
-            </StackPanel>
-          </Button>
+          <!-- 生成 + 创建空白会场按钮 -->
+          <DockPanel Grid.Row="6" Margin="0,8">
+            <Button DockPanel.Dock="Right"
+                    Command="{Binding CreateEmptySeatingCommand}"
+                    IsEnabled="{Binding CanCreateEmpty}"
+                    Width="36" Height="36"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}"
+                    Classes="accent">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="18" />
+            </Button>
+            <Button x:Name="GenerateButton"
+                    Command="{Binding GenerateSeatingCommand}"
+                    IsEnabled="{Binding CanGenerate}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
+                    Height="36" Margin="0,0,4,0">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />
+                <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
+              </StackPanel>
+            </Button>
+          </DockPanel>
         </Grid>
       </Border>
 
@@ -224,7 +237,10 @@
                           behaviors:CanvasZoomPan.Enabled="True"
                           behaviors:ZoomOnScroll.Enabled="True"
                           behaviors:ZoomOnScroll.OnZoom="{Binding ZoomAction}">
-              <Panel>
+              <Panel Name="SeatDragPanel"
+                     PointerMoved="SeatDragPanel_PointerMoved"
+                     PointerReleased="SeatDragPanel_PointerReleased"
+                     Background="Transparent">
                 <ItemsControl ItemsSource="{Binding SeatItems}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -248,6 +264,9 @@
                               BorderBrush="{ReflectionBinding BorderBrush}"
                               Cursor="Hand"
                               ToolTip.Tip="{ReflectionBinding TooltipText}"
+                              DragDrop.DragOver="Seat_DragOver"
+                              DragDrop.Drop="Seat_Drop"
+                              DragDrop.DragLeave="Seat_DragLeave"
                               PointerPressed="SeatBorder_PointerPressed">
                         <TextBlock Text="{ReflectionBinding DisplayText}"
                                    FontSize="11" FontWeight="SemiBold"
@@ -291,6 +310,27 @@
                 </ItemsControl>
               </Panel>
             </ScrollViewer>
+            <!-- 垃圾桶：拖入或点击移除学生 -->
+            <Border Name="TrashZone"
+                    IsVisible="{Binding HasGenerated}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_TrashHint}"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,12,36"
+                    Width="44" Height="44" CornerRadius="22"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="2"
+                    DragDrop.DragOver="Trash_DragOver"
+                    DragDrop.Drop="Trash_Drop"
+                    DragDrop.DragLeave="Trash_DragLeave"
+                    PointerPressed="Trash_PointerPressed"
+                    Cursor="Hand"
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_TrashHint}"
+                    ZIndex="10">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="22"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </Border>
             <TextBlock Text="{x:Static lang:Resources.Seating_CanvasHint}" Classes="small" Opacity="0.4"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
                        Margin="0,0,12,8"
@@ -413,12 +453,17 @@
                   </DockPanel>
                 </Button>
                 <ListBox ItemsSource="{Binding UnassignedStudents}"
+                         SelectedItem="{Binding SelectedUnassignedStudent, Mode=TwoWay}"
                          IsVisible="{Binding IsUnassignedExpanded}"
                          BorderThickness="0"
-                         Background="{DynamicResource SidebarBackgroundBrush}">
+                         Background="{DynamicResource SidebarBackgroundBrush}"
+                         AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}"
+                         PointerMoved="UnassignedList_PointerMoved"
+                         PointerReleased="UnassignedList_PointerReleased">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="core:Student">
-                      <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4" />
+                      <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4"
+                                 PointerPressed="UnassignedStudent_PointerPressed" />
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

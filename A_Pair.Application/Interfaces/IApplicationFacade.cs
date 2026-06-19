@@ -27,6 +27,9 @@ namespace A_Pair.Application.Interfaces
         /// <returns>包含最终分配结果的工作区。</returns>
         Task<SeatingWorkspace> GenerateSeatingAsync (SeatingRequest request , IProgress<SeatingProgress>? progress = null , CancellationToken cancellationToken = default);
 
+        /// <summary>创建空白工作区：加载会场布局和学生，但不执行策略管道。所有座位为空，学生进入未分配列表。</summary>
+        Task<SeatingWorkspace> CreateEmptyWorkspaceAsync (string layoutId , string datasetId , CancellationToken cancellationToken = default);
+
         /// <summary>导出座位安排计划到文件。</summary>
         Task ExportSeatingPlanAsync (SeatingWorkspace workspace , ClassroomLayoutDefinition? layout , string path , ExportOptions options , CancellationToken cancellationToken = default);
 
@@ -34,7 +37,8 @@ namespace A_Pair.Application.Interfaces
         Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default);
 
         /// <summary>执行可撤销的命令（如手动调座）。</summary>
-        Task<bool> ExecuteCommandAsync (A_Pair.Application.Commands.IUndoableCommand command , CancellationToken cancellationToken = default);
+        /// <param name="recordInHistory">是否记录到 Facade 的命令历史栈。ViewModel 使用快照历史时传 false 避免重复累积。</param>
+        Task<bool> ExecuteCommandAsync (A_Pair.Application.Commands.IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true);
 
         /// <summary>撤销上一条命令。</summary>
         Task<bool> UndoAsync (CancellationToken cancellationToken = default);

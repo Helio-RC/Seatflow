@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using A_Pair.Application.Commands;
 using A_Pair.Application.Interfaces;
 using A_Pair.Core.DomainServices;
 using A_Pair.Core.Models;
@@ -52,6 +53,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
+    [NotifyPropertyChangedFor(nameof(CanCreateEmpty))]
     public partial VenueItem? SelectedVenue { get; set; }
 
     [ObservableProperty]
@@ -61,6 +63,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
+    [NotifyPropertyChangedFor(nameof(CanCreateEmpty))]
     public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     public bool HasSelectedVenue => SelectedVenue != null;
@@ -91,18 +94,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 工具栏 ──
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
+    [NotifyPropertyChangedFor(nameof(CanCreateEmpty))]
     public partial bool IsGenerating { get; set; }
 
     [ObservableProperty]
     public partial bool HasGenerated { get; set; }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CanUndo))]
-    [NotifyPropertyChangedFor(nameof(CanRedo))]
-    [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
-    public partial bool HasHistoryUnsaved { get; set; }
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
+    public bool CanCreateEmpty => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
     public bool CanUndo => _currentHistoryIndex > 0;
     public bool CanRedo => _currentHistoryIndex < _historyEntries.Count - 1;
 
@@ -112,6 +112,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial ObservableCollection<Student> UnassignedStudents { get; set; } = [];
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedUnassignedStudent))]
+    public partial Student? SelectedUnassignedStudent { get; set; }
+
+    public bool HasSelectedUnassignedStudent => SelectedUnassignedStudent != null;
 
     [ObservableProperty]
     public partial bool IsStrategiesExpanded { get; set; } = true;
@@ -335,6 +341,51 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 try { File.Delete(tempPath); } catch { /* 忽略 */ }
             }
         } , Resources.Seating_GenerateFailed);
+
+        IsGenerating = false;
+    }
+
+    /// <summary>
+    /// 创建空白会场：加载座位布局和学生但不执行策略管道。
+    /// 所有学生进入未分配列表，座位全部为空。
+    /// </summary>
+    [RelayCommand]
+    private async Task CreateEmptySeatingAsync ()
+    {
+        if (!CanCreateEmpty || _currentLayout == null) return;
+
+        _generateCts?.Cancel();
+        _generateCts = new CancellationTokenSource();
+        var ct = _generateCts.Token;
+
+        IsGenerating = true;
+        HasGenerated = false;
+        StatusMessage = Resources.Seating_CreateEmptyHint;
+
+        await SafeExecuteAsync(async () =>
+        {
+            // 加载学生
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id , ct);
+            if (students == null || students.Count == 0)
+            {
+                StatusMessage = Resources.Seating_NoMembers;
+                return;
+            }
+
+            // 通过 facade 创建空白工作区（加载布局 + 学生，不执行策略）
+            _workspace = await _facade.CreateEmptyWorkspaceAsync(
+                SelectedVenue!.Id , SelectedDataset!.Id , ct);
+            _currentPlan = _workspace.BuildSeatingPlan();
+
+            // 构建显示 + 初始化历史
+            BuildSeatDisplayItems();
+            await UpdateRightPanelAsync();
+            UpdateStats();
+            InitHistory(Resources.Seating_EmptyStartDesc);
+
+            HasGenerated = true;
+            StatusMessage = string.Format(Resources.Seating_EmptyCreatedFmt , TotalSeats , UnassignedStudentCount);
+        } , Resources.Seating_CreateEmptyFailed);
 
         IsGenerating = false;
     }
@@ -646,12 +697,45 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         AssignedSeats = SeatItems.Count(s => s.IsOccupied);
     }
 
+    /// <summary>手动操作后统一刷新显示、更新历史、设置状态消息。</summary>
+    private async Task FinalizeManualOperationAsync (string historyDesc , string statusMsg)
+    {
+        _currentPlan = _workspace!.BuildSeatingPlan();
+        RefreshSeatAssignments();
+        await UpdateRightPanelAsync();
+        UpdateStats();
+        AddHistoryEntry(historyDesc);
+        StatusMessage = statusMsg;
+    }
+
     // ── 座位点击交换 ──
 
     [RelayCommand]
     private async Task ClickSeatAsync (SeatDisplayItem? clickedSeat)
     {
         if (clickedSeat == null || _workspace == null) return;
+
+        // ── 从右侧未分配列表点击放置 ──
+        if (SelectedUnassignedStudent != null && !clickedSeat.IsOccupied && !clickedSeat.IsFixed)
+        {
+            var student = SelectedUnassignedStudent;
+            var studentName = student.Name;
+            var seatLabel = clickedSeat.SeatLabel;
+
+            await SafeExecuteAsync(async () =>
+            {
+                var assignCmd = new AssignSeatCommand(clickedSeat.SeatId , student.Id);
+                var ok = await _facade.ExecuteCommandAsync(assignCmd, recordInHistory: false);
+                if (ok)
+                {
+                    await FinalizeManualOperationAsync(
+                        string.Format(Resources.Seating_PlacedFmt , studentName , seatLabel) ,
+                        string.Format(Resources.Seating_PlacedFmt , studentName , seatLabel));
+                    SelectedUnassignedStudent = null;
+                }
+            } , Resources.Seating_PlaceTitle);
+            return;
+        }
 
         // 首次点击：选择源座位
         if (_swapSourceSeat == null)
@@ -681,19 +765,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 (source.SeatId , source.StudentId) ,
                 (clickedSeat.SeatId , clickedSeat.IsOccupied ? clickedSeat.StudentId : null));
 
-            var ok = await _facade.ExecuteCommandAsync(swapCmd);
+            var ok = await _facade.ExecuteCommandAsync(swapCmd, recordInHistory: false);
             if (ok)
             {
-                _currentPlan = _workspace!.BuildSeatingPlan();
-                RefreshSeatAssignments();
-                await UpdateRightPanelAsync();
-                UpdateStats();
-                AddHistoryEntry(string.Format(Resources.Seating_SwapDescFmt , source.StudentName ?? source.SeatLabel , clickedSeat.StudentName ?? Resources.Common_Cancel));
-                StatusMessage = string.Format(Resources.Seating_SwappedFmt , source.StudentName , clickedSeat.StudentName ?? Resources.Common_Cancel);
+                await FinalizeManualOperationAsync(
+                    string.Format(Resources.Seating_SwapDescFmt , source.StudentName ?? source.SeatLabel , clickedSeat.StudentName ?? Resources.Common_Cancel) ,
+                    string.Format(Resources.Seating_SwappedFmt , source.StudentName , clickedSeat.StudentName ?? Resources.Common_Cancel));
+                CancelSwap();
             }
         } , Resources.Seating_SwapFailed);
-
-        CancelSwap();
     }
 
     [RelayCommand]
@@ -703,6 +783,122 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _swapSourceSeat = null;
         IsSwapMode = false;
         SwapHintText = string.Empty;
+    }
+
+    /// <summary>
+    /// 将交换模式下选中的源座位学生移除到未分配列表。
+    /// </summary>
+    [RelayCommand]
+    private async Task RemoveToTrashAsync ()
+    {
+        if (_workspace == null || _swapSourceSeat == null) return;
+        if (!_swapSourceSeat.IsOccupied || _swapSourceSeat.IsFixed) return;
+
+        var studentName = _swapSourceSeat.StudentName ?? "";
+        var seatLabel = _swapSourceSeat.SeatLabel;
+
+        await SafeExecuteAsync(async () =>
+        {
+            var removeCmd = new RemoveStudentCommand(_swapSourceSeat.SeatId);
+            var ok = await _facade.ExecuteCommandAsync(removeCmd, recordInHistory: false);
+            if (ok)
+            {
+                await FinalizeManualOperationAsync(
+                    string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel) ,
+                    string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel));
+                CancelSwap();
+            }
+        } , Resources.Seating_RemoveTitle);
+    }
+
+    // ── 拖放操作（由 code-behind 调用） ──
+
+    /// <summary>
+    /// 获取学生的显示名称（从工作区中查找）。
+    /// </summary>
+    internal string GetStudentName (string studentId)
+        => _workspace?.Students.FirstOrDefault(s => s.Id == studentId)?.Name ?? studentId;
+
+    /// <summary>
+    /// 执行拖放放置操作，支持四种情况：
+    /// 1. 从未分配列表 → 空座位：AssignSeatCommand
+    /// 2. 从座位 → 空座位：SwapSeatCommand（移动）
+    /// 3. 从座位 → 已占座位：SwapSeatCommand（交换）
+    /// 4. 从未分配列表 → 已占座位：不允许
+    /// </summary>
+    internal async Task<bool> ExecuteDropAsync (
+        string studentId , string? sourceSeatId , string targetSeatId ,
+        CancellationToken ct = default)
+    {
+        if (_workspace == null) return false;
+
+        // 拖到自身 = 无操作
+        if (sourceSeatId == targetSeatId) return false;
+
+        var targetItem = SeatItems.FirstOrDefault(s => s.SeatId == targetSeatId);
+        if (targetItem == null || targetItem.IsFixed) return false;
+
+        var studentName = GetStudentName(studentId);
+        IUndoableCommand cmd;
+
+        if (sourceSeatId == null && !targetItem.IsOccupied)
+        {
+            // 从未分配列表 → 空座位
+            cmd = new AssignSeatCommand(targetSeatId , studentId);
+        }
+        else if (sourceSeatId != null && !targetItem.IsOccupied)
+        {
+            // 从座位 → 空座位（移动）
+            cmd = new SwapSeatCommand(
+                (sourceSeatId , studentId) ,
+                (targetSeatId , null));
+        }
+        else if (sourceSeatId != null && targetItem.IsOccupied)
+        {
+            // 从座位 → 已占座位（交换）
+            cmd = new SwapSeatCommand(
+                (sourceSeatId , studentId) ,
+                (targetSeatId , targetItem.StudentId));
+        }
+        else
+        {
+            // 从未分配列表 → 已占座位：不允许
+            return false;
+        }
+
+        var ok = await _facade.ExecuteCommandAsync(cmd, ct, recordInHistory: false);
+        if (ok)
+        {
+            await FinalizeManualOperationAsync(
+                string.Format(Resources.Seating_PlacedFmt , studentName , targetItem.SeatLabel) ,
+                string.Format(Resources.Seating_PlacedFmt , studentName , targetItem.SeatLabel));
+            SelectedUnassignedStudent = null;
+        }
+        return ok;
+    }
+
+    /// <summary>
+    /// 执行拖放到垃圾桶操作：将座位上的学生移除到未分配列表。
+    /// </summary>
+    internal async Task<bool> ExecuteRemoveToTrashAsync (string seatId , CancellationToken ct = default)
+    {
+        if (_workspace == null) return false;
+
+        var item = SeatItems.FirstOrDefault(s => s.SeatId == seatId);
+        if (item == null || !item.IsOccupied || item.IsFixed) return false;
+
+        var studentName = item.StudentName ?? "";
+        var seatLabel = item.SeatLabel;
+
+        var cmd = new RemoveStudentCommand(seatId);
+        var ok = await _facade.ExecuteCommandAsync(cmd, ct, recordInHistory: false);
+        if (ok)
+        {
+            await FinalizeManualOperationAsync(
+                string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel) ,
+                string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel));
+        }
+        return ok;
     }
 
     // ── 撤销/重做（基于历史列表） ──

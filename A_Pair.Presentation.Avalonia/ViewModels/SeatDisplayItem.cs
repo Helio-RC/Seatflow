@@ -54,6 +54,11 @@ public partial class SeatDisplayItem : ObservableObject
     [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
     public partial bool IsDataStale { get; set; }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
+    [NotifyPropertyChangedFor(nameof(BorderBrush))]
+    public partial bool IsDragHover { get; set; }
+
     // ── 计算属性 ──
     public string DisplayText => IsOccupied ? (StudentName ?? "") : SeatLabel;
 
@@ -73,8 +78,11 @@ public partial class SeatDisplayItem : ObservableObject
     private static readonly SolidColorBrush SwapBorder = new(Color.FromArgb(0xFF , 0xF9 , 0x73 , 0x16));
     private static readonly SolidColorBrush StaleBg = new(Color.FromArgb(0x30 , 0xF9 , 0xA8 , 0x25));
     private static readonly SolidColorBrush StaleBorder = new(Color.FromArgb(0xFF , 0xF9 , 0xA8 , 0x25));
+    private static readonly SolidColorBrush DropTargetBg = new(Color.FromArgb(0x40 , 0x00 , 0x78 , 0xD4));
+    private static readonly SolidColorBrush DropTargetBorder = new(Color.FromArgb(0xFF , 0x00 , 0x78 , 0xD4));
 
-    public IBrush BackgroundBrush => IsSelectedForSwap ? SwapBg :
+    public IBrush BackgroundBrush => IsDragHover ? DropTargetBg :
+        IsSelectedForSwap ? SwapBg :
         IsDataStale ? StaleBg : OccupancyStatus switch
         {
             SeatOccupancyStatus.Occupied => OccupiedBg,
@@ -82,7 +90,8 @@ public partial class SeatDisplayItem : ObservableObject
             _ => EmptyBg
         };
 
-    public IBrush BorderBrush => IsSelectedForSwap ? SwapBorder :
+    public IBrush BorderBrush => IsDragHover ? DropTargetBorder :
+        IsSelectedForSwap ? SwapBorder :
         IsDataStale ? StaleBorder : OccupancyStatus switch
         {
             SeatOccupancyStatus.Occupied => OccupiedBorder,
