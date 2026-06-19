@@ -382,3 +382,6 @@ dev-debug.log
 .DS_Store
 
 /.claude
+
+# i18n backup files
+A_Pair.Presentation.Avalonia/Lang/.backup/

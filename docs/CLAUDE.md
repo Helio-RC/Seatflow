@@ -190,6 +190,16 @@ StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, count);
 
 **Key naming**: `{Page}_{Element}` with PascalCase, e.g. `Settings_Title`, `Nav_Home`, `Common_OK`. Format strings use `{0}` placeholders.
 
+**Managing resources**: Use `python3 scripts/i18n.py` for all CRUD operations on .resx keys — it keeps the three files (zh-CN .resx, en-US .resx, Designer.cs) in sync. See `scripts/I18N.md` for full usage guide. Common commands:
+```bash
+python3 scripts/i18n.py list                     # List all keys
+python3 scripts/i18n.py list --missing-en        # Find untranslated keys
+python3 scripts/i18n.py check                    # Validate consistency
+python3 scripts/i18n.py add KEY --zh "中" --en "EN"  # Add a key
+python3 scripts/i18n.py sync                     # Regenerate Designer.cs from .resx
+```
+Backups are auto-created in `Lang/.backup/` (gitignored).
+
 **Language switching**: `App.ApplyLanguageFromSettings()` (called in `Initialize()` before XAML loading). Sets `CultureInfo.CurrentUICulture` and `Resources.Culture`.
 
 ### About Page Data (`Data/about.json`)
