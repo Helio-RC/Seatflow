@@ -1101,7 +1101,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 return;
             }
 
-            var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , suggestedName);
+            var baseName = Path.GetFileNameWithoutExtension(suggestedName);
+            var ext = Path.GetExtension(suggestedName);
+            var perspectiveLabel = perspective == LayoutPerspective.TeacherView
+                ? Resources.Seating_TeacherView
+                : Resources.Seating_StudentView;
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
+            var fullSuggestedName = $"{baseName}_{perspectiveLabel}_{timestamp}{ext}";
+
+            var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , fullSuggestedName);
             if (file == null) return;
 
             var filePath = file.Path.LocalPath;

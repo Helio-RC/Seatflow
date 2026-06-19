@@ -75,7 +75,7 @@ public partial class SeatingArrangementView : UserControl
             {
                 Background = cardBg,
                 BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0 , accentColor.R , accentColor.G , accentColor.B)),
-                BorderThickness = new Thickness(1),
+                BorderThickness = new Thickness(2),
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(10 , 5),
                 BoxShadow = cardShadow,

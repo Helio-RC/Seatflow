@@ -213,8 +213,7 @@
                     HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
-                    ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}"
-                    Classes="accent">
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="18" />
             </Button>
             <Button x:Name="GenerateButton"
@@ -223,7 +222,8 @@
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
                     AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
-                    Height="36" Margin="0,0,4,0">
+                    Height="36" Margin="0,0,4,0"
+                    Classes="accent">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />
                 <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
