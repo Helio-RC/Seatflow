@@ -313,6 +313,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 	        case PageKey.VenueConfiguration:
 	            SeedVenueConfigurationData(pageVm as VenueConfigurationViewModel);
 	            break;
+	        case PageKey.StrategyConfiguration:
+	            SeedStrategyConfigurationData(pageVm as StrategyConfigurationViewModel);
+	            break;
 	        case PageKey.SeatingArrangement:
 	            SeedSeatingArrangementData(pageVm as SeatingArrangementViewModel);
 	            break;
@@ -351,6 +354,19 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 	    {
 	        vm.LayoutName = "演示教室";
 	        vm.StatusMessage = "已创建演示会场（演示数据）";
+	    }, DispatcherPriority.Background);
+	}
+
+	private static void SeedStrategyConfigurationData(StrategyConfigurationViewModel? vm)
+	{
+	    if (vm is null) return;
+	    // Background 延迟：ViewModel 构造函数中的 LoadAsync() 会异步填充 Strategies。
+	    // 注入在异步 init 完成后选中第一个策略，触发 OnSelectedStrategyChanged
+	    // → LoadDetailAsync → SelectedDetail 非空 → HasDetail=true → EditEnabledSwitch 可见。
+	    Dispatcher.UIThread.Post(() =>
+	    {
+	        if (vm.Strategies.Count == 0) return;
+	        vm.SelectedStrategy = vm.Strategies[0];
 	    }, DispatcherPriority.Background);
 	}
 
