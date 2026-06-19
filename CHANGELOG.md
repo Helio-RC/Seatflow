@@ -2,6 +2,48 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [1.2.0] — 2026-06-19
+
+### Added
+- **交互式引导系统**：19 步启动引导 + 2 个页面引导（FreeformManagement、PluginManagement），JSON 驱动配置（`onboarding_config.json` v3.0），Popup 弹窗 + ControlHighlight 边框 + Placement 自适应定位。窗口失焦自动收起避免孤立窗口，恢复后自动定位到当前步骤。纯内存示例数据注入（ADR-008），引导期间不产生磁盘文件
+- **拖拽换座**：座位排布画布支持拖放交换（`DoDragDropAsync` + `PointerPressed` 模式），拖放期间 CanvasZoomPan 通过 NaN 哨兵机制自动忽略平移。详见 `docs/DragDrop.md`
+- **教师/学生视角导出**：`LayoutPerspective` 枚举（StudentView / TeacherView），Excel/CSV/PDF/PNG 导出支持选择视角，座位位置标签按视角翻转
+- **`RemoveStudentCommand`**：可撤销的学生移除命令（`IUndoableCommand`），集成到 CommandHistory 支持撤销/重做
+- **i18n 管理脚本**（`scripts/i18n.py`）：Python 3，支持 .resx 三文件同步 CRUD + `Resources.Designer.cs` 自动生成。自动备份到 `Lang/.backup/`（已 gitignore）。45 个单元测试。完整文档 `scripts/I18N.md`
+- **策略配置清理**（`ConfigCleanupService`）：自动检测并清理无效策略配置（已删除的数据集/会场），集成 `NoRepeatDeskMateHistoryLoader` 历史清理
+- **引导重启**：`Settings_RestartGuide` 设置入口，用户可手动重新运行启动引导
+- **Guide 样式系统**（`Guide.axaml`）：Popup 主体、箭头、ControlHighlight 边框的完整样式定义
+- ADR-008 — 引导系统纯内存示例数据注入决策记录
+- `docs/DragDrop.md` — Avalonia 12 拖放实现模式与 CanvasZoomPan 交互记录
+- `docs/ONBOARDING_GUIDE.md` — 引导系统设计文档
+- `docs/StrategyDataResilience.md` — 策略数据韧性文档
+
+### Changed
+- **引导系统重构**：从硬编码 7 步改为 JSON 驱动 19 步启动引导 + 页面引导。步骤定义声明式（titleKey/descKey/target/placement），零 C# 硬编码。引导完成状态持久化到 `AppSettings.CompletedPageGuides`
+- **页面切换动画优化**：从 CrossFade（闪烁）改为 Slide 动画（200ms），引导导航跳过动画直接切换
+- **MainWindow**：侧栏整合到 `MainShellViewModel`，新增 `Activated`/`Deactivated` 事件转发给 `OnboardingService`
+- **SeatingArrangement**：座位画布重构支持拖放 + 创建空布局 + 手动快照 + 策略消息面板折叠。新增 ~230 行交互逻辑
+- **VenueConfiguration**：`NewVenue()` 取消飞行中的 `SelectVenueAsync` 消除竞态条件
+- **Settings**：外观/行为分组重构，最大快照数可配置，新增引导重启入口
+- `IApplicationFacade` 扩展：`DeleteStudentFromDatasetAsync`、`CleanupInvalidStrategyConfigsAsync`、`LoadCompletedGuidePagesAsync` / `MarkGuidePageCompletedAsync`
+- `CanvasZoomPan` 重构：NaN 哨兵机制兼容拖放，缩放/平移/拖放三模式平滑切换
+- `App.axaml.cs` 重构：启动流程 7 步标准化（语言→XAML→DI→TopLevel→Dialog→Watchdog→InputNormalizer→Settings）
+- 所有 `.axaml` 视图添加 `x:Name` 以支持引导系统的目标解析
+- 发布脚本增强：多平台打包改进
+
+### Fixed
+- 修复侧栏拖动范围越界
+- 修复引导 Popup 失焦后仍可见的孤立窗口问题（窗口状态同步机制）
+- 修复引导页面切换时 target 解析失败（先导航后解析 x:Name 顺序修正）
+- 修复策略配置页引导中 ToggleSwitch 未被框中的问题
+- 修复初次启动时配置文件未创建导致引导不显示
+- 修复参数缺失导致的策略配置加载失败
+- 修复快照轮转删除逻辑
+- 修复控件边框渲染不显示的问题
+- 修复无法拖动座位的问题
+- 修复 `Guide_Seating_Select_Title` / `Guide_Seating_Select_Desc` 在 Designer.cs 中存在但 .resx 缺失的问题
+- 修复 .resx 文件 XML 注释影响解析器的问题
+
 ## [1.1.0] — 2026-06-14
 
 ### Added
@@ -27,7 +69,7 @@
 - **策略管道模型**：从 `后可覆盖（override）` 改为 `按优先级填空（Fill-in-Order）`，Priority 降序（高→先执行）
 - **Priority 语义反转**：数值越大越先执行（旧版：越小越先），FixedSeat=100 → RandomFill=1 → Defrag=0
 - **插件系统重构**：从单策略插件改为多策略插件包架构（`plugins-manifest.json` + 策略 `manifest.json` 双层清单），支持一个包承载多个策略和热插拔。新增 `.ap-plugin` 打包格式
-- `PluginManifest` 标记为 `[Obsolete]`，新代码应使用 `PluginPackageManifest` + 策略 `manifest.json`
+- `PluginManifest` 类型已删除，由 `PluginPackageManifest`（包级）+ 策略 `manifest.json`（策略级）替代
 - 插件清单格式从 `plugin.manifest.json` 改为 `plugins-manifest.json`
 - 插件包扩展名从 `.apairplugin` 改为 `.ap-plugin`
 - `IPluginSeatingStrategy` 新增默认接口实现（`Category` / `Version`）

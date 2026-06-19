@@ -1,0 +1,270 @@
+<!--
+  Guide 控件主题 — 直接引用 FluentTheme Brush 资源 + 项目令牌，支持 Light/Dark 双主题。
+  通过 App.axaml ResourceDictionary.MergedDictionaries 的 ResourceInclude 加载。
+  不依赖 Semi.Avalonia。
+  含过渡动画：遮罩淡入、卡片缩放弹出、步骤间内容切换。
+-->
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:codewf="using:CodeWF.AvaloniaControls.Controls">
+
+  <!-- 布局常量 -->
+  <x:Double x:Key="GuideControlHeight">32</x:Double>
+  <Thickness x:Key="GuideControlBorderThickness">1</Thickness>
+  <CornerRadius x:Key="GuideBorderRadiusSmall">4</CornerRadius>
+  <CornerRadius x:Key="GuideBorderRadiusMedium">8</CornerRadius>
+
+  <!-- DefaultGuideIndicator -->
+  <ControlTheme x:Key="{x:Type codewf:DefaultGuideIndicator}" TargetType="codewf:DefaultGuideIndicator">
+    <Setter Property="IndicatorSize" Value="6" />
+    <Setter Property="ItemSpacing" Value="6" />
+    <Setter Property="IndicatorBrush" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    <Setter Property="ActiveIndicatorBrush" Value="{DynamicResource SystemAccentColor}" />
+  </ControlTheme>
+
+  <!-- TextGuideIndicator -->
+  <ControlTheme x:Key="{x:Type codewf:TextGuideIndicator}" TargetType="codewf:TextGuideIndicator">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="codewf:TextGuideIndicator">
+        <TextBlock
+            VerticalAlignment="Center"
+            Classes="body"
+            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+            Text="{TemplateBinding IndicatorText}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Primary Action Button（"下一步"/"完成"） -->
+  <ControlTheme x:Key="GuidePrimaryActionButton" TargetType="Button">
+    <Setter Property="MinHeight" Value="{StaticResource GuideControlHeight}" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="BorderThickness" Value="{StaticResource GuideControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{StaticResource GuideBorderRadiusSmall}" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <ContentPresenter
+            Name="PART_ContentPresenter"
+            Padding="{TemplateBinding Padding}"
+            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            Content="{TemplateBinding Content}"
+            ContentTemplate="{TemplateBinding ContentTemplate}"
+            CornerRadius="{TemplateBinding CornerRadius}"
+            Foreground="{TemplateBinding Foreground}"
+            RecognizesAccessKey="True" />
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorLight2}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorDark1}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+  </ControlTheme>
+
+  <!-- Guide 控件主题 -->
+  <ControlTheme x:Key="{x:Type codewf:Guide}" TargetType="codewf:Guide">
+    <Setter Property="TargetBorderBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="TargetBorderThickness" Value="3" />
+    <Setter Property="GapRadius" Value="6" />
+    <Setter Property="IsPointAtCenter" Value="True" />
+    <Setter Property="IsScrollIntoView" Value="True" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="codewf:Guide">
+        <Grid Background="Transparent">
+          <!-- 遮罩层：全屏半透明 -->
+          <Popup
+              Name="PART_MaskPopup"
+              IsLightDismissEnabled="False"
+              ShouldUseOverlayLayer="False"
+              Topmost="False"
+              WindowManagerAddShadowHint="False">
+            <codewf:GuideOverlay Name="PART_Overlay"
+                MaskBrush="{TemplateBinding CurrentMaskColor}" />
+          </Popup>
+
+          <!-- 目标高亮层：绑定额外的 TargetRegion 属性以渲染镂空边框 -->
+          <Popup
+              Name="PART_TargetMaskPopup"
+              IsLightDismissEnabled="False"
+              ShouldUseOverlayLayer="False"
+              Topmost="False"
+              WindowManagerAddShadowHint="False">
+            <codewf:GuideOverlay Name="PART_TargetOverlay"
+                MaskBrush="{TemplateBinding CurrentMaskColor}"
+                TargetRegion="{TemplateBinding TargetRegion}"
+                TargetRegionBorderBrush="{TemplateBinding TargetBorderBrush}"
+                TargetRegionBorderThickness="{TemplateBinding TargetBorderThickness}" />
+          </Popup>
+
+          <!-- 卡片 + 箭头 -->
+          <Popup
+              Name="PART_Popup"
+              IsLightDismissEnabled="False"
+              ShouldUseOverlayLayer="False"
+              Topmost="False"
+              WindowManagerAddShadowHint="False">
+            <Grid Background="Transparent">
+              <codewf:GuideArrow
+                  Name="PART_Arrow"
+                  Width="20"
+                  Height="20"
+                  Fill="{DynamicResource SurfaceCardBrush}"
+                  Stroke="{DynamicResource SystemAccentColorLight1}"
+                  StrokeThickness="1.5" />
+
+              <!-- 卡片：surfaceCard + CardShadowLarge + 过渡动画 -->
+              <Border
+                  Name="PART_CardRoot"
+                  MinWidth="280"
+                  MaxWidth="420"
+                  Padding="18"
+                  Background="{DynamicResource SurfaceCardBrush}"
+                  BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
+                  BorderThickness="{StaticResource GuideControlBorderThickness}"
+                  BoxShadow="{DynamicResource CardShadowLarge}"
+                  CornerRadius="{StaticResource GuideBorderRadiusMedium}"
+                  Focusable="True"
+                  RenderTransformOrigin="50%,50%">
+                <Border.RenderTransform>
+                  <ScaleTransform ScaleX="1" ScaleY="1">
+                    <ScaleTransform.Transitions>
+                      <Transitions>
+                        <DoubleTransition Property="ScaleX" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                        <DoubleTransition Property="ScaleY" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                      </Transitions>
+                    </ScaleTransform.Transitions>
+                  </ScaleTransform>
+                </Border.RenderTransform>
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock
+                        Classes="bodyLarge"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                        IsVisible="{TemplateBinding HasCurrentTitle}"
+                        Text="{TemplateBinding CurrentTitle}"
+                        TextWrapping="Wrap" />
+                    <Button
+                        Name="PART_CloseButton"
+                        Grid.Column="1"
+                        Width="28"
+                        Height="28"
+                        Margin="12,-4,-8,0"
+                        Padding="0"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        ToolTip.Tip="{TemplateBinding CloseText}">
+                      <PathIcon
+                          Width="13"
+                          Height="13"
+                          Data="M18.3,5.71L12,12L18.3,18.29L16.89,19.7L10.59,13.41L4.29,19.71L2.88,18.3L9.17,12L2.88,5.7L4.29,4.29L10.59,10.59L16.89,4.29L18.3,5.71Z" />
+                    </Button>
+                  </Grid>
+
+                  <ContentControl
+                      Grid.Row="1"
+                      HorizontalContentAlignment="Stretch"
+                      Content="{TemplateBinding CurrentCover}"
+                      IsVisible="{TemplateBinding HasCurrentCover}" />
+
+                  <TextBlock
+                      Grid.Row="2"
+                      Classes="body"
+                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      IsVisible="{TemplateBinding HasCurrentDescription}"
+                      LineHeight="21"
+                      Text="{TemplateBinding CurrentDescription}"
+                      TextWrapping="Wrap" />
+
+                  <Grid
+                      Grid.Row="3"
+                      ColumnDefinitions="Auto,*,Auto"
+                      ColumnSpacing="10">
+                    <ContentControl
+                        VerticalAlignment="Center"
+                        Content="{TemplateBinding Indicator}" />
+
+                    <ItemsControl
+                        Name="PART_CustomActionsHost"
+                        Grid.Column="1"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Orientation="Horizontal" Spacing="8" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <StackPanel
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                      <Button
+                          Name="PART_PreviousButton"
+                          IsEnabled="{TemplateBinding CanGoPrevious}"
+                          Content="{TemplateBinding PreviousText}" />
+                      <Button
+                          Name="PART_NextButton"
+                          IsVisible="{TemplateBinding CanGoNext}"
+                          Content="{TemplateBinding NextText}" />
+                      <Button
+                          Name="PART_FinishButton"
+                          IsVisible="{TemplateBinding IsLastStep}"
+                          Content="{TemplateBinding FinishText}" />
+                    </StackPanel>
+                  </Grid>
+                </Grid>
+              </Border>
+            </Grid>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- Primary 样式 — "下一步"/"完成"按钮使用 accent 色 -->
+    <Style Selector="^:primary /template/ Button#PART_NextButton">
+      <Setter Property="Theme" Value="{StaticResource GuidePrimaryActionButton}" />
+    </Style>
+
+    <Style Selector="^:primary /template/ Button#PART_FinishButton">
+      <Setter Property="Theme" Value="{StaticResource GuidePrimaryActionButton}" />
+    </Style>
+
+    <!-- 关闭按钮 -->
+    <Style Selector="^ /template/ Button#PART_CloseButton">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="{StaticResource GuideBorderRadiusMedium}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    </Style>
+
+    <Style Selector="^ /template/ Button#PART_CloseButton:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    </Style>
+
+    <Style Selector="^ /template/ Button#PART_CloseButton:pressed">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>

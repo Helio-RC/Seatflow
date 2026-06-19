@@ -73,7 +73,7 @@
               </StackPanel>
             </Button>
             <Separator Margin="0,2" />
-            <Button Command="{Binding SaveAllCommand}"
+            <Button x:Name="SaveAllButton" Command="{Binding SaveAllCommand}"
                     IsEnabled="{Binding HasChanges}"
                     AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
                     HorizontalContentAlignment="Left" Padding="8,5">
@@ -86,7 +86,7 @@
         </Border>
 
         <!-- 策略列表 -->
-        <ListBox ItemsSource="{Binding Strategies}"
+        <ListBox x:Name="StrategyListBox" ItemsSource="{Binding Strategies}"
                  SelectedItem="{Binding SelectedStrategy, Mode=TwoWay}"
                  BorderThickness="0"
                  Background="{DynamicResource SidebarBackgroundBrush}">
@@ -195,7 +195,7 @@
               <DockPanel>
                 <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_EnableLabel}" FontSize="14"
                            VerticalAlignment="Center" Width="140" />
-                <ToggleSwitch IsChecked="{Binding EditIsEnabled, Mode=TwoWay}"
+                <ToggleSwitch x:Name="EditEnabledSwitch" IsChecked="{Binding EditIsEnabled, Mode=TwoWay}"
                               HorizontalAlignment="Right" />
               </DockPanel>
             </StackPanel>

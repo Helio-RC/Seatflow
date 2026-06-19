@@ -1,52 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  
-  <xs:schema id="root">
-    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xs:element name="root" ns1:IsDataSet="true">
-      <xs:complexType>
-        <xs:choice maxOccurs="unbounded">
-          <xs:element name="metadata">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" />
-              </xs:sequence>
-              <xs:attribute name="name" use="required" type="xsd:string" />
-              <xs:attribute name="type" type="xsd:string" />
-              <xs:attribute name="mimetype" type="xsd:string" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="assembly">
-            <xs:complexType>
-              <xs:attribute name="alias" type="xsd:string" />
-              <xs:attribute name="name" type="xsd:string" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="data">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
-              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
-              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="resheader">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" />
-            </xs:complexType>
-          </xs:element>
-        </xs:choice>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -67,6 +125,9 @@
   </data>
   <data name="About_License" xml:space="preserve">
     <value>许可证</value>
+  </data>
+  <data name="About_MITLicenseWarning" xml:space="preserve">
+    <value>本软件依据 MIT 许可证分发，是完全免费的开源软件。任何形式的收费行为均未经授权，请警惕诈骗。</value>
   </data>
   <data name="About_OpenLink" xml:space="preserve">
     <value>打开 {0} 项目页面</value>
@@ -178,6 +239,12 @@
   </data>
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV 文件</value>
+  </data>
+  <data name="Guide_Seating_Select_Desc" xml:space="preserve">
+    <value>选择会场和成员数据集以生成座位安排</value>
+  </data>
+  <data name="Guide_Seating_Select_Title" xml:space="preserve">
+    <value>选择数据</value>
   </data>
   <data name="Member_AddedRowFmt" xml:space="preserve">
     <value>已添加第 {0} 名学生</value>
@@ -812,7 +879,7 @@
     <value>取消交换</value>
   </data>
   <data name="Seating_CanvasHint" xml:space="preserve">
-    <value>左键拖动，滚轮缩放</value>
+    <value>左键拖动，滚轮缩放；拖动或点击人员以调换位置</value>
   </data>
   <data name="Seating_CurrentStrategy" xml:space="preserve">
     <value>当前策略</value>
@@ -837,6 +904,14 @@
   </data>
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>已导出至 {0}</value>
+  </data>
+  <data name="Seating_StudentView" xml:space="preserve">
+    <value>学生视角</value>
+    <comment>导出子菜单标题：学生视角导出格式</comment>
+  </data>
+  <data name="Seating_TeacherView" xml:space="preserve">
+    <value>教师视角</value>
+    <comment>导出子菜单标题：教师视角导出格式</comment>
   </data>
   <data name="Seating_Generate" xml:space="preserve">
     <value>生成座位安排</value>
@@ -1885,5 +1960,281 @@
   </data>
   <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
     <value>请选择一个会场</value>
+  </data>
+  <data name="Settings_RestartGuide" xml:space="preserve">
+    <value>重新开始引导</value>
+  </data>
+  <data name="Settings_RestartGuideHint" xml:space="preserve">
+    <value>重新显示首次使用的功能引导</value>
+  </data>
+  <data name="Guide_Phase0_Step0_Title" xml:space="preserve">
+    <value>欢迎使用 A_Pair</value>
+  </data>
+  <data name="Guide_Phase0_Step0_Desc" xml:space="preserve">
+    <value>A_Pair 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
+  </data>
+  <data name="Guide_Phase0_Step1_Title" xml:space="preserve">
+    <value>功能导航</value>
+  </data>
+  <data name="Guide_Phase0_Step1_Desc" xml:space="preserve">
+    <value>左侧导航栏包含所有功能入口。引导过程中会自动切换页面，跟随指引操作即可。您也可以随时点击右上角 × 退出引导。</value>
+  </data>
+  <data name="Guide_Phase1_Step0_Title" xml:space="preserve">
+    <value>导入学生名单</value>
+  </data>
+  <data name="Guide_Phase1_Step0_Desc" xml:space="preserve">
+    <value>首先需要导入学生数据。您可以先下载模板按格式填写。然后点击「导入」按钮，支持 CSV、Excel 格式。</value>
+  </data>
+  <data name="Guide_Phase1_Step1_Title" xml:space="preserve">
+    <value>管理学生信息</value>
+  </data>
+  <data name="Guide_Phase1_Step1_Desc" xml:space="preserve">
+    <value>导入后学生信息会显示在此列表中。您可以手动编辑、添加或删除学生。新增行在列表底部，填写后点击 + 按钮即可添加。</value>
+  </data>
+  <data name="Guide_Phase2_Step0_Title" xml:space="preserve">
+    <value>创建会场</value>
+  </data>
+  <data name="Guide_Phase2_Step0_Desc" xml:space="preserve">
+    <value>接下来为教室/考场创建座位布局。点击「新建会场」开始。</value>
+  </data>
+  <data name="Guide_Phase2_Step1_Title" xml:space="preserve">
+    <value>设置网格参数</value>
+  </data>
+  <data name="Guide_Phase2_Step1_Desc" xml:space="preserve">
+    <value>选择布局类型（通常为网格），设置行列数来定义座位排布。右侧预览区会实时显示布局效果。</value>
+  </data>
+  <data name="Guide_Phase2_Step2_Title" xml:space="preserve">
+    <value>保存会场</value>
+  </data>
+  <data name="Guide_Phase2_Step2_Desc" xml:space="preserve">
+    <value>配置完成后点击保存。您可以创建多个会场（如不同教室），在排座时选择使用。</value>
+  </data>
+  <data name="Guide_Phase3_Step0_Title" xml:space="preserve">
+    <value>排座策略</value>
+  </data>
+  <data name="Guide_Phase3_Step0_Desc" xml:space="preserve">
+    <value>选择并配置排座策略。列表中的策略按优先级从高到低排列，高优先级策略先分配座位。</value>
+  </data>
+  <data name="Guide_Phase3_Step1_Title" xml:space="preserve">
+    <value>启用并调整策略</value>
+  </data>
+  <data name="Guide_Phase3_Step1_Desc" xml:space="preserve">
+    <value>点击策略可查看和修改其参数。使用开关启用/禁用策略。建议首次使用保持默认配置，点击「保存全部」。</value>
+  </data>
+  <data name="Guide_Phase4_Step0_Title" xml:space="preserve">
+    <value>选择名单和会场</value>
+  </data>
+  <data name="Guide_Phase4_Step0_Desc" xml:space="preserve">
+    <value>在左侧面板中选择学生名单和会场布局，这是生成座位的前置条件。</value>
+  </data>
+  <data name="Guide_Phase4_Step1_Title" xml:space="preserve">
+    <value>一键生成座位</value>
+  </data>
+  <data name="Guide_Phase4_Step1_Desc" xml:space="preserve">
+    <value>点击「生成座位」按钮，系统将按照您配置的策略自动编排座位。生成后可在中央画布查看和手动调整。</value>
+  </data>
+  <data name="Guide_Phase4_Step2_Title" xml:space="preserve">
+    <value>导出结果</value>
+  </data>
+  <data name="Guide_Phase4_Step2_Desc" xml:space="preserve">
+    <value>完成后可将座位表导出为 Excel、CSV、PDF 或图片格式。也可以保存为快照，方便日后回溯。</value>
+  </data>
+  <data name="Guide_Phase5_Step0_Title" xml:space="preserve">
+    <value>开始使用吧！</value>
+  </data>
+  <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
+    <value>您已经了解了 A_Pair 的核心工作流程。现在可以独立完成座位编排了！如需帮助，请随时查阅文档。</value>
+  </data>
+  <data name="Guide_Welcome_Greeting_Title" xml:space="preserve">
+    <value>欢迎使用 A_Pair</value>
+  </data>
+  <data name="Guide_Welcome_Greeting_Desc" xml:space="preserve">
+    <value>A_Pair 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Title" xml:space="preserve">
+    <value>功能导航</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Desc" xml:space="preserve">
+    <value>左侧是功能导航栏。引导中会自动切换页面，您只需跟随指引操作即可。随时可点击右上角 × 退出。</value>
+  </data>
+  <data name="Guide_Members_Import_Title" xml:space="preserve">
+    <value>点击此按钮导入学生</value>
+  </data>
+  <data name="Guide_Members_Import_Desc" xml:space="preserve">
+    <value>点击此按钮，从 CSV 或 Excel 文件导入学生名单。您也可以先下载模板填写后再导入。</value>
+  </data>
+  <data name="Guide_Members_Manage_Title" xml:space="preserve">
+    <value>在此列表管理学生</value>
+  </data>
+  <data name="Guide_Members_Manage_Desc" xml:space="preserve">
+    <value>导入的学生显示在此列表中。您可以点击单元格直接编辑信息，或点击行尾按钮删除。</value>
+  </data>
+  <data name="Guide_Members_AddStudent_Title" xml:space="preserve">
+    <value>在此添加新学生</value>
+  </data>
+  <data name="Guide_Members_AddStudent_Desc" xml:space="preserve">
+    <value>这是新增学生行。填写姓名、身高、性别等信息后，点击右侧 + 按钮即可添加一名学生。</value>
+  </data>
+  <data name="Guide_Venue_New_Title" xml:space="preserve">
+    <value>点击此按钮创建会场</value>
+  </data>
+  <data name="Guide_Venue_New_Desc" xml:space="preserve">
+    <value>为教室或考场创建座位布局。点击「新建会场」按钮开始。</value>
+  </data>
+  <data name="Guide_Venue_Layout_Title" xml:space="preserve">
+    <value>在此选择布局类型</value>
+  </data>
+  <data name="Guide_Venue_Layout_Desc" xml:space="preserve">
+    <value>选择布局类型（通常选网格），然后设置行数和列数。在预览区域实时显示效果。</value>
+  </data>
+  <data name="Guide_Venue_Save_Title" xml:space="preserve">
+    <value>点击此按钮保存会场</value>
+  </data>
+  <data name="Guide_Venue_Save_Desc" xml:space="preserve">
+    <value>配置完成后点击保存按钮。您可以创建多个会场，在排座时选择不同的会场使用。</value>
+  </data>
+  <data name="Guide_Strategy_List_Title" xml:space="preserve">
+    <value>在此列表选择策略</value>
+  </data>
+  <data name="Guide_Strategy_List_Desc" xml:space="preserve">
+    <value>点击列表中的策略可查看详情。策略按优先级排列，高优先级先分配座位。建议保持默认顺序。</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Title" xml:space="preserve">
+    <value>点击此开关启用策略</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
+    <value>选中策略后，点击此开关可启用或禁用。右侧面板可调整该策略的具体参数。</value>
+  </data>
+  <data name="Guide_Strategy_Conflict_Title" xml:space="preserve">
+    <value>按需启用，注意策略冲突</value>
+  </data>
+  <data name="Guide_Strategy_Conflict_Desc" xml:space="preserve">
+    <value>多个策略同时启用可能相互影响或产生冲突。请根据实际需求选择策略组合，优先级高的策略先执行。默认配置适用于大多数场景。</value>
+  </data>
+  <data name="Guide_Strategy_SaveAll_Title" xml:space="preserve">
+    <value>点击此按钮保存所有策略配置</value>
+  </data>
+  <data name="Guide_Strategy_SaveAll_Desc" xml:space="preserve">
+    <value>修改完策略配置后，点击「保存全部」按钮使配置生效。首次使用建议保持默认配置。</value>
+  </data>
+  <data name="Guide_Seating_SelectVenue_Title" xml:space="preserve">
+    <value>在此选择会场</value>
+  </data>
+  <data name="Guide_Seating_SelectVenue_Desc" xml:space="preserve">
+    <value>从列表中选择一个已创建的会场。这是生成座位表的前置条件之一。</value>
+  </data>
+  <data name="Guide_Seating_SelectDataset_Title" xml:space="preserve">
+    <value>在此选择学生名单</value>
+  </data>
+  <data name="Guide_Seating_SelectDataset_Desc" xml:space="preserve">
+    <value>从列表中选择要排座的学生名单。选好会场和名单后即可生成座位。</value>
+  </data>
+  <data name="Guide_Seating_Generate_Title" xml:space="preserve">
+    <value>点击此按钮生成座位</value>
+  </data>
+  <data name="Guide_Seating_Generate_Desc" xml:space="preserve">
+    <value>选择会场和名单后，点击此按钮。系统将按您配置的策略自动编排座位，结果在中央画布显示。</value>
+  </data>
+  <data name="Guide_Seating_Export_Title" xml:space="preserve">
+    <value>点击此按钮导出结果</value>
+  </data>
+  <data name="Guide_Seating_Export_Desc" xml:space="preserve">
+    <value>生成座位后，点击此按钮可将结果导出为 Excel、CSV、PDF 或图片格式。</value>
+  </data>
+  <data name="Guide_Snapshot_SelectVenue_Title" xml:space="preserve">
+    <value>在此下拉框选择会场</value>
+  </data>
+  <data name="Guide_Snapshot_SelectVenue_Desc" xml:space="preserve">
+    <value>先从此下拉框中选择一个会场，下方列表将显示该会场的所有历史座位快照。</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Title" xml:space="preserve">
+    <value>在此列表浏览历史快照</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Desc" xml:space="preserve">
+    <value>每次生成的座位表都会自动保存。点击列表中的快照可预览，选择后可回滚到该历史方案。</value>
+  </data>
+  <data name="Guide_Closing_Finish_Title" xml:space="preserve">
+    <value>准备就绪，开始使用吧！</value>
+  </data>
+  <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
+    <value>您已完成 A_Pair 核心工作流程的引导。现在可以独立完成座位编排了！如有疑问，请随时查阅设置页面的文档。</value>
+  </data>
+  <data name="Guide_Freeform_Import_Title" xml:space="preserve">
+    <value>点击此按钮导入坐标</value>
+  </data>
+  <data name="Guide_Freeform_Import_Desc" xml:space="preserve">
+    <value>从 CSV 或 JSON 文件导入座位坐标。文件应包含每座位的 X、Y 坐标及行列分组信息。</value>
+  </data>
+  <data name="Guide_Freeform_AddPoint_Title" xml:space="preserve">
+    <value>点击此按钮手动添加座位</value>
+  </data>
+  <data name="Guide_Freeform_AddPoint_Desc" xml:space="preserve">
+    <value>在列表中手动添加座位坐标。输入 X、Y 位置和所属行/列后，点击此按钮。</value>
+  </data>
+  <data name="Guide_Freeform_Save_Title" xml:space="preserve">
+    <value>点击此按钮保存布局</value>
+  </data>
+  <data name="Guide_Freeform_Save_Desc" xml:space="preserve">
+    <value>完成自由布局编辑后，点击此按钮保存。保存后的布局可在排座页面选择使用。</value>
+  </data>
+  <data name="Guide_Plugin_List_Title" xml:space="preserve">
+    <value>在此列表浏览插件</value>
+  </data>
+  <data name="Guide_Plugin_List_Desc" xml:space="preserve">
+    <value>已安装的插件显示在此列表中。点击插件可查看其详情、配置和脚本编辑。</value>
+  </data>
+  <data name="Guide_Plugin_Enable_Title" xml:space="preserve">
+    <value>点击此开关启用插件</value>
+  </data>
+  <data name="Guide_Plugin_Enable_Desc" xml:space="preserve">
+    <value>选中插件后，点击此开关启用或禁用。启用后插件将在排座策略中生效。</value>
+  </data>
+  <data name="Guide_Previous" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="Guide_Next" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="Guide_Finish" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Guide_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Guide_CloseConfirm_Title" xml:space="preserve">
+    <value>退出引导</value>
+  </data>
+  <data name="Seating_CreateEmpty" xml:space="preserve">
+    <value>创建空白会场</value>
+  </data>
+  <data name="Seating_CreateEmptyFailed" xml:space="preserve">
+    <value>创建空白会场失败</value>
+  </data>
+  <data name="Seating_CreateEmptyHint" xml:space="preserve">
+    <value>加载座位布局但不自动分配学生</value>
+  </data>
+  <data name="Seating_EmptyCreatedFmt" xml:space="preserve">
+    <value>空白会场：{0} 个座位，{1} 名学生待分配</value>
+  </data>
+  <data name="Seating_EmptyStartDesc" xml:space="preserve">
+    <value>创建空白会场</value>
+  </data>
+  <data name="Seating_PlaceTitle" xml:space="preserve">
+    <value>放置学生</value>
+  </data>
+  <data name="Seating_PlacedFmt" xml:space="preserve">
+    <value>已将 {0} 放置到 {1}</value>
+  </data>
+  <data name="Seating_RemoveTitle" xml:space="preserve">
+    <value>移除学生</value>
+  </data>
+  <data name="Seating_RemovedFmt" xml:space="preserve">
+    <value>已将 {0} 从 {1} 移回未分配</value>
+  </data>
+  <data name="Seating_TrashHint" xml:space="preserve">
+    <value>拖入或点击此处移除学生（需先选中已占座位）</value>
+  </data>
+  <data name="Guide_CloseConfirm_Message" xml:space="preserve">
+    <value>确定要退出引导吗？您可以在设置页面重新开始。</value>
   </data>
 </root>

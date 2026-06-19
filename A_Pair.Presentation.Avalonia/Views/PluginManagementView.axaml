@@ -61,7 +61,7 @@
                      Classes="body" Opacity="0.5"
                      IsVisible="{Binding EmptyHintVisible}" />
 
-          <ListBox ItemsSource="{Binding Plugins}"
+          <ListBox x:Name="PluginListBox" ItemsSource="{Binding Plugins}"
                    SelectedItem="{Binding SelectedPlugin, Mode=TwoWay}"
                    IsVisible="{Binding HasPlugins}"
                    Background="Transparent"
@@ -145,7 +145,7 @@
               <DockPanel>
                 <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_Plugin}" Classes="body"
                            VerticalAlignment="Center" />
-                <ToggleSwitch DockPanel.Dock="Right"
+                <ToggleSwitch x:Name="PluginEnabledSwitch" DockPanel.Dock="Right"
                               IsChecked="{Binding SelectedPlugin.IsEnabled, Mode=OneWay}"
                               OffContent="{x:Static lang:Resources.Plugin_Disabled}" OnContent="{x:Static lang:Resources.Strategy_EnableLabel}"
                               Command="{Binding ToggleEnabledCommand}" />

@@ -63,7 +63,7 @@ public partial class SeatPositionPickerViewModel : ViewModelBase
     public bool IsPolar => LayoutType == "Polar";
     public bool IsFreeform => LayoutType == "Freeform";
 
-    partial void OnLayoutTypeChanged(string value)
+    partial void OnLayoutTypeChanged (string value)
     {
         OnPropertyChanged(nameof(IsGrid));
         OnPropertyChanged(nameof(IsPolar));

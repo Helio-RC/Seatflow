@@ -174,7 +174,11 @@ namespace A_Pair.Application.Services
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
-            // 3b. 从历史快照恢复前排历史，实现跨会话轮换
+            // 3b. 清理已删除数据源的策略配置（避免无效配置残留磁盘）
+            if (!string.IsNullOrEmpty(request.LayoutId))
+                await CleanupOrphanedDatasetConfigsAsync(cancellationToken);
+
+            // 3c. 从历史快照恢复前排历史，实现跨会话轮换
             if (!string.IsNullOrEmpty(request.LayoutId))
             {
                 var frontRowStrategy = _serviceProvider
@@ -184,7 +188,7 @@ namespace A_Pair.Application.Services
                 await historyLoader.PopulateFrontRowHistoryAsync(
                     workspace , request.LayoutId , windowSize , cancellationToken);
 
-                // 3c. 加载同桌不重复历史（过去的同桌对）
+                // 3d. 加载同桌不重复历史（过去的同桌对）
                 var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
                     .OfType<NoRepeatDeskMateStrategy>().FirstOrDefault();
                 if (noRepeat != null && noRepeat.IsEnabled)
@@ -195,8 +199,15 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 4. 获取内置策略（缓存 D内置策略，不变异）
+            // 4. 获取内置策略（缓存 - 内置策略，不变异）
             var builtInStrategies = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
+
+            // 4b. 获取内置依赖策略（提前解析，供配置恢复和后续步骤共用）
+            var builtInDependents = _cachedDependentStrategies ??= [.. _serviceProvider.GetServices<IDependentSeatingStrategy>()];
+
+            // 4c. 恢复持久化的策略配置（Priority、IsEnabled、Parameters），覆盖重启后默认值
+            await RestorePersistedStrategyConfigsAsync(
+                builtInStrategies , builtInDependents , cancellationToken);
 
             // 5. 加载插件策略并适配（加入独立列表，不污染缓存）
             var strategies = new List<ISeatingStrategy>(builtInStrategies);
@@ -275,12 +286,11 @@ namespace A_Pair.Application.Services
             // 6d. 收集依赖策略并注入到 RandomFill
             var dependentStrategies = new List<IDependentSeatingStrategy>();
 
-            // 收集内置依赖策略（从 DI 缓存），排除标记为不可见的策略
-            var cachedDeps = _cachedDependentStrategies ??= [.. _serviceProvider.GetServices<IDependentSeatingStrategy>()];
-            var builtInDependents = cachedDeps
+            // 收集内置依赖策略（复用步骤 4b 中已解析的实例），排除标记为不可见的策略
+            var visibleDependents = builtInDependents
                 .Where(d => !invisibleIds.Contains(d.Id))
                 .ToList();
-            dependentStrategies.AddRange(builtInDependents);
+            dependentStrategies.AddRange(visibleDependents);
 
             // 收集插件依赖策略（IsIndependent == false 的插件）
             foreach (var pi in loadedPlugins)
@@ -333,49 +343,8 @@ namespace A_Pair.Application.Services
                 }
             }
 
-            // 9. 保存快照（含内容哈希用于完整性检测）
-            var studentNames = workspace.Students
-                .Where(s => plan.Assignments.ContainsValue(s.Id))
-                .ToDictionary(s => s.Id , s => s.Name);
-            var venueHash = request.LayoutId != null
-                ? await _venueRepo.GetContentHashAsync(request.LayoutId , cancellationToken)
-                : null;
-            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
-                string.Concat(workspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
-            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames };
-            if (venueHash != null) snapshotMeta["venueHash"] = venueHash;
-            snapshotMeta["studentHash"] = studentHash;
-            // 嵌入会场原始文件内容：预览和回滚不依赖外部会场文件
-            if (!string.IsNullOrEmpty(request.LayoutId))
-            {
-                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(request.LayoutId , cancellationToken);
-                if (rawVenueJson != null)
-                    snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
-            }
-            var snapshot = new SeatingSnapshot
-            {
-                Description = request.Description ?? $"Generated at {DateTime.Now:yyyy-MM-dd HH:mm}" ,
-                LayoutId = request.LayoutId ?? "unknown" ,
-                SeatAssignments = plan.Assignments ,
-                Metadata = snapshotMeta
-            };
-            await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
-
-            // 9b. 轮转旧快照
-            if (!string.IsNullOrEmpty(request.LayoutId))
-                await RotateSnapshotsAsync(request.LayoutId , cancellationToken);
-
-            // 9c. 保存会场摘要到快照目录
-            if (venueLayout != null && !string.IsNullOrEmpty(request.LayoutId))
-            {
-                await _snapshotRepository.SaveVenueInfoAsync(request.LayoutId , new VenueSnapshotInfo
-                {
-                    Name = venueLayout.Name ,
-                    LayoutType = venueLayout.LayoutType ,
-                    SeatCount = venueLayout.Seats.Count(s => s.IsAvailable) ,
-                    ObstacleCount = venueLayout.Obstacles.Count
-                } , cancellationToken);
-            }
+            // 9. 快照不再自动保存，由用户手动触发 SaveToSnapshot 命令
+            // CreateSnapshotAsync 会在保存时生成完整的元数据（哈希、嵌入会场等）
 
             progress?.Report(new SeatingProgress
             {
@@ -401,6 +370,13 @@ namespace A_Pair.Application.Services
                 var assignments = workspace.BuildSeatingPlan().Assignments;
                 var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
                 var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
+                // 教师视角：行前后反转（讲台移至底部）+ 列左右镜像（教师左侧对应学生右侧）
+                if (options.Perspective == LayoutPerspective.TeacherView)
+                {
+                    model.Rows.Reverse();
+                    foreach (var row in model.Rows)
+                        row.Cells.Reverse();
+                }
                 await exporter.ExportLayoutAsync(model , path , options , cancellationToken);
             }
             else
@@ -411,9 +387,16 @@ namespace A_Pair.Application.Services
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default)
+        public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true)
         {
             if (_currentWorkspace == null) return false;
+
+            if (!recordInHistory)
+            {
+                // 直接在工作区上执行命令，不记录到 CommandHistory，避免与 ViewModel 的快照历史双重累积
+                return await command.ExecuteAsync(_currentWorkspace , cancellationToken);
+            }
+
             return await _history.ExecuteAsync(command , _currentWorkspace , cancellationToken);
         }
 
@@ -444,6 +427,40 @@ namespace A_Pair.Application.Services
         {
             _currentWorkspace = null;
             _currentLayout = null;
+        }
+
+        /// <inheritdoc />
+        public async Task<SeatingWorkspace> CreateEmptyWorkspaceAsync (
+            string layoutId , string datasetId , CancellationToken cancellationToken = default)
+        {
+            // 1. 加载会场布局
+            var layout = await _venueRepo.LoadAsync(layoutId , cancellationToken);
+            _currentLayout = layout;
+
+            // 2. 加载学生数据
+            var students = await _datasetRepo.LoadAsync(datasetId , cancellationToken) ?? [];
+
+            // 3. 获取座位列表
+            List<Seat> seats;
+            if (layout != null)
+            {
+                seats = layout.Seats;
+                ObstacleProcessor.ApplyObstacles(layout);
+            }
+            else
+            {
+                seats = [];
+            }
+
+            // 4. 创建工作区（不执行策略管道）
+            var workspace = new SeatingWorkspace(students , seats ,
+                _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
+            _currentWorkspace = workspace;
+
+            logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位" ,
+                layoutId , students.Count , seats.Count);
+
+            return workspace;
         }
 
         /// <summary>轮转旧快照：超出上限删除最旧的。</summary>
@@ -734,9 +751,7 @@ namespace A_Pair.Application.Services
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
             {
-                strategy.Priority = config.Priority;
-                strategy.IsEnabled = config.IsEnabled;
-                ApplyConfiguration(strategy , config.Parameters);
+                ApplyPersistedConfigToInstance(config , strategy , null);
                 return;
             }
 
@@ -745,9 +760,7 @@ namespace A_Pair.Application.Services
             var depStrategy = cachedDeps.FirstOrDefault(d => d.Id == strategyId);
             if (depStrategy is not null)
             {
-                depStrategy.Priority = config.Priority;
-                depStrategy.IsEnabled = config.IsEnabled;
-                ApplyDependentConfiguration(depStrategy , config.Parameters);
+                ApplyPersistedConfigToInstance(config , null , depStrategy);
             }
 
             // 尝试从插件策略更新运行时状态
@@ -858,6 +871,9 @@ namespace A_Pair.Application.Services
             string? venueId = request.LayoutId;
             if (string.IsNullOrEmpty(datasetId) && string.IsNullOrEmpty(venueId)) return;
 
+            var validStudents = _currentWorkspace?.Students
+                .Select(s => s.Id).ToHashSet() ?? [];
+
             // 处理独立策略的代码块配置（FixedSeat）
             foreach (var strategy in strategies)
             {
@@ -871,6 +887,10 @@ namespace A_Pair.Application.Services
                 switch (strategy)
                 {
                     case FixedSeatStrategy fs:
+                        bool fsCleaned = CleanInvalidSeatRows(config , venueLayout);
+                        fsCleaned |= CleanFixedSeatDeletedStudents(config , validStudents);
+                        if (fsCleaned)
+                            await SaveDatasetConfigAsync(config , pkg , ct);
                         ApplyFixedSeatConfig(fs , config , venueLayout);
                         break;
                 }
@@ -884,9 +904,17 @@ namespace A_Pair.Application.Services
                 if (config?.Rows is not { Count: > 0 }) continue;
 
                 if (dep is DeskMateStrategy ds)
+                {
+                    if (CleanDeskMateDeletedStudents(config , validStudents))
+                        await _datasetConfigRepo.SaveAsync(config , config.StudentsHash , config.ContentHash , ct);
                     ApplyDeskMateConfig(ds , config);
+                }
                 else if (dep is GenderRestrictedSeatStrategy grs)
+                {
+                    if (CleanInvalidSeatRows(config , venueLayout))
+                        await _datasetConfigRepo.SaveAsync(config , config.StudentsHash , config.ContentHash , ct);
                     ApplyGenderRestrictionConfig(grs , config , venueLayout);
+                }
             }
         }
 
@@ -996,6 +1024,149 @@ namespace A_Pair.Application.Services
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// 移除配置行中座位位置在当前会场布局中不存在的行（会场缩小导致旧位置越界）。
+        /// </summary>
+        /// <returns>是否有行被移除。</returns>
+        internal static bool CleanInvalidSeatRows (
+            StrategyDatasetConfig config ,
+            ClassroomLayoutDefinition? venueLayout)
+        {
+            if (config.Rows.Count == 0)
+                return false;
+
+            if (venueLayout == null)
+            {
+                // 会场已删除 → 所有依赖座位位置的行均失效
+                int removed = config.Rows.RemoveAll(r =>
+                    r.SeatRow.HasValue || r.SeatColumn.HasValue
+                    || r.SeatRing.HasValue || r.SeatAngle.HasValue
+                    || r.SeatX.HasValue || r.SeatY.HasValue);
+                return removed > 0;
+            }
+
+            var validRows = config.Rows
+                .Where(row => FindSeatByPosition(venueLayout , row) != null)
+                .ToList();
+
+            if (validRows.Count == config.Rows.Count)
+                return false;
+
+            config.Rows = validRows;
+            return true;
+        }
+
+        /// <summary>
+        /// 移除 FixedSeat 配置中引用已删除学生的行。
+        /// </summary>
+        /// <returns>是否有行被移除。</returns>
+        internal static bool CleanFixedSeatDeletedStudents (
+            StrategyDatasetConfig config ,
+            HashSet<string> validStudentIds)
+        {
+            if (config.Rows.Count == 0)
+                return false;
+
+            int before = config.Rows.Count;
+            if (validStudentIds.Count == 0)
+                config.Rows.RemoveAll(r => !string.IsNullOrEmpty(r.StudentId));
+            else
+                config.Rows.RemoveAll(r =>
+                    !string.IsNullOrEmpty(r.StudentId) && !validStudentIds.Contains(r.StudentId));
+            return config.Rows.Count < before;
+        }
+
+        /// <summary>
+        /// 清理 DeskMate 配置中引用已删除学生的行。
+        /// 过滤掉不在 <paramref name="validStudentIds"/> 中的学生，
+        /// 剩余小于 2 人则删除整行，否则重建该行仅保留有效学生。
+        /// </summary>
+        /// <returns>是否有行被移除或修改。</returns>
+        internal static bool CleanDeskMateDeletedStudents (
+            StrategyDatasetConfig config ,
+            HashSet<string> validStudentIds)
+        {
+            if (config.Rows.Count == 0)
+                return false;
+
+            int before = config.Rows.Count;
+            bool anyModified = false;
+            var cleanedRows = new List<StrategyConfigRow>();
+            foreach (var row in config.Rows)
+            {
+                // 收集本行中所有存在于当前工作区的学生 ID
+                var validIds = new List<string>();
+
+                if (!string.IsNullOrEmpty(row.StudentId)
+                    && validStudentIds.Contains(row.StudentId))
+                    validIds.Add(row.StudentId);
+
+                // 计算原始学生总数（StudentId + 所有 studentN 值）
+                int originalStudentCount = string.IsNullOrEmpty(row.StudentId) ? 0 : 1;
+                for (int i = 1; i <= 10; i++)
+                {
+                    var key = $"student{i}";
+                    if (row.Values?.TryGetValue(key , out var sid) == true
+                        && sid?.ToString() is string s
+                        && !string.IsNullOrEmpty(s))
+                    {
+                        originalStudentCount++;
+                        if (validStudentIds.Contains(s))
+                            validIds.Add(s);
+                    }
+                }
+
+                // 同桌组至少需要 2 人
+                if (validIds.Count < 2)
+                    continue;
+
+                // 有效学生数减少 → 内容已修改
+                if (validIds.Count != originalStudentCount)
+                    anyModified = true;
+
+                // 重建行，仅保留有效学生（重新编号 student1/student2/...）
+                var newRow = new StrategyConfigRow
+                {
+                    Index = row.Index ,
+                    StudentId = validIds[0] ,
+                    SeatRow = row.SeatRow ,
+                    SeatColumn = row.SeatColumn ,
+                    SeatRing = row.SeatRing ,
+                    SeatAngle = row.SeatAngle ,
+                    SeatX = row.SeatX ,
+                    SeatY = row.SeatY ,
+                    Values = new Dictionary<string , object?>()
+                };
+                for (int i = 1; i < validIds.Count; i++)
+                    newRow.Values[$"student{i}"] = validIds[i];
+
+                cleanedRows.Add(newRow);
+            }
+
+            if (cleanedRows.Count == before && !anyModified)
+                return false;
+
+            config.Rows = cleanedRows;
+            return true;
+        }
+
+        /// <summary>
+        /// 保存清理后的数据集配置，自动路由插件策略到 PluginPackageConfigService。
+        /// 保留现有的哈希值（数据本身未变，只是移除了失效行）。
+        /// </summary>
+        private async Task SaveDatasetConfigAsync (
+            StrategyDatasetConfig config ,
+            LoadedPackageInfo? pkg ,
+            CancellationToken ct)
+        {
+            if (pkg != null)
+                await _pluginPackageConfigService.SaveDatasetConfigAsync(
+                    config , config.StudentsHash , config.ContentHash , ct);
+            else
+                await _datasetConfigRepo.SaveAsync(
+                    config , config.StudentsHash , config.ContentHash , ct);
         }
 
         private static StrategyDisplayInfo BuildDisplayInfo (
@@ -1118,6 +1289,112 @@ namespace A_Pair.Application.Services
             if (v is JsonElement je)
                 return je.ValueKind == JsonValueKind.True;
             return false;
+        }
+
+        /// <summary>
+        /// 将持久化的 StrategyConfig（Priority、IsEnabled、Parameters）应用到策略实例。
+        /// 供 <see cref="SaveStrategyConfigAsync"/> 和 <see cref="RestorePersistedStrategyConfigsAsync"/> 共用。
+        /// </summary>
+        private static void ApplyPersistedConfigToInstance (
+            StrategyConfig config ,
+            ISeatingStrategy? strategy ,
+            IDependentSeatingStrategy? depStrategy)
+        {
+            if (strategy is not null)
+            {
+                strategy.Priority = config.Priority;
+                strategy.IsEnabled = config.IsEnabled;
+                ApplyConfiguration(strategy , config.Parameters);
+            }
+            else if (depStrategy is not null)
+            {
+                depStrategy.Priority = config.Priority;
+                depStrategy.IsEnabled = config.IsEnabled;
+                ApplyDependentConfiguration(depStrategy , config.Parameters);
+            }
+        }
+
+        /// <summary>
+        /// 从持久化存储恢复策略配置（Priority、IsEnabled、Parameters），
+        /// 覆盖 DI 单例的默认值。解决重启后策略参数丢失问题。
+        /// </summary>
+        private async Task RestorePersistedStrategyConfigsAsync (
+            List<ISeatingStrategy> strategies ,
+            List<IDependentSeatingStrategy> dependentStrategies ,
+            CancellationToken ct)
+        {
+            var persisted = await _strategyConfigRepo.LoadAllAsync(ct);
+            if (persisted.Count == 0)
+                return;
+
+            foreach (var strategy in strategies)
+            {
+                if (persisted.TryGetValue(strategy.Id , out var config))
+                    ApplyPersistedConfigToInstance(config , strategy , null);
+            }
+
+            foreach (var dep in dependentStrategies)
+            {
+                if (persisted.TryGetValue(dep.Id , out var config))
+                    ApplyPersistedConfigToInstance(config , null , dep);
+            }
+
+            logger.LogDebug("已从持久化恢复 {Count} 个策略配置" , persisted.Count);
+        }
+
+        /// <summary>
+        /// 遍历所有策略的数据集配置，删除引用了已删除数据集或会场的孤立配置文件。
+        /// 在每次 GenerateSeatingAsync 时执行，防止磁盘残留无效配置。
+        /// </summary>
+        private async Task CleanupOrphanedDatasetConfigsAsync (CancellationToken ct)
+        {
+            // 1. 收集有效数据集 ID 和会场 ID
+            var validDatasetIds = (await _datasetRepo.ListAsync(ct))
+                .Select(d => d.Id).ToHashSet();
+            var validVenueIds = (await _venueRepo.ListVenueIdsAsync(ct))
+                .ToHashSet();
+
+            // 2. 收集所有策略 ID（内置 + 插件）
+            var strategyIds = new HashSet<string>();
+            foreach (var s in _serviceProvider.GetServices<ISeatingStrategy>())
+                strategyIds.Add(s.Id);
+            foreach (var d in _serviceProvider.GetServices<IDependentSeatingStrategy>())
+                strategyIds.Add(d.Id);
+            var plugins = await _pluginManager.LoadStrategyPluginsAsync(ct);
+            foreach (var p in plugins)
+                strategyIds.Add(p.Strategy.Id);
+
+            // 3. 检查每个策略的所有数据集配置
+            foreach (var sid in strategyIds)
+            {
+                var (pkg , _) = _pluginManager.FindStrategy(sid);
+
+                var configs = pkg != null
+                    ? await _pluginPackageConfigService.LoadDatasetConfigsAsync(sid , ct)
+                    : await _datasetConfigRepo.LoadAllAsync(sid , ct);
+
+                foreach (var config in configs)
+                {
+                    bool datasetGone = !string.IsNullOrEmpty(config.DatasetId)
+                        && !validDatasetIds.Contains(config.DatasetId);
+                    bool venueGone = !string.IsNullOrEmpty(config.VenueId)
+                        && !validVenueIds.Contains(config.VenueId);
+
+                    if (!datasetGone && !venueGone)
+                        continue;
+
+                    logger.LogWarning(
+                        "清理孤立策略配置：{StrategyId} / Dataset={DatasetId} / Venue={VenueId}（数据集存在={DsOk}，会场存在={VOk}）" ,
+                        sid , config.DatasetId , config.VenueId , !datasetGone , !venueGone);
+
+                    if (pkg != null)
+                        await _pluginPackageConfigService.DeleteDatasetConfigAsync(
+                            sid , config.DatasetId ?? string.Empty , config.VenueId , ct);
+                    else
+                        await _datasetConfigRepo.DeleteAsync(
+                            sid , config.DatasetId ?? string.Empty , config.VenueId , ct);
+                }
+            }
         }
 
         #endregion

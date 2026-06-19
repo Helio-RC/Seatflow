@@ -76,7 +76,7 @@ Library: `FluentIcons.Avalonia` v2.1.325
 | LG | 16px | Section gap, page margin |
 | XL | 24px | Major section separation |
 
-Sidebar: 200px expanded, 64px collapsed.
+Sidebar: 140px expanded, 64px collapsed.
 
 ---
 
@@ -93,9 +93,9 @@ Sidebar: 200px expanded, 64px collapsed.
 
 ```
 ┌──────────────────────────────────────────┐
-│ Sidebar (200/64) │  Content (fill rest)  │
+│ Sidebar (140/64) │  Content (fill rest)  │
 │                  │                       │
-│ Nav buttons × 8  │  PageTitle            │
+│ Nav buttons × 10 │  PageTitle            │
 │                  │  ────────────          │
 │                  │  Content              │
 └──────────────────────────────────────────┘
@@ -111,7 +111,7 @@ Sidebar: 200px expanded, 64px collapsed.
 
 - **Hover**: Button color shift (FluentTheme default)
 - **Selected**: Navigation button highlighted (Accent background + white text)
-- **Transition**: Sidebar collapse via width binding animation (future)
+- **Transition**: Sidebar collapse via width binding
 - **Focus**: Input focus shows Accent border
 
 ---

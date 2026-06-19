@@ -42,10 +42,10 @@ internal static class SnapshotLayoutHelper
         if (!meta.TryGetValue(key , out var value) || value is null) return null;
         return value switch
         {
-            string s => s ,
+            string s => s,
             System.Text.Json.JsonElement je => je.ValueKind == System.Text.Json.JsonValueKind.String
                 ? je.GetString()
-                : je.GetRawText() ,
+                : je.GetRawText(),
             _ => null
         };
     }

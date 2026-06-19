@@ -1,52 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  
-  <xs:schema id="root">
-    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xs:element name="root" ns1:IsDataSet="true">
-      <xs:complexType>
-        <xs:choice maxOccurs="unbounded">
-          <xs:element name="metadata">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" />
-              </xs:sequence>
-              <xs:attribute name="name" use="required" type="xsd:string" />
-              <xs:attribute name="type" type="xsd:string" />
-              <xs:attribute name="mimetype" type="xsd:string" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="assembly">
-            <xs:complexType>
-              <xs:attribute name="alias" type="xsd:string" />
-              <xs:attribute name="name" type="xsd:string" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="data">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
-              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
-              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
-              <xs:attribute ref="xml:space" />
-            </xs:complexType>
-          </xs:element>
-          <xs:element name="resheader">
-            <xs:complexType>
-              <xs:sequence>
-                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
-              </xs:sequence>
-              <xs:attribute name="name" type="xsd:string" use="required" />
-            </xs:complexType>
-          </xs:element>
-        </xs:choice>
-      </xs:complexType>
-    </xs:element>
-  </xs:schema>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -67,6 +125,9 @@
   </data>
   <data name="About_License" xml:space="preserve">
     <value>License</value>
+  </data>
+  <data name="About_MITLicenseWarning" xml:space="preserve">
+    <value>This software is distributed under the MIT License and is completely free and open-source. Any solicitation of payment is unauthorized — please beware of scams.</value>
   </data>
   <data name="About_OpenLink" xml:space="preserve">
     <value>Open {0} project page</value>
@@ -179,11 +240,17 @@
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV file</value>
   </data>
-  <data name="Member_AddRow" xml:space="preserve">
-    <value>Add</value>
+  <data name="Guide_Seating_Select_Desc" xml:space="preserve">
+    <value>Select a venue and member dataset to generate seating</value>
+  </data>
+  <data name="Guide_Seating_Select_Title" xml:space="preserve">
+    <value>Select Data</value>
   </data>
   <data name="Member_AddedRowFmt" xml:space="preserve">
     <value>Added student #{0}</value>
+  </data>
+  <data name="Member_AddRow" xml:space="preserve">
+    <value>Add</value>
   </data>
   <data name="Member_ClearConfirm" xml:space="preserve">
     <value>Confirm clear</value>
@@ -812,7 +879,7 @@ Place plugins in the Plugins directory</value>
     <value>Cancel swap</value>
   </data>
   <data name="Seating_CanvasHint" xml:space="preserve">
-    <value>Drag to pan, scroll to zoom</value>
+    <value>Drag to pan, scroll to zoom; Drag a menber to switch his seating.</value>
   </data>
   <data name="Seating_CurrentStrategy" xml:space="preserve">
     <value>Current strategy</value>
@@ -837,6 +904,12 @@ Place plugins in the Plugins directory</value>
   </data>
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>Exported to {0}</value>
+  </data>
+  <data name="Seating_StudentView" xml:space="preserve">
+    <value>Student View</value>
+  </data>
+  <data name="Seating_TeacherView" xml:space="preserve">
+    <value>Teacher View</value>
   </data>
   <data name="Seating_Generate" xml:space="preserve">
     <value>Generate seating</value>
@@ -1878,5 +1951,281 @@ Diagnostics saved to: {1}</value>
   </data>
   <data name="Snapshot_NoSelectedVenue" xml:space="preserve">
     <value>Choose a venue</value>
+  </data>
+  <data name="Settings_RestartGuide" xml:space="preserve">
+    <value>Restart Guide</value>
+  </data>
+  <data name="Settings_RestartGuideHint" xml:space="preserve">
+    <value>Re-run the first-time onboarding guide</value>
+  </data>
+  <data name="Guide_Phase0_Step0_Title" xml:space="preserve">
+    <value>Welcome to A_Pair</value>
+  </data>
+  <data name="Guide_Phase0_Step0_Desc" xml:space="preserve">
+    <value>A_Pair is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3-5 minutes.</value>
+  </data>
+  <data name="Guide_Phase0_Step1_Title" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="Guide_Phase0_Step1_Desc" xml:space="preserve">
+    <value>The left sidebar contains all feature entries. Pages will switch automatically during the guide — just follow along. You can also click × at any time to exit.</value>
+  </data>
+  <data name="Guide_Phase1_Step0_Title" xml:space="preserve">
+    <value>Import Students</value>
+  </data>
+  <data name="Guide_Phase1_Step0_Desc" xml:space="preserve">
+    <value>First, import your student data. You can download a template first. Then click the Import button — CSV and Excel formats are supported. </value>
+  </data>
+  <data name="Guide_Phase1_Step1_Title" xml:space="preserve">
+    <value>Manage Students</value>
+  </data>
+  <data name="Guide_Phase1_Step1_Desc" xml:space="preserve">
+    <value>After importing, student data appears in this list. You can manually edit, add, or remove students. Use the new row at the bottom to add entries.</value>
+  </data>
+  <data name="Guide_Phase2_Step0_Title" xml:space="preserve">
+    <value>Create a Venue</value>
+  </data>
+  <data name="Guide_Phase2_Step0_Desc" xml:space="preserve">
+    <value>Now create a seating layout for your classroom or exam hall. Click New Venue to begin.</value>
+  </data>
+  <data name="Guide_Phase2_Step1_Title" xml:space="preserve">
+    <value>Set Grid Parameters</value>
+  </data>
+  <data name="Guide_Phase2_Step1_Desc" xml:space="preserve">
+    <value>Choose a layout type (usually Grid), then set rows and columns to define the seating arrangement. The preview on the right updates in real time.</value>
+  </data>
+  <data name="Guide_Phase2_Step2_Title" xml:space="preserve">
+    <value>Save the Venue</value>
+  </data>
+  <data name="Guide_Phase2_Step2_Desc" xml:space="preserve">
+    <value>Click Save when done. You can create multiple venues (e.g., different classrooms) and choose which one to use when generating seating.</value>
+  </data>
+  <data name="Guide_Phase3_Step0_Title" xml:space="preserve">
+    <value>Seating Strategies</value>
+  </data>
+  <data name="Guide_Phase3_Step0_Desc" xml:space="preserve">
+    <value>Select and configure seating strategies. Strategies are ordered by priority (higher = earlier assignment).</value>
+  </data>
+  <data name="Guide_Phase3_Step1_Title" xml:space="preserve">
+    <value>Enable &amp; Adjust Strategies</value>
+  </data>
+  <data name="Guide_Phase3_Step1_Desc" xml:space="preserve">
+    <value>Click a strategy to view and modify its parameters. Use the toggle to enable/disable strategies. We recommend keeping the defaults for first-time use — just click Save All.</value>
+  </data>
+  <data name="Guide_Phase4_Step0_Title" xml:space="preserve">
+    <value>Select Dataset &amp; Venue</value>
+  </data>
+  <data name="Guide_Phase4_Step0_Desc" xml:space="preserve">
+    <value>Choose a student dataset and venue layout in the left panel. These are required before generating seating.</value>
+  </data>
+  <data name="Guide_Phase4_Step1_Title" xml:space="preserve">
+    <value>Generate Seating</value>
+  </data>
+  <data name="Guide_Phase4_Step1_Desc" xml:space="preserve">
+    <value>Click the Generate button to automatically arrange seats according to your configured strategies. You can then view and manually adjust seats on the central canvas.</value>
+  </data>
+  <data name="Guide_Phase4_Step2_Title" xml:space="preserve">
+    <value>Export Results</value>
+  </data>
+  <data name="Guide_Phase4_Step2_Desc" xml:space="preserve">
+    <value>Export the seating chart to Excel, CSV, PDF, or image formats. You can also save it as a snapshot for future reference.</value>
+  </data>
+  <data name="Guide_Phase5_Step0_Title" xml:space="preserve">
+    <value>You're All Set!</value>
+  </data>
+  <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
+    <value>You now know the core workflow of A_Pair. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
+  </data>
+  <data name="Guide_Welcome_Greeting_Title" xml:space="preserve">
+    <value>Welcome to A_Pair</value>
+  </data>
+  <data name="Guide_Welcome_Greeting_Desc" xml:space="preserve">
+    <value>A_Pair is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3–5 minutes.</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Title" xml:space="preserve">
+    <value>Navigation</value>
+  </data>
+  <data name="Guide_Welcome_Navigation_Desc" xml:space="preserve">
+    <value>This is the navigation sidebar. Pages switch automatically during the guide — just follow along. Click × at any time to exit.</value>
+  </data>
+  <data name="Guide_Members_Import_Title" xml:space="preserve">
+    <value>Click here to import students</value>
+  </data>
+  <data name="Guide_Members_Import_Desc" xml:space="preserve">
+    <value>Click this button to import student data from a CSV or Excel file. You can also download a template first.</value>
+  </data>
+  <data name="Guide_Members_Manage_Title" xml:space="preserve">
+    <value>Manage students in this list</value>
+  </data>
+  <data name="Guide_Members_Manage_Desc" xml:space="preserve">
+    <value>Imported students appear here. Click any cell to edit, or click the delete button on each row to remove a student.</value>
+  </data>
+  <data name="Guide_Members_AddStudent_Title" xml:space="preserve">
+    <value>Add new students here</value>
+  </data>
+  <data name="Guide_Members_AddStudent_Desc" xml:space="preserve">
+    <value>This is the add-new-student row. Fill in name, height, gender and click + to add a student to the list.</value>
+  </data>
+  <data name="Guide_Venue_New_Title" xml:space="preserve">
+    <value>Click here to create a venue</value>
+  </data>
+  <data name="Guide_Venue_New_Desc" xml:space="preserve">
+    <value>Create a seating layout for your classroom or exam hall. Click this button to start.</value>
+  </data>
+  <data name="Guide_Venue_Layout_Title" xml:space="preserve">
+    <value>Choose a layout type here</value>
+  </data>
+  <data name="Guide_Venue_Layout_Desc" xml:space="preserve">
+    <value>Select a layout type (usually Grid), then set rows and columns. The preview updates in real time.</value>
+  </data>
+  <data name="Guide_Venue_Save_Title" xml:space="preserve">
+    <value>Click here to save the venue</value>
+  </data>
+  <data name="Guide_Venue_Save_Desc" xml:space="preserve">
+    <value>Click Save when done. You can create multiple venues and select which one to use for seating.</value>
+  </data>
+  <data name="Guide_Strategy_List_Title" xml:space="preserve">
+    <value>Select a strategy from this list</value>
+  </data>
+  <data name="Guide_Strategy_List_Desc" xml:space="preserve">
+    <value>Click a strategy to view its details. Strategies are ordered by priority (higher = earlier assignment).</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Title" xml:space="preserve">
+    <value>Toggle to enable the strategy</value>
+  </data>
+  <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
+    <value>After selecting a strategy, toggle this switch to enable or disable it. Adjust parameters in the right panel.</value>
+  </data>
+  <data name="Guide_Strategy_Conflict_Title" xml:space="preserve">
+    <value>Enable as Needed — Conflicts May Occur</value>
+  </data>
+  <data name="Guide_Strategy_Conflict_Desc" xml:space="preserve">
+    <value>Multiple strategies may interfere or conflict when enabled together. Choose combinations based on your needs. Higher priority strategies execute first. The default configuration suits most classrooms.</value>
+  </data>
+  <data name="Guide_Strategy_SaveAll_Title" xml:space="preserve">
+    <value>Click here to save all strategies</value>
+  </data>
+  <data name="Guide_Strategy_SaveAll_Desc" xml:space="preserve">
+    <value>After configuring strategies, click Save All to apply changes. Keep defaults for first-time use.</value>
+  </data>
+  <data name="Guide_Seating_SelectVenue_Title" xml:space="preserve">
+    <value>Select a venue here</value>
+  </data>
+  <data name="Guide_Seating_SelectVenue_Desc" xml:space="preserve">
+    <value>Pick a venue from the list. This is required before generating a seating plan.</value>
+  </data>
+  <data name="Guide_Seating_SelectDataset_Title" xml:space="preserve">
+    <value>Select a student dataset here</value>
+  </data>
+  <data name="Guide_Seating_SelectDataset_Desc" xml:space="preserve">
+    <value>Pick the student dataset to assign seats to. Once both venue and dataset are selected, you can generate.</value>
+  </data>
+  <data name="Guide_Seating_Generate_Title" xml:space="preserve">
+    <value>Click here to generate seating</value>
+  </data>
+  <data name="Guide_Seating_Generate_Desc" xml:space="preserve">
+    <value>Click this button after selecting a venue and dataset. The system arranges seats based on your strategies.</value>
+  </data>
+  <data name="Guide_Seating_Export_Title" xml:space="preserve">
+    <value>Click here to export results</value>
+  </data>
+  <data name="Guide_Seating_Export_Desc" xml:space="preserve">
+    <value>After generating seating, click here to export as Excel, CSV, PDF, or image format.</value>
+  </data>
+  <data name="Guide_Snapshot_SelectVenue_Title" xml:space="preserve">
+    <value>Select a venue from this dropdown</value>
+  </data>
+  <data name="Guide_Snapshot_SelectVenue_Desc" xml:space="preserve">
+    <value>First pick a venue from this dropdown. The list below will show all saved seating snapshots for that venue.</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Title" xml:space="preserve">
+    <value>Browse historical snapshots here</value>
+  </data>
+  <data name="Guide_Snapshot_Browse_Desc" xml:space="preserve">
+    <value>Every generated seating plan is auto-saved. Click a snapshot to preview it, then use Rollback to restore.</value>
+  </data>
+  <data name="Guide_Closing_Finish_Title" xml:space="preserve">
+    <value>You're All Set!</value>
+  </data>
+  <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
+    <value>You've completed the A_Pair core workflow guide. You're ready to create seating arrangements on your own! Check documentation if needed.</value>
+  </data>
+  <data name="Guide_Freeform_Import_Title" xml:space="preserve">
+    <value>Click here to import coordinates</value>
+  </data>
+  <data name="Guide_Freeform_Import_Desc" xml:space="preserve">
+    <value>Import seat coordinates from a CSV or JSON file. The file should include X, Y positions and row/column groupings.</value>
+  </data>
+  <data name="Guide_Freeform_AddPoint_Title" xml:space="preserve">
+    <value>Click here to add a point manually</value>
+  </data>
+  <data name="Guide_Freeform_AddPoint_Desc" xml:space="preserve">
+    <value>Add seat coordinates manually. Enter X, Y position and row/column, then click this button.</value>
+  </data>
+  <data name="Guide_Freeform_Save_Title" xml:space="preserve">
+    <value>Click here to save the layout</value>
+  </data>
+  <data name="Guide_Freeform_Save_Desc" xml:space="preserve">
+    <value>After editing the freeform layout, click this button to save. Saved layouts can be used in the seating page.</value>
+  </data>
+  <data name="Guide_Plugin_List_Title" xml:space="preserve">
+    <value>Browse plugins in this list</value>
+  </data>
+  <data name="Guide_Plugin_List_Desc" xml:space="preserve">
+    <value>Installed plugins appear here. Click a plugin to view details, configuration, and script editor.</value>
+  </data>
+  <data name="Guide_Plugin_Enable_Title" xml:space="preserve">
+    <value>Toggle to enable the plugin</value>
+  </data>
+  <data name="Guide_Plugin_Enable_Desc" xml:space="preserve">
+    <value>After selecting a plugin, toggle this switch to enable or disable it in the seating strategy pipeline.</value>
+  </data>
+  <data name="Guide_Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Guide_Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Guide_Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Guide_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Guide_CloseConfirm_Title" xml:space="preserve">
+    <value>Exit Guide</value>
+  </data>
+  <data name="Seating_CreateEmpty" xml:space="preserve">
+    <value>Create Empty Venue</value>
+  </data>
+  <data name="Seating_CreateEmptyFailed" xml:space="preserve">
+    <value>Failed to create empty venue</value>
+  </data>
+  <data name="Seating_CreateEmptyHint" xml:space="preserve">
+    <value>Load seat layout without auto-assigning students</value>
+  </data>
+  <data name="Seating_EmptyCreatedFmt" xml:space="preserve">
+    <value>Empty Venue: {0} seats, {1} students pending</value>
+  </data>
+  <data name="Seating_EmptyStartDesc" xml:space="preserve">
+    <value>Create empty venue</value>
+  </data>
+  <data name="Seating_PlaceTitle" xml:space="preserve">
+    <value>Place Student</value>
+  </data>
+  <data name="Seating_PlacedFmt" xml:space="preserve">
+    <value>Placed {0} to {1}</value>
+  </data>
+  <data name="Seating_RemoveTitle" xml:space="preserve">
+    <value>Remove Student</value>
+  </data>
+  <data name="Seating_RemovedFmt" xml:space="preserve">
+    <value>Removed {0} from {1} to unassigned</value>
+  </data>
+  <data name="Seating_TrashHint" xml:space="preserve">
+    <value>Drag or click to remove student (select occupied seat first)</value>
+  </data>
+  <data name="Guide_CloseConfirm_Message" xml:space="preserve">
+    <value>Exit the onboarding guide? You can restart it anytime from Settings.</value>
   </data>
 </root>

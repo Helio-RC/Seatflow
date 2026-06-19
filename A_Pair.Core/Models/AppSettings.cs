@@ -43,6 +43,12 @@ namespace A_Pair.Core.Models
         /// <summary>是否已抑制运行环境警告（用户选择"不再提醒"）。</summary>
         public bool SuppressEnvironmentWarning { get; set; }
 
+        /// <summary>是否为首次启动（控制首次引导的显示）。</summary>
+        public bool IsFirstLaunch { get; set; }
+
+        /// <summary>已展示过引导的页面（PageKey 名称 → true，或 true 表示该页面的独立引导已展示）。</summary>
+        public Dictionary<string , bool> CompletedPageGuides { get; set; } = [];
+
         /// <summary>日志配置（不暴露到设置 UI）。</summary>
         public LogSettings Logging { get; set; } = new();
 
@@ -70,8 +76,8 @@ namespace A_Pair.Core.Models
     {
         public double Left { get; set; }
         public double Top { get; set; }
-        public double Width { get; set; } = 1024;
-        public double Height { get; set; } = 768;
+        public double Width { get; set; } = 1200;
+        public double Height { get; set; } = 800;
         public bool IsMaximized { get; set; }
     }
 

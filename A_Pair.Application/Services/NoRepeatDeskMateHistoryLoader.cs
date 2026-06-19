@@ -53,16 +53,13 @@ namespace A_Pair.Application.Services
                 return;
             }
 
-            // 2. 构建当前工作区有效学生 ID 集合
-            var validStudentIds = workspace.Students.Select(s => s.Id).ToHashSet();
-
-            // 3. 对每个快照（从旧到新），解析嵌入布局 → 提取同桌对
+            // 2. 对每个快照（从旧到新），解析嵌入布局 → 提取同桌对
             var allPairs = new HashSet<(string , string)>();
             int snapshotIndex = 0;
             foreach (var snapshot in Enumerable.Reverse(recentSnapshots))
             {
                 snapshotIndex++;
-                var pairs = ExtractDeskMatePairsFromSnapshot(snapshot , validStudentIds);
+                var pairs = ExtractDeskMatePairsFromSnapshot(snapshot);
                 foreach (var pair in pairs)
                     allPairs.Add(pair);
                 _logger.LogDebug(
@@ -85,8 +82,7 @@ namespace A_Pair.Application.Services
         /// 则记录为同桌对。
         /// </summary>
         private HashSet<(string , string)> ExtractDeskMatePairsFromSnapshot (
-            SeatingSnapshot snapshot ,
-            HashSet<string> validStudentIds)
+            SeatingSnapshot snapshot)
         {
             // 提取嵌入的会场布局（兼容新旧两种元数据键）
             var layoutJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
@@ -133,10 +129,6 @@ namespace A_Pair.Application.Services
                     var occB = snapshot.SeatAssignments.GetValueOrDefault(seats[j].Id);
 
                     if (string.IsNullOrEmpty(occA) || string.IsNullOrEmpty(occB))
-                        continue;
-
-                    // 只包含当前工作区中存在的学生
-                    if (!validStudentIds.Contains(occA) || !validStudentIds.Contains(occB))
                         continue;
 
                     // 规范化：确保 (A, B) 和 (B, A) 视为同一对

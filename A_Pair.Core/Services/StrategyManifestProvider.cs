@@ -109,7 +109,7 @@ public class StrategyManifestProvider
         {
             _logger.LogWarning(
                 "策略 Manifest 版本 {ManifestVersion} 高于当前程序支持的最大版本 {MaxVersion}，" +
-                "策略 {StrategyId}（{ResourceName}）可能包含不受支持的字段，将以兼容模式加载",
+                "策略 {StrategyId}（{ResourceName}）可能包含不受支持的字段，将以兼容模式加载" ,
                 version , MaxManifestVersion , manifest.Id , resourceName);
         }
     }

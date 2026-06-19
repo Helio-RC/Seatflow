@@ -41,6 +41,14 @@
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                    Margin="0,12,0,0" />
 
+        <!-- MIT 许可证警告横幅 -->
+        <Border Classes="bgError" Padding="10" CornerRadius="4" Margin="0,12,0,0">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{x:Static lang:Resources.About_MITLicenseWarning}" FontSize="13" FontWeight="SemiBold"
+                       Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
         <Separator Margin="0,12,0,8" />
 
         <!-- 运行环境 -->

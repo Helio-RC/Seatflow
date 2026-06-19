@@ -18,18 +18,27 @@
                    VerticalAlignment="Center" />
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
           <!-- 导出按钮 + Flyout -->
-          <Button IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
+          <Button x:Name="ExportButton" IsEnabled="{Binding HasGenerated}" HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Data_Export}">
             <Button.Flyout>
               <MenuFlyout>
+                <!-- 学生视角 -->
+                <MenuItem IsEnabled="False" Classes="sectionTitle" Foreground="{DynamicResource SystemAccentColor}">
+                  <MenuItem.Header>
+                    <TextBlock Text="{x:Static lang:Resources.Seating_StudentView}" />
+                  </MenuItem.Header>
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Person}" FontSize="16" />
+                  </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportExcelCommand}">
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTableCube}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="CSV (.csv)" Command="{Binding ExportCsvCommand}">
                   <MenuItem.Icon>
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="14" />
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTable}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem Header="PDF (.pdf)" Command="{Binding ExportPdfCommand}">
@@ -42,6 +51,36 @@
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
+                <Separator />
+                <!-- 教师视角 -->
+                <MenuItem IsEnabled="False" Classes="sectionTitle" Foreground="{DynamicResource SystemAccentColor}">
+                  <MenuItem.Header>
+                    <TextBlock Text="{x:Static lang:Resources.Seating_TeacherView}" />
+                  </MenuItem.Header>
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PeopleTeamToolbox}" FontSize="16" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Excel (.xlsx)" Command="{Binding ExportTeacherExcelCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTableCube}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="CSV (.csv)" Command="{Binding ExportTeacherCsvCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTable}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="PDF (.pdf)" Command="{Binding ExportTeacherPdfCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportTeacherImageCommand}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
+                  </MenuItem.Icon>
+                </MenuItem>
               </MenuFlyout>
             </Button.Flyout>
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -50,7 +89,7 @@
             </StackPanel>
           </Button>
           <!-- 保存到快照 -->
-          <Button Command="{Binding SaveToSnapshotCommand}"
+          <Button x:Name="SaveSnapshotButton" Command="{Binding SaveToSnapshotCommand}"
                   IsEnabled="{Binding HasUnsavedChanges}"
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}">
@@ -60,7 +99,7 @@
             </StackPanel>
           </Button>
           <!-- 撤销 -->
-          <Button Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}"
+          <Button x:Name="UndoButton" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo}"
                   HorizontalContentAlignment="Center"
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_UndoSwap}">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -134,7 +173,7 @@
         <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" Margin="8">
           <!-- 会场选择 -->
           <TextBlock Grid.Row="0" Text="{x:Static lang:Resources.Seating_Venue}" Classes="sectionTitle" Margin="3,0,0,8" />
-          <ListBox Grid.Row="1" ItemsSource="{Binding VenueItems}"
+          <ListBox x:Name="VenueListBox" Grid.Row="1" ItemsSource="{Binding VenueItems}"
                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
@@ -150,7 +189,7 @@
 
           <!-- 数据集选择 -->
           <TextBlock Grid.Row="3" Text="{x:Static lang:Resources.Seating_MemberData}" Classes="sectionTitle" Margin="3,0,0,8" />
-          <ListBox Grid.Row="4" ItemsSource="{Binding DatasetItems}"
+          <ListBox x:Name="DatasetListBox" Grid.Row="4" ItemsSource="{Binding DatasetItems}"
                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
                    MaxHeight="180" BorderThickness="0"
                    Background="{DynamicResource SidebarBackgroundBrush}"
@@ -165,19 +204,32 @@
           <!-- 填充 spacer -->
           <Panel Grid.Row="5" />
 
-          <!-- 生成按钮 -->
-          <Button Grid.Row="6"
-                  Command="{Binding GenerateSeatingCommand}"
-                  IsEnabled="{Binding CanGenerate}"
-                  HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
-                  Margin="0,8" Classes="accent" Height="36">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Play}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
-            </StackPanel>
-          </Button>
+          <!-- 生成 + 创建空白会场按钮 -->
+          <DockPanel Grid.Row="6" Margin="0,8">
+            <Button DockPanel.Dock="Right"
+                    Command="{Binding CreateEmptySeatingCommand}"
+                    IsEnabled="{Binding CanCreateEmpty}"
+                    Width="36" Height="36"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.TableAdd}" FontSize="18" />
+            </Button>
+            <Button x:Name="GenerateButton"
+                    Command="{Binding GenerateSeatingCommand}"
+                    IsEnabled="{Binding CanGenerate}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
+                    Height="36" Margin="0,0,4,0"
+                    Classes="accent">
+              <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
+                <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
+              </StackPanel>
+            </Button>
+          </DockPanel>
         </Grid>
       </Border>
 
@@ -248,6 +300,10 @@
                               BorderBrush="{ReflectionBinding BorderBrush}"
                               Cursor="Hand"
                               ToolTip.Tip="{ReflectionBinding TooltipText}"
+                              DragDrop.AllowDrop="True"
+                              DragDrop.DragOver="Seat_DragOver"
+                              DragDrop.Drop="Seat_Drop"
+                              DragDrop.DragLeave="Seat_DragLeave"
                               PointerPressed="SeatBorder_PointerPressed">
                         <TextBlock Text="{ReflectionBinding DisplayText}"
                                    FontSize="11" FontWeight="SemiBold"
@@ -291,6 +347,28 @@
                 </ItemsControl>
               </Panel>
             </ScrollViewer>
+            <!-- 垃圾桶：拖入或点击移除学生 -->
+            <Border Name="TrashZone"
+                    IsVisible="{Binding HasGenerated}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_TrashHint}"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,12,36"
+                    Width="44" Height="44" CornerRadius="22"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="2"
+                    DragDrop.AllowDrop="True"
+                    DragDrop.DragOver="Trash_DragOver"
+                    DragDrop.Drop="Trash_Drop"
+                    DragDrop.DragLeave="Trash_DragLeave"
+                    PointerPressed="Trash_PointerPressed"
+                    Cursor="Hand"
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_TrashHint}"
+                    ZIndex="10">
+              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="22"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+            </Border>
             <TextBlock Text="{x:Static lang:Resources.Seating_CanvasHint}" Classes="small" Opacity="0.4"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
                        Margin="0,0,12,8"
@@ -413,12 +491,17 @@
                   </DockPanel>
                 </Button>
                 <ListBox ItemsSource="{Binding UnassignedStudents}"
+                         SelectedItem="{Binding SelectedUnassignedStudent, Mode=TwoWay}"
                          IsVisible="{Binding IsUnassignedExpanded}"
                          BorderThickness="0"
-                         Background="{DynamicResource SidebarBackgroundBrush}">
+                         Background="{DynamicResource SidebarBackgroundBrush}"
+                         AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="core:Student">
-                      <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4" />
+                      <Border Padding="4" Background="Transparent"
+                              PointerPressed="UnassignedStudent_PointerPressed">
+                        <TextBlock Text="{Binding Name}" Classes="bodySmall" />
+                      </Border>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

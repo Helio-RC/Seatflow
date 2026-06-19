@@ -29,6 +29,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     public partial ObservableCollection<VenueItem> VenueItems { get; set; } = [];
 
     private bool _suppressAutoLoad;
+    private bool _suppressPreviewRegen;
     private CancellationTokenSource? _selectVenueCts;
 
     /// <summary>已加载会场的座位位置→ID 映射，用于保存时保留旧 ID 避免快照失效。</summary>
@@ -246,6 +247,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         _logger = logger ?? NullLogger<VenueConfigurationViewModel>.Instance;
         _ = LoadVenueList();
         RegenerateAisleOptions();
+        SubscribeToDoorCollection(DoorItems);
     }
 
     // ═══════════════════════════════════════════════
@@ -281,7 +283,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         SelectedLayoutType = LayoutType.Grid;
         _existingGridSeatMap = null;
         _existingPolarSeatMap = null;
+        _suppressPreviewRegen = true;
         ResetParameters();
+        _suppressPreviewRegen = false;
         VenueItems.Add(item);
         SelectedVenueItem = item;
         RegeneratePreview();
@@ -319,6 +323,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             if (ct.IsCancellationRequested) return;
             if (layout == null) { StatusMessage = string.Format(Resources.Venue_LoadFailedFmt , item.Name); return; }
 
+            _suppressPreviewRegen = true;
+
             LayoutName = layout.Name;
             SelectedLayoutType = layout.LayoutType;
             IsFreeformVenue = layout.LayoutType == LayoutType.Freeform;
@@ -348,6 +354,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             // 恢复障碍物配置（门等）
             RestoreObstaclesFromLayout(layout);
 
+            _suppressPreviewRegen = false;
             RegeneratePreview();
             StatusMessage = string.Format(Resources.Venue_LoadedFmt , layout.Name , layout.Seats.Count);
         });
@@ -1024,9 +1031,81 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         }
     }
 
-    partial void OnGridSeatsPerDeskChanged (int value) => RegenerateAisleOptions();
-    partial void OnGridColumnsChanged (int value) => RegenerateAisleOptions();
-    partial void OnGridRowsChanged (int value) => RegenerateAisleOptions();
+    partial void OnSelectedLayoutTypeChanged (LayoutType value) => RegeneratePreviewIfNotSuppressed();
+
+    // ── Grid 参数变更 → 立即刷新预览 ──
+    partial void OnGridRowsChanged (int value) { RegenerateAisleOptions(); RegeneratePreviewIfNotSuppressed(); }
+    partial void OnGridColumnsChanged (int value) { RegenerateAisleOptions(); RegeneratePreviewIfNotSuppressed(); }
+    partial void OnGridHorizontalSpacingChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridVerticalSpacingChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridOriginXChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridOriginYChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridSeatsPerDeskChanged (int value) { RegenerateAisleOptions(); RegeneratePreviewIfNotSuppressed(); }
+    partial void OnGridIntraDeskSpacingChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridInterDeskSpacingChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridAisleAfterColumnsChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridAisleAfterRowsChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridAisleWidthChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridFrontRowCountChanged (int value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridHasPodiumChanged (bool value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridPodiumWidthChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridPodiumHeightChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridColumnRowCountsSpecChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnGridEmptyPositionsSpecChanged (string value) => RegeneratePreviewIfNotSuppressed();
+
+    // ── Polar 参数变更 → 立即刷新预览 ──
+    partial void OnPolarRingsChanged (int value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarSeatsPerRingChanged (int value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarRadiusStepChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarStartAngleChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarEndAngleChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarOriginXChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarOriginYChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarRingSeatCountsSpecChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarEmptyPositionsSpecChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarHasPodiumChanged (bool value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarPodiumRadiusChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarAisleRadialAnglesChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarAisleRadialWidthChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarAisleCircularRingsChanged (string value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarAisleCircularWidthChanged (double value) => RegeneratePreviewIfNotSuppressed();
+    partial void OnPolarFrontRowCountChanged (int value) => RegeneratePreviewIfNotSuppressed();
+
+    // ── 门变更 → 立即刷新预览 ──
+    partial void OnDoorItemsChanged (ObservableCollection<DoorItem> value) => SubscribeToDoorCollection(value);
+
+    private void SubscribeToDoorCollection (ObservableCollection<DoorItem> doors)
+    {
+        doors.CollectionChanged += (_ , e) =>
+        {
+            if (e.NewItems != null)
+            {
+                foreach (DoorItem item in e.NewItems)
+                    item.PropertyChanged += OnDoorItemPropertyChanged;
+            }
+            if (e.OldItems != null)
+            {
+                foreach (DoorItem item in e.OldItems)
+                    item.PropertyChanged -= OnDoorItemPropertyChanged;
+            }
+            RegeneratePreviewIfNotSuppressed();
+        };
+        foreach (var door in doors)
+            door.PropertyChanged += OnDoorItemPropertyChanged;
+    }
+
+    private void OnDoorItemPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(DoorItem.X) or nameof(DoorItem.Y))
+            RegeneratePreviewIfNotSuppressed();
+    }
+
+    /// <summary>在不被抑制时立即刷新预览。</summary>
+    private void RegeneratePreviewIfNotSuppressed ()
+    {
+        if (!_suppressPreviewRegen)
+            RegeneratePreview();
+    }
 }
 
 public record VenueItem (string Id , string Name);

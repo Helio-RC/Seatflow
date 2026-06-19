@@ -10,20 +10,29 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 ├── CONTRIBUTING.md            ← 开发环境、编码约定、添加功能流程
 ├── CLAUDE.md                  ← AI 编码助手主配置（含文件版本/迁移/JSON 约定）
 │   └── docs/CLAUDE.md         ← CLAUDE.md 的人类可读副本（同步维护）
+├── scripts/
+│   ├── i18n.py                ← i18n 资源管理脚本
+│   ├── I18N.md                ← i18n 脚本完整文档
+│   ├── clean.sh / clean.ps1   ← 清理 bin/obj
+│   └── publish.sh / publish.ps1 ← 多平台发布
 ├── ARCHITECTURE.md            ← 架构设计、分层、数据流、安全策略
 ├── docs/
 │   ├── INDEX.md               ← 本文件
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
+│   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
+│   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
 │   └── adr/
-│       ├── ADR-001.md        ← 选择 Avalonia UI 的决策
-│       ├── ADR-002.md        ← 选择 CommunityToolkit.Mvvm 的决策
-│       ├── ADR-003.md        ← 分层架构 + 插件化决策
-│       ├── ADR-004.md        ← 策略模式座位安排决策
-│       ├── ADR-005.md        ← 命令模式撤销/重做决策
-│       ├── ADR-006.md        ← 策略管道 Fill-in-Order + 依赖策略三态 + 能力声明系统
-│       └── ADR-007.md        ← 多策略插件包架构
+│       ├── ADR-001-avalonia-ui-framework.md        ← 选择 Avalonia UI 的决策
+│       ├── ADR-002-mvvm-framework.md               ← 选择 CommunityToolkit.Mvvm 的决策
+│       ├── ADR-003-layered-architecture-with-plugins.md ← 分层架构 + 插件化决策
+│       ├── ADR-004-strategy-pattern-for-seating.md ← 策略模式座位安排决策
+│       ├── ADR-005-command-pattern-for-undo-redo.md ← 命令模式撤销/重做决策
+│       ├── ADR-006-strategy-pipeline-fill-in-order.md ← 策略管道 Fill-in-Order + 依赖策略三态 + 能力声明系统
+│       ├── ADR-007-multi-strategy-plugin-packages.md ← 多策略插件包架构
+│       └── ADR-008-onboarding-demo-data-injection.md ← 引导系统纯内存示例数据注入
 ├── A_Pair.Presentation.Avalonia/docs/
 │   ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
+│   ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
 │   └── Fluent_Icons.md       ← 已使用的 FluentUI 图标清单
 └── A_Pair.Plugins.Sdk/docs/
     └── README.md             ← 插件开发 SDK 指南
@@ -82,6 +91,11 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **何时更新**: 推翻或重大修改既有决策时
 - **关联文档**: ARCHITECTURE.md（引用 ADR）
 
+### scripts/I18N.md
+- **覆盖**: i18n 管理脚本的完整参考，包括子命令、安全机制、命名规范、常见工作流
+- **何时更新**: 脚本新增子命令、修改校验规则、修改工作流
+- **关联文档**: CLAUDE.md（i18n 节）
+
 ### A_Pair.Presentation.Avalonia/docs/Design_Spec.md
 - **覆盖**: 色板、排版层级、间距系统、圆角、布局模式
 - **何时更新**: 视觉规范变更、新增 Token
@@ -92,6 +106,11 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **何时更新**: 新增或替换图标时
 - **关联文档**: Design_Spec.md
 
+### A_Pair.Presentation.Avalonia/docs/DragDrop.md
+- **覆盖**: Avalonia 12 拖放 API 正确用法、`PointerPressed` + `DoDragDropAsync` 模式、数据格式创建/读写、CanvasZoomPan 冲突处理、常见坑及修复
+- **何时更新**: 新增拖放交互、Avalonia 版本升级后 API 变更、发现新的拖放坑
+- **关联文档**: CLAUDE.md（Behaviors 节）、SeatingArrangementView.axaml.cs
+
 ### A_Pair.Plugins.Sdk/docs/README.md
 - **覆盖**: 插件开发指南、接口参考、打包格式
 - **何时更新**: 插件 API 变更、打包格式变更
@@ -101,6 +120,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 
 | 变更场景 | 需更新的文档 |
 |---|---|
+| 新增/修改/删除 .resx 资源 key | scripts/I18N.md（如新增工作流）、CLAUDE.md（i18n 节工具链） |
 | 新增文件类型版本迁移 | CLAUDE.md、docs/CLAUDE.md、ARCHITECTURE.md（5.3 节）、CONTRIBUTING.md（示例代码）、Phases.md（Phase 7 状态） |
 | 新增策略实现 | ARCHITECTURE.md（4.4/4.5 节）、Phases.md、CLAUDE.md（架构摘要） |
 | 新增/修改策略配置 | 更新 manifest JSON（`Manifests/{Id}.json`）中的 `parameters`/`codeBlocks`；CONTRIBUTING.md（声明式配置）；Plugins.Sdk README（i18n + codeBlocks） |

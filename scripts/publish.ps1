@@ -5,7 +5,7 @@ param(
     [ValidateSet("Release","Debug")][string]$Configuration="Release",
     [string]$Suffix="",
     [string]$Version="",
-    [switch]$Optimize, [switch]$HashOnly, [switch]$Clean
+    [switch]$Optimize, [switch]$Aot, [switch]$HashOnly, [switch]$Clean
 )
 $ErrorActionPreference="Stop"
 Push-Location ..
@@ -30,6 +30,7 @@ function Publish-One($SC,$Label,$Rids){
         Write-Host "══════════════════════════════════════════" -F Cyan
         Step "开始编译..." Yellow
         $ta=if($Optimize-and$SC){@("-p:PublishTrimmed=true","-p:TrimMode=partial","-p:SuppressTrimAnalysisWarnings=true")}else{@()}
+        if($Aot-and$SC){$ta+=@("-p:PublishAot=true")}
         dotnet publish $Project -c $Configuration -r $rid --self-contained $(if($SC){"true"}else{"false"}) -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:IncludeAllContentForSelfExtract=true @ta -o $tmp
         if($LASTEXITCODE){Step "编译失败" Red;Pop-Location;exit 1}
         $exe="$AppName$sf"
@@ -52,7 +53,7 @@ if($Mode-or$HashOnly){
 # TUI 模式
 [Console]::Clear()
 Write-Host "  A_Pair 发布"
-$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$cl=$false;$cu=0;$suf=$Suffix;$ver=$Version;$ii=15
+$types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$aot=$false;$cl=$false;$cu=0;$suf=$Suffix;$ver=$Version;$ii=16
 
 function Draw{
     [Console]::SetCursorPosition(0,1)
@@ -80,19 +81,21 @@ function Draw{
     $tm=if($ts){"[*]"}else{"[ ]"}; $tc=if($cu-eq9){">"}else{" "}
     $o+="  优化选项："
     $o+="     $tc$tm 裁剪 (TrimMode=partial)"
-    $sx=if($cu-eq10){">"}else{" "}
+    $am=if($aot){"[*]"}else{"[ ]"}; $ac=if($cu-eq10){">"}else{" "}
+    $o+="     $ac$am AOT 编译 (需自包含)"
+    $sx=if($cu-eq11){">"}else{" "}
     $sd=if($suf){"[$suf]"}else{"[未设置]"}
     $o+="     $sx$sd 文件名后缀（Enter 设置）"
-    $vx=if($cu-eq11){">"}else{" "}
+    $vx=if($cu-eq12){">"}else{" "}
     $vd=if($ver){"[$ver]"}else{"[未设置]"}
     $o+="     $vx$vd 版本号（Enter 设置）"
     $o+=""
     $o+="  操作："
-    $cb=if($cl){"[*]"}else{"[ ]"}; $ci=if($cu-eq12){">"}else{" "}
+    $cb=if($cl){"[*]"}else{"[ ]"}; $ci=if($cu-eq13){">"}else{" "}
     $o+="     $ci$cb 编译前清空 publish/ 目录"
-    $b1=if($cu-eq13){">"}else{" "}
+    $b1=if($cu-eq14){">"}else{" "}
     $o+="     $b1[ 开始编译 ]"
-    $b2=if($cu-eq14){">"}else{" "}
+    $b2=if($cu-eq15){">"}else{" "}
     $o+="     $b2[ 仅计算哈希 ]"
     $o+=""
     foreach($l in $o){ [Console]::WriteLine($l) }
@@ -106,15 +109,15 @@ while(-not $run){
     switch($k.Key){
         UpArrow{$cu=($cu-1+$ii)%$ii;Draw}
         DownArrow{$cu=($cu+1)%$ii;Draw}
-        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-ge6-and$cu-le8){$ti=$cu-6}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq12){$cl=!$cl};Draw}
+        Spacebar{if($cu-lt4){$P[$cu].Sel=!$P[$cu].Sel}elseif($cu-eq4){0..3|%{$P[$_].Sel=$true}}elseif($cu-eq5){0..3|%{$P[$_].Sel=$false}}elseif($cu-ge6-and$cu-le8){$ti=$cu-6}elseif($cu-eq9){$ts=!$ts}elseif($cu-eq10){$aot=!$aot}elseif($cu-eq13){$cl=!$cl};Draw}
         A{if($cu-eq4){0..3|%{$P[$_].Sel=$true};Draw}}
         N{if($cu-eq5){0..3|%{$P[$_].Sel=$false};Draw}}
         Escape{[Console]::CursorVisible=$true;Pop-Location;exit 0}
         Enter{
-            if($cu-eq10){[Console]::CursorVisible=$true;Write-Host "";Write-Host "文件名后缀: " -NoNewline;$Suffix=[Console]::ReadLine().Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
-            elseif($cu-eq11){[Console]::CursorVisible=$true;Write-Host "";Write-Host "版本号 (如 1.1.0): " -NoNewline;$Version=[Console]::ReadLine().Trim();$ver=$Version;[Console]::CursorVisible=$false;Draw}
-            elseif($cu-eq13){$run=$true}
-            elseif($cu-eq14){[Console]::CursorVisible=$true;ShaTable;Pop-Location;exit 0}
+            if($cu-eq11){[Console]::CursorVisible=$true;Write-Host "";Write-Host "文件名后缀: " -NoNewline;$Suffix=[Console]::ReadLine().Trim();$suf=$Suffix;[Console]::CursorVisible=$false;Draw}
+            elseif($cu-eq12){[Console]::CursorVisible=$true;Write-Host "";Write-Host "版本号 (如 1.1.0): " -NoNewline;$Version=[Console]::ReadLine().Trim();$ver=$Version;[Console]::CursorVisible=$false;Draw}
+            elseif($cu-eq14){$run=$true}
+            elseif($cu-eq15){[Console]::CursorVisible=$true;ShaTable;Pop-Location;exit 0}
             elseif($cu-ge6-and$cu-le8){$ti=$cu-6;Draw}
         }
     }

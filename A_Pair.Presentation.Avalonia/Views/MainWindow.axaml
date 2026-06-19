@@ -5,6 +5,7 @@
         xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+        xmlns:codewf="using:CodeWF.AvaloniaControls.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -21,7 +22,8 @@
     <vm:MainShellViewModel/>
   </Design.DataContext>
 
-  <DockPanel Margin="0,32,0,0">
+  <Grid>
+    <DockPanel Margin="0,32,0,0">
     <!-- 侧边栏 -->
     <Border DockPanel.Dock="Left" Width="{Binding SidebarWidth}" Background="{DynamicResource SidebarBackgroundBrush}"
             ClipToBounds="True" KeyboardNavigation.TabNavigation="Cycle">
@@ -57,7 +59,7 @@
                 </Transitions>
               </StackPanel.Transitions>
               <Separator Margin="0,0,0,0"/>
-              <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Settings" AutomationProperties.Name="{x:Static lang:Resources.Nav_Settings}"
+              <Button x:Name="SettingsButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="Settings" AutomationProperties.Name="{x:Static lang:Resources.Nav_Settings}"
                       HorizontalContentAlignment="Center" HorizontalAlignment="Stretch">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Settings}" FontSize="20" Height="20"/>
@@ -106,7 +108,7 @@
                 <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
               </Transitions>
             </StackPanel.Transitions>
-            <Button Height="44" Command="{Binding ToggleSidebarCommand}" AutomationProperties.Name="{x:Static lang:Resources.Nav_ToggleSidebar}"
+            <Button x:Name="ToggleSidebarButton" Height="44" Command="{Binding ToggleSidebarCommand}" AutomationProperties.Name="{x:Static lang:Resources.Nav_ToggleSidebar}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
                     ToolTip.Tip="{x:Static lang:Resources.Nav_CollapseSidebar}">
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -115,7 +117,7 @@
               </StackPanel>
             </Button>
 
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="Home" AutomationProperties.Name="{x:Static lang:Resources.Nav_Home}"
+            <Button x:Name="HomeButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="Home" AutomationProperties.Name="{x:Static lang:Resources.Nav_Home}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Home}" FontSize="24" Height="24"/>
@@ -123,14 +125,14 @@
               </StackPanel>
             </Button>
 
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="MemberManagement" AutomationProperties.Name="{x:Static lang:Resources.Nav_MemberManagement}"
+            <Button x:Name="MemberButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="MemberManagement" AutomationProperties.Name="{x:Static lang:Resources.Nav_MemberManagement}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DataUsage}" FontSize="24" Height="24"/>
                 <TextBlock Text="{x:Static lang:Resources.Nav_MemberManagement}" Classes="bodyLarge" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration" AutomationProperties.Name="{x:Static lang:Resources.Nav_VenueConfig}"
+            <Button x:Name="VenueButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="VenueConfiguration" AutomationProperties.Name="{x:Static lang:Resources.Nav_VenueConfig}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="24" Height="24"/>
@@ -144,21 +146,21 @@
                 <TextBlock Text="{x:Static lang:Resources.Nav_Freeform}" Classes="bodyLarge" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration" AutomationProperties.Name="{x:Static lang:Resources.Nav_StrategyConfig}"
+            <Button x:Name="StrategyButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="StrategyConfiguration" AutomationProperties.Name="{x:Static lang:Resources.Nav_StrategyConfig}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="24" Height="24"/>
                 <TextBlock Text="{x:Static lang:Resources.Nav_StrategyConfig}" Classes="bodyLarge" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement" AutomationProperties.Name="{x:Static lang:Resources.Nav_Seating}"
+            <Button x:Name="SeatingButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="SeatingArrangement" AutomationProperties.Name="{x:Static lang:Resources.Nav_Seating}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="24" Height="24"/>
                 <TextBlock Text="{x:Static lang:Resources.Nav_Seating}" Classes="bodyLarge" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
-            <Button Height="44" Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory" AutomationProperties.Name="{x:Static lang:Resources.Nav_SnapshotHistory}"
+            <Button x:Name="SnapshotButton" Height="44" Command="{Binding NavigateCommand}" CommandParameter="SnapshotHistory" AutomationProperties.Name="{x:Static lang:Resources.Nav_SnapshotHistory}"
                     HorizontalContentAlignment="Left" HorizontalAlignment="Stretch">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="24" Height="24"/>
@@ -258,39 +260,31 @@
         </ContentControl.Transitions>
       </ContentControl>
 
-      <!-- 加载遮罩：深色背景压暗旧页 + 浮层阴影 + 加载条 -->
-      <Border IsVisible="{Binding IsPageLoading}"
-              IsHitTestVisible="{Binding IsPageLoading}"
-              BoxShadow="{DynamicResource CardShadowLarge}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              Margin="1">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition Property="Opacity" Duration="0:0:0.4" Easing="CubicEaseInOut" />
-          </Transitions>
-        </Border.Transitions>
-
-        <Grid>
-          <!-- 压暗底层 -->
-          <Border Background="{StaticResource OverlayBackgroundBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-
-          <!-- 加载内容：在遮罩之后渐显 -->
-          <Border Opacity="{Binding IsLoadingContentVisible, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseInOut" />
-              </Transitions>
-            </Border.Transitions>
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-              <ProgressBar IsIndeterminate="True" Width="200" Height="6" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Loading}" Classes="body"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                         HorizontalAlignment="Center" />
-            </StackPanel>
-          </Border>
-        </Grid>
-      </Border>
     </Grid>
   </DockPanel>
+
+    <!-- 首次启动引导覆盖层 -->
+    <codewf:Guide x:Name="OnboardingGuide"
+                  Placement="Right"
+                  PopupOffset="14"
+                  IsVisible="False"
+                  MissingTargetBehavior="Center"
+                  GapRadius="6"
+                  GapOffsetX="4"
+                  GapOffsetY="4"
+                  IsPointAtCenter="True"
+                  IsScrollIntoView="True"
+                  IsShowMask="False"
+                  MaskColor="#80000000"
+                  TargetBorderBrush="{DynamicResource SystemAccentColor}"
+                  TargetBorderThickness="3"
+                  TargetResolveDelay="0:0:0"
+                  PreviousText="{x:Static lang:Resources.Guide_Previous}"
+                  NextText="{x:Static lang:Resources.Guide_Next}"
+                  FinishText="{x:Static lang:Resources.Guide_Finish}"
+                  CloseText="{x:Static lang:Resources.Guide_Close}"
+                  Completed="OnGuideCompleted"
+                  Closed="OnGuideClosed"
+                  StepOpening="OnGuideStepOpening" />
+  </Grid>
 </Window>

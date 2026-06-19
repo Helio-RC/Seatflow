@@ -14,6 +14,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using AvaloniaApplication = Avalonia.Application;
@@ -21,7 +22,7 @@ using AvaloniaApplication = Avalonia.Application;
 namespace A_Pair.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
-    #pragma warning disable AVLN3001
+#pragma warning disable AVLN3001
     public partial class App (IServiceProvider serviceProvider , bool isFirstInstance = true) : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
@@ -165,8 +166,8 @@ namespace A_Pair.Presentation.Avalonia
                     });
                 };
 
-                // 启动时恢复已保存的设置（主题、语言等）
-                _ = RestoreSettingsAsync();
+                // 按序执行：先检查引导（此时文件不存在=首次启动），再恢复设置
+                _ = InitializeAsync(mainWindow);
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -218,6 +219,51 @@ namespace A_Pair.Presentation.Avalonia
                     }
                 }
             }
+        }
+
+        private async Task CheckAndStartOnboardingAsync ()
+        {
+            try
+            {
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                // 检测是否需要显示引导：
+                // 1. 设置文件不存在 → 真正的首次启动
+                // 2. 用户通过设置页面请求重新引导（IsFirstLaunch = true）
+                var repo = _serviceProvider.GetRequiredService<IAppSettingsRepository>();
+                var isTrueFirstLaunch = repo is Infrastructure.Providers.JsonAppSettingsRepository jsonRepo
+                    && !File.Exists(jsonRepo.SettingsFilePath);
+
+                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+                var settings = await facade.LoadAppSettingsAsync();
+
+                logger.LogInformation("[Onboarding] isTrueFirstLaunch={A}, IsFirstLaunch={B}" , isTrueFirstLaunch , settings.IsFirstLaunch);
+                if (isTrueFirstLaunch || settings.IsFirstLaunch)
+                {
+                    logger.LogInformation("[Onboarding] 触发启动引导");
+                    // 立即标记完成（崩溃安全）
+                    settings.IsFirstLaunch = false;
+                    await facade.SaveAppSettingsAsync(settings);
+
+                    // 在 UI 线程启动引导，给 UI 一些时间完成初始渲染
+                    var onboarding = _serviceProvider.GetRequiredService<IOnboardingService>();
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        onboarding.StartOnboarding();
+                    } , DispatcherPriority.Background);
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogError(ex , "[Onboarding] CheckAndStartOnboardingAsync 异常");
+            }
+        }
+
+        private async Task InitializeAsync (MainWindow mainWindow)
+        {
+            // 先检查引导，再恢复设置；确保首次启动检测在文件创建之前
+            await CheckAndStartOnboardingAsync();
+            await RestoreSettingsAsync();
         }
     }
 

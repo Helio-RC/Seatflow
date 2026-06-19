@@ -1,8 +1,5 @@
 using System.Text.Json;
-using A_Pair.Core.Models;
 using A_Pair.Core.Providers;
-using A_Pair.Core.Utilities;
-using A_Pair.Core.Workspace;
 using A_Pair.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -89,7 +86,9 @@ public class FrontRowHistoryLoaderTests
         };
         var snapshot = CreateSnapshot("snap1" , layout , new Dictionary<string , string>
         {
-            ["R1C1"] = "s1" , ["R1C2"] = "s2" , ["R2C1"] = "s3"
+            ["R1C1"] = "s1" ,
+            ["R1C2"] = "s2" ,
+            ["R2C1"] = "s3"
         });
         repo.ListByVenueAsync("v1" , Arg.Any<CancellationToken>())
             .Returns(new[] { snapshot });
@@ -123,7 +122,8 @@ public class FrontRowHistoryLoaderTests
         };
         var snapshot = CreateSnapshot("snap1" , layout , new Dictionary<string , string>
         {
-            ["inner"] = "s1" , ["outer"] = "s2"
+            ["inner"] = "s1" ,
+            ["outer"] = "s2"
         });
         repo.ListByVenueAsync("v1" , Arg.Any<CancellationToken>())
             .Returns(new[] { snapshot });
@@ -152,7 +152,8 @@ public class FrontRowHistoryLoaderTests
         };
         var snapshot = CreateSnapshot("snap1" , layout , new Dictionary<string , string>
         {
-            ["ff1"] = "s1" , ["ff2"] = "s2"
+            ["ff1"] = "s1" ,
+            ["ff2"] = "s2"
         });
         repo.ListByVenueAsync("v1" , Arg.Any<CancellationToken>())
             .Returns(new[] { snapshot });

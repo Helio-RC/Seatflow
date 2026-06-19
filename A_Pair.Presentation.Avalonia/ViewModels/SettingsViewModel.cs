@@ -24,6 +24,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
+    private readonly IOnboardingService _onboarding;
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
@@ -78,10 +79,11 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsSaving { get; set; }
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
+        _onboarding = onboarding;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
@@ -248,6 +250,23 @@ public partial class SettingsViewModel : ViewModelBase
             }
         }
         finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
+    }
+
+    [RelayCommand]
+    private async Task RestartGuideAsync ()
+    {
+        try
+        {
+            var settings = await _facade.LoadAppSettingsAsync();
+            settings.IsFirstLaunch = true;
+            await _facade.SaveAppSettingsAsync(settings);
+
+            _onboarding.StartOnboarding();
+        }
+        catch
+        {
+            // 引导启动失败静默处理
+        }
     }
 
     [RelayCommand]

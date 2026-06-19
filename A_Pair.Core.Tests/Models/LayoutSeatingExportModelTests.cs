@@ -139,4 +139,80 @@ public class LayoutSeatingExportModelTests
         model.Rows[0].Cells[0].IsSeat.Should().BeTrue();
         model.Rows[1].Cells[0].Text.Should().Contain("Podium");
     }
+
+    [Fact]
+    public void FromLayout_Grid_DefaultPerspective_PodiumFirst ()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "默认视角" ,
+            LayoutType = LayoutType.Grid ,
+            Metadata = new GridLayoutMetadata { Rows = 3 , Columns = 2 , HasPodium = true }
+        };
+        for (int r = 1; r <= 3; r++)
+            for (int c = 1; c <= 2; c++)
+                layout.Seats.Add(new GridSeat { Row = r , Column = c });
+
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
+
+        // 学生视角（默认）：讲台在第一行
+        model.Rows[0].Cells.Any(c => c.IsPodium).Should().BeTrue();
+    }
+
+    [Fact]
+    public void FromLayout_Grid_TeacherView_PodiumLast ()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "教师视角" ,
+            LayoutType = LayoutType.Grid ,
+            Metadata = new GridLayoutMetadata { Rows = 3 , Columns = 2 , HasPodium = true }
+        };
+        for (int r = 1; r <= 3; r++)
+            for (int c = 1; c <= 2; c++)
+                layout.Seats.Add(new GridSeat { Row = r , Column = c });
+
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
+        // 教师视角：行前后反转 + 列左右镜像
+        model.Rows.Reverse();
+        foreach (var row in model.Rows)
+            row.Cells.Reverse();
+
+        // 行反转：讲台在最后一行
+        model.Rows[^1].Cells.Any(c => c.IsPodium).Should().BeTrue();
+        // 列镜像：讲台行 cells 左右颠倒，讲台应移至最左侧
+        model.Rows[^1].Cells[0].IsPodium.Should().BeTrue();
+    }
+
+    [Fact]
+    public void FromLayout_Polar_TeacherView_PodiumLast ()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "极坐标教师视角" ,
+            LayoutType = LayoutType.Polar ,
+            Metadata = new PolarLayoutMetadata
+            {
+                RingSeatCounts = [4 , 6] ,
+                HasPodium = true ,
+                PodiumRadius = 20 ,
+                RadiusStep = 40
+            }
+        };
+        for (int r = 1; r <= 2; r++)
+        {
+            int count = r == 1 ? 4 : 6;
+            for (int s = 0; s < count; s++)
+                layout.Seats.Add(new PolarSeat { Ring = r , AngleDegrees = s * 360.0 / count });
+        }
+
+        var model = LayoutSeatingExportModel.FromLayout(layout , [] , []);
+        // 教师视角：行前后反转 + 列左右镜像
+        model.Rows.Reverse();
+        foreach (var row in model.Rows)
+            row.Cells.Reverse();
+
+        // 教师视角：讲台在最后一行（Polar 讲台居中有填充，不做列级断言）
+        model.Rows[^1].Cells.Any(c => c.IsPodium).Should().BeTrue();
+    }
 }

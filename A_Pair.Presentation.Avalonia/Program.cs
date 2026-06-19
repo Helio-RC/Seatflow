@@ -36,6 +36,8 @@ namespace A_Pair.Presentation.Avalonia
 
             // 注册 ViewModels
             services.AddSingleton<MainWindow>();
+            services.AddSingleton<IOnboardingService , OnboardingService>();
+            services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<HomeViewModel>();
             services.AddSingleton<MemberManagementViewModel>();
@@ -65,58 +67,63 @@ namespace A_Pair.Presentation.Avalonia
                 .WithInterFont()
                 .LogToTrace();
 
-    private static void CheckCleanDirectory ()
-    {
-        var exeDir = Path.GetDirectoryName(Environment.ProcessPath)!;
-        if (!Directory.Exists(exeDir)) return;
-
-        var exeName = Path.GetFileName(Environment.ProcessPath);
-        var extra = Directory.GetFileSystemEntries(exeDir)
-            .Select(p => Path.GetFileName(p))
-            .Where(n => !string.Equals(n , exeName , StringComparison.OrdinalIgnoreCase)
-                     && !string.Equals(n , "AppData" , StringComparison.OrdinalIgnoreCase)
-                     && !string.Equals(n , "Plugins" , StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        if (extra.Length == 0) return;
-
-        var message = "程序所在目录不应有其他文件或文件夹。\n\n" +
-            $"请将 {exeName} 单独放入一个空目录后再运行。\n\n" +
-            $"当前目录多余项：\n{string.Join('\n' , extra)}";
-
-        ShowFatalDialog("运行环境错误" , message);
-        Environment.Exit(1);
-    }
-
-    [DllImport("user32.dll" , CharSet = CharSet.Unicode)]
-    private static extern int MessageBoxW (IntPtr hWnd , string text , string caption , uint type);
-
-    private static void ShowFatalDialog (string title , string message)
-    {
-        try
+        private static void CheckCleanDirectory ()
         {
-            if (OperatingSystem.IsWindows())
+            var exeDir = Path.GetDirectoryName(Environment.ProcessPath)!;
+            if (!Directory.Exists(exeDir)) return;
+
+            var exeName = Path.GetFileName(Environment.ProcessPath);
+            var extra = Directory.GetFileSystemEntries(exeDir)
+                .Select(p => Path.GetFileName(p))
+                .Where(n => !string.Equals(n , exeName , StringComparison.OrdinalIgnoreCase)
+                         && !string.Equals(n , "AppData" , StringComparison.OrdinalIgnoreCase)
+                         && !string.Equals(n , "Plugins" , StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+            if (extra.Length == 0) return;
+
+            const int maxShow = 5;
+            var display = extra.Take(maxShow).ToArray();
+            var message = "程序所在目录不应有其他文件或文件夹。\n\n" +
+                $"请将 {exeName} 单独放入一个空目录后再运行。\n\n" +
+                $"当前目录多余项：\n{string.Join('\n' , display)}";
+
+            if (extra.Length > maxShow)
+                message += $"\n（还有 {extra.Length - maxShow} 项未显示）";
+
+            ShowFatalDialog("运行环境错误" , message);
+            Environment.Exit(1);
+        }
+
+        [DllImport("user32.dll" , CharSet = CharSet.Unicode)]
+        private static extern int MessageBoxW (IntPtr hWnd , string text , string caption , uint type);
+
+        private static void ShowFatalDialog (string title , string message)
+        {
+            try
             {
-                _ = MessageBoxW(IntPtr.Zero , message , title , 0x00000010); // MB_ICONERROR
+                if (OperatingSystem.IsWindows())
+                {
+                    _ = MessageBoxW(IntPtr.Zero , message , title , 0x00000010); // MB_ICONERROR
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    Process.Start("zenity" , $"--error --width=480 --title=\"{title}\" --text=\"{message.Replace("\"" , "\\\"")}\"");
+                }
+                else if (OperatingSystem.IsMacOS())
+                {
+                    var escaped = message.Replace("\\" , "\\\\").Replace("\"" , "\\\"").Replace("\n" , "\\n");
+                    Process.Start("osascript" , $"-e \"display dialog \\\"{escaped}\\\" with title \\\"{title}\\\" buttons {{\\\"OK\\\"}} default button 1 with icon stop\"");
+                }
+                else
+                {
+                    Console.Error.WriteLine($"{title}: {message}");
+                }
             }
-            else if (OperatingSystem.IsLinux())
-            {
-                Process.Start("zenity" , $"--error --width=480 --title=\"{title}\" --text=\"{message.Replace("\"" , "\\\"")}\"");
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                var escaped = message.Replace("\\" , "\\\\").Replace("\"" , "\\\"").Replace("\n" , "\\n");
-                Process.Start("osascript" , $"-e \"display dialog \\\"{escaped}\\\" with title \\\"{title}\\\" buttons {{\\\"OK\\\"}} default button 1 with icon stop\"");
-            }
-            else
+            catch
             {
                 Console.Error.WriteLine($"{title}: {message}");
             }
         }
-        catch
-        {
-            Console.Error.WriteLine($"{title}: {message}");
-        }
-    }
     }
 }

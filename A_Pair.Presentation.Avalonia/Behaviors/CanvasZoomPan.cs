@@ -1,4 +1,5 @@
 using System;
+using A_Pair.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -52,6 +53,12 @@ public static class CanvasZoomPan
     private static void OnPointerPressed (object? sender , PointerPressedEventArgs e)
     {
         if (sender is not ScrollViewer sv) return;
+        // 若按下的是座位元素，设 NaN 哨兵后跳过，让拖放逻辑接管
+        if (e.Source is StyledElement src && src.DataContext is SeatDisplayItem)
+        {
+            sv.SetValue(PanOriginProperty , new Point(double.NaN , double.NaN));
+            return;
+        }
         if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
         EnsureTransform(sv);
         sv.SetValue(PanOriginProperty , e.GetPosition(sv));
@@ -65,14 +72,16 @@ public static class CanvasZoomPan
         if (!e.GetCurrentPoint(sv).Properties.IsLeftButtonPressed) return;
         var pos = e.GetPosition(sv);
         var origin = sv.GetValue(PanOriginProperty);
+        if (double.IsNaN(origin.X)) return; // 已由座位拖放接管，跳过平移
         if (!sv.GetValue(IsPanningProperty))
         {
             if (Math.Sqrt(((pos.X - origin.X) * (pos.X - origin.X)) + ((pos.Y - origin.Y) * (pos.Y - origin.Y))) < 4) return;
             sv.SetValue(IsPanningProperty , true);
             e.Handled = true;
         }
+        var translate = sv.GetValue(TranslateProperty);
+        if (translate == null) return;
         var origTrans = sv.GetValue(OriginalTranslateProperty);
-        var translate = sv.GetValue(TranslateProperty)!;
         translate.X = origTrans.X + (pos.X - origin.X);
         translate.Y = origTrans.Y + (pos.Y - origin.Y);
     }
