@@ -320,7 +320,7 @@ UI 层通过 `LocalizeHelper.Resolve(dict)` 按 `CurrentUICulture` 解析。
 
 · Assembly 插件：编译为 DLL，实现 IPluginSeatingStrategy。
 · Script 插件：支持 Lua / C# Script，逻辑完全由脚本文件描述。
-· 插件清单：plugin.manifest.json 定义 ID、类型、入口文件、优先级、parameters、codeBlocks 等。
+· 插件清单：双层架构 — `plugins-manifest.json`（包级，定义加载指令）+ 策略 `manifest.json`（定义 ID、parameters、codeBlocks 等，格式与内置策略一致）。
 
 ---
 

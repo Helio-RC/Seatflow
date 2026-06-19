@@ -69,7 +69,7 @@
 - **策略管道模型**：从 `后可覆盖（override）` 改为 `按优先级填空（Fill-in-Order）`，Priority 降序（高→先执行）
 - **Priority 语义反转**：数值越大越先执行（旧版：越小越先），FixedSeat=100 → RandomFill=1 → Defrag=0
 - **插件系统重构**：从单策略插件改为多策略插件包架构（`plugins-manifest.json` + 策略 `manifest.json` 双层清单），支持一个包承载多个策略和热插拔。新增 `.ap-plugin` 打包格式
-- `PluginManifest` 标记为 `[Obsolete]`，新代码应使用 `PluginPackageManifest` + 策略 `manifest.json`
+- `PluginManifest` 类型已删除，由 `PluginPackageManifest`（包级）+ 策略 `manifest.json`（策略级）替代
 - 插件清单格式从 `plugin.manifest.json` 改为 `plugins-manifest.json`
 - 插件包扩展名从 `.apairplugin` 改为 `.ap-plugin`
 - `IPluginSeatingStrategy` 新增默认接口实现（`Category` / `Version`）

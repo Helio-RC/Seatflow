@@ -40,9 +40,9 @@ Plugins/{packageId}/
 
 ### 3. 向后兼容
 
-- 旧 `plugin.manifest.json` 格式自动通过 `PluginManifest.ToPackageEntry()` 转换为虚拟包（1 包 = 1 策略）
-- `PluginManager.LoadPluginsAsync()` 双路径扫描：检测 `plugins-manifest.json`（新）或 `plugin.manifest.json`（旧）
-- 旧格式启用状态仍操作 `plugin.manifest.json` 文件，新格式使用 `data/enables.json`
+- 旧 `plugin.manifest.json` 单策略格式在 v1.1.0 重构中**已彻底移除**，不再被识别
+- 插件发现仅识别 `plugins-manifest.json`（包级）+ 策略 `manifest.json`（策略级）双层格式
+- 旧格式的 `PluginManifest` 类型已删除（非弃用），新代码使用 `PluginPackageManifest`
 - `.apairplugin` 和 `.ap-plugin` 两种扩展名均受支持
 
 ### 4. 配置存储路由
@@ -87,13 +87,13 @@ Plugins/{packageId}/
 ### 负面
 
 - 文件数量增加（每个策略需要一个独立 manifest.json）
-- 旧代码中存在 `[Obsolete]` 的 `PluginManifest` 类型需要逐步迁移
+- `PluginManager` 中不存在 `PluginManifest` 类型（已删除）
 
 ### 迁移路径
 
-1. 旧格式插件无需立即迁移 — 自动转换为虚拟包继续工作
-2. 新插件应使用 `plugins-manifest.json` + 策略 `manifest.json` 双层格式
-3. `PluginManifest` 已标记 `[Obsolete]`，鼓励新代码使用 `PluginPackageManifest`
+1. 旧格式插件**无法直接加载**——需手动迁移为双层清单格式（参见本文 §1）
+2. 新建插件使用 `plugins-manifest.json`（包级）+ 策略 `manifest.json`（策略级）双层格式
+3. `PluginPackageManifest` 替代已删除的 `PluginManifest`
 
 ## 参考
 
