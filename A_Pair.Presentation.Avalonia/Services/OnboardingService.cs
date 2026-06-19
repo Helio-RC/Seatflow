@@ -343,52 +343,60 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 	private static void SeedVenueConfigurationData(VenueConfigurationViewModel? vm)
 	{
 	    if (vm is null) return;
+	    // 使用 Background 优先级延迟注入：ViewModel 构造函数中的 LoadVenueList()
+	    //（fire-and-forget）会异步加载并覆盖 VenueItems。先同步执行 NewVenueCommand
+	    // 创建会场（该命令同步添加至现有集合），再将命名和状态消息延迟到异步 init 之后。
 	    vm.NewVenueCommand.Execute(null);
-	    vm.LayoutName = "演示教室";
-	    vm.StatusMessage = "已创建演示会场（演示数据）";
+	    Dispatcher.UIThread.Post(() =>
+	    {
+	        vm.LayoutName = "演示教室";
+	        vm.StatusMessage = "已创建演示会场（演示数据）";
+	    }, DispatcherPriority.Background);
 	}
 
 	private static void SeedSeatingArrangementData(SeatingArrangementViewModel? vm)
 	{
 	    if (vm is null) return;
-	    vm.VenueItems = new ObservableCollection<VenueItem>
+	    // 使用 Background 优先级延迟注入：ViewModel 构造函数中的 LoadInitialDataAsync()
+	    //（fire-and-forget）会异步加载并覆盖 VenueItems/DatasetItems。
+	    // Background 优先级确保在异步 init 完成后才注入演示数据。
+	    Dispatcher.UIThread.Post(() =>
 	    {
-	        new("demo-v", "演示教室")
-	    };
-	    vm.DatasetItems = new ObservableCollection<StudentDatasetInfo>
-	    {
-	        new() { Id = "demo-ds", Name = "演示班级", StudentCount = 6 }
-	    };
-	    vm.SelectedVenue = vm.VenueItems[0];
-	    vm.SelectedDataset = vm.DatasetItems[0];
+	        vm.VenueItems.Clear();
+	        vm.VenueItems.Add(new("demo-v", "演示教室"));
+	        vm.DatasetItems.Clear();
+	        vm.DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
+	        vm.SelectedVenue = vm.VenueItems.FirstOrDefault();
+	        vm.SelectedDataset = vm.DatasetItems.FirstOrDefault();
 
-	    var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
-	    var seats = new ObservableCollection<SeatDisplayItem>();
-	    for (int r = 0; r < 4; r++)
-	        for (int c = 0; c < 3; c++)
-	        {
-	            var idx = r * 3 + c;
-	            seats.Add(new SeatDisplayItem
+	        var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
+	        var seats = new ObservableCollection<SeatDisplayItem>();
+	        for (int r = 0; r < 4; r++)
+	            for (int c = 0; c < 3; c++)
 	            {
-	                SeatId = $"R{r}C{c}",
-	                SeatLabel = $"R{r}C{c}",
-	                X = 200 + c * 80,
-	                Y = 200 + r * 60,
-	                Width = 50,
-	                Height = 30,
-	                IsOccupied = idx < 6,
-	                StudentName = idx < 6 ? names[idx] : null,
-	                OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
-	            });
-	        }
+	                var idx = r * 3 + c;
+	                seats.Add(new SeatDisplayItem
+	                {
+	                    SeatId = $"R{r}C{c}",
+	                    SeatLabel = $"R{r}C{c}",
+	                    X = 200 + c * 80,
+	                    Y = 200 + r * 60,
+	                    Width = 50,
+	                    Height = 30,
+	                    IsOccupied = idx < 6,
+	                    StudentName = idx < 6 ? names[idx] : null,
+	                    OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
+	                });
+	            }
 
-	    vm.SeatItems = seats;
-	    vm.OverlayItems = new ObservableCollection<SeatDisplayItem>();
-	    vm.TotalSeats = 12;
-	    vm.AssignedSeats = 6;
-	    vm.HasGenerated = true;
-	    vm.IsGenerating = false;
-	    vm.StatusMessage = "已分配 6/12 个座位（演示数据）";
+	        vm.SeatItems = seats;
+	        vm.OverlayItems = new ObservableCollection<SeatDisplayItem>();
+	        vm.TotalSeats = 12;
+	        vm.AssignedSeats = 6;
+	        vm.HasGenerated = true;
+	        vm.IsGenerating = false;
+	        vm.StatusMessage = "已分配 6/12 个座位（演示数据）";
+	    }, DispatcherPriority.Background);
 	}
 
 	private static void SeedSnapshotHistoryData(SnapshotHistoryViewModel? vm)
