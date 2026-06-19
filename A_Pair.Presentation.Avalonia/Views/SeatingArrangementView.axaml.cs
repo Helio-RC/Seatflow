@@ -56,7 +56,13 @@ public partial class SeatingArrangementView : UserControl
         var accentColor = (Color)placementTarget.FindResource("SystemAccentColor")!;
         var cardBg = (IBrush)placementTarget.FindResource("SystemControlBackgroundChromeWhiteBrush")!;
         var cardFg = (IBrush)placementTarget.FindResource("SystemControlForegroundBaseHighBrush")!;
-        var cardShadow = (BoxShadows?)placementTarget.FindResource("CardShadowSmall") ?? default;
+        // CardShadowSmall 在 ThemeDictionaries 内，FindResource 不可达；手动构建以适配主题
+        var isDark = global::Avalonia.Application.Current!.ActualThemeVariant == global::Avalonia.Styling.ThemeVariant.Dark;
+        var cardShadow = new BoxShadows(new BoxShadow
+        {
+            OffsetX = 0 , OffsetY = 2 , Blur = 8 ,
+            Color = Color.FromArgb(isDark ? (byte)0x40 : (byte)0x18 , 0 , 0 , 0)
+        });
 
         _dragPopup = new Popup
         {
