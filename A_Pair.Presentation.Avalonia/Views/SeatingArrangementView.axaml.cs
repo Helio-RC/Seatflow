@@ -53,27 +53,31 @@ public partial class SeatingArrangementView : UserControl
 
     private void ShowDragCard (string name , Control placementTarget)
     {
+        var accentColor = (Color)placementTarget.FindResource("SystemAccentColor")!;
+        var cardBg = (IBrush)placementTarget.FindResource("SystemControlBackgroundChromeWhiteBrush")!;
+        var cardFg = (IBrush)placementTarget.FindResource("SystemControlForegroundBaseHighBrush")!;
+        var cardShadow = (BoxShadows?)placementTarget.FindResource("CardShadowSmall") ?? default;
+
         _dragPopup = new Popup
         {
             PlacementTarget = placementTarget,
             Placement = PlacementMode.Pointer,
             IsLightDismissEnabled = false,
+            HorizontalOffset = 12,
+            VerticalOffset = 12,
             Child = new Border
             {
-                Background = new SolidColorBrush(Color.FromArgb(0xE0 , 0x00 , 0x78 , 0xD4)),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12 , 6),
-                BoxShadow = new BoxShadows(new BoxShadow
-                {
-                    OffsetX = 2 , OffsetY = 2 , Blur = 8 ,
-                    Color = Color.FromArgb(0x60 , 0 , 0 , 0)
-                }),
+                Background = cardBg,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0x40 , accentColor.R , accentColor.G , accentColor.B)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(10 , 5),
+                BoxShadow = cardShadow,
                 Child = new TextBlock
                 {
                     Text = name ,
-                    Foreground = Brushes.White ,
-                    FontSize = 14 ,
-                    FontWeight = FontWeight.SemiBold
+                    Foreground = cardFg ,
+                    FontSize = 13
                 }
             }
         };
