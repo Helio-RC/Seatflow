@@ -411,6 +411,9 @@ namespace A_Pair.Application.Services
                 var assignments = workspace.BuildSeatingPlan().Assignments;
                 var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
                 var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
+                // 教师视角：原地反转行顺序，讲台移至底部、后排移至顶部
+                if (options.Perspective == LayoutPerspective.TeacherView)
+                    model.Rows.Reverse();
                 await exporter.ExportLayoutAsync(model , path , options , cancellationToken);
             }
             else

@@ -83,6 +83,40 @@ public class ApplicationFacadeTests
     }
 
     [Fact]
+    public async Task ExportSeatingPlanAsync_TeacherView_ShouldReverseRows ()
+    {
+        var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
+        var students = new List<Student>();
+        var seats = new List<Seat>
+        {
+            new GridSeat { Row = 1 , Column = 1 , Id = "s1" } ,
+            new GridSeat { Row = 1 , Column = 2 , Id = "s2" } ,
+            new GridSeat { Row = 2 , Column = 1 , Id = "s3" }
+        };
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "测试布局" ,
+            LayoutType = LayoutType.Grid ,
+            Metadata = new GridLayoutMetadata { Rows = 2 , Columns = 2 , HasPodium = true } ,
+            Seats = seats
+        };
+        var ws = new SeatingWorkspace(students , seats);
+        var options = new ExportOptions { Format = ExportFormat.Excel , Perspective = LayoutPerspective.TeacherView };
+
+        exporter.Format.Returns(ExportFormat.Excel);
+
+        await facade.ExportSeatingPlanAsync(ws , layout , "test.xlsx" , options , CancellationToken.None);
+
+        await exporter.Received(1).ExportLayoutAsync(
+            Arg.Is<LayoutSeatingExportModel>(m =>
+                m.Rows[m.Rows.Count - 1].Cells.Any(c => c.IsPodium)) , // 教师视角：讲台在最后
+            "test.xlsx" ,
+            Arg.Is<ExportOptions>(o => o.Perspective == LayoutPerspective.TeacherView) ,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ExecuteCommandAsync_ShouldDelegateToHistory ()
     {
         var facade = CreateFacade(out _ , out _ , out _ ,

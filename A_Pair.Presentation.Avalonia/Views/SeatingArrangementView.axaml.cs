@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 
@@ -46,6 +47,46 @@ public partial class SeatingArrangementView : UserControl
         return null;
     }
 
+    // ── 拖拽弹出卡片 ──
+
+    private Popup? _dragPopup;
+
+    private void ShowDragCard (string name , Control placementTarget)
+    {
+        _dragPopup = new Popup
+        {
+            PlacementTarget = placementTarget,
+            Placement = PlacementMode.Pointer,
+            IsLightDismissEnabled = false,
+            Child = new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(0xE0 , 0x00 , 0x78 , 0xD4)),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(12 , 6),
+                BoxShadow = new BoxShadows(new BoxShadow
+                {
+                    OffsetX = 2 , OffsetY = 2 , Blur = 8 ,
+                    Color = Color.FromArgb(0x60 , 0 , 0 , 0)
+                }),
+                Child = new TextBlock
+                {
+                    Text = name ,
+                    Foreground = Brushes.White ,
+                    FontSize = 14 ,
+                    FontWeight = FontWeight.SemiBold
+                }
+            }
+        };
+        _dragPopup.IsOpen = true;
+    }
+
+    private void HideDragCard ()
+    {
+        if (_dragPopup == null) return;
+        _dragPopup.IsOpen = false;
+        _dragPopup = null;
+    }
+
     // ── 座位点击/拖拽 ──
 
     private async void SeatBorder_PointerPressed (object? sender , PointerPressedEventArgs e)
@@ -65,7 +106,11 @@ public partial class SeatingArrangementView : UserControl
             seatItem.Set(DragFormats.SeatDrag , item.SeatId);
             data.Add(seatItem);
 
+            ShowDragCard(item.DisplayText ?? "?" , border);
+
             var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
+
+            HideDragCard();
 
             // 如果完成了有效的移动操作，不触发点击
             if (result != DragDropEffects.None)
@@ -90,7 +135,11 @@ public partial class SeatingArrangementView : UserControl
         studentItem2.Set(DragFormats.StudentDrag , student.Id);
         data.Add(studentItem2);
 
+        ShowDragCard(student.Name ?? "?" , border);
+
         var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
+
+        HideDragCard();
 
         // 如果没有发生拖放，手动设置选中项（因为 DoDragDropAsync 阻止了 ListBox 的默认选择行为）
         if (result == DragDropEffects.None

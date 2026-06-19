@@ -1069,7 +1069,25 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private async Task ExportImageAsync () => await ExportAsync(ExportFormat.Png ,
         [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault);
 
-    private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName)
+    // ── 教师视角导出 ──
+
+    [RelayCommand]
+    private async Task ExportTeacherExcelAsync () => await ExportAsync(ExportFormat.Excel ,
+        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , Resources.Seating_ExcelDefault , LayoutPerspective.TeacherView);
+
+    [RelayCommand]
+    private async Task ExportTeacherCsvAsync () => await ExportAsync(ExportFormat.Csv ,
+        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , Resources.Seating_CsvDefault , LayoutPerspective.TeacherView);
+
+    [RelayCommand]
+    private async Task ExportTeacherPdfAsync () => await ExportAsync(ExportFormat.Pdf ,
+        [new FilePickerFileType(Resources.Seating_PDFFile) { Patterns = ["*.pdf"] }] , Resources.Seating_PDFDefault , LayoutPerspective.TeacherView);
+
+    [RelayCommand]
+    private async Task ExportTeacherImageAsync () => await ExportAsync(ExportFormat.Png ,
+        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault , LayoutPerspective.TeacherView);
+
+    private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName , LayoutPerspective perspective = LayoutPerspective.StudentView)
     {
         if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
         try
@@ -1089,7 +1107,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             var filePath = file.Path.LocalPath;
             var ok = await SafeExecuteAsync(async (ct) =>
             {
-                var options = new ExportOptions { Format = format , IncludeMetadata = true };
+                var options = new ExportOptions { Format = format , IncludeMetadata = true , Perspective = perspective };
                 await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
                 StatusMessage = string.Format(Resources.Seating_ExportedFmt , file.Name);
             } , ExportTimeout , Resources.Seating_ExportTitle);
