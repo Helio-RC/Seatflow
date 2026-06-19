@@ -76,6 +76,13 @@
           "placement": "Left"
         },
         {
+          "titleKey": "Guide_Strategy_Conflict_Title",
+          "descKey": "Guide_Strategy_Conflict_Desc",
+          "placement": "Center",
+          "showMask": false,
+          "showArrow": false
+        },
+        {
           "titleKey": "Guide_Strategy_SaveAll_Title",
           "descKey": "Guide_Strategy_SaveAll_Desc",
           "target": "SaveAllButton"

@@ -2081,6 +2081,12 @@ Diagnostics saved to: {1}</value>
   <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
     <value>After selecting a strategy, toggle this switch to enable or disable it. Adjust parameters in the right panel.</value>
   </data>
+  <data name="Guide_Strategy_Conflict_Title" xml:space="preserve">
+    <value>Enable as Needed — Conflicts May Occur</value>
+  </data>
+  <data name="Guide_Strategy_Conflict_Desc" xml:space="preserve">
+    <value>Multiple strategies may interfere or conflict when enabled together. Choose combinations based on your needs. Higher priority strategies execute first. The default configuration suits most classrooms.</value>
+  </data>
   <data name="Guide_Strategy_SaveAll_Title" xml:space="preserve">
     <value>Click here to save all strategies</value>
   </data>

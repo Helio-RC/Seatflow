@@ -2088,6 +2088,12 @@
   <data name="Guide_Strategy_Adjust_Desc" xml:space="preserve">
     <value>选中策略后，点击此开关可启用或禁用。右侧面板可调整该策略的具体参数。</value>
   </data>
+  <data name="Guide_Strategy_Conflict_Title" xml:space="preserve">
+    <value>按需启用，注意策略冲突</value>
+  </data>
+  <data name="Guide_Strategy_Conflict_Desc" xml:space="preserve">
+    <value>多个策略同时启用可能相互影响或产生冲突。请根据实际需求选择策略组合，优先级高的策略先执行。默认配置适用于大多数场景。</value>
+  </data>
   <data name="Guide_Strategy_SaveAll_Title" xml:space="preserve">
     <value>点击此按钮保存所有策略配置</value>
   </data>

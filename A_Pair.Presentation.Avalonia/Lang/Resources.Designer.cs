@@ -676,6 +676,8 @@ public class Resources
     public static string Guide_Strategy_List_Desc => ResourceManager.GetString("Guide_Strategy_List_Desc", Culture)!;
     public static string Guide_Strategy_Adjust_Title => ResourceManager.GetString("Guide_Strategy_Adjust_Title", Culture)!;
     public static string Guide_Strategy_Adjust_Desc => ResourceManager.GetString("Guide_Strategy_Adjust_Desc", Culture)!;
+    public static string Guide_Strategy_Conflict_Title => ResourceManager.GetString("Guide_Strategy_Conflict_Title", Culture)!;
+    public static string Guide_Strategy_Conflict_Desc => ResourceManager.GetString("Guide_Strategy_Conflict_Desc", Culture)!;
     public static string Guide_Seating_Select_Title => ResourceManager.GetString("Guide_Seating_Select_Title", Culture)!;
     public static string Guide_Seating_Select_Desc => ResourceManager.GetString("Guide_Seating_Select_Desc", Culture)!;
     public static string Guide_Seating_Generate_Title => ResourceManager.GetString("Guide_Seating_Generate_Title", Culture)!;
