@@ -237,10 +237,7 @@
                           behaviors:CanvasZoomPan.Enabled="True"
                           behaviors:ZoomOnScroll.Enabled="True"
                           behaviors:ZoomOnScroll.OnZoom="{Binding ZoomAction}">
-              <Panel Name="SeatDragPanel"
-                     PointerMoved="SeatDragPanel_PointerMoved"
-                     PointerReleased="SeatDragPanel_PointerReleased"
-                     Background="Transparent">
+              <Panel>
                 <ItemsControl ItemsSource="{Binding SeatItems}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -267,7 +264,9 @@
                               DragDrop.DragOver="Seat_DragOver"
                               DragDrop.Drop="Seat_Drop"
                               DragDrop.DragLeave="Seat_DragLeave"
-                              PointerPressed="SeatBorder_PointerPressed">
+                              PointerPressed="SeatBorder_PointerPressed"
+                              PointerMoved="SeatBorder_PointerMoved"
+                              PointerReleased="SeatBorder_PointerReleased">
                         <TextBlock Text="{ReflectionBinding DisplayText}"
                                    FontSize="11" FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
@@ -457,13 +456,13 @@
                          IsVisible="{Binding IsUnassignedExpanded}"
                          BorderThickness="0"
                          Background="{DynamicResource SidebarBackgroundBrush}"
-                         AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}"
-                         PointerMoved="UnassignedList_PointerMoved"
-                         PointerReleased="UnassignedList_PointerReleased">
+                         AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="core:Student">
                       <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4"
-                                 PointerPressed="UnassignedStudent_PointerPressed" />
+                                 PointerPressed="UnassignedStudent_PointerPressed"
+                                 PointerMoved="UnassignedStudent_PointerMoved"
+                                 PointerReleased="UnassignedStudent_PointerReleased" />
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

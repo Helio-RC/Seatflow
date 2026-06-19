@@ -76,7 +76,7 @@ public partial class SeatingArrangementView : UserControl
         e.Handled = true;
     }
 
-    private async void SeatDragPanel_PointerMoved (object? sender , PointerEventArgs e)
+    private async void SeatBorder_PointerMoved (object? sender , PointerEventArgs e)
     {
         if (_seatDragStart == null || _seatDragItem == null || _seatDragPressArgs == null) return;
 
@@ -111,7 +111,7 @@ public partial class SeatingArrangementView : UserControl
         _seatDragItem = null;
     }
 
-    private void SeatDragPanel_PointerReleased (object? sender , PointerReleasedEventArgs e)
+    private void SeatBorder_PointerReleased (object? sender , PointerReleasedEventArgs e)
     {
         if (_seatWasDrag || _seatDragItem == null) return;
 
@@ -136,7 +136,7 @@ public partial class SeatingArrangementView : UserControl
         _listDragStudent = student;
     }
 
-    private async void UnassignedList_PointerMoved (object? sender , PointerEventArgs e)
+    private async void UnassignedStudent_PointerMoved (object? sender , PointerEventArgs e)
     {
         if (_listDragStart == null || _listDragStudent == null || _listDragPressArgs == null) return;
 
@@ -163,7 +163,7 @@ public partial class SeatingArrangementView : UserControl
         await DragDrop.DoDragDropAsync(pressArgs , data , DragDropEffects.Move);
     }
 
-    private void UnassignedList_PointerReleased (object? sender , PointerReleasedEventArgs e)
+    private void UnassignedStudent_PointerReleased (object? sender , PointerReleasedEventArgs e)
     {
         _listDragStart = null;
         _listDragPressArgs = null;
