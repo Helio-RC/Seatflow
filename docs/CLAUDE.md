@@ -30,7 +30,7 @@ dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4. The solution file is `A_Pair.slnx` (the new XML-based format).
 
 **Layers (bottom-up)**:
-- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + six built-in implementations, capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
+- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + seven built-in implementations (4 independent, 3 dependent), capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
 - **Contracts** — Cross-layer interface for plugins (`IPluginSeatingStrategy`)
 - **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider`, `JsonStudentProvider`, and the composite `CompositeStudentProvider` registered as the primary `IStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization
 - **Application** — `IApplicationFacade` (UI's single entry point), `StrategyExecutionPipeline`, command pattern (`IUndoableCommand` / `CommandHistory`), plugin manager (`PluginManager`, `PluginLoadContext`), script adapters (Lua/C#), DI registration
@@ -55,14 +55,14 @@ A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Aval
 | 3rd | `RandomFillStrategy` | 1 | Independent + Host | Fills remaining seats; hosts dependent strategies in its assignment loop. Constrained students (DeskMate groups) are prioritized first to reduce rerolls. Eviction respects prior-strategy assignments |
 | 4th | `DefragStrategy` | 0 | Independent | "扫地僧" — after all strategies, moves unconstrained students from back rows forward to fill front-row gaps. Cross-column allowed. Skips FixedSeat and DeskMate group students. Logs effectiveness warning (may invalidate prior strategy results) |
 
-Conflict resolution = Priority number (first-come-first-served). Dependent strategies have their own internal priority ordering within RandomFill's context (DeskMate 50 → GenderRestrictedSeat 45 → NoRepeatDeskMate 40). Defrag (0) runs last and may partially invalidate prior strategy results — see its effectiveness warning. Handled assignments still run remaining dependents for inspection/warnings. See `docs/adr/ADR-006.md`.
+Conflict resolution = Priority number (first-come-first-served). Dependent strategies have their own internal priority ordering within RandomFill's context (DeskMate 50 → GenderRestrictedSeat 45 → NoRepeatDeskMate 40). Defrag (0) runs last and may partially invalidate prior strategy results — see its effectiveness warning. Handled assignments still run remaining dependents for inspection/warnings. See `docs/adr/ADR-006-strategy-pipeline-fill-in-order.md`.
 
 **Strategy messaging**: Strategies can report warnings/errors during execution via `workspace.LogWarning(strategyId, displayName, messageKey, args)` and `workspace.LogError(strategyId, displayName, messageKey, args)`. `messageKey` corresponds to a key in the manifest's `messages` dictionary (inline i18n: `{ "zh-CN": "...", "en-US": "..." }`). Messages are collected in `SeatingWorkspace.Messages` (with `StrategyId`, `StrategyDisplayName`, `MessageKey`, and `Args`) and surfaced to the UI sidebar after pipeline execution. Plugin strategies access the same methods through `IPluginWorkspace`.
 
 **Declarative strategy configuration**: All strategy-specific configuration (beyond Priority/IsEnabled) is driven by the manifest JSON files (`A_Pair.Core/Strategies/Manifests/*.json`). Three top-level fields:
 
 - **`visible`** — (optional, default `true`) Controls whether the strategy participates in the pipeline. Set to `false` to exclude it from both the UI (configuration page, seating sidebar) and execution — the pipeline skips invisible strategies.
-- **`isIndependent`** — (optional, default `true`) `true` = independent strategy (executed by external pipeline); `false` = dependent strategy (executed inside RandomFill's assignment loop). DeskMate and NoRepeatDeskMate are `false`.
+- **`isIndependent`** — (optional, default `true`) `true` = independent strategy (executed by external pipeline); `false` = dependent strategy (executed inside RandomFill's assignment loop). DeskMate, GenderRestrictedSeat, and NoRepeatDeskMate are `false`.
 - **`manifestVersion`** — (optional, default `"1.0"`) Manifest format version for runtime compatibility checks. Embedded resources don't go through FileMigrationService, so the provider warns if version exceeds max known.
 - **`capabilities[]`** — (optional) Strategy capability declarations. Each entry is a capability constant defined in `A_Pair.Core.Strategies.Capability` (e.g. `"MarkFixedSeat"`). Strategies must declare a capability before calling its corresponding interface method at runtime. Undeclared capability calls are rejected with a logged warning. Currently supported: `MarkFixedSeat` → `IFixedSeatCapability.TryMarkFixed()`. Extensible — add const + interface to `Capability.cs`.
 - **`parameters[]`** — strategy-level global params. Each parameter declares a `fieldType` (`NumberInput`, `TextInput`, `ToggleSwitch`, `Dropdown`), a `label` (Dictionary<string,string> for i18n), `defaultValue`, and optional `minValue`/`maxValue`. UI renders these as standard input controls.
@@ -168,7 +168,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 ### i18n / Localization (`Lang/`)
 
 Uses standard .NET `.resx` resource files in `A_Pair.Presentation.Avalonia/Lang/`:
-- `Resources.resx` — neutral language (zh-CN), ~570 keys
+- `Resources.resx` — neutral language (zh-CN), ~700 keys
 - `Resources.en-US.resx` — English satellite
 - `Resources.Designer.cs` — hand-maintained typed accessor class (Visual Studio's `PublicResXFileCodeGenerator` doesn't work with `dotnet build`)
 
@@ -223,11 +223,12 @@ All persisted JSON files carry a `version` field. Current versions are defined i
 | File type | Version | Location | Wrapper class |
 |---|---|---|---|
 | Venue | `1.1` | `{data}/Venues/*.venue.json` | `VenueFile` |
-| Roster | `1.0` | `{data}/Rosters/*.roster.json` | `RosterFile` |
+| Roster | `1.1` | `{data}/Rosters/*.roster.json` | `RosterFile` |
 | Snapshot | `1.0` | `{data}/Assignments/{venueId}/{date}/*.json` | `SeatingSnapshot` |
 | VenueInfo | `1.0` | `{data}/Assignments/{venueId}/_venue.json` | `VenueSnapshotInfo` |
 | AppSettings | `1.0` | `{data}/AppSettings.json` | `AppSettings` |
-| StrategyConfig | `1.0` | `{data}/StrategyConfig/*.config.json` | `StrategyConfig` |
+| StrategyConfig | `1.0` | `{data}/StrategyConfig/{strategyId}.config.json` | `StrategyConfig` |
+| StrategyDatasetConfig | `1.0` | `{data}/StrategyConfig/{strategyId}/*.config.json` | `StrategyDatasetConfig` |
 
 ### Migration pipeline
 
@@ -315,7 +316,7 @@ Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hi
 
 ### Onboarding Guide System
 
-Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING_GUIDE.md` for full details. See `docs/adr/ADR-008.md` for the demo data injection decision.
+Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING_GUIDE.md` for full details. See `docs/adr/ADR-008-onboarding-demo-data-injection.md` for the demo data injection decision.
 
 **Two types of guides:**
 - **启动引导 (`startupPhases`)** — 19-step full workflow at first launch: Home→MemberManagement→VenueConfiguration→StrategyConfiguration (含策略冲突提示居中步骤)→SeatingArrangement→SnapshotHistory→Closing
@@ -334,7 +335,6 @@ Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING
 **Window state sync (v3.1):** `MainWindow` subscribes to `Activated`/`Deactivated` events → forwarded to `OnboardingService.HandleWindowActivated()`/`HandleWindowDeactivated()`. On deactivate (minimize/Alt+Tab): `_isWindowObscured=true`, `Guide.Close()` silently closes Popups (no confirm dialog, no completion). On activate (restore): re-opens Guide from preserved `CurrentIndex`. Prevents the 3 Popups (`ShouldUseOverlayLayer=False`, native OS windows) from lingering as orphan windows.
 
 **DI:** `services.AddSingleton<IOnboardingService, OnboardingService>()`, with `IOnboardingStarter` bridged to the same instance. `MainShellViewModel` injects `IOnboardingService` to trigger page guides after navigation.
-
 
 ### MemberManagement dataset flow
 
@@ -388,8 +388,11 @@ In Avalonia's `DockPanel`, `LastChildFill="True"` (default) means the LAST child
 ## Documents
 - `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
 - `ARCHITECTURE.md` — Project goals & architecture design
-- `Phases.md` — Implementation phases & detailed planning
+- `docs/Phases.md` — Implementation phases & detailed planning
 - `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
+- `docs/ONBOARDING_GUIDE.md` — Onboarding guide system design (JSON-driven, startup + page guides)
+- `docs/StrategyDataResilience.md` — Strategy data persistence & fault tolerance analysis
+- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-008)
 - `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
 - `A_Pair.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, CanvasZoomPan interaction
 - `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use

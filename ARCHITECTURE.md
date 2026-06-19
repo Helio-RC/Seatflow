@@ -264,6 +264,7 @@ public class StrategyExecutionPipeline
 | GenderRestrictedSeatStrategy | 45 (context) | 依赖 | 在 RandomFill 中检查座位性别限制；不匹配时优先重定向到匹配性别的受限空座（减少无效重掷），无可用时请求重掷，耗尽则强制分配 |
 | NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 中检查历史同桌重复，从快照提取过去的同桌对；重复时请求重掷，耗尽则强制分配 |
 | RandomFillStrategy | 1 | 独立+Host | 兜底填充剩余空座，约束学生（DeskMate 组）优先分配；托管依赖策略执行 |
+| DefragStrategy | 0 | 独立 | 后置碎片整理——将后排无约束学生前移填空隙（跨列允许），跳过固定座位和 DeskMate 组学生，记录有效性警告 |
 
 4.5 声明式策略配置
 
@@ -464,12 +465,13 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 阶段 内容 产出
 Phase 1 领域建模、基础架构搭建 核心实体、DI 配置、网格布局
 Phase 2 数据加载与导出 Xlsx/Csv 读取、Excel 导出
-Phase 3 内置策略实现 RandomFill、FrontRowRotation、FixedSeat
+Phase 3 内置策略实现 7 策略（FixedSeat, FrontRowRotation, DeskMate, RandomFill, GenderRestrictedSeat, NoRepeatDeskMate, Defrag）
 Phase 4 插件系统 插件管理器、Assembly 加载
-Phase 5 脚本支持 Lua 引擎集成、受限 API
-Phase 6 高级布局 圆形、扇形阶梯教室
-Phase 7 CLI 工具完善 命令行参数、交互向导
+Phase 5 脚本支持 Lua/C# 引擎集成、受限 API
+Phase 6 高级布局 + 拖放 圆形/扇形/自由点、拖拽换座、CanvasZoomPan
+Phase 7 配置管理与版本迁移 文件版本管理、迁移管线、快照回滚、完整性检测
 Phase 8 测试与文档 单元测试覆盖、用户手册
+（CLI 工具 命令行为后续规划中功能）
 
 ---
 

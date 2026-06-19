@@ -20,15 +20,16 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── INDEX.md               ← 本文件
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
+│   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
 │   └── adr/
-│       ├── ADR-001.md        ← 选择 Avalonia UI 的决策
-│       ├── ADR-002.md        ← 选择 CommunityToolkit.Mvvm 的决策
-│       ├── ADR-003.md        ← 分层架构 + 插件化决策
-│       ├── ADR-004.md        ← 策略模式座位安排决策
-│       ├── ADR-005.md        ← 命令模式撤销/重做决策
-│       ├── ADR-006.md        ← 策略管道 Fill-in-Order + 依赖策略三态 + 能力声明系统
-│       └── ADR-007.md        ← 多策略插件包架构
-│       └── ADR-008.md        ← 引导系统纯内存示例数据注入
+│       ├── ADR-001-avalonia-ui-framework.md        ← 选择 Avalonia UI 的决策
+│       ├── ADR-002-mvvm-framework.md               ← 选择 CommunityToolkit.Mvvm 的决策
+│       ├── ADR-003-layered-architecture-with-plugins.md ← 分层架构 + 插件化决策
+│       ├── ADR-004-strategy-pattern-for-seating.md ← 策略模式座位安排决策
+│       ├── ADR-005-command-pattern-for-undo-redo.md ← 命令模式撤销/重做决策
+│       ├── ADR-006-strategy-pipeline-fill-in-order.md ← 策略管道 Fill-in-Order + 依赖策略三态 + 能力声明系统
+│       ├── ADR-007-multi-strategy-plugin-packages.md ← 多策略插件包架构
+│       └── ADR-008-onboarding-demo-data-injection.md ← 引导系统纯内存示例数据注入
 ├── A_Pair.Presentation.Avalonia/docs/
 │   ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
 │   ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录

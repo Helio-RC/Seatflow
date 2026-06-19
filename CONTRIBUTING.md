@@ -170,7 +170,7 @@ fieldType 在 codeBlock 中额外支持 `StudentPicker`、`SeatPosition`。
 }
 ```
 
-内建策略和插件策略共用同一格式——内建策略的 messages 在 `Manifests/{Id}.json` 中，插件策略的在 `plugin.manifest.json` 中。
+内建策略和插件策略共用同一格式——内建策略的 messages 在 `Manifests/{Id}.json` 中，插件策略的在各插件包策略子目录下的 `manifest.json` 中（包级清单为 `plugins-manifest.json`）。
 
 ### i18n 约定
 
