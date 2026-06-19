@@ -34,9 +34,9 @@ public partial class SeatingArrangementView : UserControl
     // ── 拖放辅助方法 ──
 
     private static bool DragHasFormat (IDataTransfer transfer , DataFormat format)
-        => transfer.Items.Any(item => item.Formats.Contains(format));
+        => transfer.Formats.Contains(format);
 
-    private static string? DragGetString (IDataTransfer transfer , DataFormat<string> format)
+    private static string? DragGetString (IDataTransfer transfer , DataFormat format)
     {
         foreach (var item in transfer.Items)
         {
@@ -54,30 +54,27 @@ public partial class SeatingArrangementView : UserControl
             || border.DataContext is not ViewModels.SeatDisplayItem item)
             return;
 
-        var vm = DataContext as ViewModels.SeatingArrangementViewModel;
-
-        // 如果座位已占用且可以拖拽，启动拖放操作
+        // 仅已占用、非固定的座位可拖动
         if (item.IsOccupied && !item.IsFixed && item.StudentId != null)
         {
             var data = new DataTransfer();
-            var studentData = new DataTransferItem();
-            studentData.Set(DragFormats.StudentDrag , item.StudentId);
-            data.Add(studentData);
-            var seatData = new DataTransferItem();
-            seatData.Set(DragFormats.SeatDrag , item.SeatId);
-            data.Add(seatData);
+            var studentItem = new DataTransferItem();
+            studentItem.Set(DragFormats.StudentDrag , item.StudentId);
+            data.Add(studentItem);
+            var seatItem = new DataTransferItem();
+            seatItem.Set(DragFormats.SeatDrag , item.SeatId);
+            data.Add(seatItem);
 
             var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
 
-            // 如果没有发生实际拖放（点击行为），执行原有的点击逻辑
-            if (result == DragDropEffects.None && vm != null)
-                vm.ClickSeatCommand.Execute(item);
+            // 如果完成了有效的移动操作，不触发点击
+            if (result != DragDropEffects.None)
+                return;
         }
-        else
-        {
-            // 空座位或无权限座位：直接执行点击逻辑
-            vm?.ClickSeatCommand.Execute(item);
-        }
+
+        // 没有发生拖放 → 当作点击处理
+        if (DataContext is ViewModels.SeatingArrangementViewModel vm)
+            vm.ClickSeatCommand.Execute(item);
     }
 
     // ── 未分配列表拖动 ──
@@ -89,11 +86,18 @@ public partial class SeatingArrangementView : UserControl
             return;
 
         var data = new DataTransfer();
-        var item = new DataTransferItem();
-        item.Set(DragFormats.StudentDrag , student.Id);
-        data.Add(item);
+        var studentItem2 = new DataTransferItem();
+        studentItem2.Set(DragFormats.StudentDrag , student.Id);
+        data.Add(studentItem2);
 
-        await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
+        var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
+
+        // 如果没有发生拖放，手动设置选中项（因为 DoDragDropAsync 阻止了 ListBox 的默认选择行为）
+        if (result == DragDropEffects.None
+            && DataContext is ViewModels.SeatingArrangementViewModel vm)
+        {
+            vm.SelectedUnassignedStudent = student;
+        }
     }
 
     // ── 座位放置目标 ──

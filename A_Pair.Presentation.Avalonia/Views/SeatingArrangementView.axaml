@@ -261,6 +261,7 @@
                               BorderBrush="{ReflectionBinding BorderBrush}"
                               Cursor="Hand"
                               ToolTip.Tip="{ReflectionBinding TooltipText}"
+                              DragDrop.AllowDrop="True"
                               DragDrop.DragOver="Seat_DragOver"
                               DragDrop.Drop="Seat_Drop"
                               DragDrop.DragLeave="Seat_DragLeave"
