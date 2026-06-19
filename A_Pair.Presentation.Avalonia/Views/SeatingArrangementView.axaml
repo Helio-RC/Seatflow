@@ -264,9 +264,7 @@
                               DragDrop.DragOver="Seat_DragOver"
                               DragDrop.Drop="Seat_Drop"
                               DragDrop.DragLeave="Seat_DragLeave"
-                              PointerPressed="SeatBorder_PointerPressed"
-                              PointerMoved="SeatBorder_PointerMoved"
-                              PointerReleased="SeatBorder_PointerReleased">
+                              PointerPressed="SeatBorder_PointerPressed">
                         <TextBlock Text="{ReflectionBinding DisplayText}"
                                    FontSize="11" FontWeight="SemiBold"
                                    HorizontalAlignment="Center"
@@ -460,9 +458,7 @@
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="core:Student">
                       <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4"
-                                 PointerPressed="UnassignedStudent_PointerPressed"
-                                 PointerMoved="UnassignedStudent_PointerMoved"
-                                 PointerReleased="UnassignedStudent_PointerReleased" />
+                                 PointerPressed="UnassignedStudent_PointerPressed" />
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

@@ -46,138 +46,60 @@ public partial class SeatingArrangementView : UserControl
         return null;
     }
 
-    // ── 座位拖拽检测状态 ──
-
-    private Point? _seatDragStart;
-    private PointerPressedEventArgs? _seatDragPressArgs;
-    private ViewModels.SeatDisplayItem? _seatDragItem;
-    private bool _seatWasDrag;
-    private static readonly double DragThreshold = 5.0;
-
-    // ── 未分配列表拖拽检测状态 ──
-
-    private Point? _listDragStart;
-    private PointerPressedEventArgs? _listDragPressArgs;
-    private Core.Models.Student? _listDragStudent;
-
     // ── 座位点击/拖拽 ──
 
-    private void SeatBorder_PointerPressed (object? sender , PointerPressedEventArgs e)
+    private async void SeatBorder_PointerPressed (object? sender , PointerPressedEventArgs e)
     {
         if (sender is not Border border
             || border.DataContext is not ViewModels.SeatDisplayItem item)
             return;
 
-        var pos = e.GetPosition(this);
-        _seatDragStart = pos;
-        _seatDragPressArgs = e;
-        _seatDragItem = item;
-        _seatWasDrag = false;
-        e.Pointer.Capture(border);
-        e.Handled = true;
-    }
+        var vm = DataContext as ViewModels.SeatingArrangementViewModel;
 
-    private async void SeatBorder_PointerMoved (object? sender , PointerEventArgs e)
-    {
-        if (_seatDragStart == null || _seatDragItem == null || _seatDragPressArgs == null) return;
+        // 如果座位已占用且可以拖拽，启动拖放操作
+        if (item.IsOccupied && !item.IsFixed && item.StudentId != null)
+        {
+            var data = new DataTransfer();
+            var studentData = new DataTransferItem();
+            studentData.Set(DragFormats.StudentDrag , item.StudentId);
+            data.Add(studentData);
+            var seatData = new DataTransferItem();
+            seatData.Set(DragFormats.SeatDrag , item.SeatId);
+            data.Add(seatData);
 
-        var props = e.GetCurrentPoint(this).Properties;
-        if (!props.IsLeftButtonPressed) return;
+            var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
 
-        var pos = e.GetPosition(this);
-        double dx = pos.X - _seatDragStart.Value.X;
-        double dy = pos.Y - _seatDragStart.Value.Y;
-
-        if (Math.Sqrt(dx * dx + dy * dy) <= DragThreshold) return;
-
-        if (!_seatDragItem.IsOccupied || _seatDragItem.IsFixed) return;
-        if (_seatDragItem.StudentId == null) return;
-
-        var item = _seatDragItem;
-        var pressArgs = _seatDragPressArgs;
-        _seatWasDrag = true;
-
-        var data = new DataTransfer();
-        var studentItem = new DataTransferItem();
-        studentItem.Set(DragFormats.StudentDrag , item.StudentId);
-        data.Add(studentItem);
-        var seatItem = new DataTransferItem();
-        seatItem.Set(DragFormats.SeatDrag , item.SeatId);
-        data.Add(seatItem);
-
-        await DragDrop.DoDragDropAsync(pressArgs , data , DragDropEffects.Move);
-
-        _seatDragStart = null;
-        _seatDragPressArgs = null;
-        _seatDragItem = null;
-    }
-
-    private void SeatBorder_PointerReleased (object? sender , PointerReleasedEventArgs e)
-    {
-        if (_seatWasDrag || _seatDragItem == null) return;
-
-        if (DataContext is ViewModels.SeatingArrangementViewModel vm)
-            vm.ClickSeatCommand.Execute(_seatDragItem);
-
-        _seatDragStart = null;
-        _seatDragPressArgs = null;
-        _seatDragItem = null;
+            // 如果没有发生实际拖放（点击行为），执行原有的点击逻辑
+            if (result == DragDropEffects.None && vm != null)
+                vm.ClickSeatCommand.Execute(item);
+        }
+        else
+        {
+            // 空座位或无权限座位：直接执行点击逻辑
+            vm?.ClickSeatCommand.Execute(item);
+        }
     }
 
     // ── 未分配列表拖动 ──
 
-    private void UnassignedStudent_PointerPressed (object? sender , PointerPressedEventArgs e)
+    private async void UnassignedStudent_PointerPressed (object? sender , PointerPressedEventArgs e)
     {
         if (sender is not TextBlock tb
             || tb.DataContext is not Core.Models.Student student)
             return;
-
-        _listDragStart = e.GetPosition(this);
-        _listDragPressArgs = e;
-        _listDragStudent = student;
-        e.Pointer.Capture(tb);
-    }
-
-    private async void UnassignedStudent_PointerMoved (object? sender , PointerEventArgs e)
-    {
-        if (_listDragStart == null || _listDragStudent == null || _listDragPressArgs == null) return;
-
-        var props = e.GetCurrentPoint(this).Properties;
-        if (!props.IsLeftButtonPressed) return;
-
-        var pos = e.GetPosition(this);
-        double dx = pos.X - _listDragStart.Value.X;
-        double dy = pos.Y - _listDragStart.Value.Y;
-
-        if (Math.Sqrt(dx * dx + dy * dy) <= DragThreshold) return;
-
-        var student = _listDragStudent;
-        var pressArgs = _listDragPressArgs;
-        _listDragStart = null;
-        _listDragPressArgs = null;
-        _listDragStudent = null;
 
         var data = new DataTransfer();
         var item = new DataTransferItem();
         item.Set(DragFormats.StudentDrag , student.Id);
         data.Add(item);
 
-        await DragDrop.DoDragDropAsync(pressArgs , data , DragDropEffects.Move);
-    }
-
-    private void UnassignedStudent_PointerReleased (object? sender , PointerReleasedEventArgs e)
-    {
-        _listDragStart = null;
-        _listDragPressArgs = null;
-        _listDragStudent = null;
+        await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
     }
 
     // ── 座位放置目标 ──
 
     private void Seat_DragOver (object? sender , DragEventArgs e)
     {
-        e.Handled = true;
-
         if (sender is not Border border
             || border.DataContext is not ViewModels.SeatDisplayItem seat)
             return;
@@ -200,6 +122,7 @@ public partial class SeatingArrangementView : UserControl
 
         seat.IsDragHover = true;
         e.DragEffects = DragDropEffects.Move;
+        e.Handled = true;
     }
 
     private async void Seat_Drop (object? sender , DragEventArgs e)
