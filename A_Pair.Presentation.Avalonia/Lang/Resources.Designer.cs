@@ -29,6 +29,7 @@ public class Resources
     public static string About_Dependencies => ResourceManager.GetString("About_Dependencies", Culture)!;
     public static string About_Framework => ResourceManager.GetString("About_Framework", Culture)!;
     public static string About_License => ResourceManager.GetString("About_License", Culture)!;
+    public static string About_MITLicenseWarning => ResourceManager.GetString("About_MITLicenseWarning", Culture)!;
     public static string About_OpenLink => ResourceManager.GetString("About_OpenLink", Culture)!;
     public static string About_Runtime => ResourceManager.GetString("About_Runtime", Culture)!;
     public static string About_Title => ResourceManager.GetString("About_Title", Culture)!;

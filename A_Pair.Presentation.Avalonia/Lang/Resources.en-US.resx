@@ -68,6 +68,9 @@
   <data name="About_License" xml:space="preserve">
     <value>License</value>
   </data>
+  <data name="About_MITLicenseWarning" xml:space="preserve">
+    <value>This software is distributed under the MIT License and is completely free and open-source. Any solicitation of payment is unauthorized — please beware of scams.</value>
+  </data>
   <data name="About_OpenLink" xml:space="preserve">
     <value>Open {0} project page</value>
   </data>

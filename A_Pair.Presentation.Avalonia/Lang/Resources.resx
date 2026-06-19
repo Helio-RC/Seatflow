@@ -68,6 +68,9 @@
   <data name="About_License" xml:space="preserve">
     <value>许可证</value>
   </data>
+  <data name="About_MITLicenseWarning" xml:space="preserve">
+    <value>本软件依据 MIT 许可证分发，是完全免费的开源软件。任何形式的收费行为均未经授权，请警惕诈骗。</value>
+  </data>
   <data name="About_OpenLink" xml:space="preserve">
     <value>打开 {0} 项目页面</value>
   </data>
