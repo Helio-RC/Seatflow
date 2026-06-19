@@ -1,6 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -117,7 +175,7 @@
     <value>Disabled</value>
   </data>
   <data name="Common_DontRemind" xml:space="preserve">
-    <value>Don&apos;t remind again</value>
+    <value>Don't remind again</value>
   </data>
   <data name="Common_Enabled" xml:space="preserve">
     <value>Enabled</value>
@@ -168,7 +226,7 @@
     <value>Save As</value>
   </data>
   <data name="Common_TimeoutFormat" xml:space="preserve">
-    <value>&quot;{0}&quot; did not complete within {1} seconds and was cancelled.\nSome data may not have been written. Please try again.</value>
+    <value>"{0}" did not complete within {1} seconds and was cancelled.\nSome data may not have been written. Please try again.</value>
   </data>
   <data name="Common_Unload" xml:space="preserve">
     <value>Unload</value>
@@ -210,7 +268,7 @@
     <value>Confirm delete</value>
   </data>
   <data name="Member_DeleteConfirmMsg" xml:space="preserve">
-    <value>Delete dataset &quot;{0}&quot;?
+    <value>Delete dataset "{0}"?
 This cannot be undone.</value>
   </data>
   <data name="Member_DeleteFailed" xml:space="preserve">
@@ -220,7 +278,7 @@ This cannot be undone.</value>
     <value>Dataset deleted</value>
   </data>
   <data name="Member_DeletedRowFmt" xml:space="preserve">
-    <value>Deleted &quot;{0}&quot;, {1} students remaining</value>
+    <value>Deleted "{0}", {1} students remaining</value>
   </data>
   <data name="Member_DeleteRowTooltip" xml:space="preserve">
     <value>Delete this row</value>
@@ -281,7 +339,7 @@ This cannot be undone.</value>
     <value>Gender</value>
   </data>
   <data name="Member_GenderInvalidFmt" xml:space="preserve">
-    <value>Row {0} &quot;{1}&quot;: invalid gender value</value>
+    <value>Row {0} "{1}": invalid gender value</value>
   </data>
   <data name="Member_GenderTooltip" xml:space="preserve">
     <value>Gender: Male, Female, or Other. Blank for unknown.</value>
@@ -293,7 +351,7 @@ This cannot be undone.</value>
     <value>Height (cm)</value>
   </data>
   <data name="Member_HeightInvalidFmt" xml:space="preserve">
-    <value>Row {0} &quot;{1}&quot;: height must be positive</value>
+    <value>Row {0} "{1}": height must be positive</value>
   </data>
   <data name="Member_HeightPH" xml:space="preserve">
     <value>Height cm</value>
@@ -378,7 +436,7 @@ This cannot be undone.</value>
     <value>Rename failed</value>
   </data>
   <data name="Member_RenamePrompt" xml:space="preserve">
-    <value>Enter new name for &quot;{0}&quot;:</value>
+    <value>Enter new name for "{0}":</value>
   </data>
   <data name="Member_RenameTitle" xml:space="preserve">
     <value>Rename Dataset</value>
@@ -399,7 +457,7 @@ This cannot be undone.</value>
     <value>Confirm save</value>
   </data>
   <data name="Member_SaveConfirmMsg" xml:space="preserve">
-    <value>Overwrite dataset &quot;{0}&quot; ({1} members)?</value>
+    <value>Overwrite dataset "{0}" ({1} members)?</value>
   </data>
   <data name="Member_SaveDataset" xml:space="preserve">
     <value>Save Dataset</value>
@@ -408,13 +466,13 @@ This cannot be undone.</value>
     <value>Save failed</value>
   </data>
   <data name="Member_SavedAsFmt" xml:space="preserve">
-    <value>Saved as &quot;{0}&quot;</value>
+    <value>Saved as "{0}"</value>
   </data>
   <data name="Member_SavedDatasets" xml:space="preserve">
     <value>Saved Datasets</value>
   </data>
   <data name="Member_SavedFmt" xml:space="preserve">
-    <value>&quot;{0}&quot; saved</value>
+    <value>"{0}" saved</value>
   </data>
   <data name="Member_MemberCountFmt" xml:space="preserve">
     <value>{0} members total</value>
@@ -481,7 +539,7 @@ This cannot be undone.</value>
     <value>Confirm delete</value>
   </data>
   <data name="Freeform_DeleteConfirmMsg" xml:space="preserve">
-    <value>Delete layout &quot;{0}&quot;?</value>
+    <value>Delete layout "{0}"?</value>
   </data>
   <data name="Freeform_DeleteFailed" xml:space="preserve">
     <value>Failed to delete layout</value>
@@ -490,7 +548,7 @@ This cannot be undone.</value>
     <value>Delete this point</value>
   </data>
   <data name="Freeform_DeletedFmt" xml:space="preserve">
-    <value>Layout &quot;{0}&quot; deleted</value>
+    <value>Layout "{0}" deleted</value>
   </data>
   <data name="Freeform_Door" xml:space="preserve">
     <value>Door</value>
@@ -547,7 +605,7 @@ This cannot be undone.</value>
     <value>{0} points imported</value>
   </data>
   <data name="Freeform_LayoutLoadedFmt" xml:space="preserve">
-    <value>Layout &quot;{0}&quot; loaded, {1} elements</value>
+    <value>Layout "{0}" loaded, {1} elements</value>
   </data>
   <data name="Freeform_LayoutName" xml:space="preserve">
     <value>Layout name</value>
@@ -616,7 +674,7 @@ This cannot be undone.</value>
     <value>Save CSV template</value>
   </data>
   <data name="Freeform_SavedFmt" xml:space="preserve">
-    <value>Layout &quot;{0}&quot; saved, {1} elements</value>
+    <value>Layout "{0}" saved, {1} elements</value>
   </data>
   <data name="Freeform_SavedLayouts" xml:space="preserve">
     <value>Saved layouts</value>
@@ -751,10 +809,10 @@ This cannot be undone.</value>
     <value>Failed to save config</value>
   </data>
   <data name="Plugin_ConfigSaved" xml:space="preserve">
-    <value>Config &quot;{0}&quot; saved</value>
+    <value>Config "{0}" saved</value>
   </data>
   <data name="Plugin_ConfigSavedFmt" xml:space="preserve">
-    <value>Config &quot;{0}&quot; saved</value>
+    <value>Config "{0}" saved</value>
   </data>
   <data name="Plugin_Disabled" xml:space="preserve">
     <value>Disabled</value>
@@ -794,10 +852,10 @@ Place plugins in the Plugins directory</value>
     <value>Failed to save script</value>
   </data>
   <data name="Plugin_ScriptSaved" xml:space="preserve">
-    <value>Script &quot;{0}&quot; saved</value>
+    <value>Script "{0}" saved</value>
   </data>
   <data name="Plugin_ScriptSavedFmt" xml:space="preserve">
-    <value>Script &quot;{0}&quot; saved</value>
+    <value>Script "{0}" saved</value>
   </data>
   <data name="Plugin_SelectHint" xml:space="preserve">
     <value>Select a plugin from the list</value>
@@ -809,7 +867,7 @@ Place plugins in the Plugins directory</value>
     <value>Failed to toggle plugin</value>
   </data>
   <data name="Plugin_ToggledFmt" xml:space="preserve">
-    <value>Plugin &quot;{0}&quot; {1}</value>
+    <value>Plugin "{0}" {1}</value>
   </data>
   <data name="Plugin_VersionFmt" xml:space="preserve">
     <value>Version v{0}</value>
@@ -923,7 +981,7 @@ Place plugins in the Plugins directory</value>
     <value>Restore</value>
   </data>
   <data name="Seating_RestoredToFmt" xml:space="preserve">
-    <value>Restored to &quot;{0}&quot;</value>
+    <value>Restored to "{0}"</value>
   </data>
   <data name="Seating_RestoredWorkspace" xml:space="preserve">
     <value>Restored workspace</value>
@@ -944,10 +1002,10 @@ Place plugins in the Plugins directory</value>
     <value>Seats: </value>
   </data>
   <data name="Seating_SelectTarget" xml:space="preserve">
-    <value>Selected &quot;{0}&quot;, click target seat to swap</value>
+    <value>Selected "{0}", click target seat to swap</value>
   </data>
   <data name="Seating_SelectTargetFmt" xml:space="preserve">
-    <value>Selected &quot;{0}&quot;, click target seat to swap</value>
+    <value>Selected "{0}", click target seat to swap</value>
   </data>
   <data name="Seating_SnapshotFailed" xml:space="preserve">
     <value>Failed to save snapshot</value>
@@ -1013,10 +1071,10 @@ Place plugins in the Plugins directory</value>
     <value>Venue</value>
   </data>
   <data name="Seating_VenueDatasetDesc" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; × member set &quot;{1}&quot;</value>
+    <value>Venue "{0}" × member set "{1}"</value>
   </data>
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; selected, {1} seats</value>
+    <value>Venue "{0}" selected, {1} seats</value>
   </data>
   <data name="Settings_Appearance" xml:space="preserve">
     <value>Appearance</value>
@@ -1281,16 +1339,16 @@ Current seating will be overwritten.</value>
     <value>Venue deleted, preview unavailable</value>
   </data>
   <data name="Snapshot_VenueEmpty" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; has no snapshots</value>
+    <value>Venue "{0}" has no snapshots</value>
   </data>
   <data name="Snapshot_VenueEmptyFmt" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; has no snapshots</value>
+    <value>Venue "{0}" has no snapshots</value>
   </data>
   <data name="Snapshot_VenueHint" xml:space="preserve">
-    <value>Venue &quot;{0}&quot;: {1} snapshots</value>
+    <value>Venue "{0}": {1} snapshots</value>
   </data>
   <data name="Snapshot_VenueHintFmt" xml:space="preserve">
-    <value>Venue &quot;{0}&quot;: {1} snapshots</value>
+    <value>Venue "{0}": {1} snapshots</value>
   </data>
   <data name="Snapshot_VenuesLoadedFmt" xml:space="preserve">
     <value>{0} venues loaded</value>
@@ -1367,10 +1425,10 @@ Current seating will be overwritten.</value>
     <value>Move up</value>
   </data>
   <data name="Strategy_MovedDownFmt" xml:space="preserve">
-    <value>&quot;{0}&quot; moved down (priority {1})</value>
+    <value>"{0}" moved down (priority {1})</value>
   </data>
   <data name="Strategy_MovedUpFmt" xml:space="preserve">
-    <value>&quot;{0}&quot; moved up (priority {1})</value>
+    <value>"{0}" moved up (priority {1})</value>
   </data>
   <data name="Strategy_NoChanges" xml:space="preserve">
     <value>No changes to save</value>
@@ -1391,7 +1449,7 @@ Current seating will be overwritten.</value>
     <value>Select No — {0} runs first</value>
   </data>
   <data name="Strategy_PriorityConflictMsg" xml:space="preserve">
-    <value>&quot;{0}&quot; and &quot;{1}&quot; have the same priority ({2}).</value>
+    <value>"{0}" and "{1}" have the same priority ({2}).</value>
   </data>
   <data name="Strategy_PriorityConflictMsgFmt" xml:space="preserve">
     <value>Priority conflicts detected and auto-resolved:
@@ -1411,13 +1469,13 @@ Current seating will be overwritten.</value>
     <value>Priority</value>
   </data>
   <data name="Strategy_PriorityTakenFmt" xml:space="preserve">
-    <value>Priority {0} is already used by &quot;{1}&quot;.</value>
+    <value>Priority {0} is already used by "{1}".</value>
   </data>
   <data name="Strategy_RestoreDefaultConfirm" xml:space="preserve">
-    <value>Restore &quot;{0}&quot; to default configuration?</value>
+    <value>Restore "{0}" to default configuration?</value>
   </data>
   <data name="Strategy_RestoreDefaultConfirmFmt" xml:space="preserve">
-    <value>Restore &quot;{0}&quot; to default?</value>
+    <value>Restore "{0}" to default?</value>
   </data>
   <data name="Strategy_RestoreDefaults" xml:space="preserve">
     <value>Restore defaults</value>
@@ -1534,7 +1592,7 @@ Current seating will be overwritten.</value>
     <value>Confirm delete</value>
   </data>
   <data name="Venue_DeleteConfirmMsgFmt" xml:space="preserve">
-    <value>Delete venue &quot;{0}&quot;? This cannot be undone.</value>
+    <value>Delete venue "{0}"? This cannot be undone.</value>
   </data>
   <data name="Venue_DeleteFailed" xml:space="preserve">
     <value>Failed to delete venue</value>
@@ -1543,7 +1601,7 @@ Current seating will be overwritten.</value>
     <value>Delete venue</value>
   </data>
   <data name="Venue_DeletedFmt" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; deleted</value>
+    <value>Venue "{0}" deleted</value>
   </data>
   <data name="Venue_DeskConfig" xml:space="preserve">
     <value>Desk configuration</value>
@@ -1642,10 +1700,10 @@ Current seating will be overwritten.</value>
     <value>Venue list</value>
   </data>
   <data name="Venue_LoadFailedFmt" xml:space="preserve">
-    <value>Failed to load venue &quot;{0}&quot;</value>
+    <value>Failed to load venue "{0}"</value>
   </data>
   <data name="Venue_LoadedFmt" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; loaded, {1} seats</value>
+    <value>Venue "{0}" loaded, {1} seats</value>
   </data>
   <data name="Venue_Name" xml:space="preserve">
     <value>Venue name</value>
@@ -1807,7 +1865,7 @@ Current seating will be overwritten.</value>
     <value>Save venue</value>
   </data>
   <data name="Venue_SavedFmt" xml:space="preserve">
-    <value>Venue &quot;{0}&quot; saved, {1} seats</value>
+    <value>Venue "{0}" saved, {1} seats</value>
   </data>
   <data name="Venue_SeatsPerRing" xml:space="preserve">
     <value>Seats per ring</value>
@@ -1916,7 +1974,7 @@ Diagnostics saved to: {1}</value>
     <value>Import Students</value>
   </data>
   <data name="Guide_Phase1_Step0_Desc" xml:space="preserve">
-    <value>First, import your student data. Click the Import button — CSV and Excel formats are supported. You can also download a template first.</value>
+    <value>First, import your student data. You can download a template first. Then click the Import button — CSV and Excel formats are supported. </value>
   </data>
   <data name="Guide_Phase1_Step1_Title" xml:space="preserve">
     <value>Manage Students</value>
@@ -1973,7 +2031,7 @@ Diagnostics saved to: {1}</value>
     <value>Export the seating chart to Excel, CSV, PDF, or image formats. You can also save it as a snapshot for future reference.</value>
   </data>
   <data name="Guide_Phase5_Step0_Title" xml:space="preserve">
-    <value>You&apos;re All Set!</value>
+    <value>You're All Set!</value>
   </data>
   <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
     <value>You now know the core workflow of A_Pair. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
@@ -2087,10 +2145,10 @@ Diagnostics saved to: {1}</value>
     <value>Every generated seating plan is auto-saved. Click a snapshot to preview it, then use Rollback to restore.</value>
   </data>
   <data name="Guide_Closing_Finish_Title" xml:space="preserve">
-    <value>You&apos;re All Set!</value>
+    <value>You're All Set!</value>
   </data>
   <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
-    <value>You&apos;ve completed the A_Pair core workflow guide. You&apos;re ready to create seating arrangements on your own! Check documentation if needed.</value>
+    <value>You've completed the A_Pair core workflow guide. You're ready to create seating arrangements on your own! Check documentation if needed.</value>
   </data>
   <data name="Guide_Freeform_Import_Title" xml:space="preserve">
     <value>Click here to import coordinates</value>
