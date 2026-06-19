@@ -318,6 +318,7 @@
                     Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                     BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                     BorderThickness="2"
+                    DragDrop.AllowDrop="True"
                     DragDrop.DragOver="Trash_DragOver"
                     DragDrop.Drop="Trash_Drop"
                     DragDrop.DragLeave="Trash_DragLeave"
@@ -458,8 +459,10 @@
                          AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="core:Student">
-                      <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,4"
-                                 PointerPressed="UnassignedStudent_PointerPressed" />
+                      <Border Padding="4" Background="Transparent"
+                              PointerPressed="UnassignedStudent_PointerPressed">
+                        <TextBlock Text="{Binding Name}" Classes="bodySmall" />
+                      </Border>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

@@ -81,8 +81,8 @@ public partial class SeatingArrangementView : UserControl
 
     private async void UnassignedStudent_PointerPressed (object? sender , PointerPressedEventArgs e)
     {
-        if (sender is not TextBlock tb
-            || tb.DataContext is not Core.Models.Student student)
+        if (sender is not Border border
+            || border.DataContext is not Core.Models.Student student)
             return;
 
         var data = new DataTransfer();
