@@ -49,6 +49,11 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// <summary>MemberManagement 引导是否已注入过示例数据（Phase 1 跳过，Phase 2 注入）。</summary>
     private bool _memberManagementDataSeeded;
 
+    /// <summary>MemberManagement 用户状态快照（引导前保存，引导后恢复）。null 表示首次使用无需恢复。</summary>
+    private static List<Student>? _savedMemberStudents;
+    private static List<StudentDatasetInfo>? _savedMemberDatasets;
+    private static bool _savedMemberIsEmpty;
+
     public bool IsActive { get; private set; }
 
     public OnboardingService (
@@ -351,6 +356,12 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private static void SeedMemberManagementData (MemberManagementViewModel? vm)
     {
         if (vm is null) return;
+
+        // 保存用户原有状态，引导结束后恢复
+        _savedMemberStudents = [.. vm.Students];
+        _savedMemberDatasets = [.. vm.SavedDatasets];
+        _savedMemberIsEmpty = vm.IsEmpty;
+
         vm.Students = new ObservableCollection<Student>
         {
             new() { Name = "Alice", Height = 165, Gender = Gender.Female },
@@ -482,13 +493,29 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         if (sp.GetService(typeof(MemberManagementViewModel)) is MemberManagementViewModel memberVm)
         {
-            memberVm.Students.Clear();
-            memberVm.StudentCount = 0;
-            memberVm.IsEmpty = true;
-            memberVm.SavedDatasets.Clear();
+            if (_savedMemberStudents is not null)
+            {
+                // 引导前有用户数据 → 恢复到原始状态
+                memberVm.Students = new ObservableCollection<Student>(_savedMemberStudents);
+                memberVm.StudentCount = _savedMemberStudents.Count;
+                memberVm.IsEmpty = _savedMemberIsEmpty;
+                memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(_savedMemberDatasets ?? []);
+            }
+            else
+            {
+                // 首次使用（引导前无数据）→ 清空演示数据
+                memberVm.Students.Clear();
+                memberVm.StudentCount = 0;
+                memberVm.IsEmpty = true;
+                memberVm.SavedDatasets.Clear();
+            }
             memberVm.SelectedDataset = null;
             memberVm.CurrentDatasetId = null;
             memberVm.CurrentDatasetName = null;
+
+            // 清除快照
+            _savedMemberStudents = null;
+            _savedMemberDatasets = null;
         }
         if (sp.GetService(typeof(VenueConfigurationViewModel)) is VenueConfigurationViewModel venueVm)
         {
