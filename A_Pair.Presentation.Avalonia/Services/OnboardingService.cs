@@ -46,6 +46,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// <summary>窗口失焦/最小化时设为 true，静默关闭 Popup 防孤儿窗口。</summary>
     private bool _isWindowObscured;
 
+    /// <summary>MemberManagement 引导是否已注入过示例数据（Phase 1 跳过，Phase 2 注入）。</summary>
+    private bool _memberManagementDataSeeded;
+
     public bool IsActive { get; private set; }
 
     public OnboardingService (
@@ -214,24 +217,46 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             {
                 var phase = _config!.StartupPhases[phaseIndex];
                 if (phase.Page is not null
-                    && Enum.TryParse<PageKey>(phase.Page , out var pageKey)
-                    && _navigation.CurrentPage != pageKey)
+                    && Enum.TryParse<PageKey>(phase.Page , out var pageKey))
                 {
-                    var mainWindow = GetMainWindow();
-                    if (mainWindow?.DataContext is MainShellViewModel vm)
-                        vm.OnboardingNavigateTo(pageKey);
-                    else
-                        _navigation.NavigateTo(pageKey);
                     isPhaseTransition = true;
                     targetPage = pageKey;
+
+                    // 仅在目标页面与当前页面不同时才执行导航
+                    //（同页面连续两个 Phase 不需要导航，但仍需注入数据）
+                    if (_navigation.CurrentPage != pageKey)
+                    {
+                        var mainWindow = GetMainWindow();
+                        if (mainWindow?.DataContext is MainShellViewModel vm)
+                            vm.OnboardingNavigateTo(pageKey);
+                        else
+                            _navigation.NavigateTo(pageKey);
+                    }
                 }
             }
         }
 
         // 注入示例数据（仅启动引导的跨阶段导航，页面引导不注入）
+        // MemberManagement 特殊处理：Phase 1（导入按钮）不注入数据，Phase 2 才注入
         if (isPhaseTransition)
         {
-            SeedPageData(targetPage);
+            if (targetPage == PageKey.MemberManagement)
+            {
+                if (!_memberManagementDataSeeded)
+                {
+                    // Phase 1：不注入数据，仅标记已访问
+                    _memberManagementDataSeeded = true;
+                }
+                else
+                {
+                    // Phase 2：注入演示数据
+                    SeedPageData(targetPage);
+                }
+            }
+            else
+            {
+                SeedPageData(targetPage);
+            }
         }
 
         // 2. 解析 Target 控件名 → 实际 Control
@@ -339,6 +364,19 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         vm.IsEmpty = false;
         vm.IsLoading = false;
         vm.StatusMessage = string.Format(Resources.Member_LoadedFmt , vm.Students.Count);
+
+        // 填充 SavedDatasets 并选中演示数据集，展示"从文件更新"按钮
+        var demoDataset = new StudentDatasetInfo
+        {
+            Id = "guide-demo-ds" ,
+            Name = "演示班级" ,
+            StudentCount = 6 ,
+            CreatedAt = DateTime.Now
+        };
+        vm.SavedDatasets = new ObservableCollection<StudentDatasetInfo> { demoDataset };
+        vm.CurrentDatasetId = "guide-demo-ds";
+        vm.CurrentDatasetName = "演示班级";
+        vm.SetGuideDataset(demoDataset); // 安全选中，不触发磁盘加载
     }
 
     private static void SeedVenueConfigurationData (VenueConfigurationViewModel? vm)
@@ -447,6 +485,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             memberVm.Students.Clear();
             memberVm.StudentCount = 0;
             memberVm.IsEmpty = true;
+            memberVm.SavedDatasets.Clear();
+            memberVm.SelectedDataset = null;
+            memberVm.CurrentDatasetId = null;
+            memberVm.CurrentDatasetName = null;
         }
         if (sp.GetService(typeof(VenueConfigurationViewModel)) is VenueConfigurationViewModel venueVm)
         {
@@ -635,6 +677,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         // 清除注入的示例数据（纯内存操作，无 I/O）
         ClearPageData();
+        _memberManagementDataSeeded = false;
 
         // 持久化页面引导标记（可在后台安全执行，不影响竞态）
         if (wasPageGuide is not null)

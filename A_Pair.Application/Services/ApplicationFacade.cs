@@ -633,6 +633,12 @@ namespace A_Pair.Application.Services
             return id;
         }
 
+        public Task UpdateStudentDatasetAsync (string id , string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
+        {
+            // 与 SaveStudentDatasetAsync 的关键区别：不生成新 GUID，直接使用传入的 id 覆写已有文件
+            return _datasetRepo.SaveAsync(id , name , students , originalFileName , ct);
+        }
+
         public Task<List<Student>?> LoadStudentDatasetAsync (string id , CancellationToken ct = default)
             => _datasetRepo.LoadAsync(id , ct);
 

@@ -90,6 +90,9 @@ namespace A_Pair.Application.Interfaces
         /// <summary>保存学生数据集到托管存储。</summary>
         Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
 
+        /// <summary>更新已有学生数据集，保持原有 ID 不变（直接覆写对应文件）。</summary>
+        Task UpdateStudentDatasetAsync (string id , string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default);
+
         /// <summary>从托管存储加载学生数据集。</summary>
         Task<List<Student>?> LoadStudentDatasetAsync (string id , CancellationToken ct = default);
 

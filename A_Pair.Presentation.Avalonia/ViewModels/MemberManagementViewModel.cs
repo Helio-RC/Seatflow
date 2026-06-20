@@ -63,6 +63,8 @@ public partial class MemberManagementViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
+    [NotifyPropertyChangedFor(nameof(IsImportMode))]
+    [NotifyPropertyChangedFor(nameof(IsUpdateMode))]
     public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     [ObservableProperty]
@@ -176,6 +178,19 @@ public partial class MemberManagementViewModel : ViewModelBase
     }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
+    /// <summary>未选中数据集时显示"从文件导入"按钮。</summary>
+    public bool IsImportMode => !HasSelectedDataset;
+
+    /// <summary>已选中数据集时显示"从文件更新"按钮。</summary>
+    public bool IsUpdateMode => HasSelectedDataset;
+
+    /// <summary>仅供引导系统使用：设置演示数据集但不触发磁盘加载。</summary>
+    public void SetGuideDataset (StudentDatasetInfo dataset)
+    {
+        _suppressDatasetLoad = true;
+        SelectedDataset = dataset;
+        _suppressDatasetLoad = false;
+    }
 
     public string StudentCountDisplay => string.Format(Resources.Member_MemberCountFmt , StudentCount);
     public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt , FilePath);
@@ -356,6 +371,70 @@ public partial class MemberManagementViewModel : ViewModelBase
                     ? string.Format(Resources.Member_FileNotFoundFmt , FilePath)
                     : string.Format(Resources.Member_ImportErrorFmt , ex.Message);
                 StatusMessage = Resources.Member_ImportFailed;
+            }
+            finally
+            {
+                IsLoading = false;
+                if (errorTitle != null)
+                    await _dialog.ShowErrorAsync(errorTitle , errorMsg!);
+            }
+        }
+        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
+    }
+
+    /// <summary>从文件更新当前数据集，保持 CurrentDatasetId 不变。</summary>
+    [RelayCommand]
+    private async Task UpdateFromFileAsync (CancellationToken ct)
+    {
+        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        try
+        {
+            string? errorTitle = null;
+            string? errorMsg = null;
+
+            try
+            {
+                IStorageFile? importFile;
+                try { importFile = await _fileService.OpenFileAsync(Resources.Member_UpdateFromFile , StudentFileTypes); }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                if (importFile is null) return;
+                var file = importFile;
+
+                FilePath = file.Path.LocalPath;
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                StatusMessage = "正在更新...";
+
+                var students = await _facade.LoadStudentsAsync(FilePath , ct);
+
+                Students = new ObservableCollection<Student>(students);
+                StudentCount = Students.Count;
+                IsEmpty = StudentCount == 0;
+                StatusMessage = IsEmpty ? "文件中无有效数据" : $"已从文件更新 {StudentCount} 名学生";
+
+                // 关键区别：使用 UpdateStudentDatasetAsync 保持 CurrentDatasetId 不变
+                if (!IsEmpty && CurrentDatasetId is not null)
+                {
+                    var name = CurrentDatasetName ?? Path.GetFileNameWithoutExtension(FilePath);
+                    await _facade.UpdateStudentDatasetAsync(CurrentDatasetId , name , students ,
+                        Path.GetFileName(FilePath) , ct);
+                    MarkClean();
+                    _ = RefreshDatasetsAsync(ct);
+                }
+
+                if (IsEmpty)
+                {
+                    errorTitle = "更新结果";
+                    errorMsg = "文件中未找到有效学生数据。";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorTitle = Resources.Member_ImportFailed;
+                errorMsg = ex is FileNotFoundException
+                    ? string.Format(Resources.Member_FileNotFoundFmt , FilePath)
+                    : $"更新失败：{ex.Message}";
+                StatusMessage = "更新失败";
             }
             finally
             {

@@ -26,6 +26,17 @@
           "descKey": "Guide_Members_Import_Desc",
           "target": "ImportButton",
           "placement": "Bottom"
+        }
+      ]
+    },
+    {
+      "page": "MemberManagement",
+      "steps": [
+        {
+          "titleKey": "Guide_Members_Update_Title",
+          "descKey": "Guide_Members_Update_Desc",
+          "target": "UpdateFromFileButton",
+          "placement": "Bottom"
         },
         {
           "titleKey": "Guide_Members_Manage_Title",

@@ -67,6 +67,8 @@ public class Resources
     public static string ConfigBlock_Dataset => ResourceManager.GetString("ConfigBlock_Dataset", Culture)!;
     public static string ConfigBlock_Venue => ResourceManager.GetString("ConfigBlock_Venue", Culture)!;
     public static string Data_CSVFile => ResourceManager.GetString("Data_CSVFile", Culture)!;
+    public static string Guide_Members_Update_Desc => ResourceManager.GetString("Guide_Members_Update_Desc", Culture)!;
+    public static string Guide_Members_Update_Title => ResourceManager.GetString("Guide_Members_Update_Title", Culture)!;
     public static string Guide_Seating_Select_Desc => ResourceManager.GetString("Guide_Seating_Select_Desc", Culture)!;
     public static string Guide_Seating_Select_Title => ResourceManager.GetString("Guide_Seating_Select_Title", Culture)!;
     public static string Member_AddedRowFmt => ResourceManager.GetString("Member_AddedRowFmt", Culture)!;
@@ -237,6 +239,7 @@ public class Resources
     public static string Lang_System => ResourceManager.GetString("Lang_System", Culture)!;
     public static string Lang_enUS => ResourceManager.GetString("Lang_enUS", Culture)!;
     public static string Lang_zhCN => ResourceManager.GetString("Lang_zhCN", Culture)!;
+    public static string Member_UpdateFromFile => ResourceManager.GetString("Member_UpdateFromFile", Culture)!;
     public static string Nav_About => ResourceManager.GetString("Nav_About", Culture)!;
     public static string Nav_AppShort => ResourceManager.GetString("Nav_AppShort", Culture)!;
     public static string Nav_CollapseSidebar => ResourceManager.GetString("Nav_CollapseSidebar", Culture)!;

@@ -57,10 +57,19 @@
               </StackPanel>
             </Button>
             <Button x:Name="ImportButton" Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center"
+                    IsVisible="{Binding IsImportMode}"
                     AutomationProperties.Name="{x:Static lang:Resources.Member_ImportData}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PeopleTeamAdd}" FontSize="16" />
                 <TextBlock Text="{x:Static lang:Resources.Member_ImportFromFile}" Classes="body" />
+              </StackPanel>
+            </Button>
+            <Button x:Name="UpdateFromFileButton" Command="{Binding UpdateFromFileCommand}" IsEnabled="{Binding IsNotLoading}" HorizontalContentAlignment="Center"
+                    IsVisible="{Binding IsUpdateMode}"
+                    AutomationProperties.Name="{x:Static lang:Resources.Member_UpdateFromFile}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
+                <TextBlock Text="{x:Static lang:Resources.Member_UpdateFromFile}" Classes="body" />
               </StackPanel>
             </Button>
             <Button x:Name="SaveButton" Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}" HorizontalContentAlignment="Center"
@@ -116,10 +125,19 @@
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding ImportCommand}" IsEnabled="{Binding IsNotLoading}"
+                          IsVisible="{Binding IsImportMode}"
                           HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PeopleTeamAdd}" FontSize="14" />
                       <TextBlock Text="{x:Static lang:Resources.Member_ImportFromFile}" Classes="body" />
+                    </StackPanel>
+                  </Button>
+                  <Button Command="{Binding UpdateFromFileCommand}" IsEnabled="{Binding IsNotLoading}"
+                          IsVisible="{Binding IsUpdateMode}"
+                          HorizontalContentAlignment="Left" HorizontalAlignment="Stretch" Padding="12,8" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14" />
+                      <TextBlock Text="{x:Static lang:Resources.Member_UpdateFromFile}" Classes="body" />
                     </StackPanel>
                   </Button>
                   <Button Command="{Binding SaveCommand}" IsEnabled="{Binding HasData}"
