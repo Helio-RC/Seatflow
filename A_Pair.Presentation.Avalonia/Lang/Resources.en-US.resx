@@ -182,6 +182,12 @@
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV file</value>
   </data>
+  <data name="Freeform_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved Changes</value>
+  </data>
+  <data name="Freeform_UnsavedChangesMsg" xml:space="preserve">
+    <value>The current freeform layout has unsaved changes. Save before leaving?</value>
+  </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
     <value>When a saved dataset is selected, the button changes to &quot;Update from file&quot;. You can update the dataset content from a file without changing its ID.</value>
   </data>
@@ -819,6 +825,12 @@ Place plugins in the Plugins directory</value>
   </data>
   <data name="Plugin_ToggledFmt" xml:space="preserve">
     <value>Plugin &quot;{0}&quot; {1}</value>
+  </data>
+  <data name="Plugin_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved Changes</value>
+  </data>
+  <data name="Plugin_UnsavedChangesMsg" xml:space="preserve">
+    <value>The current plugin has unsaved changes. Save before leaving?</value>
   </data>
   <data name="Plugin_VersionFmt" xml:space="preserve">
     <value>Version v{0}</value>
@@ -1835,6 +1847,12 @@ Current seating will be overwritten.</value>
   </data>
   <data name="Venue_Title" xml:space="preserve">
     <value>Venue Configuration</value>
+  </data>
+  <data name="Venue_UnsavedChanges" xml:space="preserve">
+    <value>Unsaved Changes</value>
+  </data>
+  <data name="Venue_UnsavedChangesMsg" xml:space="preserve">
+    <value>The current venue has unsaved changes. Save before leaving?</value>
   </data>
   <data name="Venue_VSpacing" xml:space="preserve">
     <value>V. spacing</value>

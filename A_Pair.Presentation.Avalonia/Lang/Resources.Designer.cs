@@ -67,6 +67,8 @@ public class Resources
     public static string ConfigBlock_Dataset => ResourceManager.GetString("ConfigBlock_Dataset", Culture)!;
     public static string ConfigBlock_Venue => ResourceManager.GetString("ConfigBlock_Venue", Culture)!;
     public static string Data_CSVFile => ResourceManager.GetString("Data_CSVFile", Culture)!;
+    public static string Freeform_UnsavedChanges => ResourceManager.GetString("Freeform_UnsavedChanges", Culture)!;
+    public static string Freeform_UnsavedChangesMsg => ResourceManager.GetString("Freeform_UnsavedChangesMsg", Culture)!;
     public static string Guide_Members_Update_Desc => ResourceManager.GetString("Guide_Members_Update_Desc", Culture)!;
     public static string Guide_Members_Update_Title => ResourceManager.GetString("Guide_Members_Update_Title", Culture)!;
     public static string Guide_Seating_Select_Desc => ResourceManager.GetString("Guide_Seating_Select_Desc", Culture)!;
@@ -278,6 +280,8 @@ public class Resources
     public static string Plugin_Title => ResourceManager.GetString("Plugin_Title", Culture)!;
     public static string Plugin_ToggleFailed => ResourceManager.GetString("Plugin_ToggleFailed", Culture)!;
     public static string Plugin_ToggledFmt => ResourceManager.GetString("Plugin_ToggledFmt", Culture)!;
+    public static string Plugin_UnsavedChanges => ResourceManager.GetString("Plugin_UnsavedChanges", Culture)!;
+    public static string Plugin_UnsavedChangesMsg => ResourceManager.GetString("Plugin_UnsavedChangesMsg", Culture)!;
     public static string Plugin_VersionFmt => ResourceManager.GetString("Plugin_VersionFmt", Culture)!;
     public static string Seating_Cancel => ResourceManager.GetString("Seating_Cancel", Culture)!;
     public static string Seating_CancelSwap => ResourceManager.GetString("Seating_CancelSwap", Culture)!;
@@ -614,6 +618,8 @@ public class Resources
     public static string Venue_StartAngle => ResourceManager.GetString("Venue_StartAngle", Culture)!;
     public static string Venue_StartAngleTooltip => ResourceManager.GetString("Venue_StartAngleTooltip", Culture)!;
     public static string Venue_Title => ResourceManager.GetString("Venue_Title", Culture)!;
+    public static string Venue_UnsavedChanges => ResourceManager.GetString("Venue_UnsavedChanges", Culture)!;
+    public static string Venue_UnsavedChangesMsg => ResourceManager.GetString("Venue_UnsavedChangesMsg", Culture)!;
     public static string Venue_VSpacing => ResourceManager.GetString("Venue_VSpacing", Culture)!;
     public static string Venue_VSpacingPH => ResourceManager.GetString("Venue_VSpacingPH", Culture)!;
     public static string Venue_VSpacingTooltip => ResourceManager.GetString("Venue_VSpacingTooltip", Culture)!;

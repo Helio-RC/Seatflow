@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using A_Pair.Application.Interfaces;
@@ -53,10 +54,14 @@ public partial class FreeformManagementViewModel : ViewModelBase
             _ = SelectLayout(value);
     }
 
+    partial void OnLayoutNameChanged (string value) => _isDirty = true;
+
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = Resources.Freeform_ReadyHint;
 
     private int _dialogLock;
+    private bool _isDirty;
+    private string? _cleanSnapshot;
     private static readonly string[] GroupColors =
         ["#4A90D9" , "#E74C3C" , "#2ECC71" , "#F39C12" , "#9B59B6" , "#1ABC9C" , "#E67E22" , "#3498DB"];
 
@@ -138,6 +143,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
             Points = new ObservableCollection<FreeformPoint>(pts);
             RefreshIndices();
             IsEmpty = Points.Count == 0;
+            _isDirty = false;
+            UpdateCleanSnapshot();
             StatusMessage = string.Format(Resources.Freeform_LayoutLoadedFmt , layout.Name , pts.Count);
         });
     }
@@ -247,6 +254,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                     }
                 }
                 Points = new ObservableCollection<FreeformPoint>(pts);
+                _isDirty = true;
                 RefreshIndices();
                 IsEmpty = Points.Count == 0;
                 LayoutName = file.Name.Replace(".csv" , "");
@@ -325,6 +333,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 }
 
                 Points = new ObservableCollection<FreeformPoint>(pts);
+                _isDirty = true;
                 RefreshIndices();
                 IsEmpty = Points.Count == 0;
                 LayoutName = layout.Name;
@@ -374,6 +383,8 @@ public partial class FreeformManagementViewModel : ViewModelBase
             layout.Name = LayoutName;
 
             await _facade.SaveVenueAsync(id , layout);
+            _isDirty = false;
+            UpdateCleanSnapshot();
             await LoadSavedLayouts();
             SelectedLayout = SavedLayouts.FirstOrDefault(v => v.Id == id);
             StatusMessage = string.Format(Resources.Freeform_SavedFmt , LayoutName , Points.Count);
@@ -404,6 +415,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void AddPoint ()
     {
         Points.Add(new FreeformPoint(0 , 0));
+        _isDirty = true;
         RefreshIndices();
         IsEmpty = false;
         StatusMessage = string.Format(Resources.Freeform_PointAddedFmt , Points.Count);
@@ -413,6 +425,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void DeletePoint (FreeformPoint point)
     {
         Points.Remove(point);
+        _isDirty = true;
         RefreshIndices();
         IsEmpty = Points.Count == 0;
         StatusMessage = string.Format(Resources.Freeform_PointCountFmt , Points.Count);
@@ -422,6 +435,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
     private void ClearPoints ()
     {
         Points.Clear();
+        _isDirty = true;
         IsEmpty = true;
         StatusMessage = Resources.Freeform_PointsCleared;
     }
@@ -472,6 +486,56 @@ public partial class FreeformManagementViewModel : ViewModelBase
         }
 
         return errors;
+    }
+
+    private void UpdateCleanSnapshot () =>
+        _cleanSnapshot = JsonSerializer.Serialize(new { LayoutName , Points });
+
+    private bool HasUnsavedChanges ()
+    {
+        if (_isDirty) return true;
+        if (_cleanSnapshot is null) return false;
+        return JsonSerializer.Serialize(new { LayoutName , Points }) != _cleanSnapshot;
+    }
+
+    public override async Task<bool> CanLeaveAsync ()
+    {
+        if (!HasUnsavedChanges())
+        {
+            ClearFreeformState();
+            return true;
+        }
+
+        var choice = await Dialog.ShowMultiOptionAsync(
+            Resources.Freeform_UnsavedChanges ,
+            Resources.Freeform_UnsavedChangesMsg ,
+            Resources.Common_Save ,
+            Resources.Common_Discard ,
+            Resources.Common_Cancel);
+
+        switch (choice)
+        {
+            case 0: // 保存
+                await SaveLayout();
+                break;
+            case 1: // 放弃
+                break;
+            default: // 取消
+                return false;
+        }
+
+        ClearFreeformState();
+        return true;
+    }
+
+    private void ClearFreeformState ()
+    {
+        SelectedLayout = null;
+        Points.Clear();
+        LayoutName = string.Empty;
+        IsEmpty = true;
+        _isDirty = false;
+        _cleanSnapshot = null;
     }
 }
 

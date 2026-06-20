@@ -298,4 +298,44 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
         if (!_isLoadingContent && SelectedPlugin != null)
             IsConfigDirty = true;
     }
+
+    public override async Task<bool> CanLeaveAsync ()
+    {
+        if (!IsScriptDirty && !IsConfigDirty)
+        {
+            ClearPluginState();
+            return true;
+        }
+
+        var choice = await Dialog.ShowMultiOptionAsync(
+            Resources.Plugin_UnsavedChanges ,
+            Resources.Plugin_UnsavedChangesMsg ,
+            Resources.Common_Save ,
+            Resources.Common_Discard ,
+            Resources.Common_Cancel);
+
+        switch (choice)
+        {
+            case 0: // 保存
+                if (IsScriptDirty) await SaveScript();
+                if (IsConfigDirty) await SaveConfig();
+                break;
+            case 1: // 放弃
+                break;
+            default: // 取消
+                return false;
+        }
+
+        ClearPluginState();
+        return true;
+    }
+
+    private void ClearPluginState ()
+    {
+        SelectedPlugin = null;
+        ScriptEditorText = string.Empty;
+        ConfigEditorText = string.Empty;
+        IsScriptDirty = false;
+        IsConfigDirty = false;
+    }
 }

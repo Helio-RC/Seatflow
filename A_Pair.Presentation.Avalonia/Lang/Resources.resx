@@ -182,6 +182,12 @@
   <data name="Data_CSVFile" xml:space="preserve">
     <value>CSV 文件</value>
   </data>
+  <data name="Freeform_UnsavedChanges" xml:space="preserve">
+    <value>未保存的修改</value>
+  </data>
+  <data name="Freeform_UnsavedChangesMsg" xml:space="preserve">
+    <value>当前自由布局有未保存的修改，是否保存后离开？</value>
+  </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
     <value>选中已保存的数据集后，工具栏按钮变为从文件更新，可更新当前数据集内容而不改变其 ID</value>
   </data>
@@ -819,6 +825,12 @@
   </data>
   <data name="Plugin_ToggledFmt" xml:space="preserve">
     <value>插件「{0}」已{1}</value>
+  </data>
+  <data name="Plugin_UnsavedChanges" xml:space="preserve">
+    <value>未保存的修改</value>
+  </data>
+  <data name="Plugin_UnsavedChangesMsg" xml:space="preserve">
+    <value>当前插件有未保存的修改，是否保存后离开？</value>
   </data>
   <data name="Plugin_VersionFmt" xml:space="preserve">
     <value>版本 v{0}</value>
@@ -1844,6 +1856,12 @@
   </data>
   <data name="Venue_Title" xml:space="preserve">
     <value>会场配置</value>
+  </data>
+  <data name="Venue_UnsavedChanges" xml:space="preserve">
+    <value>未保存的修改</value>
+  </data>
+  <data name="Venue_UnsavedChangesMsg" xml:space="preserve">
+    <value>当前会场有未保存的修改，是否保存后离开？</value>
   </data>
   <data name="Venue_VSpacing" xml:space="preserve">
     <value>垂直间距</value>

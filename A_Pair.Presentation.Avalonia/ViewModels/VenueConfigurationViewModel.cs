@@ -31,6 +31,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     private bool _suppressAutoLoad;
     private bool _suppressPreviewRegen;
     private CancellationTokenSource? _selectVenueCts;
+    private bool _isDirty;
 
     /// <summary>已加载会场的座位位置→ID 映射，用于保存时保留旧 ID 避免快照失效。</summary>
     private Dictionary<(int Row , int Col) , string>? _existingGridSeatMap;
@@ -286,6 +287,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         _suppressPreviewRegen = true;
         ResetParameters();
         _suppressPreviewRegen = false;
+        _isDirty = false;
         VenueItems.Add(item);
         SelectedVenueItem = item;
         RegeneratePreview();
@@ -355,6 +357,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             RestoreObstaclesFromLayout(layout);
 
             _suppressPreviewRegen = false;
+            _isDirty = false;
             RegeneratePreview();
             StatusMessage = string.Format(Resources.Venue_LoadedFmt , layout.Name , layout.Seats.Count);
         });
@@ -370,6 +373,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         {
             var layout = BuildLayoutDefinition();
             await _facade.SaveVenueAsync(item.Id , layout);
+            _isDirty = false;
             await LoadVenueList();
             SelectedVenueItem = VenueItems.FirstOrDefault(v => v.Id == item.Id);
             StatusMessage = string.Format(Resources.Venue_SavedFmt , layout.Name , layout.Seats.Count);
@@ -1074,6 +1078,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     // ── 门变更 → 立即刷新预览 ──
     partial void OnDoorItemsChanged (ObservableCollection<DoorItem> value) => SubscribeToDoorCollection(value);
 
+    partial void OnLayoutNameChanged (string value) => _isDirty = true;
+
     private void SubscribeToDoorCollection (ObservableCollection<DoorItem> doors)
     {
         doors.CollectionChanged += (_ , e) =>
@@ -1100,11 +1106,50 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             RegeneratePreviewIfNotSuppressed();
     }
 
-    /// <summary>在不被抑制时立即刷新预览。</summary>
+    /// <summary>在不被抑制时立即刷新预览，同时标记脏状态。</summary>
     private void RegeneratePreviewIfNotSuppressed ()
     {
         if (!_suppressPreviewRegen)
+        {
+            _isDirty = true;
             RegeneratePreview();
+        }
+    }
+
+    public override async Task<bool> CanLeaveAsync ()
+    {
+        if (!_isDirty || SelectedVenueItem is null)
+        {
+            ClearVenueState();
+            return true;
+        }
+
+        var choice = await Dialog.ShowMultiOptionAsync(
+            Resources.Venue_UnsavedChanges ,
+            Resources.Venue_UnsavedChangesMsg ,
+            Resources.Common_Save ,
+            Resources.Common_Discard ,
+            Resources.Common_Cancel);
+
+        switch (choice)
+        {
+            case 0: // 保存
+                await SaveVenue();
+                break;
+            case 1: // 放弃
+                break;
+            default: // 取消
+                return false;
+        }
+
+        ClearVenueState();
+        return true;
+    }
+
+    private void ClearVenueState ()
+    {
+        SelectedVenueItem = null;
+        _isDirty = false;
     }
 }
 

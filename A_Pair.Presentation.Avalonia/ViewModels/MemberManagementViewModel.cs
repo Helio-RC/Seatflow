@@ -122,8 +122,14 @@ public partial class MemberManagementViewModel : ViewModelBase
 
     partial void OnSelectedDatasetChanged (StudentDatasetInfo? value)
     {
-        if (_suppressDatasetLoad || value is null)
+        if (_suppressDatasetLoad)
             return;
+        if (value is null)
+        {
+            // 用户取消选中（Toggle 模式再次点击已选项） → 卸载数据
+            _ = ClearDataInternalAsync();
+            return;
+        }
         _ = SwitchToDatasetAsync(value);
     }
 
@@ -524,7 +530,13 @@ public partial class MemberManagementViewModel : ViewModelBase
     [RelayCommand]
     private async Task ClearDataAsync ()
     {
-        if (!IsEmpty)
+        await ClearDataInternalAsync();
+    }
+
+    /// <summary>卸载数据的核心逻辑（可由取消选中或按钮触发）。仅 IsDirty 时弹确认窗。</summary>
+    private async Task ClearDataInternalAsync ()
+    {
+        if (IsDirty)
         {
             var confirmed = await _dialog.ShowConfirmAsync(Resources.Member_ClearConfirm ,
                 string.Format(Resources.Member_ClearConfirmMsg , StudentCount));
@@ -541,6 +553,36 @@ public partial class MemberManagementViewModel : ViewModelBase
         _originalStudentsJson = null;
         NewStudent = new Student();
         StatusMessage = Resources.Member_Ready;
+    }
+
+    public override async Task<bool> CanLeaveAsync ()
+    {
+        if (!IsDirty && !IsNewStudentDirty)
+        {
+            await ClearDataInternalAsync();
+            return true;
+        }
+
+        var choice = await Dialog.ShowMultiOptionAsync(
+            Resources.Member_UnsavedChanges ,
+            Resources.Member_UnsavedChangesMsg ,
+            Resources.Common_Save ,
+            Resources.Common_Discard ,
+            Resources.Common_Cancel);
+
+        switch (choice)
+        {
+            case 0: // 保存
+                await SaveInternalAsync(CancellationToken.None);
+                break;
+            case 1: // 放弃
+                break;
+            default: // 取消
+                return false;
+        }
+
+        await ClearDataInternalAsync();
+        return true;
     }
 
     [RelayCommand]
