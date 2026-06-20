@@ -45,6 +45,8 @@ public partial class MemberManagementViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasData))]
+    [NotifyPropertyChangedFor(nameof(IsImportMode))]
+    [NotifyPropertyChangedFor(nameof(IsUpdateMode))]
     public partial bool IsEmpty { get; set; } = true;
 
     public bool HasData => !IsEmpty;
@@ -63,8 +65,6 @@ public partial class MemberManagementViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
-    [NotifyPropertyChangedFor(nameof(IsImportMode))]
-    [NotifyPropertyChangedFor(nameof(IsUpdateMode))]
     public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     [ObservableProperty]
@@ -178,11 +178,11 @@ public partial class MemberManagementViewModel : ViewModelBase
     }
     public bool HasSelectedDataset => SelectedDataset is not null;
 
-    /// <summary>未选中数据集时显示"从文件导入"按钮。</summary>
-    public bool IsImportMode => !HasSelectedDataset;
+    /// <summary>编辑区无数据时显示"从文件导入"按钮。</summary>
+    public bool IsImportMode => !HasData;
 
-    /// <summary>已选中数据集时显示"从文件更新"按钮。</summary>
-    public bool IsUpdateMode => HasSelectedDataset;
+    /// <summary>编辑区有数据时显示"从文件更新"按钮。</summary>
+    public bool IsUpdateMode => HasData;
 
     /// <summary>仅供引导系统使用：设置演示数据集但不触发磁盘加载。</summary>
     public void SetGuideDataset (StudentDatasetInfo dataset)
@@ -412,12 +412,23 @@ public partial class MemberManagementViewModel : ViewModelBase
                 IsEmpty = StudentCount == 0;
                 StatusMessage = IsEmpty ? "文件中无有效数据" : $"已从文件更新 {StudentCount} 名学生";
 
-                // 关键区别：使用 UpdateStudentDatasetAsync 保持 CurrentDatasetId 不变
-                if (!IsEmpty && CurrentDatasetId is not null)
+                // 保存到托管存储
+                if (!IsEmpty)
                 {
                     var name = CurrentDatasetName ?? Path.GetFileNameWithoutExtension(FilePath);
-                    await _facade.UpdateStudentDatasetAsync(CurrentDatasetId , name , students ,
-                        Path.GetFileName(FilePath) , ct);
+                    if (CurrentDatasetId is not null)
+                    {
+                        // 已有关联数据集 → 原地更新，保持 ID 不变
+                        await _facade.UpdateStudentDatasetAsync(CurrentDatasetId , name , students ,
+                            Path.GetFileName(FilePath) , ct);
+                    }
+                    else
+                    {
+                        // 无关联数据集（未保存的编辑区数据）→ 另存为新数据集
+                        CurrentDatasetId = await _facade.SaveStudentDatasetAsync(name , students ,
+                            Path.GetFileName(FilePath) , ct);
+                        CurrentDatasetName = name;
+                    }
                     MarkClean();
                     _ = RefreshDatasetsAsync(ct);
                 }
