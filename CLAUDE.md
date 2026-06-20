@@ -30,12 +30,14 @@ dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4. The solution file is `A_Pair.slnx` (the new XML-based format).
 
 **Layers (bottom-up)**:
-- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + seven built-in implementations (4 independent, 3 dependent), capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
+- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + seven built-in implementations (4 independent, 3 dependent), capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services in `DomainServices/` (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), utilities in `Utilities/` (`CircularHistory<T>` — ring buffer with capacity=10 on `Student.RecentSeatHistory`, `AttributeBag`), workspace in `Workspace/` (`SeatingWorkspace`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
 - **Contracts** — Cross-layer interface for plugins (`IPluginSeatingStrategy`)
-- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider`, `JsonStudentProvider`, and the composite `CompositeStudentProvider` registered as the primary `IStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization
+- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider` (uses **EPPlus 8**), `JsonStudentProvider`, and the composite `CompositeStudentProvider` registered as the primary `IStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization, migration system (`FileMigrationService`, `IFileMigrator`)
 - **Application** — `IApplicationFacade` (UI's single entry point), `StrategyExecutionPipeline`, command pattern (`IUndoableCommand` / `CommandHistory`), plugin manager (`PluginManager`, `PluginLoadContext`), script adapters (Lua/C#), DI registration
 - **Plugins.Sdk** — Lightweight assembly for external plugin authors
 - **Presentation.Avalonia** — Avalonia 12 desktop app, MVVM with CommunityToolkit.Mvvm
+
+**Logging**: Uses **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` throughout the Application layer. Sinks to file via `Serilog.Sinks.File`. Application services take `ILogger<T>` via constructor injection; most fall back to `NullLogger<T>.Instance` when the parameter is optional.
 
 **DI**: `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
 
@@ -85,16 +87,21 @@ New model types (all in `A_Pair.Core.Models`):
 - `StrategyParameterDefinition` / `StrategyCodeBlock` / `StrategyFieldDefinition` + enums (`StrategyFieldType`, `StrategyDataType`, `StrategyDisplayMode`)
 - `StrategyDatasetConfig` + `StrategyConfigRow` — persistence models stored under `{AppData}/StrategyConfig/{strategyId}/`.
 
-**Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
+**Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out. Key csproj settings:
+- `<AssemblyName>A_Pair</AssemblyName>` — output EXE is `A_Pair.exe`, not `A_Pair.Presentation.Avalonia.exe`
+- `<NoWarn>AVLN3001</NoWarn>` — suppresses "DI requires parameterized constructor" warning (all ViewModels use DI constructor injection, no parameterless ctors needed)
+- `<Compile Remove="Lang\Resources.Designer.cs" Condition="!Exists('Lang\Resources.Designer.cs')" />` — prevents build failure when Designer.cs hasn't been generated yet (run `python3 scripts/i18n.py sync` to create it)
+- `<ApplicationManifest>app.manifest</ApplicationManifest>` — DPI awareness on Windows
 
 **App startup sequence**:
-1. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
-2. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
-3. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
-4. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
-5. Start `WatchdogService` with a 3s DispatcherTimer ping
-6. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
-7. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
+1. `StartupGuard.CheckEnvironment()` — validates .NET runtime >= 10 and supported OS (Windows 10+, macOS 12+, Linux any). Shows warning dialog and exits if unsupported.
+2. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
+3. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
+4. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
+5. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
+6. Start `WatchdogService` with a 3s DispatcherTimer ping
+7. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
+8. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
 
 ## Key Patterns
 
@@ -201,6 +208,19 @@ python3 scripts/i18n.py sync                     # Regenerate Designer.cs from .
 Backups are auto-created in `Lang/.backup/` (gitignored).
 
 **Language switching**: `App.ApplyLanguageFromSettings()` (called in `Initialize()` before XAML loading). Sets `CultureInfo.CurrentUICulture` and `Resources.Culture`.
+
+### Scripts (`scripts/`)
+
+Besides `scripts/i18n.py` (documented above), the following scripts exist — all documented in `scripts/ToolsCollection.md`:
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/i18n.py` | i18n .resx resource CRUD + Designer.cs sync (45 unit tests) |
+| `scripts/version.py` | Unified version management across 15+ files — App, file format, strategy manifest, onboarding config versions. Subcommands: `show`, `check`, `bump-app`, `bump-file`, `bump-strategy`, `bump-onboarding`, `sync` (26 unit tests) |
+| `scripts/publish.sh` / `scripts/publish.ps1` | Multi-platform TUI/CLI publishing (self-contained + framework-dependent, trimming, AOT, SHA256 table) |
+| `scripts/clean.sh` / `scripts/clean.ps1` | Recursive bin/obj cleanup |
+
+Unit tests are in `scripts/tests/`.
 
 ### About Page Data (`Data/about.json`)
 
@@ -385,14 +405,103 @@ Same source code → same DLL hash regardless of build time or absolute path.
 
 In Avalonia's `DockPanel`, `LastChildFill="True"` (default) means the LAST child fills remaining space. If the last child has `DockPanel.Dock="..."`, the previous undocked child fills instead. Always place `Dock` children BEFORE the filling child (typically a `ScrollViewer` or `ListBox`).
 
+## 辅助工具
+
+所有 Python 脚本从 `scripts/` 目录执行，自动检测项目根目录。Shell 脚本需在 `scripts/` 目录下运行。完整文档见 `scripts/ToolsCollection.md`。
+
+### i18n 资源管理 (`scripts/i18n.py`)
+
+```bash
+# 列出与搜索
+python3 scripts/i18n.py list                          # 列出所有 key
+python3 scripts/i18n.py list --missing-en             # 查找未翻译的 key
+python3 scripts/i18n.py list --pattern "Export"       # 正则搜索 key
+python3 scripts/i18n.py list --format-strings         # 列出含占位符的 key
+
+# 校验
+python3 scripts/i18n.py check                         # 一致性校验
+python3 scripts/i18n.py check --fix                   # 自动修复排序问题
+
+# 添加/修改/重命名/删除
+python3 scripts/i18n.py add Settings_NewKey --zh "中文" --en "English"
+python3 scripts/i18n.py modify Settings_Title --zh "新标题"
+python3 scripts/i18n.py rename Old_Key New_Key
+python3 scripts/i18n.py delete Obsolete_Key
+
+# 同步 Designer.cs
+python3 scripts/i18n.py sync                          # 从 .resx 重新生成
+
+# 批量翻译工作流
+python3 scripts/i18n.py export -o translations.csv    # 导出为 CSV（在 Excel 中编辑）
+python3 scripts/i18n.py import translations.csv --dry-run  # 预览导入
+python3 scripts/i18n.py import translations.csv --force    # 执行导入
+```
+
+### 版本号管理 (`scripts/version.py`)
+
+```bash
+# 查看与校验
+python3 scripts/version.py show                       # 显示全部版本号概览
+python3 scripts/version.py check                      # 校验 15+ 处版本一致性
+
+# 调整版本（--dry-run 预览，--force 执行）
+python3 scripts/version.py bump-app patch --dry-run   # App 补丁版本 +1
+python3 scripts/version.py bump-app minor --force     # App 次版本 +1
+python3 scripts/version.py bump-file roster --set 1.2 --force   # 更新 roster 文件格式版本（自动同步 Model 类）
+python3 scripts/version.py bump-strategy FixedSeat --set 1.1.0 --force
+python3 scripts/version.py bump-onboarding --set 3.1 --force
+
+# 从 file_versions.json 同步所有 Model 类默认值
+python3 scripts/version.py sync --force
+```
+
+**重要**：`bump-file` 自动同步 `file_versions.json` → 7 个 Model C# 类 → `JsonStudentWriter.cs`，无需手动修改。
+
+### 发布 (`scripts/publish.sh` / `scripts/publish.ps1`)
+
+```bash
+cd scripts
+./publish.sh                    # TUI 交互模式（多选平台/选项）
+./publish.sh hash               # 仅为已有发布文件生成 SHA256 表
+
+# CLI 模式参数: <类型> <配置> <版本> <选项>...
+# 类型: both | sc | fde     (全部 / 独立 / 框架依赖)
+# 选项: clean aot trim
+./publish.sh both Release "" "1.2.1" clean aot   # 全平台独立+框架依赖，裁剪+AOT，版本 1.2.1
+```
+
+### 清理 (`scripts/clean.sh` / `scripts/clean.ps1`)
+
+```bash
+cd scripts
+./clean.sh          # 确认后删除所有 bin/ 和 obj/
+./clean.sh -n       # 仅预览（dry-run）
+./clean.sh -f       # 直接删除（跳过确认）
+```
+
+### 脚本测试
+
+```bash
+cd scripts
+python3 -m pytest tests/test_i18n.py -v      # i18n 单元测试（45 个）
+python3 -m pytest tests/test_version.py -v   # 版本管理单元测试（26 个）
+python3 -m pytest tests/ -v                  # 全部脚本测试
+```
+
 ## Documents
-- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
+
+> **重要**: `docs/CLAUDE.md` 是根 CLAUDE.md 的人类可读副本。**每次修改根 CLAUDE.md 后必须同步更新 `docs/CLAUDE.md`**（参见 `docs/INDEX.md` 联动规则）。
+
+- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs; includes doc responsibility matrix and change-scenario linkage table)
 - `ARCHITECTURE.md` — Project goals & architecture design
 - `docs/Phases.md` — Implementation phases & detailed planning
 - `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
+- `CHANGELOG.md` — Version changelog (Keep a Changelog format)
 - `docs/ONBOARDING_GUIDE.md` — Onboarding guide system design (JSON-driven, startup + page guides)
 - `docs/StrategyDataResilience.md` — Strategy data persistence & fault tolerance analysis
-- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-008)
+- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-008). Key ones: ADR-002 (MVVM + IMessenger planned for cross-ViewModel communication), ADR-006 (strategy pipeline fill-in-order)
 - `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
 - `A_Pair.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, CanvasZoomPan interaction
 - `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use
+- `A_Pair.Plugins.Sdk/docs/README.md` — Plugin SDK development guide (interfaces, 2-tier manifest format, packaging)
+- `scripts/ToolsCollection.md` — Full reference for `i18n.py` and `version.py` scripts
