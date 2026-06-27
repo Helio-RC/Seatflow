@@ -12,7 +12,7 @@ internal partial class SeatSetsSelectionWindow : Window
 {
     private readonly SeatSetsSelectionViewModel _viewModel;
 
-    public SeatSetsSelectionWindow()
+    public SeatSetsSelectionWindow ()
     {
         InitializeComponent();
         _viewModel = new SeatSetsSelectionViewModel();
@@ -20,7 +20,7 @@ internal partial class SeatSetsSelectionWindow : Window
 
         ConfirmButton.Click += OnConfirm;
         CancelButton.Click += OnCancel;
-        ToggleAllButton.Click += (_, _) => _viewModel.ToggleAllCommand.Execute(null);
+        ToggleAllButton.Click += (_ , _) => _viewModel.ToggleAllCommand.Execute(null);
     }
 
     /// <summary>是否为导出模式（false 表示导入模式）。</summary>
@@ -36,22 +36,22 @@ internal partial class SeatSetsSelectionWindow : Window
     /// <summary>
     /// 根据可用类别预填复选框（用于导入模式）。
     /// </summary>
-    public void SetAvailableCategories(
-        bool appSettings, bool venues, bool rosters,
-        bool snapshots, bool strategyConfig)
+    public void SetAvailableCategories (
+        bool appSettings , bool venues , bool rosters ,
+        bool snapshots , bool strategyConfig)
     {
-        _viewModel.SetAvailableCategories(appSettings, venues, rosters, snapshots, strategyConfig);
+        _viewModel.SetAvailableCategories(appSettings , venues , rosters , snapshots , strategyConfig);
     }
 
-    protected override void OnLoaded(RoutedEventArgs e)
+    protected override void OnLoaded (RoutedEventArgs e)
     {
         base.OnLoaded(e);
         Title = _viewModel.Title;
     }
 
-    private void OnConfirm(object? sender, RoutedEventArgs e)
+    private void OnConfirm (object? sender , RoutedEventArgs e)
         => Close(_viewModel.IsAnySelected);
 
-    private void OnCancel(object? sender, RoutedEventArgs e)
+    private void OnCancel (object? sender , RoutedEventArgs e)
         => Close(false);
 }

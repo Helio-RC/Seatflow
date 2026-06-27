@@ -18,7 +18,7 @@ public static class SeatSetsMigrators
         public string FromVersion => "1.0";
         public string ToVersion => "1.1";
 
-        public JsonNode Migrate(JsonNode root)
+        public JsonNode Migrate (JsonNode root)
         {
             // 当前格式无变更，仅更新版本号
             root["formatVersion"] = "1.1";

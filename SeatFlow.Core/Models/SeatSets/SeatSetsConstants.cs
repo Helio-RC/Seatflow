@@ -26,5 +26,5 @@ public static class SeatSetsConstants
 
     /// <summary>所有数据类别的有序列表。</summary>
     public static readonly IReadOnlyList<string> AllCategories =
-        [CategoryAppSettings, CategoryVenues, CategoryRosters, CategorySnapshots, CategoryStrategyConfig];
+        [CategoryAppSettings , CategoryVenues , CategoryRosters , CategorySnapshots , CategoryStrategyConfig];
 }

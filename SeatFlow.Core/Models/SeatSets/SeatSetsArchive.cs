@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace SeatFlow.Core.Models.SeatSets;
 
 /// <summary>
@@ -24,7 +22,7 @@ public class SeatSetsArchive
     /// 数据块字典。Key 为类别名（见 <see cref="SeatSetsConstants"/> 的 Category 常量），
     /// Value 为该类别下所有文件的 JSON 内容。
     /// </summary>
-    public Dictionary<string, SeatSetsChunk> Chunks { get; set; } = [];
+    public Dictionary<string , SeatSetsChunk> Chunks { get; set; } = [];
 
     /// <summary>
     /// 整体归档哈希（SHA256，覆盖除自身外的所有字段）。

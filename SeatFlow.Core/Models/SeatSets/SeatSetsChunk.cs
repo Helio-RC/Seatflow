@@ -15,5 +15,5 @@ public class SeatSetsChunk
     /// 文件字典。Key 为相对于 AppData 根目录的文件路径（使用 "/" 分隔），
     /// Value 为文件的 JSON 内容。
     /// </summary>
-    public Dictionary<string, JsonElement> Files { get; set; } = [];
+    public Dictionary<string , JsonElement> Files { get; set; } = [];
 }

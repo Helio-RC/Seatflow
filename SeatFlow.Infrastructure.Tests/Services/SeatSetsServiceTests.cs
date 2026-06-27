@@ -1,9 +1,8 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using SeatFlow.Core.Interfaces;
 using SeatFlow.Core.Models.SeatSets;
 using SeatFlow.Infrastructure.Services;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Infrastructure.Tests.Services;
 
@@ -13,84 +12,87 @@ public class SeatSetsServiceTests : IDisposable
     private readonly string _dataPath;
     private readonly string _settingsPath;
 
-    public SeatSetsServiceTests()
+    public SeatSetsServiceTests ()
     {
-        _tempRoot = Path.Combine(Path.GetTempPath(), $"SeatFlow_SeatSetsTest_{Guid.NewGuid():N}");
-        _dataPath = Path.Combine(_tempRoot, "AppData");
-        _settingsPath = Path.Combine(_dataPath, "AppSettings.json");
+        _tempRoot = Path.Combine(Path.GetTempPath() , $"SeatFlow_SeatSetsTest_{Guid.NewGuid():N}");
+        _dataPath = Path.Combine(_tempRoot , "AppData");
+        _settingsPath = Path.Combine(_dataPath , "AppSettings.json");
         Directory.CreateDirectory(_dataPath);
     }
 
-    public void Dispose()
+    public void Dispose ()
     {
-        try { Directory.Delete(_tempRoot, recursive: true); } catch { /* 忽略清理错误 */ }
+        try { Directory.Delete(_tempRoot , recursive: true); } catch { /* 忽略清理错误 */ }
     }
 
-    private ISeatSetsService CreateService(ILogger<SeatSetsService>? logger = null)
-        => new SeatSetsService(_dataPath, _settingsPath, logger);
+    private ISeatSetsService CreateService (ILogger<SeatSetsService>? logger = null)
+        => new SeatSetsService(_dataPath , _settingsPath , logger);
 
-    private async Task CreateMockDataAsync()
+    private async Task CreateMockDataAsync ()
     {
         // 创建 AppSettings.json
-        var settings = new AppSettings { Theme = ThemeMode.Dark, Language = "zh-CN" };
-        await File.WriteAllTextAsync(_settingsPath,
-            JsonSerializer.Serialize(settings, JsonOptions.WriteIndentedCamelCase));
+        var settings = new AppSettings { Theme = ThemeMode.Dark , Language = "zh-CN" };
+        await File.WriteAllTextAsync(_settingsPath ,
+            JsonSerializer.Serialize(settings , JsonOptions.WriteIndentedCamelCase));
 
         // 创建 Venues 目录和文件
-        var venuesDir = Path.Combine(_dataPath, "Venues");
+        var venuesDir = Path.Combine(_dataPath , "Venues");
         Directory.CreateDirectory(venuesDir);
         var venueFile = new
         {
-            version = "1.1",
-            venueId = "venue-001",
-            layout = new { id = "venue-001", name = "Test Venue", layoutType = 0, seats = new object[0], obstacles = new object[0] },
+            version = "1.1" ,
+            venueId = "venue-001" ,
+            layout = new { id = "venue-001" , name = "Test Venue" , layoutType = 0 , seats = Array.Empty<object>() , obstacles = Array.Empty<object>() } ,
             contentHash = "abc123"
         };
-        await File.WriteAllTextAsync(Path.Combine(venuesDir, "venue-001.venue.json"),
-            JsonSerializer.Serialize(venueFile, JsonOptions.WriteIndentedCamelCase));
+        await File.WriteAllTextAsync(Path.Combine(venuesDir , "venue-001.venue.json") ,
+            JsonSerializer.Serialize(venueFile , JsonOptions.WriteIndentedCamelCase));
 
         // 创建 Rosters 目录和文件
-        var rostersDir = Path.Combine(_dataPath, "Rosters");
+        var rostersDir = Path.Combine(_dataPath , "Rosters");
         Directory.CreateDirectory(rostersDir);
         var rosterFile = new
         {
-            version = "1.1",
-            description = "Test Roster",
-            students = new[] { new { id = "s1", name = "Student 1" } },
+            version = "1.1" ,
+            description = "Test Roster" ,
+            students = new[] { new { id = "s1" , name = "Student 1" } } ,
             studentsHash = "def456"
         };
-        await File.WriteAllTextAsync(Path.Combine(rostersDir, "roster-001.roster.json"),
-            JsonSerializer.Serialize(rosterFile, JsonOptions.WriteIndentedCamelCase));
+        await File.WriteAllTextAsync(Path.Combine(rostersDir , "roster-001.roster.json") ,
+            JsonSerializer.Serialize(rosterFile , JsonOptions.WriteIndentedCamelCase));
 
         // 创建 StrategyConfig 目录和文件
-        var configDir = Path.Combine(_dataPath, "StrategyConfig");
+        var configDir = Path.Combine(_dataPath , "StrategyConfig");
         Directory.CreateDirectory(configDir);
-        var config = new { version = "1.0", source = "builtin", priority = 50, isEnabled = true, parameters = new { } };
-        await File.WriteAllTextAsync(Path.Combine(configDir, "FixedSeat.config.json"),
-            JsonSerializer.Serialize(config, JsonOptions.WriteIndentedCamelCase));
+        var config = new { version = "1.0" , source = "builtin" , priority = 50 , isEnabled = true , parameters = new { } };
+        await File.WriteAllTextAsync(Path.Combine(configDir , "FixedSeat.config.json") ,
+            JsonSerializer.Serialize(config , JsonOptions.WriteIndentedCamelCase));
     }
 
     [Fact]
-    public async Task ExportAndImport_RoundTrip_PreservesAllData()
+    public async Task ExportAndImport_RoundTrip_PreservesAllData ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
         var selection = new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true, IncludeRosters = true,
-            IncludeSnapshots = false, IncludeStrategyConfig = true
+            IncludeAppSettings = true ,
+            IncludeVenues = true ,
+            IncludeRosters = true ,
+            IncludeSnapshots = false ,
+            IncludeStrategyConfig = true
         };
-        var exportPath = Path.Combine(_tempRoot, "test.seatsets");
+        var exportPath = Path.Combine(_tempRoot , "test.seatsets");
 
         // Act: Export
-        var exportedCount = await service.ExportAsync(exportPath, selection);
+        var exportedCount = await service.ExportAsync(exportPath , selection , TestContext.Current.CancellationToken);
         exportedCount.Should().BeGreaterThan(0);
         File.Exists(exportPath).Should().BeTrue();
 
         // Verify archive structure
-        var json = await File.ReadAllTextAsync(exportPath);
-        var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json, JsonOptions.CaseInsensitiveRead);
+        var json = await File.ReadAllTextAsync(exportPath , TestContext.Current.CancellationToken);
+        var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json , JsonOptions.CaseInsensitiveRead);
         archive.Should().NotBeNull();
         archive!.FormatVersion.Should().Be(SeatSetsConstants.CurrentFormatVersion);
         archive.Chunks.Should().ContainKey(SeatSetsConstants.CategoryAppSettings);
@@ -100,47 +102,51 @@ public class SeatSetsServiceTests : IDisposable
         archive.ArchiveHash.Should().NotBeNullOrEmpty();
 
         // Verify chunk hashes
-        foreach (var (_, chunk) in archive.Chunks)
+        foreach (var (_ , chunk) in archive.Chunks)
         {
             chunk.Hash.Should().NotBeNullOrEmpty("每个 chunk 应有哈希值");
         }
 
         // Act: Clear data and Import
-        Directory.Delete(_dataPath, recursive: true);
+        Directory.Delete(_dataPath , recursive: true);
         Directory.CreateDirectory(_dataPath);
 
         var importSelection = new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true, IncludeRosters = true,
-            IncludeSnapshots = false, IncludeStrategyConfig = true
+            IncludeAppSettings = true ,
+            IncludeVenues = true ,
+            IncludeRosters = true ,
+            IncludeSnapshots = false ,
+            IncludeStrategyConfig = true
         };
-        var result = await service.ImportAsync(exportPath, importSelection);
+        var result = await service.ImportAsync(exportPath , importSelection , ct: TestContext.Current.CancellationToken);
 
         // Assert
-        result.Success.Should().BeTrue($"导入应全部成功, 但出错: {string.Join("; ", result.Errors)}");
+        result.Success.Should().BeTrue($"导入应全部成功, 但出错: {string.Join("; " , result.Errors)}");
         result.Restored.Should().Be(exportedCount);
 
         // Verify files were restored
         File.Exists(_settingsPath).Should().BeTrue("AppSettings 应被恢复");
-        File.Exists(Path.Combine(_dataPath, "Venues", "venue-001.venue.json")).Should().BeTrue("会场文件应被恢复");
-        File.Exists(Path.Combine(_dataPath, "Rosters", "roster-001.roster.json")).Should().BeTrue("名单文件应被恢复");
-        File.Exists(Path.Combine(_dataPath, "StrategyConfig", "FixedSeat.config.json")).Should().BeTrue("策略配置应被恢复");
+        File.Exists(Path.Combine(_dataPath , "Venues" , "venue-001.venue.json")).Should().BeTrue("会场文件应被恢复");
+        File.Exists(Path.Combine(_dataPath , "Rosters" , "roster-001.roster.json")).Should().BeTrue("名单文件应被恢复");
+        File.Exists(Path.Combine(_dataPath , "StrategyConfig" , "FixedSeat.config.json")).Should().BeTrue("策略配置应被恢复");
     }
 
     [Fact]
-    public async Task Validate_ValidFile_ReturnsValid()
+    public async Task Validate_ValidFile_ReturnsValid ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "valid.seatsets");
-        await service.ExportAsync(exportPath, new SeatSetsExportSelection
+        var exportPath = Path.Combine(_tempRoot , "valid.seatsets");
+        await service.ExportAsync(exportPath , new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true
-        });
+            IncludeAppSettings = true ,
+            IncludeVenues = true
+        } , TestContext.Current.CancellationToken);
 
         // Act
-        var result = await service.ValidateAsync(exportPath);
+        var result = await service.ValidateAsync(exportPath , TestContext.Current.CancellationToken);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -152,39 +158,40 @@ public class SeatSetsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Validate_TamperedFile_ReturnsInvalid()
+    public async Task Validate_TamperedFile_ReturnsInvalid ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "tampered.seatsets");
-        await service.ExportAsync(exportPath, new SeatSetsExportSelection
+        var exportPath = Path.Combine(_tempRoot , "tampered.seatsets");
+        await service.ExportAsync(exportPath , new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true
-        });
+            IncludeAppSettings = true ,
+            IncludeVenues = true
+        } , TestContext.Current.CancellationToken);
 
         // Tamper with the file: modify a value inside a chunk
-        var json = await File.ReadAllTextAsync(exportPath);
+        var json = await File.ReadAllTextAsync(exportPath , TestContext.Current.CancellationToken);
         // 将会场 ID "venue-001" 改为 "venue-TAMPERED"（改变 chunk 内容但不改变结构）
-        json = json.Replace("venue-001", "venue-TAMPERED");
-        await File.WriteAllTextAsync(exportPath, json);
+        json = json.Replace("venue-001" , "venue-TAMPERED");
+        await File.WriteAllTextAsync(exportPath , json , TestContext.Current.CancellationToken);
 
         // Act
-        var result = await service.ValidateAsync(exportPath);
+        var result = await service.ValidateAsync(exportPath , TestContext.Current.CancellationToken);
 
         // Assert
         result.IsValid.Should().BeFalse("篡改后的文件应校验失败");
     }
 
     [Fact]
-    public async Task Validate_OversizedFile_Rejects()
+    public async Task Validate_OversizedFile_Rejects ()
     {
         // Arrange
         var service = CreateService();
-        var bigFilePath = Path.Combine(_tempRoot, "big.seatsets");
+        var bigFilePath = Path.Combine(_tempRoot , "big.seatsets");
         // 创建一个小文件但假报为大文件（通过直接测试文件大小检查逻辑）
         // 创建一个超过限制的文件不太实际，这里测试文件不存在的校验
-        var result = await service.ValidateAsync(Path.Combine(_tempRoot, "nonexistent.seatsets"));
+        var result = await service.ValidateAsync(Path.Combine(_tempRoot , "nonexistent.seatsets") , TestContext.Current.CancellationToken);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -192,15 +199,15 @@ public class SeatSetsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Validate_InvalidJson_ReturnsInvalid()
+    public async Task Validate_InvalidJson_ReturnsInvalid ()
     {
         // Arrange
         var service = CreateService();
-        var invalidPath = Path.Combine(_tempRoot, "invalid.seatsets");
-        await File.WriteAllTextAsync(invalidPath, "this is not json");
+        var invalidPath = Path.Combine(_tempRoot , "invalid.seatsets");
+        await File.WriteAllTextAsync(invalidPath , "this is not json" , TestContext.Current.CancellationToken);
 
         // Act
-        var result = await service.ValidateAsync(invalidPath);
+        var result = await service.ValidateAsync(invalidPath , TestContext.Current.CancellationToken);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -208,27 +215,27 @@ public class SeatSetsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Export_PartialSelection_OnlyExportsSelected()
+    public async Task Export_PartialSelection_OnlyExportsSelected ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "partial.seatsets");
+        var exportPath = Path.Combine(_tempRoot , "partial.seatsets");
 
         // Act: Only export Venues
         var selection = new SeatSetsExportSelection
         {
-            IncludeAppSettings = false,
-            IncludeVenues = true,
-            IncludeRosters = false,
-            IncludeSnapshots = false,
+            IncludeAppSettings = false ,
+            IncludeVenues = true ,
+            IncludeRosters = false ,
+            IncludeSnapshots = false ,
             IncludeStrategyConfig = false
         };
-        await service.ExportAsync(exportPath, selection);
+        await service.ExportAsync(exportPath , selection , TestContext.Current.CancellationToken);
 
         // Assert
-        var json = await File.ReadAllTextAsync(exportPath);
-        var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json, JsonOptions.CaseInsensitiveRead);
+        var json = await File.ReadAllTextAsync(exportPath , TestContext.Current.CancellationToken);
+        var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json , JsonOptions.CaseInsensitiveRead);
         archive.Should().NotBeNull();
         archive!.Chunks.Should().ContainKey(SeatSetsConstants.CategoryVenues);
         archive.Chunks.Should().NotContainKey(SeatSetsConstants.CategoryAppSettings);
@@ -237,45 +244,48 @@ public class SeatSetsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Export_EmptyDirectory_ReturnsZero()
+    public async Task Export_EmptyDirectory_ReturnsZero ()
     {
         // Arrange
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "empty.seatsets");
+        var exportPath = Path.Combine(_tempRoot , "empty.seatsets");
 
         // Act
-        var count = await service.ExportAsync(exportPath, new SeatSetsExportSelection());
+        var count = await service.ExportAsync(exportPath , new SeatSetsExportSelection() , TestContext.Current.CancellationToken);
 
         // Assert
         count.Should().Be(0);
     }
 
     [Fact]
-    public async Task Discover_FileExists_ReturnsPath()
+    public async Task Discover_FileExists_ReturnsPath ()
     {
         // This test relies on AppContext.BaseDirectory, which is the test output dir.
         // Skip in CI; test logic is verified via code review.
         var service = CreateService();
-        var result = await service.DiscoverAsync();
+        var result = await service.DiscoverAsync(TestContext.Current.CancellationToken);
         // May or may not find files in the test output directory
         result.Should().BeNull("测试输出目录不应有 .seatsets 文件");
     }
 
     [Fact]
-    public async Task ProbeCategories_CorrectlyIdentifiesAvailableCategories()
+    public async Task ProbeCategories_CorrectlyIdentifiesAvailableCategories ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "probe.seatsets");
-        await service.ExportAsync(exportPath, new SeatSetsExportSelection
+        var exportPath = Path.Combine(_tempRoot , "probe.seatsets");
+        await service.ExportAsync(exportPath , new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true, IncludeRosters = false,
-            IncludeSnapshots = false, IncludeStrategyConfig = false
-        });
+            IncludeAppSettings = true ,
+            IncludeVenues = true ,
+            IncludeRosters = false ,
+            IncludeSnapshots = false ,
+            IncludeStrategyConfig = false
+        } , TestContext.Current.CancellationToken);
 
         // Act
-        var categories = await service.ProbeCategoriesAsync(exportPath);
+        var categories = await service.ProbeCategoriesAsync(exportPath , TestContext.Current.CancellationToken);
 
         // Assert
         categories.IncludeAppSettings.Should().BeTrue();
@@ -286,65 +296,76 @@ public class SeatSetsServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Import_PartialRestore_SkipsMissingCategories()
+    public async Task Import_PartialRestore_SkipsMissingCategories ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "full.seatsets");
-        await service.ExportAsync(exportPath, new SeatSetsExportSelection
+        var exportPath = Path.Combine(_tempRoot , "full.seatsets");
+        await service.ExportAsync(exportPath , new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true,
-            IncludeRosters = true, IncludeStrategyConfig = true
-        });
+            IncludeAppSettings = true ,
+            IncludeVenues = true ,
+            IncludeRosters = true ,
+            IncludeStrategyConfig = true
+        } , TestContext.Current.CancellationToken);
 
         // Clear and import only AppSettings
-        Directory.Delete(_dataPath, recursive: true);
+        Directory.Delete(_dataPath , recursive: true);
         Directory.CreateDirectory(_dataPath);
 
         var partialSelection = new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = false,
-            IncludeRosters = false, IncludeSnapshots = false, IncludeStrategyConfig = false
+            IncludeAppSettings = true ,
+            IncludeVenues = false ,
+            IncludeRosters = false ,
+            IncludeSnapshots = false ,
+            IncludeStrategyConfig = false
         };
 
         // Act
-        var result = await service.ImportAsync(exportPath, partialSelection);
+        var result = await service.ImportAsync(exportPath , partialSelection , ct: TestContext.Current.CancellationToken);
 
         // Assert
         result.Success.Should().BeTrue();
         result.Restored.Should().Be(1); // Only AppSettings
         File.Exists(_settingsPath).Should().BeTrue();
-        File.Exists(Path.Combine(_dataPath, "Venues", "venue-001.venue.json")).Should().BeFalse("会场未被选择导入");
+        File.Exists(Path.Combine(_dataPath , "Venues" , "venue-001.venue.json")).Should().BeFalse("会场未被选择导入");
     }
 
     [Fact]
-    public async Task Import_CreatesTargetDirectories()
+    public async Task Import_CreatesTargetDirectories ()
     {
         // Arrange
         await CreateMockDataAsync();
         var service = CreateService();
-        var exportPath = Path.Combine(_tempRoot, "dirs.seatsets");
-        await service.ExportAsync(exportPath, new SeatSetsExportSelection
+        var exportPath = Path.Combine(_tempRoot , "dirs.seatsets");
+        await service.ExportAsync(exportPath , new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true, IncludeRosters = true,
-            IncludeSnapshots = true, IncludeStrategyConfig = true
-        });
+            IncludeAppSettings = true ,
+            IncludeVenues = true ,
+            IncludeRosters = true ,
+            IncludeSnapshots = true ,
+            IncludeStrategyConfig = true
+        } , TestContext.Current.CancellationToken);
 
         // Delete everything including parent
-        Directory.Delete(_dataPath, recursive: true);
+        Directory.Delete(_dataPath , recursive: true);
 
         // Act
-        var result = await service.ImportAsync(exportPath, new SeatSetsExportSelection
+        var result = await service.ImportAsync(exportPath , new SeatSetsExportSelection
         {
-            IncludeAppSettings = true, IncludeVenues = true, IncludeRosters = true,
-            IncludeSnapshots = false, IncludeStrategyConfig = true
-        });
+            IncludeAppSettings = true ,
+            IncludeVenues = true ,
+            IncludeRosters = true ,
+            IncludeSnapshots = false ,
+            IncludeStrategyConfig = true
+        } , ct: TestContext.Current.CancellationToken);
 
         // Assert: 目录自动创建
-        result.Success.Should().BeTrue($"导入应成功, 错误: {string.Join("; ", result.Errors)}");
-        Directory.Exists(Path.Combine(_dataPath, "Venues")).Should().BeTrue("Venues 目录应被创建");
-        Directory.Exists(Path.Combine(_dataPath, "Rosters")).Should().BeTrue("Rosters 目录应被创建");
-        Directory.Exists(Path.Combine(_dataPath, "StrategyConfig")).Should().BeTrue("StrategyConfig 目录应被创建");
+        result.Success.Should().BeTrue($"导入应成功, 错误: {string.Join("; " , result.Errors)}");
+        Directory.Exists(Path.Combine(_dataPath , "Venues")).Should().BeTrue("Venues 目录应被创建");
+        Directory.Exists(Path.Combine(_dataPath , "Rosters")).Should().BeTrue("Rosters 目录应被创建");
+        Directory.Exists(Path.Combine(_dataPath , "StrategyConfig")).Should().BeTrue("StrategyConfig 目录应被创建");
     }
 }

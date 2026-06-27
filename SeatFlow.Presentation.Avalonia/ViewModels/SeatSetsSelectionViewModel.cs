@@ -1,6 +1,6 @@
-using SeatFlow.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SeatFlow.Presentation.Avalonia.Lang;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -52,9 +52,9 @@ public partial class SeatSetsSelectionViewModel : ViewModelBase
     /// <summary>
     /// 根据可用类别更新复选框状态。用于导入模式下预填。
     /// </summary>
-    public void SetAvailableCategories(
-        bool appSettings, bool venues, bool rosters,
-        bool snapshots, bool strategyConfig)
+    public void SetAvailableCategories (
+        bool appSettings , bool venues , bool rosters ,
+        bool snapshots , bool strategyConfig)
     {
         IncludeAppSettings = appSettings;
         IncludeVenues = venues;
@@ -67,17 +67,17 @@ public partial class SeatSetsSelectionViewModel : ViewModelBase
     /// <summary>
     /// 构建用户选择的数据类别对象。
     /// </summary>
-    public Core.Models.SeatSets.SeatSetsExportSelection ToSelection() => new()
+    public Core.Models.SeatSets.SeatSetsExportSelection ToSelection () => new()
     {
-        IncludeAppSettings = IncludeAppSettings,
-        IncludeVenues = IncludeVenues,
-        IncludeRosters = IncludeRosters,
-        IncludeSnapshots = IncludeSnapshots,
+        IncludeAppSettings = IncludeAppSettings ,
+        IncludeVenues = IncludeVenues ,
+        IncludeRosters = IncludeRosters ,
+        IncludeSnapshots = IncludeSnapshots ,
         IncludeStrategyConfig = IncludeStrategyConfig
     };
 
     [RelayCommand]
-    private void ToggleAll()
+    private void ToggleAll ()
     {
         bool all = IsAllSelected;
         IncludeAppSettings = !all;
@@ -88,13 +88,13 @@ public partial class SeatSetsSelectionViewModel : ViewModelBase
         UpdateToggleAllText();
     }
 
-    partial void OnIncludeAppSettingsChanged(bool value) => UpdateToggleAllText();
-    partial void OnIncludeVenuesChanged(bool value) => UpdateToggleAllText();
-    partial void OnIncludeRostersChanged(bool value) => UpdateToggleAllText();
-    partial void OnIncludeSnapshotsChanged(bool value) => UpdateToggleAllText();
-    partial void OnIncludeStrategyConfigChanged(bool value) => UpdateToggleAllText();
+    partial void OnIncludeAppSettingsChanged (bool value) => UpdateToggleAllText();
+    partial void OnIncludeVenuesChanged (bool value) => UpdateToggleAllText();
+    partial void OnIncludeRostersChanged (bool value) => UpdateToggleAllText();
+    partial void OnIncludeSnapshotsChanged (bool value) => UpdateToggleAllText();
+    partial void OnIncludeStrategyConfigChanged (bool value) => UpdateToggleAllText();
 
-    private void UpdateToggleAllText()
+    private void UpdateToggleAllText ()
     {
         ToggleAllText = IsAllSelected
             ? Resources.SeatSets_DeselectAll

@@ -31,7 +31,7 @@ public class SeatSetsExportSelection
         || IncludeSnapshots || IncludeStrategyConfig;
 
     /// <summary>获取选中的类别名列表。</summary>
-    public List<string> GetSelectedCategories()
+    public List<string> GetSelectedCategories ()
     {
         var list = new List<string>(5);
         if (IncludeAppSettings) list.Add(SeatSetsConstants.CategoryAppSettings);
