@@ -74,6 +74,32 @@ Guide 控件通过 NameScope 查找目标——即使控件不可见也能找到
 
 - **零磁盘痕迹**：引导结束无任何残留数据文件
 - **不依赖 Infrastructure 层**：仅使用 Core 模型 + ViewModel public API，无架构分层违规
-- **不修改任何 ViewModel**：纯外部注入，ViewModels 保持无感知
+- **不修改任何 ViewModel**：纯外部注入，ViewModels 保持无感知（例外：`MemberManagementViewModel` 暴露了 `SetSuppressDatasetLoad()` 和 `ResetDirtyState()` 两个 internal 方法供引导清理使用）
 - **`DispatcherPriority.Background` 依赖**：延迟注入依赖 Avalonia 调度器的优先级语义。若未来 ViewModel 异步 init 改为更低的优先级，注入可能仍被覆盖。当前所有异步 init 使用普通优先级，Background 保证在本任务之后
 - **ViewModel 私有字段限制**：SeatingArrangement 的 `_workspace`、`_currentLayout` 为私有字段，无法直接注入。当前方案直接构建 `SeatDisplayItem` 对象填充 `SeatItems`（座位预览可见，但右侧策略/消息面板为空——对引导场景可接受）
+
+### v3.2 修订：MemberManagement 声明式 seedData + 中间过渡阶段
+
+**日期**：2026-06-27
+
+**问题**：原方案使用运行状态标志 `_memberManagementDataSeeded` 区分 MemberManagement 的 Phase 1（ImportButton，不注入）和 Phase 2（UpdateFromFileButton，注入）。该标志在 `StartOnboarding()` 中重置，但存在无法稳定复现的竞态导致 Phase 1 误注入演示数据，ImportButton 因 `IsEmpty=false` 被隐藏。
+
+**决策**：采用声明式 `seedData` 字段 + 中间过渡阶段的架构替代运行状态标志。
+
+1. **`OnboardingPhaseDefinition.SeedData`** — JSON 声明式 bool，默认 `false`。跨阶段导航时 `HandleStepOpening` 仅当 `phase.SeedData == true` 才调用 `SeedPageData()`。完全消除运行状态标志。
+
+2. **中间过渡阶段** — 在两个 MemberManagement 阶段之间插入一个 `page: "Home"` 过渡阶段（target: `MemberButton`），强制引导离开 MemberManagement 再重新进入。两次进入是独立的阶段过渡，每次由 `SeedData` 声明式控制是否注入。
+
+3. **`DialogWindow` Close 重入死锁修复** — 将按钮 Click 中的 `Close(true)` 改为 `Dispatcher.UIThread.Post(() => Close(true))`，避免 WinUI compositor Monitor 重入死锁。
+
+**配置变更**：
+- Phase 1（MemberManagement, ImportButton）: 默认 `seedData: false`，无注入
+- 新增过渡阶段（Home, MemberButton）: `seedData: false`
+- Phase 2（MemberManagement, UpdateFromFileButton 等）: `seedData: true`，注入演示数据
+- 所有后续需注入的阶段（VenueConfiguration、StrategyConfiguration、SeatingArrangement、SnapshotHistory）: 显式 `seedData: true`
+
+**影响**：
+- 引导总步数从 19 步增加到 20 步（过渡阶段 1 步）
+- `_memberManagementDataSeeded` 字段及相关代码完全删除
+- `HandleStepOpening` 中 MemberManagement 特殊分支（~15 行）简化为 1 行 `phase.SeedData` 检查
+- `ClearPageData` 保留 `_memberManagementDemoInjected` 静态标志判断是否实际注入过，避免清理未注入状态

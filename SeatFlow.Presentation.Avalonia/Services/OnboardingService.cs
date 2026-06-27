@@ -46,9 +46,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// <summary>窗口失焦/最小化时设为 true，静默关闭 Popup 防孤儿窗口。</summary>
     private bool _isWindowObscured;
 
-    /// <summary>MemberManagement 引导是否已注入过示例数据（Phase 1 跳过，Phase 2 注入）。</summary>
-    private bool _memberManagementDataSeeded;
-
     /// <summary>MemberManagement 演示数据是否已实际注入（用于 ClearPageData 判断是否需要清理）。</summary>
     private static bool _memberManagementDemoInjected;
 
@@ -81,9 +78,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     public void StartOnboarding ()
     {
-        // ✅ 在任何可能抛异常的操作之前重置，防止残留的 true 导致 Phase 1 误注入
-        _memberManagementDataSeeded = false;
-
         _logger.LogInformation("[Onboarding] StartOnboarding 开始");
 
         if (_config is null)
@@ -224,9 +218,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         //    RunTransitionAsync 因 IsOnboardingActive=true 提前返回，无闪烁。
         bool isPhaseTransition = false;
         PageKey targetPage = default;
+        var phaseIndex = GetPhaseIndex(stepIndex);
         if (_currentPageGuide is null)
         {
-            var phaseIndex = GetPhaseIndex(stepIndex);
             if (phaseIndex > 0 && _activePhaseBoundaries[phaseIndex] == stepIndex)
             {
                 var phase = _config!.StartupPhases[phaseIndex];
@@ -250,24 +244,11 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             }
         }
 
-        // 注入示例数据（仅启动引导的跨阶段导航，页面引导不注入）
-        // MemberManagement 特殊处理：Phase 1（导入按钮）不注入数据，Phase 2 才注入
+        // 注入示例数据：由 phase.SeedData 声明式控制（仅启动引导的跨阶段导航）
         if (isPhaseTransition)
         {
-            if (targetPage == PageKey.MemberManagement)
-            {
-                if (!_memberManagementDataSeeded)
-                {
-                    // Phase 1：不注入数据，仅标记已访问
-                    _memberManagementDataSeeded = true;
-                }
-                else
-                {
-                    // Phase 2：注入演示数据
-                    SeedPageData(targetPage);
-                }
-            }
-            else
+            var phase = _config!.StartupPhases[phaseIndex];
+            if (phase.SeedData)
             {
                 SeedPageData(targetPage);
             }
@@ -740,7 +721,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         // 清除注入的示例数据（纯内存操作，无 I/O）
         ClearPageData();
-        _memberManagementDataSeeded = false;
 
         // 持久化页面引导标记（可在后台安全执行，不影响竞态）
         if (wasPageGuide is not null)

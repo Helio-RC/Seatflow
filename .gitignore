@@ -384,4 +384,4 @@ dev-debug.log
 /.claude
 
 # i18n backup files
-A_Pair.Presentation.Avalonia/Lang/.backup/
+Seatflow.Presentation.Avalonia/Lang/.backup/

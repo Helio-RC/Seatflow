@@ -337,11 +337,13 @@ public string? PluginManagementDisabledTip => IsPageEnabled("PluginManagement") 
 
 ### 引导系统
 
-完全数据驱动，通过 `Data/onboarding_config.json`（v3.0）配置。完整设计详见 `docs/ONBOARDING_GUIDE.md`。示例数据注入决策详见 `docs/adr/ADR-008-onboarding-demo-data-injection.md`。
+完全数据驱动，通过 `Data/onboarding_config.json`（v3.2）配置。完整设计详见 `docs/ONBOARDING_GUIDE.md`。示例数据注入决策详见 `docs/adr/ADR-008-onboarding-demo-data-injection.md`。
 
 **两种引导类型：**
-- **启动引导（`startupPhases`）** — 首次启动时的 19 步完整工作流：Home→MemberManagement→VenueConfiguration→StrategyConfiguration（含策略冲突提示居中步骤）→SeatingArrangement→SnapshotHistory→Closing
+- **启动引导（`startupPhases`）** — 首次启动时的 20 步完整工作流：Home→MemberManagement(ImportButton)→Home(过渡)→MemberManagement(UpdateFromFileButton)→VenueConfiguration→StrategyConfiguration（含策略冲突提示居中步骤）→SeatingArrangement→SnapshotHistory→Closing
 - **页面引导（`pageGuides`）** — 首次访问页面时触发（FreeformManagement、PluginManagement）。记录在 `AppSettings.CompletedPageGuides` 中。
+
+**声明式示例数据注入 (v3.2):** `OnboardingPhaseDefinition.SeedData`（bool，默认 `false`）控制跨阶段导航时是否注入演示数据。原运行状态标志 `_memberManagementDataSeeded` 已删除，改为 JSON 声明式控制。MemberManagement 分两次进入（中间隔 Home 过渡阶段），第一次不注入（ImportButton 可见），第二次注入（UpdateFromFileButton 可见）。`ClearPageData` 使用 `_memberManagementDemoInjected` 静态标志判断是否实际注入过。
 
 **关键类：** `IOnboardingService` / `OnboardingService`（同时实现 `IOnboardingService` 和 `IOnboardingStarter`），`OnboardingPhaseDefinition` / `OnboardingStepDefinition`（模型）。`MainWindow.axaml.cs` 有 5 个薄事件包装器 — 所有逻辑在 `OnboardingService` 中。
 
@@ -351,7 +353,7 @@ public string? PluginManagementDisabledTip => IsPageEnabled("PluginManagement") 
 
 **添加/修改引导步骤：** 编辑 `onboarding_config.json` + 添加 resx 键 + 更新 `Designer.cs`。无需更改 C#。如果目标控件缺少 `x:Name`，将其添加到 `.axaml` 文件。
 
-**示例数据注入（v3.1）：** `OnboardingService.SeedPageData()` 在启动引导阶段转换期间将纯内存示例数据注入页面 ViewModel。引导完成时由 `ClearPageData()` 清除。对于构造函数中有 fire-and-forget 异步初始化的 ViewModel（SeatingArrangement、VenueConfiguration、StrategyConfiguration），注入通过 `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)` 延迟到异步 `LoadXxxAsync()` 覆盖之后运行。仅使用 Core 模型 + ViewModel 公共 API — 无 Infrastructure 层或磁盘 I/O 依赖。参见 ADR-008。
+**示例数据注入（v3.2）：** `OnboardingService.SeedPageData()` 在启动引导阶段转换期间将纯内存示例数据注入页面 ViewModel，由 `OnboardingPhaseDefinition.SeedData`（JSON bool，默认 `false`）声明式控制。引导完成时由 `ClearPageData()` 清除（通过 `_memberManagementDemoInjected` 静态标志守卫——仅在实际注入过时才清理）。对于构造函数中有 fire-and-forget 异步初始化的 ViewModel（SeatingArrangement、VenueConfiguration、StrategyConfiguration），注入通过 `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)` 延迟到异步 `LoadXxxAsync()` 覆盖之后运行。仅使用 Core 模型 + ViewModel 公共 API — 无 Infrastructure 层或磁盘 I/O 依赖。参见 ADR-008。
 
 **窗口状态同步（v3.1）：** `MainWindow` 订阅 `Activated`/`Deactivated` 事件 → 转发给 `OnboardingService.HandleWindowActivated()`/`HandleWindowDeactivated()`。失活时（最小化/Alt+Tab）：`_isWindowObscured=true`，`Guide.Close()` 静默关闭 Popup（无确认对话框，无完成标记）。激活时（恢复）：从保留的 `CurrentIndex` 重新打开 Guide。防止 3 个 Popup（`ShouldUseOverlayLayer=False`，原生 OS 窗口）残留为孤立窗口。
 

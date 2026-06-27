@@ -28,6 +28,10 @@ public sealed class OnboardingPhaseDefinition
     [JsonPropertyName("page")]
     public string? Page { get; set; }
 
+    /// <summary>跨阶段导航到此页面时是否注入演示数据。默认 false。</summary>
+    [JsonPropertyName("seedData")]
+    public bool SeedData { get; set; }
+
     [JsonPropertyName("steps")]
     public List<OnboardingStepDefinition> Steps { get; set; } = [];
 }

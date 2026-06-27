@@ -1,5 +1,5 @@
 {
-  "version": "3.0",
+  "version": "3.2",
   "startupPhases": [
     {
       "page": null,
@@ -30,7 +30,19 @@
       ]
     },
     {
+      "page": "Home",
+      "steps": [
+        {
+          "titleKey": "Guide_Members_Transition_Title",
+          "descKey": "Guide_Members_Transition_Desc",
+          "target": "MemberButton",
+          "placement": "Right"
+        }
+      ]
+    },
+    {
       "page": "MemberManagement",
+      "seedData": true,
       "steps": [
         {
           "titleKey": "Guide_Members_Update_Title",
@@ -53,6 +65,7 @@
     },
     {
       "page": "VenueConfiguration",
+      "seedData": true,
       "steps": [
         {
           "titleKey": "Guide_Venue_New_Title",
@@ -74,6 +87,7 @@
     },
     {
       "page": "StrategyConfiguration",
+      "seedData": true,
       "steps": [
         {
           "titleKey": "Guide_Strategy_List_Title",
@@ -102,6 +116,7 @@
     },
     {
       "page": "SeatingArrangement",
+      "seedData": true,
       "steps": [
         {
           "titleKey": "Guide_Seating_SelectVenue_Title",
@@ -129,6 +144,7 @@
     },
     {
       "page": "SnapshotHistory",
+      "seedData": true,
       "steps": [
         {
           "titleKey": "Guide_Snapshot_SelectVenue_Title",
