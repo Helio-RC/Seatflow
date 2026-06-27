@@ -1,28 +1,28 @@
 using System.Text.Json;
-using A_Pair.Application.Interfaces;
-using A_Pair.Application.Plugins;
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Core.Services;
-using A_Pair.Core.Strategies;
-using A_Pair.Infrastructure.Exporters;
-using A_Pair.Infrastructure.Migration;
-using A_Pair.Infrastructure.Migration.Migrators;
-using A_Pair.Infrastructure.Providers;
-using A_Pair.Infrastructure.Repositories;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Application.Plugins;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Core.Services;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Infrastructure.Exporters;
+using SeatFlow.Infrastructure.Migration;
+using SeatFlow.Infrastructure.Migration.Migrators;
+using SeatFlow.Infrastructure.Providers;
+using SeatFlow.Infrastructure.Repositories;
+using SeatFlow.Infrastructure.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 
-namespace A_Pair.Application.Services
+namespace SeatFlow.Application.Services
 {
     /// <summary>
-    /// 提供 <see cref="IServiceCollection"/> 的扩展方法，用于注册 A_Pair 应用程序层的所有服务。
+    /// 提供 <see cref="IServiceCollection"/> 的扩展方法，用于注册 SeatFlow 应用程序层的所有服务。
     /// </summary>
     /// <remarks>
     /// 此扩展方法一次性注册以下组件：
@@ -41,7 +41,7 @@ namespace A_Pair.Application.Services
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// 将 A_Pair 应用程序层的所有服务注册到依赖注入容器中。
+        /// 将 SeatFlow 应用程序层的所有服务注册到依赖注入容器中。
         /// 启动时读取默认位置的 AppSettings.json，若设置了 <c>DataDirectory</c>，
         /// 则使用自定义路径作为所有数据的基目录。
         /// </summary>
@@ -49,7 +49,7 @@ namespace A_Pair.Application.Services
         /// <param name="snapshotBasePath">数据存储的默认基路径。</param>
         /// <param name="pluginsPath">插件目录的路径。</param>
         /// <returns>服务集合，支持链式调用。</returns>
-        public static IServiceCollection AddA_PairApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
+        public static IServiceCollection AddSeatFlowApplication (this IServiceCollection services , string snapshotBasePath , string pluginsPath)
         {
             // 解析有效数据目录 + 读取日志配置（单次 I/O）
             var defaultSettingsPath = Path.Combine(snapshotBasePath , "AppSettings.json");
@@ -79,7 +79,7 @@ namespace A_Pair.Application.Services
 
             // 实例隔离：每次启动创建独立日志文件，避免多实例写入冲突
             var instanceId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-            var logPath = Path.Combine(logDir , $"A_Pair_{instanceId}.log");
+            var logPath = Path.Combine(logDir , $"SeatFlow_{instanceId}.log");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Is(logLevel)
                 .WriteTo.File(
@@ -198,7 +198,7 @@ namespace A_Pair.Application.Services
             if (retainCount <= 0) return;
             try
             {
-                var files = Directory.GetFiles(logDir , "A_Pair_*.log")
+                var files = Directory.GetFiles(logDir , "SeatFlow_*.log")
                     .Select(f => new FileInfo(f))
                     .OrderByDescending(f => f.CreationTimeUtc)
                     .ToList();

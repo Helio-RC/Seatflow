@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 学生选择器 ViewModel。绑定到一个学生列表和一个选中的学生 ID。
@@ -34,7 +34,7 @@ public partial class StudentPickerViewModel : ViewModelBase
     /// <summary>
     /// 从 Core.Models.Student 列表加载学生项。缓存完整列表并刷新过滤视图。
     /// </summary>
-    public void LoadStudents (IEnumerable<A_Pair.Core.Models.Student> students)
+    public void LoadStudents (IEnumerable<SeatFlow.Core.Models.Student> students)
     {
         _allStudents = [.. students.Select(s => new StudentPickerItem { Id = s.Id , Name = s.Name })];
         RefreshFilteredStudents();

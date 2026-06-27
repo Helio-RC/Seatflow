@@ -1,9 +1,9 @@
 using System.Globalization;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
 using CsvHelper;
 
-namespace A_Pair.Infrastructure.Providers
+namespace SeatFlow.Infrastructure.Providers
 {
     /// <summary>
     /// CSV 格式的学生数据写入器。

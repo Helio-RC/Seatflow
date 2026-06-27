@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 座位快照，记录某一时刻的完整座位分配状态。

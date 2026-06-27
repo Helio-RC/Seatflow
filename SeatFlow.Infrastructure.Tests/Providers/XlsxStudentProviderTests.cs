@@ -1,13 +1,13 @@
 using OfficeOpenXml;
 
-namespace A_Pair.Infrastructure.Tests.Providers;
+namespace SeatFlow.Infrastructure.Tests.Providers;
 
 public class XlsxStudentProviderTests
 {
     private static string CreateTempXlsx (string[,] data)
     {
         var path = Path.GetTempFileName() + ".xlsx";
-        ExcelPackage.License.SetNonCommercialPersonal("A_Pair.Test");
+        ExcelPackage.License.SetNonCommercialPersonal("SeatFlow.Test");
         using (var package = new ExcelPackage(new FileInfo(path)))
         {
             var ws = package.Workbook.Worksheets.Add("Students");

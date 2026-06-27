@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace A_Pair.Infrastructure.Tests.Writers;
+namespace SeatFlow.Infrastructure.Tests.Writers;
 
 public class JsonStudentWriterTests
 {

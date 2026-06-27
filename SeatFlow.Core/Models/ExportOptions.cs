@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 导出选项，控制座位安排结果的导出格式和行为。

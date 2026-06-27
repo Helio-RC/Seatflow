@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace A_Pair.Infrastructure.Utils;
+namespace SeatFlow.Infrastructure.Utils;
 
 /// <summary>
 /// 文件内容哈希工具。

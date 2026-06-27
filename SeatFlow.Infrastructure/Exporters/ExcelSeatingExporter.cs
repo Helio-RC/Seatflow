@@ -1,10 +1,10 @@
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
 
-namespace A_Pair.Infrastructure.Exporters;
+namespace SeatFlow.Infrastructure.Exporters;
 
 public class ExcelSeatingExporter : ISeatingPlanExporter
 {
@@ -13,7 +13,7 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
     public ExcelSeatingExporter (ILogger<ExcelSeatingExporter> logger)
     {
         _logger = logger;
-        ExcelPackage.License.SetNonCommercialPersonal("A_Pair");
+        ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
     }
 
     public ExportFormat Format => ExportFormat.Excel;

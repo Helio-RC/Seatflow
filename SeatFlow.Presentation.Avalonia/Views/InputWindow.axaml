@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
-        x:Class="A_Pair.Presentation.Avalonia.Views.InputWindow"
+        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+        x:Class="SeatFlow.Presentation.Avalonia.Views.InputWindow"
         Width="400" SizeToContent="Height" MinHeight="140"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">

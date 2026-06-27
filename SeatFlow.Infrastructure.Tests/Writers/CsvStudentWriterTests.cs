@@ -1,6 +1,6 @@
-using A_Pair.Core.Enums;
+using SeatFlow.Core.Enums;
 
-namespace A_Pair.Infrastructure.Tests.Writers;
+namespace SeatFlow.Infrastructure.Tests.Writers;
 
 public class CsvStudentWriterTests
 {

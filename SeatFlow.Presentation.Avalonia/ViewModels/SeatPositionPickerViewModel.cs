@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 座位定位器 ViewModel。根据布局类型显示不同的定位控件。

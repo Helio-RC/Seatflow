@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 结构化座位安排导出模型，包含布局结构和学生姓名信息。

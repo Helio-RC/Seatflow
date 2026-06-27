@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件包清单，对应 <c>plugins-manifest.json</c> 文件。

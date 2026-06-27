@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.Providers
+namespace SeatFlow.Core.Providers
 {
     /// <summary>
     /// 会场仓储接口，定义会场布局数据的持久化契约。

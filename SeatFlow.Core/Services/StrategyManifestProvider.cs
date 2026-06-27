@@ -1,9 +1,9 @@
 using System.Text.Json;
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Core.Services;
+namespace SeatFlow.Core.Services;
 
 /// <summary>
 /// 从嵌入资源加载内置策略的 Manifest，提供不可变的策略元数据。
@@ -17,7 +17,7 @@ public class StrategyManifestProvider
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
     };
 
-    private const string ManifestResourcePrefix = "A_Pair.Core.Strategies.Manifests.";
+    private const string ManifestResourcePrefix = "SeatFlow.Core.Strategies.Manifests.";
 
     /// <summary>当前程序支持的 Manifest 最大版本号。</summary>
     public const string MaxManifestVersion = "1.0";

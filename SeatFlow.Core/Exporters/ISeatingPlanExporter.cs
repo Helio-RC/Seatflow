@@ -1,7 +1,7 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Core.Exporters
+namespace SeatFlow.Core.Exporters
 {
     /// <summary>
     /// 座位安排计划导出器接口，定义将 <see cref="SeatingPlan"/> 导出到文件的标准契约。

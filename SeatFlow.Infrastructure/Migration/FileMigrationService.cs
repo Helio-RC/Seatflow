@@ -2,7 +2,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Infrastructure.Migration;
+namespace SeatFlow.Infrastructure.Migration;
 
 /// <summary>
 /// 文件版本迁移服务。根据文件的当前版本和目标版本，查找并执行迁移链路。

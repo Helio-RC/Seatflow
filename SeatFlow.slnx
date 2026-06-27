@@ -4,13 +4,13 @@
     <File Path="Goal.md" />
     <File Path="Phases.md" />
   </Folder>
-  <Project Path="A_Pair.Application.Tests/A_Pair.Application.Tests.csproj" />
-  <Project Path="A_Pair.Application/A_Pair.Application.csproj" />
-  <Project Path="A_Pair.Contracts/A_Pair.Contracts.csproj" />
-  <Project Path="A_Pair.Core.Tests/A_Pair.Core.Tests.csproj" />
-  <Project Path="A_Pair.Core/A_Pair.Core.csproj" />
-  <Project Path="A_Pair.Infrastructure.Tests/A_Pair.Infrastructure.Tests.csproj" />
-  <Project Path="A_Pair.Infrastructure/A_Pair.Infrastructure.csproj" />
-  <Project Path="A_Pair.Plugins.Sdk/A_Pair.Plugins.Sdk.csproj" />
-  <Project Path="A_Pair.Presentation.Avalonia/A_Pair.Presentation.Avalonia.csproj" Id="3ca31cc4-b276-4fff-bbc2-5c3d43f8c251" />
+  <Project Path="SeatFlow.Application.Tests/SeatFlow.Application.Tests.csproj" />
+  <Project Path="SeatFlow.Application/SeatFlow.Application.csproj" />
+  <Project Path="SeatFlow.Contracts/SeatFlow.Contracts.csproj" />
+  <Project Path="SeatFlow.Core.Tests/SeatFlow.Core.Tests.csproj" />
+  <Project Path="SeatFlow.Core/SeatFlow.Core.csproj" />
+  <Project Path="SeatFlow.Infrastructure.Tests/SeatFlow.Infrastructure.Tests.csproj" />
+  <Project Path="SeatFlow.Infrastructure/SeatFlow.Infrastructure.csproj" />
+  <Project Path="SeatFlow.Plugins.Sdk/SeatFlow.Plugins.Sdk.csproj" />
+  <Project Path="SeatFlow.Presentation.Avalonia/SeatFlow.Presentation.Avalonia.csproj" Id="3ca31cc4-b276-4fff-bbc2-5c3d43f8c251" />
 </Solution>

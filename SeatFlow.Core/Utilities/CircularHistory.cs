@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace A_Pair.Core.Utilities;
+namespace SeatFlow.Core.Utilities;
 
 /// <summary>
 /// 环形缓冲区（Circular Buffer），用于存储固定容量的历史记录。

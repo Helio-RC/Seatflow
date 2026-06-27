@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Reflection;
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Plugins.Sdk.Attributes;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Plugins.Sdk.Attributes;
 
-namespace A_Pair.Plugins.Sdk.Abstractions;
+namespace SeatFlow.Plugins.Sdk.Abstractions;
 
 /// <summary>
 /// 所有插件的可选抽象基类，提供 <see cref="IPlugin"/> 身份元数据的默认实现。

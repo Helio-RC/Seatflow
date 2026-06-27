@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="A_Pair.Application.Tests" />
+    <InternalsVisibleTo Include="SeatFlow.Application.Tests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
@@ -24,9 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\A_Pair.Contracts\A_Pair.Contracts.csproj" />
-    <ProjectReference Include="..\A_Pair.Core\A_Pair.Core.csproj" />
-    <ProjectReference Include="..\A_Pair.Infrastructure\A_Pair.Infrastructure.csproj" />
+    <ProjectReference Include="..\SeatFlow.Contracts\SeatFlow.Contracts.csproj" />
+    <ProjectReference Include="..\SeatFlow.Core\SeatFlow.Core.csproj" />
+    <ProjectReference Include="..\SeatFlow.Infrastructure\SeatFlow.Infrastructure.csproj" />
   </ItemGroup>
 
   <Target Name="_GetPackageRefs" Returns="@(PackageReference)" />

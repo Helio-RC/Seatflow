@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Tests.Models;
+namespace SeatFlow.Core.Tests.Models;
 
 public class FreeformSeatTests
 {

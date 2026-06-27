@@ -1,9 +1,9 @@
-using A_Pair.Application.Commands;
-using A_Pair.Core.Workspace;
+using SeatFlow.Application.Commands;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Application.Services
+namespace SeatFlow.Application.Services
 {
     public class CommandHistory (ILogger<CommandHistory>? logger = null)
     {

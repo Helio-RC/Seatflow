@@ -1,8 +1,8 @@
 using System.Text.Json;
-using A_Pair.Core.Models;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Core.Models;
+using SeatFlow.Infrastructure.Serialization;
 
-namespace A_Pair.Application.Services;
+namespace SeatFlow.Application.Services;
 
 /// <summary>
 /// 快照会场布局反序列化辅助类，供 <see cref="ApplicationFacade"/> 和 <see cref="FrontRowHistoryLoader"/> 共用。

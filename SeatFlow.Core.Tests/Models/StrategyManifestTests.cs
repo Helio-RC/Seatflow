@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Tests.Models;
+namespace SeatFlow.Core.Tests.Models;
 
 public class StrategyManifestTests
 {
@@ -24,7 +24,7 @@ public class StrategyManifestTests
             DisplayName = "随机填充" ,
             Version = "1.0.0" ,
             Description = "将剩余学生随机填入空位" ,
-            Author = "A_Pair" ,
+            Author = "SeatFlow" ,
             Category = "fill" ,
             DefaultPriority = 10 ,
             DefaultEnabled = true

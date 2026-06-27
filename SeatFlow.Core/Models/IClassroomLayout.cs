@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 教室布局的只读接口，定义布局的基本属性和只读访问方式。

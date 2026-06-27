@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.Providers
+namespace SeatFlow.Core.Providers
 {
     /// <summary>
     /// 应用程序设置仓储接口，定义 <see cref="AppSettings"/> 的持久化契约。

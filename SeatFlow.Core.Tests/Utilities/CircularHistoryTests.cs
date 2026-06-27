@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Tests.Utilities;
+namespace SeatFlow.Core.Tests.Utilities;
 
 public class CircularHistoryTests
 {

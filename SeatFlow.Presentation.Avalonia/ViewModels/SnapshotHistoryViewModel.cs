@@ -3,18 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.DomainServices;
-using A_Pair.Core.Models;
-using A_Pair.Presentation.Avalonia.Lang;
-using A_Pair.Presentation.Avalonia.Services;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.DomainServices;
+using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class SnapshotHistoryViewModel : ViewModelBase
 {
@@ -282,7 +282,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             var storedStudentHash = GetMetaString(snapshot.Metadata , "studentHash");
             if (!string.IsNullOrEmpty(storedStudentHash))
             {
-                var currentStudentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+                var currentStudentHash = SeatFlow.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
                     string.Concat(allCurrentStudents.Where(s => snapshotStudentIds.Contains(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
                 if (storedStudentHash != currentStudentHash)
                 {
@@ -398,13 +398,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     };
     static SnapshotHistoryViewModel ()
     {
-        LayoutDeserializeOptions.Converters.Add(new A_Pair.Infrastructure.Serialization.SeatJsonConverter());
+        LayoutDeserializeOptions.Converters.Add(new SeatFlow.Infrastructure.Serialization.SeatJsonConverter());
     }
 
     private static ClassroomLayoutDefinition? DeserializeLayout (string json)
     {
         // venueFile 格式（VenueFile 包装，与 JsonVenueRepository 一致）
-        var venueFile = System.Text.Json.JsonSerializer.Deserialize<A_Pair.Core.Models.VenueFile>(json , LayoutDeserializeOptions);
+        var venueFile = System.Text.Json.JsonSerializer.Deserialize<SeatFlow.Core.Models.VenueFile>(json , LayoutDeserializeOptions);
         if (venueFile?.Layout != null)
             return venueFile.Layout;
         // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）

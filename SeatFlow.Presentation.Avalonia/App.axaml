@@ -1,8 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="A_Pair.Presentation.Avalonia.App"
-             xmlns:local="using:A_Pair.Presentation.Avalonia"
-             xmlns:behaviors="using:A_Pair.Presentation.Avalonia.Behaviors"
+             x:Class="SeatFlow.Presentation.Avalonia.App"
+             xmlns:local="using:SeatFlow.Presentation.Avalonia"
+             xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
              RequestedThemeVariant="Default">
   <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 

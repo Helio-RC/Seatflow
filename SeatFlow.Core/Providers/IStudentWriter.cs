@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.Providers
+namespace SeatFlow.Core.Providers
 {
     /// <summary>
     /// 学生数据写入器接口，定义将学生列表导出到文件的契约。

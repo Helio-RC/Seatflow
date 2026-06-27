@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Providers
+namespace SeatFlow.Core.Providers
 {
     /// <summary>
     /// 学生数据提供器接口，定义从不同数据源加载学生列表的契约。

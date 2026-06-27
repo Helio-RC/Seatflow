@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 应用程序全局设置，持久化存储于 AppSettings.json 文件。

@@ -1,9 +1,9 @@
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Providers;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace A_Pair.Application.Tests.Services;
+namespace SeatFlow.Application.Tests.Services;
 
 public class ServiceCollectionExtensionsTests : IDisposable
 {
@@ -38,13 +38,13 @@ public class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public void AddA_PairApplication_ShouldRegisterAllExpectedServices ()
+    public void AddSeatFlowApplication_ShouldRegisterAllExpectedServices ()
     {
         var services = new ServiceCollection();
         var snapshotBasePath = Path.Combine(_tempDir , "Snapshots");
         var pluginsPath = Path.Combine(_tempDir , "Plugins");
 
-        services.AddA_PairApplication(snapshotBasePath , pluginsPath);
+        services.AddSeatFlowApplication(snapshotBasePath , pluginsPath);
         var provider = services.BuildServiceProvider();
 
         // 外观
@@ -83,13 +83,13 @@ public class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public async Task AddA_PairApplication_CreatesExpectedDirectories ()
+    public async Task AddSeatFlowApplication_CreatesExpectedDirectories ()
     {
         var services = new ServiceCollection();
         var snapshotBasePath = Path.Combine(_tempDir , "Snapshots");
         var pluginsPath = Path.Combine(_tempDir , "Plugins");
 
-        services.AddA_PairApplication(snapshotBasePath , pluginsPath);
+        services.AddSeatFlowApplication(snapshotBasePath , pluginsPath);
         var provider = services.BuildServiceProvider();
 
         // 解析 IPluginManager 以触发其构造函数创建目录

@@ -87,13 +87,13 @@
     <value>应用已在运行</value>
   </data>
   <data name="App_AlreadyRunningMessage" xml:space="preserve">
-    <value>检测到 A_Pair 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。</value>
+    <value>检测到 座流 的另一个实例正在运行。为避免数据冲突，本实例将自动退出。</value>
   </data>
   <data name="App_EnvironmentWarning" xml:space="preserve">
     <value>运行环境警告</value>
   </data>
   <data name="App_Title" xml:space="preserve">
-    <value>A_Pair — 安排</value>
+    <value>SeatFlow — 座流</value>
   </data>
   <data name="Common_Browse" xml:space="preserve">
     <value>浏览</value>
@@ -691,7 +691,7 @@
     <value>其他</value>
   </data>
   <data name="Home_Greeting" xml:space="preserve">
-    <value>欢迎使用 A_Pair</value>
+    <value>欢迎使用 座流</value>
   </data>
   <data name="Home_Hint" xml:space="preserve">
     <value>点击左侧导航开始使用</value>
@@ -1937,10 +1937,10 @@
     <value>重新显示首次使用的功能引导</value>
   </data>
   <data name="Guide_Phase0_Step0_Title" xml:space="preserve">
-    <value>欢迎使用 A_Pair</value>
+    <value>欢迎使用 座流</value>
   </data>
   <data name="Guide_Phase0_Step0_Desc" xml:space="preserve">
-    <value>A_Pair 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
+    <value>座流 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
   </data>
   <data name="Guide_Phase0_Step1_Title" xml:space="preserve">
     <value>功能导航</value>
@@ -2012,13 +2012,13 @@
     <value>开始使用吧！</value>
   </data>
   <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
-    <value>您已经了解了 A_Pair 的核心工作流程。现在可以独立完成座位编排了！如需帮助，请随时查阅文档。</value>
+    <value>您已经了解了 座流 的核心工作流程。现在可以独立完成座位编排了！如需帮助，请随时查阅文档。</value>
   </data>
   <data name="Guide_Welcome_Greeting_Title" xml:space="preserve">
-    <value>欢迎使用 A_Pair</value>
+    <value>欢迎使用 座流</value>
   </data>
   <data name="Guide_Welcome_Greeting_Desc" xml:space="preserve">
-    <value>A_Pair 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
+    <value>座流 是一款智能座位编排工具。接下来将引导您完成首次排座的完整流程：导入学生名单 → 创建会场布局 → 配置排座策略 → 生成座位表 → 导出结果。预计需要 3-5 分钟。</value>
   </data>
   <data name="Guide_Welcome_Navigation_Title" xml:space="preserve">
     <value>功能导航</value>
@@ -2126,7 +2126,7 @@
     <value>准备就绪，开始使用吧！</value>
   </data>
   <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
-    <value>您已完成 A_Pair 核心工作流程的引导。现在可以独立完成座位编排了！如有疑问，请随时查阅设置页面的文档。</value>
+    <value>您已完成 座流 核心工作流程的引导。现在可以独立完成座位编排了！如有疑问，请随时查阅设置页面的文档。</value>
   </data>
   <data name="Guide_Freeform_Import_Title" xml:space="preserve">
     <value>点击此按钮导入坐标</value>

@@ -1,15 +1,15 @@
 using System;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
-using A_Pair.Presentation.Avalonia.Services;
-using A_Pair.Presentation.Avalonia.ViewModels;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Services;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using CodeWF.AvaloniaControls.Controls;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace A_Pair.Presentation.Avalonia.Views
+namespace SeatFlow.Presentation.Avalonia.Views
 {
     public partial class MainWindow : Window
     {

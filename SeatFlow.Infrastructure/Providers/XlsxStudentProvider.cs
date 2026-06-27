@@ -1,8 +1,8 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
 using OfficeOpenXml;
 
-namespace A_Pair.Infrastructure.Providers
+namespace SeatFlow.Infrastructure.Providers
 {
     /// <summary>
     /// XLSX 格式的学生数据提供器，使用 EPPlus 库从 Excel 文件读取学生列表。
@@ -18,7 +18,7 @@ namespace A_Pair.Infrastructure.Providers
             var list = new List<Student>();
             if (string.IsNullOrEmpty(source) || !File.Exists(source)) return list;
 
-            ExcelPackage.License.SetNonCommercialPersonal("A_Pair");
+            ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
             using var stream = File.OpenRead(source);
             using var package = new ExcelPackage(stream);
             var ws = package.Workbook.Worksheets[0];

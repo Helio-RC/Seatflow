@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件程序集加载上下文，用于隔离加载插件程序集及其依赖项。

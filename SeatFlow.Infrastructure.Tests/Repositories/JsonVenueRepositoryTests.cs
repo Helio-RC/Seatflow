@@ -1,5 +1,5 @@
-using A_Pair.Infrastructure.Migration;
-namespace A_Pair.Infrastructure.Tests.Repositories;
+using SeatFlow.Infrastructure.Migration;
+namespace SeatFlow.Infrastructure.Tests.Repositories;
 
 public class JsonVenueRepositoryTests
 {

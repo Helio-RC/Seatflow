@@ -1,4 +1,4 @@
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 表示一个已加载的插件包的全部信息，包括包清单、启用状态、已加载的策略字典和路径。

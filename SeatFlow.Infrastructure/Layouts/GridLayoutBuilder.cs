@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Infrastructure.Layouts
+namespace SeatFlow.Infrastructure.Layouts
 {
     /// <summary>
     /// 网格布局构建器，创建基于行和列的矩形座位排列。

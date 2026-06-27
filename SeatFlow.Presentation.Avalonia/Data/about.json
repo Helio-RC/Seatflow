@@ -4,7 +4,7 @@
     "description": "跨平台桌面座位安排与轮换系统，支持多种布局、策略引擎、插件扩展（开发中）和数据导入导出。",
     "projectUrl": "https://github.com/Helio-RC/A_Pair",
     "license": "MIT License",
-    "copyright": "© 2026 A_Pair Contributors",
+    "copyright": "© 2026 SeatFlow Contributors",
     "dependencies": [
       { "name": "Avalonia UI", "packageId": "Avalonia", "purpose": "跨平台 UI 框架", "license": "MIT", "url": "https://github.com/AvaloniaUI/Avalonia" },
       { "name": "CommunityToolkit.Mvvm", "purpose": "MVVM 源生成器", "license": "MIT", "url": "https://github.com/CommunityToolkit/dotnet" },
@@ -21,7 +21,7 @@
     "description": "Cross-platform desktop seating arrangement and rotation system supporting multiple layouts, strategy engines, plugin extensions (in development), and data import/export.",
     "projectUrl": "https://github.com/Helio-RC/A_Pair",
     "license": "MIT License",
-    "copyright": "© 2026 A_Pair Contributors",
+    "copyright": "© 2026 SeatFlow Contributors",
     "dependencies": [
       { "name": "Avalonia UI", "packageId": "Avalonia", "purpose": "Cross-platform UI framework", "license": "MIT", "url": "https://github.com/AvaloniaUI/Avalonia" },
       { "name": "CommunityToolkit.Mvvm", "purpose": "MVVM source generator", "license": "MIT", "url": "https://github.com/CommunityToolkit/dotnet" },

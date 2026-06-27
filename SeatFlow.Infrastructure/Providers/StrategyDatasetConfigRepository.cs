@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using A_Pair.Core.Models;
-using A_Pair.Infrastructure.Migration;
+using SeatFlow.Core.Models;
+using SeatFlow.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Infrastructure.Providers
+namespace SeatFlow.Infrastructure.Providers
 {
     /// <summary>
     /// 策略按数据集维度的配置仓储。

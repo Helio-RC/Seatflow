@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 侧栏策略列表中的单个策略项。追踪自身的优先级/启用状态变更。

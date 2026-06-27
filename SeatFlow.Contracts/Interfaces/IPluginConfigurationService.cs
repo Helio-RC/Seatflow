@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Interfaces;
+namespace SeatFlow.Contracts.Interfaces;
 
 /// <summary>
 /// 插件配置服务接口，提供插件配置的加载、保存和文件监视功能。

@@ -4,16 +4,16 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
-using A_Pair.Core.Strategies;
-using A_Pair.Presentation.Avalonia.Lang;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class StrategyConfigurationViewModel : ViewModelBase
 {

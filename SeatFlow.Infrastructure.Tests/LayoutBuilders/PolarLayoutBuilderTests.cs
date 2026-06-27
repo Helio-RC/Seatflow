@@ -1,4 +1,4 @@
-namespace A_Pair.Infrastructure.Tests.LayoutBuilders;
+namespace SeatFlow.Infrastructure.Tests.LayoutBuilders;
 
 public class PolarLayoutBuilderTests
 {

@@ -1,4 +1,4 @@
-﻿namespace A_Pair.Application.Plugins
+﻿namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件配置架构定义，描述插件可配置字段的元数据。

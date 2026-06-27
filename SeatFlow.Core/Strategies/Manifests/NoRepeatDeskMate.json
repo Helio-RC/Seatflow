@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "manifestVersion": "1.0",
     "description": "作为依赖策略在随机填充上下文中执行。检查当前分配是否会导致过去N次排座中曾经同桌的学生再次相邻。若检测到重复同桌则请求重掷尝试其他座位；若重掷次数耗尽则强制分配并发出警告。",
-    "author": "A_Pair Team",
+    "author": "SeatFlow Team",
     "category": "grouping",
     "defaultPriority": 40,
     "defaultEnabled": false,

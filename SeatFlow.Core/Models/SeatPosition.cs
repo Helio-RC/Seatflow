@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 座位几何数据标记接口，用于多态存储不同类型的几何位置信息。

@@ -1,11 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
-             xmlns:core="using:A_Pair.Core.Models"
+             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+             xmlns:core="using:SeatFlow.Core.Models"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             x:Class="A_Pair.Presentation.Avalonia.Views.SnapshotHistoryView"
+             x:Class="SeatFlow.Presentation.Avalonia.Views.SnapshotHistoryView"
              x:DataType="vm:SnapshotHistoryViewModel">
 
   <DockPanel Classes="pageMargin">

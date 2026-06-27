@@ -1,15 +1,15 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
-        xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
-        xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
+        xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+        xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
+        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
         xmlns:codewf="using:CodeWF.AvaloniaControls.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-        x:Class="A_Pair.Presentation.Avalonia.Views.MainWindow"
+        x:Class="SeatFlow.Presentation.Avalonia.Views.MainWindow"
         x:DataType="vm:MainShellViewModel"
         Icon="/Assets/icon_with_background.ico"
         Title="{x:Static lang:Resources.App_Title}" Width="1200" Height="800"
@@ -37,7 +37,7 @@
         <!-- 标题 -->
         <Border DockPanel.Dock="Top" Height="44">
           <Panel>
-            <TextBlock Text="A_Pair" Classes="heading"
+            <TextBlock Text="SeatFlow" Classes="heading"
                        Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
                        IsHitTestVisible="{Binding IsSidebarExpanded}"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />

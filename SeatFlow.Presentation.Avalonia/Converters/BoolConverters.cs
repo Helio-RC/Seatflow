@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace A_Pair.Presentation.Avalonia.Converters;
+namespace SeatFlow.Presentation.Avalonia.Converters;
 
 public static class BoolConverters
 {

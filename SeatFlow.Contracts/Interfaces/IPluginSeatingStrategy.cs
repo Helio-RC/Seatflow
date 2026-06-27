@@ -1,6 +1,6 @@
-using A_Pair.Contracts.Models;
+using SeatFlow.Contracts.Models;
 
-namespace A_Pair.Contracts.Interfaces;
+namespace SeatFlow.Contracts.Interfaces;
 
 /// <summary>
 /// 插件策略接口，供外部插件实现自定义排座逻辑。

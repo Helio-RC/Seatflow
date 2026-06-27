@@ -3,7 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 
-namespace A_Pair.Presentation.Avalonia.Behaviors;
+namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
 public static class ZoomOnScroll
 {

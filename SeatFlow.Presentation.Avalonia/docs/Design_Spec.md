@@ -1,4 +1,4 @@
-# A_Pair Design Spec
+# SeatFlow Design Spec
 
 ## Principles
 

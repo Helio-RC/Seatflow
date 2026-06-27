@@ -1,8 +1,8 @@
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Contracts.Models;
-using A_Pair.Plugins.Sdk.Attributes;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Contracts.Models;
+using SeatFlow.Plugins.Sdk.Attributes;
 
-namespace A_Pair.Plugins.Sdk.Abstractions;
+namespace SeatFlow.Plugins.Sdk.Abstractions;
 
 /// <summary>
 /// 排座策略插件的抽象基类，继承 <see cref="PluginBase"/> 并实现 <see cref="IPluginSeatingStrategy"/>。

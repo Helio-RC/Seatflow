@@ -1,10 +1,10 @@
 using System.Globalization;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
 using CsvHelper;
 using CsvHelper.Configuration;
 
-namespace A_Pair.Infrastructure.Providers;
+namespace SeatFlow.Infrastructure.Providers;
 
 /// <summary>
 /// CSV 格式的学生数据提供器，使用 CsvHelper 解析以正确处理引号字段和嵌入换行。

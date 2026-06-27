@@ -1,9 +1,9 @@
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Workspace;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Application.Services
+namespace SeatFlow.Application.Services
 {
     public class DefaultConflictResolver (ILogger<DefaultConflictResolver>? logger = null) : IConflictResolver
     {

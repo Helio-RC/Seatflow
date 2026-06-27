@@ -1,4 +1,4 @@
-namespace A_Pair.Infrastructure.Tests.Providers;
+namespace SeatFlow.Infrastructure.Tests.Providers;
 
 public class InMemoryStudentProviderTests
 {

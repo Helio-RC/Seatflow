@@ -1,23 +1,23 @@
 using System.Text.Json;
-using A_Pair.Application.Commands;
-using A_Pair.Application.Interfaces;
-using A_Pair.Application.Plugins;
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.DomainServices;
-using A_Pair.Core.Enums;
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Core.Services;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
-using A_Pair.Infrastructure.Layouts;
-using A_Pair.Infrastructure.Providers;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Application.Commands;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Application.Plugins;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Core.DomainServices;
+using SeatFlow.Core.Enums;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Core.Services;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
+using SeatFlow.Infrastructure.Layouts;
+using SeatFlow.Infrastructure.Providers;
+using SeatFlow.Infrastructure.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Application.Services
+namespace SeatFlow.Application.Services
 {
     /// <summary>
     /// 应用程序外观（Facade）的默认实现，协调数据加载、布局生成、策略执行、
@@ -526,7 +526,7 @@ namespace A_Pair.Application.Services
             var studentNames = _currentWorkspace.Students
                 .Where(s => plan.Assignments.ContainsValue(s.Id))
                 .ToDictionary(s => s.Id , s => s.Name);
-            var studentHash = A_Pair.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
+            var studentHash = SeatFlow.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
                 string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
             var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
             var venueId = _currentLayout?.Id;
@@ -1495,9 +1495,9 @@ namespace A_Pair.Application.Services
                     {
                         double x = GetParameter(dict , "X" , 0.0);
                         double y = GetParameter(dict , "Y" , 0.0);
-                        int? row = dict.ContainsKey("Row") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Row" , 0) : null;
-                        int? col = dict.ContainsKey("Column") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Column" , 0) : null;
-                        int? groupId = dict.ContainsKey("GroupId") ? global::A_Pair.Application.Services.ApplicationFacade.GetParameter<int>(dict , "GroupId" , 0) : null;
+                        int? row = dict.ContainsKey("Row") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Row" , 0) : null;
+                        int? col = dict.ContainsKey("Column") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Column" , 0) : null;
+                        int? groupId = dict.ContainsKey("GroupId") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict , "GroupId" , 0) : null;
                         points.Add((x , y , row , col , groupId));
                     }
                 }

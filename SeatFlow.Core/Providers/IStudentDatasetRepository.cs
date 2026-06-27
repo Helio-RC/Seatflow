@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.Providers;
+namespace SeatFlow.Core.Providers;
 
 public interface IStudentDatasetRepository
 {

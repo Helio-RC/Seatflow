@@ -1,9 +1,9 @@
 using System.Text.Json;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Infrastructure.Serialization;
 
-namespace A_Pair.Infrastructure.Providers
+namespace SeatFlow.Infrastructure.Providers
 {
     /// <summary>
     /// JSON 格式的学生数据写入器，将学生列表以 <see cref="RosterFile"/> 格式序列化为 JSON 文件。

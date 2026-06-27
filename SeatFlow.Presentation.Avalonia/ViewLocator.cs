@@ -1,10 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using A_Pair.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 
-namespace A_Pair.Presentation.Avalonia
+namespace SeatFlow.Presentation.Avalonia
 {
     /// <summary>
     /// Given a view model, returns the corresponding view if possible.

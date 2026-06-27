@@ -1,9 +1,9 @@
-using A_Pair.Contracts.Models;
-using A_Pair.Core.Models;
-using A_Pair.Core.Strategies;
+using SeatFlow.Contracts.Models;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Strategies;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Core.Workspace;
+namespace SeatFlow.Core.Workspace;
 
 /// <summary>
 /// 座位安排工作区，是策略执行的核心数据容器。

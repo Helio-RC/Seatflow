@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Commands;
-using A_Pair.Core.Workspace;
+using SeatFlow.Application.Commands;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 座位交换命令，实现 <see cref="IUndoableCommand"/>，支持撤销/重做。

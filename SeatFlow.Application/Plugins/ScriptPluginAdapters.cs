@@ -1,10 +1,10 @@
-using A_Pair.Application.Scripting.CSharp;
-using A_Pair.Application.Scripting.Lua;
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Contracts.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Application.Scripting.CSharp;
+using SeatFlow.Application.Scripting.Lua;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Contracts.Models;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// Lua 脚本插件适配器，将 <see cref="LuaScriptStrategy"/> 包装为 <see cref="IPluginSeatingStrategy"/>，

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace A_Pair.Infrastructure.Serialization;
+namespace SeatFlow.Infrastructure.Serialization;
 
 /// <summary>
 /// 共享的 <see cref="JsonSerializerOptions"/> 实例池。

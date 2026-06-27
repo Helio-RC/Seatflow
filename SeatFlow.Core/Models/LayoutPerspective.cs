@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 视角枚举，控制导出时的行排列顺序。

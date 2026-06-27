@@ -1,7 +1,7 @@
 using System.Text.Json;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Infrastructure.Serialization;
 
-namespace A_Pair.Application.Tests.Plugins;
+namespace SeatFlow.Application.Tests.Plugins;
 
 public class PluginPackageManifestTests
 {

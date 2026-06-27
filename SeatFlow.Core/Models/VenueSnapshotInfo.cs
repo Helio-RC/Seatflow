@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 快照目录下的会场摘要，便于历史快照页面无需加载原会场文件即可展示关键信息。

@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Infrastructure.Layouts
+namespace SeatFlow.Infrastructure.Layouts
 {
     /// <summary>
     /// 极坐标（环形）布局构建器，创建基于半径和角度的环形座位排列。

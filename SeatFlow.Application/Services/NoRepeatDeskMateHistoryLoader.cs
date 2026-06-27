@@ -1,11 +1,11 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Application.Services
+namespace SeatFlow.Application.Services
 {
     /// <summary>
     /// 同桌不重复历史加载器。从会场最近 N 个快照中提取过去的同桌对，

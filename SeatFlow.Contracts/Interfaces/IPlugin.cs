@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Interfaces;
+namespace SeatFlow.Contracts.Interfaces;
 
 /// <summary>
 /// 所有插件的通用身份契约，定义了插件的基本元数据。

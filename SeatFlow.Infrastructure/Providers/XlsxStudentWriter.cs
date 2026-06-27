@@ -1,8 +1,8 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
 using OfficeOpenXml;
 
-namespace A_Pair.Infrastructure.Providers
+namespace SeatFlow.Infrastructure.Providers
 {
     /// <summary>
     /// XLSX 格式的学生数据写入器，使用 EPPlus 库将学生列表导出为 Excel 文件。
@@ -12,7 +12,7 @@ namespace A_Pair.Infrastructure.Providers
     {
         public async Task WriteAsync (string path , IEnumerable<Student> students , CancellationToken cancellationToken = default)
         {
-            ExcelPackage.License.SetNonCommercialPersonal("A_Pair");
+            ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
             using var package = new ExcelPackage();
             var ws = package.Workbook.Worksheets.Add("Students");
 

@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Models;
+namespace SeatFlow.Contracts.Models;
 
 /// <summary>
 /// 插件视角的座位视图。插件可通过设置 <see cref="IsFixed"/> 为 true

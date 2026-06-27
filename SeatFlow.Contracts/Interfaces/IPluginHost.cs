@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Interfaces;
+namespace SeatFlow.Contracts.Interfaces;
 
 /// <summary>
 /// 插件宿主，在插件初始化时通过 <see cref="IPluginLifecycle.InitializeAsync"/> 传递给插件，

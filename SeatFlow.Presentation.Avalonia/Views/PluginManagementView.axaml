@@ -1,15 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
-             xmlns:app="using:A_Pair.Application.Interfaces"
-             xmlns:conv="using:A_Pair.Presentation.Avalonia.Converters"
+             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+             xmlns:app="using:SeatFlow.Application.Interfaces"
+             xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             x:Class="A_Pair.Presentation.Avalonia.Views.PluginManagementView"
+             x:Class="SeatFlow.Presentation.Avalonia.Views.PluginManagementView"
              x:DataType="vm:PluginManagementViewModel">
 
   <Design.DataContext>

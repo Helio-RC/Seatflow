@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Models;
+namespace SeatFlow.Contracts.Models;
 
 /// <summary>
 /// 插件策略执行结果。

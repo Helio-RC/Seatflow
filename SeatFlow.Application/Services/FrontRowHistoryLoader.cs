@@ -1,11 +1,11 @@
-using A_Pair.Core.DomainServices;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.DomainServices;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Application.Services;
+namespace SeatFlow.Application.Services;
 
 /// <summary>
 /// 前排轮换历史加载器。从该会场最近 N 个快照中恢复学生的前排座位历史，

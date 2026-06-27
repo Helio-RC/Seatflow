@@ -1,6 +1,6 @@
-using A_Pair.Contracts.Interfaces;
+using SeatFlow.Contracts.Interfaces;
 
-namespace A_Pair.Application.Plugins;
+namespace SeatFlow.Application.Plugins;
 
 /// <summary>
 /// 插件管理器接口，负责插件的发现、加载、卸载和安装。

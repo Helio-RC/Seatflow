@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using A_Pair.Core.Models;
-using A_Pair.Infrastructure.Migration;
+using SeatFlow.Core.Models;
+using SeatFlow.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件包策略的配置读写服务，管理插件策略在 <c>Plugins/{packageId}/{strategyPath}/</c> 下的配置。
@@ -212,7 +212,7 @@ namespace A_Pair.Application.Plugins
 
         /// <summary>
         /// 根据数据类型构建数据集配置文件名。
-        /// 复用与 <see cref="A_Pair.Infrastructure.Providers.StrategyDatasetConfigRepository"/> 相同的命名规则。
+        /// 复用与 <see cref="SeatFlow.Infrastructure.Providers.StrategyDatasetConfigRepository"/> 相同的命名规则。
         /// </summary>
         private static string BuildFileName (string? datasetId , string? venueId)
         {

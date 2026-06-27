@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using IconEnum = FluentIcons.Common.Icon;
 
-namespace A_Pair.Presentation.Avalonia.Views;
+namespace SeatFlow.Presentation.Avalonia.Views;
 
 internal partial class DialogWindow : Window
 {

@@ -2,7 +2,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Infrastructure.Migration.Migrators;
+namespace SeatFlow.Infrastructure.Migration.Migrators;
 
 /// <summary>
 /// Venue 文件（.venue.json）各版本迁移器。

@@ -1,12 +1,12 @@
 using System.Globalization;
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 using CsvHelper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Infrastructure.Exporters
+namespace SeatFlow.Infrastructure.Exporters
 {
     public class CsvSeatingExporter (ILogger<CsvSeatingExporter>? logger = null) : ISeatingPlanExporter
     {

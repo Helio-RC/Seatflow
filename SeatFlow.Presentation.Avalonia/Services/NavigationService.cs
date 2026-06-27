@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using A_Pair.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 public class NavigationService : INavigationService
 {

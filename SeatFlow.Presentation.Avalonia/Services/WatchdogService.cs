@@ -4,11 +4,11 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Lang;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>
 /// UI 线程看门狗：定期检查 UI 线程心跳，若超过阈值无响应则记录诊断信息并强制退出。

@@ -1,7 +1,7 @@
-using A_Pair.Infrastructure.Migration;
+using SeatFlow.Infrastructure.Migration;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Infrastructure.Tests.Repositories;
+namespace SeatFlow.Infrastructure.Tests.Repositories;
 
 public class StrategyConfigFileRepositoryTests : IDisposable
 {

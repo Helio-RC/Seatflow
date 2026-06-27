@@ -1,7 +1,7 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Interfaces
+namespace SeatFlow.Application.Interfaces
 {
     /// <summary>
     /// 应用程序外观接口，是 UI/CLI 与业务逻辑层的统一入口。
@@ -37,7 +37,7 @@ namespace A_Pair.Application.Interfaces
 
         /// <summary>执行可撤销的命令（如手动调座）。</summary>
         /// <param name="recordInHistory">是否记录到 Facade 的命令历史栈。ViewModel 使用快照历史时传 false 避免重复累积。</param>
-        Task<bool> ExecuteCommandAsync (A_Pair.Application.Commands.IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true);
+        Task<bool> ExecuteCommandAsync (SeatFlow.Application.Commands.IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true);
 
         /// <summary>撤销上一条命令。</summary>
         Task<bool> UndoAsync (CancellationToken cancellationToken = default);

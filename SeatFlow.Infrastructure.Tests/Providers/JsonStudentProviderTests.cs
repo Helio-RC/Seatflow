@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace A_Pair.Infrastructure.Tests.Providers;
+namespace SeatFlow.Infrastructure.Tests.Providers;
 
 public class JsonStudentProviderTests
 {

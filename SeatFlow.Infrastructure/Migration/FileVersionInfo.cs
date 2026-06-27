@@ -2,7 +2,7 @@ using System.Collections.Frozen;
 using System.Reflection;
 using System.Text.Json;
 
-namespace A_Pair.Infrastructure.Migration;
+namespace SeatFlow.Infrastructure.Migration;
 
 /// <summary>
 /// 当前程序支持的各文件类型版本号，从嵌入资源 file_versions.json 加载。
@@ -14,7 +14,7 @@ public static class FileVersionInfo
     static FileVersionInfo ()
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var resourceName = "A_Pair.Infrastructure.Migration.file_versions.json";
+        var resourceName = "SeatFlow.Infrastructure.Migration.file_versions.json";
         using var stream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException($"嵌入资源未找到: {resourceName}");
         var dict = JsonSerializer.Deserialize<Dictionary<string , string>>(stream)

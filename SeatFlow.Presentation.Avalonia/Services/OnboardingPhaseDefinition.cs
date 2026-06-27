@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>引导配置文件根对象。</summary>
 public sealed class OnboardingConfig

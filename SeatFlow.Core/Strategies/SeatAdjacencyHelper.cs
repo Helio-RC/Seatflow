@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 共享的座位邻接判定逻辑，供 <see cref="DeskMateStrategy"/>、<see cref="NoRepeatDeskMateStrategy"/>

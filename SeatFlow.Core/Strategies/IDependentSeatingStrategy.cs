@@ -1,7 +1,7 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 依赖策略接口，用于在 RandomFill 上下文中进行评估和执行。

@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Models;
+namespace SeatFlow.Contracts.Models;
 
 /// <summary>
 /// 插件视角的学生只读视图。

@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 策略执行消息的严重级别。

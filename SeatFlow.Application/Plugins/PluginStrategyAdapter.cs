@@ -1,8 +1,8 @@
-﻿using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
+﻿using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 将 <see cref="IPluginSeatingStrategy"/> 适配为 <see cref="ISeatingStrategy"/>，

@@ -1,11 +1,11 @@
 using System;
-using A_Pair.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 
-namespace A_Pair.Presentation.Avalonia.Behaviors;
+namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
 public static class CanvasZoomPan
 {

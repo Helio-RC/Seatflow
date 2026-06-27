@@ -3,7 +3,7 @@ using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 
-namespace A_Pair.Presentation.Avalonia.Views;
+namespace SeatFlow.Presentation.Avalonia.Views;
 
 public partial class VenueConfigurationView : UserControl
 {

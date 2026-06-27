@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 public class StudentDatasetInfo
 {

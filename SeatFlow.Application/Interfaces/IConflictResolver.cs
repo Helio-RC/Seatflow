@@ -1,6 +1,6 @@
-﻿using A_Pair.Core.Workspace;
+﻿using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Interfaces
+namespace SeatFlow.Application.Interfaces
 {
     /// <summary>
     /// 座位冲突解决器接口，检测并处理策略执行后可能产生的冲突。

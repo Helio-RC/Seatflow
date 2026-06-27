@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "manifestVersion": "1.0",
     "description": "在所有策略执行完毕后，将后排无特殊约束的学生前移到前排空位，使座位结果趋近前排。不限同列。注意：此策略可能导致前序策略（同桌分组、同桌不重复等）的安排结果失效。最优方案是使会场座位数与人数相近/匹配以规避碎片化。",
-    "author": "A_Pair Team",
+    "author": "SeatFlow Team",
     "category": "fill",
     "defaultPriority": 0,
     "defaultEnabled": false,

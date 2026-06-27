@@ -4,16 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using A_Pair.Application.Services;
-using A_Pair.Presentation.Avalonia.Services;
-using A_Pair.Presentation.Avalonia.ViewModels;
-using A_Pair.Presentation.Avalonia.Views;
+using SeatFlow.Application.Services;
+using SeatFlow.Presentation.Avalonia.Services;
+using SeatFlow.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.Views;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 
 [assembly: System.Resources.NeutralResourcesLanguage("zh-CN")]
 
-namespace A_Pair.Presentation.Avalonia
+namespace SeatFlow.Presentation.Avalonia
 {
     internal sealed class Program
     {
@@ -23,10 +23,10 @@ namespace A_Pair.Presentation.Avalonia
 #if !DEBUG
             CheckCleanDirectory();
 #endif
-            using var mutex = new Mutex(true , @"Global\A_Pair_SeatingArrangement" , out bool isFirstInstance);
+            using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
             var services = new ServiceCollection();
-            services.AddA_PairApplication("AppData" , "Plugins");
+            services.AddSeatFlowApplication("AppData" , "Plugins");
 
             // 注册导航服务
             services.AddSingleton<INavigationService , NavigationService>();

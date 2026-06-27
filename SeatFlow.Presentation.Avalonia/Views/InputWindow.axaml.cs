@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace A_Pair.Presentation.Avalonia.Views;
+namespace SeatFlow.Presentation.Avalonia.Views;
 
 internal partial class InputWindow : Window
 {

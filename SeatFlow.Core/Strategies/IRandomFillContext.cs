@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// RandomFill 执行上下文，提供给依赖策略的评估接口。

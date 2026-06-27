@@ -1,7 +1,7 @@
-using A_Pair.Core.Enums;
-using A_Pair.Core.Models;
+using SeatFlow.Core.Enums;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Infrastructure.Providers;
+namespace SeatFlow.Infrastructure.Providers;
 
 /// <summary>
 /// 学生数据导入的列名映射和值转换工具。

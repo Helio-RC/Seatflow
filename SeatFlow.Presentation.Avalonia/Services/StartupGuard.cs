@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using A_Pair.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Lang;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 internal static class StartupGuard
 {

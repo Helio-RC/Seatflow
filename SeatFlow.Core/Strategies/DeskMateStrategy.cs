@@ -1,9 +1,9 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 同桌组策略（依赖策略，在 RandomFill 上下文中执行）。

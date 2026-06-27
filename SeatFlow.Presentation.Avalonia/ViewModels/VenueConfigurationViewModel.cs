@@ -4,18 +4,18 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.DomainServices;
-using A_Pair.Core.Models;
-using A_Pair.Infrastructure.Layouts;
-using A_Pair.Presentation.Avalonia.Lang;
-using A_Pair.Presentation.Avalonia.Services;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.DomainServices;
+using SeatFlow.Core.Models;
+using SeatFlow.Infrastructure.Layouts;
+using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class VenueConfigurationViewModel : ViewModelBase
 {

@@ -2,8 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-        xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
-        x:Class="A_Pair.Presentation.Avalonia.Views.DialogWindow"
+        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+        x:Class="SeatFlow.Presentation.Avalonia.Views.DialogWindow"
         Width="420" SizeToContent="Height" MinHeight="160"
         CanResize="False" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">

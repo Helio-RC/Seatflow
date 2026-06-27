@@ -1,6 +1,6 @@
-using A_Pair.Contracts.Models;
+using SeatFlow.Contracts.Models;
 
-namespace A_Pair.Application.Tests.Plugins;
+namespace SeatFlow.Application.Tests.Plugins;
 
 public class PluginStrategyAdapterTests
 {

@@ -1,11 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
              xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
-             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
-             x:Class="A_Pair.Presentation.Avalonia.Views.AboutView"
+             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+             x:Class="SeatFlow.Presentation.Avalonia.Views.AboutView"
              x:DataType="vm:AboutViewModel"
              x:Name="AboutHost">
 

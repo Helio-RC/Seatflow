@@ -1,6 +1,6 @@
-using A_Pair.Core.Enums;
+using SeatFlow.Core.Enums;
 
-namespace A_Pair.Core.Tests.Strategies;
+namespace SeatFlow.Core.Tests.Strategies;
 
 public class GenderRestrictedSeatStrategyTests
 {

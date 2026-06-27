@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Interfaces;
+namespace SeatFlow.Contracts.Interfaces;
 
 /// <summary>
 /// 插件生命周期管理接口（可选实现）。

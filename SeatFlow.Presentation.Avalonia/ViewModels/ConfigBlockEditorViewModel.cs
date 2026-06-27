@@ -4,12 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 配置块编辑器 ViewModel。管理单个 codeBlock 的数据集选择、配置行编辑和保存。
@@ -18,7 +18,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
 {
     private readonly IApplicationFacade _facade = facade;
     private CancellationTokenSource? _loadCts;
-    private List<A_Pair.Core.Models.Student>? _cachedStudents;
+    private List<SeatFlow.Core.Models.Student>? _cachedStudents;
     /// <summary>缓存的会场布局定义，用于后续行创建时设置座位选择器范围。</summary>
     private ClassroomLayoutDefinition? _cachedLayout;
 
@@ -551,7 +551,7 @@ public partial class ConfigBlockRowViewModel : ObservableObject
         && CodeBlock?.DataType is StrategyDataType.Venue or StrategyDataType.Both;
 
     /// <summary>加载学生到所有 StudentPicker，加载后自动应用待定的持久化选择。</summary>
-    public void LoadStudents (IEnumerable<A_Pair.Core.Models.Student> students)
+    public void LoadStudents (IEnumerable<SeatFlow.Core.Models.Student> students)
     {
         var list = students.ToList();
         foreach (var sp in StudentPickers)

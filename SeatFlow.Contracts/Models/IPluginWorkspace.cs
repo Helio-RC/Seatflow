@@ -1,4 +1,4 @@
-namespace A_Pair.Contracts.Models;
+namespace SeatFlow.Contracts.Models;
 
 /// <summary>
 /// 插件视角的工作区契约，暴露排座策略所需的最小 API 表面。

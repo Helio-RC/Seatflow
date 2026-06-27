@@ -1,4 +1,4 @@
-namespace A_Pair.Presentation.Avalonia.Behaviors;
+namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
 /// <summary>
 /// 全角数字/符号 → 半角转换。

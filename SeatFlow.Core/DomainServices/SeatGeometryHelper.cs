@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.DomainServices
+namespace SeatFlow.Core.DomainServices
 {
     /// <summary>
     /// 座位几何辅助类，根据座位类型和布局元数据计算座位的物理坐标。

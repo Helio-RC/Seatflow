@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Infrastructure.Layouts
+namespace SeatFlow.Infrastructure.Layouts
 {
     /// <summary>
     /// 自由形式布局构建器，根据指定的坐标点列表创建任意排列的座位布局。

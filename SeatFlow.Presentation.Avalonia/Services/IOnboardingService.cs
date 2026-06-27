@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using CodeWF.AvaloniaControls.Controls;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>引导服务——纯机械式桥接 JSON 配置与 Guide 控件，零业务逻辑推断。</summary>
 public interface IOnboardingService

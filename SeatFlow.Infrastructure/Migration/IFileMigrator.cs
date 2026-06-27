@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace A_Pair.Infrastructure.Migration;
+namespace SeatFlow.Infrastructure.Migration;
 
 /// <summary>
 /// 文件版本迁移器接口。每个实现负责一个版本步进（如 1.0 → 1.1）。

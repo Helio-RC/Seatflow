@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using A_Pair.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 public enum PageKey
 {

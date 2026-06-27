@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Presentation.Avalonia.Lang;
-using A_Pair.Presentation.Avalonia.Services;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class MainShellViewModel : ViewModelBase
 {
@@ -53,7 +53,7 @@ public partial class MainShellViewModel : ViewModelBase
         try
         {
             var assembly = typeof(MainShellViewModel).Assembly;
-            const string resourceName = "A_Pair.Presentation.Avalonia.Data.page_navigation.json";
+            const string resourceName = "SeatFlow.Presentation.Avalonia.Data.page_navigation.json";
             using var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) return [];
             using var doc = JsonDocument.Parse(stream);

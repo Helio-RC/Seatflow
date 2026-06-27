@@ -1,6 +1,6 @@
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Commands
+namespace SeatFlow.Application.Commands
 {
     /// <summary>
     /// 可撤销命令接口，实现命令模式（Command Pattern）。

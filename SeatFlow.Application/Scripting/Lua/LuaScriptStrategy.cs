@@ -1,10 +1,10 @@
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NLua.Exceptions;
 
-namespace A_Pair.Application.Scripting.Lua
+namespace SeatFlow.Application.Scripting.Lua
 {
     public class LuaScriptStrategy : ISeatingStrategy
     {

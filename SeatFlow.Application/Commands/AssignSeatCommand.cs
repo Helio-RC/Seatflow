@@ -1,6 +1,6 @@
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Commands;
+namespace SeatFlow.Application.Commands;
 
 /// <summary>
 /// 分配座位命令，将指定学生分配到指定座位。

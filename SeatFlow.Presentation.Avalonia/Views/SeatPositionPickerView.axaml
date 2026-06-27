@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
              x:DataType="vm:SeatPositionPickerViewModel"
-             x:Class="A_Pair.Presentation.Avalonia.Views.SeatPositionPickerView">
+             x:Class="SeatFlow.Presentation.Avalonia.Views.SeatPositionPickerView">
     <StackPanel Orientation="Horizontal" Spacing="4">
         <!-- Grid：范围由会场 GridLayoutMetadata 决定 -->
         <StackPanel Orientation="Horizontal" Spacing="4"

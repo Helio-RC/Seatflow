@@ -1,6 +1,6 @@
-using A_Pair.Core.Services;
+using SeatFlow.Core.Services;
 
-namespace A_Pair.Core.Tests.Services;
+namespace SeatFlow.Core.Tests.Services;
 
 public class StrategyManifestProviderTests
 {

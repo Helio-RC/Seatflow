@@ -1,6 +1,6 @@
 # Avalonia 12 拖放实现指南
 
-> 本文档记录了 A_Pair 座位安排页面（`SeatingArrangementView`）的拖放实现模式和踩坑记录。
+> 本文档记录了 SeatFlow 座位安排页面（`SeatingArrangementView`）的拖放实现模式和踩坑记录。
 > Avalonia 版本：12.0.4
 
 ## 核心 API
@@ -53,9 +53,9 @@ private async void OnPointerPressed(object? sender, PointerPressedEventArgs e)
 internal static class DragFormats
 {
     public static readonly DataFormat<string> StudentDrag =
-        DataFormat.CreateInProcessFormat<string>("A_Pair_Student");
+        DataFormat.CreateInProcessFormat<string>("SeatFlow_Student");
     public static readonly DataFormat<string> SeatDrag =
-        DataFormat.CreateInProcessFormat<string>("A_Pair_Seat");
+        DataFormat.CreateInProcessFormat<string>("SeatFlow_Seat");
 }
 ```
 

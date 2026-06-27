@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\A_Pair.Infrastructure\A_Pair.Infrastructure.csproj" />
-    <ProjectReference Include="..\A_Pair.Core\A_Pair.Core.csproj" />
+    <ProjectReference Include="..\SeatFlow.Infrastructure\SeatFlow.Infrastructure.csproj" />
+    <ProjectReference Include="..\SeatFlow.Core\SeatFlow.Core.csproj" />
   </ItemGroup>
 
 </Project>

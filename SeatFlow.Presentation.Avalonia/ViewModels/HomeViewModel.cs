@@ -1,6 +1,6 @@
-using A_Pair.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Lang;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class HomeViewModel : ViewModelBase
 {

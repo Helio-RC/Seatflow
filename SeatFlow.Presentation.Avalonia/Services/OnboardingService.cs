@@ -5,12 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Enums;
-using A_Pair.Core.Models;
-using A_Pair.Presentation.Avalonia.Lang;
-using A_Pair.Presentation.Avalonia.ViewModels;
-using A_Pair.Presentation.Avalonia.Views;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Enums;
+using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.Views;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Presenters;
@@ -20,7 +20,7 @@ using Avalonia.VisualTree;
 using CodeWF.AvaloniaControls.Controls;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Presentation.Avalonia.Services;
+namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>
 /// 引导服务——纯机械式桥接 JSON 配置与 Guide 控件。
@@ -553,7 +553,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         try
         {
             var assembly = typeof(OnboardingService).Assembly;
-            const string resourceName = "A_Pair.Presentation.Avalonia.Data.onboarding_config.json";
+            const string resourceName = "SeatFlow.Presentation.Avalonia.Data.onboarding_config.json";
             using var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream is null)
             {
@@ -610,8 +610,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private static List<IGuideStepOption> BuildStepsFromDefs (List<OnboardingStepDefinition> defs)
     {
         var steps = new List<IGuideStepOption>();
-        var resMgr = global::A_Pair.Presentation.Avalonia.Lang.Resources.ResourceManager;
-        var culture = global::A_Pair.Presentation.Avalonia.Lang.Resources.Culture;
+        var resMgr = global::SeatFlow.Presentation.Avalonia.Lang.Resources.ResourceManager;
+        var culture = global::SeatFlow.Presentation.Avalonia.Lang.Resources.Culture;
 
         string R (string key)
         {

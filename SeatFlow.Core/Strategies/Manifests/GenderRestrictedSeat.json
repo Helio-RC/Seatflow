@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "manifestVersion": "1.0",
     "description": "作为依赖策略在随机填充上下文中执行。限制指定座位只能分配给特定性别的学生。性别不匹配时优先重定向到匹配性别的受限座位，无合适座位时请求重掷，重掷耗尽后强制分配并警告。",
-    "author": "A_Pair Team",
+    "author": "SeatFlow Team",
     "category": "assignment",
     "defaultPriority": 45,
     "defaultEnabled": false,

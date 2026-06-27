@@ -1,6 +1,6 @@
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Core.DomainServices
+namespace SeatFlow.Core.DomainServices
 {
     /// <summary>
     /// 障碍物处理器，检测并标记与障碍物冲突的座位为不可用。

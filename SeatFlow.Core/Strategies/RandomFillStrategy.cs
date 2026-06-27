@@ -1,9 +1,9 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 随机填充策略（Priority=1，最后执行，填满所有剩余座位）。

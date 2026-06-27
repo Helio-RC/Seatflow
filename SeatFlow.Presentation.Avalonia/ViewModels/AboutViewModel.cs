@@ -4,15 +4,15 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using A_Pair.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.Input;
 using AvaloniaApplication = Avalonia.Application;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class AboutViewModel : ViewModelBase
 {
-    public string AppName { get; } = "A_Pair";
+    public string AppName { get; } = "SeatFlow";
     public string Version { get; }
     public string VersionDisplay { get; }
     public string Description { get; }
@@ -60,7 +60,7 @@ public partial class AboutViewModel : ViewModelBase
     private static AboutData LoadAboutData ()
     {
         var assembly = typeof(AboutViewModel).Assembly;
-        const string resourceName = "A_Pair.Presentation.Avalonia.Data.about.json";
+        const string resourceName = "SeatFlow.Presentation.Avalonia.Data.about.json";
         using var stream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidDataException($"Embedded resource not found: {resourceName}");
 

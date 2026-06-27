@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
-using A_Pair.Contracts.Models;
-using A_Pair.Core.Enums;
-using A_Pair.Core.Utilities;
+using SeatFlow.Contracts.Models;
+using SeatFlow.Core.Enums;
+using SeatFlow.Core.Utilities;
 
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 表示一名学生，包含排座所需的基本信息与轮换辅助数据。

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件包中单个策略的加载条目，位于 <c>plugins-manifest.json</c> 的 <c>strategies[]</c> 数组中。
@@ -16,7 +16,7 @@ namespace A_Pair.Application.Plugins
 
         /// <summary>
         /// 策略 manifest 文件的路径（相对于包根目录）。
-        /// manifest 内容遵循 <see cref="A_Pair.Core.Models.StrategyManifest"/> 格式。
+        /// manifest 内容遵循 <see cref="SeatFlow.Core.Models.StrategyManifest"/> 格式。
         /// </summary>
         [JsonPropertyName("manifest")]
         public string Manifest { get; set; } = string.Empty;
@@ -30,7 +30,7 @@ namespace A_Pair.Application.Plugins
 
         /// <summary>
         /// 策略入口类型的完全限定名（仅程序集插件）。
-        /// 该类型必须实现 <see cref="A_Pair.Contracts.Interfaces.IPluginSeatingStrategy"/>。
+        /// 该类型必须实现 <see cref="SeatFlow.Contracts.Interfaces.IPluginSeatingStrategy"/>。
         /// </summary>
         [JsonPropertyName("entryType")]
         public string? EntryType { get; set; }

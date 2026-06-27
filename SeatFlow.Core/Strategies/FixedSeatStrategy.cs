@@ -1,8 +1,8 @@
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 固定座位策略（Priority=100，最先执行，锁定固定座位）。

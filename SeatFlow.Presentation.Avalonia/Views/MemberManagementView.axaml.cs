@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 
-namespace A_Pair.Presentation.Avalonia.Views;
+namespace SeatFlow.Presentation.Avalonia.Views;
 
 public partial class MemberManagementView : UserControl
 {

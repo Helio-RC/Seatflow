@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Text.Json;
 
-namespace A_Pair.Plugins.Sdk.Models;
+namespace SeatFlow.Plugins.Sdk.Models;
 
 /// <summary>
 /// 插件打包工具，支持将插件包目录打包为 <c>.ap-plugin</c> 文件以及反向解包。

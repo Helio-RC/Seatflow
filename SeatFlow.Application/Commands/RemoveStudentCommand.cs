@@ -1,6 +1,6 @@
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Application.Commands;
+namespace SeatFlow.Application.Commands;
 
 /// <summary>
 /// 移除学生命令，将指定座位上的学生移除（清空座位）。

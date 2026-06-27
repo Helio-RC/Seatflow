@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
 /// 参数编辑器 ViewModel。将 StrategyParameterDefinition 包装为可编辑的参数项列表。

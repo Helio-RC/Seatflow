@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace A_Pair.Presentation.Avalonia.Helpers;
+namespace SeatFlow.Presentation.Avalonia.Helpers;
 
 /// <summary>
 /// 多语言字典解析工具。将 manifest 中声明的 <c>Dictionary&lt;string, string&gt;</c>

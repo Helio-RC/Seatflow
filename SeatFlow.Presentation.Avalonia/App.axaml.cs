@@ -3,12 +3,12 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Presentation.Avalonia.Services;
-using A_Pair.Presentation.Avalonia.ViewModels;
-using A_Pair.Presentation.Avalonia.Views;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Presentation.Avalonia.Services;
+using SeatFlow.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.Views;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -19,7 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using AvaloniaApplication = Avalonia.Application;
 
-namespace A_Pair.Presentation.Avalonia
+namespace SeatFlow.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
 #pragma warning disable AVLN3001

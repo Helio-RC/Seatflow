@@ -1,8 +1,8 @@
 using System.Text.Json;
-using A_Pair.Core.Providers;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Core.Providers;
+using SeatFlow.Infrastructure.Serialization;
 
-namespace A_Pair.Application.Tests.Services;
+namespace SeatFlow.Application.Tests.Services;
 
 public class NoRepeatDeskMateHistoryLoaderTests
 {

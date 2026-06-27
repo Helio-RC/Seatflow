@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Tests.Strategies;
+namespace SeatFlow.Core.Tests.Strategies;
 
 public class FrontRowRotationStrategyTests
 {

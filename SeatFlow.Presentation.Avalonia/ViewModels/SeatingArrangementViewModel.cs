@@ -6,15 +6,15 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Commands;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.DomainServices;
-using A_Pair.Core.Models;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
-using A_Pair.Infrastructure.Serialization;
-using A_Pair.Presentation.Avalonia.Lang;
-using A_Pair.Presentation.Avalonia.Services;
+using SeatFlow.Application.Commands;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.DomainServices;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
+using SeatFlow.Infrastructure.Serialization;
+using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -22,7 +22,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class SeatingArrangementViewModel : ViewModelBase
 {

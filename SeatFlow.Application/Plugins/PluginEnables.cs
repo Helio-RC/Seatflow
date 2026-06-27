@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件包的启用状态文件（<c>data/enables.json</c>），管理包及各策略的运行时启用/禁用状态。

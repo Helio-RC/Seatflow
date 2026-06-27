@@ -1,8 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using A_Pair.Core.Models;
+using SeatFlow.Core.Models;
 
-namespace A_Pair.Infrastructure.Serialization
+namespace SeatFlow.Infrastructure.Serialization
 {
     public class SeatJsonConverter : JsonConverter<Seat>
     {

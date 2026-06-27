@@ -1,10 +1,10 @@
 using System.Text.Json;
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     public class PluginConfigurationService (string pluginsBasePath , ILogger<PluginConfigurationService>? logger = null) : IPluginConfigurationService
     {

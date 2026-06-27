@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 策略的可变运行时配置，由用户通过 UI 修改并持久化到 AppData。

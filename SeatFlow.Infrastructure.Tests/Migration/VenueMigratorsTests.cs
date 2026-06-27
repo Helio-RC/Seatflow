@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
-using A_Pair.Infrastructure.Migration.Migrators;
+using SeatFlow.Infrastructure.Migration.Migrators;
 
-namespace A_Pair.Infrastructure.Tests.Migration;
+namespace SeatFlow.Infrastructure.Tests.Migration;
 
 public class VenueMigratorsTests
 {

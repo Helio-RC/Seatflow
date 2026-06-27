@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Models;
-using A_Pair.Presentation.Avalonia.Lang;
-using A_Pair.Presentation.Avalonia.Services;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -18,7 +18,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Presentation.Avalonia.ViewModels;
+namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 public partial class MemberManagementViewModel : ViewModelBase
 {
@@ -262,13 +262,13 @@ public partial class MemberManagementViewModel : ViewModelBase
             try
             {
                 var (suffix , displayName) = await ResolveTemplateLocaleAsync(ct);
-                var uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
+                var uri = new Uri($"avares://SeatFlow/Assets/Files/Sample_{suffix}.xlsx");
 
                 if (!AssetLoader.Exists(uri))
                 {
                     suffix = DefaultTemplateSuffix;
                     displayName = DefaultTemplateDisplayName;
-                    uri = new Uri($"avares://A_Pair/Assets/Files/Sample_{suffix}.xlsx");
+                    uri = new Uri($"avares://SeatFlow/Assets/Files/Sample_{suffix}.xlsx");
                 }
 
                 if (!AssetLoader.Exists(uri))

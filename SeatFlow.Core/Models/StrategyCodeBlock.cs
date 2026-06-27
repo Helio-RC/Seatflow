@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models;
+namespace SeatFlow.Core.Models;
 
 /// <summary>
 /// 策略级全局参数的声明式定义。来自 manifest JSON 的 parameters[]。

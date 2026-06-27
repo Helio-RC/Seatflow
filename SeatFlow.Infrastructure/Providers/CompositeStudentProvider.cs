@@ -1,9 +1,9 @@
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Infrastructure.Providers;
+namespace SeatFlow.Infrastructure.Providers;
 
 public class CompositeStudentProvider : IStudentProvider
 {

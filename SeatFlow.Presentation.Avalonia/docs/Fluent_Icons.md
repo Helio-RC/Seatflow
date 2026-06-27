@@ -1,6 +1,6 @@
 # Fluent UI Icons Reference
 
-This file records all Fluent UI System Icons used in A_Pair, sourced from the `FluentIcons.Avalonia` NuGet package.
+This file records all Fluent UI System Icons used in SeatFlow, sourced from the `FluentIcons.Avalonia` NuGet package.
 
 NuGet: `FluentIcons.Avalonia` v2.1.325  
 XAML namespace: `xmlns:fic="using:FluentIcons.Avalonia"`  

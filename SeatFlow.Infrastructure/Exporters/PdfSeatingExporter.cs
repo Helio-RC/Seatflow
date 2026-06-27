@@ -1,13 +1,13 @@
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-namespace A_Pair.Infrastructure.Exporters;
+namespace SeatFlow.Infrastructure.Exporters;
 
 public class PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null) : ISeatingPlanExporter
 {

@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
-             xmlns:views="using:A_Pair.Presentation.Avalonia.Views"
-             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+             xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
+             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
              x:DataType="vm:ConfigBlockEditorViewModel"
-             x:Class="A_Pair.Presentation.Avalonia.Views.ConfigBlockEditorView">
+             x:Class="SeatFlow.Presentation.Avalonia.Views.ConfigBlockEditorView">
     <Border Padding="12" Margin="0,4">
         <StackPanel Spacing="8">
             <TextBlock Text="{Binding LocalizedTitle}" Classes="sectionTitle" />

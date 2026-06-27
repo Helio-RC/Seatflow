@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 教室布局定义，实现 <see cref="IClassroomLayout"/> 接口。

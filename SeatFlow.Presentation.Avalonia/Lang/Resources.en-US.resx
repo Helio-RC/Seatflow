@@ -87,13 +87,13 @@
     <value>Application Already Running</value>
   </data>
   <data name="App_AlreadyRunningMessage" xml:space="preserve">
-    <value>Another instance of A_Pair is already running. To avoid data conflicts, this instance will exit automatically.</value>
+    <value>Another instance of SeatFlow is already running. To avoid data conflicts, this instance will exit automatically.</value>
   </data>
   <data name="App_EnvironmentWarning" xml:space="preserve">
     <value>Environment Warning</value>
   </data>
   <data name="App_Title" xml:space="preserve">
-    <value>A_Pair — Seating</value>
+    <value>SeatFlow — Seating</value>
   </data>
   <data name="Common_Browse" xml:space="preserve">
     <value>Browse</value>
@@ -691,7 +691,7 @@ This cannot be undone.</value>
     <value>Other</value>
   </data>
   <data name="Home_Greeting" xml:space="preserve">
-    <value>Welcome to A_Pair</value>
+    <value>Welcome to SeatFlow</value>
   </data>
   <data name="Home_Hint" xml:space="preserve">
     <value>Click a sidebar item to get started</value>
@@ -715,7 +715,7 @@ This cannot be undone.</value>
     <value>About</value>
   </data>
   <data name="Nav_AppShort" xml:space="preserve">
-    <value>A_Pair</value>
+    <value>SeatFlow</value>
   </data>
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>Collapse sidebar</value>
@@ -1928,10 +1928,10 @@ Diagnostics saved to: {1}</value>
     <value>Re-run the first-time onboarding guide</value>
   </data>
   <data name="Guide_Phase0_Step0_Title" xml:space="preserve">
-    <value>Welcome to A_Pair</value>
+    <value>Welcome to SeatFlow</value>
   </data>
   <data name="Guide_Phase0_Step0_Desc" xml:space="preserve">
-    <value>A_Pair is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3-5 minutes.</value>
+    <value>SeatFlow is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3-5 minutes.</value>
   </data>
   <data name="Guide_Phase0_Step1_Title" xml:space="preserve">
     <value>Navigation</value>
@@ -2003,13 +2003,13 @@ Diagnostics saved to: {1}</value>
     <value>You&apos;re All Set!</value>
   </data>
   <data name="Guide_Phase5_Step0_Desc" xml:space="preserve">
-    <value>You now know the core workflow of A_Pair. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
+    <value>You now know the core workflow of SeatFlow. You can start creating seating arrangements on your own! Refer to the documentation if you need help.</value>
   </data>
   <data name="Guide_Welcome_Greeting_Title" xml:space="preserve">
-    <value>Welcome to A_Pair</value>
+    <value>Welcome to SeatFlow</value>
   </data>
   <data name="Guide_Welcome_Greeting_Desc" xml:space="preserve">
-    <value>A_Pair is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3–5 minutes.</value>
+    <value>SeatFlow is a smart seating arrangement tool. This guide will walk you through your first seating plan: import student data → create a venue layout → configure strategies → generate seating → export results. Estimated time: 3–5 minutes.</value>
   </data>
   <data name="Guide_Welcome_Navigation_Title" xml:space="preserve">
     <value>Navigation</value>
@@ -2117,7 +2117,7 @@ Diagnostics saved to: {1}</value>
     <value>You&apos;re All Set!</value>
   </data>
   <data name="Guide_Closing_Finish_Desc" xml:space="preserve">
-    <value>You&apos;ve completed the A_Pair core workflow guide. You&apos;re ready to create seating arrangements on your own! Check documentation if needed.</value>
+    <value>You&apos;ve completed the SeatFlow core workflow guide. You&apos;re ready to create seating arrangements on your own! Check documentation if needed.</value>
   </data>
   <data name="Guide_Freeform_Import_Title" xml:space="preserve">
     <value>Click here to import coordinates</value>

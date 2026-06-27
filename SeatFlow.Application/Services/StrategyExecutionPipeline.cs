@@ -1,9 +1,9 @@
-using A_Pair.Application.Interfaces;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
+using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Application.Services
+namespace SeatFlow.Application.Services
 {
     /// <summary>
     /// 策略执行管道，按优先级降序依次执行座位分配策略。

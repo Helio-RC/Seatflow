@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Enums
+namespace SeatFlow.Core.Enums
 {
     /// <summary>
     /// 性别枚举，用于学生基本信息。

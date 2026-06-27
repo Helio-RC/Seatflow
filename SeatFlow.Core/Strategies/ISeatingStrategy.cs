@@ -1,6 +1,6 @@
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Workspace;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 座位安排策略接口，定义所有排座策略的通用契约。

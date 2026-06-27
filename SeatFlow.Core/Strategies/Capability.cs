@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Strategies;
+namespace SeatFlow.Core.Strategies;
 
 /// <summary>
 /// 策略能力标识常量。Manifest 中声明的 <c>capabilities</c> 字段与此处常量一一对应。

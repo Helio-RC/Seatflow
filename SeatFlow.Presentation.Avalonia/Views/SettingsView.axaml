@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:A_Pair.Presentation.Avalonia.ViewModels"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"
-             x:Class="A_Pair.Presentation.Avalonia.Views.SettingsView"
+             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+             x:Class="SeatFlow.Presentation.Avalonia.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
   <Design.DataContext>

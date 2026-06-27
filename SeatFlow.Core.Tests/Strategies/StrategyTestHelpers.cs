@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Tests.Strategies;
+namespace SeatFlow.Core.Tests.Strategies;
 
 /// <summary>
 /// 策略测试共享辅助类，供 DeskMate、NoRepeatDeskMate 等依赖策略测试共用。

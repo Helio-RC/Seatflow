@@ -1,10 +1,10 @@
 using System;
 using System.Globalization;
-using A_Pair.Core.Enums;
+using SeatFlow.Core.Enums;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 
-namespace A_Pair.Presentation.Avalonia.Converters;
+namespace SeatFlow.Presentation.Avalonia.Converters;
 
 /// <summary>
 /// Gender? ↔ ComboBox SelectedIndex (0=空, 1=男, 2=女, 3=其他)

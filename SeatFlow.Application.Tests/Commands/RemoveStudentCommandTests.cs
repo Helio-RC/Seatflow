@@ -1,4 +1,4 @@
-namespace A_Pair.Application.Tests.Commands;
+namespace SeatFlow.Application.Tests.Commands;
 
 public class RemoveStudentCommandTests
 {

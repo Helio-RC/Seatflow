@@ -1,11 +1,11 @@
 using System.IO.Compression;
 using System.Text.Json;
-using A_Pair.Contracts.Interfaces;
-using A_Pair.Core.Models;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Contracts.Interfaces;
+using SeatFlow.Core.Models;
+using SeatFlow.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Application.Plugins
+namespace SeatFlow.Application.Plugins
 {
     /// <summary>
     /// 插件管理器，负责从指定目录发现、加载和管理插件包。
@@ -518,7 +518,7 @@ namespace A_Pair.Application.Plugins
 
         /// <summary>
         /// 验证 ZIP 文件安全性：检查压缩炸弹、总大小、条目数、路径遍历。
-        /// 注意：此方法与 <see cref="A_Pair.Plugins.Sdk.Models.PluginPackage.ValidateZipSafety"/> 逻辑对应，
+        /// 注意：此方法与 <see cref="SeatFlow.Plugins.Sdk.Models.PluginPackage.ValidateZipSafety"/> 逻辑对应，
         /// 因 Application 层不引用 Plugins.Sdk 而在此独立维护。SDK 侧的打包流程复用 SDK 版本。
         /// </summary>
         private static void ValidateZipSafety (string archivePath)

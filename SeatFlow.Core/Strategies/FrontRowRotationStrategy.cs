@@ -1,9 +1,9 @@
-using A_Pair.Core.DomainServices;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.DomainServices;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 前排轮换策略（Priority=50，第二执行，在非固定空座中填前排）。

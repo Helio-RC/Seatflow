@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace A_Pair.Core.Utilities
+namespace SeatFlow.Core.Utilities
 {
     /// <summary>
     /// 扩展属性容器，以键值对形式存储任意类型的附加数据。

@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Application.Tests.Plugins;
+namespace SeatFlow.Application.Tests.Plugins;
 
 public class PluginManagerTests : IDisposable
 {

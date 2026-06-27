@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Models
+namespace SeatFlow.Core.Models
 {
     /// <summary>
     /// 教室中的障碍物，用于标记不可放置座位的区域（如柱子、讲台、门等）。

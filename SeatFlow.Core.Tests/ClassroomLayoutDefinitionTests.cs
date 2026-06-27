@@ -1,4 +1,4 @@
-namespace A_Pair.Core.Tests;
+namespace SeatFlow.Core.Tests;
 
 public class ClassroomLayoutDefinitionTests
 {

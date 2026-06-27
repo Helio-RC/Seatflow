@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace A_Pair.Infrastructure.Tests;
+namespace SeatFlow.Infrastructure.Tests;
 
 public class SeatJsonConverterTests
 {

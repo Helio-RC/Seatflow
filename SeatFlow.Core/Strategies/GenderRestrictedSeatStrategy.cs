@@ -1,10 +1,10 @@
-using A_Pair.Core.Enums;
-using A_Pair.Core.Models;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Enums;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Workspace;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Core.Strategies
+namespace SeatFlow.Core.Strategies
 {
     /// <summary>
     /// 性别限制座位策略（依赖策略，在 RandomFill 上下文中执行）。

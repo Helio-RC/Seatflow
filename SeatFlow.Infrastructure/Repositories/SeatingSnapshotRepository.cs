@@ -1,13 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using A_Pair.Core.Models;
-using A_Pair.Core.Providers;
-using A_Pair.Infrastructure.Migration;
-using A_Pair.Infrastructure.Serialization;
+using SeatFlow.Core.Models;
+using SeatFlow.Core.Providers;
+using SeatFlow.Infrastructure.Migration;
+using SeatFlow.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Infrastructure.Repositories
+namespace SeatFlow.Infrastructure.Repositories
 {
     public class SeatingSnapshotRepository (
         string basePath ,

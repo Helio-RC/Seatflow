@@ -1,11 +1,11 @@
-using A_Pair.Core.Exporters;
-using A_Pair.Core.Providers;
-using A_Pair.Core.Services;
-using A_Pair.Infrastructure.Migration;
-using A_Pair.Infrastructure.Providers;
+using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Providers;
+using SeatFlow.Core.Services;
+using SeatFlow.Infrastructure.Migration;
+using SeatFlow.Infrastructure.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace A_Pair.Application.Tests.Services;
+namespace SeatFlow.Application.Tests.Services;
 
 public class ApplicationFacadeTests
 {

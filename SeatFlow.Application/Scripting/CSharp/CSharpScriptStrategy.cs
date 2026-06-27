@@ -1,12 +1,12 @@
 using System.Reflection;
-using A_Pair.Core.Strategies;
-using A_Pair.Core.Workspace;
+using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Workspace;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace A_Pair.Application.Scripting.CSharp
+namespace SeatFlow.Application.Scripting.CSharp
 {
     /// <summary>
     /// C# 脚本策略，使用 Roslyn 脚本引擎在运行时编译并执行 C# 代码作为座位分配策略。
@@ -99,8 +99,8 @@ namespace A_Pair.Application.Scripting.CSharp
             {
                 typeof(object).Assembly,                 // System.Private.CoreLib
                 typeof(Enumerable).Assembly,             // System.Linq
-                typeof(SeatingWorkspace).Assembly,       // A_Pair.Core
-                typeof(ScriptGlobals).Assembly           // A_Pair.Application
+                typeof(SeatingWorkspace).Assembly,       // SeatFlow.Core
+                typeof(ScriptGlobals).Assembly           // SeatFlow.Application
             };
 
             // 可根据配置添加额外引用
@@ -116,8 +116,8 @@ namespace A_Pair.Application.Scripting.CSharp
                 "System",
                 "System.Linq",
                 "System.Collections.Generic",
-                "A_Pair.Core.Workspace",
-                "A_Pair.Core.Models"
+                "SeatFlow.Core.Workspace",
+                "SeatFlow.Core.Models"
             ];
     }
 
