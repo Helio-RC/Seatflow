@@ -172,9 +172,7 @@ public class SeatSetsService : ISeatSetsService
 
                 // 原子写入：先写临时文件，再重命名
                 var tempPath = targetPath + ".tmp";
-                var rawJson = content.ValueKind == JsonValueKind.String
-                    ? content.GetString()!
-                    : content.GetRawText();
+                var rawJson = content.GetRawText();
 
                 await File.WriteAllTextAsync(tempPath , rawJson , ct);
                 File.Move(tempPath , targetPath , overwrite: true);

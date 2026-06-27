@@ -4,6 +4,7 @@ using System.IO.Pipes;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading;
 using SeatFlow.Application.Services;
 using SeatFlow.Core.Models.SeatSets;
@@ -208,10 +209,6 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <summary>
-        /// 尝试通过命名管道将 .seatsets 文件路径转发给已有实例。
-        /// 成功返回 true（调用方应静默退出），失败返回 false（可能是首个实例）。
-        /// </summary>
-        /// <summary>
         /// 在 AppData 目录创建之前扫描 exe 目录中的 .seatsets 文件用于自动导入。
         /// 仅在 AppData 不存在时生效（即真正的首次启动）。
         /// 扫描时进行轻量前置校验：大小合理、可解析为 JSON、含 formatVersion 字段。
@@ -244,13 +241,12 @@ namespace SeatFlow.Presentation.Avalonia
                     try
                     {
                         var json = File.ReadAllText(file.FullName);
-                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        using var doc = JsonDocument.Parse(json);
                         var root = doc.RootElement;
-                        if (root.ValueKind != System.Text.Json.JsonValueKind.Object)
+                        if (root.ValueKind != JsonValueKind.Object)
                             continue;
                         if (!root.TryGetProperty("formatVersion" , out _))
                             continue;
-                        // 格式版本可解析
                     }
                     catch
                     {
@@ -268,6 +264,10 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
+        /// <summary>
+        /// 尝试通过命名管道将 .seatsets 文件路径转发给已有实例。
+        /// 成功返回 true（调用方应静默退出），失败返回 false（可能是首个实例）。
+        /// </summary>
         private static bool TryForwardToExistingInstance (string filePath)
         {
             try

@@ -193,7 +193,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// </summary>
         private void StartSeatSetsPipeServer ()
         {
-            ThreadPool.QueueUserWorkItem(async _ =>
+            _ = Task.Run(async () =>
             {
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
                 while (true)
