@@ -368,4 +368,61 @@ public class SeatSetsServiceTests : IDisposable
         Directory.Exists(Path.Combine(_dataPath , "Rosters")).Should().BeTrue("Rosters 目录应被创建");
         Directory.Exists(Path.Combine(_dataPath , "StrategyConfig")).Should().BeTrue("StrategyConfig 目录应被创建");
     }
+
+    [Fact]
+    public async Task Import_PathTraversal_RejectsFile ()
+    {
+        // Arrange: 手动构造含 ".." 路径的存档
+        var service = CreateService();
+        var archive = new SeatSetsArchive
+        {
+            FormatVersion = SeatSetsConstants.CurrentFormatVersion ,
+            AppVersion = "1.0.0" ,
+            CreatedAt = DateTime.Now.ToString("O")
+        };
+
+        var chunk = new SeatSetsChunk();
+        using var doc = JsonDocument.Parse("{\"test\": true}");
+        // 路径穿越尝试
+        chunk.Files["../../../etc/evil.json"] = doc.RootElement.Clone();
+        chunk.Hash = SeatSetsService_ComputeChunkHashForTest(chunk.Files);
+        archive.Chunks[SeatSetsConstants.CategoryVenues] = chunk;
+        archive.ArchiveHash = SeatSetsService_ComputeArchiveHashForTest(archive.Chunks);
+
+        var exportPath = Path.Combine(_tempRoot , "traversal.seatsets");
+        var json = JsonSerializer.Serialize(archive , JsonOptions.WriteIndentedCamelCase);
+        await File.WriteAllTextAsync(exportPath , json);
+
+        // Act: 校验应检测到路径穿越
+        var validation = await service.ValidateAsync(exportPath , TestContext.Current.CancellationToken);
+
+        // Assert
+        validation.IsValid.Should().BeFalse();
+        validation.ValidationErrors.Should().Contain(e => e.Contains(".."));
+    }
+
+    // 暴露 ComputeChunkHash 用于测试
+    private static string SeatSetsService_ComputeChunkHashForTest (Dictionary<string , JsonElement> files)
+    {
+        if (files.Count == 0) return string.Empty;
+        var sorted = new SortedDictionary<string , JsonElement>(files , StringComparer.Ordinal);
+        using var stream = new MemoryStream();
+        using var writer = new System.Text.Json.Utf8JsonWriter(stream);
+        writer.WriteStartObject();
+        foreach (var (key , value) in sorted)
+        {
+            writer.WritePropertyName(key);
+            value.WriteTo(writer);
+        }
+        writer.WriteEndObject();
+        writer.Flush();
+        return Utils.ContentHashHelper.ComputeSha256(System.Text.Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    private static string SeatSetsService_ComputeArchiveHashForTest (Dictionary<string , SeatSetsChunk> chunks)
+    {
+        var hashInput = string.Join("" ,
+            chunks.OrderBy(c => c.Key , StringComparer.Ordinal).Select(c => c.Value.Hash ?? string.Empty));
+        return Utils.ContentHashHelper.ComputeSha256(hashInput);
+    }
 }

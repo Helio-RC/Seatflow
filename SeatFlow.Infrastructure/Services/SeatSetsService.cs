@@ -266,6 +266,19 @@ public class SeatSetsService : ISeatSetsService
                 }
             }
 
+            // 路径穿越检测：所有文件路径不得包含 ".." 段
+            foreach (var (category , chunk) in archive.Chunks)
+            {
+                foreach (var relPath in chunk.Files.Keys)
+                {
+                    if (relPath.Contains(".."))
+                    {
+                        result.ValidationErrors.Add(
+                            $"路径穿越检测: 数据块 [{category}] 中的文件路径包含非法段 '..': {relPath}");
+                    }
+                }
+            }
+
             // 验证整体哈希
             if (!string.IsNullOrEmpty(archive.ArchiveHash))
             {
@@ -651,17 +664,39 @@ public class SeatSetsService : ISeatSetsService
 
     /// <summary>
     /// 根据类别和相对路径解析导入时的目标文件路径。
+    /// 内含路径穿越防护：解析后的绝对路径必须位于允许的基目录内。
     /// </summary>
+    /// <exception cref="InvalidOperationException">路径穿越检测时抛出。</exception>
     private string ResolveTargetPath (string category , string relPath)
     {
-        // 规范化为平台路径分隔符
+        // 规范化为平台路径分隔符，拒绝含 null 字节的路径
         var normalized = relPath.Replace('/' , Path.DirectorySeparatorChar);
+        if (normalized.Contains('\0'))
+            throw new InvalidOperationException($"文件路径包含非法字符: {relPath}");
 
-        return category switch
+        string fullPath;
+        string allowedBase;
+
+        if (category == SeatSetsConstants.CategoryAppSettings)
         {
-            SeatSetsConstants.CategoryAppSettings => _settingsFilePath,
-            _ => Path.Combine(_effectiveDataPath , normalized)
-        };
+            fullPath = Path.GetFullPath(_settingsFilePath);
+            allowedBase = Path.GetFullPath(Path.GetDirectoryName(_settingsFilePath)!);
+        }
+        else
+        {
+            fullPath = Path.GetFullPath(Path.Combine(_effectiveDataPath , normalized));
+            allowedBase = Path.GetFullPath(_effectiveDataPath);
+        }
+
+        // 路径穿越检测：解析后的绝对路径必须位于允许的基目录内
+        if (!fullPath.StartsWith(allowedBase + Path.DirectorySeparatorChar , StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(fullPath , allowedBase , StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"路径穿越检测: '{relPath}' 解析到 '{fullPath}'，不在允许的基目录 '{allowedBase}' 内");
+        }
+
+        return fullPath;
     }
 
     /// <summary>

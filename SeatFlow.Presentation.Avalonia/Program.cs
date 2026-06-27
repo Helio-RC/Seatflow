@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using SeatFlow.Application.Services;
+using SeatFlow.Core.Models.SeatSets;
 using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
@@ -213,6 +214,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// <summary>
         /// 在 AppData 目录创建之前扫描 exe 目录中的 .seatsets 文件用于自动导入。
         /// 仅在 AppData 不存在时生效（即真正的首次启动）。
+        /// 扫描时进行轻量前置校验：大小合理、可解析为 JSON、含 formatVersion 字段。
         /// </summary>
         private static string? DiscoverAutoImportSeatSetsFile ()
         {
@@ -227,9 +229,38 @@ namespace SeatFlow.Presentation.Avalonia
                 if (files.Length == 0)
                     return null;
 
-                return files.Select(f => new FileInfo(f))
-                    .OrderByDescending(f => f.LastWriteTimeUtc)
-                    .First().FullName;
+                // 按修改时间降序，取第一个通过前置校验的文件
+                var candidates = files
+                    .Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.LastWriteTimeUtc);
+
+                foreach (var file in candidates)
+                {
+                    // 大小检查：最少 50 字节（一个最小合法 JSON），最大 200 MB
+                    if (file.Length < 50 || file.Length > SeatSetsConstants.MaxFileSizeBytes)
+                        continue;
+
+                    // 轻量 JSON 结构检查：确认是合法 JSON 且含 formatVersion
+                    try
+                    {
+                        var json = File.ReadAllText(file.FullName);
+                        using var doc = System.Text.Json.JsonDocument.Parse(json);
+                        var root = doc.RootElement;
+                        if (root.ValueKind != System.Text.Json.JsonValueKind.Object)
+                            continue;
+                        if (!root.TryGetProperty("formatVersion" , out _))
+                            continue;
+                        // 格式版本可解析
+                    }
+                    catch
+                    {
+                        continue; // JSON 解析失败，跳过
+                    }
+
+                    return file.FullName;
+                }
+
+                return null;
             }
             catch
             {
