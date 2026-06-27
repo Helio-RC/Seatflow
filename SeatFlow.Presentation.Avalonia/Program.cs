@@ -47,6 +47,10 @@ namespace SeatFlow.Presentation.Avalonia
             if (seatsetsFilePath != null && TryForwardToExistingInstance(seatsetsFilePath))
                 return;
 
+            // 在 DI 创建 AppData/Logs 之前扫描自动导入文件
+            // AddSeatFlowApplication 会创建 Logs 目录使 AppData 存在，导致后续检查失效
+            var autoImportPath = DiscoverAutoImportSeatSetsFile();
+
             using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
             var services = new ServiceCollection();
@@ -84,6 +88,9 @@ namespace SeatFlow.Presentation.Avalonia
 
             // 将命令行中的 .seatsets 文件路径传递给 App（用于双击打开导入）
             App.PendingSeatSetsFilePath = seatsetsFilePath;
+
+            // 将自动发现的 .seatsets 文件路径传递给 App（用于首次启动数据恢复）
+            App.AutoImportSeatSetsPath = autoImportPath;
 
             BuildAvaloniaApp(serviceProvider , isFirstInstance)
                 .StartWithClassicDesktopLifetime(args);
@@ -203,6 +210,33 @@ namespace SeatFlow.Presentation.Avalonia
         /// 尝试通过命名管道将 .seatsets 文件路径转发给已有实例。
         /// 成功返回 true（调用方应静默退出），失败返回 false（可能是首个实例）。
         /// </summary>
+        /// <summary>
+        /// 在 AppData 目录创建之前扫描 exe 目录中的 .seatsets 文件用于自动导入。
+        /// 仅在 AppData 不存在时生效（即真正的首次启动）。
+        /// </summary>
+        private static string? DiscoverAutoImportSeatSetsFile ()
+        {
+            try
+            {
+                var exeDir = AppContext.BaseDirectory;
+                var appDataPath = Path.Combine(exeDir , "AppData");
+                if (Directory.Exists(appDataPath))
+                    return null;
+
+                var files = Directory.GetFiles(exeDir , "*.seatsets" , SearchOption.TopDirectoryOnly);
+                if (files.Length == 0)
+                    return null;
+
+                return files.Select(f => new FileInfo(f))
+                    .OrderByDescending(f => f.LastWriteTimeUtc)
+                    .First().FullName;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static bool TryForwardToExistingInstance (string filePath)
         {
             try

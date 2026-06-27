@@ -33,6 +33,9 @@ namespace SeatFlow.Presentation.Avalonia
         /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）。</summary>
         internal static string? PendingSeatSetsFilePath { get; set; }
 
+        /// <summary>在 AppData 创建前自动扫描到的 .seatsets 文件路径（首次启动数据恢复）。</summary>
+        internal static string? AutoImportSeatSetsPath { get; set; }
+
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
         public override void Initialize ()
@@ -338,22 +341,20 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <summary>
-        /// 在 AppData 目录不存在时，自动扫描可执行文件目录中的 .seatsets 文件并静默全量导入。
-        /// 此方法在 AppData 创建之前执行，确保数据在首次启动时可用。
+        /// 在 AppData 目录尚未包含用户数据时（首次启动），
+        /// 自动导入 exe 目录中预先放置的 .seatsets 文件。
+        /// 文件路径在 DI 初始化前由 Program.DiscoverAutoImportSeatSetsFile 完成扫描，
+        /// 避免了 AddSeatFlowApplication 创建 AppData/Logs 导致的误判。
         /// </summary>
         private async Task CheckSeatSetsAutoImportAsync ()
         {
+            var seatsetsPath = AutoImportSeatSetsPath;
+            if (string.IsNullOrEmpty(seatsetsPath))
+                return;
+
             try
             {
-                var appDataPath = Path.Combine(AppContext.BaseDirectory , "AppData");
-                if (Directory.Exists(appDataPath))
-                    return; // AppData 已存在，不需要自动导入
-
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
-                var seatsetsPath = await facade.DiscoverSeatSetsFileAsync(CancellationToken.None);
-                if (seatsetsPath == null)
-                    return;
-
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
                 logger.LogInformation("[SeatSets] 自动发现数据包: {Path}，准备导入...", seatsetsPath);
 
