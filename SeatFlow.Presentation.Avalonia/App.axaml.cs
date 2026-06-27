@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -170,21 +171,62 @@ namespace SeatFlow.Presentation.Avalonia
                     });
                 };
 
+                // 启动命名管道服务器：接收第二个进程转发的 .seatsets 文件路径
+                StartSeatSetsPipeServer();
+
                 // 按序执行：先检查自动导入 → 引导 → 恢复设置
                 _ = InitializeAsync(mainWindow);
 
                 // 处理双击 .seatsets 文件（延迟到 UI 就绪后执行）
-                HandlePendingSeatSetsFile(mainWindow);
+                HandlePendingSeatSetsFile();
             }
 
             base.OnFrameworkInitializationCompleted();
         }
 
         /// <summary>
-        /// 处理待导入的 .seatsets 文件（来自命令行参数或双击打开）。
+        /// 后台监听命名管道，接收第二个进程转发的 .seatsets 文件路径。
+        /// 收到有效路径后通过 Dispatcher 排程到 UI 线程处理。
+        /// </summary>
+        private void StartSeatSetsPipeServer ()
+        {
+            ThreadPool.QueueUserWorkItem(async _ =>
+            {
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                while (true)
+                {
+                    try
+                    {
+                        using var server = new System.IO.Pipes.NamedPipeServerStream(
+                            Program.SeatSetsPipeName , PipeDirection.In , 1);
+                        await server.WaitForConnectionAsync();
+                        using var reader = new StreamReader(server);
+                        var path = await reader.ReadLineAsync();
+
+                        if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                        {
+                            logger.LogInformation("[SeatSets] 管道收到文件路径: {Path}" , path);
+                            Dispatcher.UIThread.Post(() =>
+                            {
+                                PendingSeatSetsFilePath = path;
+                                HandlePendingSeatSetsFile();
+                            } , DispatcherPriority.Background);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex , "[SeatSets] 管道服务器异常，1s 后重试");
+                        await Task.Delay(1000);
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// 处理待导入的 .seatsets 文件（来自命令行参数、双击打开或管道转发）。
         /// 延迟到 Background 优先级执行，确保 UI 已完全初始化。
         /// </summary>
-        private void HandlePendingSeatSetsFile (MainWindow mainWindow)
+        private void HandlePendingSeatSetsFile ()
         {
             var filePath = PendingSeatSetsFilePath;
             if (string.IsNullOrEmpty(filePath))

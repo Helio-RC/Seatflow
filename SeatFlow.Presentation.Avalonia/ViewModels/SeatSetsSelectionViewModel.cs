@@ -28,6 +28,7 @@ public partial class SeatSetsSelectionViewModel : ViewModelBase
 
     /// <summary>是否为导出模式（false 表示导入模式）。</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Title))]
     public partial bool IsExport { get; set; } = true;
 
     /// <summary>对话框标题。</summary>

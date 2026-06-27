@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -17,6 +18,9 @@ namespace SeatFlow.Presentation.Avalonia
 {
     internal sealed class Program
     {
+        /// <summary>用于将 .seatsets 文件路径从第二个进程转发到第一个进程的命名管道名称。</summary>
+        internal const string SeatSetsPipeName = "SeatFlow_SeatSetsPipe";
+
         [STAThread]
         public static void Main (string[] args)
         {
@@ -38,6 +42,10 @@ namespace SeatFlow.Presentation.Avalonia
 
             // Windows: 注册 .seatsets 文件关联，使双击文件能启动程序导入
             RegisterSeatSetsFileAssociation();
+
+            // 如果是非首个实例且有 .seatsets 文件，转发给已有实例后静默退出
+            if (seatsetsFilePath != null && TryForwardToExistingInstance(seatsetsFilePath))
+                return;
 
             using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
@@ -188,6 +196,29 @@ namespace SeatFlow.Presentation.Avalonia
             catch
             {
                 // 注册失败静默处理——不影响正常启动
+            }
+        }
+
+        /// <summary>
+        /// 尝试通过命名管道将 .seatsets 文件路径转发给已有实例。
+        /// 成功返回 true（调用方应静默退出），失败返回 false（可能是首个实例）。
+        /// </summary>
+        private static bool TryForwardToExistingInstance (string filePath)
+        {
+            try
+            {
+                using var client = new NamedPipeClientStream(
+                    "." , SeatSetsPipeName , PipeDirection.Out);
+                // 短超时——如果连接不上说明没有已有实例在监听
+                client.Connect(2000);
+                using var writer = new StreamWriter(client);
+                writer.WriteLine(filePath);
+                writer.Flush();
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }
