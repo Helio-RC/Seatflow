@@ -42,7 +42,10 @@ namespace SeatFlow.Presentation.Avalonia
             using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
             var services = new ServiceCollection();
-            services.AddSeatFlowApplication("AppData" , "Plugins");
+            // 使用绝对路径，避免双击 .seatsets 文件时工作目录被 Windows 改为文件所在位置
+            services.AddSeatFlowApplication(
+                Path.Combine(AppContext.BaseDirectory , "AppData") ,
+                Path.Combine(AppContext.BaseDirectory , "Plugins"));
 
             // 注册导航服务
             services.AddSingleton<INavigationService , NavigationService>();
