@@ -36,6 +36,9 @@ namespace SeatFlow.Presentation.Avalonia
                 }
             }
 
+            // Windows: 注册 .seatsets 文件关联，使双击文件能启动程序导入
+            RegisterSeatSetsFileAssociation();
+
             using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
             var services = new ServiceCollection();
@@ -141,6 +144,47 @@ namespace SeatFlow.Presentation.Avalonia
             catch
             {
                 Console.Error.WriteLine($"{title}: {message}");
+            }
+        }
+
+        /// <summary>
+        /// 在 HKCU 中注册 .seatsets 文件关联（仅 Windows，无需管理员权限）。
+        /// 注册后双击 .seatsets 文件会自动启动程序并导入。
+        /// 幂等操作——重复调用不会产生副作用。
+        /// </summary>
+        private static void RegisterSeatSetsFileAssociation ()
+        {
+            if (!OperatingSystem.IsWindows())
+                return;
+
+            try
+            {
+                var exePath = Environment.ProcessPath;
+                if (string.IsNullOrEmpty(exePath))
+                    return;
+
+                var progId = "SeatFlow.seatsets";
+
+                using var extKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                    @"Software\Classes\.seatsets");
+                if (extKey.GetValue("") as string != progId)
+                    extKey.SetValue("" , progId);
+
+                using var progKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                    $@"Software\Classes\{progId}");
+                progKey.SetValue("" , "SeatFlow Data Package");
+
+                using var iconKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                    $@"Software\Classes\{progId}\DefaultIcon");
+                iconKey.SetValue("" , $"\"{exePath}\",0");
+
+                using var cmdKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                    $@"Software\Classes\{progId}\shell\open\command");
+                cmdKey.SetValue("" , $"\"{exePath}\" \"%1\"");
+            }
+            catch
+            {
+                // 注册失败静默处理——不影响正常启动
             }
         }
     }

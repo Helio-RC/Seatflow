@@ -171,15 +171,15 @@ public class SeatSetsImportResult
 
 ### Windows
 
-通过注册表将 `.seatsets` 关联到 SeatFlow：
+程序启动时**自动注册** `.seatsets` 文件关联到 `HKEY_CURRENT_USER`（无需管理员权限）。注册后双击 `.seatsets` 文件即可启动 SeatFlow 并显示导入对话框。
 
-```reg
-Windows Registry Editor Version 5.00
-[HKEY_CURRENT_USER\Software\Classes\.seatsets]
-@="SeatFlow.seatsets"
-[HKEY_CURRENT_USER\Software\Classes\SeatFlow.seatsets\shell\open\command]
-@="\"C:\\path\\to\\SeatFlow.exe\" \"%1\""
+注册表写入路径：
 ```
+HKCU\Software\Classes\.seatsets          → SeatFlow.seatsets
+HKCU\Software\Classes\SeatFlow.seatsets  → 描述 + 图标 + shell\open\command
+```
+
+如需手动移除，删除以上注册表项即可。
 
 ### Linux
 
