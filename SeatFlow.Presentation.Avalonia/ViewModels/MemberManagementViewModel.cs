@@ -198,6 +198,12 @@ public partial class MemberManagementViewModel : ViewModelBase
         _suppressDatasetLoad = false;
     }
 
+    /// <summary>仅供引导系统使用：设置 _suppressDatasetLoad 阻止 SelectedDataset 变化时的副作用。</summary>
+    internal void SetSuppressDatasetLoad (bool value) => _suppressDatasetLoad = value;
+
+    /// <summary>仅供引导系统使用：重置脏状态追踪快照，防止 ClearPageData 后的误判。</summary>
+    internal void ResetDirtyState () => _originalStudentsJson = null;
+
     public string StudentCountDisplay => string.Format(Resources.Member_MemberCountFmt , StudentCount);
     public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt , FilePath);
     public string StudentCountDisplay2 => string.Format(Resources.Member_PersonCountFmt , StudentCount);

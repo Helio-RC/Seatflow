@@ -49,6 +49,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// <summary>MemberManagement 引导是否已注入过示例数据（Phase 1 跳过，Phase 2 注入）。</summary>
     private bool _memberManagementDataSeeded;
 
+    /// <summary>演示数据集的固定 ID，用于注入和清理时识别。</summary>
+    private const string DemoDatasetId = "guide-demo-ds";
+
     /// <summary>MemberManagement 用户状态快照（引导前保存，引导后恢复）。null 表示首次使用无需恢复。</summary>
     private static List<Student>? _savedMemberStudents;
     private static List<StudentDatasetInfo>? _savedMemberDatasets;
@@ -90,6 +93,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         _isCompleting = false;
         _currentPageGuide = null;
+        _memberManagementDataSeeded = false;
         IsActive = true;
 
         var mainWindow = GetMainWindow();
@@ -357,10 +361,13 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     {
         if (vm is null) return;
 
-        // 保存用户原有状态，引导结束后恢复
+        // 保存用户原有状态，引导结束后恢复（始终执行，即使跳过注入）
         _savedMemberStudents = [.. vm.Students];
         _savedMemberDatasets = [.. vm.SavedDatasets];
         _savedMemberIsEmpty = vm.IsEmpty;
+
+        // 若用户已在 Phase 1 导入数据，不覆盖
+        if (vm.Students.Count > 0) return;
 
         vm.Students = new ObservableCollection<Student>
         {
@@ -376,16 +383,18 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         vm.IsLoading = false;
         vm.StatusMessage = string.Format(Resources.Member_LoadedFmt , vm.Students.Count);
 
-        // 填充 SavedDatasets 并选中演示数据集，展示"从文件更新"按钮
+        // 追加演示数据集到现有列表（而非替换），避免覆盖用户真实数据集
         var demoDataset = new StudentDatasetInfo
         {
-            Id = "guide-demo-ds" ,
+            Id = DemoDatasetId ,
             Name = "演示班级" ,
             StudentCount = 6 ,
             CreatedAt = DateTime.Now
         };
-        vm.SavedDatasets = new ObservableCollection<StudentDatasetInfo> { demoDataset };
-        vm.CurrentDatasetId = "guide-demo-ds";
+        // 仅在演示数据集不存在时才追加，防止重复
+        if (!vm.SavedDatasets.Any(d => d.Id == DemoDatasetId))
+            vm.SavedDatasets.Add(demoDataset);
+        vm.CurrentDatasetId = DemoDatasetId;
         vm.CurrentDatasetName = "演示班级";
         vm.SetGuideDataset(demoDataset); // 安全选中，不触发磁盘加载
     }
@@ -493,25 +502,39 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         if (sp.GetService(typeof(MemberManagementViewModel)) is MemberManagementViewModel memberVm)
         {
-            if (_savedMemberStudents is not null)
+            // ✅ 使用 _suppressDatasetLoad 阻断 SelectedDataset 变化时的副作用，
+            //    防止 SavedDatasets 替换触发 OnSelectedDatasetChanged → ClearDataInternalAsync 弹窗。
+            memberVm.SetSuppressDatasetLoad(true);
+            try
             {
-                // 引导前有用户数据 → 恢复到原始状态
-                memberVm.Students = new ObservableCollection<Student>(_savedMemberStudents);
-                memberVm.StudentCount = _savedMemberStudents.Count;
-                memberVm.IsEmpty = _savedMemberIsEmpty;
-                memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(_savedMemberDatasets ?? []);
+                if (_savedMemberStudents is not null)
+                {
+                    // 引导前有用户数据 → 恢复到原始状态（显式过滤残留的演示数据集）
+                    memberVm.Students = new ObservableCollection<Student>(_savedMemberStudents);
+                    memberVm.StudentCount = _savedMemberStudents.Count;
+                    memberVm.IsEmpty = _savedMemberIsEmpty;
+                    memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
+                        (_savedMemberDatasets ?? []).Where(d => d.Id != DemoDatasetId));
+                }
+                else
+                {
+                    // 首次使用（引导前无数据）→ 清空演示数据（显式过滤残留的演示数据集）
+                    memberVm.Students.Clear();
+                    memberVm.StudentCount = 0;
+                    memberVm.IsEmpty = true;
+                    memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
+                        memberVm.SavedDatasets.Where(d => d.Id != DemoDatasetId));
+                }
+                memberVm.SelectedDataset = null;
+                memberVm.CurrentDatasetId = null;
+                memberVm.CurrentDatasetName = null;
+                memberVm.FilePath = string.Empty;
+                memberVm.ResetDirtyState(); // 重置 _originalStudentsJson，防止后续 IsDirty 误判
             }
-            else
+            finally
             {
-                // 首次使用（引导前无数据）→ 清空演示数据
-                memberVm.Students.Clear();
-                memberVm.StudentCount = 0;
-                memberVm.IsEmpty = true;
-                memberVm.SavedDatasets.Clear();
+                memberVm.SetSuppressDatasetLoad(false);
             }
-            memberVm.SelectedDataset = null;
-            memberVm.CurrentDatasetId = null;
-            memberVm.CurrentDatasetName = null;
 
             // 清除快照
             _savedMemberStudents = null;
