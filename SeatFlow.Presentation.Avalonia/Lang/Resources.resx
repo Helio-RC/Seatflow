@@ -188,6 +188,12 @@
   <data name="Freeform_UnsavedChangesMsg" xml:space="preserve">
     <value>当前自由布局有未保存的修改，是否保存后离开？</value>
   </data>
+  <data name="Guide_Members_Template_Desc" xml:space="preserve">
+    <value>点击此按钮下载 Excel 模板文件。按照模板中的列名格式填写学生数据，即可直接用于导入。</value>
+  </data>
+  <data name="Guide_Members_Template_Title" xml:space="preserve">
+    <value>获取导入模板</value>
+  </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
     <value>选中已保存的数据集后，工具栏按钮变为从文件更新，可更新当前数据集内容而不改变其 ID</value>
   </data>
@@ -2030,7 +2036,7 @@
     <value>点击此按钮导入学生</value>
   </data>
   <data name="Guide_Members_Import_Desc" xml:space="preserve">
-    <value>点击此按钮，从 CSV 或 Excel 文件导入学生名单。您也可以先下载模板填写后再导入。</value>
+    <value>使用刚才下载的模板填写学生数据并保存，然后点击此按钮导入文件。支持 CSV、XLSX、JSON 格式。</value>
   </data>
   <data name="Guide_Members_Manage_Title" xml:space="preserve">
     <value>在此列表管理学生</value>

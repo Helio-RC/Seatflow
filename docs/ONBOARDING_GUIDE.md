@@ -98,12 +98,12 @@ Program.cs:
 
 ### 当前引导内容概览
 
-**启动引导 (startupPhases)** — 8 阶段 19 步：
+**启动引导 (startupPhases)** — 8 阶段 20 步：
 
 | 阶段 | 页面 | seedData | 步骤数 | 目标控件 |
 |------|------|----------|--------|---------|
 | 欢迎 | Home | — | 2 | (centered), ToggleSidebarButton |
-| 成员管理（导入） | MemberManagement | — | 1 | ImportButton |
+| 成员管理（导入） | MemberManagement | — | 2 | ExportTemplateButton, ImportButton |
 | 成员管理（更新） | MemberManagement | `true` | 3 | UpdateFromFileButton, StudentListBox, NewStudentRow |
 | 会场配置 | VenueConfiguration | `true` | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
 | 策略配置 | StrategyConfiguration | `true` | 4 | StrategyListBox, EditEnabledSwitch, (centered), SaveAllButton |
@@ -237,6 +237,7 @@ OnboardingService.CompleteOnboardingAsync()
 
 | x:Name | 所在视图 | 控件 | 用途 |
 |--------|---------|------|------|
+| `ExportTemplateButton` | MemberManagementView | Button | 导出导入模板 |
 | `ImportButton` | MemberManagementView | Button | 导入学生数据 |
 | `StudentListBox` | MemberManagementView | ListBox | 学生列表 |
 | `NewStudentRow` | MemberManagementView | Border | 新增学生行 |

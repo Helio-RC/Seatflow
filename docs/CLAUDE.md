@@ -340,7 +340,7 @@ public string? PluginManagementDisabledTip => IsPageEnabled("PluginManagement") 
 完全数据驱动，通过 `Data/onboarding_config.json`（v3.2）配置。完整设计详见 `docs/ONBOARDING_GUIDE.md`。示例数据注入决策详见 `docs/adr/ADR-008-onboarding-demo-data-injection.md`。
 
 **两种引导类型：**
-- **启动引导（`startupPhases`）** — 首次启动时的 19 步完整工作流：Home→MemberManagement(ImportButton)→[自动 Home 往返]→MemberManagement(UpdateFromFileButton)→VenueConfiguration→StrategyConfiguration（含策略冲突提示居中步骤）→SeatingArrangement→SnapshotHistory→Closing
+- **启动引导（`startupPhases`）** — 首次启动时的 20 步完整工作流：Home→MemberManagement(ExportTemplate→ImportButton)→[自动 Home 往返]→MemberManagement(UpdateFromFileButton)→VenueConfiguration→StrategyConfiguration（含策略冲突提示居中步骤）→SeatingArrangement→SnapshotHistory→Closing
 - **页面引导（`pageGuides`）** — 首次访问页面时触发（FreeformManagement、PluginManagement）。记录在 `AppSettings.CompletedPageGuides` 中。
 
 **声明式示例数据注入 (v3.2):** `OnboardingPhaseDefinition.SeedData`（bool，默认 `false`）控制跨阶段导航时是否注入演示数据。原运行状态标志 `_memberManagementDataSeeded` 已删除，改为 JSON 声明式控制。MemberManagement 分两次进入（中间隔 Home 过渡阶段），第一次不注入（ImportButton 可见），第二次注入（UpdateFromFileButton 可见）。`ClearPageData` 使用 `_memberManagementDemoInjected` 静态标志判断是否实际注入过。

@@ -49,7 +49,7 @@
                 <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
               </Transitions>
             </StackPanel.Transitions>
-            <Button Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center"
+            <Button x:Name="ExportTemplateButton" Command="{Binding ExportTemplateCommand}" HorizontalContentAlignment="Center"
                     AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}" >
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />

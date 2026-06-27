@@ -339,7 +339,7 @@ Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hi
 Fully data-driven via `Data/onboarding_config.json` (v3.2). See `docs/ONBOARDING_GUIDE.md` for full details. See `docs/adr/ADR-008-onboarding-demo-data-injection.md` for the demo data injection decision.
 
 **Two types of guides:**
-- **启动引导 (`startupPhases`)** — 19-step full workflow at first launch: Home→MemberManagement(ImportButton)→[auto Home round-trip]→MemberManagement(UpdateButton)→VenueConfiguration→StrategyConfiguration (含策略冲突提示居中步骤)→SeatingArrangement→SnapshotHistory→Closing
+- **启动引导 (`startupPhases`)** — 20-step full workflow at first launch: Home→MemberManagement(ExportTemplate→ImportButton)→[auto Home round-trip]→MemberManagement(UpdateButton)→VenueConfiguration→StrategyConfiguration (含策略冲突提示居中步骤)→SeatingArrangement→SnapshotHistory→Closing
 - **页面引导 (`pageGuides`)** — Triggered on first visit to a page (FreeformManagement, PluginManagement). Tracked in `AppSettings.CompletedPageGuides`.
 
 **声明式示例数据注入 (v3.2):** `OnboardingPhaseDefinition.SeedData` (bool, 默认 false) 控制跨阶段导航时是否注入演示数据。原运行状态标志 `_memberManagementDataSeeded` 已删除，改为 JSON 声明式控制。MemberManagement 分两次进入（中间隔 Home 过渡阶段），第一次不注入（ImportButton 可见），第二次注入（UpdateFromFileButton 可见）。`ClearPageData` 使用 `_memberManagementDemoInjected` 静态标志判断是否实际注入过。

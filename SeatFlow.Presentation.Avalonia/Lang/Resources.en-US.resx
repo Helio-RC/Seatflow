@@ -188,6 +188,12 @@
   <data name="Freeform_UnsavedChangesMsg" xml:space="preserve">
     <value>The current freeform layout has unsaved changes. Save before leaving?</value>
   </data>
+  <data name="Guide_Members_Template_Desc" xml:space="preserve">
+    <value>Click to download an Excel template. Fill in student data following the column format, then use it for import.</value>
+  </data>
+  <data name="Guide_Members_Template_Title" xml:space="preserve">
+    <value>Download Import Template</value>
+  </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
     <value>When a saved dataset is selected, the button changes to &quot;Update from file&quot;. You can update the dataset content from a file without changing its ID.</value>
   </data>
@@ -2021,7 +2027,7 @@ Diagnostics saved to: {1}</value>
     <value>Click here to import students</value>
   </data>
   <data name="Guide_Members_Import_Desc" xml:space="preserve">
-    <value>Click this button to import student data from a CSV or Excel file. You can also download a template first.</value>
+    <value>Fill in student data using the template you just downloaded, then click here to import. Supports CSV, XLSX, and JSON formats.</value>
   </data>
   <data name="Guide_Members_Manage_Title" xml:space="preserve">
     <value>Manage students in this list</value>

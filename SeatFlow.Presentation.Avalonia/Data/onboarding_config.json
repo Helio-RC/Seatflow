@@ -22,6 +22,12 @@
       "page": "MemberManagement",
       "steps": [
         {
+          "titleKey": "Guide_Members_Template_Title",
+          "descKey": "Guide_Members_Template_Desc",
+          "target": "ExportTemplateButton",
+          "placement": "Bottom"
+        },
+        {
           "titleKey": "Guide_Members_Import_Title",
           "descKey": "Guide_Members_Import_Desc",
           "target": "ImportButton",
