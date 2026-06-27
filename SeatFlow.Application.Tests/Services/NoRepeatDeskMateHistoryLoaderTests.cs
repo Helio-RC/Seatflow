@@ -98,7 +98,7 @@ public class NoRepeatDeskMateHistoryLoaderTests
         await new NoRepeatDeskMateHistoryLoader(snapshotRepo)
             .PopulateDeskMateHistoryAsync(workspace , "" , 10 , strategy , CancellationToken.None);
 
-        snapshotRepo.DidNotReceive().ListByVenueAsync(Arg.Any<string>() , Arg.Any<CancellationToken>());
+        await snapshotRepo.DidNotReceive().ListByVenueAsync(Arg.Any<string>() , Arg.Any<CancellationToken>());
     }
 
     [Fact]
