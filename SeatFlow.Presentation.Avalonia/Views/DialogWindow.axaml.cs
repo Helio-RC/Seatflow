@@ -36,9 +36,11 @@ internal partial class DialogWindow : Window
     {
         InitializeComponent();
 
-        OkButton.Click += (_ , _) => { DialogResult = 0; Close(true); };
-        CancelButton.Click += (_ , _) => { DialogResult = 2; Close(false); };
-        ThirdButton.Click += (_ , _) => { DialogResult = 1; Close(true); };
+        // 推迟 Close 到当前消息处理完成后执行，避免按钮 Click 回调内直接
+        // Close → WindowImpl.Dispose 嵌套消息处理导致 WinUI compositor Monitor 重入死锁。
+        OkButton.Click += (_ , _) => { DialogResult = 0; global::Avalonia.Threading.Dispatcher.UIThread.Post(() => Close(true)); };
+        CancelButton.Click += (_ , _) => { DialogResult = 2; global::Avalonia.Threading.Dispatcher.UIThread.Post(() => Close(false)); };
+        ThirdButton.Click += (_ , _) => { DialogResult = 1; global::Avalonia.Threading.Dispatcher.UIThread.Post(() => Close(true)); };
     }
 
     protected override void OnLoaded (RoutedEventArgs e)
