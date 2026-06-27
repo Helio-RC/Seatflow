@@ -188,12 +188,6 @@
   <data name="Freeform_UnsavedChangesMsg" xml:space="preserve">
     <value>当前自由布局有未保存的修改，是否保存后离开？</value>
   </data>
-  <data name="Guide_Members_Transition_Desc" xml:space="preserve">
-    <value>数据已就绪。点击侧栏「成员管理」返回，接下来演示从文件更新。</value>
-  </data>
-  <data name="Guide_Members_Transition_Title" xml:space="preserve">
-    <value>导入完成</value>
-  </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
     <value>选中已保存的数据集后，工具栏按钮变为从文件更新，可更新当前数据集内容而不改变其 ID</value>
   </data>

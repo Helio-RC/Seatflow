@@ -98,13 +98,12 @@ Program.cs:
 
 ### 当前引导内容概览
 
-**启动引导 (startupPhases)** — 8 阶段 20 步：
+**启动引导 (startupPhases)** — 8 阶段 19 步：
 
 | 阶段 | 页面 | seedData | 步骤数 | 目标控件 |
 |------|------|----------|--------|---------|
 | 欢迎 | Home | — | 2 | (centered), ToggleSidebarButton |
 | 成员管理（导入） | MemberManagement | — | 1 | ImportButton |
-| 过渡回首页 | Home | — | 1 | MemberButton |
 | 成员管理（更新） | MemberManagement | `true` | 3 | UpdateFromFileButton, StudentListBox, NewStudentRow |
 | 会场配置 | VenueConfiguration | `true` | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
 | 策略配置 | StrategyConfiguration | `true` | 4 | StrategyListBox, EditEnabledSwitch, (centered), SaveAllButton |
@@ -279,7 +278,7 @@ OnboardingService.CompleteOnboardingAsync()
 
 引导启动时，`OnboardingService.SeedPageData()` 向各页面 ViewModel 注入纯内存示例数据，使条件可见的目标控件（如 `LayoutTypePanel`、`StudentListBox`）在引导期间正常显示。引导完成时 `ClearPageData()` 清除所有注入数据，不留磁盘痕迹。
 
-**注入由 `OnboardingPhaseDefinition.SeedData`（JSON 声明式 bool，默认 `false`）控制**。仅在 `HandleStepOpening` 检测到阶段过渡且 `phase.SeedData == true` 时调用 `SeedPageData()`。MemberManagement 分两次进入（中间隔着一个 Home 过渡阶段，强制引导离开页面再重新进入），第一次（ImportButton）不注入，第二次（UpdateFromFileButton）注入。
+**注入由 `OnboardingPhaseDefinition.SeedData`（JSON 声明式 bool，默认 `false`）控制**。仅在 `HandleStepOpening` 检测到阶段过渡且 `phase.SeedData == true` 时调用 `SeedPageData()`。MemberManagement 的 Phase 2（第二次进入）在注入前通过代码内 Home 往返自动离开-重入页面，无需 JSON 过渡阶段。
 
 | 页面 | SeedData | 注入数据 | 延迟策略 |
 |------|----------|---------|---------|

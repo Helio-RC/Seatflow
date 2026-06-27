@@ -250,6 +250,17 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             var phase = _config!.StartupPhases[phaseIndex];
             if (phase.SeedData)
             {
+                // MemberManagement 第二次进入：先代码内离开-重入，强制页面重建后再注入
+                if (targetPage == PageKey.MemberManagement)
+                {
+                    var mainWindow = GetMainWindow();
+                    if (mainWindow?.DataContext is MainShellViewModel shell)
+                    {
+                        shell.OnboardingNavigateTo(PageKey.Home);
+                        shell.OnboardingNavigateTo(PageKey.MemberManagement);
+                    }
+                }
+
                 SeedPageData(targetPage);
             }
         }

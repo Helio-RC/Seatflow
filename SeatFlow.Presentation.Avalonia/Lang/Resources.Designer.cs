@@ -69,8 +69,6 @@ public class Resources
     public static string Data_CSVFile => ResourceManager.GetString("Data_CSVFile", Culture)!;
     public static string Freeform_UnsavedChanges => ResourceManager.GetString("Freeform_UnsavedChanges", Culture)!;
     public static string Freeform_UnsavedChangesMsg => ResourceManager.GetString("Freeform_UnsavedChangesMsg", Culture)!;
-    public static string Guide_Members_Transition_Desc => ResourceManager.GetString("Guide_Members_Transition_Desc", Culture)!;
-    public static string Guide_Members_Transition_Title => ResourceManager.GetString("Guide_Members_Transition_Title", Culture)!;
     public static string Guide_Members_Update_Desc => ResourceManager.GetString("Guide_Members_Update_Desc", Culture)!;
     public static string Guide_Members_Update_Title => ResourceManager.GetString("Guide_Members_Update_Title", Culture)!;
     public static string Guide_Seating_Select_Desc => ResourceManager.GetString("Guide_Seating_Select_Desc", Culture)!;

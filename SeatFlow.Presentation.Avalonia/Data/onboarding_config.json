@@ -30,17 +30,6 @@
       ]
     },
     {
-      "page": "Home",
-      "steps": [
-        {
-          "titleKey": "Guide_Members_Transition_Title",
-          "descKey": "Guide_Members_Transition_Desc",
-          "target": "MemberButton",
-          "placement": "Right"
-        }
-      ]
-    },
-    {
       "page": "MemberManagement",
       "seedData": true,
       "steps": [

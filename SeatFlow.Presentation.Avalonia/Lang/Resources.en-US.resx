@@ -188,12 +188,6 @@
   <data name="Freeform_UnsavedChangesMsg" xml:space="preserve">
     <value>The current freeform layout has unsaved changes. Save before leaving?</value>
   </data>
-  <data name="Guide_Members_Transition_Desc" xml:space="preserve">
-    <value>Data is ready. Click &quot;Members&quot; in the sidebar to return — next we&apos;ll demonstrate updating from a file.</value>
-  </data>
-  <data name="Guide_Members_Transition_Title" xml:space="preserve">
-    <value>Import Complete</value>
-  </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
     <value>When a saved dataset is selected, the button changes to &quot;Update from file&quot;. You can update the dataset content from a file without changing its ID.</value>
   </data>

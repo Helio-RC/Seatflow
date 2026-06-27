@@ -88,18 +88,17 @@ Guide 控件通过 NameScope 查找目标——即使控件不可见也能找到
 
 1. **`OnboardingPhaseDefinition.SeedData`** — JSON 声明式 bool，默认 `false`。跨阶段导航时 `HandleStepOpening` 仅当 `phase.SeedData == true` 才调用 `SeedPageData()`。完全消除运行状态标志。
 
-2. **中间过渡阶段** — 在两个 MemberManagement 阶段之间插入一个 `page: "Home"` 过渡阶段（target: `MemberButton`），强制引导离开 MemberManagement 再重新进入。两次进入是独立的阶段过渡，每次由 `SeedData` 声明式控制是否注入。
+2. **代码内 Home 往返** — Phase 2 过渡时 `HandleStepOpening` 检测到 `targetPage == MemberManagement && phase.SeedData`，在调用 `SeedPageData()` 前自动执行 `OnboardingNavigateTo(Home)` → `OnboardingNavigateTo(MemberManagement)`，强制页面离开-重入。无需 JSON 配置过渡阶段，无需用户额外点击。
 
 3. **`DialogWindow` Close 重入死锁修复** — 将按钮 Click 中的 `Close(true)` 改为 `Dispatcher.UIThread.Post(() => Close(true))`，避免 WinUI compositor Monitor 重入死锁。
 
 **配置变更**：
 - Phase 1（MemberManagement, ImportButton）: 默认 `seedData: false`，无注入
-- 新增过渡阶段（Home, MemberButton）: `seedData: false`
-- Phase 2（MemberManagement, UpdateFromFileButton 等）: `seedData: true`，注入演示数据
+- Phase 2（MemberManagement, UpdateFromFileButton 等）: `seedData: true`，注入前代码内 Home 往返
 - 所有后续需注入的阶段（VenueConfiguration、StrategyConfiguration、SeatingArrangement、SnapshotHistory）: 显式 `seedData: true`
 
 **影响**：
-- 引导总步数从 19 步增加到 20 步（过渡阶段 1 步）
+- 引导总步数保持 19 步（无新增过渡步骤）
 - `_memberManagementDataSeeded` 字段及相关代码完全删除
 - `HandleStepOpening` 中 MemberManagement 特殊分支（~15 行）简化为 1 行 `phase.SeedData` 检查
 - `ClearPageData` 保留 `_memberManagementDemoInjected` 静态标志判断是否实际注入过，避免清理未注入状态
