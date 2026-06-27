@@ -16,7 +16,7 @@
 dotnet build                    # 构建全部 9 个项目（使用 .slnx，需要 .NET 10 SDK）
 dotnet test                     # 运行全部测试（xUnit v3，Microsoft.Testing.Platform）
 dotnet test --filter "FullyQualifiedName~TestName"  # 运行单个测试
-dotnet run --project A_Pair.Presentation.Avalonia   # 启动桌面应用
+dotnet run --project SeatFlow.Presentation.Avalonia   # 启动桌面应用
 ```
 
 **测试技术栈**：xUnit v3 + FluentAssertions + NSubstitute。测试分布在 3 个项目中：`*.Core.Tests`、`*.Application.Tests`、`*.Infrastructure.Tests`。每个项目都启用了 `<ImplicitUsings>enable</ImplicitUsings>`（自动引入 `System`、`System.Collections.Generic`、`System.Linq`、`System.Threading.Tasks`）。项目特定的全局 using 在 `Usings.cs`（Application.Tests 中为 `Using.cs`）中定义。
@@ -27,7 +27,7 @@ dotnet run --project A_Pair.Presentation.Avalonia   # 启动桌面应用
 
 ## 架构
 
-A_Pair 是一个 .NET 10 跨平台桌面座位编排系统，使用 Avalonia UI 12（MVVM）+ CommunityToolkit.Mvvm 8.4。解决方案文件为 `A_Pair.slnx`（新的 XML 格式）。
+SeatFlow 是一个 .NET 10 跨平台桌面座位编排系统，使用 Avalonia UI 12（MVVM）+ CommunityToolkit.Mvvm 8.4。解决方案文件为 `SeatFlow.slnx`（新的 XML 格式）。
 
 **分层架构（自底向上）**：
 
@@ -40,7 +40,7 @@ A_Pair 是一个 .NET 10 跨平台桌面座位编排系统，使用 Avalonia UI 
 
 **日志**：使用 **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` 贯穿 Application 层。通过 `Serilog.Sinks.File` 输出到文件。Application 服务通过构造函数注入 `ILogger<T>`；当参数为可选时，大多数回退到 `NullLogger<T>.Instance`。
 
-**依赖注入**：Application 层的 `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` 注册所有服务（策略、导出器、提供者、仓库、插件管理器）。在 `Program.cs` 中，UI 层调用此方法后添加自己的单例：`INavigationService`、`IFileService`、`IDialogService`、`MainWindow`、`MainShellViewModel` 以及所有页面 ViewModel。
+**依赖注入**：Application 层的 `ServiceCollectionExtensions.AddSeatFlowApplication(snapshotBasePath, pluginsPath)` 注册所有服务（策略、导出器、提供者、仓库、插件管理器）。在 `Program.cs` 中，UI 层调用此方法后添加自己的单例：`INavigationService`、`IFileService`、`IDialogService`、`MainWindow`、`MainShellViewModel` 以及所有页面 ViewModel。
 
 **导航**：`INavigationService` + `MainShellViewModel` 通过 `PageKey` 枚举管理 10 个页面（`Home`、`MemberManagement`、`VenueConfiguration`、`FreeformManagement`、`StrategyConfiguration`、`SeatingArrangement`、`SnapshotHistory`、`PluginManagement`、`Settings`、`About`）。`ViewLocator` 按约定自动解析 `XXXViewModel` → `XXXView`：通过反射将类型名中的 `"ViewModel"` 替换为 `"View"`。
 
@@ -62,12 +62,12 @@ A_Pair 是一个 .NET 10 跨平台桌面座位编排系统，使用 Avalonia UI 
 
 **策略消息**：策略可在执行期间通过 `workspace.LogWarning(strategyId, displayName, messageKey, args)` 和 `workspace.LogError(strategyId, displayName, messageKey, args)` 报告警告/错误。`messageKey` 对应清单文件中 `messages` 字典的键（内联 i18n：`{ "zh-CN": "...", "en-US": "..." }`）。消息收集在 `SeatingWorkspace.Messages` 中（含 `StrategyId`、`StrategyDisplayName`、`MessageKey` 和 `Args`），管道执行后在 UI 侧栏展示。插件策略通过 `IPluginWorkspace` 访问相同方法。
 
-**声明式策略配置**：所有策略特定配置（除 Priority/IsEnabled 外）均由清单 JSON 文件（`A_Pair.Core/Strategies/Manifests/*.json`）驱动。核心顶层字段：
+**声明式策略配置**：所有策略特定配置（除 Priority/IsEnabled 外）均由清单 JSON 文件（`SeatFlow.Core/Strategies/Manifests/*.json`）驱动。核心顶层字段：
 
 - **`visible`** —（可选，默认 `true`）控制策略是否参与管道。设为 `false` 后从 UI（配置页、排座侧栏）和执行中均排除 — 管道跳过不可见策略。
 - **`isIndependent`** —（可选，默认 `true`）`true` = 独立策略（由外部管道执行）；`false` = 依赖策略（在 RandomFill 的分配循环内执行）。DeskMate、GenderRestrictedSeat 和 NoRepeatDeskMate 为 `false`。
 - **`manifestVersion`** —（可选，默认 `"1.0"`）清单格式版本，用于运行时兼容性检查。嵌入资源不经过 FileMigrationService，因此版本超过最大已知版本时提供者会警告。
-- **`capabilities[]`** —（可选）策略能力声明。每项为 `A_Pair.Core.Strategies.Capability` 中定义的能力常量（如 `"MarkFixedSeat"`）。策略必须先声明能力，才能在运行时调用相应的接口方法。未声明的能力调用将被拒绝并记录警告。当前支持：`MarkFixedSeat` → `IFixedSeatCapability.TryMarkFixed()`。可扩展 — 在 `Capability.cs` 中添加新常量 + 接口。
+- **`capabilities[]`** —（可选）策略能力声明。每项为 `SeatFlow.Core.Strategies.Capability` 中定义的能力常量（如 `"MarkFixedSeat"`）。策略必须先声明能力，才能在运行时调用相应的接口方法。未声明的能力调用将被拒绝并记录警告。当前支持：`MarkFixedSeat` → `IFixedSeatCapability.TryMarkFixed()`。可扩展 — 在 `Capability.cs` 中添加新常量 + 接口。
 - **`parameters[]`** — 策略级全局参数。每个参数声明 `fieldType`（`NumberInput`、`TextInput`、`ToggleSwitch`、`Dropdown`）、`label`（Dictionary<string,string> 用于 i18n）、`defaultValue` 以及可选的 `minValue`/`maxValue`。UI 将其渲染为标准输入控件。
 - **`codeBlocks[]`** — 按数据集/会场的配置块。每个块声明 `dataType`（`Student`、`Venue`、`Both`）、`displayMode`（`Table`、`ValuePair`）、可选的 `showSeatPosition`（默认 true，对于 DeskMate 等自动匹配策略设为 false）、可选的 `showStudentPicker`/`showVenuePicker`（覆盖 DataType 自动检测）、可选的 `studentPickerCount`（默认 1）、可选的 `seatsPerDeskFromVenue`（设为 true 时从会场的 GridLayoutMetadata.SeatsPerDesk 读取学生数）、可选的 `preventDuplicateInRow`（设为 true 时阻止同行学生选择器重复值 — DeskMate）、可选的 `preventDuplicateAcrossRows`（设为 true 时阻止跨行学生选择器重复值 — FixedSeat），以及可选的 `loadTrigger`（默认 `Both` — 两个选择器都需匹配；`Any` — 任一选择器有值时模糊匹配）。UI 渲染数据集选择器 + 含学生选择器和/或座位位置选择器的配置行。
   - **DeskMate**（依赖，`isIndependent: false`）：在 RandomFill 的分配循环内通过 `IDependentSeatingStrategy` 执行。当 RandomFill 提议 (学生, 座位) 时，DeskMate 检查该学生是否属于同桌分组。若是，则尝试协调分配：将该学生及其组员安排在同行相邻座位上（同行+邻列+同 SeatsPerDesk 分组 = 同桌）。逐出可能移动已分配的 RandomFill 学生，但不会移动先前策略（FixedSeat/FrontRowRotation）分配的学生或固定座位。若目标座位附近空座不足，则部分分配并发出警告。无参数 — 相邻始终为水平/同桌面。`dataType: "Both"`，`showSeatPosition: false`，`preventDuplicateInRow: true`。每行学生选择器数量由会场的 `GridLayoutMetadata.SeatsPerDesk` 动态确定。
@@ -78,18 +78,18 @@ A_Pair 是一个 .NET 10 跨平台桌面座位编排系统，使用 Avalonia UI 
   - **RandomFill**：无参数，无 codeBlocks。
   - **Defrag**（独立，Priority=0）："扫地僧"角色 — 所有其他策略之后执行。从前到后扫描空座位，将每个空隙后面的无约束学生（不在固定座位或 DeskMate 分组中）前移填空。允许跨列。记录 `Defrag_EffectivenessNote` 警告，提示先前策略结果可能被部分推翻。零参数 — 行为纯位置驱动。默认禁用。
 
-**插件座位保护**：插件通过在清单 `capabilities` 中声明 `"MarkFixedSeat"` 并调用 `IPluginWorkspace.TryMarkFixed()` 来保护其分配的座位。工作区验证能力声明后设置 `IsFixed=true` 并记录操作。`GetEmptySeats()` 和 Defrag 的座位扫描均自动排除 `IsFixed` 座位。内置策略通过 `IFixedSeatCapability` 使用相同机制。能力常量和接口集中在 `A_Pair.Core/Strategies/Capability.cs` — 在此添加新常量 + 接口以支持未来能力。
+**插件座位保护**：插件通过在清单 `capabilities` 中声明 `"MarkFixedSeat"` 并调用 `IPluginWorkspace.TryMarkFixed()` 来保护其分配的座位。工作区验证能力声明后设置 `IsFixed=true` 并记录操作。`GetEmptySeats()` 和 Defrag 的座位扫描均自动排除 `IsFixed` 座位。内置策略通过 `IFixedSeatCapability` 使用相同机制。能力常量和接口集中在 `SeatFlow.Core/Strategies/Capability.cs` — 在此添加新常量 + 接口以支持未来能力。
 
 所有用户可见文本使用内联 i18n：`{ "zh-CN": "...", "en-US": "..." }` 字典（而非 .resx 键）。Presentation 中的 `LocalizeHelper.Resolve(dict)` 根据 `CultureInfo.CurrentUICulture` 解析，回退到 zh-CN。内置策略和插件均适用。
 
 **配置加载行为**：加载持久化配置行时，匹配过滤器采用"以有值的选择器为准"的策略：`(SelectedDataset is null || match) && (SelectedVenue is null || match)`。这意味着对于 `dataType: "Both"`，仅选择数据集时立即加载配置（会场在选择前视为通配符）。当用户随后选择会场时，过滤器用两个值重新运行，精确匹配。学生选择器的选择通过 `_pendingSelections` 延迟到学生列表加载完成后，避免过早 `SelectById` 调用导致选择丢失。
 
-新建模型类型（均在 `A_Pair.Core.Models` 中）：
+新建模型类型（均在 `SeatFlow.Core.Models` 中）：
 - `StrategyParameterDefinition` / `StrategyCodeBlock` / `StrategyFieldDefinition` + 枚举（`StrategyFieldType`、`StrategyDataType`、`StrategyDisplayMode`）
 - `StrategyDatasetConfig` + `StrategyConfigRow` — 持久化模型，存储在 `{AppData}/StrategyConfig/{strategyId}/` 下。
 
 **项目配置**：Avalonia csproj 中 `AvaloniaUseCompiledBindingsByDefault` 为 `true` — 所有绑定均为编译绑定，除非显式退出。关键 csproj 设置：
-- `<AssemblyName>A_Pair</AssemblyName>` — 输出 EXE 为 `A_Pair.exe`，而非 `A_Pair.Presentation.Avalonia.exe`
+- `<AssemblyName>SeatFlow</AssemblyName>` — 输出 EXE 为 `SeatFlow.exe`，而非 `SeatFlow.Presentation.Avalonia.exe`
 - `<NoWarn>AVLN3001</NoWarn>` — 抑制"DI 需要参数化构造函数"警告（所有 ViewModel 使用 DI 构造函数注入，无需无参构造函数）
 - `<Compile Remove="Lang\Resources.Designer.cs" Condition="!Exists('Lang\Resources.Designer.cs')" />` — 防止 Designer.cs 尚未生成时构建失败（运行 `python3 scripts/i18n.py sync` 创建）
 - `<ApplicationManifest>app.manifest</ApplicationManifest>` — Windows 上的 DPI 感知
@@ -141,7 +141,7 @@ public virtual Task<bool> CanLeaveAsync()
 - **字体**：全局 `Window` 样式设置 `FontFamily` 为 `Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif` 以支持 CJK。
 - **BoxShadows**：`CardShadowNone`、`CardShadowLarge`、`CardShadowSmall` 定义为 `BoxShadows` 资源。
 
-### UI 服务（`A_Pair.Presentation.Avalonia/Services/`）
+### UI 服务（`SeatFlow.Presentation.Avalonia/Services/`）
 - **INavigationService** — 通过 `PageKey` 枚举切换页面。`NavigateTo()` 同步执行，`NavigateToAsync()` 先运行 `CanLeaveAsync()`。
 - **IDialogService** — 显示错误/信息对话框。使用前需要 `SetTopLevel(TopLevel)`。
 - **IFileService** — 文件打开/保存选择器。同样需要 `SetTopLevel()`。
@@ -151,7 +151,7 @@ public virtual Task<bool> CanLeaveAsync()
 - `InputWindow` — 单行文本输入的模态对话框（返回输入的字符串）
 - `DialogWindow` — 通用模态内容宿主，带标题栏和关闭按钮
 
-### 行为（`A_Pair.Presentation.Avalonia/Behaviors/`）
+### 行为（`SeatFlow.Presentation.Avalonia/Behaviors/`）
 - `CanvasZoomPan` — 基于 Canvas 的预览的平移和缩放。**拖放座位时通过 NaN 哨兵机制跳过平移**（详见 `docs/DragDrop.md`）
 - `ZoomOnScroll` — Ctrl+滚轮缩放
 - `ChineseInputNormalizer` — 文本输入时将全角数字/符号转换为半角
@@ -165,7 +165,7 @@ public virtual Task<bool> CanLeaveAsync()
 
 ### Axaml 绑定
 - 始终在根元素上使用 `x:DataType` 以启用编译绑定
-- 图标：`<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>`（参见 `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md`）
+- 图标：`<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>`（参见 `SeatFlow.Presentation.Avalonia/docs/Fluent_Icons.md`）
 - 转换器：`BoolConverters.cs`（Negate、TrueWhenNull 等）和 `ValueConverters.cs`
 
 ### 侧栏
@@ -175,7 +175,7 @@ public virtual Task<bool> CanLeaveAsync()
 
 ### i18n / 本地化（`Lang/`）
 
-使用标准 .NET `.resx` 资源文件，位于 `A_Pair.Presentation.Avalonia/Lang/`：
+使用标准 .NET `.resx` 资源文件，位于 `SeatFlow.Presentation.Avalonia/Lang/`：
 - `Resources.resx` — 中性语言（zh-CN），约 700 个键
 - `Resources.en-US.resx` — 英文卫星程序集
 - `Resources.Designer.cs` — 手动维护的强类型访问器类（Visual Studio 的 `PublicResXFileCodeGenerator` 与 `dotnet build` 不兼容）
@@ -187,7 +187,7 @@ public virtual Task<bool> CanLeaveAsync()
 <TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
 <Button Content="{x:Static lang:Resources.Common_OK}" />
 ```
-命名空间：`xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"`
+命名空间：`xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"`
 
 **在 C# 中使用**：
 ```csharp
@@ -239,7 +239,7 @@ python3 scripts/i18n.py sync                     # 从 .resx 重新生成 Design
 
 ## 文件版本与迁移
 
-所有持久化 JSON 文件均携带 `version` 字段。当前版本定义在 `A_Pair.Infrastructure/Migration/file_versions.json`（嵌入资源，编译到程序集中）。`FileVersionInfo.GetCurrentVersion(fileType)` 在运行时读取最新版本。
+所有持久化 JSON 文件均携带 `version` 字段。当前版本定义在 `SeatFlow.Infrastructure/Migration/file_versions.json`（嵌入资源，编译到程序集中）。`FileVersionInfo.GetCurrentVersion(fileType)` 在运行时读取最新版本。
 
 | 文件类型 | 版本 | 位置 | 包装类 |
 |---|---|---|---|
@@ -501,8 +501,8 @@ python3 -m pytest tests/ -v                  # 全部脚本测试
 - `docs/ONBOARDING_GUIDE.md` — 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
 - `docs/StrategyDataResilience.md` — 策略数据持久化与容错分析
 - `docs/adr/` — 架构决策记录（ADR-001 ~ ADR-008）。重点：ADR-002（MVVM + 计划使用 IMessenger 进行跨 ViewModel 通信）、ADR-006（策略管道 fill-in-order）
-- `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI 设计规范（色板、字体、间距、图标）
-- `A_Pair.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 拖放模式、踩坑记录、CanvasZoomPan 交互
-- `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — 所有已使用的 FluentUI 图标名称
-- `A_Pair.Plugins.Sdk/docs/README.md` — 插件 SDK 开发指南（接口、两层清单格式、打包）
+- `SeatFlow.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI 设计规范（色板、字体、间距、图标）
+- `SeatFlow.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 拖放模式、踩坑记录、CanvasZoomPan 交互
+- `SeatFlow.Presentation.Avalonia/docs/Fluent_Icons.md` — 所有已使用的 FluentUI 图标名称
+- `SeatFlow.Plugins.Sdk/docs/README.md` — 插件 SDK 开发指南（接口、两层清单格式、打包）
 - `scripts/ToolsCollection.md` — `i18n.py` 和 `version.py` 脚本的完整参考

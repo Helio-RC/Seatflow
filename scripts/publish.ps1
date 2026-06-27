@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# A_Pair 多平台发布 — TUI 交互 / CLI 兼容
+# SeatFlow 多平台发布 — TUI 交互 / CLI 兼容
 param(
     [string]$Mode,
     [ValidateSet("Release","Debug")][string]$Configuration="Release",
@@ -9,7 +9,7 @@ param(
 )
 $ErrorActionPreference="Stop"
 Push-Location ..
-$AppName,$Project="A_Pair","A_Pair.Presentation.Avalonia"
+$AppName,$Project="SeatFlow","SeatFlow.Presentation.Avalonia"
 $P=@(@{N="win-x64";S=".exe";Sel=$false},@{N="linux-x64";S="";Sel=$false},@{N="osx-x64";S="";Sel=$false},@{N="osx-arm64";S="";Sel=$false})
 
 function Step($t,$c="White"){Write-Host "  [$([datetime]::Now.ToString('HH:mm:ss'))] $t" -ForegroundColor $c}
@@ -24,7 +24,7 @@ function Publish-One($SC,$Label,$Rids){
     $base="publish/$Label";mkdir -Force $base|Out-Null
     foreach($rid in $Rids){
         $sf=if($rid-like"win*"){".exe"}else{""};$tmp="$base/.tmp_$rid";$fn=if($Version){"$AppName-$Version-$Label-$rid"}else{"$AppName-$Label-$rid"};if($Suffix){$fn="$fn-$Suffix"};$fn="$fn$sf"
-        $Host.UI.RawUI.WindowTitle="A_Pair: $Label / $rid"
+        $Host.UI.RawUI.WindowTitle="SeatFlow: $Label / $rid"
         Write-Host "`n══════════════════════════════════════════" -F Cyan
         Write-Host "  $Label / $rid" -F Cyan
         Write-Host "══════════════════════════════════════════" -F Cyan
@@ -52,13 +52,13 @@ if($Mode-or$HashOnly){
 
 # TUI 模式
 [Console]::Clear()
-Write-Host "  A_Pair 发布"
+Write-Host "  SeatFlow 发布"
 $types=@("自包含","依赖运行时","两者");$ti=2;$ts=$false;$aot=$false;$cl=$false;$cu=0;$suf=$Suffix;$ver=$Version;$ii=16
 
 function Draw{
     [Console]::SetCursorPosition(0,1)
     $o=@()
-    $o+="  A_Pair 发布"
+    $o+="  SeatFlow 发布"
     $o+=""
     $o+="  平台（空格切换）："
     for($i=0;$i-lt4;$i++){

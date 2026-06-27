@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# A_Pair 多平台发布 — TUI 交互 / CLI 兼容
+# SeatFlow 多平台发布 — TUI 交互 / CLI 兼容
 # 用法: ./publish.sh                                  # TUI
 #        ./publish.sh both Release opt "" "1.1.0" clean aot  # CLI
 #        ./publish.sh hash                              # 仅哈希
@@ -9,7 +9,7 @@ set -euo pipefail
 OLDPWD="$PWD"; trap 'cd "$OLDPWD"' EXIT
 cd ..
 
-APP_NAME="A_Pair"; PROJECT="A_Pair.Presentation.Avalonia"; CONFIG="Release"
+APP_NAME="SeatFlow"; PROJECT="SeatFlow.Presentation.Avalonia"; CONFIG="Release"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 SUFFIXES=(".exe" "" "" ""); SEL=(0 0 0 0)
 TYPE_IDX=2; TRIM_SEL=0; AOT=0; CLEAN=0; CURSOR=0; SUFFIX=""; VERSION=""; ITEMS=16
@@ -31,7 +31,7 @@ publish_one(){
     for rid in "${rids[@]}"; do
         sf=""; [ "${rid:0:3}" = "win" ] && sf=".exe"
         tmp="$base/.tmp_$rid"; fn="$APP_NAME${VERSION:+-$VERSION}-$label-$rid${SUFFIX:+-$SUFFIX}$sf"
-        echo -ne "\033]0;A_Pair: $label / $rid\007"
+        echo -ne "\033]0;SeatFlow: $label / $rid\007"
         echo ""; echo -e "\e[36m══════════════════════════════════════════\e[0m"
         echo -e "\e[36m  $label / $rid\e[0m"
         echo -e "\e[36m══════════════════════════════════════════\e[0m"
@@ -65,7 +65,7 @@ OLD=$(stty -g 2>/dev/null||echo sane)
 on_exit(){ stty "$OLD" 2>/dev/null||stty sane; printf "\e[?25h"; }
 trap on_exit EXIT INT TERM HUP
 printf "\e[2J\e[H"
-echo "  A_Pair 发布"; echo ""
+echo "  SeatFlow 发布"; echo ""
 stty -echo -icanon min 1 time 1 2>/dev/null||true; printf "\e[?25l"
 
 read_key(){

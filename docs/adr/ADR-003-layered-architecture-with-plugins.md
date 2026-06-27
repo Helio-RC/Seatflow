@@ -46,7 +46,7 @@ Presentation.Avalonia → Application → Core / Contracts / Infrastructure
 - 拒绝：这是桌面端系统，不涉及服务端部署
 
 ## 后果
-- DI 注册集中在 `ServiceCollectionExtensions.AddA_PairApplication()`（Application 层）和 `Program.cs`（Presentation 层）
+- DI 注册集中在 `ServiceCollectionExtensions.AddSeatFlowApplication()`（Application 层）和 `Program.cs`（Presentation 层）
 - 插件通过 `AssemblyLoadContext` 隔离加载，每个插件拥有独立的加载上下文
 - `IApplicationFacade` 是 UI 层与业务逻辑的唯一接触点，外观模式隐藏内部复杂度
 - Contracts 层保持最小面积：仅包含插件作者和跨层交互需要的接口

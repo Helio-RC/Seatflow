@@ -26,7 +26,7 @@ assignees: Helio-RC
 **运行环境**
  - 操作系统: [e.g.Windows 11 ]
  - .NET 运行时版本
- - A_Pair 版本
+ - SeatFlow 版本
 
 **其他内容**
 在此添加其他相关的说明
