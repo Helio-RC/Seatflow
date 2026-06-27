@@ -6,7 +6,9 @@ using SeatFlow.Contracts.Interfaces;
 using SeatFlow.Core.DomainServices;
 using SeatFlow.Core.Enums;
 using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Interfaces;
 using SeatFlow.Core.Models;
+using SeatFlow.Core.Models.SeatSets;
 using SeatFlow.Core.Providers;
 using SeatFlow.Core.Services;
 using SeatFlow.Core.Strategies;
@@ -47,6 +49,7 @@ namespace SeatFlow.Application.Services
         StrategyConfigFileRepository strategyConfigRepo ,
         StrategyDatasetConfigRepository datasetConfigRepo ,
         PluginPackageConfigService pluginPackageConfigService ,
+        ISeatSetsService seatSetsService ,
         ILogger<ApplicationFacade> logger) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -62,6 +65,7 @@ namespace SeatFlow.Application.Services
         private readonly StrategyConfigFileRepository _strategyConfigRepo = strategyConfigRepo ?? throw new ArgumentNullException(nameof(strategyConfigRepo));
         private readonly StrategyDatasetConfigRepository _datasetConfigRepo = datasetConfigRepo ?? throw new ArgumentNullException(nameof(datasetConfigRepo));
         private readonly PluginPackageConfigService _pluginPackageConfigService = pluginPackageConfigService ?? throw new ArgumentNullException(nameof(pluginPackageConfigService));
+        private readonly ISeatSetsService _seatSetsService = seatSetsService ?? throw new ArgumentNullException(nameof(seatSetsService));
         private SeatingWorkspace? _currentWorkspace;
         // 注意：以下字段假定单线程访问（桌面 UI 线程）。
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
@@ -1530,6 +1534,29 @@ namespace SeatFlow.Application.Services
         #endregion
 
         #region Plugin Management
+
+        // ── 数据包 (SeatSets) ──
+
+        /// <inheritdoc />
+        public Task<int> ExportSeatSetsAsync(string outputPath, SeatSetsExportSelection selection, CancellationToken ct = default)
+            => _seatSetsService.ExportAsync(outputPath, selection, ct);
+
+        /// <inheritdoc />
+        public Task<SeatSetsImportResult> ImportSeatSetsAsync(string filePath, SeatSetsExportSelection selection,
+            IProgress<double>? progress = null, CancellationToken ct = default)
+            => _seatSetsService.ImportAsync(filePath, selection, progress, ct);
+
+        /// <inheritdoc />
+        public Task<SeatSetsValidationResult> ValidateSeatSetsAsync(string filePath, CancellationToken ct = default)
+            => _seatSetsService.ValidateAsync(filePath, ct);
+
+        /// <inheritdoc />
+        public Task<string?> DiscoverSeatSetsFileAsync(CancellationToken ct = default)
+            => _seatSetsService.DiscoverAsync(ct);
+
+        /// <inheritdoc />
+        public Task<SeatSetsExportSelection> ProbeSeatSetsCategoriesAsync(string filePath, CancellationToken ct = default)
+            => _seatSetsService.ProbeCategoriesAsync(filePath, ct);
 
         /// <inheritdoc />
         public async Task<List<PluginDisplayInfo>> GetPluginsAsync (CancellationToken ct = default)

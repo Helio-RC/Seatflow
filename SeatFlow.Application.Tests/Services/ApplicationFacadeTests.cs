@@ -1,4 +1,5 @@
 using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Interfaces;
 using SeatFlow.Core.Providers;
 using SeatFlow.Core.Services;
 using SeatFlow.Infrastructure.Migration;
@@ -22,6 +23,7 @@ public class ApplicationFacadeTests
         out StrategyConfigFileRepository strategyConfigRepo ,
         out StrategyDatasetConfigRepository datasetConfigRepo ,
         out PluginPackageConfigService pluginPackageConfigService ,
+        out ISeatSetsService seatSetsService ,
         out ILogger<ApplicationFacade> logger)
     {
         serviceProvider = Substitute.For<IServiceProvider>();
@@ -42,6 +44,7 @@ public class ApplicationFacadeTests
         pluginPackageConfigService = Substitute.For<PluginPackageConfigService>(
             pluginManager , new FileMigrationService([]) ,
             Substitute.For<ILogger<PluginPackageConfigService>>());
+        seatSetsService = Substitute.For<ISeatSetsService>();
         logger = Substitute.For<ILogger<ApplicationFacade>>();
 
         var facade = new ApplicationFacade(
@@ -57,6 +60,7 @@ public class ApplicationFacadeTests
             strategyConfigRepo ,
             datasetConfigRepo ,
             pluginPackageConfigService ,
+            seatSetsService ,
             logger);
         return facade;
     }
@@ -65,7 +69,7 @@ public class ApplicationFacadeTests
     public async Task ExportSeatingPlanAsync_ShouldCallExporterWithOptions ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var sss , out var log);
         var ws = new SeatingWorkspace(new List<Student>() , new List<Seat>());
         var options = new ExportOptions { Format = ExportFormat.Excel , Anonymize = true };
 
@@ -85,7 +89,7 @@ public class ApplicationFacadeTests
     public async Task ExportSeatingPlanAsync_TeacherView_ShouldReverseRowsAndColumns ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var sss , out var log);
         var students = new List<Student>();
         var seats = new List<Seat>
         {
@@ -122,7 +126,7 @@ public class ApplicationFacadeTests
     public async Task ExecuteCommandAsync_ShouldDelegateToHistory ()
     {
         var facade = CreateFacade(out _ , out _ , out _ ,
-            out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _);
+            out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _);
         var cmd = Substitute.For<IUndoableCommand>();
         cmd.ExecuteAsync(Arg.Any<SeatingWorkspace>() , Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
@@ -140,7 +144,7 @@ public class ApplicationFacadeTests
     public async Task UndoAsync_NoWorkspace_ReturnsFalse ()
     {
         var facade = CreateFacade(out _ , out _ , out _ ,
-            out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _);
+            out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _ , out _);
         var result = await facade.UndoAsync(CancellationToken.None);
         result.Should().BeFalse();
     }
@@ -149,7 +153,7 @@ public class ApplicationFacadeTests
     public async Task RollbackToSnapshot_ShouldApplyAssignments ()
     {
         var facade = CreateFacade(out var sp , out var snapRepo , out var exporter ,
-            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var log);
+            out var pm , out var pcs , out var appRepo , out var venueRepo , out var dr , out var mp , out var scr , out var dcr , out var ppcs , out var sss , out var log);
 
         // 设置会场布局，确保回滚时座位 ID 匹配
         var layout = new ClassroomLayoutDefinition

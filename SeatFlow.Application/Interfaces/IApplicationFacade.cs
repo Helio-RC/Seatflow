@@ -1,4 +1,6 @@
+using SeatFlow.Core.Interfaces;
 using SeatFlow.Core.Models;
+using SeatFlow.Core.Models.SeatSets;
 using SeatFlow.Core.Workspace;
 
 namespace SeatFlow.Application.Interfaces
@@ -171,6 +173,23 @@ namespace SeatFlow.Application.Interfaces
 
         /// <summary>将快照中嵌入的会场布局 JSON 导入为新的会场文件，返回新会场 ID。</summary>
         Task<string> ImportVenueFromSnapshotAsync (string venueLayoutJson , string? newName = null , CancellationToken ct = default);
+
+        // ── 数据包 (SeatSets) ──
+
+        /// <summary>将选定的应用数据类别导出为 .seatsets 文件。</summary>
+        Task<int> ExportSeatSetsAsync (string outputPath , SeatSetsExportSelection selection , CancellationToken ct = default);
+
+        /// <summary>从 .seatsets 文件导入数据，恢复文件夹结构和文件。</summary>
+        Task<SeatSetsImportResult> ImportSeatSetsAsync (string filePath , SeatSetsExportSelection selection , IProgress<double>? progress = null , CancellationToken ct = default);
+
+        /// <summary>校验 .seatsets 文件的完整性和有效性。</summary>
+        Task<SeatSetsValidationResult> ValidateSeatSetsAsync (string filePath , CancellationToken ct = default);
+
+        /// <summary>在可执行文件目录中自动发现 .seatsets 文件。</summary>
+        Task<string?> DiscoverSeatSetsFileAsync (CancellationToken ct = default);
+
+        /// <summary>探测 .seatsets 文件中包含哪些数据类别。</summary>
+        Task<SeatSetsExportSelection> ProbeSeatSetsCategoriesAsync (string filePath , CancellationToken ct = default);
     }
 
     /// <summary>

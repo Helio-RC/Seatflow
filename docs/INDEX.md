@@ -20,6 +20,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── INDEX.md               ← 本文件
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
+│   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
 │   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
 │   └── adr/
 │       ├── ADR-001-avalonia-ui-framework.md        ← 选择 Avalonia UI 的决策

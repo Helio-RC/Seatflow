@@ -841,6 +841,84 @@
   <data name="Plugin_VersionFmt" xml:space="preserve">
     <value>版本 v{0}</value>
   </data>
+  <data name="SeatSets_AppSettings_Label" xml:space="preserve">
+    <value>应用设置</value>
+  </data>
+  <data name="SeatSets_ConfirmExport" xml:space="preserve">
+    <value>确认导出</value>
+  </data>
+  <data name="SeatSets_ConfirmImport" xml:space="preserve">
+    <value>确认导入</value>
+  </data>
+  <data name="SeatSets_DataManagement" xml:space="preserve">
+    <value>数据管理</value>
+  </data>
+  <data name="SeatSets_DefaultFileName" xml:space="preserve">
+    <value>Seatflow_data</value>
+  </data>
+  <data name="SeatSets_DeselectAll" xml:space="preserve">
+    <value>取消全选</value>
+  </data>
+  <data name="SeatSets_Export" xml:space="preserve">
+    <value>导出数据...</value>
+  </data>
+  <data name="SeatSets_ExportFailed" xml:space="preserve">
+    <value>导出失败</value>
+  </data>
+  <data name="SeatSets_ExportHint" xml:space="preserve">
+    <value>将应用数据打包导出为 .seatsets 文件</value>
+  </data>
+  <data name="SeatSets_ExportSuccess" xml:space="preserve">
+    <value>数据导出成功：已打包 {0} 个文件</value>
+  </data>
+  <data name="SeatSets_ExportTitle" xml:space="preserve">
+    <value>导出应用数据</value>
+  </data>
+  <data name="SeatSets_FileTooBig" xml:space="preserve">
+    <value>文件过大（{0} MB），上限为 {1} MB</value>
+  </data>
+  <data name="SeatSets_Import" xml:space="preserve">
+    <value>导入数据...</value>
+  </data>
+  <data name="SeatSets_ImportHint" xml:space="preserve">
+    <value>从 .seatsets 文件恢复应用数据</value>
+  </data>
+  <data name="SeatSets_ImportPartial" xml:space="preserve">
+    <value>部分恢复：{0}/{1} 个文件成功，{2} 个失败</value>
+  </data>
+  <data name="SeatSets_ImportSuccess" xml:space="preserve">
+    <value>数据导入成功：已恢复 {0} 个文件</value>
+  </data>
+  <data name="SeatSets_ImportTitle" xml:space="preserve">
+    <value>导入应用数据</value>
+  </data>
+  <data name="SeatSets_IntegrityFailed" xml:space="preserve">
+    <value>文件完整性校验失败，可能已损坏</value>
+  </data>
+  <data name="SeatSets_InvalidFile" xml:space="preserve">
+    <value>文件无效</value>
+  </data>
+  <data name="SeatSets_NoDataAvailable" xml:space="preserve">
+    <value>没有可导出的数据</value>
+  </data>
+  <data name="SeatSets_Processing" xml:space="preserve">
+    <value>正在处理...</value>
+  </data>
+  <data name="SeatSets_Rosters_Label" xml:space="preserve">
+    <value>学生数据集</value>
+  </data>
+  <data name="SeatSets_SelectAll" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="SeatSets_Snapshots_Label" xml:space="preserve">
+    <value>座位快照</value>
+  </data>
+  <data name="SeatSets_StrategyConfig_Label" xml:space="preserve">
+    <value>策略配置</value>
+  </data>
+  <data name="SeatSets_Venues_Label" xml:space="preserve">
+    <value>会场布局</value>
+  </data>
   <data name="Seating_Cancel" xml:space="preserve">
     <value>取消</value>
   </data>

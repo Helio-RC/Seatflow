@@ -2,6 +2,26 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+- **应用数据打包（.seatsets）**：将 AppData 全部数据（设置、会场、名单、快照、策略配置）打包为单个 `.seatsets` JSON 归档文件，支持分块 SHA256 完整性校验和版本号系统
+- **三种导入途径**：(1) 设置页面按钮导入/导出，含类别选择对话框；(2) 双击 `.seatsets` 文件自动启动程序导入（需 OS 文件关联）；(3) 首次启动时自动发现 exe 目录下的 `.seatsets` 文件并静默全量导入
+- **导入/导出选择对话框**（`SeatSetsSelectionWindow`）：含五个数据类别的复选框、全选/取消全选，区分导出/导入模式
+- **文件校验**：导入前校验文件大小（上限 200 MB）、JSON 格式、chunk 哈希和归档哈希，篡改检测
+- **尽力而为导入**：单文件/单 chunk 失败不中断整体，返回详细成功/跳过/失败计数
+- **i18n**：新增 25 个 `SeatSets_*` 资源键（中/英）
+- **单元测试**：11 个 `SeatSetsServiceTests`（往返、篡改检测、部分选择、空目录、超大文件、探测类别等）
+- `docs/SEATSETS_FORMAT.md` — .seatsets 文件格式规范文档
+
+### Changed
+- `CheckCleanDirectory()` 允许 `.seatsets` 文件存在于 exe 目录（用于自动发现）
+- `CheckSeatSetsAutoImportAsync()` 在 AppData 创建前执行，确保数据在引导系统之前可用
+- `SettingsView.axaml` 新增"数据管理"区域（导出/导入按钮）
+- `IApplicationFacade` 扩展：5 个 SeatSets 方法（Export/Import/Validate/Discover/ProbeCategories）
+- `file_versions.json` 新增 `"seatsets": "1.0"` 条目
+- `ServiceCollectionExtensions` 注册 `ISeatSetsService`、`SeatSetsSelectionViewModel`、`SeatSetsMigrator`
+
 ## [1.2.0] — 2026-06-19
 
 ### Added

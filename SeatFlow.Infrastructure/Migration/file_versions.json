@@ -5,5 +5,6 @@
   "venueInfo": "1.0",
   "appSettings": "1.0",
   "strategyConfig": "1.0",
-  "strategyDatasetConfig": "1.0"
+  "strategyDatasetConfig": "1.0",
+  "seatsets": "1.0"
 }

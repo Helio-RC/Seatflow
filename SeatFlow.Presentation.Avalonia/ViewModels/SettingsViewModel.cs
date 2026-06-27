@@ -25,6 +25,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
     private readonly IOnboardingService _onboarding;
+    private readonly IFileService _fileService;
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
@@ -79,11 +80,12 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsSaving { get; set; }
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , IFileService fileService , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
         _onboarding = onboarding;
+        _fileService = fileService;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
@@ -266,6 +268,168 @@ public partial class SettingsViewModel : ViewModelBase
         catch
         {
             // 引导启动失败静默处理
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportSeatSetsAsync (CancellationToken ct)
+    {
+        try
+        {
+            // 1. 显示选择对话框（导出模式）
+            var selectionWindow = new Views.SeatSetsSelectionWindow
+            {
+                IsExport = true
+            };
+
+            if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+
+            var confirmed = await selectionWindow.ShowDialog<bool>(desktop.MainWindow!);
+            if (!confirmed) return;
+
+            var selection = selectionWindow.ViewModel.ToSelection();
+
+            // 2. 文件保存对话框
+            var defaultFileName = string.Format(Resources.SeatSets_DefaultFileName)
+                + $"_{DateTime.Now:yyyyMMdd_HHmm}";
+            var seatSetsFilter = new FilePickerFileType("SeatFlow Data Package")
+            {
+                Patterns = ["*.seatsets"]
+            };
+
+            var file = await _fileService.SaveFileAsync(
+                Resources.SeatSets_ExportTitle,
+                [seatSetsFilter],
+                defaultFileName);
+
+            if (file is null) return;
+
+            // 3. 执行导出
+            StatusMessage = Resources.SeatSets_Processing;
+            var path = file.Path.LocalPath;
+            var count = await _facade.ExportSeatSetsAsync(path, selection, ct);
+
+            // 4. 显示结果
+            if (count > 0)
+            {
+                StatusMessage = string.Format(Resources.SeatSets_ExportSuccess, count);
+                await _dialog.ShowInfoAsync(Resources.SeatSets_ExportTitle,
+                    string.Format(Resources.SeatSets_ExportSuccess, count));
+            }
+            else
+            {
+                StatusMessage = Resources.SeatSets_NoDataAvailable;
+                await _dialog.ShowWarningAsync(Resources.SeatSets_ExportTitle,
+                    Resources.SeatSets_NoDataAvailable);
+            }
+        }
+        catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
+        {
+            _logger?.LogDebug(ex, "导出操作取消");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Resources.SeatSets_ExportFailed;
+            _logger?.LogError(ex, "导出数据包失败");
+            await _dialog.ShowErrorAsync(Resources.SeatSets_ExportFailed, ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportSeatSetsAsync (CancellationToken ct)
+    {
+        try
+        {
+            // 1. 文件选择对话框
+            var seatSetsFilter = new FilePickerFileType("SeatFlow Data Package")
+            {
+                Patterns = ["*.seatsets"]
+            };
+
+            var file = await _fileService.OpenFileAsync(
+                Resources.SeatSets_ImportTitle,
+                [seatSetsFilter]);
+
+            if (file is null) return;
+
+            var filePath = file.Path.LocalPath;
+
+            // 2. 校验文件
+            StatusMessage = Resources.SeatSets_Processing;
+            var validation = await _facade.ValidateSeatSetsAsync(filePath, ct);
+
+            if (!validation.IsValid)
+            {
+                var errors = string.Join("\n", validation.ValidationErrors);
+                await _dialog.ShowErrorAsync(Resources.SeatSets_InvalidFile,
+                    string.IsNullOrEmpty(errors) ? Resources.SeatSets_IntegrityFailed : errors);
+                StatusMessage = "";
+                return;
+            }
+
+            // 3. 探测并显示选择对话框（导入模式）
+            var categories = await _facade.ProbeSeatSetsCategoriesAsync(filePath, ct);
+            var selectionWindow = new Views.SeatSetsSelectionWindow
+            {
+                IsExport = false
+            };
+            selectionWindow.SetAvailableCategories(
+                categories.IncludeAppSettings,
+                categories.IncludeVenues,
+                categories.IncludeRosters,
+                categories.IncludeSnapshots,
+                categories.IncludeStrategyConfig);
+
+            if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+
+            var confirmed = await selectionWindow.ShowDialog<bool>(desktop.MainWindow!);
+            if (!confirmed) return;
+
+            var selection = selectionWindow.ViewModel.ToSelection();
+
+            // 4. 执行导入
+            StatusMessage = Resources.SeatSets_Processing;
+            var result = await _facade.ImportSeatSetsAsync(filePath, selection, progress: null, ct);
+
+            // 5. 显示结果
+            if (result.Success)
+            {
+                StatusMessage = string.Format(Resources.SeatSets_ImportSuccess, result.Restored);
+                await _dialog.ShowInfoAsync(Resources.SeatSets_ImportTitle,
+                    string.Format(Resources.SeatSets_ImportSuccess, result.Restored));
+            }
+            else if (result.Failed > 0 && result.Restored > 0)
+            {
+                StatusMessage = string.Format(Resources.SeatSets_ImportPartial,
+                    result.Restored, result.TotalFiles, result.Failed);
+                var errorDetails = result.Errors.Count > 0
+                    ? "\n\n" + string.Join("\n", result.Errors.Take(5))
+                    : "";
+                await _dialog.ShowWarningAsync(Resources.SeatSets_ImportTitle,
+                    string.Format(Resources.SeatSets_ImportPartial,
+                        result.Restored, result.TotalFiles, result.Failed) + errorDetails);
+            }
+            else
+            {
+                StatusMessage = Resources.SeatSets_ImportPartial;
+                var errorDetails = result.Errors.Count > 0
+                    ? "\n" + string.Join("\n", result.Errors.Take(5))
+                    : "";
+                await _dialog.ShowErrorAsync(Resources.SeatSets_ImportTitle,
+                    string.Join("\n", result.Errors.Take(10)) + errorDetails);
+            }
+        }
+        catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
+        {
+            _logger?.LogDebug(ex, "导入操作取消");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Resources.SeatSets_ImportTitle + ": " + ex.Message;
+            _logger?.LogError(ex, "导入数据包失败");
+            await _dialog.ShowErrorAsync(Resources.SeatSets_ImportTitle, ex.Message);
         }
     }
 

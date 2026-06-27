@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
@@ -27,6 +28,9 @@ namespace SeatFlow.Presentation.Avalonia
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly bool _isFirstInstance = isFirstInstance;
+
+        /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）。</summary>
+        internal static string? PendingSeatSetsFilePath { get; set; }
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
@@ -166,11 +170,33 @@ namespace SeatFlow.Presentation.Avalonia
                     });
                 };
 
-                // 按序执行：先检查引导（此时文件不存在=首次启动），再恢复设置
+                // 按序执行：先检查自动导入 → 引导 → 恢复设置
                 _ = InitializeAsync(mainWindow);
+
+                // 处理双击 .seatsets 文件（延迟到 UI 就绪后执行）
+                HandlePendingSeatSetsFile(mainWindow);
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        /// <summary>
+        /// 处理待导入的 .seatsets 文件（来自命令行参数或双击打开）。
+        /// 延迟到 Background 优先级执行，确保 UI 已完全初始化。
+        /// </summary>
+        private void HandlePendingSeatSetsFile (MainWindow mainWindow)
+        {
+            var filePath = PendingSeatSetsFilePath;
+            if (string.IsNullOrEmpty(filePath))
+                return;
+
+            // 清理静态状态，防止重复处理
+            PendingSeatSetsFilePath = null;
+
+            Dispatcher.UIThread.Post(async () =>
+            {
+                await HandleSeatSetsFileOpenAsync(filePath);
+            }, DispatcherPriority.Background);
         }
 
         private async Task RunStartupChecksAsync (IClassicDesktopStyleApplicationLifetime desktop)
@@ -261,9 +287,159 @@ namespace SeatFlow.Presentation.Avalonia
 
         private async Task InitializeAsync (MainWindow mainWindow)
         {
+            // 在 AppData 创建前先检查自动导入 .seatsets（仅在 AppData 不存在时生效）
+            await CheckSeatSetsAutoImportAsync();
+
             // 先检查引导，再恢复设置；确保首次启动检测在文件创建之前
             await CheckAndStartOnboardingAsync();
             await RestoreSettingsAsync();
+        }
+
+        /// <summary>
+        /// 在 AppData 目录不存在时，自动扫描可执行文件目录中的 .seatsets 文件并静默全量导入。
+        /// 此方法在 AppData 创建之前执行，确保数据在首次启动时可用。
+        /// </summary>
+        private async Task CheckSeatSetsAutoImportAsync ()
+        {
+            try
+            {
+                var appDataPath = Path.Combine(AppContext.BaseDirectory , "AppData");
+                if (Directory.Exists(appDataPath))
+                    return; // AppData 已存在，不需要自动导入
+
+                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+                var seatsetsPath = await facade.DiscoverSeatSetsFileAsync(CancellationToken.None);
+                if (seatsetsPath == null)
+                    return;
+
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogInformation("[SeatSets] 自动发现数据包: {Path}，准备导入...", seatsetsPath);
+
+                // 校验文件
+                var validation = await facade.ValidateSeatSetsAsync(seatsetsPath, CancellationToken.None);
+                if (!validation.IsValid)
+                {
+                    logger.LogWarning("[SeatSets] 自动发现的数据包校验失败: {Errors}",
+                        string.Join("; ", validation.ValidationErrors));
+                    return;
+                }
+
+                // 全量导入
+                var selection = new SeatFlow.Core.Models.SeatSets.SeatSetsExportSelection
+                {
+                    IncludeAppSettings = true,
+                    IncludeVenues = true,
+                    IncludeRosters = true,
+                    IncludeSnapshots = true,
+                    IncludeStrategyConfig = true
+                };
+
+                var result = await facade.ImportSeatSetsAsync(seatsetsPath, selection,
+                    progress: null, CancellationToken.None);
+
+                if (result.Success)
+                {
+                    logger.LogInformation("[SeatSets] 自动导入成功: {Restored} 个文件", result.Restored);
+                }
+                else
+                {
+                    logger.LogWarning("[SeatSets] 自动导入部分完成: {Restored}/{Total} 成功, {Failed} 失败",
+                        result.Restored, result.TotalFiles, result.Failed);
+                    if (result.Errors.Count > 0)
+                        logger.LogWarning("[SeatSets] 导入错误: {Errors}",
+                            string.Join("; ", result.Errors.Take(5)));
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogError(ex, "[SeatSets] 自动导入异常");
+            }
+        }
+
+        /// <summary>
+        /// 处理双击打开或命令行传入的 .seatsets 文件。
+        /// 显示选择对话框让用户确认导入类别。
+        /// </summary>
+        private async Task HandleSeatSetsFileOpenAsync (string filePath)
+        {
+            var dialog = _serviceProvider.GetRequiredService<IDialogService>();
+            var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
+            var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+
+            try
+            {
+                logger.LogInformation("[SeatSets] 处理打开的文件: {Path}", filePath);
+
+                // 校验文件
+                var validation = await facade.ValidateSeatSetsAsync(filePath, CancellationToken.None);
+                if (!validation.IsValid)
+                {
+                    var errors = string.Join("\n", validation.ValidationErrors);
+                    await DialogServiceShim.ShowWarningAsync(dialog,
+                        Lang.Resources.SeatSets_InvalidFile,
+                        string.IsNullOrEmpty(errors)
+                            ? Lang.Resources.SeatSets_IntegrityFailed
+                            : errors);
+                    return;
+                }
+
+                // 探测并显示选择对话框
+                var categories = await facade.ProbeSeatSetsCategoriesAsync(filePath, CancellationToken.None);
+                var selectionWindow = new Views.SeatSetsSelectionWindow
+                {
+                    IsExport = false
+                };
+                selectionWindow.SetAvailableCategories(
+                    categories.IncludeAppSettings,
+                    categories.IncludeVenues,
+                    categories.IncludeRosters,
+                    categories.IncludeSnapshots,
+                    categories.IncludeStrategyConfig);
+
+                // 获取 MainWindow 用于 ShowDialog
+                var mainWindow = (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+                if (mainWindow == null) return;
+
+                var confirmed = await selectionWindow.ShowDialog<bool>(mainWindow);
+                if (!confirmed) return;
+
+                var selection = selectionWindow.ViewModel.ToSelection();
+
+                // 执行导入
+                var result = await facade.ImportSeatSetsAsync(filePath, selection,
+                    progress: null, CancellationToken.None);
+
+                // 显示结果
+                if (result.Success)
+                {
+                    await dialog.ShowInfoAsync(Lang.Resources.SeatSets_ImportTitle,
+                        string.Format(Lang.Resources.SeatSets_ImportSuccess, result.Restored));
+                }
+                else if (result.Failed > 0 && result.Restored > 0)
+                {
+                    var errorDetails = result.Errors.Count > 0
+                        ? "\n\n" + string.Join("\n", result.Errors.Take(5))
+                        : "";
+                    await dialog.ShowWarningAsync(Lang.Resources.SeatSets_ImportTitle,
+                        string.Format(Lang.Resources.SeatSets_ImportPartial,
+                            result.Restored, result.TotalFiles, result.Failed) + errorDetails);
+                }
+                else
+                {
+                    var errorDetails = result.Errors.Count > 0
+                        ? "\n" + string.Join("\n", result.Errors.Take(10))
+                        : "";
+                    await dialog.ShowErrorAsync(Lang.Resources.SeatSets_ImportTitle,
+                        string.Join("\n", result.Errors.Take(10)) + errorDetails);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[SeatSets] 处理打开文件异常: {Path}", filePath);
+                await DialogServiceShim.ShowWarningAsync(dialog,
+                    Lang.Resources.Common_OperationFailed, ex.Message);
+            }
         }
     }
 

@@ -23,6 +23,19 @@ namespace SeatFlow.Presentation.Avalonia
 #if !DEBUG
             CheckCleanDirectory();
 #endif
+            // 检测命令行参数中的 .seatsets 文件路径（双击打开或命令行导入）
+            string? seatsetsFilePath = null;
+            if (args.Length > 0)
+            {
+                var firstArg = args[0];
+                if (!string.IsNullOrEmpty(firstArg) &&
+                    firstArg.EndsWith(".seatsets" , StringComparison.OrdinalIgnoreCase) &&
+                    File.Exists(firstArg))
+                {
+                    seatsetsFilePath = Path.GetFullPath(firstArg);
+                }
+            }
+
             using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
             var services = new ServiceCollection();
@@ -54,6 +67,10 @@ namespace SeatFlow.Presentation.Avalonia
             services.AddTransient<ConfigBlockEditorViewModel>();
 
             var serviceProvider = services.BuildServiceProvider();
+
+            // 将命令行中的 .seatsets 文件路径传递给 App（用于双击打开导入）
+            App.PendingSeatSetsFilePath = seatsetsFilePath;
+
             BuildAvaloniaApp(serviceProvider , isFirstInstance)
                 .StartWithClassicDesktopLifetime(args);
         }
@@ -77,7 +94,8 @@ namespace SeatFlow.Presentation.Avalonia
                 .Select(p => Path.GetFileName(p))
                 .Where(n => !string.Equals(n , exeName , StringComparison.OrdinalIgnoreCase)
                          && !string.Equals(n , "AppData" , StringComparison.OrdinalIgnoreCase)
-                         && !string.Equals(n , "Plugins" , StringComparison.OrdinalIgnoreCase))
+                         && !string.Equals(n , "Plugins" , StringComparison.OrdinalIgnoreCase)
+                         && !n.EndsWith(".seatsets" , StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
             if (extra.Length == 0) return;

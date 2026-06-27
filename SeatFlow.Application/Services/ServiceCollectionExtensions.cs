@@ -3,6 +3,7 @@ using SeatFlow.Application.Interfaces;
 using SeatFlow.Application.Plugins;
 using SeatFlow.Contracts.Interfaces;
 using SeatFlow.Core.Exporters;
+using SeatFlow.Core.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Providers;
 using SeatFlow.Core.Services;
@@ -13,6 +14,7 @@ using SeatFlow.Infrastructure.Migration.Migrators;
 using SeatFlow.Infrastructure.Providers;
 using SeatFlow.Infrastructure.Repositories;
 using SeatFlow.Infrastructure.Serialization;
+using SeatFlow.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -97,6 +99,7 @@ namespace SeatFlow.Application.Services
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<FileMigrationService>();
             services.AddSingleton<IFileMigrator , VenueMigrators.Step_1_0_to_1_1>();
+            services.AddSingleton<IFileMigrator , SeatSetsMigrators.Step_1_0_to_1_1>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
                 new SeatingSnapshotRepository(Path.Combine(effectiveDataPath , "Assignments") ,
                     sp.GetRequiredService<FileMigrationService>() ,
@@ -175,6 +178,12 @@ namespace SeatFlow.Application.Services
                 strategyConfigDir ,
                 sp.GetRequiredService<FileMigrationService>() ,
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyDatasetConfigRepository>>()));
+
+            // 注册 .seatsets 数据包服务（全局单例）
+            services.AddSingleton<ISeatSetsService>(sp => new SeatSetsService(
+                effectiveDataPath ,
+                defaultSettingsPath ,
+                sp.GetRequiredService<ILogger<SeatSetsService>>()));
 
             return services;
         }
