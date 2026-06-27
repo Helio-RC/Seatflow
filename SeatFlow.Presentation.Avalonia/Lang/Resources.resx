@@ -195,7 +195,7 @@
     <value>获取导入模板</value>
   </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
-    <value>选中已保存的数据集后，工具栏按钮变为从文件更新，可更新当前数据集内容而不改变其 ID</value>
+    <value>如果学生名单有变动，点击此按钮重新导入文件即可更新当前数据集。注意：通过「从文件导入」创建的数据集会生成新 ID，此前基于旧数据集 ID 配置的策略设置和快照将失效，需重新配置；使用「从文件更新」可保持数据集 ID 不变。</value>
   </data>
   <data name="Guide_Members_Update_Title" xml:space="preserve">
     <value>从文件更新</value>

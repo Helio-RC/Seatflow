@@ -195,7 +195,7 @@
     <value>Download Import Template</value>
   </data>
   <data name="Guide_Members_Update_Desc" xml:space="preserve">
-    <value>When a saved dataset is selected, the button changes to &quot;Update from file&quot;. You can update the dataset content from a file without changing its ID.</value>
+    <value>If the student list has changed, click here to re-import and update the current dataset. Note: importing as a new dataset generates a new ID, which will invalidate strategy settings and snapshots based on the old dataset ID — use &quot;Update from File&quot; to keep the dataset ID unchanged.</value>
   </data>
   <data name="Guide_Members_Update_Title" xml:space="preserve">
     <value>Update from file</value>
