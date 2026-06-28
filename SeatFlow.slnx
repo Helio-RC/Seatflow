@@ -1,9 +1,5 @@
 <Solution>
-  <Folder Name="/解决方案项/">
-    <File Path=".editorconfig" />
-    <File Path="Goal.md" />
-    <File Path="Phases.md" />
-  </Folder>
+  <Folder Name="/解决方案项/" />
   <Project Path="SeatFlow.Application.Tests/SeatFlow.Application.Tests.csproj" />
   <Project Path="SeatFlow.Application/SeatFlow.Application.csproj" />
   <Project Path="SeatFlow.Contracts/SeatFlow.Contracts.csproj" />

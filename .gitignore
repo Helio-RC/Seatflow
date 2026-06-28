@@ -385,3 +385,4 @@ dev-debug.log
 
 # i18n backup files
 Seatflow.Presentation.Avalonia/Lang/.backup/
+.version-backups
