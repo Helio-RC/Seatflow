@@ -30,13 +30,13 @@
                    Stretch="Uniform" />
           <TextBlock Text="{Binding AppName}" FontSize="22" FontWeight="Bold"
                      HorizontalAlignment="Center" />
-          <TextBlock HorizontalAlignment="Center" FontSize="13"
+          <TextBlock HorizontalAlignment="Center" Classes="bodySmall"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                      Text="{Binding VersionDisplay}" />
         </StackPanel>
 
         <!-- 描述 -->
-        <TextBlock Text="{Binding Description}" FontSize="13" TextWrapping="Wrap"
+        <TextBlock Text="{Binding Description}" Classes="bodySmall" TextWrapping="Wrap"
                    HorizontalAlignment="Center" TextAlignment="Center" MaxWidth="460"
                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                    Margin="0,12,0,0" />
@@ -44,7 +44,7 @@
         <!-- MIT 许可证警告横幅 -->
         <Border Classes="bgError" Padding="10" CornerRadius="4" Margin="0,12,0,0">
           <StackPanel Spacing="4">
-            <TextBlock Text="{x:Static lang:Resources.About_MITLicenseWarning}" FontSize="13" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static lang:Resources.About_MITLicenseWarning}" Classes="bodySmallStrong"
                        Foreground="{DynamicResource ErrorBrush}" TextWrapping="Wrap" />
           </StackPanel>
         </Border>
@@ -97,11 +97,11 @@
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
                   <!-- Row 0: 名称 | 版本 | 许可证 | 链接 -->
                   <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Name}"
-                             FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" />
-                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Version}" FontSize="12"
+                             Classes="bodySmallStrong" VerticalAlignment="Center" />
+                  <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Version}" Classes="caption"
                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                              VerticalAlignment="Center" Margin="8,0,0,0" />
-                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding License}" FontSize="11"
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding License}" Classes="small"
                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                              VerticalAlignment="Center" Margin="8,0,0,0" />
                   <Button Grid.Row="0" Grid.Column="3"
@@ -115,7 +115,7 @@
                   </Button>
                   <!-- Row 1: 用途 -->
                   <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
-                             Text="{Binding Purpose}" FontSize="12"
+                             Text="{Binding Purpose}" Classes="caption"
                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                              Margin="0,2,0,0" />
                 </Grid>
@@ -130,9 +130,9 @@
                   CommandParameter="{Binding ProjectUrl}"
                   Classes="linkButton"
                   HorizontalContentAlignment="Center">
-            <TextBlock Text="{Binding ProjectUrl}" FontSize="12" />
+            <TextBlock Text="{Binding ProjectUrl}" Classes="caption" />
           </Button>
-          <TextBlock Text="{Binding Copyright}" FontSize="11"
+          <TextBlock Text="{Binding Copyright}" Classes="small"
                      HorizontalAlignment="Center"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
         </StackPanel>

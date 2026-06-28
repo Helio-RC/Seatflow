@@ -85,7 +85,7 @@
             </Button.Flyout>
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.SaveArrowRight}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Seating_Export}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Seating_Export}" Classes="body" />
             </StackPanel>
           </Button>
           <!-- 保存到快照 -->
@@ -95,7 +95,7 @@
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Save}" Classes="body" />
             </StackPanel>
           </Button>
           <!-- 撤销 -->
@@ -104,7 +104,7 @@
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_UndoSwap}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Seating_Undo}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Seating_Undo}" Classes="body" />
             </StackPanel>
           </Button>
           <!-- 重做 -->
@@ -113,7 +113,7 @@
                   AutomationProperties.Name="{x:Static lang:Resources.Seating_RedoSwap}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowRedo}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Seating_Redo}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Seating_Redo}" Classes="body" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -226,7 +226,7 @@
                     Classes="accent">
               <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Seating_Generate}" Classes="body" />
               </StackPanel>
             </Button>
           </DockPanel>
@@ -338,7 +338,7 @@
                               BorderThickness="1"
                               ToolTip.Tip="{ReflectionBinding TooltipText}">
                         <TextBlock Text="{ReflectionBinding DisplayText}"
-                                   FontSize="10"
+                                   Classes="micro"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                       </Border>
@@ -425,7 +425,7 @@
                                        Foreground="White" />
                           </Border>
                           <StackPanel>
-                            <TextBlock Text="{Binding DisplayName}" FontSize="13" />
+                            <TextBlock Text="{Binding DisplayName}" Classes="bodySmall" />
                             <TextBlock Text="{Binding Category}" Classes="small"
                                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                           </StackPanel>
@@ -448,7 +448,7 @@
                                              Foreground="White" />
                                 </Border>
                                 <StackPanel>
-                                  <TextBlock Text="{Binding DisplayName}" FontSize="13" />
+                                  <TextBlock Text="{Binding DisplayName}" Classes="bodySmall" />
                                   <TextBlock Text="{Binding Category}" Classes="small"
                                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                                 </StackPanel>

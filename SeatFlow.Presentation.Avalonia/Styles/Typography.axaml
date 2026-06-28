@@ -67,6 +67,12 @@
     <Setter Property="FontWeight" Value="Bold" />
   </Style>
 
+  <!-- 超大标题：28px Bold（首页欢迎语等） -->
+  <Style Selector="TextBlock.hero">
+    <Setter Property="FontSize" Value="28" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
   <!-- Win10 设置节标题：14px SemiBold 中对比度 -->
   <Style Selector="TextBlock.settingSectionHeader">
     <Setter Property="FontSize" Value="14" />

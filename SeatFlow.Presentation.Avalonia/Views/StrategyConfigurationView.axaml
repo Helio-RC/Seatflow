@@ -33,7 +33,7 @@
                 CornerRadius="4"
                 Background="{DynamicResource WarningBackgroundBrush}">
           <TextBlock Text="{x:Static lang:Resources.Strategy_ConfigInvalidHint}"
-                     FontSize="11"
+                     Classes="small"
                      TextWrapping="Wrap"
                      Foreground="{DynamicResource WarningForegroundBrush}" />
         </Border>
@@ -47,10 +47,10 @@
                     BorderThickness="0,1,0,0">
               <StackPanel Spacing="2">
                 <TextBlock Text="{x:Static lang:Resources.Strategy_LegendPriority}"
-                           FontSize="11"
+                           Classes="small"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
                 <TextBlock Text="{x:Static lang:Resources.Strategy_LegendBar}"
-                           FontSize="11"
+                           Classes="small"
                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
               </StackPanel>
             </Border>
@@ -60,7 +60,7 @@
                     HorizontalContentAlignment="Left" Padding="8,5">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveUp}" FontSize="13" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveUp}" Classes="bodySmall" />
               </StackPanel>
             </Button>
             <Button Command="{Binding MoveDownCommand}"
@@ -69,7 +69,7 @@
                     HorizontalContentAlignment="Left" Padding="8,5">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveDown}" FontSize="13" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveDown}" Classes="bodySmall" />
               </StackPanel>
             </Button>
             <Separator Margin="0,2" />
@@ -79,7 +79,7 @@
                     HorizontalContentAlignment="Left" Padding="8,5">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveChanges}" FontSize="13" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveChanges}" Classes="bodySmall" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -111,7 +111,7 @@
                         <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
                                    TextTrimming="CharacterEllipsis" FontSize="13" />
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                          <TextBlock FontSize="11"
+                          <TextBlock Classes="small"
                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                      Text="{Binding PriorityDisplay}" />
                           <Border CornerRadius="2" Padding="4,1"
@@ -143,7 +143,7 @@
                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                           HorizontalAlignment="Center" />
           <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint2}" Classes="sectionTitle" HorizontalAlignment="Center" />
-          <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint}" FontSize="12"
+          <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint}" Classes="caption"
                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                      HorizontalAlignment="Center" />
         </StackPanel>
@@ -163,7 +163,7 @@
                         Background="{DynamicResource SystemControlAccentBrush}"
                         VerticalAlignment="Center">
                   <TextBlock Text="{Binding DetailSourceDisplay}"
-                             FontSize="11"
+                             Classes="small"
                              Foreground="{DynamicResource SystemControlBackgroundChromeWhiteBrush}" />
                 </Border>
               </DockPanel>
@@ -185,7 +185,7 @@
               <TextBlock Text="{x:Static lang:Resources.Strategy_BasicConfig}" Classes="sectionTitle" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PriorityLabel}" FontSize="14"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PriorityLabel}" Classes="body"
                            VerticalAlignment="Center" Width="140" />
                 <NumericUpDown Value="{Binding EditPriority, Mode=TwoWay}"
                                Minimum="0" Maximum="999" Increment="1"
@@ -193,7 +193,7 @@
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_EnableLabel}" FontSize="14"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_EnableLabel}" Classes="body"
                            VerticalAlignment="Center" Width="140" />
                 <ToggleSwitch x:Name="EditEnabledSwitch" IsChecked="{Binding EditIsEnabled, Mode=TwoWay}"
                               HorizontalAlignment="Right" />
@@ -217,7 +217,7 @@
                     HorizontalContentAlignment="Center" Padding="12,6">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_RestoreDefaults}" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_RestoreDefaults}" Classes="body" />
               </StackPanel>
             </Button>
                 <Button Command="{Binding SaveCurrentConfigCommand}"
@@ -225,7 +225,7 @@
                     IsDefault="True">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveConfig}" FontSize="14" />
+                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveConfig}" Classes="body" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -237,7 +237,7 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
           <ProgressBar IsIndeterminate="True" Width="200" />
-          <TextBlock Text="{x:Static lang:Resources.Common_Processing}" FontSize="14" HorizontalAlignment="Center" />
+          <TextBlock Text="{x:Static lang:Resources.Common_Processing}" Classes="body" HorizontalAlignment="Center" />
         </StackPanel>
       </Border>
     </Grid>

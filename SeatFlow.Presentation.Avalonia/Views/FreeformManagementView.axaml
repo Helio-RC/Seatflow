@@ -21,7 +21,7 @@
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Freeform_Template}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Freeform_Template}" Classes="body" />
             </StackPanel>
           </Button>
           <Button x:Name="ImportCsvButton" Command="{Binding ImportCsvCommand}"
@@ -29,7 +29,7 @@
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportCSV}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportCSV}" Classes="body" />
             </StackPanel>
           </Button>
           <Button Command="{Binding ImportJsonCommand}"
@@ -37,7 +37,7 @@
                   HorizontalContentAlignment="Center">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportJSON}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportJSON}" Classes="body" />
             </StackPanel>
           </Button>
           <Button x:Name="SaveLayoutButton" Command="{Binding SaveLayoutCommand}"
@@ -46,7 +46,7 @@
                   HorizontalContentAlignment="Center" Classes="accent">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Save}" FontSize="14" />
+              <TextBlock Text="{x:Static lang:Resources.Common_Save}" Classes="body" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -184,17 +184,17 @@
                                        FontSize="12" FontWeight="SemiBold" Width="24"
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                            <TextBlock Text="X:" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                            <TextBlock Text="X:" Classes="caption" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding X, Mode=TwoWay}"
                                            Minimum="0" Maximum="5000" FontSize="12"
                                            PlaceholderText="{x:Static lang:Resources.Freeform_XCoord}"
                                            ToolTip.Tip="{x:Static lang:Resources.Freeform_XTooltip}"/>
-                            <TextBlock Text="Y:" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                            <TextBlock Text="Y:" Classes="caption" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
                                            Minimum="0" Maximum="5000" FontSize="12"
                                            PlaceholderText="{x:Static lang:Resources.Freeform_YCoord}"
                                            ToolTip.Tip="{x:Static lang:Resources.Freeform_YTooltip}"/>
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_Type}" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_Type}" Classes="caption" VerticalAlignment="Center"/>
                             <ComboBox SelectedIndex="{ReflectionBinding ElementType}"
                                       FontSize="12"
                                       ToolTip.Tip="{x:Static lang:Resources.Freeform_TypeTooltip}">
@@ -205,17 +205,17 @@
                           </StackPanel>
                           <!-- 第二行: 行, 列, 组 -->
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_RowLabel}" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_RowLabel}" Classes="caption" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding Row, Mode=TwoWay}"
                                            Minimum="0" Maximum="100" FontSize="12"
                                            PlaceholderText="{x:Static lang:Resources.Freeform_RowPH}"
                                            ToolTip.Tip="{x:Static lang:Resources.Freeform_RowPH}"/>
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_ColLabel}" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_ColLabel}" Classes="caption" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding Column, Mode=TwoWay}"
                                            Minimum="0" Maximum="100" FontSize="12"
                                            PlaceholderText="{x:Static lang:Resources.Freeform_ColPH}"
                                            ToolTip.Tip="{x:Static lang:Resources.Freeform_ColPH}"/>
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_GroupLabel}" FontSize="12" VerticalAlignment="Center" Width="16"/>
+                            <TextBlock Text="{x:Static lang:Resources.Freeform_GroupLabel}" Classes="caption" VerticalAlignment="Center" Width="16"/>
                             <NumericUpDown Value="{Binding GroupId, Mode=TwoWay}"
                                            Minimum="0" Maximum="7" FontSize="12"
                                            PlaceholderText="{x:Static lang:Resources.Freeform_GroupPH}"

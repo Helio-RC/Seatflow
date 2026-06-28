@@ -16,7 +16,7 @@
                Width="240" Height="240"
                HorizontalAlignment="Center"
                Stretch="Uniform" />
-      <TextBlock Text="{Binding Greeting}" FontSize="28" FontWeight="Bold"
+      <TextBlock Text="{Binding Greeting}" Classes="hero"
                  HorizontalAlignment="Center" />
       <TextBlock Text="{Binding Subtitle}" FontSize="16"
                  HorizontalAlignment="Center"

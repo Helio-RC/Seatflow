@@ -81,7 +81,7 @@
                     </Border>
                     <!-- 信息 -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                      <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                      <TextBlock Text="{Binding Name}" Classes="bodySmallStrong"
                                  TextTrimming="CharacterEllipsis" />
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <TextBlock Text="{Binding Version, StringFormat='v{0}'}" Classes="small"
