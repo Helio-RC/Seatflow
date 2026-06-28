@@ -109,8 +109,8 @@
               <DockPanel>
                 <Button Command="{Binding BrowseDataDirectoryCommand}"
                         AutomationProperties.Name="{x:Static lang:Resources.Settings_BrowseDataDir}"
-                        DockPanel.Dock="Right" Padding="8,4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="16" />
+                        DockPanel.Dock="Right" Padding="8,8">
+                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="18" />
                 </Button>
                 <TextBox Text="{Binding DataDirectory, Mode=TwoWay}"
                          PlaceholderText="{x:Static lang:Resources.Settings_DataDirPlaceholder}"
