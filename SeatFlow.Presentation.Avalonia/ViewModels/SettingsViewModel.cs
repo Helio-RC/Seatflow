@@ -423,6 +423,17 @@ public partial class SettingsViewModel : ViewModelBase
                 await _dialog.ShowErrorAsync(Resources.SeatSets_ImportTitle,
                     string.Join("\n", result.Errors.Take(10)) + errorDetails);
             }
+
+            // 6. 导入后刷新：应用新设置（主题/语言）并导航到主页
+            if (result.Restored > 0 && importPath != null)
+            {
+                try
+                {
+                    if (AvaloniaApplication.Current is App app)
+                        await App.RefreshAfterImportAsync(app.ServiceProvider);
+                }
+                catch { /* 刷新失败不影响导入结果 */ }
+            }
         }
         catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
         {

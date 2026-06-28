@@ -485,12 +485,63 @@ namespace SeatFlow.Presentation.Avalonia
                     await dialog.ShowErrorAsync(Lang.Resources.SeatSets_ImportTitle,
                         string.Join("\n", result.Errors.Take(10)) + errorDetails);
                 }
+
+                // 导入后刷新设置（主题/语言）并导航到主页
+                if (result.Restored > 0)
+                    await RefreshAfterImportAsync(_serviceProvider);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "[SeatSets] 处理打开文件异常: {Path}", filePath);
                 await DialogServiceShim.ShowWarningAsync(dialog,
                     Lang.Resources.Common_OperationFailed, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 导入 SeatsSets 后刷新应用状态：重新加载设置、应用主题和语言、导航到主页。
+        /// 确保导入的 AppSettings 立即生效，且所有页面数据反映最新状态。
+        /// </summary>
+        internal static async Task RefreshAfterImportAsync (IServiceProvider serviceProvider)
+        {
+            try
+            {
+                var facade = serviceProvider.GetRequiredService<IApplicationFacade>();
+                var navigation = serviceProvider.GetRequiredService<INavigationService>();
+                var settings = await facade.LoadAppSettingsAsync();
+
+                // 应用主题
+                if (AvaloniaApplication.Current is { } app)
+                {
+                    app.RequestedThemeVariant = settings.Theme switch
+                    {
+                        ThemeMode.Light => ThemeVariant.Light,
+                        ThemeMode.Dark => ThemeVariant.Dark,
+                        _ => ThemeVariant.Default
+                    };
+                }
+
+                // 应用语言
+                try
+                {
+                    var culture = string.IsNullOrEmpty(settings.Language)
+                        ? CultureInfo.InstalledUICulture
+                        : new CultureInfo(settings.Language);
+                    CultureInfo.CurrentCulture = culture;
+                    CultureInfo.CurrentUICulture = culture;
+                    CultureInfo.DefaultThreadCurrentCulture = culture;
+                    CultureInfo.DefaultThreadCurrentUICulture = culture;
+                    Lang.Resources.Culture = culture;
+                }
+                catch (CultureNotFoundException) { /* 无效语言代码，保持当前 */ }
+
+                // 导航到主页
+                navigation.NavigateTo(PageKey.Home);
+            }
+            catch (Exception ex)
+            {
+                var logger = serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogWarning(ex, "[SeatSets] 导入后刷新异常");
             }
         }
     }
