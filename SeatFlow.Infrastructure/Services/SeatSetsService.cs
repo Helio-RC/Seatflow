@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SeatFlow.Core.Interfaces;
 using SeatFlow.Core.Models.SeatSets;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Infrastructure.Serialization;
 using SeatFlow.Infrastructure.Utils;
 
@@ -311,7 +312,7 @@ public class SeatSetsService : ISeatSetsService
     /// <inheritdoc />
     public Task<string?> DiscoverAsync (CancellationToken ct = default)
     {
-        var exeDir = AppContext.BaseDirectory;
+        var exeDir = AppEnvironment.ExeDirectory;
         if (!Directory.Exists(exeDir))
         {
             _logger.LogDebug("可执行文件目录不存在: {Dir}" , exeDir);

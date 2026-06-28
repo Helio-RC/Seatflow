@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -451,7 +452,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void OpenDataDirectory ()
     {
         var path = string.IsNullOrWhiteSpace(DataDirectory)
-            ? Path.Combine(AppContext.BaseDirectory , "AppData")
+            ? Path.Combine(AppEnvironment.ExeDirectory , "AppData")
             : DataDirectory;
 
         try
