@@ -1,0 +1,13 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using SeatFlow.Core.DomainServices;
+global using SeatFlow.Core.Models;
+global using SeatFlow.Core.Strategies;
+global using SeatFlow.Core.Utilities;
+global using SeatFlow.Core.Workspace;
+global using SeatFlow.Infrastructure.Layouts;
+global using FluentAssertions;
+global using Xunit;

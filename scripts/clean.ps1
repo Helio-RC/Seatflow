@@ -13,7 +13,7 @@ param([switch]$Force, [switch]$DryRun)
 $ErrorActionPreference = "Stop"
 Set-Location ..
 
-Write-Host "=== A_Pair 清理 bin/ & obj/ ===" -ForegroundColor Cyan
+Write-Host "=== SeatFlow 清理 bin/ & obj/ ===" -ForegroundColor Cyan
 
 $dirs = @(Get-ChildItem -Directory -Recurse -Filter bin) + @(Get-ChildItem -Directory -Recurse -Filter obj)
 $dirs = @($dirs | Sort-Object FullName -Unique)

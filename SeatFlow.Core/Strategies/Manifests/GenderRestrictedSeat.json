@@ -1,0 +1,39 @@
+{
+    "id": "GenderRestrictedSeat",
+    "name": "GenderRestrictedSeat",
+    "displayName": "性别限制座位",
+    "version": "1.0.0",
+    "manifestVersion": "1.0",
+    "description": "作为依赖策略在随机填充上下文中执行。限制指定座位只能分配给特定性别的学生。性别不匹配时优先重定向到匹配性别的受限座位，无合适座位时请求重掷，重掷耗尽后强制分配并警告。",
+    "author": "SeatFlow Team",
+    "category": "assignment",
+    "defaultPriority": 45,
+    "defaultEnabled": false,
+    "visible": true,
+    "capabilities": [],
+    "isIndependent": false,
+    "parameters": [],
+    "codeBlocks": [
+        {
+            "title": { "zh-CN": "性别限制座位", "en-US": "Gender Restricted Seats" },
+            "description": { "zh-CN": "每行配置一个座位及其性别限制。仅选中性别的学生在随机填充时会被分配到该座位，不匹配时优先尝试其他匹配性别的空座。", "en-US": "Each row configures a seat and its gender restriction. Only students of the selected gender may be assigned to this seat; mismatches are redirected to other matching restricted seats first." },
+            "dataType": "Venue",
+            "displayMode": "ValuePair",
+            "showSeatPosition": true,
+            "showStudentPicker": false,
+            "showGenderPicker": true,
+            "preventDuplicateAcrossRows": true,
+            "fields": []
+        }
+    ],
+    "messages": {
+        "GenderRestrictedSeat_Redirected": {
+            "zh-CN": "学生 {0} 性别不匹配座位 {1}（需 {2}），已重定向到匹配性别的受限座位 {3}",
+            "en-US": "Student {0} gender mismatch for seat {1} (requires {2}), redirected to matching restricted seat {3}"
+        },
+        "GenderRestrictedSeat_Forced": {
+            "zh-CN": "重掷次数已达上限，学生 {0}（性别 {1}）被强制分配到只允许 {2} 性别的座位 {3}",
+            "en-US": "Reroll limit reached, student {0} (gender {1}) forced into seat {3} (requires {2})"
+        }
+    }
+}

@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+        x:Class="SeatFlow.Presentation.Avalonia.Views.InputWindow"
+        Width="400" SizeToContent="Height" MinHeight="140"
+        CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="32"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+
+  <DockPanel Margin="20,48,20,16">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8">
+      <Button x:Name="CancelButton" Classes="ActionCancel"
+              Content="{x:Static lang:Resources.Common_Cancel}"/>
+      <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True"
+              Content="{x:Static lang:Resources.Common_OK}"/>
+    </StackPanel>
+
+    <StackPanel Spacing="8">
+      <TextBlock x:Name="PromptBlock" Classes="body"
+                 TextWrapping="Wrap" />
+      <TextBox x:Name="InputBox" FontSize="14" Padding="8,4"
+               AutomationProperties.Name="{x:Static lang:Resources.Common_OK}" />
+    </StackPanel>
+  </DockPanel>
+</Window>

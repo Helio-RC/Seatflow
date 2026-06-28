@@ -1,0 +1,83 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 页面标题：20px Bold -->
+  <Style Selector="TextBlock.pageTitle">
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <!-- 区块标题：16px SemiBold -->
+  <Style Selector="TextBlock.sectionTitle">
+    <Setter Property="FontSize" Value="16" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- 正文：14px Regular -->
+  <Style Selector="TextBlock.body">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 辅助文字：12px Regular -->
+  <Style Selector="TextBlock.caption">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 标签/徽标：11px Regular -->
+  <Style Selector="TextBlock.small">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 微标：10px Regular -->
+  <Style Selector="TextBlock.micro">
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 小号正文：13px Regular -->
+  <Style Selector="TextBlock.bodySmall">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 大号正文：15px Regular -->
+  <Style Selector="TextBlock.bodyLarge">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <!-- 强调正文：14px SemiBold -->
+  <Style Selector="TextBlock.bodyStrong">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- 小号强调正文：13px SemiBold（表单标签等） -->
+  <Style Selector="TextBlock.bodySmallStrong">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!-- 标题大号：18px Bold -->
+  <Style Selector="TextBlock.heading">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <!-- 超大标题：28px Bold（首页欢迎语等） -->
+  <Style Selector="TextBlock.hero">
+    <Setter Property="FontSize" Value="28" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <!-- Win10 设置节标题：14px SemiBold 中对比度 -->
+  <Style Selector="TextBlock.settingSectionHeader">
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+  </Style>
+
+</Styles>

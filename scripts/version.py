@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-version — A_Pair 版本号统一管理。
+version — SeatFlow 版本号统一管理。
 
 管理项目中的 4 类版本号：
   - App 版本（about.json）
@@ -53,6 +53,7 @@ FILE_TYPE_TO_MODEL: dict[str, str] = {
     "appSettings": "AppSettings.cs",
     "strategyConfig": "StrategyConfig.cs",
     "strategyDatasetConfig": "StrategyDatasetConfig.cs",
+    "seatsets": "SeatSets/SeatSetsArchive.cs",
 }
 
 
@@ -128,13 +129,13 @@ class VersionManager:
         self.backup_dir = root / ".version-backups"
 
         # 路径定义
-        self.about_path = root / "A_Pair.Presentation.Avalonia/Data/about.json"
-        self.file_versions_path = root / "A_Pair.Infrastructure/Migration/file_versions.json"
-        self.onboarding_path = root / "A_Pair.Presentation.Avalonia/Data/onboarding_config.json"
-        self.manifests_dir = root / "A_Pair.Core/Strategies/Manifests"
-        self.models_dir = root / "A_Pair.Core/Models"
-        self.json_student_writer_path = root / "A_Pair.Infrastructure/Providers/JsonStudentWriter.cs"
-        self.manifest_provider_path = root / "A_Pair.Core/Services/StrategyManifestProvider.cs"
+        self.about_path = root / "SeatFlow.Presentation.Avalonia/Data/about.json"
+        self.file_versions_path = root / "SeatFlow.Infrastructure/Migration/file_versions.json"
+        self.onboarding_path = root / "SeatFlow.Presentation.Avalonia/Data/onboarding_config.json"
+        self.manifests_dir = root / "SeatFlow.Core/Strategies/Manifests"
+        self.models_dir = root / "SeatFlow.Core/Models"
+        self.json_student_writer_path = root / "SeatFlow.Infrastructure/Providers/JsonStudentWriter.cs"
+        self.manifest_provider_path = root / "SeatFlow.Core/Services/StrategyManifestProvider.cs"
 
     # ── 备份 ──────────────────────────────────
 
@@ -551,7 +552,7 @@ def _compare_versions(a: str, b: str) -> int:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="A_Pair 版本号统一管理",
+        description="SeatFlow 版本号统一管理",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--root", default=None, help="项目根目录 (默认: 自动检测)")

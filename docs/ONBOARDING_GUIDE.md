@@ -1,11 +1,11 @@
 # 引导系统设计文档
 
-> 版本 3.0 — 支持启动引导 + 页面首次访问引导，JSON 完全数据驱动。
-> 最后更新: 2026-06-18
+> 版本 3.2 — 启动引导 + 页面引导，JSON 声明式 seedData，中间过渡阶段。
+> 最后更新: 2026-06-27
 
 ## 概述
 
-A_Pair 的引导系统帮助新用户快速上手核心功能的操作。引导分为两类：
+SeatFlow 的引导系统帮助新用户快速上手核心功能的操作。引导分为两类：
 
 1. **启动引导** (`startupPhases`) — 首次启动时触发，逐步引导用户完成完整的排座工作流（导入→会场→策略→生成→导出）
 2. **页面引导** (`pageGuides`) — 用户首次进入某个页面时触发，仅展示该页面的关键操作
@@ -82,6 +82,7 @@ Program.cs:
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `page` | string? | 否 | 要导航到的页面（PageKey 枚举名称）。`null` = 留在当前页（用于 Home 欢迎阶段和结尾阶段） |
+| `seedData` | bool | 否 | 跨阶段导航时是否注入演示数据。默认 `false`。用于 MemberManagement Phase 2 及后续需演示数据的阶段 |
 | `steps` | array | 是 | `OnboardingStepDefinition` 数组 |
 
 ### OnboardingStepDefinition
@@ -97,17 +98,18 @@ Program.cs:
 
 ### 当前引导内容概览
 
-**启动引导 (startupPhases)** — 7 阶段 19 步：
+**启动引导 (startupPhases)** — 8 阶段 20 步：
 
-| 阶段 | 页面 | 步骤数 | 目标控件 |
-|------|------|--------|---------|
-| 欢迎 | Home | 2 | (centered), ToggleSidebarButton |
-| 成员管理 | MemberManagement | 3 | ImportButton, StudentListBox, NewStudentRow |
-| 会场配置 | VenueConfiguration | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
-| 策略配置 | StrategyConfiguration | 4 | StrategyListBox, EditEnabledSwitch, (centered conflict info), SaveAllButton |
-| 排座生成 | SeatingArrangement | 4 | VenueListBox, DatasetListBox, GenerateButton, ExportButton |
-| 快照历史 | SnapshotHistory | 2 | VenueComboBox, SnapshotListBox |
-| 结束 | Home | 1 | (centered) |
+| 阶段 | 页面 | seedData | 步骤数 | 目标控件 |
+|------|------|----------|--------|---------|
+| 欢迎 | Home | — | 2 | (centered), ToggleSidebarButton |
+| 成员管理（导入） | MemberManagement | — | 2 | ExportTemplateButton, ImportButton |
+| 成员管理（更新） | MemberManagement | `true` | 3 | UpdateFromFileButton, StudentListBox, NewStudentRow |
+| 会场配置 | VenueConfiguration | `true` | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
+| 策略配置 | StrategyConfiguration | `true` | 4 | StrategyListBox, EditEnabledSwitch, (centered), SaveAllButton |
+| 排座生成 | SeatingArrangement | `true` | 4 | VenueListBox, DatasetListBox, GenerateButton, ExportButton |
+| 快照历史 | SnapshotHistory | `true` | 2 | VenueComboBox, SnapshotListBox |
+| 结束 | Home | — | 1 | (centered) |
 
 **页面引导 (pageGuides)** — 首次访问触发：
 
@@ -235,6 +237,7 @@ OnboardingService.CompleteOnboardingAsync()
 
 | x:Name | 所在视图 | 控件 | 用途 |
 |--------|---------|------|------|
+| `ExportTemplateButton` | MemberManagementView | Button | 导出导入模板 |
 | `ImportButton` | MemberManagementView | Button | 导入学生数据 |
 | `StudentListBox` | MemberManagementView | ListBox | 学生列表 |
 | `NewStudentRow` | MemberManagementView | Border | 新增学生行 |
@@ -272,19 +275,23 @@ OnboardingService.CompleteOnboardingAsync()
 
 每一步的 `title` 应该提示**要执行的操作**，`description` 应该提供**简短的上下文说明**。
 
-## 示例数据注入（v3.1 新增）
+## 示例数据注入（v3.1 新增，v3.2 修订）
 
 引导启动时，`OnboardingService.SeedPageData()` 向各页面 ViewModel 注入纯内存示例数据，使条件可见的目标控件（如 `LayoutTypePanel`、`StudentListBox`）在引导期间正常显示。引导完成时 `ClearPageData()` 清除所有注入数据，不留磁盘痕迹。
 
-| 页面 | 注入数据 | 延迟策略 |
-|------|---------|---------|
-| MemberManagement | 6 名示例学生 → `Students` ObservableCollection | 同步 |
-| VenueConfiguration | 执行 `NewVenueCommand` 创建演示会场 | 命名/状态消息延迟到 `Background` |
-| StrategyConfiguration | 选中 `Strategies[0]`（首个策略） | 延迟到 `Background` |
-| SeatingArrangement | 演示会场+数据集 + 4×3 座位预览 | 延迟到 `Background` |
-| SnapshotHistory | 1 个演示快照 → `Snapshots` | 同步 |
+**注入由 `OnboardingPhaseDefinition.SeedData`（JSON 声明式 bool，默认 `false`）控制**。仅在 `HandleStepOpening` 检测到阶段过渡且 `phase.SeedData == true` 时调用 `SeedPageData()`。MemberManagement 的 Phase 2（第二次进入）在注入前通过代码内 Home 往返自动离开-重入页面，无需 JSON 过渡阶段。
 
-延迟注入使用 `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)`，确保在 ViewModel 构造函数中的 fire-and-forget 异步初始化完成后执行，防止被覆盖。详见 [ADR-008](adr/ADR-008-onboarding-demo-data-injection.md)。
+| 页面 | SeedData | 注入数据 | 延迟策略 |
+|------|----------|---------|---------|
+| MemberManagement（第二次进入） | `true` | 6 名示例学生 → `Students` ObservableCollection + 演示数据集 → `SavedDatasets` | 同步 |
+| VenueConfiguration | `true` | 执行 `NewVenueCommand` 创建演示会场 | 命名/状态消息延迟到 `Background` |
+| StrategyConfiguration | `true` | 选中 `Strategies[0]`（首个策略） | 延迟到 `Background` |
+| SeatingArrangement | `true` | 演示会场+数据集 + 4×3 座位预览 | 延迟到 `Background` |
+| SnapshotHistory | `true` | 1 个演示快照 → `Snapshots` | 同步 |
+
+延迟注入使用 `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)`，确保在 ViewModel 构造函数中的 fire-and-forget 异步初始化完成后执行，防止被覆盖。
+
+`ClearPageData` 使用 `_memberManagementDemoInjected` 静态标志判断 MemberManagement 是否实际注入过演示数据，仅在实际注入时才执行清理，避免误清用户导入的数据。详见 [ADR-008](adr/ADR-008-onboarding-demo-data-injection.md)。
 
 ## 窗口状态同步（v3.1 新增）
 

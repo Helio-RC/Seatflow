@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+             xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
+             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+             x:DataType="vm:ConfigBlockEditorViewModel"
+             x:Class="SeatFlow.Presentation.Avalonia.Views.ConfigBlockEditorView">
+    <Border Padding="12" Margin="0,4">
+        <StackPanel Spacing="8">
+            <TextBlock Text="{Binding LocalizedTitle}" Classes="sectionTitle" />
+            <TextBlock Text="{Binding LocalizedDescription}" Classes="caption"
+                       IsVisible="{Binding HasDescription}" Opacity="0.7" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="4"
+                            IsVisible="{Binding ShowStudentPicker}">
+                    <TextBlock Text="{x:Static lang:Resources.ConfigBlock_Dataset}" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding AvailableDatasets}"
+                              SelectedItem="{Binding SelectedDataset}"
+                              HorizontalAlignment="Stretch" MinWidth="160" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="4"
+                            IsVisible="{Binding ShowVenuePicker}">
+                    <TextBlock Text="{x:Static lang:Resources.ConfigBlock_Venue}" VerticalAlignment="Center" />
+                    <ComboBox ItemsSource="{Binding AvailableVenues}"
+                              SelectedItem="{Binding SelectedVenue}"
+                              HorizontalAlignment="Stretch" MinWidth="160" />
+                </StackPanel>
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ConfigBlockRowViewModel">
+                        <DockPanel Margin="0,2" LastChildFill="False">
+                            <TextBlock Text="{Binding Index}" Width="24"
+                                       DockPanel.Dock="Left" VerticalAlignment="Center" />
+                            <StackPanel DockPanel.Dock="Left" Margin="4,0"
+                                        IsVisible="{Binding ShowStudentPicker}">
+                                <ItemsControl ItemsSource="{Binding StudentPickers}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="4" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:StudentPickerViewModel">
+                                            <views:StudentPickerView DataContext="{Binding}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Left" Margin="4,0"
+                                        IsVisible="{Binding ShowSeatPosition}">
+                                <views:SeatPositionPickerView DataContext="{Binding SeatPicker}" />
+                            </StackPanel>
+                            <ComboBox DockPanel.Dock="Left" Margin="4,0"
+                                      MinWidth="100"
+                                      ItemsSource="{x:Static vm:ConfigBlockRowViewModel.GenderOptions}"
+                                      SelectedItem="{Binding GenderValue}"
+                                      IsVisible="{Binding ShowGenderPicker}" />
+                            <Button Content="-" Width="28"
+                                    DockPanel.Dock="Left" Margin="4,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding $parent[UserControl].DataContext.RemoveRowCommand}"
+                                    CommandParameter="{Binding}" />
+                        </DockPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="+" Command="{Binding AddRowCommand}" Width="32" />
+                <Button Content="{x:Static lang:Resources.Common_Save}" Command="{Binding SaveConfigCommand}"
+                        IsEnabled="{Binding IsDirty}"
+                        AutomationProperties.Name="{x:Static lang:Resources.Common_Save}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

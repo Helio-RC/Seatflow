@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-A_Pair 的首次启动引导（onboarding guide）需引导用户逐步完成"导入成员→创建会场→配置策略→生成排座→查看快照"的完整工作流。引导使用 Guide 控件的高亮边框定位各页面的目标控件（按钮、列表、开关等）。
+SeatFlow 的首次启动引导（onboarding guide）需引导用户逐步完成"导入成员→创建会场→配置策略→生成排座→查看快照"的完整工作流。引导使用 Guide 控件的高亮边框定位各页面的目标控件（按钮、列表、开关等）。
 
 问题：多个引导步骤的目标控件因其父级 `IsVisible` 绑定到 ViewModel 属性（初始为 `false`）而不可见：
 
@@ -74,6 +74,31 @@ Guide 控件通过 NameScope 查找目标——即使控件不可见也能找到
 
 - **零磁盘痕迹**：引导结束无任何残留数据文件
 - **不依赖 Infrastructure 层**：仅使用 Core 模型 + ViewModel public API，无架构分层违规
-- **不修改任何 ViewModel**：纯外部注入，ViewModels 保持无感知
+- **不修改任何 ViewModel**：纯外部注入，ViewModels 保持无感知（例外：`MemberManagementViewModel` 暴露了 `SetSuppressDatasetLoad()` 和 `ResetDirtyState()` 两个 internal 方法供引导清理使用）
 - **`DispatcherPriority.Background` 依赖**：延迟注入依赖 Avalonia 调度器的优先级语义。若未来 ViewModel 异步 init 改为更低的优先级，注入可能仍被覆盖。当前所有异步 init 使用普通优先级，Background 保证在本任务之后
 - **ViewModel 私有字段限制**：SeatingArrangement 的 `_workspace`、`_currentLayout` 为私有字段，无法直接注入。当前方案直接构建 `SeatDisplayItem` 对象填充 `SeatItems`（座位预览可见，但右侧策略/消息面板为空——对引导场景可接受）
+
+### v3.2 修订：MemberManagement 声明式 seedData + 中间过渡阶段
+
+**日期**：2026-06-27
+
+**问题**：原方案使用运行状态标志 `_memberManagementDataSeeded` 区分 MemberManagement 的 Phase 1（ImportButton，不注入）和 Phase 2（UpdateFromFileButton，注入）。该标志在 `StartOnboarding()` 中重置，但存在无法稳定复现的竞态导致 Phase 1 误注入演示数据，ImportButton 因 `IsEmpty=false` 被隐藏。
+
+**决策**：采用声明式 `seedData` 字段 + 中间过渡阶段的架构替代运行状态标志。
+
+1. **`OnboardingPhaseDefinition.SeedData`** — JSON 声明式 bool，默认 `false`。跨阶段导航时 `HandleStepOpening` 仅当 `phase.SeedData == true` 才调用 `SeedPageData()`。完全消除运行状态标志。
+
+2. **代码内 Home 往返** — Phase 2 过渡时 `HandleStepOpening` 检测到 `targetPage == MemberManagement && phase.SeedData`，在调用 `SeedPageData()` 前自动执行 `OnboardingNavigateTo(Home)` → `OnboardingNavigateTo(MemberManagement)`，强制页面离开-重入。无需 JSON 配置过渡阶段，无需用户额外点击。
+
+3. **`DialogWindow` Close 重入死锁修复** — 将按钮 Click 中的 `Close(true)` 改为 `Dispatcher.UIThread.Post(() => Close(true))`，避免 WinUI compositor Monitor 重入死锁。
+
+**配置变更**：
+- Phase 1（MemberManagement, ImportButton）: 默认 `seedData: false`，无注入
+- Phase 2（MemberManagement, UpdateFromFileButton 等）: `seedData: true`，注入前代码内 Home 往返
+- 所有后续需注入的阶段（VenueConfiguration、StrategyConfiguration、SeatingArrangement、SnapshotHistory）: 显式 `seedData: true`
+
+**影响**：
+- 引导总步数保持 19 步（无新增过渡步骤）
+- `_memberManagementDataSeeded` 字段及相关代码完全删除
+- `HandleStepOpening` 中 MemberManagement 特殊分支（~15 行）简化为 1 行 `phase.SeedData` 检查
+- `ClearPageData` 保留 `_memberManagementDemoInjected` 静态标志判断是否实际注入过，避免清理未注入状态

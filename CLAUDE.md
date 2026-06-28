@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 dotnet build                    # Build all 9 projects (uses .slnx, requires .NET 10 SDK)
 dotnet test                     # Run all tests (xUnit v3, Microsoft.Testing.Platform)
 dotnet test --filter "FullyQualifiedName~TestName"  # Run a single test
-dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
+dotnet run --project SeatFlow.Presentation.Avalonia   # Launch the desktop app
 ```
 
 **Test stack**: xUnit v3 + FluentAssertions + NSubstitute. Tests are in 3 projects: `*.Core.Tests`, `*.Application.Tests`, `*.Infrastructure.Tests`. Each has `<ImplicitUsings>enable</ImplicitUsings>` (provides `System`, `System.Collections.Generic`, `System.Linq`, `System.Threading.Tasks`). Project-specific global usings are in `Usings.cs` (or `Using.cs` in Application.Tests).
@@ -27,17 +27,19 @@ dotnet run --project A_Pair.Presentation.Avalonia   # Launch the desktop app
 
 ## Architecture
 
-A_Pair is a .NET 10 cross-platform desktop seating arrangement system using Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4. The solution file is `A_Pair.slnx` (the new XML-based format).
+SeatFlow is a .NET 10 cross-platform desktop seating arrangement system using Avalonia UI 12 (MVVM) + CommunityToolkit.Mvvm 8.4. The solution file is `SeatFlow.slnx` (the new XML-based format).
 
 **Layers (bottom-up)**:
-- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + seven built-in implementations (4 independent, 3 dependent), capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
+- **Core** — Domain entities (`Student`, `Seat`, `ClassroomLayoutDefinition`, `SeatingWorkspace`, `SeatingPlan`), strategy interfaces (`ISeatingStrategy`, `IDependentSeatingStrategy`) + seven built-in implementations (4 independent, 3 dependent), capability system (`Capability.cs` — constants + `IFixedSeatCapability`), domain services in `DomainServices/` (`ObstacleProcessor`, `SeatGeometryHelper`, `StrategyManifestProvider`, `SeatAdjacencyHelper`), utilities in `Utilities/` (`CircularHistory<T>` — ring buffer with capacity=10 on `Student.RecentSeatHistory`, `AttributeBag`), workspace in `Workspace/` (`SeatingWorkspace`), and data provider interfaces (`IStudentProvider`, `IVenueRepository`, etc.)
 - **Contracts** — Cross-layer interface for plugins (`IPluginSeatingStrategy`)
-- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider`, `JsonStudentProvider`, and the composite `CompositeStudentProvider` registered as the primary `IStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization
+- **Infrastructure** — File I/O (`CsvStudentProvider`, `XlsxStudentProvider` (uses **EPPlus 8**), `JsonStudentProvider`, and the composite `CompositeStudentProvider` registered as the primary `IStudentProvider`), exporters (`ExcelSeatingExporter`, `CsvSeatingExporter`, `PdfSeatingExporter`, `ImageSeatingExporter`), layout builders (`GridLayoutBuilder`, `PolarLayoutBuilder`, `FreeformLayoutBuilder`), repositories (`JsonVenueRepository`, `JsonAppSettingsRepository`, `StrategyConfigFileRepository`, `SeatingSnapshotRepository`, `JsonStudentDatasetRepository`), writers (`JsonStudentWriter`, `CsvStudentWriter`, `XlsxStudentWriter`), serialization, migration system (`FileMigrationService`, `IFileMigrator`)
 - **Application** — `IApplicationFacade` (UI's single entry point), `StrategyExecutionPipeline`, command pattern (`IUndoableCommand` / `CommandHistory`), plugin manager (`PluginManager`, `PluginLoadContext`), script adapters (Lua/C#), DI registration
 - **Plugins.Sdk** — Lightweight assembly for external plugin authors
 - **Presentation.Avalonia** — Avalonia 12 desktop app, MVVM with CommunityToolkit.Mvvm
 
-**DI**: `ServiceCollectionExtensions.AddA_PairApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
+**Logging**: Uses **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` throughout the Application layer. Sinks to file via `Serilog.Sinks.File` with a custom output template (`[Level] [SourceContext]`). Supports per-module log level overrides via `CategoryOverrides` in AppSettings.json. Defaults to `Information` in production; auto-downgrades to `Debug` when a debugger is attached (`Debugger.IsAttached`). Full documentation: `docs/LOGGING.md`.
+
+**DI**: `ServiceCollectionExtensions.AddSeatFlowApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
 
 **Navigation**: `INavigationService` + `MainShellViewModel` manages 10 pages via `PageKey` enum (`Home`, `MemberManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `PluginManagement`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
 
@@ -59,12 +61,12 @@ Conflict resolution = Priority number (first-come-first-served). Dependent strat
 
 **Strategy messaging**: Strategies can report warnings/errors during execution via `workspace.LogWarning(strategyId, displayName, messageKey, args)` and `workspace.LogError(strategyId, displayName, messageKey, args)`. `messageKey` corresponds to a key in the manifest's `messages` dictionary (inline i18n: `{ "zh-CN": "...", "en-US": "..." }`). Messages are collected in `SeatingWorkspace.Messages` (with `StrategyId`, `StrategyDisplayName`, `MessageKey`, and `Args`) and surfaced to the UI sidebar after pipeline execution. Plugin strategies access the same methods through `IPluginWorkspace`.
 
-**Declarative strategy configuration**: All strategy-specific configuration (beyond Priority/IsEnabled) is driven by the manifest JSON files (`A_Pair.Core/Strategies/Manifests/*.json`). Three top-level fields:
+**Declarative strategy configuration**: All strategy-specific configuration (beyond Priority/IsEnabled) is driven by the manifest JSON files (`SeatFlow.Core/Strategies/Manifests/*.json`). Three top-level fields:
 
 - **`visible`** — (optional, default `true`) Controls whether the strategy participates in the pipeline. Set to `false` to exclude it from both the UI (configuration page, seating sidebar) and execution — the pipeline skips invisible strategies.
 - **`isIndependent`** — (optional, default `true`) `true` = independent strategy (executed by external pipeline); `false` = dependent strategy (executed inside RandomFill's assignment loop). DeskMate, GenderRestrictedSeat, and NoRepeatDeskMate are `false`.
 - **`manifestVersion`** — (optional, default `"1.0"`) Manifest format version for runtime compatibility checks. Embedded resources don't go through FileMigrationService, so the provider warns if version exceeds max known.
-- **`capabilities[]`** — (optional) Strategy capability declarations. Each entry is a capability constant defined in `A_Pair.Core.Strategies.Capability` (e.g. `"MarkFixedSeat"`). Strategies must declare a capability before calling its corresponding interface method at runtime. Undeclared capability calls are rejected with a logged warning. Currently supported: `MarkFixedSeat` → `IFixedSeatCapability.TryMarkFixed()`. Extensible — add const + interface to `Capability.cs`.
+- **`capabilities[]`** — (optional) Strategy capability declarations. Each entry is a capability constant defined in `SeatFlow.Core.Strategies.Capability` (e.g. `"MarkFixedSeat"`). Strategies must declare a capability before calling its corresponding interface method at runtime. Undeclared capability calls are rejected with a logged warning. Currently supported: `MarkFixedSeat` → `IFixedSeatCapability.TryMarkFixed()`. Extensible — add const + interface to `Capability.cs`.
 - **`parameters[]`** — strategy-level global params. Each parameter declares a `fieldType` (`NumberInput`, `TextInput`, `ToggleSwitch`, `Dropdown`), a `label` (Dictionary<string,string> for i18n), `defaultValue`, and optional `minValue`/`maxValue`. UI renders these as standard input controls.
 - **`codeBlocks[]`** — per-dataset/per-venue config blocks. Each block declares `dataType` (`Student`, `Venue`, `Both`), `displayMode` (`Table`, `ValuePair`), optional `showSeatPosition` (default true, set false for auto-matching strategies like DeskMate), optional `showStudentPicker`/`showVenuePicker` (overrides DataType auto-detection), optional `studentPickerCount` (default 1), optional `seatsPerDeskFromVenue` (set true to read student count from venue's GridLayoutMetadata.SeatsPerDesk), optional `preventDuplicateInRow` (set true to prevent same-row student picker duplicate values — DeskMate), optional `preventDuplicateAcrossRows` (set true to prevent cross-row student picker duplicate values — FixedSeat), and optional `loadTrigger` (default `Both` — both selectors required for exact match; `Any` — fuzzy match on whichever selector has a value). UI renders a dataset selector + config rows with student pickers and/or seat position pickers.
   - **DeskMate** (dependent, `isIndependent: false`): Executes inside RandomFill's assignment loop via `IDependentSeatingStrategy`. When RandomFill proposes (student, seat), DeskMate checks if the student belongs to a desk-mate group. If so, it attempts coordinated assignment: places the student and their groupmates in adjacent seats on the same desk（同行+邻列+同 SeatsPerDesk 分组 = 同桌）. Eviction may move already-assigned RandomFill students but will NOT move students placed by prior strategies (FixedSeat/FrontRowRotation) or fixed seats. If the target seat lacks enough adjacent empty seats, partial assignment proceeds with a warning. No parameters — adjacency is always horizontal/same-desk. `dataType: "Both"`, `showSeatPosition: false`, `preventDuplicateInRow: true`. Number of student pickers per row dynamically determined by venue's `GridLayoutMetadata.SeatsPerDesk`.
@@ -75,26 +77,31 @@ Conflict resolution = Priority number (first-come-first-served). Dependent strat
   - **RandomFill**: No parameters, no codeBlocks.
   - **Defrag** (independent, Priority=0): "扫地僧" role — executes after all other strategies. Scans empty seats front-to-back, moves unconstrained students (those not in fixed seats or DeskMate groups) from behind each gap forward to fill it. Cross-column allowed. Logs `Defrag_EffectivenessNote` warning that prior strategy results may be invalidated. Zero parameters — behavior is purely position-driven. Default disabled.
 
-**Plugin seat protection**: Plugins protect their assigned seats by declaring `"MarkFixedSeat"` in their manifest `capabilities` and calling `IPluginWorkspace.TryMarkFixed()`. The workspace validates the capability declaration, sets `IsFixed=true`, and logs the operation. `GetEmptySeats()` and Defrag's seat scanning both exclude `IsFixed` seats automatically. Built-in strategies use the same mechanism via `IFixedSeatCapability`. Capability constants and interfaces are centralized in `A_Pair.Core/Strategies/Capability.cs` — add new const + interface there for future capabilities.
+**Plugin seat protection**: Plugins protect their assigned seats by declaring `"MarkFixedSeat"` in their manifest `capabilities` and calling `IPluginWorkspace.TryMarkFixed()`. The workspace validates the capability declaration, sets `IsFixed=true`, and logs the operation. `GetEmptySeats()` and Defrag's seat scanning both exclude `IsFixed` seats automatically. Built-in strategies use the same mechanism via `IFixedSeatCapability`. Capability constants and interfaces are centralized in `SeatFlow.Core/Strategies/Capability.cs` — add new const + interface there for future capabilities.
 
 All user-visible text uses inline i18n: `{ "zh-CN": "...", "en-US": "..." }` dictionaries (not .resx keys). `LocalizeHelper.Resolve(dict)` in Presentation resolves per `CultureInfo.CurrentUICulture`, falling back to zh-CN. This works for both built-in strategies and plugins.
 
 **Config loading behavior**: When loading persisted config rows, the matching filter uses a "match on whichever selectors have values" strategy: `(SelectedDataset is null || match) && (SelectedVenue is null || match)`. This means for `dataType: "Both"`, selecting only the dataset immediately loads the config (venue is treated as a wildcard until selected). When the user subsequently selects a venue, the filter re-runs with both values and narrows to the exact match. Student picker selections are deferred via `_pendingSelections` until the student list is loaded, avoiding lost selections from premature `SelectById` calls.
 
-New model types (all in `A_Pair.Core.Models`):
+New model types (all in `SeatFlow.Core.Models`):
 - `StrategyParameterDefinition` / `StrategyCodeBlock` / `StrategyFieldDefinition` + enums (`StrategyFieldType`, `StrategyDataType`, `StrategyDisplayMode`)
 - `StrategyDatasetConfig` + `StrategyConfigRow` — persistence models stored under `{AppData}/StrategyConfig/{strategyId}/`.
 
-**Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out.
+**Project config**: `AvaloniaUseCompiledBindingsByDefault` is `true` in the Avalonia csproj — all bindings are compiled unless explicitly opted out. Key csproj settings:
+- `<AssemblyName>SeatFlow</AssemblyName>` — output EXE is `SeatFlow.exe`, not `SeatFlow.Presentation.Avalonia.exe`
+- `<NoWarn>AVLN3001</NoWarn>` — suppresses "DI requires parameterized constructor" warning (all ViewModels use DI constructor injection, no parameterless ctors needed)
+- `<Compile Remove="Lang\Resources.Designer.cs" Condition="!Exists('Lang\Resources.Designer.cs')" />` — prevents build failure when Designer.cs hasn't been generated yet (run `python3 scripts/i18n.py sync` to create it)
+- `<ApplicationManifest>app.manifest</ApplicationManifest>` — DPI awareness on Windows
 
 **App startup sequence**:
-1. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
-2. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
-3. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
-4. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
-5. Start `WatchdogService` with a 3s DispatcherTimer ping
-6. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
-7. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
+1. `StartupGuard.CheckEnvironment()` — validates .NET runtime >= 10 and supported OS (Windows 10+, macOS 12+, Linux any). Shows warning dialog and exits if unsupported.
+2. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
+3. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
+4. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
+5. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
+6. Start `WatchdogService` with a 3s DispatcherTimer ping
+7. Attach `ChineseInputNormalizer` behavior (全角数字/符号 → 半角)
+8. `RestoreSettingsAsync()` — restore theme, window position/size (language already applied in step 1)
 
 ## Key Patterns
 
@@ -133,7 +140,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - **Font**: Global `Window` style sets `FontFamily` to `Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif` for CJK support.
 - **BoxShadows**: `CardShadowNone`, `CardShadowLarge`, `CardShadowSmall` are defined as `BoxShadows` resources.
 
-### UI Services (`A_Pair.Presentation.Avalonia/Services/`)
+### UI Services (`SeatFlow.Presentation.Avalonia/Services/`)
 - **INavigationService** — Page switching with `PageKey` enum. `NavigateTo()` is synchronous, `NavigateToAsync()` runs `CanLeaveAsync()` first.
 - **IDialogService** — Shows error/info dialogs. Requires `SetTopLevel(TopLevel)` before use.
 - **IFileService** — File open/save pickers. Also requires `SetTopLevel()`.
@@ -143,7 +150,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - `InputWindow` — modal dialog for single-line text input (returns the entered string)
 - `DialogWindow` — general-purpose modal content host with title bar and close button
 
-### Behaviors (`A_Pair.Presentation.Avalonia/Behaviors/`)
+### Behaviors (`SeatFlow.Presentation.Avalonia/Behaviors/`)
 - `CanvasZoomPan` — Pan and zoom for Canvas-based previews. **拖放座位时通过 NaN 哨兵机制跳过平移**（详见 `docs/DragDrop.md`）
 - `ZoomOnScroll` — Ctrl+Scroll to zoom
 - `ChineseInputNormalizer` — Converts full-width numbers/symbols to half-width on text input
@@ -157,7 +164,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 
 ### Axaml Bindings
 - Always use `x:DataType` on the root element for compiled bindings
-- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md`)
+- Icons: `<fic:FluentIcon Icon="{x:Static ficEnum:Icon.{Name}}" FontSize="18"/>` (see `SeatFlow.Presentation.Avalonia/docs/Fluent_Icons.md`)
 - Converters: `BoolConverters.cs` (Negate, TrueWhenNull, etc.) and `ValueConverters.cs`
 
 ### Sidebar
@@ -167,7 +174,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 
 ### i18n / Localization (`Lang/`)
 
-Uses standard .NET `.resx` resource files in `A_Pair.Presentation.Avalonia/Lang/`:
+Uses standard .NET `.resx` resource files in `SeatFlow.Presentation.Avalonia/Lang/`:
 - `Resources.resx` — neutral language (zh-CN), ~700 keys
 - `Resources.en-US.resx` — English satellite
 - `Resources.Designer.cs` — hand-maintained typed accessor class (Visual Studio's `PublicResXFileCodeGenerator` doesn't work with `dotnet build`)
@@ -179,7 +186,7 @@ Uses standard .NET `.resx` resource files in `A_Pair.Presentation.Avalonia/Lang/
 <TextBlock Text="{x:Static lang:Resources.Settings_Title}" />
 <Button Content="{x:Static lang:Resources.Common_OK}" />
 ```
-Namespace: `xmlns:lang="using:A_Pair.Presentation.Avalonia.Lang"`
+Namespace: `xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"`
 
 **Usage in C#**:
 ```csharp
@@ -202,6 +209,19 @@ Backups are auto-created in `Lang/.backup/` (gitignored).
 
 **Language switching**: `App.ApplyLanguageFromSettings()` (called in `Initialize()` before XAML loading). Sets `CultureInfo.CurrentUICulture` and `Resources.Culture`.
 
+### Scripts (`scripts/`)
+
+Besides `scripts/i18n.py` (documented above), the following scripts exist — all documented in `scripts/ToolsCollection.md`:
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/i18n.py` | i18n .resx resource CRUD + Designer.cs sync (45 unit tests) |
+| `scripts/version.py` | Unified version management across 15+ files — App, file format, strategy manifest, onboarding config versions. Subcommands: `show`, `check`, `bump-app`, `bump-file`, `bump-strategy`, `bump-onboarding`, `sync` (26 unit tests) |
+| `scripts/publish.sh` / `scripts/publish.ps1` | Multi-platform TUI/CLI publishing (self-contained + framework-dependent, trimming, AOT, SHA256 table) |
+| `scripts/clean.sh` / `scripts/clean.ps1` | Recursive bin/obj cleanup |
+
+Unit tests are in `scripts/tests/`.
+
 ### About Page Data (`Data/about.json`)
 
 Multi-language JSON with top-level culture keys:
@@ -218,7 +238,7 @@ Multi-language JSON with top-level culture keys:
 
 ## File Versions & Migration
 
-All persisted JSON files carry a `version` field. Current versions are defined in `A_Pair.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly). `FileVersionInfo.GetCurrentVersion(fileType)` reads the latest version at runtime.
+All persisted JSON files carry a `version` field. Current versions are defined in `SeatFlow.Infrastructure/Migration/file_versions.json` (embedded resource, compiled into the assembly). `FileVersionInfo.GetCurrentVersion(fileType)` reads the latest version at runtime.
 
 | File type | Version | Location | Wrapper class |
 |---|---|---|---|
@@ -316,11 +336,13 @@ Bind to sidebar buttons with `Opacity` (not `IsEnabled` — disabled controls hi
 
 ### Onboarding Guide System
 
-Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING_GUIDE.md` for full details. See `docs/adr/ADR-008-onboarding-demo-data-injection.md` for the demo data injection decision.
+Fully data-driven via `Data/onboarding_config.json` (v3.2). See `docs/ONBOARDING_GUIDE.md` for full details. See `docs/adr/ADR-008-onboarding-demo-data-injection.md` for the demo data injection decision.
 
 **Two types of guides:**
-- **启动引导 (`startupPhases`)** — 19-step full workflow at first launch: Home→MemberManagement→VenueConfiguration→StrategyConfiguration (含策略冲突提示居中步骤)→SeatingArrangement→SnapshotHistory→Closing
+- **启动引导 (`startupPhases`)** — 20-step full workflow at first launch: Home→MemberManagement(ExportTemplate→ImportButton)→[auto Home round-trip]→MemberManagement(UpdateButton)→VenueConfiguration→StrategyConfiguration (含策略冲突提示居中步骤)→SeatingArrangement→SnapshotHistory→Closing
 - **页面引导 (`pageGuides`)** — Triggered on first visit to a page (FreeformManagement, PluginManagement). Tracked in `AppSettings.CompletedPageGuides`.
+
+**声明式示例数据注入 (v3.2):** `OnboardingPhaseDefinition.SeedData` (bool, 默认 false) 控制跨阶段导航时是否注入演示数据。原运行状态标志 `_memberManagementDataSeeded` 已删除，改为 JSON 声明式控制。MemberManagement 分两次进入（中间隔 Home 过渡阶段），第一次不注入（ImportButton 可见），第二次注入（UpdateFromFileButton 可见）。`ClearPageData` 使用 `_memberManagementDemoInjected` 静态标志判断是否实际注入过。
 
 **Key classes:** `IOnboardingService` / `OnboardingService` (implements both `IOnboardingService` and `IOnboardingStarter`), `OnboardingPhaseDefinition` / `OnboardingStepDefinition` (models). `MainWindow.axaml.cs` has 5 thin event wrappers — all logic in `OnboardingService`.
 
@@ -330,7 +352,7 @@ Fully data-driven via `Data/onboarding_config.json` (v3.0). See `docs/ONBOARDING
 
 **Adding/modifying guide steps:** Edit `onboarding_config.json` + add resx keys + update `Designer.cs`. No C# changes needed. If a target control is missing `x:Name`, add it to the `.axaml` file.
 
-**Demo data seeding (v3.1):** `OnboardingService.SeedPageData()` injects pure in-memory demo data into page ViewModels during startup guide phase transitions. Cleared by `ClearPageData()` on guide completion. For ViewModels with fire-and-forget async init in constructors (SeatingArrangement, VenueConfiguration, StrategyConfiguration), injection is deferred via `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)` to run after the async `LoadXxxAsync()` overwrites. Uses only Core models + ViewModel public APIs — no Infrastructure-layer or disk I/O dependencies. See ADR-008.
+**Demo data seeding (v3.2):** `OnboardingService.SeedPageData()` injects pure in-memory demo data into page ViewModels during startup guide phase transitions, controlled declaratively by `OnboardingPhaseDefinition.SeedData` (JSON bool, default false). Cleared by `ClearPageData()` on guide completion (guarded by `_memberManagementDemoInjected` static flag — only cleans if demo was actually injected). For ViewModels with fire-and-forget async init in constructors (SeatingArrangement, VenueConfiguration, StrategyConfiguration), injection is deferred via `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)` to run after the async `LoadXxxAsync()` overwrites. Uses only Core models + ViewModel public APIs — no Infrastructure-layer or disk I/O dependencies. See ADR-008.
 
 **Window state sync (v3.1):** `MainWindow` subscribes to `Activated`/`Deactivated` events → forwarded to `OnboardingService.HandleWindowActivated()`/`HandleWindowDeactivated()`. On deactivate (minimize/Alt+Tab): `_isWindowObscured=true`, `Guide.Close()` silently closes Popups (no confirm dialog, no completion). On activate (restore): re-opens Guide from preserved `CurrentIndex`. Prevents the 3 Popups (`ShouldUseOverlayLayer=False`, native OS windows) from lingering as orphan windows.
 
@@ -385,14 +407,103 @@ Same source code → same DLL hash regardless of build time or absolute path.
 
 In Avalonia's `DockPanel`, `LastChildFill="True"` (default) means the LAST child fills remaining space. If the last child has `DockPanel.Dock="..."`, the previous undocked child fills instead. Always place `Dock` children BEFORE the filling child (typically a `ScrollViewer` or `ListBox`).
 
+## 辅助工具
+
+所有 Python 脚本从 `scripts/` 目录执行，自动检测项目根目录。Shell 脚本需在 `scripts/` 目录下运行。完整文档见 `scripts/ToolsCollection.md`。
+
+### i18n 资源管理 (`scripts/i18n.py`)
+
+```bash
+# 列出与搜索
+python3 scripts/i18n.py list                          # 列出所有 key
+python3 scripts/i18n.py list --missing-en             # 查找未翻译的 key
+python3 scripts/i18n.py list --pattern "Export"       # 正则搜索 key
+python3 scripts/i18n.py list --format-strings         # 列出含占位符的 key
+
+# 校验
+python3 scripts/i18n.py check                         # 一致性校验
+python3 scripts/i18n.py check --fix                   # 自动修复排序问题
+
+# 添加/修改/重命名/删除
+python3 scripts/i18n.py add Settings_NewKey --zh "中文" --en "English"
+python3 scripts/i18n.py modify Settings_Title --zh "新标题"
+python3 scripts/i18n.py rename Old_Key New_Key
+python3 scripts/i18n.py delete Obsolete_Key
+
+# 同步 Designer.cs
+python3 scripts/i18n.py sync                          # 从 .resx 重新生成
+
+# 批量翻译工作流
+python3 scripts/i18n.py export -o translations.csv    # 导出为 CSV（在 Excel 中编辑）
+python3 scripts/i18n.py import translations.csv --dry-run  # 预览导入
+python3 scripts/i18n.py import translations.csv --force    # 执行导入
+```
+
+### 版本号管理 (`scripts/version.py`)
+
+```bash
+# 查看与校验
+python3 scripts/version.py show                       # 显示全部版本号概览
+python3 scripts/version.py check                      # 校验 15+ 处版本一致性
+
+# 调整版本（--dry-run 预览，--force 执行）
+python3 scripts/version.py bump-app patch --dry-run   # App 补丁版本 +1
+python3 scripts/version.py bump-app minor --force     # App 次版本 +1
+python3 scripts/version.py bump-file roster --set 1.2 --force   # 更新 roster 文件格式版本（自动同步 Model 类）
+python3 scripts/version.py bump-strategy FixedSeat --set 1.1.0 --force
+python3 scripts/version.py bump-onboarding --set 3.1 --force
+
+# 从 file_versions.json 同步所有 Model 类默认值
+python3 scripts/version.py sync --force
+```
+
+**重要**：`bump-file` 自动同步 `file_versions.json` → 7 个 Model C# 类 → `JsonStudentWriter.cs`，无需手动修改。
+
+### 发布 (`scripts/publish.sh` / `scripts/publish.ps1`)
+
+```bash
+cd scripts
+./publish.sh                    # TUI 交互模式（多选平台/选项）
+./publish.sh hash               # 仅为已有发布文件生成 SHA256 表
+
+# CLI 模式参数: <类型> <配置> <版本> <选项>...
+# 类型: both | sc | fde     (全部 / 独立 / 框架依赖)
+# 选项: clean aot trim
+./publish.sh both Release "" "1.2.1" clean aot   # 全平台独立+框架依赖，裁剪+AOT，版本 1.2.1
+```
+
+### 清理 (`scripts/clean.sh` / `scripts/clean.ps1`)
+
+```bash
+cd scripts
+./clean.sh          # 确认后删除所有 bin/ 和 obj/
+./clean.sh -n       # 仅预览（dry-run）
+./clean.sh -f       # 直接删除（跳过确认）
+```
+
+### 脚本测试
+
+```bash
+cd scripts
+python3 -m pytest tests/test_i18n.py -v      # i18n 单元测试（45 个）
+python3 -m pytest tests/test_version.py -v   # 版本管理单元测试（26 个）
+python3 -m pytest tests/ -v                  # 全部脚本测试
+```
+
 ## Documents
-- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs)
+
+> **重要**: `docs/CLAUDE.md` 是根 CLAUDE.md 的人类可读副本。**每次修改根 CLAUDE.md 后必须同步更新 `docs/CLAUDE.md`**（参见 `docs/INDEX.md` 联动规则）。
+
+- `docs/INDEX.md` — Documentation map & cross-reference (read first before modifying docs; includes doc responsibility matrix and change-scenario linkage table)
 - `ARCHITECTURE.md` — Project goals & architecture design
 - `docs/Phases.md` — Implementation phases & detailed planning
 - `CONTRIBUTING.md` — Dev environment, conventions, version migration flow
+- `CHANGELOG.md` — Version changelog (Keep a Changelog format)
 - `docs/ONBOARDING_GUIDE.md` — Onboarding guide system design (JSON-driven, startup + page guides)
 - `docs/StrategyDataResilience.md` — Strategy data persistence & fault tolerance analysis
-- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-008)
-- `A_Pair.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
-- `A_Pair.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, CanvasZoomPan interaction
-- `A_Pair.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use
+- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-008). Key ones: ADR-002 (MVVM + IMessenger planned for cross-ViewModel communication), ADR-006 (strategy pipeline fill-in-order)
+- `SeatFlow.Presentation.Avalonia/docs/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
+- `SeatFlow.Presentation.Avalonia/docs/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, CanvasZoomPan interaction
+- `SeatFlow.Presentation.Avalonia/docs/Fluent_Icons.md` — All FluentUI icon names in use
+- `SeatFlow.Plugins.Sdk/docs/README.md` — Plugin SDK development guide (interfaces, 2-tier manifest format, packaging)
+- `scripts/ToolsCollection.md` — Full reference for `i18n.py` and `version.py` scripts

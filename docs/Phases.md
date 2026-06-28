@@ -38,9 +38,9 @@
 ## 二、项目结构详细规划
 
 ```
-A_Pair/
-├── A_Pair.slnx                          # 解决方案文件
-├── A_Pair.Core/                         # 领域核心（无外部依赖）
+SeatFlow/
+├── SeatFlow.slnx                          # 解决方案文件
+├── SeatFlow.Core/                         # 领域核心（无外部依赖）
 │   ├── Enums/                           # Gender, SeatType 等
 │   ├── Models/                          # Student, ClassroomLayoutDefinition 等
 │   ├── Providers/                       # 接口：IStudentProvider, IVenueRepository 等
@@ -49,16 +49,16 @@ A_Pair/
 │   │   └── Manifests/                   # 声明式配置 JSON
 │   └── Utilities/                       # AttributeBag, CircularHistory
 │
-├── A_Pair.Contracts/                    # 共享契约（轻量接口）
+├── SeatFlow.Contracts/                    # 共享契约（轻量接口）
 │   └── Models/                          # IPluginSeatingStrategy, IPluginStudent 等
 │
-├── A_Pair.Application/                  # 应用层
+├── SeatFlow.Application/                  # 应用层
 │   ├── Interfaces/                      # IApplicationFacade
 │   ├── Services/                        # ApplicationFacade, ServiceCollectionExtensions
 │   ├── Plugins/                         # PluginManager, PluginLoadContext
 │   └── Pipelines/                       # StrategyExecutionPipeline
 │
-├── A_Pair.Infrastructure/               # 基础设施层
+├── SeatFlow.Infrastructure/               # 基础设施层
 │   ├── Providers/                       # Csv/Xlsx/JsonStudentProvider, CompositeStudentProvider
 │   ├── Layouts/                         # GridLayoutBuilder, PolarLayoutBuilder, FreeformLayoutBuilder
 │   ├── Exporters/                       # ExcelSeatingExporter, CsvSeatingExporter, PdfSeatingExporter, ImageSeatingExporter
@@ -66,8 +66,8 @@ A_Pair/
 │   ├── Writers/                         # JsonStudentWriter, CsvStudentWriter, XlsxStudentWriter
 │   └── Migration/                       # FileMigrationService, IFileMigrator, file_versions.json
 │
-├── A_Pair.Plugins.Sdk/                  # 插件 SDK（供外部插件引用）
-├── A_Pair.Presentation.Avalonia/        # Avalonia UI 主程序
+├── SeatFlow.Plugins.Sdk/                  # 插件 SDK（供外部插件引用）
+├── SeatFlow.Presentation.Avalonia/        # Avalonia UI 主程序
 │   ├── Views/
 │   ├── ViewModels/
 │   ├── Converters/
@@ -77,9 +77,9 @@ A_Pair/
 │   ├── Data/                            # about.json, page_navigation.json
 │   └── Assets/
 │
-├── A_Pair.Core.Tests/
-├── A_Pair.Application.Tests/
-├── A_Pair.Infrastructure.Tests/
+├── SeatFlow.Core.Tests/
+├── SeatFlow.Application.Tests/
+├── SeatFlow.Infrastructure.Tests/
 │
 ├── docs/                                # 设计文档、ADRs
 │   └── adr/
@@ -360,7 +360,7 @@ A_Pair/
 ### Phase 8：CLI 工具与自动化（1-2 周）🔜 规划中
 
 > [!NOTE]
-> 此阶段尚未实现。当前 `A_Pair.Cli` 项目不存在，命令行工具为后续规划功能。
+> 此阶段尚未实现。当前 `SeatFlow.Cli` 项目不存在，命令行工具为后续规划功能。
 > 实际开发路线图中 Phase 8 已调整为「测试覆盖、文档完善、打包发布」（详见 README.md）。
 
 **目标**：提供命令行接口，支持无 UI 运行。
@@ -369,7 +369,7 @@ A_Pair/
 
 | 任务 | 产出 | 技术点 | 预估工时 |
 |------|------|--------|----------|
-| 创建 A_Pair.Cli 控制台项目 | 独立可执行程序 | .NET 控制台应用 | 0.5d |
+| 创建 SeatFlow.Cli 控制台项目 | 独立可执行程序 | .NET 控制台应用 | 0.5d |
 | 实现命令行参数解析 | 支持生成、导出、验证等命令 | `System.CommandLine` | 1d |
 | 复用 Application 层逻辑 | 调用 IApplicationFacade | DI 配置 | 0.5d |
 | 实现交互式向导 | 通过问答生成配置文件 | 控制台交互 | 1d |

@@ -11,7 +11,7 @@ cd ..
 FORCE=false; DRY=false
 while getopts "fn" opt; do case "$opt" in f) FORCE=true ;; n) DRY=true ;; *) echo "用法: $0 [-f] [-n]" && exit 1 ;; esac; done
 
-echo -e "\e[36m=== A_Pair 清理 bin/ & obj/ ===\e[0m"
+echo -e "\e[36m=== SeatFlow 清理 bin/ & obj/ ===\e[0m"
 
 mapfile -t dirs < <(find . -type d \( -name bin -o -name obj \) | sort)
 

@@ -1,0 +1,15 @@
+global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using SeatFlow.Core.Models;
+global using SeatFlow.Core.Workspace;
+global using SeatFlow.Infrastructure.Exporters;
+global using SeatFlow.Infrastructure.Layouts;
+global using SeatFlow.Infrastructure.Providers;
+global using SeatFlow.Infrastructure.Repositories;
+global using SeatFlow.Infrastructure.Serialization;
+global using FluentAssertions;
+global using Xunit;
