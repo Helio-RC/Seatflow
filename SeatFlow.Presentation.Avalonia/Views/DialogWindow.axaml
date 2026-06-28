@@ -11,7 +11,7 @@
         ExtendClientAreaTitleBarHeightHint="32"
         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
-  <DockPanel Margin="20,16">
+  <DockPanel Margin="20,48,20,16">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
                 x:Name="ButtonPanel">

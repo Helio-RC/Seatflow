@@ -15,7 +15,7 @@
     <vm:SeatSetsSelectionViewModel />
   </Design.DataContext>
 
-  <DockPanel Margin="24,20">
+  <DockPanel Margin="24,52,24,20">
     <!-- 底部按钮 -->
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
                 HorizontalAlignment="Right" Margin="0,20,0,0" Spacing="8">
