@@ -143,7 +143,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             _maxSnapshotsPerVenue = settings.MaxSnapshotsPerVenue;
             OnPropertyChanged(nameof(SnapshotQuotaDisplay));
         }
-        catch { /* 加载失败使用默认值 */ }
+        catch (Exception ex) { _logger?.LogWarning(ex, "加载快照限制设置失败，使用默认值"); }
 
         await SafeExecuteAsync(async () =>
         {
@@ -455,6 +455,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         if (SelectedSnapshot == null) return;
         var snapshot = SelectedSnapshot;
 
+        _logger?.LogInformation("开始回滚快照: {SnapshotId}", snapshot.Id);
+
         var confirmed = await Dialog.ShowConfirmAsync(Resources.Snapshot_RollbackTitle ,
             string.Format(Resources.Snapshot_RollbackMsgFmt , snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm")));
         if (!confirmed) return;
@@ -502,6 +504,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             }
 
             await _facade.RollbackToSnapshotAsync(snapshot.Id);
+            _logger?.LogInformation("快照回滚完成: {SnapshotId}", snapshot.Id);
             StatusMessage = string.Format(Resources.Snapshot_RollbackDoneFmt , snapshot.CreatedAt.ToString("yyyy-MM-dd HH:mm"));
             await _navigation.NavigateToAsync(PageKey.SeatingArrangement);
         } , Resources.Snapshot_RollbackFailed);
@@ -569,8 +572,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                     await _facade.DeleteSnapshotAsync(snap.Id);
                     Snapshots.Remove(snap);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger?.LogWarning(ex, "删除快照失败: {SnapshotId}", snap.Id);
                     failedCount++;
                 }
             }

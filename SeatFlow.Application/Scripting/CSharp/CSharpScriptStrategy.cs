@@ -61,6 +61,7 @@ namespace SeatFlow.Application.Scripting.CSharp
                 var task = script.RunAsync(globals , cancellationToken: cts.Token);
                 await task.WaitAsync(cts.Token);
 
+                _logger.LogInformation("C# 脚本策略执行完成：{Name}" , Name);
                 return new StrategyExecutionResult { Success = true };
             }
             catch (OperationCanceledException)

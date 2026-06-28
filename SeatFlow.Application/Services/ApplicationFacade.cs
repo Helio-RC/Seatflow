@@ -143,6 +143,9 @@ namespace SeatFlow.Application.Services
             IProgress<SeatingProgress>? progress = null ,
             CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("开始生成座位：数据集={DataSource}，会场={VenueId}" ,
+                request.StudentDataSource ?? "当前", request.LayoutId ?? "当前");
+
             // 1. 加载学生数据
             var studentProvider = _serviceProvider.GetService<IStudentProvider>();
             var students = studentProvider == null
@@ -368,6 +371,7 @@ namespace SeatFlow.Application.Services
     ExportOptions options ,
     CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("开始导出座位：格式={Format}，路径={Path}" , options.Format , path);
             ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format) ?? throw new NotSupportedException($"No exporter registered for format {options.Format}.");
             if (layout != null)
             {
@@ -388,6 +392,7 @@ namespace SeatFlow.Application.Services
                 var plan = workspace.BuildSeatingPlan();
                 await exporter.ExportAsync(plan , path , options , cancellationToken);
             }
+            logger.LogInformation("座位导出完成：格式={Format}，路径={Path}" , options.Format , path);
         }
 
         /// <inheritdoc />
@@ -524,6 +529,7 @@ namespace SeatFlow.Application.Services
         /// <inheritdoc />
         public async Task<SeatingSnapshot?> CreateSnapshotAsync (string description , CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("开始创建快照：描述={Description}" , description);
             if (_currentWorkspace == null) return null;
 
             var plan = _currentWorkspace.BuildSeatingPlan();
@@ -552,12 +558,14 @@ namespace SeatFlow.Application.Services
             await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
             if (!string.IsNullOrEmpty(venueId))
                 await RotateSnapshotsAsync(venueId , cancellationToken);
+            logger.LogInformation("快照已创建：{SnapshotId}，{Count} 条分配" , snapshot.Id , snapshot.SeatAssignments.Count);
             return snapshot;
         }
 
         /// <inheritdoc />
         public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("开始回滚快照：{SnapshotId}" , snapshotId);
             var snapshot = await _snapshotRepository.LoadAsync(snapshotId , cancellationToken) ?? throw new InvalidOperationException($"Snapshot {snapshotId} not found");
 
             // 回滚前自动保存当前状态为备份快照，确保可撤销
@@ -594,6 +602,8 @@ namespace SeatFlow.Application.Services
 
             _currentWorkspace = new SeatingWorkspace(students , seats);
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
+            logger.LogInformation("快照回滚完成：{SnapshotId}，{StudentCount} 学生，{SeatCount} 座位" ,
+                snapshotId , students.Count , seats.Count);
         }
 
         /// <summary>

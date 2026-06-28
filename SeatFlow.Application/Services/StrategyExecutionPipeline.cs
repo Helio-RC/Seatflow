@@ -80,7 +80,7 @@ namespace SeatFlow.Application.Services
                 {
                     failedStrategies.Add($"{strategy.Name}({strategy.Id}): {result.Message}");
                     workspace.LogError(strategy.Id , strategy.Name , "Pipeline_ExecFailed" , result.Message);
-                    _logger?.LogWarning("策略执行失败: {StrategyName} ({StrategyId}) - {Message}" ,
+                    _logger?.LogError("策略执行失败: {StrategyName} ({StrategyId}) - {Message}" ,
                         strategy.Name , strategy.Id , result.Message);
                 }
             }

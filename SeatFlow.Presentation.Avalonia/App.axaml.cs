@@ -79,10 +79,14 @@ namespace SeatFlow.Presentation.Avalonia
                 {
                     await facade.SaveAppSettingsAsync(settings);
                 }
+
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogInformation("窗口设置已恢复");
             }
-            catch
+            catch (Exception ex)
             {
-                // 读取/写入失败忽略
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogWarning(ex, "恢复窗口设置失败");
             }
         }
 
@@ -95,9 +99,10 @@ namespace SeatFlow.Presentation.Avalonia
                 var settings = Task.Run(() => facade.LoadAppSettingsAsync(CancellationToken.None)).GetAwaiter().GetResult();
                 ApplyLanguage(settings.Language);
             }
-            catch
+            catch (Exception ex)
             {
-                // 加载失败保持默认
+                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                logger.LogWarning(ex, "应用语言设置失败");
             }
         }
 
@@ -169,7 +174,7 @@ namespace SeatFlow.Presentation.Avalonia
                     Task.Run(async () =>
                     {
                         await Task.Delay(TimeSpan.FromSeconds(20));
-                        exitLogger.LogWarning("程序退出超时（20s），强制终止进程");
+                        exitLogger.LogCritical("程序退出超时（20s），强制终止进程");
                         Environment.Exit(0);
                     });
                 };

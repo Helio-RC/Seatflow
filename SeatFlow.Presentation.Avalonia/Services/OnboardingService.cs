@@ -163,6 +163,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         var guideControl = mainWindow?.OnboardingGuide;
         if (guideControl is null) return false;
 
+        _logger.LogInformation("[Onboarding] 触发页面引导: {PageKey}", pageKey);
+
         _isCompleting = false;
         _currentPageGuide = pageKey;
         IsActive = true;
@@ -718,6 +720,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// </summary>
     private async Task CompleteOnboardingAsync ()
     {
+        _logger.LogInformation("[Onboarding] 引导已全部完成");
+
         if (_guide is not null)
         {
             _guide.StepOpening -= OnStepOpening;

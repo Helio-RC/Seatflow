@@ -22,6 +22,15 @@ public interface IPluginWorkspace
     IReadOnlyDictionary<string , string> GetAssignments ();
 
     /// <summary>
+    /// 记录一条信息消息，执行结束后展示在 UI 侧栏中。
+    /// </summary>
+    /// <param name="strategyId">策略内部 ID。</param>
+    /// <param name="displayName">策略展示名称。</param>
+    /// <param name="messageKey">对应 manifest messages 中的 i18n 键。</param>
+    /// <param name="args">string.Format 参数。</param>
+    void LogInfo (string strategyId , string displayName , string messageKey , params object?[] args);
+
+    /// <summary>
     /// 记录一条警告消息，执行结束后展示在 UI 侧栏中。
     /// </summary>
     /// <param name="strategyId">策略内部 ID。</param>

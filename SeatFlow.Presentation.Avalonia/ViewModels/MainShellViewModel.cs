@@ -48,7 +48,7 @@ public partial class MainShellViewModel : ViewModelBase
     private CancellationTokenSource? _pageLoadCts;
 
     /// <summary>加载页面导航配置（page_navigation.json 嵌入资源）。</summary>
-    private static Dictionary<string , bool> LoadPageNav ()
+    private Dictionary<string , bool> LoadPageNav ()
     {
         try
         {
@@ -65,7 +65,7 @@ public partial class MainShellViewModel : ViewModelBase
         }
         catch
         {
-            // 静默回退：全部页面保持启用
+            _logger?.LogWarning("无法加载 page_navigation.json 嵌入资源");
             return [];
         }
     }
@@ -217,9 +217,9 @@ public partial class MainShellViewModel : ViewModelBase
                 await _facade.SaveAppSettingsAsync(settings);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 保存失败不影响用户体验
+            _logger?.LogWarning(ex, "无法持久化引导完成标记");
         }
 
         // 回到首页

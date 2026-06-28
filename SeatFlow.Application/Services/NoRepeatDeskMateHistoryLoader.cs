@@ -71,7 +71,7 @@ namespace SeatFlow.Application.Services
             strategy.ClearHistory();
             strategy.SetPastDeskMatePairs(allPairs);
 
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "从 {SnapshotCount} 个快照中加载了 {TotalPairs} 对历史同桌记录（会场 {VenueId}）" ,
                 recentSnapshots.Count , allPairs.Count , venueId);
         }

@@ -364,6 +364,10 @@ namespace SeatFlow.Core.Strategies
             /// <inheritdoc />
             public void LogError (string strategyId , string displayName , string messageKey , params object?[] args)
                 => _workspace.LogError(strategyId , displayName , messageKey , args);
+
+            /// <inheritdoc />
+            public void LogInfo (string strategyId , string displayName , string messageKey , params object?[] args)
+                => _workspace.LogInfo(strategyId , displayName , messageKey , args);
         }
     }
 }

@@ -57,7 +57,10 @@ namespace SeatFlow.Application.Services
             {
                 _undo.Pop();
                 _redo.Push(cmd);
+                _logger.LogDebug("命令已撤销：{CommandId}（撤销栈 {UndoCount}，重做栈 {RedoCount}）" , cmd.Id , _undo.Count , _redo.Count);
             }
+            else
+                _logger.LogWarning("命令撤销失败：{CommandId}" , cmd.Id);
             return ok;
         }
 
@@ -76,7 +79,10 @@ namespace SeatFlow.Application.Services
             {
                 _redo.Pop();
                 _undo.Push(cmd);
+                _logger.LogDebug("命令已重做：{CommandId}（撤销栈 {UndoCount}，重做栈 {RedoCount}）" , cmd.Id , _undo.Count , _redo.Count);
             }
+            else
+                _logger.LogWarning("命令重做失败：{CommandId}" , cmd.Id);
             return ok;
         }
     }

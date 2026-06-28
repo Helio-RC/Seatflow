@@ -268,6 +268,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
                 items.Add(new VenueItem(id , layout?.Name ?? id));
             }
             VenueItems = new ObservableCollection<VenueItem>(items);
+            _logger?.LogInformation("已加载 {Count} 个会场", items.Count);
             StatusMessage = string.Format(Resources.Venue_VenuesLoadedFmt , items.Count);
         });
     }
@@ -307,6 +308,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             await _facade.DeleteVenueAsync(item.Id);
+            _logger?.LogInformation("会场已删除: {VenueId}", item.Id);
             SelectedVenueItem = null;
             PreviewSeats.Clear();
             PreviewOverlays.Clear();
@@ -374,6 +376,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
             var layout = BuildLayoutDefinition();
             await _facade.SaveVenueAsync(item.Id , layout);
             _isDirty = false;
+            _logger?.LogInformation("会场已保存: {VenueId} - {SeatCount} 座", item.Id, layout.Seats.Count);
             await LoadVenueList();
             SelectedVenueItem = VenueItems.FirstOrDefault(v => v.Id == item.Id);
             StatusMessage = string.Format(Resources.Venue_SavedFmt , layout.Name , layout.Seats.Count);

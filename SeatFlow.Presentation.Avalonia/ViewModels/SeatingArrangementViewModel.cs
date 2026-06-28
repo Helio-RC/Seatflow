@@ -195,7 +195,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             _defaultZoomLevel = settings.DefaultZoomLevel;
             ZoomLevel = _defaultZoomLevel;
         }
-        catch { /* 读取失败使用默认 1.0 */ }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "加载默认缩放失败，使用 1.0");
+        }
     }
 
     public async Task RefreshDataAsync ()
@@ -1128,7 +1131,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _logger?.LogDebug(ex , "导出文件对话框取消或异常");
+            _logger.LogDebug(ex , "导出文件对话框取消或异常");
         }
         finally
         {

@@ -242,8 +242,10 @@ public partial class PluginManagementViewModel (IApplicationFacade facade , ILog
 
         await SafeExecuteAsync(async () =>
         {
+            var packageName = SelectedPackage.PackageName;
             await _facade.UninstallPluginPackageAsync(SelectedPackage.PackageId);
-            StatusMessage = string.Format(Resources.Plugin_ToggledFmt , SelectedPackage.PackageName , "已卸载");
+            _logger?.LogInformation("插件包已卸载: {PackageName}", packageName);
+            StatusMessage = string.Format(Resources.Plugin_ToggledFmt , packageName , "已卸载");
             await RefreshPlugins();
         } , Resources.Plugin_ToggleFailed);
     }

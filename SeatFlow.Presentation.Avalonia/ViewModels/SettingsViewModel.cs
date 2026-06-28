@@ -114,8 +114,9 @@ public partial class SettingsViewModel : ViewModelBase
             MaxSnapshotsPerVenue = settings.MaxSnapshotsPerVenue;
 
         }
-        catch
+        catch (Exception ex)
         {
+            _logger?.LogWarning(ex, "加载设置失败");
             StatusMessage = Resources.Settings_LoadFailed;
         }
     }
@@ -245,7 +246,7 @@ public partial class SettingsViewModel : ViewModelBase
                 if (folders.Count > 0)
                     DataDirectory = folders[0].Path.LocalPath;
             }
-            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger?.LogDebug(ex , "目录选择取消"); }
+            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger.LogDebug(ex , "目录选择取消"); }
             catch (Exception ex)
             {
                 await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
@@ -265,15 +266,16 @@ public partial class SettingsViewModel : ViewModelBase
 
             _onboarding.StartOnboarding();
         }
-        catch
+        catch (Exception ex)
         {
-            // 引导启动失败静默处理
+            _logger?.LogWarning(ex, "重新启动引导失败");
         }
     }
 
     [RelayCommand]
     private async Task ExportSeatSetsAsync (CancellationToken ct)
     {
+        string? exportPath = null;
         try
         {
             // 1. 显示选择对话框（导出模式）
@@ -307,8 +309,8 @@ public partial class SettingsViewModel : ViewModelBase
 
             // 3. 执行导出
             StatusMessage = Resources.SeatSets_Processing;
-            var path = file.Path.LocalPath;
-            var count = await _facade.ExportSeatSetsAsync(path, selection, ct);
+            exportPath = file.Path.LocalPath;
+            var count = await _facade.ExportSeatSetsAsync(exportPath, selection, ct);
 
             // 4. 显示结果
             if (count > 0)
@@ -326,12 +328,12 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
         {
-            _logger?.LogDebug(ex, "导出操作取消");
+            _logger.LogDebug(ex, "导出操作取消");
         }
         catch (Exception ex)
         {
             StatusMessage = Resources.SeatSets_ExportFailed;
-            _logger?.LogError(ex, "导出数据包失败");
+            _logger.LogError(ex, "导出数据包失败: {Path}", exportPath);
             await _dialog.ShowErrorAsync(Resources.SeatSets_ExportFailed, ex.Message);
         }
     }
@@ -339,6 +341,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportSeatSetsAsync (CancellationToken ct)
     {
+        string? importPath = null;
         try
         {
             // 1. 文件选择对话框
@@ -353,11 +356,11 @@ public partial class SettingsViewModel : ViewModelBase
 
             if (file is null) return;
 
-            var filePath = file.Path.LocalPath;
+            importPath = file.Path.LocalPath;
 
             // 2. 校验文件
             StatusMessage = Resources.SeatSets_Processing;
-            var validation = await _facade.ValidateSeatSetsAsync(filePath, ct);
+            var validation = await _facade.ValidateSeatSetsAsync(importPath, ct);
 
             if (!validation.IsValid)
             {
@@ -369,7 +372,7 @@ public partial class SettingsViewModel : ViewModelBase
             }
 
             // 3. 探测并显示选择对话框（导入模式）
-            var categories = await _facade.ProbeSeatSetsCategoriesAsync(filePath, ct);
+            var categories = await _facade.ProbeSeatSetsCategoriesAsync(importPath, ct);
             var selectionWindow = new Views.SeatSetsSelectionWindow
             {
                 IsExport = false
@@ -391,7 +394,7 @@ public partial class SettingsViewModel : ViewModelBase
 
             // 4. 执行导入
             StatusMessage = Resources.SeatSets_Processing;
-            var result = await _facade.ImportSeatSetsAsync(filePath, selection, progress: null, ct);
+            var result = await _facade.ImportSeatSetsAsync(importPath, selection, progress: null, ct);
 
             // 5. 显示结果
             if (result.Success)
@@ -423,12 +426,12 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
         {
-            _logger?.LogDebug(ex, "导入操作取消");
+            _logger.LogDebug(ex, "导入操作取消");
         }
         catch (Exception ex)
         {
             StatusMessage = Resources.SeatSets_ImportTitle + ": " + ex.Message;
-            _logger?.LogError(ex, "导入数据包失败");
+            _logger.LogError(ex, "导入数据包失败: {Path}", importPath);
             await _dialog.ShowErrorAsync(Resources.SeatSets_ImportTitle, ex.Message);
         }
     }

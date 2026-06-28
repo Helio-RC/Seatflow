@@ -52,7 +52,7 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
             var elapsed = DateTime.UtcNow.Ticks - Interlocked.Read(ref _heartbeatTicks);
             if (new TimeSpan(elapsed).TotalSeconds >= _timeoutSeconds)
             {
-                _logger.LogWarning("UI 线程超过 {Timeout}s 无响应，触发诊断转储" , _timeoutSeconds);
+                _logger.LogCritical("UI 线程超过 {Timeout}s 无响应，触发诊断转储" , _timeoutSeconds);
                 await DumpAndExit(_timeoutSeconds);
             }
         }

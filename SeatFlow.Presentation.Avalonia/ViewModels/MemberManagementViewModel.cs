@@ -224,9 +224,9 @@ public partial class MemberManagementViewModel : ViewModelBase
             var datasets = await _facade.ListStudentDatasetsAsync(ct);
             SavedDatasets = new ObservableCollection<StudentDatasetInfo>(datasets);
         }
-        catch
+        catch (Exception ex)
         {
-            // 静默处理
+            _logger?.LogWarning(ex, "刷新数据集列表失败");
         }
     }
 
@@ -286,7 +286,7 @@ public partial class MemberManagementViewModel : ViewModelBase
 
                 IStorageFile? tmplFile;
                 try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
-                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导出模板"); return; }
                 if (tmplFile is null) return;
 
                 using var source = AssetLoader.Open(uri);
@@ -325,8 +325,9 @@ public partial class MemberManagementViewModel : ViewModelBase
             var fallback = TemplateLocales.FirstOrDefault(kv => kv.Key.StartsWith(prefix));
             return fallback.Value is (var f, var d) ? (f , d) : (DefaultTemplateSuffix , DefaultTemplateDisplayName);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger?.LogWarning(ex, "解析模板语言失败，使用默认值");
             return (DefaultTemplateSuffix , DefaultTemplateDisplayName);
         }
     }
@@ -344,7 +345,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             {
                 IStorageFile? importFile;
                 try { importFile = await _fileService.OpenFileAsync(Resources.Member_ImportData , StudentFileTypes); }
-                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导入"); return; }
                 if (importFile is null) return;
                 var file = importFile;
 
@@ -408,7 +409,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             {
                 IStorageFile? importFile;
                 try { importFile = await _fileService.OpenFileAsync(Resources.Member_UpdateFromFile , StudentFileTypes); }
-                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 打开文件"); return; }
                 if (importFile is null) return;
                 var file = importFile;
 
@@ -505,7 +506,7 @@ public partial class MemberManagementViewModel : ViewModelBase
             {
                 IStorageFile? exportFile;
                 try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export , types); }
-                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导出CSV"); return; }
                 if (exportFile is null) return;
                 var file = exportFile;
 

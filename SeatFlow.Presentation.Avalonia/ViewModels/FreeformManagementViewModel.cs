@@ -163,7 +163,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] ,
                 Resources.Freeform_CSVTemplate);
             }
-            catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+            catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导出模板"); return; }
             if (tmplFile == null) return;
             var file = tmplFile;
 
@@ -183,7 +183,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
             StatusMessage = Resources.Data_TemplateSaved;
         } , Resources.Data_TemplateSaveFailed);
         }
-        catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); }
+        catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导出模板"); }
         finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
@@ -200,7 +200,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 Resources.Freeform_ImportCSV ,
                 [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }]);
             }
-            catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+            catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导入CSV"); return; }
             if (csvFile == null) return;
             var file = csvFile;
 
@@ -261,7 +261,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 StatusMessage = string.Format(Resources.Freeform_ImportedPtsFmt , pts.Count);
             } , Resources.Freeform_ImportFailed);
         }
-        catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); }
+        catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导入CSV"); }
         finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 
@@ -278,7 +278,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 Resources.Freeform_ImportJSON ,
                 [new(Resources.Data_JSONFile) { Patterns = ["*.json"] }]);
             }
-            catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); return; }
+            catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导入JSON"); return; }
             if (jsonFile == null) return;
             var file = jsonFile;
 
@@ -340,7 +340,7 @@ public partial class FreeformManagementViewModel : ViewModelBase
                 StatusMessage = string.Format(Resources.Freeform_ImportedFmt , pts.Count);
             } , Resources.Freeform_ImportFailed);
         }
-        catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常"); }
+        catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导入JSON"); }
         finally { await Task.Delay(150); Interlocked.Exchange(ref _dialogLock , 0); }
     }
 

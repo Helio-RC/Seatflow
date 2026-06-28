@@ -94,7 +94,7 @@ internal class FrontRowHistoryLoader (
             }
         }
 
-        _logger.LogDebug("从 {SnapshotCount} 个快照恢复了 {EntryCount} 条前排历史记录" ,
+        _logger.LogInformation("从 {SnapshotCount} 个快照恢复了 {EntryCount} 条前排历史记录" ,
             recentSnapshots.Count , restoredCount);
     }
 

@@ -40,5 +40,10 @@ public static class StrategyTestHelpers
 
         public void LogError (string strategyId , string displayName , string messageKey , params object?[] args)
             => Errors.Add((strategyId , displayName , messageKey , args));
+
+        public void LogInfo (string strategyId , string displayName , string messageKey , params object?[] args)
+        {
+            // 测试桩，无需记录 Info
+        }
     }
 }

@@ -64,7 +64,7 @@ namespace SeatFlow.Application.Services
 
             result.Success = result.Conflicts.Count == 0;
             if (result.Conflicts.Count > 0)
-                _logger.LogWarning("冲突检测发现 {Count} 个冲突" , result.Conflicts.Count);
+                _logger.LogInformation("冲突检测发现 {Count} 个冲突" , result.Conflicts.Count);
             else
                 _logger.LogDebug("冲突检测完成，无冲突");
             return result;

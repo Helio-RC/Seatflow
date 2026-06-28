@@ -54,6 +54,7 @@ namespace SeatFlow.Application.Scripting.Lua
 
                 await Task.Run(() => lua.DoString(_scriptCode) , cts.Token);
 
+                _logger.LogInformation("Lua 脚本策略执行完成：{Name}" , Name);
                 return new StrategyExecutionResult { Success = true };
             }
             catch (OperationCanceledException)

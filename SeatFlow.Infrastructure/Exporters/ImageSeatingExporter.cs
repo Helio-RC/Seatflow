@@ -102,9 +102,11 @@ public class ImageSeatingExporter (ILogger<ImageSeatingExporter>? logger = null)
             using var data = image.Encode(SKEncodedImageFormat.Png , 90);
             using var stream = File.OpenWrite(path);
             data.SaveTo(stream);
+            _logger.LogInformation("图片座位布局导出完成: {Path}" , path);
         }
         catch (IOException ex)
         {
+            _logger.LogError(ex, "写入图片文件失败: {Path}" , path);
             throw new IOException($"无法写入图片文件，文件可能正在被其他程序占用: {path}" , ex);
         }
 

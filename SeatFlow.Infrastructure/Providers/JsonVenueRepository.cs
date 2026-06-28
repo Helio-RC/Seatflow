@@ -74,6 +74,7 @@ namespace SeatFlow.Infrastructure.Providers
             }
             var options = SerializerOptions;
             var venueFile = JsonSerializer.Deserialize<VenueFile>(json , options);
+            _logger.LogInformation("场馆已加载: {VenueId}" , venueId);
             return venueFile?.Layout;
         }
 
@@ -101,6 +102,7 @@ namespace SeatFlow.Infrastructure.Providers
             var filePath = GetFilePath(venueId);
             if (File.Exists(filePath))
                 File.Delete(filePath);
+            _logger.LogInformation("场馆已删除: {VenueId}" , venueId);
             return Task.CompletedTask;
         }
 
@@ -109,6 +111,7 @@ namespace SeatFlow.Infrastructure.Providers
         {
             var files = Directory.GetFiles(_venuesFolder , "*.venue.json");
             var ids = files.Select(f => Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(f)));
+            _logger.LogDebug("列出 {Count} 个场馆 ID" , ids.Count());
             return Task.FromResult(ids);
         }
 

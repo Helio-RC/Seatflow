@@ -194,4 +194,8 @@ public class TestRandomFillContext : IRandomFillContext
     public void LogError (string strategyId , string displayName , string messageKey , params object?[] args)
     {
     }
+
+    public void LogInfo (string strategyId , string displayName , string messageKey , params object?[] args)
+    {
+    }
 }

@@ -61,7 +61,7 @@ public abstract class ViewModelBase : ObservableObject
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            _logger?.LogError("操作超时：{Title}（{Seconds} 秒）" , errorTitle , timeout.TotalSeconds);
+            _logger?.LogWarning("操作超时：{Title}（{Seconds} 秒）" , errorTitle , timeout.TotalSeconds);
             await Dialog.ShowErrorAsync(Resources.Common_OperationTimeout ,
                 string.Format(Resources.Common_TimeoutFormat , errorTitle , timeout.TotalSeconds));
             return false;

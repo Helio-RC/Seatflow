@@ -70,6 +70,7 @@ namespace SeatFlow.Infrastructure.Repositories
             info.Version = FileVersionInfo.GetCurrentVersion("venueInfo");
             var json = JsonSerializer.Serialize(info , JsonOptions.WriteIndented);
             await File.WriteAllTextAsync(path , json , ct);
+            _logger.LogInformation("会场快照信息已保存: {VenueId}" , venueId);
         }
 
         public SeatingSnapshot? Load (string id)
@@ -86,7 +87,9 @@ namespace SeatFlow.Infrastructure.Repositories
             if (_index.TryGetValue(id , out var path) && File.Exists(path))
             {
                 var json = await File.ReadAllTextAsync(path , ct);
-                return DeserializeWithMigration(json , "snapshot");
+                var snapshot = DeserializeWithMigration(json , "snapshot");
+                _logger.LogDebug("快照已加载: {SnapshotId}" , id);
+                return snapshot;
             }
             return null;
         }
@@ -95,6 +98,7 @@ namespace SeatFlow.Infrastructure.Repositories
         {
             ct.ThrowIfCancellationRequested();
             var snapshots = LoadFromDir(Path.Combine(_basePath , venueId));
+            _logger.LogDebug("列出会场 {VenueId} 的 {Count} 个快照" , venueId , snapshots.Count);
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
                 [.. snapshots.OrderByDescending(s => s.CreatedAt)]);
         }
@@ -104,6 +108,7 @@ namespace SeatFlow.Infrastructure.Repositories
             var snapshots = new List<SeatingSnapshot>();
             foreach (var venueDir in SafeEnumerateDirectories(_basePath))
                 snapshots.AddRange(LoadFromDir(venueDir));
+            _logger.LogDebug("列出所有 {Count} 个快照" , snapshots.Count);
             return Task.FromResult<IReadOnlyList<SeatingSnapshot>>(
                 [.. snapshots.OrderByDescending(s => s.CreatedAt)]);
         }

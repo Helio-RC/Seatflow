@@ -73,6 +73,10 @@ namespace SeatFlow.Application.Services
             catch { /* 读取失败时使用默认值 */ }
 
             var logLevel = ParseLogLevel(logSettings.MinimumLevel);
+
+            // 调试运行时自动提升日志详细度，无需修改配置文件
+            if (System.Diagnostics.Debugger.IsAttached && logLevel > LogEventLevel.Debug)
+                logLevel = LogEventLevel.Debug;
             var logDir = Path.Combine(effectiveDataPath , "Logs");
             Directory.CreateDirectory(logDir);
 
@@ -82,10 +86,29 @@ namespace SeatFlow.Application.Services
             // 实例隔离：每次启动创建独立日志文件，避免多实例写入冲突
             var instanceId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
             var logPath = Path.Combine(logDir , $"SeatFlow_{instanceId}.log");
-            Log.Logger = new LoggerConfiguration()
+            var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Is(logLevel)
+                .Enrich.WithThreadId();
+
+            // 应用分模块日志等级覆盖（用户配置的 Key 去掉 "SeatFlow." 前缀）
+            foreach (var (category , levelStr) in logSettings.CategoryOverrides)
+            {
+                if (!string.IsNullOrWhiteSpace(category))
+                {
+                    var catLevel = ParseLogLevel(levelStr);
+                    loggerConfig.MinimumLevel.Override($"SeatFlow.{category}" , catLevel);
+                }
+            }
+
+            // 调试模式下在输出中携带线程 ID，便于诊断并发问题
+            var outputTemplate = logLevel <= LogEventLevel.Debug
+                ? "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] [{SourceContext}] [Thread:{ThreadId}] {Message:lj}{NewLine}{Exception}"
+                : "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+
+            Log.Logger = loggerConfig
                 .WriteTo.File(
                     logPath ,
+                    outputTemplate: outputTemplate ,
                     fileSizeLimitBytes: logSettings.FileSizeLimitBytes ,
                     retainedFileCountLimit: logSettings.RetainedFileCountLimit ,
                     rollOnFileSizeLimit: true ,

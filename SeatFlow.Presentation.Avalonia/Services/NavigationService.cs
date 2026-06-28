@@ -59,7 +59,7 @@ public class NavigationService : INavigationService
             PageKey.About => _serviceProvider.GetRequiredService<AboutViewModel>(),
             _ => throw new ArgumentOutOfRangeException(nameof(page))
         };
-        _logger.LogDebug("导航切换：{From} → {To}" , CurrentPage , page);
+        _logger.LogInformation("导航切换：{From} → {To}" , CurrentPage , page);
         CurrentViewModelChanged?.Invoke();
     }
 }

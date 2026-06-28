@@ -52,6 +52,7 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
 
             var fi = new FileInfo(path);
             await p.SaveAsAsync(fi , cancellationToken);
+            _logger.LogInformation("Excel 导出完成: {Path}，{Count} 条记录" , path , plan.Assignments.Count);
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException)
         {
@@ -114,6 +115,7 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
 
             var fi = new FileInfo(path);
             await p.SaveAsAsync(fi , cancellationToken);
+            _logger.LogInformation("Excel 布局导出完成: {Path}，{RowCount} 行" , path , model.Rows.Count);
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException)
         {

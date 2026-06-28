@@ -73,6 +73,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
 
         var json = await File.ReadAllTextAsync(path , ct);
         var roster = DeserializeRoster(json);
+        _logger.LogInformation("学生数据集已加载: {DatasetId}" , id);
         return roster?.Students;
     }
 
@@ -110,6 +111,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         }
 
         results.Sort((a , b) => b.CreatedAt.CompareTo(a.CreatedAt));
+        _logger.LogDebug("列出 {Count} 个学生数据集" , results.Count);
         return Task.FromResult<IReadOnlyList<StudentDatasetInfo>>(results);
     }
 
@@ -118,6 +120,7 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         var path = GetFilePath(id);
         if (File.Exists(path))
             File.Delete(path);
+        _logger.LogInformation("学生数据集已删除: {DatasetId}" , id);
         return Task.CompletedTask;
     }
 

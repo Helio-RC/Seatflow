@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using SeatFlow.Core.Models;
 using SeatFlow.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Infrastructure.Providers
 {
@@ -14,11 +15,11 @@ namespace SeatFlow.Infrastructure.Providers
     public class StrategyDatasetConfigRepository (
         string baseDir ,
         FileMigrationService migration ,
-        ILogger<StrategyDatasetConfigRepository> logger)
+        ILogger<StrategyDatasetConfigRepository>? logger = null)
     {
         private readonly string _baseDir = baseDir ?? throw new ArgumentNullException(nameof(baseDir));
         private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-        private readonly ILogger<StrategyDatasetConfigRepository> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        private readonly ILogger<StrategyDatasetConfigRepository> _logger = logger ?? NullLogger<StrategyDatasetConfigRepository>.Instance;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -44,6 +45,7 @@ namespace SeatFlow.Infrastructure.Providers
                     results.Add(config);
             }
 
+            _logger.LogDebug("已加载 {Count} 个数据集配置" , results.Count);
             return results;
         }
 
@@ -54,7 +56,9 @@ namespace SeatFlow.Infrastructure.Providers
         {
             var fileName = BuildFileName(datasetId , venueId);
             var filePath = Path.Combine(GetStrategyDir(strategyId) , fileName);
-            return await LoadFileAsync(filePath , ct);
+            var config = await LoadFileAsync(filePath , ct);
+            _logger.LogDebug("数据集配置已加载: {StrategyId}/{FileName}" , strategyId , fileName);
+            return config;
         }
 
         /// <summary>
@@ -78,7 +82,7 @@ namespace SeatFlow.Infrastructure.Providers
             var filePath = Path.Combine(dir , fileName);
             var json = JsonSerializer.Serialize(config , JsonOptions);
             await File.WriteAllTextAsync(filePath , json , ct);
-            _logger.LogDebug("数据集配置已保存：{StrategyId}/{FileName}" , config.StrategyId , fileName);
+            _logger.LogInformation("数据集配置已保存：{StrategyId}/{FileName}" , config.StrategyId , fileName);
         }
 
         /// <summary>
@@ -91,6 +95,7 @@ namespace SeatFlow.Infrastructure.Providers
             var filePath = Path.Combine(GetStrategyDir(strategyId) , fileName);
             if (File.Exists(filePath))
                 await Task.Run(() => File.Delete(filePath) , ct);
+            _logger.LogInformation("数据集配置已删除: {StrategyId}/{FileName}" , strategyId , fileName);
         }
 
         private async Task<StrategyDatasetConfig?> LoadFileAsync (string filePath , CancellationToken ct)

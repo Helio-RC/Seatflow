@@ -427,7 +427,7 @@ namespace SeatFlow.Application.Plugins
                 _strategyPlugins[strategyManifest.Id] = pluginInfo;
                 results.Add(pluginInfo);
 
-                _logger.LogInformation("加载插件策略：{StrategyId}（包：{PkgId}，类型：{LoadKind}）" ,
+                _logger.LogDebug("加载插件策略：{StrategyId}（包：{PkgId}，类型：{LoadKind}）" ,
                     strategyManifest.Id , packageId ,
                     !string.IsNullOrEmpty(entry.Assembly) ? "assembly" :
                     !string.IsNullOrEmpty(entry.ScriptFile) ? entry.ScriptType ?? "script" : "unknown");

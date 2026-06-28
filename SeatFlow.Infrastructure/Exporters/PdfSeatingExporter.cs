@@ -84,6 +84,7 @@ public class PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null) : I
                         });
                 });
             }).GeneratePdf(path);
+            _logger.LogInformation("PDF 座位表导出完成: {Path}" , path);
         } , cancellationToken);
     }
 
@@ -166,6 +167,7 @@ public class PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null) : I
                         });
                 });
             }).GeneratePdf(path);
+            _logger.LogInformation("PDF 座位布局导出完成: {Path}" , path);
         } , cancellationToken);
     }
 }

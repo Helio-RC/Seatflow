@@ -30,17 +30,20 @@ namespace SeatFlow.Infrastructure.Exporters
             await using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
             await using var csv = new CsvWriter(writer , CultureInfo.InvariantCulture);
             await csv.WriteRecordsAsync(records , cancellationToken);
+            _logger.LogInformation("CSV 座位导出完成: {Path}，{Count} 条记录" , path , plan.Assignments.Count);
         }
 
         public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            _logger.LogInformation("CSV 布局导出开始: {Path}" , path);
 
             await using var writer = new StreamWriter(path , false , new System.Text.UTF8Encoding(true));
             await writer.WriteLineAsync($"# {model.LayoutName}");
             foreach (var row in model.Rows)
                 await writer.WriteLineAsync(string.Join("," , row.Cells.Select(c => EscapeCsv(c.Text))));
             await writer.FlushAsync(cancellationToken);
+            _logger.LogInformation("CSV 布局导出完成: {Path}" , path);
         }
 
         private static string EscapeCsv (string text)

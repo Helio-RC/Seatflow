@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using SeatFlow.Core.Models;
 using SeatFlow.Infrastructure.Migration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Infrastructure.Providers
 {
@@ -12,9 +13,10 @@ namespace SeatFlow.Infrastructure.Providers
     public class StrategyConfigFileRepository (
         string configDir ,
         FileMigrationService migration ,
-        ILogger<StrategyConfigFileRepository> logger)
+        ILogger<StrategyConfigFileRepository>? logger = null)
     {
         private readonly string _configDir = configDir ?? throw new ArgumentNullException(nameof(configDir));
+        private readonly ILogger<StrategyConfigFileRepository> _logger = logger ?? NullLogger<StrategyConfigFileRepository>.Instance;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
@@ -29,7 +31,9 @@ namespace SeatFlow.Infrastructure.Providers
                 return null;
 
             var json = await File.ReadAllTextAsync(filePath , ct);
-            return DeserializeWithMigration(json);
+            var config = DeserializeWithMigration(json);
+            _logger.LogInformation("策略配置已加载: {StrategyId}" , strategyId);
+            return config;
         }
 
         public async Task SaveAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
@@ -41,7 +45,7 @@ namespace SeatFlow.Infrastructure.Providers
             var filePath = GetFilePath(strategyId);
             var json = JsonSerializer.Serialize(config , JsonOptions);
             await File.WriteAllTextAsync(filePath , json , ct);
-            logger.LogDebug("策略配置已保存：{Id} → {Path}" , strategyId , filePath);
+            _logger.LogInformation("策略配置已保存：{Id} → {Path}" , strategyId , filePath);
         }
 
         public async Task<Dictionary<string , StrategyConfig>> LoadAllAsync (CancellationToken ct = default)
@@ -61,6 +65,7 @@ namespace SeatFlow.Infrastructure.Providers
                     results[strategyId] = config;
             }
 
+            _logger.LogDebug("已加载 {Count} 个策略配置" , results.Count);
             return results;
         }
 

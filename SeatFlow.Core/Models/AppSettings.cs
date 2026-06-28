@@ -59,7 +59,7 @@ namespace SeatFlow.Core.Models
     /// </summary>
     public sealed class LogSettings
     {
-        /// <summary>最低日志级别：Debug / Information / Warning / Error。</summary>
+        /// <summary>最低日志级别：Debug / Information / Warning / Error。默认 Information，调试运行时自动降为 Debug。</summary>
         public string MinimumLevel { get; set; } = "Information";
 
         /// <summary>单个日志文件最大字节数，默认 10MB。</summary>
@@ -67,6 +67,13 @@ namespace SeatFlow.Core.Models
 
         /// <summary>保留的日志文件数量上限。</summary>
         public int RetainedFileCountLimit { get; set; } = 30;
+
+        /// <summary>
+        /// 分模块日志等级覆盖。Key 为去掉 "SeatFlow." 前缀的命名空间前缀（如 "Core.Strategies"），
+        /// Value 为日志等级字符串（Debug / Information / Warning / Error / Fatal）。
+        /// 未匹配的模块沿用 <see cref="MinimumLevel"/>。
+        /// </summary>
+        public Dictionary<string, string> CategoryOverrides { get; set; } = new();
     }
 
     /// <summary>

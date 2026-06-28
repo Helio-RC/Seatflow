@@ -172,7 +172,7 @@ public class SeatingWorkspace : IPluginWorkspace, IFixedSeatCapability
     public void LogWarning (string strategyId , string displayName , string messageKey , params object?[] args)
     {
         _messages.Add(new StrategyMessage(StrategyMessageSeverity.Warning , strategyId , displayName , messageKey , args));
-        _logger?.LogWarning("[{DisplayName}] {MessageKey} → {Detailed}" ,
+        _logger?.LogDebug("[StrategyMsg:Warning][{DisplayName}] {MessageKey} → {Detailed}" ,
             displayName , messageKey , ResolveArgsWithNames(args));
     }
 
@@ -180,7 +180,21 @@ public class SeatingWorkspace : IPluginWorkspace, IFixedSeatCapability
     public void LogError (string strategyId , string displayName , string messageKey , params object?[] args)
     {
         _messages.Add(new StrategyMessage(StrategyMessageSeverity.Error , strategyId , displayName , messageKey , args));
-        _logger?.LogError("[{DisplayName}] {MessageKey} → {Detailed}" ,
+        _logger?.LogDebug("[StrategyMsg:Error][{DisplayName}] {MessageKey} → {Detailed}" ,
+            displayName , messageKey , ResolveArgsWithNames(args));
+    }
+
+    /// <summary>
+    /// 记录一条纯信息性消息（非警告/错误），执行结束后展示在 UI 侧栏中。
+    /// </summary>
+    /// <param name="strategyId">策略内部 ID。</param>
+    /// <param name="displayName">策略展示名称。</param>
+    /// <param name="messageKey">对应 manifest messages 中的 i18n 键。</param>
+    /// <param name="args">string.Format 参数。</param>
+    public void LogInfo (string strategyId , string displayName , string messageKey , params object?[] args)
+    {
+        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Info , strategyId , displayName , messageKey , args));
+        _logger?.LogDebug("[StrategyMsg:Info][{DisplayName}] {MessageKey} → {Detailed}" ,
             displayName , messageKey , ResolveArgsWithNames(args));
     }
 
