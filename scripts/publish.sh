@@ -55,8 +55,8 @@ if [ $# -gt 0 ]; then
     MODE="${1:-both}"; CONFIG="${2:-Release}"; [ "${3:-}" = "opt" ] && TRIM_SEL=1; SUFFIX="${4:-}"; VERSION="${5:-}"; [ "${6:-}" = "clean" ] && CLEAN=1; [ "${7:-}" = "aot" ] && AOT=1
     if [ "$CLEAN" = "1" ] && [ -d publish ]; then find publish -type f | while read -r f; do echo -e "\e[90m  $f\e[0m"; done; read -r -p "确认删除以上文件? (y/N) " c; [ "$c" = "y" ] && { rm -rf publish; echo -e "\e[33m已清空\e[0m"; } || echo -e "\e[90m已取消\e[0m"; fi
     S=$(date +%s)
-    if [ "$MODE" != "fd" ]; then echo -e "\n\e[35m--- 自包含 ---\e[0m"; publish_one "true" "self-contained" "${RIDS[@]}"; fi
-    if [ "$MODE" != "sc" ]; then echo -e "\n\e[35m--- 依赖运行时 ---\e[0m"; publish_one "false" "framework-dependent" "${RIDS[@]}"; fi
+    if [ "$MODE" != "slim" ]; then echo -e "\n\e[35m--- 自包含 ---\e[0m"; publish_one "true" "full" "${RIDS[@]}"; fi
+    if [ "$MODE" != "full" ]; then echo -e "\n\e[35m--- 依赖运行时 ---\e[0m"; publish_one "false" "slim" "${RIDS[@]}"; fi
     E=$(date +%s); echo -e "\n\e[36m完成 $((E-S))s\e[0m"; sha_table; exit 0
 fi
 
@@ -160,6 +160,6 @@ if [ ${#SP[@]} -eq 0 ]; then echo -e "\e[31m未选择任何平台\e[0m"; exit 1;
 doSc=false; doFd=false
 [ "$TYPE_IDX" = "0" ] && doSc=true; [ "$TYPE_IDX" = "1" ] && doFd=true; [ "$TYPE_IDX" = "2" ] && { doSc=true; doFd=true; }
 S=$(date +%s)
-if $doSc; then echo -e "\n\e[35m--- 自包含 (Self-Contained) ---\e[0m"; publish_one "true" "self-contained" "${SP[@]}"; fi
-if $doFd; then echo -e "\n\e[35m--- 依赖运行时 (Framework-Dependent) ---\e[0m"; publish_one "false" "framework-dependent" "${SP[@]}"; fi
+if $doSc; then echo -e "\n\e[35m--- 自包含 (Self-Contained) ---\e[0m"; publish_one "true" "full" "${SP[@]}"; fi
+if $doFd; then echo -e "\n\e[35m--- 依赖运行时 (Framework-Dependent) ---\e[0m"; publish_one "false" "slim" "${SP[@]}"; fi
 E=$(date +%s); echo -e "\n\e[36m完成 $((E-S))s\e[0m"; sha_table
