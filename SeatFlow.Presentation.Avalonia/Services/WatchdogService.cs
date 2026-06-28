@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Lang;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -61,7 +62,7 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
     private static async Task DumpAndExit (int timeoutSeconds = 45)
     {
         var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        var logPath = Path.Combine(AppContext.BaseDirectory , $"err_{timestamp}.log");
+        var logPath = Path.Combine(AppEnvironment.ExeDirectory , $"err_{timestamp}.log");
 
         try
         {

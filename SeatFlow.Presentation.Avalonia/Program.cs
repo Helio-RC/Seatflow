@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using SeatFlow.Application.Services;
 using SeatFlow.Core.Models.SeatSets;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
@@ -56,10 +57,10 @@ namespace SeatFlow.Presentation.Avalonia
             using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
 
             var services = new ServiceCollection();
-            // 使用绝对路径，避免双击 .seatsets 文件时工作目录被 Windows 改为文件所在位置
+            // 使用 exe 所在目录而非 AppContext.BaseDirectory（单文件发布时后者指向临时解压目录）
             services.AddSeatFlowApplication(
-                Path.Combine(AppContext.BaseDirectory , "AppData") ,
-                Path.Combine(AppContext.BaseDirectory , "Plugins"));
+                Path.Combine(AppEnvironment.ExeDirectory , "AppData") ,
+                Path.Combine(AppEnvironment.ExeDirectory , "Plugins"));
 
             // 注册导航服务
             services.AddSingleton<INavigationService , NavigationService>();
@@ -190,7 +191,7 @@ namespace SeatFlow.Presentation.Avalonia
                     return;
 
                 var progId = "SeatFlow.seatsets";
-                var appDataExists = Directory.Exists(Path.Combine(AppContext.BaseDirectory , "AppData"));
+                var appDataExists = Directory.Exists(Path.Combine(AppEnvironment.ExeDirectory , "AppData"));
                 var iconValue = $"\"{exePath}\",0";
                 var cmdValue = $"\"{exePath}\" \"%1\"";
                 bool changed = false;
@@ -250,12 +251,11 @@ namespace SeatFlow.Presentation.Avalonia
         {
             try
             {
-                var exeDir = AppContext.BaseDirectory;
-                var appDataPath = Path.Combine(exeDir , "AppData");
+                var appDataPath = Path.Combine(AppEnvironment.ExeDirectory , "AppData");
                 if (Directory.Exists(appDataPath))
                     return null;
 
-                var files = Directory.GetFiles(exeDir , "*.seatsets" , SearchOption.TopDirectoryOnly);
+                var files = Directory.GetFiles(AppEnvironment.ExeDirectory , "*.seatsets" , SearchOption.TopDirectoryOnly);
                 if (files.Length == 0)
                     return null;
 
