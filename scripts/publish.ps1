@@ -43,10 +43,10 @@ function Publish-One($SC,$Label,$Rids){
 if($Mode-or$HashOnly){
     if($HashOnly){ShaTable;Pop-Location;exit 0}
     if($Clean-and(Test-Path publish)){gci publish -r|%{Write-Host "  $_" -F Gray};$c=Read-Host "确认删除以上文件? (y/N)";if($c-eq'y'){rm publish -r -Force;Write-Host "已清空" -F Yellow}else{Write-Host "已取消" -F Gray}}
-    $m=if($Mode-eq"self-contained"){"sc"}elseif($Mode-eq"framework-dependent"){"fd"}else{"both"}
+    $m=if($Mode-eq"full"){"full"}elseif($Mode-eq"slim"){"slim"}else{"both"}
     $sw=[Diagnostics.Stopwatch]::StartNew()
-    if($m-ne"fd"){Write-Host "`n--- 自包含 ---" -F Magenta;Publish-One $true "self-contained" @("win-x64","linux-x64","osx-x64","osx-arm64")}
-    if($m-ne"sc"){Write-Host "`n--- 依赖运行时 ---" -F Magenta;Publish-One $false "framework-dependent" @("win-x64","linux-x64","osx-x64","osx-arm64")}
+    if($m-ne"slim"){Write-Host "`n--- 自包含 ---" -F Magenta;Publish-One $true "full" @("win-x64","linux-x64","osx-x64","osx-arm64")}
+    if($m-ne"full"){Write-Host "`n--- 依赖运行时 ---" -F Magenta;Publish-One $false "slim" @("win-x64","linux-x64","osx-x64","osx-arm64")}
     $sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable;Pop-Location;exit 0
 }
 
@@ -128,6 +128,6 @@ $sp=@($P|? Sel)
 if(!$sp){Write-Host "未选择任何平台" -F Red;Pop-Location;exit 1}
 $doSc=($ti-eq0-or$ti-eq2);$doFd=($ti-eq1-or$ti-eq2)
 $sw=[Diagnostics.Stopwatch]::StartNew()
-if($doSc){Write-Host "`n--- 自包含 (Self-Contained) ---" -F Magenta;Publish-One $true "self-contained" @($sp|% N)}
-if($doFd){Write-Host "`n--- 依赖运行时 (Framework-Dependent) ---" -F Magenta;Publish-One $false "framework-dependent" @($sp|% N)}
+if($doSc){Write-Host "`n--- 自包含 (Self-Contained) ---" -F Magenta;Publish-One $true "full" @($sp|% N)}
+if($doFd){Write-Host "`n--- 依赖运行时 (Framework-Dependent) ---" -F Magenta;Publish-One $false "slim" @($sp|% N)}
 $sw.Stop();Write-Host "`n完成 $([math]::Round($sw.Elapsed.TotalSeconds,1))s" -F Cyan;ShaTable;Pop-Location
