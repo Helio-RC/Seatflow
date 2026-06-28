@@ -38,7 +38,7 @@ SeatFlow 是一个 .NET 10 跨平台桌面座位编排系统，使用 Avalonia U
 - **Plugins.Sdk** — 轻量级程序集，供外部插件作者使用
 - **Presentation.Avalonia** — Avalonia 12 桌面应用，使用 CommunityToolkit.Mvvm 的 MVVM 模式
 
-**日志**：使用 **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` 贯穿 Application 层。通过 `Serilog.Sinks.File` 输出到文件。Application 服务通过构造函数注入 `ILogger<T>`；当参数为可选时，大多数回退到 `NullLogger<T>.Instance`。
+**日志**：使用 **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` 贯穿 Application 层。通过 `Serilog.Sinks.File` 输出到文件，使用自定义输出模板（`[Level] [SourceContext]`）。支持分模块日志等级覆盖（`CategoryOverrides` in AppSettings.json）。生产环境默认 `Information`；调试器附加时自动降为 `Debug`（`Debugger.IsAttached`）。完整文档：`docs/LOGGING.md`。
 
 **依赖注入**：Application 层的 `ServiceCollectionExtensions.AddSeatFlowApplication(snapshotBasePath, pluginsPath)` 注册所有服务（策略、导出器、提供者、仓库、插件管理器）。在 `Program.cs` 中，UI 层调用此方法后添加自己的单例：`INavigationService`、`IFileService`、`IDialogService`、`MainWindow`、`MainShellViewModel` 以及所有页面 ViewModel。
 

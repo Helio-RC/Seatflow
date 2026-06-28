@@ -37,7 +37,7 @@ SeatFlow is a .NET 10 cross-platform desktop seating arrangement system using Av
 - **Plugins.Sdk** — Lightweight assembly for external plugin authors
 - **Presentation.Avalonia** — Avalonia 12 desktop app, MVVM with CommunityToolkit.Mvvm
 
-**Logging**: Uses **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` throughout the Application layer. Sinks to file via `Serilog.Sinks.File`. Application services take `ILogger<T>` via constructor injection; most fall back to `NullLogger<T>.Instance` when the parameter is optional.
+**Logging**: Uses **Serilog 4** + `Microsoft.Extensions.Logging.ILogger<T>` throughout the Application layer. Sinks to file via `Serilog.Sinks.File` with a custom output template (`[Level] [SourceContext]`). Supports per-module log level overrides via `CategoryOverrides` in AppSettings.json. Defaults to `Information` in production; auto-downgrades to `Debug` when a debugger is attached (`Debugger.IsAttached`). Full documentation: `docs/LOGGING.md`.
 
 **DI**: `ServiceCollectionExtensions.AddSeatFlowApplication(snapshotBasePath, pluginsPath)` in Application layer registers all services (strategies, exporters, providers, repositories, plugin manager). In `Program.cs`, the UI layer calls this then adds its own singletons: `INavigationService`, `IFileService`, `IDialogService`, `MainWindow`, `MainShellViewModel`, and all page ViewModels.
 

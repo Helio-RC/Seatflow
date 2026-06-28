@@ -18,6 +18,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 ├── ARCHITECTURE.md            ← 架构设计、分层、数据流、安全策略
 ├── docs/
 │   ├── INDEX.md               ← 本文件
+│   ├── LOGGING.md              ← 日志系统设计文档（等级规范、分模块覆盖、输出格式、最佳实践）
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
 │   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
