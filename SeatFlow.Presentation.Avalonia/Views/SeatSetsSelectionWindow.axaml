@@ -6,7 +6,10 @@
         x:DataType="vm:SeatSetsSelectionViewModel"
         Width="440" SizeToContent="Height" MinHeight="320"
         CanResize="False" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="32"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
   <Design.DataContext>
     <vm:SeatSetsSelectionViewModel />

@@ -6,7 +6,10 @@
         x:Class="SeatFlow.Presentation.Avalonia.Views.DialogWindow"
         Width="420" SizeToContent="Height" MinHeight="160"
         CanResize="False" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="32"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
   <DockPanel Margin="20,16">
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
