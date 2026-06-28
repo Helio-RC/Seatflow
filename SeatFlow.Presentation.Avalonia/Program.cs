@@ -139,6 +139,12 @@ namespace SeatFlow.Presentation.Avalonia
         [DllImport("user32.dll" , CharSet = CharSet.Unicode)]
         private static extern int MessageBoxW (IntPtr hWnd , string text , string caption , uint type);
 
+        [DllImport("shell32.dll")]
+        private static extern void SHChangeNotify (int wEventId , uint uFlags , IntPtr dwItem1 , IntPtr dwItem2);
+
+        private const int SHCNE_ASSOCCHANGED = 0x08000000;
+        private const uint SHCNF_IDLIST = 0x0000;
+
         private static void ShowFatalDialog (string title , string message)
         {
             try
@@ -168,9 +174,9 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <summary>
-        /// 在 HKCU 中注册 .seatsets 文件关联（仅 Windows，无需管理员权限）。
-        /// 注册后双击 .seatsets 文件会自动启动程序并导入。
-        /// 幂等操作——重复调用不会产生副作用。
+        /// 在 HKCU 中注册/刷新 .seatsets 文件关联（仅 Windows，无需管理员权限）。
+        /// 仅在首次启动（AppData 不存在）或注册表值与当前不一致时写入，
+        /// 避免每次启动无意义的磁盘 I/O。写入后通知 Shell 刷新图标缓存。
         /// </summary>
         private static void RegisterSeatSetsFileAssociation ()
         {
@@ -184,23 +190,50 @@ namespace SeatFlow.Presentation.Avalonia
                     return;
 
                 var progId = "SeatFlow.seatsets";
+                var appDataExists = Directory.Exists(Path.Combine(AppContext.BaseDirectory , "AppData"));
+                var iconValue = $"\"{exePath}\",0";
+                var cmdValue = $"\"{exePath}\" \"%1\"";
+                bool changed = false;
 
                 using var extKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     @"Software\Classes\.seatsets");
-                if (extKey.GetValue("") as string != progId)
+                var oldProgId = extKey.GetValue("") as string;
+                if (!appDataExists || !string.Equals(oldProgId , progId , StringComparison.Ordinal))
+                {
                     extKey.SetValue("" , progId);
+                    changed = true;
+                }
 
                 using var progKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     $@"Software\Classes\{progId}");
-                progKey.SetValue("" , "SeatFlow Data Package");
+                var oldDesc = progKey.GetValue("") as string;
+                if (!appDataExists || !string.Equals(oldDesc , "SeatFlow Data Package" , StringComparison.Ordinal))
+                {
+                    progKey.SetValue("" , "SeatFlow Data Package");
+                    changed = true;
+                }
 
                 using var iconKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     $@"Software\Classes\{progId}\DefaultIcon");
-                iconKey.SetValue("" , $"\"{exePath}\",0");
+                var oldIcon = iconKey.GetValue("") as string;
+                if (!appDataExists || !string.Equals(oldIcon , iconValue , StringComparison.Ordinal))
+                {
+                    iconKey.SetValue("" , iconValue);
+                    changed = true;
+                }
 
                 using var cmdKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     $@"Software\Classes\{progId}\shell\open\command");
-                cmdKey.SetValue("" , $"\"{exePath}\" \"%1\"");
+                var oldCmd = cmdKey.GetValue("") as string;
+                if (!appDataExists || !string.Equals(oldCmd , cmdValue , StringComparison.Ordinal))
+                {
+                    cmdKey.SetValue("" , cmdValue);
+                    changed = true;
+                }
+
+                // 仅在确实写入后才通知 Shell 刷新图标缓存
+                if (changed)
+                    SHChangeNotify(SHCNE_ASSOCCHANGED , SHCNF_IDLIST , IntPtr.Zero , IntPtr.Zero);
             }
             catch
             {
