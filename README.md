@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-# <img src="Assets/SF_icon_mini_background.png" style="zoom:10%" alt="图片名称" align=center /> SeatFlow - 座流
+# <img src="Assets/SF_icon_mini_background.png" height = "50" width = "50" alt="图片名称" align=center /> SeatFlow - 座流
 
 **跨平台桌面座位安排与轮换系统**  
 自动/手动排座 · 多数据源导入导出 · 策略引擎 · 历史快照回滚
