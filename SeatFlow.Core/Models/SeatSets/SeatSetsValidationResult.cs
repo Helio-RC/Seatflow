@@ -12,7 +12,7 @@ public class SeatSetsValidationResult
     public long FileSize { get; set; }
 
     /// <summary>文件格式版本。</summary>
-    public string? FormatVersion { get; set; }
+    public string? Version { get; set; }
 
     /// <summary>创建时的应用版本。</summary>
     public string? AppVersion { get; set; }

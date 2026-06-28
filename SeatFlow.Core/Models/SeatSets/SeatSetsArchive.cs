@@ -7,13 +7,13 @@ namespace SeatFlow.Core.Models.SeatSets;
 public class SeatSetsArchive
 {
     /// <summary>文件格式版本（"1.0"）。</summary>
-    public string FormatVersion { get; set; } = SeatSetsConstants.CurrentFormatVersion;
+    public string Version { get; set; } = "1.0";
 
     /// <summary>创建时的应用版本号。</summary>
     public string AppVersion { get; set; } = string.Empty;
 
-    /// <summary>创建时间（ISO 8601）。</summary>
-    public string CreatedAt { get; set; } = DateTime.Now.ToString("O");
+    /// <summary>创建时间（ISO 8601 UTC）。</summary>
+    public string CreatedAt { get; set; } = DateTime.UtcNow.ToString("O");
 
     /// <summary>用户可选的描述信息。</summary>
     public string? Description { get; set; }

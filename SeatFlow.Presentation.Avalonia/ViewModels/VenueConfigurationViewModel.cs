@@ -1153,6 +1153,13 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     {
         SelectedVenueItem = null;
         _isDirty = false;
+        PreviewSeats.Clear();
+        PreviewOverlays.Clear();
+        LayoutName = string.Empty;
+        _existingGridSeatMap = null;
+        _existingPolarSeatMap = null;
+        _freeformPreviewSeats = [];
+        _freeformPreviewObstacles = [];
     }
 }
 

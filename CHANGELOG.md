@@ -2,7 +2,7 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [1.3.0] — 2026-06-28
 
 ### Added
 - **应用数据打包（.seatsets）**：将 AppData 全部数据（设置、会场、名单、快照、策略配置）打包为单个 `.seatsets` JSON 归档文件，支持分块 SHA256 完整性校验和版本号系统

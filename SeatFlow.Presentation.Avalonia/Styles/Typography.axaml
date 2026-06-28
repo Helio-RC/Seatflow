@@ -55,6 +55,12 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
 
+  <!-- 小号强调正文：13px SemiBold（表单标签等） -->
+  <Style Selector="TextBlock.bodySmallStrong">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
   <!-- 标题大号：18px Bold -->
   <Style Selector="TextBlock.heading">
     <Setter Property="FontSize" Value="18" />

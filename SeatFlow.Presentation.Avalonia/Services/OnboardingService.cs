@@ -780,7 +780,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
-    private static async void AnimateCardBounce (Guide guide , int delayMs)
+    private static async Task AnimateCardBounceAsync (Guide guide , int delayMs)
     {
         // 查找模板中的卡片 Border
         var card = FindTemplateChild<Border>(guide , "PART_CardRoot");

@@ -47,9 +47,9 @@ public class SeatSetsService : ISeatSetsService
 
         var archive = new SeatSetsArchive
         {
-            FormatVersion = SeatSetsConstants.CurrentFormatVersion ,
+            Version = SeatSetsConstants.CurrentFormatVersion ,
             AppVersion = GetAppVersion() ,
-            CreatedAt = DateTime.Now.ToString("O")
+            CreatedAt = DateTime.UtcNow.ToString("O")
         };
 
         int totalFiles = 0;
@@ -241,12 +241,12 @@ public class SeatSetsService : ISeatSetsService
                 return result;
             }
 
-            result.FormatVersion = archive.FormatVersion;
+            result.Version = archive.Version;
             result.AppVersion = archive.AppVersion;
             result.AvailableCategories = archive.Chunks.Keys.ToList();
 
             // 检查版本兼容性
-            if (string.IsNullOrEmpty(archive.FormatVersion))
+            if (string.IsNullOrEmpty(archive.Version))
             {
                 result.ValidationErrors.Add("缺少格式版本号");
                 return result;

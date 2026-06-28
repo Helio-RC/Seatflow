@@ -94,7 +94,7 @@ public class SeatSetsServiceTests : IDisposable
         var json = await File.ReadAllTextAsync(exportPath , TestContext.Current.CancellationToken);
         var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json , JsonOptions.CaseInsensitiveRead);
         archive.Should().NotBeNull();
-        archive!.FormatVersion.Should().Be(SeatSetsConstants.CurrentFormatVersion);
+        archive!.Version.Should().Be(SeatSetsConstants.CurrentFormatVersion);
         archive.Chunks.Should().ContainKey(SeatSetsConstants.CategoryAppSettings);
         archive.Chunks.Should().ContainKey(SeatSetsConstants.CategoryVenues);
         archive.Chunks.Should().ContainKey(SeatSetsConstants.CategoryRosters);
@@ -151,7 +151,7 @@ public class SeatSetsServiceTests : IDisposable
         // Assert
         result.IsValid.Should().BeTrue();
         result.FileSize.Should().BeGreaterThan(0);
-        result.FormatVersion.Should().Be(SeatSetsConstants.CurrentFormatVersion);
+        result.Version.Should().Be(SeatSetsConstants.CurrentFormatVersion);
         result.ArchiveHashValid.Should().BeTrue();
         result.AvailableCategories.Should().Contain(SeatSetsConstants.CategoryAppSettings);
         result.AvailableCategories.Should().Contain(SeatSetsConstants.CategoryVenues);
@@ -376,7 +376,7 @@ public class SeatSetsServiceTests : IDisposable
         var service = CreateService();
         var archive = new SeatSetsArchive
         {
-            FormatVersion = SeatSetsConstants.CurrentFormatVersion ,
+            Version = SeatSetsConstants.CurrentFormatVersion ,
             AppVersion = "1.0.0" ,
             CreatedAt = DateTime.Now.ToString("O")
         };

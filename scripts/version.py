@@ -53,6 +53,7 @@ FILE_TYPE_TO_MODEL: dict[str, str] = {
     "appSettings": "AppSettings.cs",
     "strategyConfig": "StrategyConfig.cs",
     "strategyDatasetConfig": "StrategyDatasetConfig.cs",
+    "seatsets": "SeatSets/SeatSetsArchive.cs",
 }
 
 

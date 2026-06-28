@@ -13,6 +13,7 @@ using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
 using Avalonia;
 using Avalonia.Controls;
+using Serilog;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
@@ -170,6 +171,9 @@ namespace SeatFlow.Presentation.Avalonia
                 // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
                 desktop.ShutdownRequested += (_ , _) =>
                 {
+                    // 手动关闭 Serilog（因为 DI 注册使用了 dispose: false 避免竞态）
+                    Log.CloseAndFlush();
+
                     var exitLogger = _serviceProvider.GetRequiredService<ILogger<App>>();
                     Task.Run(async () =>
                     {

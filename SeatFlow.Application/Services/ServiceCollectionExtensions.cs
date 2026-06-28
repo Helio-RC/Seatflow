@@ -115,7 +115,7 @@ namespace SeatFlow.Application.Services
                     flushToDiskInterval: TimeSpan.FromSeconds(5))
                 .CreateLogger();
 
-            services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: true));
+            services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: false));
             services.AddSingleton<CsvStudentProvider>();
             services.AddSingleton<XlsxStudentProvider>();
             services.AddSingleton<JsonStudentProvider>();
