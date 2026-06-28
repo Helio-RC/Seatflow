@@ -1,22 +1,20 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-# 🪑 SeatFlow - 安排
+# <img src="Assets/SF_icon_mini_background.png" style="zoom:10%" alt="图片名称" align=center /> SeatFlow - 座流
 
 **跨平台桌面座位安排与轮换系统**  
-自动/手动排座 · 多数据源导入导出 · 策略引擎 · 插件扩展 · 历史快照回滚
+自动/手动排座 · 多数据源导入导出 · 策略引擎 · 历史快照回滚
 
-[![GitHub release](https://img.shields.io/github/v/release/Helio-RC/A_Pair?include_prereleases&label=Release&logo=github&style=flat-square)](https://github.com/Helio-RC/A_Pair/releases)
-[![GitHub stars](https://img.shields.io/github/stars/Helio-RC/A_Pair?style=flat-square&logo=github)](https://github.com/Helio-RC/A_Pair/stargazers)
+[![GitHub release](https://img.shields.io/github/v/release/Helio-RC/Seatflow?include_prereleases&label=Release&logo=github&style=flat-square)](https://github.com/Helio-RC/Seatflow/releases)
+[![GitHub stars](https://img.shields.io/github/stars/Helio-RC/Seatflow?style=flat-square&logo=github)](https://github.com/Helio-RC/Seatflow/stargazers)
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Repo size](https://img.shields.io/github/repo-size/Helio-RC/A_Pair?style=flat-square)](https://github.com/Helio-RC/A_Pair)
-[![Top language](https://img.shields.io/github/languages/top/Helio-RC/A_Pair?style=flat-square)](https://github.com/Helio-RC/A_Pair)
+[![Repo size](https://img.shields.io/github/repo-size/Helio-RC/Seatflow?style=flat-square)](https://github.com/Helio-RC/Seatflow)
+[![Top language](https://img.shields.io/github/languages/top/Helio-RC/Seatflow?style=flat-square)](https://github.com/Helio-RC/Seatflow)
 [![QQ Group](https://img.shields.io/badge/QQ-761175549-blue?style=flat-square&logo=tencent-qq)](https://qm.qq.com/q/y9D63B0dYk)
 
 </div>
-
-![ICON](Assets/banner_long.png)
 
 > [!TIP]
 > **💬 QQ 交流群**：[761175549](https://qm.qq.com/q/y9D63B0dYk)  
@@ -35,37 +33,7 @@
 - [x] **配置驱动** — 策略优先级、布局参数、导出选项均可配置
 - [x] **跨平台** — Windows / macOS / Linux 原生运行
 
-> 人员管理功能演示
-
-![人员管理](Assets/Member.gif)
-
-> 会场管理功能演示
-
-![会场管理](Assets/Venue.gif)
-
-> 策略配置功能演示
-
-![策略配置](Assets/Strategy.gif)
-
-> 座位安排与微调
-
-![座位安排与微调](Assets/Generate&Export.gif)
-
-> 快照与回滚
-
-![快照与回滚](Assets/Snapshot&Roolback.gif)
-
 ---
-
-## 📋 开发路线图
-
-当前已完成核心业务逻辑（领域模型、策略引擎、数据导入导出、插件系统、快照管理）和大部分 UI 页面。详见 [docs/Phases.md](docs/Phases.md)。
-
-- [x] **Phase 1-3** — 领域建模、数据导入导出、内置策略
-- [x] **Phase 4-5** — 插件系统、Lua/C# 脚本支持
-- [x] **Phase 6** — 高级布局可视化、拖拽交互、命令模式（Grid/Polar/Freeform 布局、Canvas 预览、缩放平移、撤销/重做）
-- [x] **Phase 7** — 配置管理、存储、版本迁移（文件版本管理、迁移管线、快照回滚、快照完整性检测、确定性构建、页面导航管理）
-- [ ] **Phase 8** — 测试覆盖、文档完善、打包发布
 
 ## 🚀 快速开始
 
@@ -77,7 +45,7 @@
 **构建与运行**
 
 ```bash
-git clone https://github.com/Helio-RC/A_Pair.git
+git clone https://github.com/Helio-RC/Seatflow.git
 cd SeatFlow
 dotnet build
 dotnet run --project SeatFlow.Presentation.Avalonia
@@ -91,7 +59,7 @@ dotnet test
 
 ## 🤝 反馈与贡献
 
-- **Bug 反馈**：请在 [GitHub Issues](https://github.com/Helio-RC/A_Pair/issues) 提交，附上操作系统版本和复现步骤，最好能附上日志
+- **Bug 反馈**：请在 [GitHub Issues](https://github.com/Helio-RC/Seatflow/issues) 提交，附上操作系统版本和复现步骤，最好能附上日志
 - **功能建议**：欢迎提交 Feature Request
 - **界面美化**：初代开发者审美不好，欢迎各位大能贡献 UI 设计和图标资源
 - **插件开发**：参见 [SeatFlow.Plugins.Sdk/docs/README.md](SeatFlow.Plugins.Sdk/docs/README.md) 插件开发指南 `尚未完善 🚧 部分支持`

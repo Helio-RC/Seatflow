@@ -191,7 +191,7 @@
                     AutomationProperties.Name="{x:Static lang:Resources.SeatSets_Export}"
                     HorizontalAlignment="Right" Padding="12,6">
               <StackPanel Orientation="Horizontal" Spacing="4">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUpload}" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowExport}" FontSize="14" />
                 <TextBlock Text="{x:Static lang:Resources.SeatSets_Export}" FontSize="13" />
               </StackPanel>
             </Button>
@@ -211,7 +211,7 @@
                     AutomationProperties.Name="{x:Static lang:Resources.SeatSets_Import}"
                     HorizontalAlignment="Right" Padding="12,6">
               <StackPanel Orientation="Horizontal" Spacing="4">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="14" />
+                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowImport}" FontSize="14" />
                 <TextBlock Text="{x:Static lang:Resources.SeatSets_Import}" FontSize="13" />
               </StackPanel>
             </Button>
