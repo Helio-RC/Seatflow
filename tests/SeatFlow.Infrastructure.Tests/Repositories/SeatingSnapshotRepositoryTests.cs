@@ -29,7 +29,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
             SeatAssignments = new Dictionary<string , string> { { "s1" , "p1" } }
         };
         await repo.SaveAsync(snapshot , TestContext.Current.CancellationToken);
-        var loaded = repo.Load(snapshot.Id);
+        var loaded = await repo.LoadAsync(snapshot.Id , TestContext.Current.CancellationToken);
         loaded.Should().NotBeNull();
         loaded!.Description.Should().Be("Test");
         loaded.SeatAssignments["s1"].Should().Be("p1");
@@ -56,7 +56,7 @@ public class SeatingSnapshotRepositoryTests : IDisposable
         var snap = new SeatingSnapshot();
         await repo.SaveAsync(snap , TestContext.Current.CancellationToken);
         await repo.DeleteAsync(snap.Id , TestContext.Current.CancellationToken);
-        repo.Load(snap.Id).Should().BeNull();
+        (await repo.LoadAsync(snap.Id , TestContext.Current.CancellationToken)).Should().BeNull();
     }
 
     /// <summary>
@@ -80,9 +80,9 @@ public class SeatingSnapshotRepositoryTests : IDisposable
         // 3) 删除旧快照——应通过全盘扫描找到并删除
         await repo2.DeleteAsync(oldSnapshot.Id , TestContext.Current.CancellationToken);
 
-        repo2.Load(oldSnapshot.Id).Should().BeNull();
+        (await repo2.LoadAsync(oldSnapshot.Id , TestContext.Current.CancellationToken)).Should().BeNull();
         // 新快照不受影响
-        repo2.Load(newSnapshot.Id).Should().NotBeNull();
+        (await repo2.LoadAsync(newSnapshot.Id , TestContext.Current.CancellationToken)).Should().NotBeNull();
     }
 
     /// <summary>
@@ -100,6 +100,6 @@ public class SeatingSnapshotRepositoryTests : IDisposable
 
         // Delete 应能通过 BuildIndex 全盘扫描找到并删除
         await repo.DeleteAsync(snap.Id , TestContext.Current.CancellationToken);
-        repo.Load(snap.Id).Should().BeNull();
+        (await repo.LoadAsync(snap.Id , TestContext.Current.CancellationToken)).Should().BeNull();
     }
 }

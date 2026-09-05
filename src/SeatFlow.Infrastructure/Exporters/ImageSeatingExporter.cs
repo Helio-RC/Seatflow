@@ -1,3 +1,4 @@
+#if !BROWSER
 using SeatFlow.Core.Exporters;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Workspace;
@@ -113,3 +114,5 @@ public class ImageSeatingExporter (ILogger<ImageSeatingExporter>? logger = null)
         return Task.CompletedTask;
     }
 }
+
+#endif

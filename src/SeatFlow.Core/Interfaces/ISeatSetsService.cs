@@ -19,6 +19,16 @@ public interface ISeatSetsService
         CancellationToken ct = default);
 
     /// <summary>
+    /// 将选定的应用数据类别导出为 .seatsets 字节内容（WASM/浏览器端使用，
+    /// 宿主负责触发 Web 下载）。
+    /// </summary>
+    /// <param name="selection">用户选择的数据类别。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <returns>归档字节；无数据可导出时返回 null。</returns>
+    Task<byte[]?> ExportBytesAsync (SeatSetsExportSelection selection ,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// 从 .seatsets 文件导入数据，恢复文件夹结构和文件。
     /// 采用"尽力而为"策略：单个文件失败不会中断整个导入。
     /// </summary>
@@ -28,6 +38,17 @@ public interface ISeatSetsService
     /// <param name="ct">取消令牌。</param>
     /// <returns>导入结果，含成功/跳过/失败计数和错误详情。</returns>
     Task<SeatSetsImportResult> ImportAsync (string filePath , SeatSetsExportSelection selection ,
+        IProgress<double>? progress = null , CancellationToken ct = default);
+
+    /// <summary>
+    /// 从 .seatsets 字节内容导入数据（WASM/浏览器端使用，来源为文件选择器）。
+    /// </summary>
+    /// <param name="content">归档字节内容。</param>
+    /// <param name="selection">用户选择要导入的数据类别。</param>
+    /// <param name="progress">进度报告（0.0 ~ 1.0），可选。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <returns>导入结果，含成功/跳过/失败计数和错误详情。</returns>
+    Task<SeatSetsImportResult> ImportBytesAsync (byte[] content , SeatSetsExportSelection selection ,
         IProgress<double>? progress = null , CancellationToken ct = default);
 
     /// <summary>
@@ -41,8 +62,18 @@ public interface ISeatSetsService
         CancellationToken ct = default);
 
     /// <summary>
+    /// 校验 .seatsets 字节内容（WASM/浏览器端使用）。
+    /// </summary>
+    /// <param name="content">归档字节内容。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <returns>校验结果。</returns>
+    Task<SeatSetsValidationResult> ValidateBytesAsync (byte[] content ,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// 在可执行文件目录中自动发现 .seatsets 文件。
     /// 用于首次启动且 AppData 不存在时的自动导入场景。
+    /// 浏览器端始终返回 null（无文件系统）。
     /// </summary>
     /// <param name="ct">取消令牌。</param>
     /// <returns>发现的 .seatsets 文件路径，未找到则返回 null。</returns>
@@ -56,5 +87,14 @@ public interface ISeatSetsService
     /// <param name="ct">取消令牌。</param>
     /// <returns>文件中实际包含的类别选择（仅含有的类别为 true）。</returns>
     Task<SeatSetsExportSelection> ProbeCategoriesAsync (string filePath ,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// 探测 .seatsets 字节内容（WASM/浏览器端使用）。
+    /// </summary>
+    /// <param name="content">归档字节内容。</param>
+    /// <param name="ct">取消令牌。</param>
+    /// <returns>文件中实际包含的类别选择（仅含有的类别为 true）。</returns>
+    Task<SeatSetsExportSelection> ProbeCategoriesBytesAsync (byte[] content ,
         CancellationToken ct = default);
 }

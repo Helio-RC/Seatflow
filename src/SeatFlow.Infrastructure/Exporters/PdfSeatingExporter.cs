@@ -1,3 +1,4 @@
+#if !BROWSER
 using SeatFlow.Core.Exporters;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Workspace;
@@ -171,3 +172,5 @@ public class PdfSeatingExporter (ILogger<PdfSeatingExporter>? logger = null) : I
         } , cancellationToken);
     }
 }
+
+#endif

@@ -2,33 +2,69 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Providers;
+using SeatFlow.Core.Storage;
 using SeatFlow.Infrastructure.Migration;
 using SeatFlow.Infrastructure.Serialization;
+using SeatFlow.Infrastructure.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Infrastructure.Providers
 {
-    public class JsonAppSettingsRepository (
-        string filePath ,
-        FileMigrationService migration ,
-        ILogger<JsonAppSettingsRepository>? logger = null) : IAppSettingsRepository
+    public class JsonAppSettingsRepository : IAppSettingsRepository
     {
-        private readonly string _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
-        private readonly FileMigrationService _migration = migration ?? throw new ArgumentNullException(nameof(migration));
-        private readonly ILogger<JsonAppSettingsRepository> _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
+        private readonly ILocalDataStore _store;
+        private readonly string _filePath;
+        private readonly FileMigrationService _migration;
+        private readonly ILogger<JsonAppSettingsRepository> _logger;
 
-        public string SettingsFilePath => _filePath;
+        /// <summary>
+        /// 初始化 AppSettings 仓储（存储抽象版本）。
+        /// </summary>
+        /// <param name="store">数据存储实现。</param>
+        /// <param name="relativeFilePath">AppSettings.json 相对存储路径（如 <c>AppSettings.json</c>）。</param>
+        /// <param name="migration">文件迁移服务。</param>
+        /// <param name="logger">日志记录器。</param>
+        public JsonAppSettingsRepository (
+            ILocalDataStore store ,
+            string relativeFilePath ,
+            FileMigrationService migration ,
+            ILogger<JsonAppSettingsRepository>? logger = null)
+        {
+            _store = store ?? throw new ArgumentNullException(nameof(store));
+            _filePath = NormalizePath(relativeFilePath) ?? throw new ArgumentNullException(nameof(relativeFilePath));
+            _migration = migration ?? throw new ArgumentNullException(nameof(migration));
+            _logger = logger ?? NullLogger<JsonAppSettingsRepository>.Instance;
+        }
+
+        /// <summary>
+        /// 初始化 AppSettings 仓储（兼容构造：直接指定完整文件路径）。
+        /// </summary>
+        public JsonAppSettingsRepository (
+            string filePath ,
+            FileMigrationService migration ,
+            ILogger<JsonAppSettingsRepository>? logger = null)
+            : this(new FileSystemDataStore(Path.GetDirectoryName(filePath) ?? "") ,
+                  Path.GetFileName(filePath) ,
+                  migration ,
+                  logger)
+        {
+            _desktopFilePath = filePath;
+        }
+
+        private readonly string? _desktopFilePath;
+
+        public string SettingsFilePath => _desktopFilePath ?? _filePath;
 
         public async Task<AppSettings> LoadAsync (CancellationToken cancellationToken = default)
         {
-            if (!File.Exists(_filePath))
+            var json = await _store.ReadTextAsync(_filePath , cancellationToken);
+            if (json is null)
             {
                 _logger.LogDebug("AppSettings 文件不存在，使用默认设置：{Path}" , _filePath);
                 return new AppSettings();
             }
 
-            var json = await File.ReadAllTextAsync(_filePath , cancellationToken);
             var node = JsonNode.Parse(json);
             if (node is not null)
             {
@@ -48,15 +84,14 @@ namespace SeatFlow.Infrastructure.Providers
 
         public async Task SaveAsync (AppSettings settings , CancellationToken cancellationToken = default)
         {
-            var dir = Path.GetDirectoryName(_filePath);
-            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
             settings.Version = FileVersionInfo.GetCurrentVersion("appSettings");
             var options = JsonOptions.WriteIndented;
             var json = JsonSerializer.Serialize(settings , options);
-            await File.WriteAllTextAsync(_filePath , json , cancellationToken);
+            await _store.WriteTextAsync(_filePath , json , cancellationToken);
             _logger.LogInformation("AppSettings 已保存：{Path}" , _filePath);
         }
+
+        private static string NormalizePath (string path)
+            => path?.Replace('\\' , '/').TrimStart('/') ?? "";
     }
 }
