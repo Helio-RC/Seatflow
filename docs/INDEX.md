@@ -23,6 +23,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
 │   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
 │   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
+│   ├── WebDeployment.md       ← Web/WASM 部署指南（平台差异、JS 桥、已知限制）
 │   └── adr/
 │       ├── ADR-001-avalonia-ui-framework.md        ← 选择 Avalonia UI 的决策
 │       ├── ADR-002-mvvm-framework.md               ← 选择 CommunityToolkit.Mvvm 的决策

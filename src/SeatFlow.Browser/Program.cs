@@ -24,9 +24,9 @@ internal sealed class Program
     private static async Task Main (string[] args)
     {
         // 加载 IndexedDB 桥接模块（ILocalDataStore 的 WASM 实现依赖）
-        await JSHost.ImportAsync("sf.idb" , "js/interop.js");
+        await JSHost.ImportAsync("sf.idb" , "/js/interop.js");
         // 加载文件互操作模块（打开/保存）
-        await JSHost.ImportAsync("sf.files" , "js/files.js");
+        await JSHost.ImportAsync("sf.files" , "/js/files.js");
 
         var services = new ServiceCollection();
 

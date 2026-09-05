@@ -143,6 +143,8 @@ namespace SeatFlow.Application.Services
         {
             if (withFileLogging)
                 services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: false));
+            else
+                services.AddLogging(); // 浏览器：无 sink（ILogger<T> 可解析，默认空实现）
             services.AddSingleton(store);
             services.AddSingleton(sp => new CsvStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
             services.AddSingleton(sp => new XlsxStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
