@@ -1,5 +1,6 @@
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Providers;
+using SeatFlow.Core.Storage;
 using OfficeOpenXml;
 
 namespace SeatFlow.Infrastructure.Providers
@@ -10,6 +11,14 @@ namespace SeatFlow.Infrastructure.Providers
     /// </summary>
     public class XlsxStudentProvider : IStudentProvider
     {
+        private readonly ILocalDataStore? _store;
+
+        /// <param name="store">存储抽象（可选；非空时支持存储相对路径源）。</param>
+        public XlsxStudentProvider (ILocalDataStore? store = null)
+        {
+            _store = store;
+        }
+
         // ═══════════════════════════════════════════════
         //  IStudentProvider 实现
         // ═══════════════════════════════════════════════
@@ -20,17 +29,18 @@ namespace SeatFlow.Infrastructure.Providers
         }
 
         /// <inheritdoc />
-        public Task<List<Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
+        public async Task<List<Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
         {
-            if (string.IsNullOrEmpty(source) || !File.Exists(source))
-                return Task.FromResult(new List<Student>());
+            var bytes = await StudentSourceResolver.ReadBytesAsync(source , _store , ct);
+            if (bytes is null)
+                return [];
 
             ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
-            using var stream = File.OpenRead(source);
+            using var stream = new MemoryStream(bytes);
             using var package = new ExcelPackage(stream);
             var ws = package.Workbook.Worksheets[0];
             if (ws.Dimension == null)
-                return Task.FromResult(new List<Student>());
+                return [];
 
             // Phase 1: 构建二维网格（含合并格扩展，可限制范围）
             var (cells , totalRows , totalCols) = BuildCellGrid(ws , maxRows , maxCols , ct);
@@ -41,32 +51,25 @@ namespace SeatFlow.Infrastructure.Providers
             if (result.IsStandardTemplate)
             {
                 // 快速路径：表头在 row 0，数据从 row 2 开始（row 1=注释行）
-                return Task.FromResult(ParseStandardTemplate(cells , totalRows , totalCols , ct));
+                return ParseStandardTemplate(cells , totalRows , totalCols , ct);
             }
 
             if (result.Students != null)
-                return Task.FromResult(result.Students);
+                return result.Students;
 
             // 回退
-            return Task.FromResult(ParseStandardTemplate(cells , totalRows , totalCols , ct));
+            return ParseStandardTemplate(cells , totalRows , totalCols , ct);
         }
 
         /// <inheritdoc />
-        public Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
+        public async Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
         {
-            return Task.FromResult(GetDimensions(source));
-        }
-
-        /// <summary>
-        /// 获取文件维度（行数 × 列数），不解析学生数据。
-        /// </summary>
-        internal static (int Rows , int Cols) GetDimensions (string source)
-        {
-            if (string.IsNullOrEmpty(source) || !File.Exists(source))
+            var bytes = await StudentSourceResolver.ReadBytesAsync(source , _store , ct);
+            if (bytes is null)
                 return (0 , 0);
 
             ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
-            using var stream = File.OpenRead(source);
+            using var stream = new MemoryStream(bytes);
             using var package = new ExcelPackage(stream);
             var ws = package.Workbook.Worksheets[0];
             if (ws.Dimension == null)

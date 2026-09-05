@@ -1,6 +1,7 @@
 using System.Globalization;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Providers;
+using SeatFlow.Core.Storage;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -9,9 +10,18 @@ namespace SeatFlow.Infrastructure.Providers;
 /// <summary>
 /// CSV 格式的学生数据提供器，使用 CsvHelper 解析以正确处理引号字段和嵌入换行。
 /// 支持标准模板（第 1 行列名、第 2 行注释）与任意布局的模糊字段匹配。
+/// 数据源可为文件系统路径或存储相对路径（WASM：上传暂存于 <c>Uploads/*</c>）。
 /// </summary>
 public class CsvStudentProvider : IStudentProvider
 {
+    private readonly ILocalDataStore? _store;
+
+    /// <param name="store">存储抽象（可选；非空时支持存储相对路径源）。</param>
+    public CsvStudentProvider (ILocalDataStore? store = null)
+    {
+        _store = store;
+    }
+
     private static readonly CsvConfiguration FullReadConfig = new(CultureInfo.InvariantCulture)
     {
         // 不跳过任何行——全部读入网格供模糊匹配分析
@@ -33,15 +43,16 @@ public class CsvStudentProvider : IStudentProvider
     }
 
     /// <inheritdoc />
-    public Task<List<Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
+    public async Task<List<Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(source) || !File.Exists(source))
-            return Task.FromResult(new List<Student>());
+        var bytes = await StudentSourceResolver.ReadBytesAsync(source , _store , ct);
+        if (bytes is null)
+            return [];
 
         // Phase 1: 读取为二维网格（可限制范围）
-        var (cells , totalRows , totalCols) = BuildCellGrid(source , maxRows , maxCols , ct);
+        var (cells , totalRows , totalCols) = BuildCellGrid(bytes , maxRows , maxCols , ct);
         if (totalRows == 0)
-            return Task.FromResult(new List<Student>());
+            return [];
 
         // Phase 2: 模糊字段匹配
         var result = FuzzyColumnMatcher.TryParse(cells , totalRows , totalCols);
@@ -49,34 +60,34 @@ public class CsvStudentProvider : IStudentProvider
         if (result.IsStandardTemplate)
         {
             // 快速路径：表头在 row 0，数据从 row 2 开始（row 1=注释行）
-            return Task.FromResult(ParseStandardTemplate(cells , totalRows , totalCols , ct));
+            return ParseStandardTemplate(cells , totalRows , totalCols , ct);
         }
 
         if (result.Students != null)
-            return Task.FromResult(result.Students);
+            return result.Students;
 
         // 回退：模糊匹配未找到有效数据 → 尝试标准模板解析
-        return Task.FromResult(ParseStandardTemplate(cells , totalRows , totalCols , ct));
+        return ParseStandardTemplate(cells , totalRows , totalCols , ct);
     }
 
     /// <inheritdoc />
-    public Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
+    public async Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
     {
-        return Task.FromResult(GetDimensions(source));
+        var bytes = await StudentSourceResolver.ReadBytesAsync(source , _store , ct);
+        if (bytes is null)
+            return (0 , 0);
+        return GetDimensions(bytes);
     }
 
     /// <summary>
     /// 获取文件维度（行数 × 最大列数），不解析学生数据。
     /// </summary>
-    internal static (int Rows , int Cols) GetDimensions (string source)
+    internal static (int Rows , int Cols) GetDimensions (byte[] bytes)
     {
-        if (string.IsNullOrEmpty(source) || !File.Exists(source))
-            return (0 , 0);
-
         int rowCount = 0;
         int maxCols = 0;
 
-        using var reader = new StreamReader(source);
+        using var reader = new StreamReader(new MemoryStream(bytes));
         using var csv = new CsvReader(reader , FullReadConfig);
 
         while (csv.Read())
@@ -93,14 +104,14 @@ public class CsvStudentProvider : IStudentProvider
     // ═══════════════════════════════════════════════
 
     private static (string?[,] Cells , int Rows , int Cols) BuildCellGrid (
-        string source , int maxRows , int maxCols , CancellationToken ct)
+        byte[] bytes , int maxRows , int maxCols , CancellationToken ct)
     {
         var rows = new List<string?[]>();
         int scannedMaxCols = 0;
         int rowLimit = maxRows > 0 ? maxRows : int.MaxValue;
         int colLimit = maxCols > 0 ? maxCols : int.MaxValue;
 
-        using var reader = new StreamReader(source);
+        using var reader = new StreamReader(new MemoryStream(bytes));
         using var csv = new CsvReader(reader , FullReadConfig);
 
         while (csv.Read() && rows.Count < rowLimit)

@@ -25,6 +25,8 @@ internal sealed class Program
     {
         // 加载 IndexedDB 桥接模块（ILocalDataStore 的 WASM 实现依赖）
         await JSHost.ImportAsync("sf.idb" , "js/interop.js");
+        // 加载文件互操作模块（打开/保存）
+        await JSHost.ImportAsync("sf.files" , "js/files.js");
 
         var services = new ServiceCollection();
 
@@ -33,7 +35,7 @@ internal sealed class Program
 
         // 平台服务：浏览器端实现（IndexedDB 存储 / overlay 对话框 / 占位文件与更新服务）
         services.AddSingleton<INavigationService , NavigationService>();
-        services.AddSingleton<IFileService , WebStubFileService>();
+        services.AddSingleton<IFileService , WebFileService>();
         services.AddSingleton<IDialogService , WebDialogService>();
         services.AddSingleton<IUrlOpener , WebUrlOpener>();
         services.AddSingleton<IUpdateService , WebNoopUpdateService>();

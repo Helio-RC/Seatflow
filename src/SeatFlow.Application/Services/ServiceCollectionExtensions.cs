@@ -144,9 +144,9 @@ namespace SeatFlow.Application.Services
             if (withFileLogging)
                 services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: false));
             services.AddSingleton(store);
-            services.AddSingleton<CsvStudentProvider>();
-            services.AddSingleton<XlsxStudentProvider>();
-            services.AddSingleton<JsonStudentProvider>();
+            services.AddSingleton(sp => new CsvStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
+            services.AddSingleton(sp => new XlsxStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
+            services.AddSingleton(sp => new JsonStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
             services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
             services.AddSingleton<FileMigrationService>();
             services.AddSingleton<IFileMigrator , VenueMigrators.Step_1_0_to_1_1>();

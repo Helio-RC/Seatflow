@@ -174,6 +174,9 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         _ = LoadAsync(CancellationToken.None);
     }
 
+    /// <summary>当前运行平台是否为浏览器（WASM）。更新/存储卡片在网页版隐藏。</summary>
+    public bool IsWebPlatform => OperatingSystem.IsBrowser();
+
     private async Task LoadAsync (CancellationToken ct)
     {
         try

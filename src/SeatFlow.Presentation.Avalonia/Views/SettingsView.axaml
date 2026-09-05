@@ -100,8 +100,8 @@
           </StackPanel>
         </Border>
 
-        <!-- ═══ 存储卡片 ═══ -->
-        <Border Classes="settingsCard">
+        <!-- ═══ 存储卡片（浏览器无文件系统路径，隐藏） ═══ -->
+        <Border Classes="settingsCard" IsVisible="{Binding !IsWebPlatform}">
           <StackPanel Spacing="12">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Folder}" FontSize="18"
@@ -324,8 +324,8 @@
           </StackPanel>
         </Border>
 
-        <!-- ═══ 更新卡片 ═══ -->
-        <Border Classes="settingsCard">
+        <!-- ═══ 更新卡片（浏览器无自动更新，隐藏） ═══ -->
+        <Border Classes="settingsCard" IsVisible="{Binding !IsWebPlatform}">
           <StackPanel Spacing="12">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="18"

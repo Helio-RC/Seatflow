@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -55,5 +57,25 @@ public class FileService : IFileService
             await Task.Delay(150);
             Interlocked.Exchange(ref _dialogLock , 0);
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<PickedFile?> OpenFileBytesAsync (string title , IReadOnlyList<FilePickerFileType> types)
+    {
+        var file = await OpenFileAsync(title , types);
+        if (file is null) return null;
+        await using var stream = await file.OpenReadAsync();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        return new PickedFile(file.Name , ms.ToArray());
+    }
+
+    /// <inheritdoc />
+    public async Task SaveFileBytesAsync (string suggestedFileName , byte[] content , IReadOnlyList<FilePickerFileType> types)
+    {
+        var file = await SaveFileAsync(string.Empty , types , suggestedFileName);
+        if (file is null) return;
+        await using var stream = await file.OpenWriteAsync();
+        await stream.WriteAsync(content);
     }
 }
