@@ -1,18 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net10.0-browser</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- AVLN3001: DI requires parameterized constructor, no public parameterless ctor -->
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>
-    <AssemblyName>SeatFlow</AssemblyName>
     <ApplicationIcon>Assets\icon_with_background.ico</ApplicationIcon>
     <!-- 确定性构建：相同源码 → 相同输出，不因时间/路径变化 -->
     <Deterministic>true</Deterministic>
     <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)'))=./</PathMap>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SeatFlow" />
+    <InternalsVisibleTo Include="SeatFlow.Browser" />
+  </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
@@ -38,8 +40,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.1" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
-    <PackageReference Include="Avalonia.Headless" Version="12.1.1" />
+    <!-- Avalonia.Desktop 由桌面壳（SeatFlow.Desktop）持有 -->
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
@@ -55,7 +56,6 @@
     <PackageReference Include="CodeWF.AvaloniaControls" Version="12.1.1.1" />
     <PackageReference Include="OpenTelemetry" Version="1.17.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
-    <PackageReference Include="Velopack" Version="1.2.110-ge826545" />
   </ItemGroup>
 
   <ItemGroup>

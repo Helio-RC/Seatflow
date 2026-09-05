@@ -40,6 +40,9 @@ namespace SeatFlow.Presentation.Avalonia
         /// <summary>在 AppData 创建前自动扫描到的 .seatsets 文件路径（首次启动数据恢复）。</summary>
         internal static string? AutoImportSeatSetsPath { get; set; }
 
+        /// <summary>单实例命名管道名（第二个进程通过它转发 .seatsets 文件路径）。</summary>
+        internal const string SeatSetsPipeName = "SeatFlow_SeatSetsPipe";
+
         /// <summary>Velopack 安装后首次运行标志，由 Program.Main 中的 OnFirstRun 回调设置。</summary>
         internal static bool IsFirstRunAfterInstall { get; set; }
 
@@ -220,6 +223,20 @@ namespace SeatFlow.Presentation.Avalonia
                 // 处理双击 .seatsets 文件（延迟到 UI 就绪后执行）
                 HandlePendingSeatSetsFile();
             }
+            else if (ApplicationLifetime is IActivityApplicationLifetime web)
+            {
+                // WebAssembly 单视图宿主：整个应用渲染在单个浏览页面中
+                var mainShell = _serviceProvider.GetRequiredService<MainShellViewModel>();
+                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                mainWindow.DataContext = mainShell;
+                web.MainViewFactory = () => mainWindow;
+
+                ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
+                ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
+
+                // 浏览器无独立窗口：全角输入转换等附加行为在浏览器模式不需要
+                _ = InitializeAsync(mainWindow);
+            }
 
             base.OnFrameworkInitializationCompleted();
         }
@@ -238,7 +255,7 @@ namespace SeatFlow.Presentation.Avalonia
                     try
                     {
                         using var server = new System.IO.Pipes.NamedPipeServerStream(
-                            Program.SeatSetsPipeName , PipeDirection.In , 1);
+                            SeatSetsPipeName , PipeDirection.In , 1);
                         await server.WaitForConnectionAsync();
                         using var reader = new StreamReader(server);
                         var path = await reader.ReadLineAsync();
