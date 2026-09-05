@@ -72,10 +72,15 @@ Task<IReadOnlyList<string>> ListAsync(string relativeDir);
 
 ## 5. 导入导出定档
 
-- **导入**：CSV/JSON 全平台。XLSX：Phase 0 验证 EPPlus `net10.0-browser`；失败则 `CompositeStudentProvider` 成员改由 DI 注入注册表，Web 端不含 XLSX（提示"Excel 另存为 CSV"）。
-- **导出器重构为返回 `byte[]`**：`ExportBytesAsync` 新增，桌面壳写文件、浏览器壳触发下载。4 个 exporter 机械式改造。
-- **图片导出**：Phase 0 确认 ImageSeatingExporter 实现方式；若 SkiaSharp 直绘则浏览器版用 `RenderTargetBitmap` 重构。
-- **PDF（QuestPDF）**：默认降级（Web 不提供），不投入设计成本。
+**Phase 0 已验证（2026-09-05）—— 定档如下**：
+
+- **XLSX**：EPPlus 8.6.3 在 WASM 实测通过（二进制往返读写 OK）→ **Web 版支持 XLSX 导入/导出，无需降级**（Phase 1 需处理 Avalonia Browser 壳发布裁剪，见下）。
+- **PDF**：QuestPDF 2026.7.2 浏览器 TFM 编译期缺失 API（PageSizes）+ 运行期 TypeInitializationException → **Web 版不提供 PDF 导出（降级确认）**。
+- **图片导出**：SkiaSharp 4.151 WASM 运行期初始化失败 → **Web 版图片导出改用 RenderTargetBitmap 方案**（若 ImageSeatingExporter 现状为 SkiaSharp 直绘，Web 端换实现）。
+- **Avalonia Browser 壳发布裁剪**：Sdk.WebAssembly 默认发布会剔除 EPPlus 等外部库；`<TrimmerRootAssembly Include="EPPlus" />` + `EPPlus.Interfaces` 解决（成功进入产物，含 IL2104 警告，后续可 SuppressTrimAnalysisWarnings）。
+- **WASM 引导**：Avalonia 模板自带 main.js（`import { dotnet }` + `runMain` + `getAssemblyExports`），无需自定义。
+- **模态窗口**：官方明示 WASM 不支持独立 Window → overlay 对话框路线确认。
+- **发布基线**：最小模板 publish wwwroot ≈ 33M（含 br/gz 预压缩产物）。
 
 ## 6. UI 差异 + 发布
 
@@ -124,7 +129,7 @@ Task<IReadOnlyList<string>> ListAsync(string relativeDir);
 
 | 风险 | 缓解 |
 |---|---|
-| EPPlus/QuestPDF WASM 不可用 | Phase 0 定档；降级路径已设计 |
+| EPPlus trim 警告（IL2104） | 已通过 TrimmerRootAssembly 保留；警告后续 SuppressTrimAnalysisWarnings 处理 |
 | IndexedDB 桥接性能（大量小文件） | 单 key 存 JSON 时按目录聚合读写（Phase 2 调优，若 Phase 0 测出瓶颈） |
 | WASM 性能（策略执行慢 2-4 倍） | 门控阈值：200 人级名单在 10s 内可接受收；超限时 Profile 优化 |
 | 裁剪误删反射类型 | TrimRoot 保 SeatFlow 程序集 |
