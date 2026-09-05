@@ -80,6 +80,7 @@ namespace SeatFlow.Presentation.Avalonia
             services.AddSingleton<INavigationService , NavigationService>();
             services.AddSingleton<IFileService , FileService>();
             services.AddSingleton<IDialogService , DialogService>();
+            services.AddSingleton<IUrlOpener , DesktopUrlOpener>();
             services.AddSingleton<WatchdogService>();
 
             // 注册更新服务（Velopack 自动更新）

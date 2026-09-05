@@ -30,6 +30,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     private readonly IFileService _fileService;
     private readonly ITelemetryService _telemetry;
     private readonly IUpdateService _updateService;
+    private readonly IUrlOpener _urlOpener;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingsViewModel> _logger;
 
@@ -159,7 +160,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     [ObservableProperty]
     public partial bool HasPendingUpdate { get; set; }
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , IFileService fileService , ITelemetryService telemetry , IUpdateService updateService , IServiceProvider serviceProvider , ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , IFileService fileService , ITelemetryService telemetry , IUpdateService updateService , IUrlOpener urlOpener , IServiceProvider serviceProvider , ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
@@ -167,6 +168,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         _fileService = fileService;
         _telemetry = telemetry;
         _updateService = updateService;
+        _urlOpener = urlOpener;
         _serviceProvider = serviceProvider;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
@@ -338,9 +340,11 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
                     Resources.Common_Later);
                 if (clicked == 0)
                 {
+#if !BROWSER
                     Process.Start(Environment.ProcessPath!);
                     if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                         desktop.Shutdown();
+#endif
                     return;
                 }
             }
@@ -539,9 +543,11 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
 
         try
         {
+#if !BROWSER
             if (Directory.Exists(path))
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             else
+#endif
                 _ = _dialog.ShowWarningAsync(Resources.Settings_DirNotFound ,
                     string.Format(Resources.Settings_DirNotFoundFormat , path));
         }
@@ -651,7 +657,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
             if (!goToGitHub) return;
 
             var url = _updateService.GetGitHubReleasesUrl(VersionInfo.Version);
-            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            _urlOpener.OpenUrl(url);
         }
         catch (Exception ex)
         {

@@ -7,28 +7,29 @@ internal partial class InputWindow : Window
 {
     public string Prompt
     {
-        get => PromptBlock.Text ?? "";
-        set => PromptBlock.Text = value;
+        get => ContentRoot.Prompt;
+        set => ContentRoot.Prompt = value;
     }
 
     public string Input
     {
-        get => InputBox.Text ?? "";
-        set => InputBox.Text = value;
+        get => ContentRoot.Input;
+        set => ContentRoot.Input = value;
     }
 
     public InputWindow ()
     {
         InitializeComponent();
-
-        OkButton.Click += (_ , _) => Close(true);
-        CancelButton.Click += (_ , _) => Close(false);
+        ContentRoot.Completed += (_, confirmed) =>
+        {
+            Input = ContentRoot.Input;
+            Close(confirmed);
+        };
     }
 
     protected override void OnLoaded (RoutedEventArgs e)
     {
         base.OnLoaded(e);
-        InputBox.Focus();
-        InputBox.SelectAll();
+        ContentRoot.OnContentAttached();
     }
 }

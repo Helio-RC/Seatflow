@@ -31,10 +31,11 @@ internal sealed class Program
         // 存储抽象：WASM = IndexedDB（无文件系统；桌面端走 AddSeatFlowApplication(string)）
         services.AddSeatFlowApplication(new IndexedDbDataStore());
 
-        // 平台服务：浏览器端占位实现（Phase 2 升级为 JS interop / overlay 正式版）
+        // 平台服务：浏览器端实现（IndexedDB 存储 / overlay 对话框 / 占位文件与更新服务）
         services.AddSingleton<INavigationService , NavigationService>();
         services.AddSingleton<IFileService , WebStubFileService>();
-        services.AddSingleton<IDialogService , WebStubDialogService>();
+        services.AddSingleton<IDialogService , WebDialogService>();
+        services.AddSingleton<IUrlOpener , WebUrlOpener>();
         services.AddSingleton<IUpdateService , WebNoopUpdateService>();
         services.AddSingleton<IArrangementCounterService , ArrangementCounterService>();
         services.AddSingleton<ITelemetryService , NullTelemetryService>();

@@ -25,6 +25,7 @@ public partial class MemberManagementViewModel : ViewModelBase, IFileDropHandler
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
     private readonly IDialogService _dialog;
+    private readonly IUrlOpener _urlOpener;
     private readonly ILogger<MemberManagementViewModel> _logger;
 
     [ObservableProperty]
@@ -208,11 +209,12 @@ public partial class MemberManagementViewModel : ViewModelBase, IFileDropHandler
     public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt , FilePath);
     public string StudentCountDisplay2 => string.Format(Resources.Member_PersonCountFmt , StudentCount);
 
-    public MemberManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , ILogger<MemberManagementViewModel>? logger = null)
+    public MemberManagementViewModel (IApplicationFacade facade , IFileService fileService , IDialogService dialog , IUrlOpener urlOpener , ILogger<MemberManagementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
         _dialog = dialog;
+        _urlOpener = urlOpener;
         _logger = logger ?? NullLogger<MemberManagementViewModel>.Instance;
         _ = RefreshDatasetsAsync(CancellationToken.None);
     }
@@ -352,15 +354,11 @@ public partial class MemberManagementViewModel : ViewModelBase, IFileDropHandler
     private const int MaxAutoScanSize = 70;
 
     /// <summary>打开用户文档中的人员管理导入帮助页面。</summary>
-    private static void OpenHelpDocs ()
+    private void OpenHelpDocs ()
     {
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "https://seatflow.work/docs/user/03-member-management#section-7" ,
-                UseShellExecute = true
-            });
+            _urlOpener.OpenUrl("https://seatflow.work/docs/user/03-member-management#section-7");
         }
         catch
         {

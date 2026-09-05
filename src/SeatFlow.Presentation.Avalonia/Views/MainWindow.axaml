@@ -296,5 +296,13 @@
                   Completed="OnGuideCompleted"
                   Closed="OnGuideClosed"
                   StepOpening="OnGuideStepOpening" />
+
+    <!-- 浏览器版（WASM）对话框叠加层：无独立 Window 时以遮罩 + 居中面板呈现 -->
+    <Grid x:Name="DialogOverlayHost"
+          Background="#66000000"
+          IsVisible="False">
+      <ContentControl x:Name="DialogOverlayContent"
+                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </Grid>
   </Grid>
 </Window>

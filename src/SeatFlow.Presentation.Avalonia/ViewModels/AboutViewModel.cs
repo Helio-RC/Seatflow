@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.Input;
 using AvaloniaApplication = Avalonia.Application;
+using SeatFlow.Presentation.Avalonia.Services;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -33,9 +34,12 @@ public partial class AboutViewModel : ViewModelBase
 
     public List<DependencyInfo> Dependencies { get; }
 
-    public AboutViewModel ()
+    private readonly IUrlOpener? _urlOpener;
+
+    public AboutViewModel (IUrlOpener? urlOpener = null)
     {
         var data = LoadAboutData();
+        _urlOpener = urlOpener;
 
         Version = $"{VersionInfo.Version}-{VersionInfo.CommitId}";
         VersionDisplay = string.Format(Resources.About_Version , Version);
@@ -66,7 +70,7 @@ public partial class AboutViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private static async Task OpenUrl (string url)
+    private async Task OpenUrl (string url)
     {
         if (string.IsNullOrWhiteSpace(url))
             return;
@@ -84,8 +88,8 @@ public partial class AboutViewModel : ViewModelBase
             }
         }
 
-        // 回退：无头环境 / 测试场景
-        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        // 回退：无头环境 / 浏览器（WASM）→ 平台 URL 打开器
+        _urlOpener?.OpenUrl(url);
     }
 
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };

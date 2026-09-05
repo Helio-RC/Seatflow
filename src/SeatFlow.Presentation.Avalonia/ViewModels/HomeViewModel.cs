@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
+using SeatFlow.Presentation.Avalonia.Services;
 using Microsoft.Extensions.DependencyInjection;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
@@ -102,7 +103,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
     // ═══════════════════════════════════════════════
 
     [RelayCommand]
-    private static async Task OpenUrl (string url)
+    private async Task OpenUrl (string url)
     {
         if (string.IsNullOrWhiteSpace(url))
             return;
@@ -119,7 +120,9 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
             }
         }
 
-        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        // 兜底：无头环境 / 浏览器（WASM）→ 平台 URL 打开器
+        var opener = _serviceProvider?.GetService<IUrlOpener>();
+        opener?.OpenUrl(url);
     }
 
     // ═══════════════════════════════════════════════

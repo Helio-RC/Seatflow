@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;net10.0-browser</TargetFrameworks>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- AVLN3001: DI requires parameterized constructor, no public parameterless ctor -->
     <NoWarn>$(NoWarn);AVLN3001</NoWarn>

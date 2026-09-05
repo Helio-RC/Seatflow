@@ -1,8 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:fic="using:FluentIcons.Avalonia"
-        xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+        xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
         x:Class="SeatFlow.Presentation.Avalonia.Views.DialogWindow"
         x:CompileBindings="False"
         Width="420" SizeToContent="Height" MinHeight="160"
@@ -12,28 +10,5 @@
         ExtendClientAreaTitleBarHeightHint="32"
         Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
-  <DockPanel Margin="20,48,20,16">
-    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
-                HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
-                x:Name="ButtonPanel">
-      <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True" HorizontalContentAlignment="Center"
-              Content="{x:Static lang:Resources.Common_OK}"/>
-      <Button x:Name="ThirdButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" Content="{x:Static lang:Resources.Common_OK}"/>
-      <Button x:Name="CancelButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" Content="{x:Static lang:Resources.Common_Cancel}"/>
-    </StackPanel>
-
-    <DockPanel>
-      <fic:FluentIcon x:Name="DialogIcon" DockPanel.Dock="Left"
-                      FontSize="28" Margin="0,0,16,0" VerticalAlignment="Top" />
-      <StackPanel Spacing="4">
-        <TextBlock x:Name="TitleBlock" Classes="sectionTitle"
-                   TextWrapping="Wrap" />
-        <TextBlock x:Name="MessageBlock" Classes="body"
-                   TextWrapping="Wrap"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-      </StackPanel>
-    </DockPanel>
-  </DockPanel>
+  <views:DialogContent x:Name="ContentRoot" />
 </Window>
