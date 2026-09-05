@@ -7,9 +7,13 @@
 
 | 工作流 | 触发 | 职责 |
 |--------|------|------|
-| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行构建 + vpk 打包（含 delta、可选签名）+ OSS 上传（仅自动）+ GitHub Release |
+| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行 vpk 打包（delta、可选签名）→ 上传 artifacts |
+| `publish.yml` | workflow_run（release.yml 成功且 push 触发，自动）/ workflow_dispatch（手动） | **仅发布**：下载 artifacts → 版本校验 → OSS 上传（仅自动）→ GitHub Release（自动 latest / 手动永远 pre-release） |
 | `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（NuGet 缓存） |
 | `worker-secret-sync.yml` | 每周一 03:00 UTC / 手动 | 将 OSS 密钥同步到 Cloudflare Worker（secrets-bulk） |
+
+> 构建与发布完全解耦：构建失败不会产生任何 Release；发布可独立重跑（手动指定
+> `release.yml` 的 `run_id`），不受构建矩阵影响。
 
 ## 一、自动发布（latest）
 
@@ -18,22 +22,27 @@
 2. 同步更新 `RELEASE.md` 发布说明（GitHub Release body 直接读取该文件）与
    `CHANGELOG.md`
 3. 提交并合并到 `main` → `release.yml` 因 `version.json` 变更自动触发：
-   - 预检：该 tag 不存在，且版本号必须大于当前最新 release，否则中止
+   - 预检：该 tag 不存在，且版本号必须大于当前最新 release，否则中止（失败不触发构建）
    - 并行构建 4 个平台：win-x64（Setup.exe）/ linux-x64（AppImage）/
      osx-x64 + osx-arm64（.dmg），同时生成增量更新包（`-delta.nupkg`）
+4. 构建成功后 `publish.yml`（workflow_run）自动接力：
    - 上传 OSS（安装包 → `releases/{version}/`，更新包 → `updates/`，索引 → `releases/releases.json`）
    - 创建 GitHub Release（**latest**，非 pre-release）
 
 ## 二、手动发布（pre-release，不传 OSS）
 
-1. 进入 GitHub 仓库 → **Actions → Release SeatFlow → Run workflow**
-2. 填写参数：
+1. 进入 GitHub 仓库 → **Actions → Release SeatFlow（构建）→ Run workflow**，填写参数：
    - `version`（必填）：发布版本号，**仅用于本次构建与 tag**，不写回 `version.json`
    - `suffix`（可选）：如 `beta.1`、`rc`，最终版本为 `{version}-{suffix}`
+2. 构建成功（artifacts 已上传）后 → **Actions → Publish SeatFlow（发布）→ Run workflow**：
+   - `run_id`（可选）：本次 `release.yml` 构建运行的 ID，留空默认取最近成功的手动构建
+   - `version`（必填）：与构建时一致
+   - `suffix`（可选）：与构建时一致
 3. 手动发布固定为 **pre-release**，且**不执行 OSS 上传**（仅 GitHub Release）
 4. 同样受预检约束：tag 不得已存在、版本必须大于当前最新 release
 
-> 手动发布分支 `main` 即可触发（workflow_dispatch 需 `write` 权限，仓库默认允许）。
+> 构建与发布分离：构建结束只是产出 artifacts；是否发布、发布成 latest 还是
+> pre-release 由 `publish.yml` 单独决定（自动路径仅 push 构建后接 latest）。
 
 ## 三、增量更新包（delta）
 

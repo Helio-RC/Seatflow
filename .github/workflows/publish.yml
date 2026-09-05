@@ -1,0 +1,227 @@
+name: Publish SeatFlow
+
+on:
+  # 自动发布：release.yml（构建工作流）成功完成且由 push 触发时，发布 latest + OSS
+  workflow_run:
+    workflows: ['Release SeatFlow']
+    types: [completed]
+  # 手动发布：始终 pre-release，不上传 OSS
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: '使用哪个构建运行（release.yml 的运行 ID，默认最新成功运行）'
+        required: false
+        type: string
+      version:
+        description: '发布版本号（与构建时一致，如 2.0.0）'
+        required: true
+        type: string
+      suffix:
+        description: '可选后缀（如 beta.1 / rc），自动拼接到版本号'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency: publish-${{ github.ref }}
+
+env:
+  PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: OSS
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Resolve metadata
+        id: meta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # 手动：使用输入，pre-release
+            RUN_ID="${{ inputs.run_id }}"
+            if [ -z "$RUN_ID" ]; then
+              RUN_ID=$(gh api "repos/${{ github.repository }}/actions/workflows/release.yml/runs?status=success&event=workflow_dispatch&per_page=1" \
+                -q '.[0].id' || true)
+              if [ -z "$RUN_ID" ]; then
+                echo "✗ 未找到可用的构建运行（请填写 release.yml 的成功运行 ID）"
+                exit 1
+              fi
+            fi
+            V="${{ inputs.version }}"
+            SUFFIX="${{ inputs.suffix }}"
+            if [ -n "$SUFFIX" ]; then V="${V}-${SUFFIX}"; fi
+            IS_PRE=true
+            echo "is_pre=true"
+          else
+            # 自动：push 触发的构建 → 读取 version.json（与构建同源），latest 发布
+            RUN_ID="${{ github.event.workflow_run.id }}"
+            if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+              echo "✗ 构建运行未成功，自动发布跳过"
+              exit 1
+            fi
+            if [ "${{ github.event.workflow_run.event }}" != "push" ]; then
+              echo "✗ 非 push 触发的构建（手动构建请走 workflow_dispatch 发布）"
+              exit 1
+            fi
+            V=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+            IS_PRE=false
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "is_pre=$IS_PRE" >> "$GITHUB_OUTPUT"
+          echo "Using run: $RUN_ID, version: $V, is_pre: ${IS_PRE:-false}"
+
+      - name: Pre-flight checks
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${{ steps.meta.outputs.version }}"
+          TAG="v${V}"
+          echo "Target: $TAG"
+
+          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
+            echo "✗ Release $TAG already exists. Abort."
+            exit 1
+          fi
+
+          LATEST_TAG=$(gh release list --repo "${{ github.repository }}" -L 1 --order desc --exclude-pre-releases --json tagName -q '.[0].tagName' 2>/dev/null || echo "")
+          if [[ -n "$LATEST_TAG" ]]; then
+            LATEST=${LATEST_TAG#v}
+            echo "Latest release: $LATEST_TAG"
+            RESULT=$(python3 -c "
+          try:
+            from packaging.version import Version
+            print('ok' if Version('$V') > Version('$LATEST') else 'fail')
+          except Exception:
+            print('fail')
+          ")
+            if [[ "$RESULT" == "fail" ]]; then
+              echo "✗ Version $V is not greater than latest $LATEST. Abort."
+              exit 1
+            fi
+            echo "✓ Version $V > $LATEST"
+          else
+            echo "No existing releases — first release, proceeding."
+          fi
+
+      - name: Install dependencies
+        run: pip install oss2
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: 'release-*'
+          path: all-artifacts
+          merge-multiple: true
+          run-id: ${{ steps.meta.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: List artifacts
+        run: ls -la all-artifacts/
+
+      - name: Version installer filenames
+        shell: bash
+        run: |
+          V="${{ steps.meta.outputs.version }}"
+          echo "Versioning installer files with ${V}..."
+          shopt -s nullglob
+          for f in all-artifacts/*.exe all-artifacts/*.AppImage all-artifacts/*.pkg all-artifacts/*.dmg; do
+            name=$(basename "$f")
+            stem="${name%.*}"
+            ext="${name##*.}"
+            if [[ "$stem" == *"-${V}"* ]] || [[ "$stem" == *"_${V}"* ]]; then
+              echo "  - ${name} (已包含版本号，跳过)"
+              continue
+            fi
+            newname="all-artifacts/${stem}-${V}.${ext}"
+            mv "$f" "$newname"
+            echo "  ✓ ${name} → $(basename "$newname")"
+          done
+
+      - name: Validate RELEASE.md
+        run: |
+          if [ ! -f RELEASE.md ]; then
+            echo "✗ RELEASE.md not found in repository root."
+            exit 1
+          fi
+          echo "✓ RELEASE.md found"
+
+      - name: Build release body
+        shell: bash
+        run: |
+          shopt -s nullglob
+          {
+            cat RELEASE.md
+            echo ""
+            echo "### SHA256 Checksums"
+            echo ""
+            echo "| File | SHA256 |"
+            echo "|------|--------|"
+            for ext in exe AppImage pkg dmg; do
+              for f in all-artifacts/*.$ext; do
+                SHA=$(sha256sum "$f" | awk '{print $1}')
+                NAME=$(basename "$f")
+                echo "| $NAME | $SHA |"
+              done
+            done
+          } > /tmp/release-body.md
+
+      - name: Upload to OSS (auto push only)
+        if: github.event_name == 'workflow_run'
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+          OSS_BUCKET: ${{ vars.OSS_BUCKET }}
+        run: |
+          python3 scripts/ci/upload_oss.py \
+            --version "${{ steps.meta.outputs.version }}" \
+            --artifacts-dir all-artifacts \
+            --release-md RELEASE.md \
+            --commit-id "${{ github.sha }}"
+
+      - name: Create GitHub Release
+        shell: bash
+        run: |
+          shopt -s nullglob
+          V="${{ steps.meta.outputs.version }}"
+          PRE="${{ steps.meta.outputs.is_pre }}"
+          ARGS=()
+          if [ "$PRE" = "true" ]; then
+            ARGS+=(--prerelease)
+            echo "Creating pre-release: v${V}"
+          else
+            echo "Creating latest release: v${V}"
+          fi
+          ASSETS=()
+          for ext in exe AppImage pkg dmg; do
+            for f in all-artifacts/*.$ext; do
+              ASSETS+=("$f")
+            done
+          done
+          if [ ${#ASSETS[@]} -eq 0 ]; then
+            echo "✗ No release assets found!"
+            exit 1
+          fi
+          gh release create "v${V}" \
+            --repo "${{ github.repository }}" \
+            --title "SeatFlow ${V}" \
+            --notes-file /tmp/release-body.md \
+            "${ARGS[@]}" \
+            "${ASSETS[@]}"
+        env:
+          GH_TOKEN: ${{ github.token }}

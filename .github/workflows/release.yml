@@ -129,14 +129,14 @@ jobs:
             os: macos-latest
             vpk-directive: '[osx]'
             main-exe: 'SeatFlow'
-            icon: 'Assets/installer.png'
+            icon: 'Assets/installer.icns'
             extra-args: ''
 
           - rid: osx-arm64
             os: macos-latest
             vpk-directive: '[osx]'
             main-exe: 'SeatFlow'
-            icon: 'Assets/installer.png'
+            icon: 'Assets/installer.icns'
             extra-args: ''
 
     runs-on: ${{ matrix.os }}
@@ -187,6 +187,20 @@ jobs:
           OUTPUT_DIR: 'publish/out'
         run: bash scripts/ci/fetch_previous.sh
 
+      - name: Generate macOS app icon (icns)
+        if: runner.os == 'macOS'
+        run: |
+          # macOS --icon 是应用图标（.app/AppIcon），与 Linux 一致使用程序图标
+          ICONSET="icon.iconset"
+          mkdir -p "$ICONSET"
+          for s in 16 32 128 256 512; do
+            sips -z "$s" "$s" Assets/SF_icon_mini_background.png --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
+            d=$((s * 2))
+            sips -z "$d" "$d" Assets/SF_icon_mini_background.png --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
+          done
+          iconutil -c icns "$ICONSET" -o Assets/installer.icns
+          echo "✓ Assets/installer.icns (generated from SF_icon_mini_background.png)"
+
       - name: vpk pack
         shell: bash
         run: |
@@ -227,129 +241,3 @@ jobs:
             publish/out/releases.*.json
             publish/out/RELEASES-*
           if-no-files-found: error
-
-  # ──────────────────────────────────────────────
-  # Job 2: GitHub Release + OSS 上传（自动发布）
-  # ──────────────────────────────────────────────
-  release:
-    needs: [build, preflight]
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    environment: OSS
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.12'
-
-      - name: Install dependencies
-        env:
-          PIP_BREAK_SYSTEM_PACKAGES: '1'
-        run: pip install oss2
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v8
-        with:
-          pattern: 'release-*'
-          path: all-artifacts
-          merge-multiple: true
-
-      - name: List artifacts
-        run: ls -la all-artifacts/
-
-      - name: Version installer filenames
-        shell: bash
-        run: |
-          V="${{ needs.preflight.outputs.version }}"
-          echo "Versioning installer files with ${V}..."
-          shopt -s nullglob
-          for f in all-artifacts/*.exe all-artifacts/*.AppImage all-artifacts/*.pkg all-artifacts/*.dmg; do
-            name=$(basename "$f")
-            stem="${name%.*}"
-            ext="${name##*.}"
-            # 已有版本号则跳过
-            if [[ "$stem" == *"-${V}"* ]] || [[ "$stem" == *"_${V}"* ]]; then
-              echo "  - ${name} (已包含版本号，跳过)"
-              continue
-            fi
-            newname="all-artifacts/${stem}-${V}.${ext}"
-            mv "$f" "$newname"
-            echo "  ✓ ${name} → $(basename "$newname")"
-          done
-
-      - name: Validate RELEASE.md
-        run: |
-          if [ ! -f RELEASE.md ]; then
-            echo "✗ RELEASE.md not found in repository root."
-            exit 1
-          fi
-          echo "✓ RELEASE.md found"
-
-      - name: Build release body
-        shell: bash
-        run: |
-          shopt -s nullglob
-          {
-            cat RELEASE.md
-            echo ""
-            echo "### SHA256 Checksums"
-            echo ""
-            echo "| File | SHA256 |"
-            echo "|------|--------|"
-            for ext in exe AppImage pkg dmg; do
-              for f in all-artifacts/*.$ext; do
-                SHA=$(sha256sum "$f" | awk '{print $1}')
-                NAME=$(basename "$f")
-                echo "| $NAME | $SHA |"
-              done
-            done
-          } > /tmp/release-body.md
-
-      - name: Upload to OSS
-        if: github.event_name == 'push'
-        env:
-          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
-          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
-          OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
-          OSS_BUCKET: ${{ vars.OSS_BUCKET }}
-        run: |
-          python3 scripts/ci/upload_oss.py \
-            --version "${{ needs.preflight.outputs.version }}" \
-            --artifacts-dir all-artifacts \
-            --release-md RELEASE.md \
-            --commit-id "${{ github.sha }}"
-
-      - name: Create GitHub Release
-        shell: bash
-        run: |
-          shopt -s nullglob
-          V="${{ needs.preflight.outputs.version }}"
-          PRE="${{ needs.preflight.outputs.is_pre }}"
-          ARGS=()
-          if [ "$PRE" = "true" ]; then
-            ARGS+=(--prerelease)
-            echo "Creating pre-release: v${V}"
-          else
-            echo "Creating latest release: v${V}"
-          fi
-          ASSETS=()
-          for ext in exe AppImage pkg dmg; do
-            for f in all-artifacts/*.$ext; do
-              ASSETS+=("$f")
-            done
-          done
-          if [ ${#ASSETS[@]} -eq 0 ]; then
-            echo "✗ No release assets found!"
-            exit 1
-          fi
-          gh release create "v${V}" \
-            --repo "${{ github.repository }}" \
-            --title "SeatFlow ${V}" \
-            --notes-file /tmp/release-body.md \
-            "${ARGS[@]}" \
-            "${ASSETS[@]}"
-        env:
-          GH_TOKEN: ${{ github.token }}
