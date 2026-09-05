@@ -134,7 +134,9 @@
     <StyleInclude Source="/Styles/Colors.axaml" />
     <StyleInclude Source="/Styles/Controls.axaml" />
     <Style Selector="Window">
-      <Setter Property="FontFamily" Value="Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
+      <!-- fonts:Inter#Inter 走嵌入字体集合（WASM 无系统字体时仍可用）；
+           后段为桌面系统字体回退链 -->
+      <Setter Property="FontFamily" Value="fonts:Inter#Inter,Microsoft YaHei UI,PingFang SC,Noto Sans CJK SC,WenQuanYi Micro Hei,sans-serif"/>
     </Style>
   </Application.Styles>
 </Application>

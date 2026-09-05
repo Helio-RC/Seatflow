@@ -40,6 +40,11 @@ namespace SeatFlow.Application.Interfaces
         /// <summary>导出座位安排计划到文件。</summary>
         Task ExportSeatingPlanAsync (SeatingWorkspace workspace , ClassroomLayoutDefinition? layout , string path , ExportOptions options , CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// 导出座位安排为字节流（WASM/浏览器端下载，无文件系统时使用）。
+        /// </summary>
+        Task<byte[]> ExportSeatingPlanBytesAsync (SeatingWorkspace workspace , ClassroomLayoutDefinition? layout , ExportOptions options , CancellationToken cancellationToken = default);
+
         /// <summary>导出学生列表到文件。</summary>
         Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default);
 

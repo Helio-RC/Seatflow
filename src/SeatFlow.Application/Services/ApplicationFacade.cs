@@ -405,6 +405,34 @@ namespace SeatFlow.Application.Services
             }
         }
 
+        /// <summary>
+        /// 导出座位安排为字节流（WASM/浏览器端）：模型构建逻辑与文件版一致。
+        /// </summary>
+        public async Task<byte[]> ExportSeatingPlanBytesAsync (
+            SeatingWorkspace workspace ,
+            ClassroomLayoutDefinition? layout ,
+            ExportOptions options ,
+            CancellationToken cancellationToken = default)
+        {
+            ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format)
+                ?? throw new NotSupportedException($"No exporter registered for format {options.Format}.");
+            if (layout != null)
+            {
+                var assignments = workspace.BuildSeatingPlan().Assignments;
+                var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
+                var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
+                if (options.Perspective == LayoutPerspective.TeacherView)
+                {
+                    model.Rows.Reverse();
+                    foreach (var row in model.Rows)
+                        row.Cells.Reverse();
+                }
+                return await exporter.ExportLayoutBytesAsync(model , options , cancellationToken);
+            }
+            var plan = workspace.BuildSeatingPlan();
+            return await exporter.ExportBytesAsync(plan , options , cancellationToken);
+        }
+
         /// <inheritdoc />
         public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true)
         {

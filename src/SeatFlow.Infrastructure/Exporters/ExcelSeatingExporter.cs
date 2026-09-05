@@ -28,27 +28,7 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
         try
         {
             using var p = new ExcelPackage();
-            var ws = p.Workbook.Worksheets.Add("Seating");
-            ws.Cells[1 , 1].Value = "SeatId";
-            ws.Cells[1 , 2].Value = options.Anonymize ? "StudentId (anonymized)" : "StudentId";
-            int r = 2;
-            foreach (var kv in plan.Assignments)
-            {
-                ws.Cells[r , 1].Value = kv.Key;
-                ws.Cells[r , 2].Value = options.Anonymize ? "***" : kv.Value;
-                r++;
-            }
-
-            if (options.IncludeMetadata)
-            {
-                var metaWs = p.Workbook.Worksheets.Add("Metadata");
-                metaWs.Cells[1 , 1].Value = "Property";
-                metaWs.Cells[1 , 2].Value = "Value";
-                metaWs.Cells[2 , 1].Value = "ExportTime";
-                metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
-                metaWs.Cells[3 , 1].Value = "SeatCount";
-                metaWs.Cells[3 , 2].Value = plan.Assignments.Count;
-            }
+            BuildPlanWorkbook(p , plan , options);
 
             var fi = new FileInfo(path);
             await p.SaveAsAsync(fi , cancellationToken);
@@ -64,54 +44,45 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
         }
     }
 
+    /// <inheritdoc />
+    public async Task<byte[]> ExportBytesAsync (SeatingPlan plan , ExportOptions options , CancellationToken cancellationToken = default)
+    {
+        using var p = new ExcelPackage();
+        BuildPlanWorkbook(p , plan , options);
+        return await p.GetAsByteArrayAsync(cancellationToken);
+    }
+
+    private static void BuildPlanWorkbook (ExcelPackage p , SeatingPlan plan , ExportOptions options)
+    {
+        var ws = p.Workbook.Worksheets.Add("Seating");
+        ws.Cells[1 , 1].Value = "SeatId";
+        ws.Cells[1 , 2].Value = options.Anonymize ? "StudentId (anonymized)" : "StudentId";
+        int r = 2;
+        foreach (var kv in plan.Assignments)
+        {
+            ws.Cells[r , 1].Value = kv.Key;
+            ws.Cells[r , 2].Value = options.Anonymize ? "***" : kv.Value;
+            r++;
+        }
+
+        if (options.IncludeMetadata)
+        {
+            var metaWs = p.Workbook.Worksheets.Add("Metadata");
+            metaWs.Cells[1 , 1].Value = "Property";
+            metaWs.Cells[1 , 2].Value = "Value";
+            metaWs.Cells[2 , 1].Value = "ExportTime";
+            metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
+            metaWs.Cells[3 , 1].Value = "SeatCount";
+            metaWs.Cells[3 , 2].Value = plan.Assignments.Count;
+        }
+    }
+
     public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
     {
         try
         {
             using var p = new ExcelPackage();
-            var ws = p.Workbook.Worksheets.Add("Seating");
-            ws.Cells[1 , 1].Value = model.LayoutName;
-            ws.Cells[1 , 1].Style.Font.Bold = true;
-            ws.Cells[1 , 1].Style.Font.Size = 14;
-
-            int r = 3;
-            int rowIndex = 0;
-            foreach (var row in model.Rows)
-            {
-                if (++rowIndex % 30 == 0)
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                int c = 1;
-                bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(cell => cell.IsAisle);
-                foreach (var cell in row.Cells)
-                {
-                    ws.Cells[r , c].Value = cell.Text;
-                    if (cell.IsUnassigned)
-                    {
-                        ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkGray);
-                    }
-                    else if (cell.IsAisle || isFullAisleRow)
-                    {
-                        ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                    }
-                    c++;
-                }
-                ws.Row(r).Height = isFullAisleRow ? 20 : 28;
-                r++;
-            }
-
-            if (options.IncludeMetadata)
-            {
-                var metaWs = p.Workbook.Worksheets.Add("Metadata");
-                metaWs.Cells[1 , 1].Value = "Property";
-                metaWs.Cells[1 , 2].Value = "Value";
-                metaWs.Cells[2 , 1].Value = "ExportTime";
-                metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
-                metaWs.Cells[3 , 1].Value = "LayoutName";
-                metaWs.Cells[3 , 2].Value = model.LayoutName;
-            }
+            BuildLayoutWorkbook(p , model , options , cancellationToken);
 
             var fi = new FileInfo(path);
             await p.SaveAsAsync(fi , cancellationToken);
@@ -124,6 +95,61 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
             foreach (var row in model.Rows)
                 lines.Add(string.Join("," , row.Cells.Select(c => c.Text)));
             await File.WriteAllLinesAsync(path , lines , cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<byte[]> ExportLayoutBytesAsync (LayoutSeatingExportModel model , ExportOptions options , CancellationToken cancellationToken = default)
+    {
+        using var p = new ExcelPackage();
+        BuildLayoutWorkbook(p , model , options , cancellationToken);
+        return await p.GetAsByteArrayAsync(cancellationToken);
+    }
+
+    private static void BuildLayoutWorkbook (ExcelPackage p , LayoutSeatingExportModel model , ExportOptions options , CancellationToken ct)
+    {
+        var ws = p.Workbook.Worksheets.Add("Seating");
+        ws.Cells[1 , 1].Value = model.LayoutName;
+        ws.Cells[1 , 1].Style.Font.Bold = true;
+        ws.Cells[1 , 1].Style.Font.Size = 14;
+
+        int r = 3;
+        int rowIndex = 0;
+        foreach (var row in model.Rows)
+        {
+            if (++rowIndex % 30 == 0)
+                ct.ThrowIfCancellationRequested();
+
+            int c = 1;
+            bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(cell => cell.IsAisle);
+            foreach (var cell in row.Cells)
+            {
+                ws.Cells[r , c].Value = cell.Text;
+                if (cell.IsUnassigned)
+                {
+                    ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkGray);
+                }
+                else if (cell.IsAisle || isFullAisleRow)
+                {
+                    ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                }
+                c++;
+            }
+            ws.Row(r).Height = isFullAisleRow ? 20 : 28;
+            r++;
+        }
+
+        if (options.IncludeMetadata)
+        {
+            var metaWs = p.Workbook.Worksheets.Add("Metadata");
+            metaWs.Cells[1 , 1].Value = "Property";
+            metaWs.Cells[1 , 2].Value = "Value";
+            metaWs.Cells[2 , 1].Value = "ExportTime";
+            metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
+            metaWs.Cells[3 , 1].Value = "LayoutName";
+            metaWs.Cells[3 , 2].Value = model.LayoutName;
         }
     }
 }

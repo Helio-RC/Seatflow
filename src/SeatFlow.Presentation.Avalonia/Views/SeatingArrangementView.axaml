@@ -71,12 +71,14 @@
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentTable}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="PDF (.pdf)" Command="{Binding ExportTeacherPdfCommand}">
+                <MenuItem Header="PDF (.pdf)" Command="{Binding ExportTeacherPdfCommand}"
+                IsVisible="{Binding !IsWebPlatform}">
                   <MenuItem.Icon>
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.DocumentPdf}" FontSize="14" />
                   </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportTeacherImageCommand}">
+                <MenuItem Header="{x:Static lang:Resources.Seating_ExportPNG}" Command="{Binding ExportTeacherImageCommand}"
+                IsVisible="{Binding !IsWebPlatform}">
                   <MenuItem.Icon>
                     <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Image}" FontSize="14" />
                   </MenuItem.Icon>

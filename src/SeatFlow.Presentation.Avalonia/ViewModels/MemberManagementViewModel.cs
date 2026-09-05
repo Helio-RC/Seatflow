@@ -286,16 +286,28 @@ public partial class MemberManagementViewModel : ViewModelBase, IFileDropHandler
                     return;
                 }
 
-                IStorageFile? tmplFile;
-                try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
-                catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导出模板"); return; }
-                if (tmplFile is null) return;
+                if (OperatingSystem.IsBrowser())
+                {
+                    // WASM：嵌入资源 → 字节 → 浏览器下载
+                    using var sourceMs = new MemoryStream();
+                    await using (var src = AssetLoader.Open(uri))
+                        await src.CopyToAsync(sourceMs , ct);
+                    await _fileService.SaveFileBytesAsync(displayName , sourceMs.ToArray() , TemplateFileTypes);
+                    StatusMessage = Resources.Data_TemplateSaved;
+                }
+                else
+                {
+                    IStorageFile? tmplFile;
+                    try { tmplFile = await _fileService.SaveFileAsync(Resources.Common_Save , TemplateFileTypes , displayName); }
+                    catch (Exception ex) { _logger.LogDebug(ex , "文件对话框取消或异常: 导出模板"); return; }
+                    if (tmplFile is null) return;
 
-                using var source = AssetLoader.Open(uri);
-                await using var destination = File.Create(tmplFile.Path.LocalPath);
-                await source.CopyToAsync(destination , ct);
+                    using var source = AssetLoader.Open(uri);
+                    await using var destination = File.Create(tmplFile.Path.LocalPath);
+                    await source.CopyToAsync(destination , ct);
 
-                StatusMessage = Resources.Data_TemplateSaved;
+                    StatusMessage = Resources.Data_TemplateSaved;
+                }
             }
             catch (Exception ex)
             {

@@ -29,6 +29,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
     private readonly IArrangementCounterService _counterService;
+    /// <summary>当前平台是否浏览器（WASM）：Web 版隐藏 PDF/图片导出。</summary>
+    public bool IsWebPlatform => OperatingSystem.IsBrowser();
+
     private readonly ILogger<SeatingArrangementViewModel> _logger;
 
     // ── 内部状态 ──
@@ -1116,6 +1119,21 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 : Resources.Seating_StudentView;
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
             var fullSuggestedName = $"{baseName}_{perspectiveLabel}_{timestamp}{ext}";
+
+            if (OperatingSystem.IsBrowser())
+            {
+                // WASM：导出 → 字节 → 浏览器下载（无文件系统）
+                var webOk = await SafeExecuteAsync(async (ct) =>
+                {
+                    var options = new ExportOptions { Format = format , IncludeMetadata = true , Perspective = perspective };
+                    var bytes = await _facade.ExportSeatingPlanBytesAsync(_workspace , _currentLayout , options , ct);
+                    await _fileService.SaveFileBytesAsync(fullSuggestedName , bytes , types);
+                    StatusMessage = string.Format(Resources.Seating_ExportedFmt , fullSuggestedName);
+                } , ExportTimeout , Resources.Seating_ExportTitle);
+                if (!webOk)
+                    StatusMessage = Resources.Seating_ExportTimeout;
+                return;
+            }
 
             var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , fullSuggestedName);
             if (file == null) return;
