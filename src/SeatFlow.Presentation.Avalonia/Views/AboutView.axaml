@@ -3,7 +3,6 @@
              xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
              xmlns:fic="using:FluentIcons.Avalonia"
              xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             xmlns:svg="clr-namespace:Avalonia.Svg.Skia;assembly=Svg.Controls.Skia.Avalonia"
              xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
              x:Class="SeatFlow.Presentation.Avalonia.Views.AboutView"
              x:DataType="vm:AboutViewModel"
@@ -42,9 +41,11 @@
 
           <!-- Section 1: Hero -->
           <Grid ColumnDefinitions="Auto,*" Margin="0,12,0,0">
-            <svg:Svg Grid.Column="0" Path="/Assets/icon_with_background.svg"
-                     Width="100" Height="100" Stretch="Uniform"
-                     VerticalAlignment="Top" />
+            <!-- 跨平台图标：WASM 下 SVG-Skia 控件不可用（SkiaSharp 无 wasm native），
+                 统一使用 PNG 位图 -->
+            <Image Grid.Column="0" Source="/Assets/icon_with_background.png"
+                   Width="100" Height="100" Stretch="Uniform"
+                   VerticalAlignment="Top" />
             <StackPanel Grid.Column="1" Margin="24,0,0,0" Spacing="0">
               <TextBlock Text="{Binding AppName}" FontSize="22" FontWeight="Bold" />
               <TextBlock Text="{Binding VersionDisplay}" Classes="bodySmall"

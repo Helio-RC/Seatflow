@@ -62,6 +62,12 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
 
 ## 已知限制
 
+- **黑屏排查**：若 WASM 已加载（无 JS 异常）但界面全黑，命令
+  `chrome://gpu` 检查 WebGL2 状态。Avalonia WASM 渲染 = Skia/CanvasKit(WebGL)，
+  无软件兜底；虚拟机/远程桌面/关闭硬件加速时会黑屏。开启硬件加速，
+  或 `chrome://flags` 启用 `unsafe-swiftshader`（Chrome 128+ 软件 WebGL）后重试。
+  对照基线：官方 `avalonia.xplat` 模板在无 WebGL 环境同样报
+  `TypeInitialization_Type, SkiaSharp.SKImageInfo`（渲染栈无法初始化）。
 - 无独立窗口：模态对话框为窗口内 overlay（行为与桌面一致，均为模态）
 - 剪贴板受浏览器用户手势限制（复制类操作在点击事件内触发）
 - 系统字体不可用：字体走嵌入 Inter 集合（`fonts:Inter#Inter`）+ 系统回退链
