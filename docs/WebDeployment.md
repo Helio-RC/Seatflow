@@ -87,6 +87,13 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
   4. 对照基线：官方 `avalonia.xplat` 模板无 COOP/COEP 或无 WebGL 时同样失败。
 
 **技术备忘（排障证据链，2026-09-06 实测）**：
+- **最终根因（已修复）**：dotnet/runtime #109289 —— SkiaSharp 原生 `.a` 在 WASM 链接时
+  顺序错误导致 `sk_*` C 导出符号缺失 → `TypeInitialization_Type, SkiaSharp.SKImageInfo`。
+  修复：Browser csproj 移植官方 Avalonia.Browser.targets 的
+  `Issue109289_Workaround`（`_BrowserWasmWriteRspForLinking` 后重排 SkiaSharp
+  链接项）。修复后单线程（`WasmEnableThreads=false`）变体即含全部 222 个 Skia 符号，
+  **不再需要 COOP/COEP 跨源隔离**（部署要求大幅简化）。已验证：splash 正常替换、
+  canvas 接管渲染（无头软件 WebGL 模式），无任何 ManagedError。
 - SkiaSharp `libSkiaSharp.a` 仅链接进**多线程 variant**（`dotnet.native.*` 含 222 个
   `sk_`/Skia 符号，st variant 为 0）→ `WasmEnableThreads` 必须为 `true`，且部署必须
   配 COOP/COEP（`crossOriginIsolated===true`）。

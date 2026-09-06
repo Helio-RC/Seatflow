@@ -1,15 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.WebAssembly">
   <PropertyGroup>
     <TargetFramework>net10.0-browser</TargetFramework>
-    <!-- 关键：SkiaSharp 的 native libSkiaSharp.a 仅链接进"多线程变体" dotnet.native。
-         单线程变体不含 Skia 符号 → TypeInitialization_Type, SkiaSharp.SKImageInfo。
-         因此保持多线程（默认），部署端必须启用 COOP/COEP 跨源隔离头。
-         详见 docs/WebDeployment.md 黑屏排查节。 -->
-    <WasmEnableThreads>true</WasmEnableThreads>
-    <!-- Avalonia 渲染需要独立 WebWorker；默认 worker 池(2)不足 →
-         "Failed to find loaded WebWorker ... increase pthreadPoolInitialSize"
-         → 渲染 worker AggregateException 黑屏。提高池大小。 -->
-    <WasmPthreadPoolInitialSize>8</WasmPthreadPoolInitialSize>
+    <!-- 单线程模式 + 链接顺序 workaround（官方 Avalonia samples 同款配置）：
+         dotnet/runtime#109289 导致 SkiaSharp native .a 链接顺序错误 → 符号缺失 →
+         TypeInitialization_Type, SkiaSharp.SKImageInfo。修复后单线程变体亦含 Skia，
+         且无需 COOP/COEP 跨源隔离（部署更简单）。 -->
+    <WasmEnableThreads>false</WasmEnableThreads>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
@@ -40,4 +36,25 @@
     <TrimmerRootAssembly Include="SeatFlow.Core" />
     <TrimmerRootAssembly Include="SeatFlow.Infrastructure" />
   </ItemGroup>
+
+  <!-- https://github.com/dotnet/runtime/issues/109289
+       官方 Avalonia.Browser.targets 的链接顺序 workaround（NuGet 12.1.x 未包含，
+       会导致 SkiaSharp native 符号缺失 → TypeInitialization_Type）。 -->
+  <Target Name="Issue109289_Workaround"
+          Condition="'$(DisableIssue109289Workaround)' != 'true' AND $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), '9.0'))"
+          AfterTargets="_BrowserWasmWriteRspForLinking">
+    <ItemGroup>
+      <_WasmLinkStepArgs Remove="@(_EmccLinkStepArgs)" />
+      <_EmccLinkStepArgs Remove="&quot;%(_WasmNativeFileForLinking.Identity)&quot;" />
+      <_WasmLinkDependencies Remove="@(_WasmNativeFileForLinking)" />
+
+      <_SkiaSharpToReorder Include="@(_WasmNativeFileForLinking)" Condition="$([System.String]::Copy('%(FullPath)').Contains('SkiaSharp'))" />
+      <_WasmNativeFileForLinking Remove="@(_SkiaSharpToReorder)" />
+      <_WasmNativeFileForLinking Include="@(_SkiaSharpToReorder)" />
+
+      <_EmccLinkStepArgs Include="&quot;%(_WasmNativeFileForLinking.Identity)&quot;" />
+      <_WasmLinkDependencies Include="@(_WasmNativeFileForLinking)" />
+      <_WasmLinkStepArgs Include="@(_EmccLinkStepArgs)" />
+    </ItemGroup>
+  </Target>
 </Project>
