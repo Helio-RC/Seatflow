@@ -19,6 +19,15 @@ cd scripts/build
 
 ## 部署要求
 
+- **⚠️ 跨源隔离（硬性要求）**：SkiaSharp 的原生 `libSkiaSharp.a` 仅链接进
+  **多线程变体** `dotnet.native.*.wasm`；多线程 WASM 要求页面处于跨源隔离状态。
+  **所有静态站点的响应必须携带**：
+  ```
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  ```
+  Live Server (`liveServer.settings.headers`)、Nginx、IIS、CDN 配置见各自文档。
+  缺失时运行时选择无 Skia 变体 → `TypeInitialization_Type, SkiaSharp.SKImageInfo` 黑屏。
 - **MIME 类型**：`.wasm` → `application/wasm`（大部分现代服务器默认正确）
 - **CSP**：若启用 Content-Security-Policy，需允许 `wasm-eval`（或 `unsafe-eval`）
 - **压缩**：发布产物自带 `.br/.gz` 副本（参考 `wwwroot/*.br|*.gz`），CDN/服务器启用
@@ -62,12 +71,14 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
 
 ## 已知限制
 
-- **黑屏排查**：若 WASM 已加载（无 JS 异常）但界面全黑，命令
-  `chrome://gpu` 检查 WebGL2 状态。Avalonia WASM 渲染 = Skia/CanvasKit(WebGL)，
-  无软件兜底；虚拟机/远程桌面/关闭硬件加速时会黑屏。开启硬件加速，
-  或 `chrome://flags` 启用 `unsafe-swiftshader`（Chrome 128+ 软件 WebGL）后重试。
-  对照基线：官方 `avalonia.xplat` 模板在无 WebGL 环境同样报
-  `TypeInitialization_Type, SkiaSharp.SKImageInfo`（渲染栈无法初始化）。
+- **黑屏排查清单（按优先级）**：
+  1. **COOP/COEP 缺失** → `TypeInitialization_Type, SkiaSharp.SKImageInfo`
+     （多线程变体未选中，见"部署要求"）。Console 校验：`crossOriginIsolated` 应为 `true`。
+  2. **WebGL 不可用** → `Failed to create render target` / `HTMLCanvasElement.getContext
+     returned null`。`chrome://gpu` 检查 WebGL2；虚拟机/远程桌面/关闭硬件加速时黑屏。
+     开启硬件加速，或 `chrome://flags` → `unsafe-swiftshader` (Chrome 128+)。
+  3. 对照基线：官方 `avalonia.xplat` 模板无 COOP/COEP 或无 WebGL 时同样失败
+     （Avalonia WASM 渲染 = Skia/CanvasKit(WebGL)，无软件兜底）。
 - 无独立窗口：模态对话框为窗口内 overlay（行为与桌面一致，均为模态）
 - 剪贴板受浏览器用户手势限制（复制类操作在点击事件内触发）
 - 系统字体不可用：字体走嵌入 Inter 集合（`fonts:Inter#Inter`）+ 系统回退链

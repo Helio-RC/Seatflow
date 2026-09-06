@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.WebAssembly">
   <PropertyGroup>
     <TargetFramework>net10.0-browser</TargetFramework>
+    <!-- 关键：SkiaSharp 的 native libSkiaSharp.a 仅链接进"多线程变体" dotnet.native。
+         单线程变体不含 Skia 符号 → TypeInitialization_Type, SkiaSharp.SKImageInfo。
+         因此保持多线程（默认），部署端必须启用 COOP/COEP 跨源隔离头。
+         详见 docs/WebDeployment.md 黑屏排查节。 -->
+    <WasmEnableThreads>true</WasmEnableThreads>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
