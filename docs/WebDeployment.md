@@ -77,8 +77,21 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
   2. **WebGL 不可用** → `Failed to create render target` / `HTMLCanvasElement.getContext
      returned null`。`chrome://gpu` 检查 WebGL2；虚拟机/远程桌面/关闭硬件加速时黑屏。
      开启硬件加速，或 `chrome://flags` → `unsafe-swiftshader` (Chrome 128+)。
-  3. 对照基线：官方 `avalonia.xplat` 模板无 COOP/COEP 或无 WebGL 时同样失败
-     （Avalonia WASM 渲染 = Skia/CanvasKit(WebGL)，无软件兜底）。
+  3. **虚拟化 GPU（远程桌面/云桌面）**：`chrome://gpu` 显示 WebGL "Hardware accelerated"
+     但仍黑屏，且 Console 有 `WebGL: INVALID_ENUM: getParameter: WEBGL_debug_renderer_info
+     not enabled`，同时全部浏览器/全部 SkiaSharp 版本均 `TypeInitialization_Type，
+     SkiaSharp.SKImageInfo` —— 这是虚拟 GPU 向 Skia 提供伪支持、GL 接口装配失败的典型
+     组合。**此类环境 Avalonia WASM 无法运行**（渲染=Skia/CanvasKit(WebGL)，无软件兜底）；
+     需物理机直连或 GPU 直通，或使用桌面版。本结论经纯 Skia 探针（不经 Avalonia）
+     对照验证：虚拟 GPU 环境下 SkiaSharp 3.119.4 与 4.151.1 均初始化失败。
+  4. 对照基线：官方 `avalonia.xplat` 模板无 COOP/COEP 或无 WebGL 时同样失败。
+
+**技术备忘（排障证据链，2026-09-06 实测）**：
+- SkiaSharp `libSkiaSharp.a` 仅链接进**多线程 variant**（`dotnet.native.*` 含 222 个
+  `sk_`/Skia 符号，st variant 为 0）→ `WasmEnableThreads` 必须为 `true`，且部署必须
+  配 COOP/COEP（`crossOriginIsolated===true`）。
+- 完整条件链：COOP/COEP ✓ + WebGL ✓ + `WasmEnableThreads=true` +
+  `WasmPthreadPoolInitialSize>=8`（渲染 worker 池）后，仍失败应检查第 3 条。
 - 无独立窗口：模态对话框为窗口内 overlay（行为与桌面一致，均为模态）
 - 剪贴板受浏览器用户手势限制（复制类操作在点击事件内触发）
 - 系统字体不可用：字体走嵌入 Inter 集合（`fonts:Inter#Inter`）+ 系统回退链

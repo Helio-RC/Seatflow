@@ -6,6 +6,10 @@
          因此保持多线程（默认），部署端必须启用 COOP/COEP 跨源隔离头。
          详见 docs/WebDeployment.md 黑屏排查节。 -->
     <WasmEnableThreads>true</WasmEnableThreads>
+    <!-- Avalonia 渲染需要独立 WebWorker；默认 worker 池(2)不足 →
+         "Failed to find loaded WebWorker ... increase pthreadPoolInitialSize"
+         → 渲染 worker AggregateException 黑屏。提高池大小。 -->
+    <WasmPthreadPoolInitialSize>8</WasmPthreadPoolInitialSize>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
@@ -30,5 +34,10 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="EPPlus" />
     <TrimmerRootAssembly Include="EPPlus.Interfaces" />
+    <!-- ViewLocator 按命名约定反射解析 VM→View；裁剪会误删 View 类型 → 保 SeatFlow 全程序集 -->
+    <TrimmerRootAssembly Include="SeatFlow.Presentation.Avalonia" />
+    <TrimmerRootAssembly Include="SeatFlow.Application" />
+    <TrimmerRootAssembly Include="SeatFlow.Core" />
+    <TrimmerRootAssembly Include="SeatFlow.Infrastructure" />
   </ItemGroup>
 </Project>
