@@ -95,9 +95,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _currentPageGuide = null;
         IsActive = true;
 
-        var mainWindow = GetMainWindow();
-        _logger.LogInformation("[Onboarding] MainWindow={NotNull}" , mainWindow is not null);
-        if (mainWindow?.DataContext is MainShellViewModel vm)
+        var mainView = GetMainView();
+        _logger.LogInformation("[Onboarding] MainView={NotNull}" , mainView is not null);
+        if (mainView?.DataContext is MainShellViewModel vm)
         {
             _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到 Home");
             vm.IsOnboardingActive = true;
@@ -106,10 +106,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
         else
         {
-            _logger.LogWarning("[Onboarding] MainShellViewModel 不可用！DataContext={Type}" , mainWindow?.DataContext?.GetType().FullName);
+            _logger.LogWarning("[Onboarding] MainShellViewModel 不可用！DataContext={Type}" , mainView?.DataContext?.GetType().FullName);
         }
 
-        _guide = mainWindow?.OnboardingGuide;
+        _guide = mainView?.OnboardingGuide;
         _logger.LogInformation("[Onboarding] Guide 控件={NotNull}" , _guide is not null);
         if (_guide is not null)
         {
@@ -159,8 +159,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         if (_completedPageGuidesLoaded && _completedPageGuides.ContainsKey(pageKey))
             return false;
 
-        var mainWindow = GetMainWindow();
-        var guideControl = mainWindow?.OnboardingGuide;
+        var mainView = GetMainView();
+        var guideControl = mainView?.OnboardingGuide;
         if (guideControl is null) return false;
 
         _logger.LogInformation("[Onboarding] 触发页面引导: {PageKey}", pageKey);
@@ -236,8 +236,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                     //（同页面连续两个 Phase 不需要导航，但仍需注入数据）
                     if (_navigation.CurrentPage != pageKey)
                     {
-                        var mainWindow = GetMainWindow();
-                        if (mainWindow?.DataContext is MainShellViewModel vm)
+                        var mainView = GetMainView();
+                        if (mainView?.DataContext is MainShellViewModel vm)
                             vm.OnboardingNavigateTo(pageKey);
                         else
                             _navigation.NavigateTo(pageKey);
@@ -255,8 +255,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                 // MemberManagement 第二次进入：先代码内离开-重入，强制页面重建后再注入
                 if (targetPage == PageKey.MemberManagement)
                 {
-                    var mainWindow = GetMainWindow();
-                    if (mainWindow?.DataContext is MainShellViewModel shell)
+                    var mainView = GetMainView();
+                    if (mainView?.DataContext is MainShellViewModel shell)
                     {
                         shell.OnboardingNavigateTo(PageKey.Home);
                         shell.OnboardingNavigateTo(PageKey.MemberManagement);
@@ -330,8 +330,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// <summary>根据页面注入示例数据，确保引导期间条件可见的目标控件正常显示。</summary>
     private static void SeedPageData (PageKey page)
     {
-        var mainWindow = GetMainWindow();
-        if (mainWindow?.DataContext is not MainShellViewModel shell)
+        var mainView = GetMainView();
+        if (mainView?.DataContext is not MainShellViewModel shell)
             return;
 
         var pageVm = shell.CurrentViewModel;
@@ -670,8 +670,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     private static Control? ResolveTarget (string name)
     {
-        var mainWindow = GetMainWindow();
-        if (mainWindow is null) return null;
+        var mainView = GetMainView();
+        if (mainView is null) return null;
 
         var names = name.Split(';');
 
@@ -679,8 +679,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var trimmed = n.Trim();
 
-            // 1. MainWindow 的 NameScope（ToggleSidebarButton 等）
-            var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainWindow);
+            // 1. MainView 的 NameScope（ToggleSidebarButton 等）
+            var mainScope = global::Avalonia.Controls.NameScope.GetNameScope(mainView);
             if (mainScope is not null)
             {
                 var element = mainScope.Find(trimmed);
@@ -688,7 +688,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             }
 
             // 2. 通过 ContentPresenter → Child → 当前页面 View → NameScope
-            var presenter = mainWindow.PageHost.GetVisualDescendants()
+            var presenter = mainView.PageHost.GetVisualDescendants()
                 .OfType<ContentPresenter>()
                 .FirstOrDefault();
             if (presenter?.Child is Control pageView)
@@ -753,8 +753,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         // 启动引导完成：恢复 UI 状态
         if (wasPageGuide is null)
         {
-            var mainWindow = GetMainWindow();
-            if (mainWindow?.DataContext is MainShellViewModel vm)
+            var mainView = GetMainView();
+            if (mainView?.DataContext is MainShellViewModel vm)
             {
                 var navigateTo = ParsePageKey(_config?.CompleteAction) ?? PageKey.Home;
                 await vm.CompleteOnboardingAsync(navigateTo);
@@ -825,10 +825,13 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return null;
     }
 
-    private static MainWindow? GetMainWindow ()
+    private static MainView? GetMainView ()
     {
-        if (global::Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            return desktop.MainWindow as MainWindow;
+        var lifetime = global::Avalonia.Application.Current?.ApplicationLifetime;
+        if (lifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: MainWindow window })
+            return window.ShellView;
+        if (lifetime is ISingleViewApplicationLifetime { MainView: MainView view })
+            return view;
         return null;
     }
 

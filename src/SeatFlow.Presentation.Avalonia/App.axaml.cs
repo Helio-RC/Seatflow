@@ -82,10 +82,10 @@ namespace SeatFlow.Presentation.Avalonia
                     window.Position = new PixelPoint((int)ws.Left , (int)ws.Top);
                 }
 
-                // 仅在配置文件不存在时创建默认文件，防止覆盖已有设置
+                // 仅在配置文件不存在时创建默认文件，防止覆盖已有设置。
+                // 走存储抽象而非 File.Exists（WASM 端 File.Exists 对相对路径恒为 false）。
                 var repo = _serviceProvider.GetRequiredService<Core.Providers.IAppSettingsRepository>();
-                if (repo is Infrastructure.Providers.JsonAppSettingsRepository jsonRepo
-                    && !File.Exists(jsonRepo.SettingsFilePath))
+                if (!await repo.ExistsAsync())
                 {
                     await facade.SaveAppSettingsAsync(settings);
                 }
@@ -108,6 +108,11 @@ namespace SeatFlow.Presentation.Avalonia
 
         private void ApplyLanguageFromSettings ()
         {
+            // 浏览器端禁止阻塞等待（Cannot wait on monitors on this runtime），
+            // 语言已在 SeatFlow.Browser/Program.Main 中于 Avalonia 启动前异步预加载。
+            if (OperatingSystem.IsBrowser())
+                return;
+
             try
             {
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
@@ -122,7 +127,8 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
-        private static void ApplyLanguage (string language)
+        /// <summary>应用界面语言（供桌面 App.Initialize 与浏览器启动前预加载复用）。</summary>
+        internal static void ApplyLanguage (string language)
         {
             try
             {
@@ -186,8 +192,8 @@ namespace SeatFlow.Presentation.Avalonia
                 // 全局键盘快捷键（Ctrl+Z/Y 撤销/重做、Ctrl+S 保存、Delete 删除、Esc 取消）
                 Behaviors.KeyboardShortcutHandler.Attach(mainWindow);
 
-                // 全局文件拖放导入
-                Behaviors.FileDropHandler.Attach(mainWindow);
+                // 全局文件拖放导入（覆盖层与命名控件位于 MainView 的 NameScope）
+                Behaviors.FileDropHandler.Attach(mainWindow.ShellView);
 
                 // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
                 desktop.ShutdownRequested += (_ , _) =>
@@ -218,24 +224,37 @@ namespace SeatFlow.Presentation.Avalonia
                 StartSeatSetsPipeServer();
 
                 // 按序执行：先检查自动导入 → 引导 → 恢复设置
-                _ = InitializeAsync(mainWindow);
+                _ = SafeInitializeAsync();
 
                 // 处理双击 .seatsets 文件（延迟到 UI 就绪后执行）
                 HandlePendingSeatSetsFile();
             }
-            else if (ApplicationLifetime is IActivityApplicationLifetime web)
+            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
             {
-                // WebAssembly 单视图宿主：整个应用渲染在单个浏览页面中
+                // WebAssembly/单视图宿主：整个应用渲染在单个浏览页面中。
+                // 注意：浏览器端 BrowserSingleViewLifetime 实现的是 ISingleViewApplicationLifetime，
+                // 而非 Android 的 IActivityApplicationLifetime（后者在 WASM 下永远匹配不到 → 白屏）。
+                // 浏览器端不能构造 Window（Browser doesn't support windowing platform），
+                // 必须提供 UserControl 作为 MainView。
                 var mainShell = _serviceProvider.GetRequiredService<MainShellViewModel>();
-                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                mainWindow.DataContext = mainShell;
-                web.MainViewFactory = () => mainWindow;
+                var mainView = _serviceProvider.GetRequiredService<MainView>();
+                mainView.DataContext = mainShell;
+                singleView.MainView = mainView;
+
+                // 浏览器端 SetTopLevel 需要 TopLevel（EmbeddableControlRoot）。
+                // 注意：ISingleTopLevelApplicationLifetime.TopLevel 被标记为 PrivateApi 不可访问，
+                // 因此通过 TopLevel.GetTopLevel 从已附加的 MainView 向上解析。
+                if (TopLevel.GetTopLevel(mainView) is { } topLevel)
+                {
+                    _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(topLevel);
+                    _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(topLevel);
+                }
 
                 ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
                 ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
 
                 // 浏览器无独立窗口：全角输入转换等附加行为在浏览器模式不需要
-                _ = InitializeAsync(mainWindow);
+                _ = SafeInitializeAsync();
             }
 
             base.OnFrameworkInitializationCompleted();
@@ -351,8 +370,8 @@ namespace SeatFlow.Presentation.Avalonia
             try
             {
                 var repo = _serviceProvider.GetRequiredService<IAppSettingsRepository>();
-                var isTrueFirstLaunch = repo is Infrastructure.Providers.JsonAppSettingsRepository jsonRepo
-                    && !File.Exists(jsonRepo.SettingsFilePath);
+                // 走存储抽象（WASM 端 File.Exists 对相对路径恒为 false，会导致每次启动都当作首次启动）
+                var isTrueFirstLaunch = !await repo.ExistsAsync();
 
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
@@ -392,7 +411,24 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
-        private async Task InitializeAsync (MainWindow mainWindow)
+        /// <summary>启动初始化（fire-and-forget）的异常兜底：避免未观察异常导致运行时被拆毁。</summary>
+        private async Task SafeInitializeAsync ()
+        {
+            try
+            {
+                await InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    _serviceProvider.GetRequiredService<ILogger<App>>().LogError(ex, "应用启动初始化失败");
+                }
+                catch { /* 日志服务不可用时静默 */ }
+            }
+        }
+
+        private async Task InitializeAsync ()
         {
             // 在 AppData 创建前先检查自动导入 .seatsets（仅在 AppData 不存在时生效）
             await CheckSeatSetsAutoImportAsync();

@@ -90,6 +90,7 @@ namespace SeatFlow.Presentation.Avalonia
             services.AddSingleton<IArrangementCounterService , ArrangementCounterService>();
 
             // 注册 ViewModels
+            services.AddSingleton<MainView>();
             services.AddSingleton<MainWindow>();
             services.AddSingleton<IOnboardingService , OnboardingService>();
             services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());

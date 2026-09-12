@@ -6,6 +6,10 @@
          TypeInitialization_Type, SkiaSharp.SKImageInfo。修复后单线程变体亦含 Skia，
          且无需 COOP/COEP 跨源隔离（部署更简单）。 -->
     <WasmEnableThreads>false</WasmEnableThreads>
+    <!-- 裁剪默认禁用反射式 System.Text.Json（JsonSerializerIsReflectionDisabled 异常）。
+         SeatFlow 的仓储/序列化大量使用反射式 JsonSerializer，且 SeatFlow.* 已全量 TrimmerRoot，
+         因此显式重新启用反射序列化。 -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>

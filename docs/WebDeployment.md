@@ -19,15 +19,12 @@ cd scripts/build
 
 ## 部署要求
 
-- **⚠️ 跨源隔离（硬性要求）**：SkiaSharp 的原生 `libSkiaSharp.a` 仅链接进
-  **多线程变体** `dotnet.native.*.wasm`；多线程 WASM 要求页面处于跨源隔离状态。
-  **所有静态站点的响应必须携带**：
+- **跨源隔离**：默认单线程变体（`WasmEnableThreads=false`）不需要 COOP/COEP；
+  若改用多线程变体，则必须携带以下响应头（并启用 `WasmEnableThreads=true`）：
   ```
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
   ```
-  Live Server (`liveServer.settings.headers`)、Nginx、IIS、CDN 配置见各自文档。
-  缺失时运行时选择无 Skia 变体 → `TypeInitialization_Type, SkiaSharp.SKImageInfo` 黑屏。
 - **MIME 类型**：`.wasm` → `application/wasm`（大部分现代服务器默认正确）
 - **CSP**：若启用 Content-Security-Policy，需允许 `wasm-eval`（或 `unsafe-eval`）
 - **压缩**：发布产物自带 `.br/.gz` 副本（参考 `wwwroot/*.br|*.gz`），CDN/服务器启用
@@ -87,19 +84,41 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
   4. 对照基线：官方 `avalonia.xplat` 模板无 COOP/COEP 或无 WebGL 时同样失败。
 
 **技术备忘（排障证据链，2026-09-06 实测）**：
-- **最终根因（已修复）**：dotnet/runtime #109289 —— SkiaSharp 原生 `.a` 在 WASM 链接时
+- **Skia 链接根因（已修复）**：dotnet/runtime #109289 —— SkiaSharp 原生 `.a` 在 WASM 链接时
   顺序错误导致 `sk_*` C 导出符号缺失 → `TypeInitialization_Type, SkiaSharp.SKImageInfo`。
   修复：Browser csproj 移植官方 Avalonia.Browser.targets 的
   `Issue109289_Workaround`（`_BrowserWasmWriteRspForLinking` 后重排 SkiaSharp
   链接项）。修复后单线程（`WasmEnableThreads=false`）变体即含全部 222 个 Skia 符号，
-  **不再需要 COOP/COEP 跨源隔离**（部署要求大幅简化）。已验证：splash 正常替换、
-  canvas 接管渲染（无头软件 WebGL 模式），无任何 ManagedError。
-- SkiaSharp `libSkiaSharp.a` 仅链接进**多线程 variant**（`dotnet.native.*` 含 222 个
-  `sk_`/Skia 符号，st variant 为 0）→ `WasmEnableThreads` 必须为 `true`，且部署必须
-  配 COOP/COEP（`crossOriginIsolated===true`）。
-- 完整条件链：COOP/COEP ✓ + WebGL ✓ + `WasmEnableThreads=true` +
-  `WasmPthreadPoolInitialSize>=8`（渲染 worker 池）后，仍失败应检查第 3 条。
+  **不再需要 COOP/COEP 跨源隔离**。已验证：splash 正常替换、canvas 接管渲染
+  （无头软件 WebGL 模式），无任何 ManagedError。
 - 无独立窗口：模态对话框为窗口内 overlay（行为与桌面一致，均为模态）
 - 剪贴板受浏览器用户手势限制（复制类操作在点击事件内触发）
-- 系统字体不可用：字体走嵌入 Inter 集合（`fonts:Inter#Inter`）+ 系统回退链
 - 性能：WASM 单线程，策略执行约慢 2-4 倍（200 人级名单目标 <10s）
+
+**白屏无输出根因链（2026-09-12 实测修复）**：
+
+- **根因 1：生命周期接口判断错误（白屏无任何 Console 输出）**。
+  浏览器 `BrowserSingleViewLifetime` 实现的是 `ISingleViewApplicationLifetime`
+  （`MainView` 属性），而 `App.OnFrameworkInitializationCompleted` 误用 Android 的
+  `IActivityApplicationLifetime`（`MainViewFactory`）——该分支在 WASM 下永不匹配，
+  初始化块整体被跳过，且不抛异常（表现为 canvas 已创建、纯白、Console 无输出）。
+  修复：改用 `ISingleViewApplicationLifetime` 并设置 `MainView`。
+  **浏览器端不能构造 `Window`**（`Browser doesn't support windowing platform`），
+  因此外壳拆分：`MainView : UserControl`（共享，`Views/MainView.axaml`）+
+  `MainWindow : Window`（桌面外壳，仅托管 `MainView`）。
+- **根因 2：裁剪默认禁用反射式 JSON** → `JsonSerializerIsReflectionDisabled`。
+  修复：Browser csproj 显式 `<JsonSerializerIsReflectionEnabledByDefault>true</...>`
+  （SeatFlow.* 已全量 `TrimmerRootAssembly`，反射序列化安全）。
+- **根因 3：WASM 禁止同步阻塞等待** → `Cannot wait on monitors on this runtime`。
+  `App.Initialize()` 内 `Task.Run(...).GetAwaiter().GetResult()` 必然失败（语言设置丢失）。
+  修复：浏览器端跳过该同步路径，在 `SeatFlow.Browser/Program.Main` 于 Avalonia 启动前
+  `await` 预加载语言（`App.ApplyLanguage`）。
+- **根因 4：`File.Exists` 对相对路径在 WASM 恒为 false** → 每次加载都判定"首次启动"
+  （引导反复触发、设置被重写）。修复：`IAppSettingsRepository` 增加存储抽象版
+  `ExistsAsync()`，`App` 首次启动检测/默认设置写入改走它。
+- **根因 5：无 Console 日志**：`AddSeatFlowApplication(store)` 走 `AddLogging()` 但无
+  任何 Provider。修复：浏览器注册 `BrowserConsoleLoggerProvider`（转发到 DevTools Console）。
+- **CJK 字体**：WASM 无系统字体，Inter 无 CJK 字形 → 中文显示为方块。
+  修复：字体库嵌入 `Assets/Fonts/NotoSansSC-Regular.otf`（约 8MB，仅 `net10.0-browser`
+  TFM 打包；SIL OFL 1.1，`Assets/Fonts/LICENSE.txt`），Browser 启动时注册
+  `FontManagerOptions.FontFallbacks`，配合 `fonts:Inter#Inter` 主字体。桌面端不使用该字体。

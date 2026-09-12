@@ -1,12 +1,15 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using SeatFlow.Presentation.Avalonia.Views;
 
 namespace SeatFlow.Presentation.Avalonia.Services.Web;
 
 /// <summary>
-/// 浏览器端（WASM）对话框服务：使用主窗口 <c>DialogOverlayHost</c>
+/// 浏览器端（WASM）对话框服务：使用 <see cref="MainView"/> 的 <c>DialogOverlayHost</c>
 /// 遮罩 + 居中面板模拟模态对话框（WASM 不支持独立 Window / ShowDialog）。
 /// </summary>
 public sealed class WebDialogService : IDialogService
@@ -96,6 +99,15 @@ public sealed class WebDialogService : IDialogService
     private async Task ShowAsync (string title , string message , DialogKind kind)
         => await ShowCoreAsync(title , message , kind);
 
-    private Task<MainWindow?> ResolveHostAsync ()
-        => Task.FromResult(_topLevel as MainWindow);
+    private Task<MainView?> ResolveHostAsync ()
+    {
+        // 浏览器端优先从单视图宿主直接取 MainView（无需 TopLevel 引用）
+        var lifetime = global::Avalonia.Application.Current?.ApplicationLifetime;
+        if (lifetime is ISingleViewApplicationLifetime { MainView: MainView view })
+            return Task.FromResult<MainView?>(view);
+
+        // 兜底：从 SetTopLevel 传入的 TopLevel 可视树中定位
+        var resolved = _topLevel?.GetVisualDescendants().OfType<MainView>().FirstOrDefault();
+        return Task.FromResult(resolved);
+    }
 }

@@ -5,7 +5,10 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Browser;
+using Avalonia.Media;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SeatFlow.Application.Interfaces;
 using SeatFlow.Application.Services;
 using SeatFlow.Core.Telemetry;
 using SeatFlow.Infrastructure.Storage;
@@ -33,6 +36,11 @@ internal sealed class Program
         // 存储抽象：WASM = IndexedDB（无文件系统；桌面端走 AddSeatFlowApplication(string)）
         services.AddSeatFlowApplication(new IndexedDbDataStore());
 
+        // 浏览器日志：转发到开发者工具 Console（AddSeatFlowApplication(store) 默认无 Provider）
+        services.AddLogging(builder => builder
+            .AddProvider(new BrowserConsoleLoggerProvider())
+            .SetMinimumLevel(LogLevel.Information));
+
         // 平台服务：浏览器端实现（IndexedDB 存储 / overlay 对话框 / 占位文件与更新服务）
         services.AddSingleton<INavigationService , NavigationService>();
         services.AddSingleton<IFileService , WebFileService>();
@@ -43,7 +51,8 @@ internal sealed class Program
         services.AddSingleton<ITelemetryService , NullTelemetryService>();
 
         // 注册 ViewModels（与桌面端 Program 保持一致）
-        services.AddSingleton<MainWindow>();
+        // 浏览器端不能构造 Window，外壳使用 MainView（UserControl）
+        services.AddSingleton<MainView>();
         services.AddSingleton<IOnboardingService , OnboardingService>();
         services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
         services.AddSingleton<MainShellViewModel>();
@@ -59,13 +68,43 @@ internal sealed class Program
         services.AddTransient<ConfigBlockEditorViewModel>();
         services.AddTransient<UpdateDialogViewModel>();
 
-        await StartBrowserAppAsync(services.BuildServiceProvider());
+        var serviceProvider = services.BuildServiceProvider();
+
+        // 浏览器端禁止同步阻塞等待（App.Initialize 内的同步读取会抛
+        // PlatformNotSupportedException：Cannot wait on monitors）。
+        // 因此语言必须在 Avalonia 启动前异步预加载，确保 {x:Static} 资源字符串
+        // 在 XAML 加载时按正确文化解析。
+        try
+        {
+            var settings = await serviceProvider
+                .GetRequiredService<IApplicationFacade>()
+                .LoadAppSettingsAsync();
+            App.ApplyLanguage(settings.Language);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SF] 预加载语言设置失败（使用系统默认文化）: {ex.Message}");
+        }
+
+        await StartBrowserAppAsync(serviceProvider);
     }
 
     [SupportedOSPlatform("browser")]
     private static Task StartBrowserAppAsync (IServiceProvider services)
         => BuildAvaloniaApp(services)
             .WithInterFont()
+            .With(new FontManagerOptions
+            {
+                // WASM 无系统字体：CJK 字形通过 FontFallbacks 回退到嵌入的 Noto Sans SC
+                FontFallbacks =
+                [
+                    new FontFallback
+                    {
+                        FontFamily = new FontFamily(
+                            "avares://SeatFlow.Presentation.Avalonia/Assets/Fonts/NotoSansSC-Regular.otf#Noto Sans SC")
+                    }
+                ]
+            })
             .LogToTrace()
             .StartBrowserAppAsync("out");
 

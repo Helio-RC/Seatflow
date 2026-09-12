@@ -21,6 +21,11 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <!-- CJK 字体（约 8MB）仅 Web 端需要：桌面端走系统字体回退，避免发布体积膨胀 -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0-browser'">
+    <AvaloniaResource Remove="Assets\Fonts\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="Data\about.json" />
     <EmbeddedResource Include="Data\page_navigation.json" />

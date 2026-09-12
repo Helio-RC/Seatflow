@@ -3,10 +3,8 @@ using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Presentation.Avalonia.Services;
-using SeatFlow.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
-using CodeWF.AvaloniaControls.Controls;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SeatFlow.Presentation.Avalonia.Views
@@ -17,11 +15,14 @@ namespace SeatFlow.Presentation.Avalonia.Views
         private readonly INavigationService _navigation;
         private bool _isClosingConfirmed;
 
-        public MainWindow (IOnboardingService onboarding , INavigationService navigation)
+        public MainWindow (IOnboardingService onboarding , INavigationService navigation , MainView shellView)
         {
             _onboarding = onboarding;
             _navigation = navigation;
             InitializeComponent();
+
+            ShellView = shellView;
+            ShellHost.Content = shellView;
 
             // 引导期间窗口最小化/Alt+Tab 时，Guide 的 Popup
             // (ShouldUseOverlayLayer=False) 可能残留为孤儿 OS 窗口。
@@ -30,28 +31,8 @@ namespace SeatFlow.Presentation.Avalonia.Views
             Deactivated += (_ , _) => _onboarding.HandleWindowDeactivated();
         }
 
-        /// <summary>Guide 步骤全部完成（用户点击最后一步的"完成"按钮）。</summary>
-        private void OnGuideCompleted (object? sender , EventArgs e)
-            => _onboarding.HandleGuideCompleted();
-
-        /// <summary>Guide 被用户关闭（点击 × 或按 Esc）。</summary>
-        private async void OnGuideClosed (object? sender , EventArgs e)
-        {
-            if (!await _onboarding.HandleGuideClosedAsync())
-                OnboardingGuide.Show();
-        }
-
-        /// <summary>Guide 步骤切换前，解析 Target、处理跨阶段页面导航。</summary>
-        private void OnGuideStepOpening (object? sender , GuideStepEventArgs e)
-            => _onboarding.HandleStepOpening(e.Index , e.Step);
-
-        protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
-        {
-            base.OnPropertyChanged(change);
-
-            if (change.Property == BoundsProperty && DataContext is MainShellViewModel vm)
-                vm.OnWindowWidthChanged(Bounds.Width);
-        }
+        /// <summary>共享外壳视图。桌面端由本窗口承载，浏览器端直接作为单视图内容。</summary>
+        public MainView ShellView { get; }
 
         protected override async void OnClosing (WindowClosingEventArgs e)
         {

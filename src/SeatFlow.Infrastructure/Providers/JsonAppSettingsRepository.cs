@@ -56,6 +56,10 @@ namespace SeatFlow.Infrastructure.Providers
 
         public string SettingsFilePath => _desktopFilePath ?? _filePath;
 
+        /// <inheritdoc />
+        public Task<bool> ExistsAsync (CancellationToken cancellationToken = default)
+            => _store.ExistsAsync(_filePath , cancellationToken);
+
         public async Task<AppSettings> LoadAsync (CancellationToken cancellationToken = default)
         {
             var json = await _store.ReadTextAsync(_filePath , cancellationToken);
