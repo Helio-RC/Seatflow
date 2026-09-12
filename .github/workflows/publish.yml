@@ -32,6 +32,9 @@ env:
 
 jobs:
   publish:
+    # 手动发布（workflow_dispatch）始终可用；自动发布仅限 push 触发的成功构建。
+    # 手动构建完成时同样会触发本工作流（workflow_run），此处直接跳过，避免红色失败记录。
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment: OSS
     timeout-minutes: 20
@@ -77,7 +80,13 @@ jobs:
               exit 1
             fi
             V=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
-            IS_PRE=false
+            # 预发布版本（如 2.0.0-rc.1）标记 Pre-release 并跳过 OSS 同步
+            if [[ "$V" == *-* ]]; then
+              IS_PRE=true
+              echo "预发布版本：标记 Pre-release 且不上传 OSS"
+            else
+              IS_PRE=false
+            fi
           fi
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "version=$V" >> "$GITHUB_OUTPUT"
@@ -180,8 +189,8 @@ jobs:
             done
           } > /tmp/release-body.md
 
-      - name: Upload to OSS (auto push only)
-        if: github.event_name == 'workflow_run'
+      - name: Upload to OSS (auto push, stable only)
+        if: github.event_name == 'workflow_run' && steps.meta.outputs.is_pre != 'true'
         env:
           OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
           OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}

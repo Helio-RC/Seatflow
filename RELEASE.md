@@ -1,13 +1,29 @@
-# SeatFlow v2.0.0 发布说明
+# SeatFlow v2.0.0-rc.1 发布说明
 
-SeatFlow 发布 2.0.0——本次为重大版本更新（major）：**彻底移除插件系统**，聚焦核心排座功能，工程结构显著精简。
+SeatFlow 2.0.0-rc.1 是 2.0.0 的首个候选预发布版：新增 **Web/WASM 浏览器支持（双壳架构）**，并包含此前已完成的**插件系统移除**与工程结构精简。
 
-## 工程
+> 本次为预发布版（Pre-release），仅供测试验证。安装包仅含桌面版（Windows / Linux / macOS）；
+> Web 版已完成构建与运行验证，但暂不随本次发布部署。
 
-- App 版本升至 **2.0.0**；`version.json` 各文件格式版本校验通过
-- 清理了 i18n 资源前缀、CI 路径过滤器与文档中全部插件引用（CHANGELOG 历史条目保留原样）
+## 新增
+
+- **Web/WASM 浏览器支持**：`SeatFlow.Presentation.Avalonia` 转为共享类库（`net10.0;net10.0-browser`），启动逻辑拆分为 `SeatFlow.Desktop`（桌面 EXE）与 `SeatFlow.Browser`（WASM 静态站）
+- **浏览器端存储**：`ILocalDataStore` 抽象——桌面走文件系统，Web 走 IndexedDB；CSV/XLSX/JSON 导入导出与 `.seatsets` 打包在 Web 端等价可用
+- **Web 端适配**：模态对话框 overlay 化、CJK 字体嵌入（Noto Sans SC）、DevTools Console 日志、语言预加载；PDF/图片导出、自动更新等桌面专属能力在 Web 端隐藏
+- 适配 .NET 10 / Avalonia 12
+
+## 移除
+
+- **移除插件系统（ADR-013）**：删除 `SeatFlow.Contracts`、`SeatFlow.Plugins.Sdk`、`SeatFlow.Plugin.TestFixture` 与 `src/plugin-examples/`，移除 `NLua`、`Microsoft.CodeAnalysis.CSharp.Scripting` 依赖
+- 删除插件运行时、Lua/C# 脚本策略、能力系统、插件管理页与相关文档
 
 ## 迁移说明
 
 - 1.x 升级至 2.0.0：无需手动迁移，所有数据（会场/名单/快照/策略配置）兼容
 - 如果曾安装过插件（`.ap-plugin`），插件将不再被加载，安装根目录下的 `Plugins/` 目录可手动删除
+
+## 平台资产
+
+- Windows x64：Setup 安装程序
+- Linux x64：AppImage
+- macOS：Intel 与 Apple Silicon 安装包

@@ -47,6 +47,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      # SeatFlow.Browser（net10.0-browser）已在解决方案中，构建需要 wasm-tools workload
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
       - run: dotnet build
 
       - if: steps.filter.outputs.core == 'true'
