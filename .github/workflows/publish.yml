@@ -98,6 +98,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          python3 -m pip install --quiet packaging
           V="${{ steps.meta.outputs.version }}"
           TAG="v${V}"
           echo "Target: $TAG"
@@ -112,11 +114,8 @@ jobs:
             LATEST=${LATEST_TAG#v}
             echo "Latest release: $LATEST_TAG"
             RESULT=$(python3 -c "
-          try:
-            from packaging.version import Version
-            print('ok' if Version('$V') > Version('$LATEST') else 'fail')
-          except Exception:
-            print('fail')
+          from packaging.version import Version
+          print('ok' if Version('$V') > Version('$LATEST') else 'fail')
           ")
             if [[ "$RESULT" == "fail" ]]; then
               echo "✗ Version $V is not greater than latest $LATEST. Abort."
