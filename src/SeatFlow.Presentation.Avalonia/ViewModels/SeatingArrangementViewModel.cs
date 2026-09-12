@@ -90,10 +90,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private double _defaultZoomLevel = 1.0;
     public double ZoomLevel { get; set; } = 1.0;
     public Action<double> ZoomAction => delta => ApplyZoom(delta);
-    public void ApplyZoom (double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta , 0.2 , 3.0); BuildSeatDisplayItems(); }
+    public void ApplyZoom(double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta, 0.2, 3.0); BuildSeatDisplayItems(); }
 
     /// <summary>不改变数据，仅重新绘制预览区域。</summary>
-    public void RefreshPreview () => BuildSeatDisplayItems();
+    public void RefreshPreview() => BuildSeatDisplayItems();
 
     // ── 工具栏 ──
     [ObservableProperty]
@@ -159,7 +159,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     public partial string SwapHintText { get; set; } = string.Empty;
 
-    public SeatingArrangementViewModel (IApplicationFacade facade , IFileService fileService , INavigationService navigation , IArrangementCounterService counterService , ILogger<SeatingArrangementViewModel>? logger = null)
+    /// <summary>
+    /// 最近一次数据加载（构造时初始化或导航进入时刷新）的完成信号。
+    /// 引导示例数据注入需等待它完成，否则随后加载会整体替换 VenueItems/DatasetItems、
+    /// 覆盖演示数据（WASM/IndexedDB 下异步加载可能晚于引导阶段切换）。
+    /// </summary>
+    public Task InitializationTask { get; private set; } = Task.CompletedTask;
+
+    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, INavigationService navigation, IArrangementCounterService counterService, ILogger<SeatingArrangementViewModel>? logger = null)
     {
         _facade = facade;
         _fileService = fileService;
@@ -167,17 +174,19 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _counterService = counterService;
         _logger = logger ?? NullLogger<SeatingArrangementViewModel>.Instance;
         navigation.CurrentViewModelChanged += OnNavigationChanged;
-        _ = LoadInitialDataAsync();
+        InitializationTask = LoadInitialDataAsync();
     }
 
     private readonly INavigationService _navigation;
 
-    private void OnNavigationChanged ()
+    private void OnNavigationChanged()
     {
         if (_navigation.CurrentViewModel == this)
         {
-            // 推迟到 UI 布局完成后执行，确保 OnLoaded 已触发、SeatItems 绑定已建立
-            Dispatcher.UIThread.Post(() => _ = RefreshDataAsync());
+            // 推迟到 UI 布局完成后执行（确保 OnLoaded 已触发、SeatItems 绑定已建立），
+            // 并将该刷新登记为可等待的初始化任务，避免引导演示数据被后续加载覆盖
+            InitializationTask = Dispatcher.UIThread
+                .InvokeAsync(RefreshDataAsync, DispatcherPriority.Background);
         }
     }
 
@@ -186,13 +195,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
     // ── 初始化 ──
 
-    private async Task LoadInitialDataAsync ()
+    private async Task LoadInitialDataAsync()
     {
-        await Task.WhenAll(LoadVenuesAsync() , LoadDatasetsAsync() , LoadDefaultZoomAsync());
+        await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync(), LoadDefaultZoomAsync());
         StatusMessage = Resources.Seating_ReadyHint;
     }
 
-    private async Task LoadDefaultZoomAsync ()
+    private async Task LoadDefaultZoomAsync()
     {
         try
         {
@@ -206,14 +215,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
     }
 
-    public async Task RefreshDataAsync ()
+    public async Task RefreshDataAsync()
     {
-        await Task.WhenAll(LoadVenuesAsync() , LoadDatasetsAsync());
+        await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync());
         await TryRestoreWorkspaceAsync();
     }
 
     [RelayCommand]
-    private async Task LoadVenuesAsync ()
+    private async Task LoadVenuesAsync()
     {
         await SafeExecuteAsync(async () =>
         {
@@ -222,14 +231,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             foreach (var id in ids)
             {
                 var layout = await _facade.LoadVenueAsync(id);
-                items.Add(new VenueItem(id , layout?.Name ?? id));
+                items.Add(new VenueItem(id, layout?.Name ?? id));
             }
             VenueItems = new ObservableCollection<VenueItem>(items);
         });
     }
 
     [RelayCommand]
-    private async Task LoadDatasetsAsync ()
+    private async Task LoadDatasetsAsync()
     {
         await SafeExecuteAsync(async () =>
         {
@@ -239,7 +248,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     }
 
     /// <summary>如果有活跃工作区（如快照回滚后），恢复座位图显示。</summary>
-    private async Task TryRestoreWorkspaceAsync ()
+    private async Task TryRestoreWorkspaceAsync()
     {
         _workspace = await _facade.GetCurrentWorkspaceAsync();
         if (_workspace == null) return;
@@ -260,14 +269,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await UpdateRightPanelAsync();
         UpdateStats();
         InitHistory(Resources.Seating_RestoredWorkspace);
-        StatusMessage = string.Format(Resources.Seating_RestoredWorkspaceFmt , AssignedSeats , TotalSeats);
+        StatusMessage = string.Format(Resources.Seating_RestoredWorkspaceFmt, AssignedSeats, TotalSeats);
 
         // 强制在 UI 线程上重绘，确保异步 continuation 未切到线程池时也能正确渲染
         Dispatcher.UIThread.Post(RefreshPreview);
     }
 
     // ── 会场选择 ──
-    partial void OnSelectedVenueChanged (VenueItem? value)
+    partial void OnSelectedVenueChanged(VenueItem? value)
     {
         if (value == null || _isRestoringWorkspace) return;
         _ = SafeExecuteAsync(async () =>
@@ -276,7 +285,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (_currentLayout != null)
             {
                 ObstacleProcessor.ApplyObstacles(_currentLayout);
-                StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt , _currentLayout.Name , _currentLayout.Seats.Count);
+                StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt, _currentLayout.Name, _currentLayout.Seats.Count);
             }
         });
     }
@@ -284,7 +293,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 生成座位 ──
 
     [RelayCommand]
-    private async Task GenerateSeatingAsync ()
+    private async Task GenerateSeatingAsync()
     {
         if (!CanGenerate || _currentLayout == null) return;
 
@@ -299,7 +308,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             // 1. 加载学生
-            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id , ct);
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
             if (students == null || students.Count == 0)
             {
                 StatusMessage = Resources.Seating_NoMembers;
@@ -307,10 +316,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             }
 
             // 2. 写入临时 JSON 文件（RosterFile 格式）
-            var roster = new RosterFile { Version = "1.0" , Students = students };
+            var roster = new RosterFile { Version = "1.0", Students = students };
             var jsonOptions = JsonOptions.WriteIndentedCamelCase;
-            var tempPath = Path.Combine(Path.GetTempPath() , $"a_pair_gen_{Guid.NewGuid():N}.json");
-            await File.WriteAllTextAsync(tempPath , JsonSerializer.Serialize(roster , jsonOptions) , ct);
+            var tempPath = Path.Combine(Path.GetTempPath(), $"a_pair_gen_{Guid.NewGuid():N}.json");
+            await File.WriteAllTextAsync(tempPath, JsonSerializer.Serialize(roster, jsonOptions), ct);
 
             try
             {
@@ -325,13 +334,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
                 var request = new SeatingRequest
                 {
-                    LayoutId = SelectedVenue!.Id ,
-                    DatasetId = SelectedDataset!.Id ,
-                    StudentDataSource = tempPath ,
-                    Description = string.Format(Resources.Seating_VenueDatasetDesc , SelectedVenue.Name , SelectedDataset.Name)
+                    LayoutId = SelectedVenue!.Id,
+                    DatasetId = SelectedDataset!.Id,
+                    StudentDataSource = tempPath,
+                    Description = string.Format(Resources.Seating_VenueDatasetDesc, SelectedVenue.Name, SelectedDataset.Name)
                 };
 
-                _workspace = await _facade.GenerateSeatingAsync(request , progress , ct);
+                _workspace = await _facade.GenerateSeatingAsync(request, progress, ct);
                 _currentPlan = _workspace.BuildSeatingPlan();
 
                 // 4. 构建显示 + 初始化历史
@@ -342,14 +351,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
                 HasGenerated = true;
                 _counterService.Increment();
-                StatusMessage = string.Format(Resources.Seating_GeneratedFmt , AssignedSeats , TotalSeats);
+                StatusMessage = string.Format(Resources.Seating_GeneratedFmt, AssignedSeats, TotalSeats);
             }
             finally
             {
                 // 5. 清理临时文件
                 try { File.Delete(tempPath); } catch { /* 忽略 */ }
             }
-        } , Resources.Seating_GenerateFailed);
+        }, Resources.Seating_GenerateFailed);
 
         IsGenerating = false;
     }
@@ -359,7 +368,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// 所有学生进入未分配列表，座位全部为空。
     /// </summary>
     [RelayCommand]
-    private async Task CreateEmptySeatingAsync ()
+    private async Task CreateEmptySeatingAsync()
     {
         if (!CanCreateEmpty || _currentLayout == null) return;
 
@@ -374,7 +383,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             // 加载学生
-            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id , ct);
+            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
             if (students == null || students.Count == 0)
             {
                 StatusMessage = Resources.Seating_NoMembers;
@@ -383,7 +392,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             // 通过 facade 创建空白工作区（加载布局 + 学生，不执行策略）
             _workspace = await _facade.CreateEmptyWorkspaceAsync(
-                SelectedVenue!.Id , SelectedDataset!.Id , ct);
+                SelectedVenue!.Id, SelectedDataset!.Id, ct);
             _currentPlan = _workspace.BuildSeatingPlan();
 
             // 构建显示 + 初始化历史
@@ -393,22 +402,22 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             InitHistory(Resources.Seating_EmptyStartDesc);
 
             HasGenerated = true;
-            StatusMessage = string.Format(Resources.Seating_EmptyCreatedFmt , TotalSeats , UnassignedStudentCount);
-        } , Resources.Seating_CreateEmptyFailed);
+            StatusMessage = string.Format(Resources.Seating_EmptyCreatedFmt, TotalSeats, UnassignedStudentCount);
+        }, Resources.Seating_CreateEmptyFailed);
 
         IsGenerating = false;
     }
 
     // ── Canvas 数据构建 ──
 
-    private void BuildSeatDisplayItems ()
+    private void BuildSeatDisplayItems()
     {
         if (_currentLayout == null || _workspace == null || _currentPlan == null) return;
 
         var metadata = _currentLayout.Metadata;
-        var studentMap = _workspace.Students.ToDictionary(s => s.Id , s => s.Name);
+        var studentMap = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
         var assignments = _currentPlan.Assignments;
-        var (baseW , baseH) = GetSeatDimensions(metadata);
+        var (baseW, baseH) = GetSeatDimensions(metadata);
 
         // 网格布局扩距系数（增大间距防重叠）
         double spread = metadata is GridLayoutMetadata ? 1.8 : 1.0;
@@ -416,18 +425,18 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         // 第一遍：收集原始坐标范围
         double minX0 = double.MaxValue, minY0 = double.MaxValue;
         double maxX0 = 0, maxY0 = 0;
-        var rawPositions = new List<(double cx , double cy , Seat seat)>();
+        var rawPositions = new List<(double cx, double cy, Seat seat)>();
         foreach (var seat in _currentLayout.Seats)
         {
             if (!seat.IsAvailable) continue;
-            var (cx , cy) = SeatGeometryHelper.GetPosition(seat , metadata);
+            var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
             cx *= spread; cy *= spread;
             if (seat is PolarSeat) { cx -= baseW / 2; cy -= baseH / 2; }
-            rawPositions.Add((cx , cy , seat));
-            minX0 = Math.Min(minX0 , cx);
-            minY0 = Math.Min(minY0 , cy);
-            maxX0 = Math.Max(maxX0 , cx + baseW);
-            maxY0 = Math.Max(maxY0 , cy + baseH);
+            rawPositions.Add((cx, cy, seat));
+            minX0 = Math.Min(minX0, cx);
+            minY0 = Math.Min(minY0, cy);
+            maxX0 = Math.Max(maxX0, cx + baseW);
+            maxY0 = Math.Max(maxY0, cy + baseH);
         }
         // 将障碍物也纳入包围盒
         foreach (var obs in _currentLayout.Obstacles)
@@ -436,10 +445,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double oh = (obs.Height > 0 ? obs.Height : 40) * spread;
             double ox = obs.X * spread;
             double oy = obs.Y * spread;
-            minX0 = Math.Min(minX0 , ox);
-            minY0 = Math.Min(minY0 , oy);
-            maxX0 = Math.Max(maxX0 , ox + ow);
-            maxY0 = Math.Max(maxY0 , oy + oh);
+            minX0 = Math.Min(minX0, ox);
+            minY0 = Math.Min(minY0, oy);
+            maxX0 = Math.Max(maxX0, ox + ow);
+            maxY0 = Math.Max(maxY0, oy + oh);
         }
 
         // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
@@ -453,11 +462,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var items = new List<SeatDisplayItem>();
         int seatCounter = 0;
 
-        foreach (var (cx , cy , seat) in rawPositions)
+        foreach (var (cx, cy, seat) in rawPositions)
         {
             var occupantId = assignments.GetValueOrDefault(seat.Id);
             bool isOccupied = occupantId != null;
-            bool isFrontRow = IsFrontRowSeat(seat , metadata);
+            bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
             double sx = _contentCenterX + ((cx - _contentCenterX) * ZoomLevel);
             double sy = _contentCenterY + ((cy - _contentCenterY) * ZoomLevel);
@@ -465,17 +474,17 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             seatCounter++;
             items.Add(new SeatDisplayItem
             {
-                X = sx ,
-                Y = sy ,
-                Width = seatWidth ,
-                Height = seatHeight ,
-                SeatId = seat.Id ,
-                SeatLabel = BuildSeatLabel(seat , seatCounter) ,
-                IsFrontRow = isFrontRow ,
-                StudentName = isOccupied ? studentMap.GetValueOrDefault(occupantId! , "") : null ,
-                StudentId = occupantId ,
-                IsOccupied = isOccupied ,
-                IsFixed = seat.IsFixed ,
+                X = sx,
+                Y = sy,
+                Width = seatWidth,
+                Height = seatHeight,
+                SeatId = seat.Id,
+                SeatLabel = BuildSeatLabel(seat, seatCounter),
+                IsFrontRow = isFrontRow,
+                StudentName = isOccupied ? studentMap.GetValueOrDefault(occupantId!, "") : null,
+                StudentId = occupantId,
+                IsOccupied = isOccupied,
+                IsFixed = seat.IsFixed,
                 OccupancyStatus = isOccupied
                     ? (seat.IsFixed ? SeatOccupancyStatus.Fixed : SeatOccupancyStatus.Occupied)
                     : SeatOccupancyStatus.Empty
@@ -484,8 +493,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
         // Canvas 大小 + 居中偏移
         double margin = 120;
-        CanvasWidth = Math.Max(900 , ((maxX0 - minX0) * ZoomLevel) + (margin * 2));
-        CanvasHeight = Math.Max(700 , ((maxY0 - minY0) * ZoomLevel) + (margin * 2));
+        CanvasWidth = Math.Max(900, ((maxX0 - minX0) * ZoomLevel) + (margin * 2));
+        CanvasHeight = Math.Max(700, ((maxY0 - minY0) * ZoomLevel) + (margin * 2));
         double offsetX = (CanvasWidth / 2) - _contentCenterX;
         double offsetY = (CanvasHeight / 2) - _contentCenterY;
         foreach (var item in items) { item.X += offsetX; item.Y += offsetY; }
@@ -503,10 +512,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         foreach (var seat in _currentLayout.Seats)
         {
             if (!seat.IsAvailable) continue;
-            var (cx , _) = SeatGeometryHelper.GetPosition(seat , metadata);
+            var (cx, _) = SeatGeometryHelper.GetPosition(seat, metadata);
             cx *= spread;
-            seatMinX = Math.Min(seatMinX , cx);
-            seatMaxX = Math.Max(seatMaxX , cx + baseW);
+            seatMinX = Math.Min(seatMinX, cx);
+            seatMaxX = Math.Max(seatMaxX, cx + baseW);
         }
 
         foreach (var obs in _currentLayout.Obstacles)
@@ -525,87 +534,87 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             double oy = _contentCenterY + ((obsY - _contentCenterY) * ZoomLevel) + offsetY;
             overlays.Add(new SeatDisplayItem
             {
-                X = ox ,
-                Y = oy ,
-                Width = w ,
-                Height = h ,
-                SeatId = obs.Id ,
-                SeatLabel = obs.Type ?? Resources.Seating_Obstacle ,
-                CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4) ,
+                X = ox,
+                Y = oy,
+                Width = w,
+                Height = h,
+                SeatId = obs.Id,
+                SeatLabel = obs.Type ?? Resources.Seating_Obstacle,
+                CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4),
                 OccupancyStatus = SeatOccupancyStatus.Empty
             });
         }
         OverlayItems = new ObservableCollection<SeatDisplayItem>(overlays);
     }
 
-    private static (double width , double height) GetSeatDimensions (LayoutMetadata metadata)
+    private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
         => ComputeSeatSize(metadata);
 
     /// <summary>按间距计算座位的安全尺寸（宽<最近邻间距的70%）。</summary>
-    private static (double w , double h) ComputeSeatSize (LayoutMetadata metadata)
+    private static (double w, double h) ComputeSeatSize(LayoutMetadata metadata)
     {
         if (metadata is GridLayoutMetadata gm)
         {
             double intra = gm.IntraDeskSpacing > 0 ? gm.IntraDeskSpacing : 20;
             double inter = gm.InterDeskSpacing > 0 ? gm.InterDeskSpacing : 64;
-            double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra , inter) : inter;
+            double colGap = gm.SeatsPerDesk > 1 ? Math.Min(intra, inter) : inter;
             double rowGap = gm.VerticalSpacing > 0 ? gm.VerticalSpacing : 56;
-            double w = Math.Clamp(colGap * 0.95 , 44 , 72);
-            double h = Math.Clamp(rowGap * 0.62 , 24 , 44);
-            return (w , h);
+            double w = Math.Clamp(colGap * 0.95, 44, 72);
+            double h = Math.Clamp(rowGap * 0.62, 24, 44);
+            return (w, h);
         }
         if (metadata is PolarLayoutMetadata pm)
         {
             double step = pm.RadiusStep > 0 ? pm.RadiusStep : 40;
-            double s = Math.Clamp(step * 0.85 , 28 , 48);
-            return (s , s);
+            double s = Math.Clamp(step * 0.85, 28, 48);
+            return (s, s);
         }
-        return (42 , 26);
+        return (42, 26);
     }
 
     // ── 座位标签与行列判断 ──
 
-    private static string BuildSeatLabel (Seat seat , int counter)
+    private static string BuildSeatLabel(Seat seat, int counter)
     {
         return seat switch
         {
             GridSeat g => $"R{g.Row}C{g.Column}",
-            PolarSeat p => string.Format(Resources.Seating_PolarLabelFmt , p.Ring , p.AngleDegrees),
+            PolarSeat p => string.Format(Resources.Seating_PolarLabelFmt, p.Ring, p.AngleDegrees),
             FreeformSeat => $"#{counter}",
             _ => $"#{counter}"
         };
     }
 
-    private static bool IsFrontRowSeat (Seat seat , LayoutMetadata metadata)
+    private static bool IsFrontRowSeat(Seat seat, LayoutMetadata metadata)
     {
-        return (seat , metadata) switch
+        return (seat, metadata) switch
         {
             (GridSeat g, GridLayoutMetadata gm) => g.Row <= gm.FrontRowCount,
-            (PolarSeat p, PolarLayoutMetadata pm) => IsPolarFrontRow(p , pm),
+            (PolarSeat p, PolarLayoutMetadata pm) => IsPolarFrontRow(p, pm),
             _ => false
         };
     }
 
-    private static bool IsPolarFrontRow (PolarSeat seat , PolarLayoutMetadata meta)
+    private static bool IsPolarFrontRow(PolarSeat seat, PolarLayoutMetadata meta)
     {
         int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
-        int frontCount = Math.Min(meta.FrontRowCount , totalRings);
+        int frontCount = Math.Min(meta.FrontRowCount, totalRings);
         return seat.Ring > (totalRings - frontCount);
     }
 
     // ── 显示刷新 ──
 
-    private void RefreshSeatAssignments ()
+    private void RefreshSeatAssignments()
     {
         if (_currentPlan == null || _workspace == null) return;
-        var studentMap = _workspace.Students.ToDictionary(s => s.Id , s => s.Name);
+        var studentMap = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
         var assignments = _currentPlan.Assignments;
 
         foreach (var item in SeatItems)
         {
             var occupantId = assignments.GetValueOrDefault(item.SeatId);
             bool isOccupied = occupantId != null;
-            item.StudentName = isOccupied ? studentMap.GetValueOrDefault(occupantId! , "") : null;
+            item.StudentName = isOccupied ? studentMap.GetValueOrDefault(occupantId!, "") : null;
             item.StudentId = occupantId;
             item.IsOccupied = isOccupied;
             item.OccupancyStatus = isOccupied
@@ -615,7 +624,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
     }
 
-    private async Task UpdateRightPanelAsync ()
+    private async Task UpdateRightPanelAsync()
     {
         // 策略列表
         var allStrategies = await _facade.GetStrategiesAsync();
@@ -650,16 +659,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         if (_workspace != null)
         {
             // 构建消息模板字典：从各策略的 manifest messages 中解析当前语言模板
-            var templates = new Dictionary<string , string>();
+            var templates = new Dictionary<string, string>();
             foreach (var s in allStrategies)
             {
                 if (s.Messages is null) continue;
-                foreach (var (key , dict) in s.Messages)
+                foreach (var (key, dict) in s.Messages)
                     templates[key] = Helpers.LocalizeHelper.Resolve(dict);
             }
 
             var messages = _workspace.Messages;
-            var studentNames = _workspace.Students.ToDictionary(s => s.Id , s => s.Name);
+            var studentNames = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
             var errors = messages.Where(m => m.Severity == StrategyMessageSeverity.Error).ToList();
             var warnings = messages.Where(m => m.Severity == StrategyMessageSeverity.Warning).ToList();
 
@@ -667,26 +676,26 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (errors.Count > 0)
                 groups.Add(new StrategyMessageGroup
                 {
-                    Severity = StrategyMessageSeverity.Error ,
-                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})" ,
+                    Severity = StrategyMessageSeverity.Error,
+                    Title = $"{Resources.Seating_MessagesGroupError} ({errors.Count})",
                     Messages = new ObservableCollection<StrategyMessageItem>(
                         errors.Select(m => new StrategyMessageItem
                         {
-                            StrategyName = m.StrategyDisplayName ,
-                            Message = FormatStrategyMessage(m , studentNames , templates) ,
+                            StrategyName = m.StrategyDisplayName,
+                            Message = FormatStrategyMessage(m, studentNames, templates),
                             Severity = m.Severity
                         }))
                 });
             if (warnings.Count > 0)
                 groups.Add(new StrategyMessageGroup
                 {
-                    Severity = StrategyMessageSeverity.Warning ,
-                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})" ,
+                    Severity = StrategyMessageSeverity.Warning,
+                    Title = $"{Resources.Seating_MessagesGroupWarning} ({warnings.Count})",
                     Messages = new ObservableCollection<StrategyMessageItem>(
                         warnings.Select(m => new StrategyMessageItem
                         {
-                            StrategyName = m.StrategyDisplayName ,
-                            Message = FormatStrategyMessage(m , studentNames , templates) ,
+                            StrategyName = m.StrategyDisplayName,
+                            Message = FormatStrategyMessage(m, studentNames, templates),
                             Severity = m.Severity
                         }))
                 });
@@ -700,14 +709,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasMessages));
     }
 
-    private void UpdateStats ()
+    private void UpdateStats()
     {
         TotalSeats = SeatItems.Count;
         AssignedSeats = SeatItems.Count(s => s.IsOccupied);
     }
 
     /// <summary>手动操作后统一刷新显示、更新历史、设置状态消息。</summary>
-    private async Task FinalizeManualOperationAsync (string historyDesc , string statusMsg)
+    private async Task FinalizeManualOperationAsync(string historyDesc, string statusMsg)
     {
         _currentPlan = _workspace!.BuildSeatingPlan();
         RefreshSeatAssignments();
@@ -720,7 +729,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 座位点击交换 ──
 
     [RelayCommand]
-    private async Task ClickSeatAsync (SeatDisplayItem? clickedSeat)
+    private async Task ClickSeatAsync(SeatDisplayItem? clickedSeat)
     {
         if (clickedSeat == null || _workspace == null) return;
 
@@ -733,16 +742,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             await SafeExecuteAsync(async () =>
             {
-                var assignCmd = new AssignSeatCommand(clickedSeat.SeatId , student.Id);
-                var ok = await _facade.ExecuteCommandAsync(assignCmd , recordInHistory: false);
+                var assignCmd = new AssignSeatCommand(clickedSeat.SeatId, student.Id);
+                var ok = await _facade.ExecuteCommandAsync(assignCmd, recordInHistory: false);
                 if (ok)
                 {
                     await FinalizeManualOperationAsync(
-                        string.Format(Resources.Seating_PlacedFmt , studentName , seatLabel) ,
-                        string.Format(Resources.Seating_PlacedFmt , studentName , seatLabel));
+                        string.Format(Resources.Seating_PlacedFmt, studentName, seatLabel),
+                        string.Format(Resources.Seating_PlacedFmt, studentName, seatLabel));
                     SelectedUnassignedStudent = null;
                 }
-            } , Resources.Seating_PlaceTitle);
+            }, Resources.Seating_PlaceTitle);
             return;
         }
 
@@ -754,7 +763,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             _swapSourceSeat = clickedSeat;
             clickedSeat.IsSelectedForSwap = true;
             IsSwapMode = true;
-            SwapHintText = string.Format(Resources.Seating_SelectTargetFmt , clickedSeat.StudentName ?? clickedSeat.SeatLabel);
+            SwapHintText = string.Format(Resources.Seating_SelectTargetFmt, clickedSeat.StudentName ?? clickedSeat.SeatLabel);
             return;
         }
 
@@ -771,22 +780,22 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var swapCmd = new SwapSeatCommand(
-                (source.SeatId , source.StudentId) ,
-                (clickedSeat.SeatId , clickedSeat.IsOccupied ? clickedSeat.StudentId : null));
+                (source.SeatId, source.StudentId),
+                (clickedSeat.SeatId, clickedSeat.IsOccupied ? clickedSeat.StudentId : null));
 
-            var ok = await _facade.ExecuteCommandAsync(swapCmd , recordInHistory: false);
+            var ok = await _facade.ExecuteCommandAsync(swapCmd, recordInHistory: false);
             if (ok)
             {
                 await FinalizeManualOperationAsync(
-                    string.Format(Resources.Seating_SwapDescFmt , source.StudentName ?? source.SeatLabel , clickedSeat.StudentName ?? Resources.Common_Cancel) ,
-                    string.Format(Resources.Seating_SwappedFmt , source.StudentName , clickedSeat.StudentName ?? Resources.Common_Cancel));
+                    string.Format(Resources.Seating_SwapDescFmt, source.StudentName ?? source.SeatLabel, clickedSeat.StudentName ?? Resources.Common_Cancel),
+                    string.Format(Resources.Seating_SwappedFmt, source.StudentName, clickedSeat.StudentName ?? Resources.Common_Cancel));
                 CancelSwap();
             }
-        } , Resources.Seating_SwapFailed);
+        }, Resources.Seating_SwapFailed);
     }
 
     [RelayCommand]
-    private void CancelSwap ()
+    private void CancelSwap()
     {
         _swapSourceSeat?.IsSelectedForSwap = false;
         _swapSourceSeat = null;
@@ -798,7 +807,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// 将交换模式下选中的源座位学生移除到未分配列表。
     /// </summary>
     [RelayCommand]
-    private async Task RemoveToTrashAsync ()
+    private async Task RemoveToTrashAsync()
     {
         if (_workspace == null || _swapSourceSeat == null) return;
         if (!_swapSourceSeat.IsOccupied || _swapSourceSeat.IsFixed) return;
@@ -809,15 +818,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var removeCmd = new RemoveStudentCommand(_swapSourceSeat.SeatId);
-            var ok = await _facade.ExecuteCommandAsync(removeCmd , recordInHistory: false);
+            var ok = await _facade.ExecuteCommandAsync(removeCmd, recordInHistory: false);
             if (ok)
             {
                 await FinalizeManualOperationAsync(
-                    string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel) ,
-                    string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel));
+                    string.Format(Resources.Seating_RemovedFmt, studentName, seatLabel),
+                    string.Format(Resources.Seating_RemovedFmt, studentName, seatLabel));
                 CancelSwap();
             }
-        } , Resources.Seating_RemoveTitle);
+        }, Resources.Seating_RemoveTitle);
     }
 
     // ── 拖放操作（由 code-behind 调用） ──
@@ -825,7 +834,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// <summary>
     /// 获取学生的显示名称（从工作区中查找）。
     /// </summary>
-    internal string GetStudentName (string studentId)
+    internal string GetStudentName(string studentId)
         => _workspace?.Students.FirstOrDefault(s => s.Id == studentId)?.Name ?? studentId;
 
     /// <summary>
@@ -835,8 +844,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// 3. 从座位 → 已占座位：SwapSeatCommand（交换）
     /// 4. 从未分配列表 → 已占座位：不允许
     /// </summary>
-    internal async Task<bool> ExecuteDropAsync (
-        string studentId , string? sourceSeatId , string targetSeatId ,
+    internal async Task<bool> ExecuteDropAsync(
+        string studentId, string? sourceSeatId, string targetSeatId,
         CancellationToken ct = default)
     {
         if (_workspace == null) return false;
@@ -853,21 +862,21 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         if (sourceSeatId == null && !targetItem.IsOccupied)
         {
             // 从未分配列表 → 空座位
-            cmd = new AssignSeatCommand(targetSeatId , studentId);
+            cmd = new AssignSeatCommand(targetSeatId, studentId);
         }
         else if (sourceSeatId != null && !targetItem.IsOccupied)
         {
             // 从座位 → 空座位（移动）
             cmd = new SwapSeatCommand(
-                (sourceSeatId , studentId) ,
-                (targetSeatId , null));
+                (sourceSeatId, studentId),
+                (targetSeatId, null));
         }
         else if (sourceSeatId != null && targetItem.IsOccupied)
         {
             // 从座位 → 已占座位（交换）
             cmd = new SwapSeatCommand(
-                (sourceSeatId , studentId) ,
-                (targetSeatId , targetItem.StudentId));
+                (sourceSeatId, studentId),
+                (targetSeatId, targetItem.StudentId));
         }
         else
         {
@@ -875,12 +884,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             return false;
         }
 
-        var ok = await _facade.ExecuteCommandAsync(cmd , ct , recordInHistory: false);
+        var ok = await _facade.ExecuteCommandAsync(cmd, ct, recordInHistory: false);
         if (ok)
         {
             await FinalizeManualOperationAsync(
-                string.Format(Resources.Seating_PlacedFmt , studentName , targetItem.SeatLabel) ,
-                string.Format(Resources.Seating_PlacedFmt , studentName , targetItem.SeatLabel));
+                string.Format(Resources.Seating_PlacedFmt, studentName, targetItem.SeatLabel),
+                string.Format(Resources.Seating_PlacedFmt, studentName, targetItem.SeatLabel));
             SelectedUnassignedStudent = null;
         }
         return ok;
@@ -889,7 +898,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// <summary>
     /// 执行拖放到垃圾桶操作：将座位上的学生移除到未分配列表。
     /// </summary>
-    internal async Task<bool> ExecuteRemoveToTrashAsync (string seatId , CancellationToken ct = default)
+    internal async Task<bool> ExecuteRemoveToTrashAsync(string seatId, CancellationToken ct = default)
     {
         if (_workspace == null) return false;
 
@@ -900,12 +909,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         var seatLabel = item.SeatLabel;
 
         var cmd = new RemoveStudentCommand(seatId);
-        var ok = await _facade.ExecuteCommandAsync(cmd , ct , recordInHistory: false);
+        var ok = await _facade.ExecuteCommandAsync(cmd, ct, recordInHistory: false);
         if (ok)
         {
             await FinalizeManualOperationAsync(
-                string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel) ,
-                string.Format(Resources.Seating_RemovedFmt , studentName , seatLabel));
+                string.Format(Resources.Seating_RemovedFmt, studentName, seatLabel),
+                string.Format(Resources.Seating_RemovedFmt, studentName, seatLabel));
         }
         return ok;
     }
@@ -913,14 +922,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 撤销/重做（基于历史列表） ──
 
     [RelayCommand]
-    private void Undo ()
+    private void Undo()
     {
         if (_workspace == null || _currentHistoryIndex <= 0) return;
         RestoreToHistoryIndex(_currentHistoryIndex - 1);
     }
 
     [RelayCommand]
-    private void Redo ()
+    private void Redo()
     {
         if (_workspace == null || _currentHistoryIndex >= _historyEntries.Count - 1) return;
         RestoreToHistoryIndex(_currentHistoryIndex + 1);
@@ -933,43 +942,43 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     public bool HasSelectedHistory => SelectedHistory != null;
 
     [RelayCommand]
-    private void RestoreToSelected ()
+    private void RestoreToSelected()
     {
         if (SelectedHistory == null || _workspace == null) return;
         var idx = _historyEntries.IndexOf(SelectedHistory);
         if (idx < 0) return;
         RestoreToHistoryIndex(idx);
-        StatusMessage = string.Format(Resources.Seating_RestoredToFmt , SelectedHistory.Description);
+        StatusMessage = string.Format(Resources.Seating_RestoredToFmt, SelectedHistory.Description);
     }
 
     // ── 历史管理 ──
 
-    private void InitHistory (string description)
+    private void InitHistory(string description)
     {
         _historyEntries.Clear();
         var snapshot = CaptureSnapshot();
-        _historyEntries.Add(new HistoryEntry(description , snapshot));
+        _historyEntries.Add(new HistoryEntry(description, snapshot));
         _currentHistoryIndex = 0;
         _lastSavedIndex = -1; // 快照需用户手动保存，初始状态标记为"未保存"
         UpdateHistoryState();
     }
 
-    private void AddHistoryEntry (string description)
+    private void AddHistoryEntry(string description)
     {
         // 删除当前位置之后的所有条目（新分支）
         while (_historyEntries.Count > _currentHistoryIndex + 1)
             _historyEntries.RemoveAt(_historyEntries.Count - 1);
 
         var snapshot = CaptureSnapshot();
-        _historyEntries.Add(new HistoryEntry(description , snapshot));
+        _historyEntries.Add(new HistoryEntry(description, snapshot));
         _currentHistoryIndex = _historyEntries.Count - 1;
         UpdateHistoryState();
     }
 
-    private Dictionary<string , string> CaptureSnapshot ()
-        => _currentPlan != null ? new Dictionary<string , string>(_currentPlan.Assignments) : [];
+    private Dictionary<string, string> CaptureSnapshot()
+        => _currentPlan != null ? new Dictionary<string, string>(_currentPlan.Assignments) : [];
 
-    private void RestoreToHistoryIndex (int index)
+    private void RestoreToHistoryIndex(int index)
     {
         if (_workspace == null || index < 0 || index >= _historyEntries.Count) return;
 
@@ -981,10 +990,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _ = UpdateRightPanelAsync();
         RefreshSeatAssignments();
         UpdateStats();
-        StatusMessage = string.Format(Resources.Seating_RestoredToFmt , _historyEntries[index].Description);
+        StatusMessage = string.Format(Resources.Seating_RestoredToFmt, _historyEntries[index].Description);
     }
 
-    private void UpdateHistoryState ()
+    private void UpdateHistoryState()
     {
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
@@ -998,25 +1007,25 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 保存到快照 ──
 
     [RelayCommand]
-    private async Task SaveToSnapshotAsync ()
+    private async Task SaveToSnapshotAsync()
     {
         if (!HasUnsavedChanges) return;
 
         await SafeExecuteAsync(async () =>
         {
-            var snapshot = await _facade.CreateSnapshotAsync(string.Format(Resources.Seating_ManualSnapshotFmt , DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
+            var snapshot = await _facade.CreateSnapshotAsync(string.Format(Resources.Seating_ManualSnapshotFmt, DateTime.Now.ToString("yyyy-MM-dd HH:mm")));
             if (snapshot != null)
             {
                 _lastSavedIndex = _currentHistoryIndex;
                 OnPropertyChanged(nameof(HasUnsavedChanges));
                 StatusMessage = Resources.Seating_SnapshotSaved;
             }
-        } , Resources.Seating_SnapshotFailed);
+        }, Resources.Seating_SnapshotFailed);
     }
 
     // ── 页面离开拦截 ──
 
-    public override async Task<bool> CanLeaveAsync ()
+    public override async Task<bool> CanLeaveAsync()
     {
         if (!HasUnsavedChanges)
         {
@@ -1025,9 +1034,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             return true;
         }
 
-        var result = await Dialog.ShowMultiOptionAsync(Resources.Seating_UnsavedChanges ,
-            Resources.Seating_UnsavedChangesMsg ,
-            Resources.Seating_SaveAndLeave , Resources.Seating_DiscardAndLeave , "取消");
+        var result = await Dialog.ShowMultiOptionAsync(Resources.Seating_UnsavedChanges,
+            Resources.Seating_UnsavedChangesMsg,
+            Resources.Seating_SaveAndLeave, Resources.Seating_DiscardAndLeave, "取消");
 
         switch (result)
         {
@@ -1048,16 +1057,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 折叠切换 ──
 
     [RelayCommand]
-    private void ToggleStrategies () => IsStrategiesExpanded = !IsStrategiesExpanded;
+    private void ToggleStrategies() => IsStrategiesExpanded = !IsStrategiesExpanded;
 
     [RelayCommand]
-    private void ToggleUnassigned () => IsUnassignedExpanded = !IsUnassignedExpanded;
+    private void ToggleUnassigned() => IsUnassignedExpanded = !IsUnassignedExpanded;
 
     [RelayCommand]
-    private void ToggleHistory () => IsHistoryExpanded = !IsHistoryExpanded;
+    private void ToggleHistory() => IsHistoryExpanded = !IsHistoryExpanded;
 
     [RelayCommand]
-    private void ToggleMessages () => IsMessagesExpanded = !IsMessagesExpanded;
+    private void ToggleMessages() => IsMessagesExpanded = !IsMessagesExpanded;
 
     // ── 导出 ──
 
@@ -1065,49 +1074,49 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private static readonly TimeSpan ExportTimeout = TimeSpan.FromSeconds(30);
 
     [RelayCommand]
-    private async Task ExportExcelAsync () => await ExportAsync(ExportFormat.Excel ,
-        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , Resources.Seating_ExcelDefault);
+    private async Task ExportExcelAsync() => await ExportAsync(ExportFormat.Excel,
+        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }], Resources.Seating_ExcelDefault);
 
     [RelayCommand]
-    private async Task ExportCsvAsync () => await ExportAsync(ExportFormat.Csv ,
-        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , Resources.Seating_CsvDefault);
+    private async Task ExportCsvAsync() => await ExportAsync(ExportFormat.Csv,
+        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }], Resources.Seating_CsvDefault);
 
     [RelayCommand]
-    private async Task ExportPdfAsync () => await ExportAsync(ExportFormat.Pdf ,
-        [new FilePickerFileType(Resources.Seating_PDFFile) { Patterns = ["*.pdf"] }] , Resources.Seating_PDFDefault);
+    private async Task ExportPdfAsync() => await ExportAsync(ExportFormat.Pdf,
+        [new FilePickerFileType(Resources.Seating_PDFFile) { Patterns = ["*.pdf"] }], Resources.Seating_PDFDefault);
 
     [RelayCommand]
-    private async Task ExportImageAsync () => await ExportAsync(ExportFormat.Png ,
-        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault);
+    private async Task ExportImageAsync() => await ExportAsync(ExportFormat.Png,
+        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }], Resources.Seating_PNGDefault);
 
     // ── 教师视角导出 ──
 
     [RelayCommand]
-    private async Task ExportTeacherExcelAsync () => await ExportAsync(ExportFormat.Excel ,
-        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }] , Resources.Seating_ExcelDefault , LayoutPerspective.TeacherView);
+    private async Task ExportTeacherExcelAsync() => await ExportAsync(ExportFormat.Excel,
+        [new FilePickerFileType(Resources.Data_ExcelFile) { Patterns = ["*.xlsx"] }], Resources.Seating_ExcelDefault, LayoutPerspective.TeacherView);
 
     [RelayCommand]
-    private async Task ExportTeacherCsvAsync () => await ExportAsync(ExportFormat.Csv ,
-        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }] , Resources.Seating_CsvDefault , LayoutPerspective.TeacherView);
+    private async Task ExportTeacherCsvAsync() => await ExportAsync(ExportFormat.Csv,
+        [new FilePickerFileType(Resources.Data_CSVFile) { Patterns = ["*.csv"] }], Resources.Seating_CsvDefault, LayoutPerspective.TeacherView);
 
     [RelayCommand]
-    private async Task ExportTeacherPdfAsync () => await ExportAsync(ExportFormat.Pdf ,
-        [new FilePickerFileType(Resources.Seating_PDFFile) { Patterns = ["*.pdf"] }] , Resources.Seating_PDFDefault , LayoutPerspective.TeacherView);
+    private async Task ExportTeacherPdfAsync() => await ExportAsync(ExportFormat.Pdf,
+        [new FilePickerFileType(Resources.Seating_PDFFile) { Patterns = ["*.pdf"] }], Resources.Seating_PDFDefault, LayoutPerspective.TeacherView);
 
     [RelayCommand]
-    private async Task ExportTeacherImageAsync () => await ExportAsync(ExportFormat.Png ,
-        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }] , Resources.Seating_PNGDefault , LayoutPerspective.TeacherView);
+    private async Task ExportTeacherImageAsync() => await ExportAsync(ExportFormat.Png,
+        [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }], Resources.Seating_PNGDefault, LayoutPerspective.TeacherView);
 
-    private async Task ExportAsync (ExportFormat format , IReadOnlyList<FilePickerFileType> types , string suggestedName , LayoutPerspective perspective = LayoutPerspective.StudentView)
+    private async Task ExportAsync(ExportFormat format, IReadOnlyList<FilePickerFileType> types, string suggestedName, LayoutPerspective perspective = LayoutPerspective.StudentView)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
         try
         {
             if (_workspace == null) return;
 
             if (_currentLayout?.LayoutType == LayoutType.Freeform)
             {
-                await Dialog.ShowWarningAsync(Resources.Seating_UnsupportedExport ,
+                await Dialog.ShowWarningAsync(Resources.Seating_UnsupportedExport,
                     Resources.Seating_UnsupportedExportMsg);
                 return;
             }
@@ -1125,26 +1134,26 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 // WASM：导出 → 字节 → 浏览器下载（无文件系统）
                 var webOk = await SafeExecuteAsync(async (ct) =>
                 {
-                    var options = new ExportOptions { Format = format , IncludeMetadata = true , Perspective = perspective };
-                    var bytes = await _facade.ExportSeatingPlanBytesAsync(_workspace , _currentLayout , options , ct);
-                    await _fileService.SaveFileBytesAsync(fullSuggestedName , bytes , types);
-                    StatusMessage = string.Format(Resources.Seating_ExportedFmt , fullSuggestedName);
-                } , ExportTimeout , Resources.Seating_ExportTitle);
+                    var options = new ExportOptions { Format = format, IncludeMetadata = true, Perspective = perspective };
+                    var bytes = await _facade.ExportSeatingPlanBytesAsync(_workspace, _currentLayout, options, ct);
+                    await _fileService.SaveFileBytesAsync(fullSuggestedName, bytes, types);
+                    StatusMessage = string.Format(Resources.Seating_ExportedFmt, fullSuggestedName);
+                }, ExportTimeout, Resources.Seating_ExportTitle);
                 if (!webOk)
                     StatusMessage = Resources.Seating_ExportTimeout;
                 return;
             }
 
-            var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle , types , fullSuggestedName);
+            var file = await _fileService.SaveFileAsync(Resources.Seating_ExportTitle, types, fullSuggestedName);
             if (file == null) return;
 
             var filePath = file.Path.LocalPath;
             var ok = await SafeExecuteAsync(async (ct) =>
             {
-                var options = new ExportOptions { Format = format , IncludeMetadata = true , Perspective = perspective };
-                await _facade.ExportSeatingPlanAsync(_workspace , _currentLayout , filePath , options , ct);
-                StatusMessage = string.Format(Resources.Seating_ExportedFmt , file.Name);
-            } , ExportTimeout , Resources.Seating_ExportTitle);
+                var options = new ExportOptions { Format = format, IncludeMetadata = true, Perspective = perspective };
+                await _facade.ExportSeatingPlanAsync(_workspace, _currentLayout, filePath, options, ct);
+                StatusMessage = string.Format(Resources.Seating_ExportedFmt, file.Name);
+            }, ExportTimeout, Resources.Seating_ExportTitle);
 
             if (!ok)
             {
@@ -1154,12 +1163,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex , "导出文件对话框取消或异常");
+            _logger.LogDebug(ex, "导出文件对话框取消或异常");
         }
         finally
         {
             await Task.Delay(150);
-            Interlocked.Exchange(ref _dialogLock , 0);
+            Interlocked.Exchange(ref _dialogLock, 0);
         }
     }
 
@@ -1167,29 +1176,29 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// 将 StrategyMessage 的 MessageKey + Args 格式化为可读消息。
     /// Args 中的学生 ID 会被解析为姓名。
     /// </summary>
-    private static string FormatStrategyMessage (StrategyMessage m ,
-        Dictionary<string , string> studentNames ,
-        Dictionary<string , string> templates)
+    private static string FormatStrategyMessage(StrategyMessage m,
+        Dictionary<string, string> studentNames,
+        Dictionary<string, string> templates)
     {
-        var template = templates.TryGetValue(m.MessageKey , out var t) ? t : m.MessageKey;
+        var template = templates.TryGetValue(m.MessageKey, out var t) ? t : m.MessageKey;
         var resolved = m.Args.Select(a =>
         {
             if (a is not string s) return a;
             // 拆分逗号分隔的 ID 列表，逐个解析为姓名
-            return string.Join(", " ,
+            return string.Join(", ",
                 s.Split(',').Select(part =>
-                    studentNames.TryGetValue(part.Trim() , out var n) ? n : part.Trim()));
+                    studentNames.TryGetValue(part.Trim(), out var n) ? n : part.Trim()));
         }).ToArray();
-        try { return string.Format(template , resolved); }
+        try { return string.Format(template, resolved); }
         catch { return template; }
     }
 }
 
-public partial class HistoryEntry (string description , Dictionary<string , string> assignments) : ObservableObject
+public partial class HistoryEntry(string description, Dictionary<string, string> assignments) : ObservableObject
 {
     public string Description { get; set; } = description;
     public DateTime Timestamp { get; set; } = DateTime.Now;
-    public Dictionary<string , string> Assignments { get; set; } = assignments;
+    public Dictionary<string, string> Assignments { get; set; } = assignments;
     public bool IsCurrent { get; set; }
     [ObservableProperty]
     public partial bool IsSelected { get; set; }

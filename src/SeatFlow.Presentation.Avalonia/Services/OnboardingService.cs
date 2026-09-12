@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Enums;
 using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
@@ -38,7 +39,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private List<OnboardingStepDefinition> _activeStepDefs = [];
     // 各阶段在 _activeStepDefs 中的起始索引（仅启动引导有效）
     private List<int> _activePhaseBoundaries = [];
-    private Dictionary<string , bool> _completedPageGuides = []; // PageKey名称 → true
+    private Dictionary<string, bool> _completedPageGuides = []; // PageKey名称 → true
     private bool _completedPageGuidesLoaded; // LoadCompletedPageGuidesAsync 是否已完成
     private string? _currentPageGuide; // null=启动引导, 非null=页面引导的PageKey名称
     private Guide? _guide;
@@ -59,10 +60,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     public bool IsActive { get; private set; }
 
-    public OnboardingService (
-        INavigationService navigation ,
-        IApplicationFacade facade ,
-        IDialogService dialog ,
+    public OnboardingService(
+        INavigationService navigation,
+        IApplicationFacade facade,
+        IDialogService dialog,
         ILogger<OnboardingService> logger)
     {
         _navigation = navigation;
@@ -72,31 +73,31 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     // ──────────────────────── IOnboardingStarter (旧接口桥接) ────────────────────────
-    void IOnboardingStarter.StartOnboarding () => StartOnboarding();
+    void IOnboardingStarter.StartOnboarding() => StartOnboarding();
 
     // ──────────────────────── 公开 API ────────────────────────
 
-    public void StartOnboarding ()
+    public void StartOnboarding()
     {
         _logger.LogInformation("[Onboarding] StartOnboarding 开始");
 
         if (_config is null)
         {
             _config = LoadConfig();
-            _logger.LogInformation("[Onboarding] 配置已加载，StartupPhases={Count}" , _config.StartupPhases.Count);
+            _logger.LogInformation("[Onboarding] 配置已加载，StartupPhases={Count}", _config.StartupPhases.Count);
             _ = LoadCompletedPageGuidesAsync();
         }
         // 始终重新平铺——_config 可能已被 TryShowPageGuide 提前加载（MainShellViewModel 构造时触发），
         // 此时 _activeStepDefs 存的是页面引导的步骤而非启动引导步骤，必须重建
         FlattenStartupSteps();
-        _logger.LogInformation("[Onboarding] 步骤已平铺，共 {Count} 步" , _activeStepDefs.Count);
+        _logger.LogInformation("[Onboarding] 步骤已平铺，共 {Count} 步", _activeStepDefs.Count);
 
         _isCompleting = false;
         _currentPageGuide = null;
         IsActive = true;
 
         var mainView = GetMainView();
-        _logger.LogInformation("[Onboarding] MainView={NotNull}" , mainView is not null);
+        _logger.LogInformation("[Onboarding] MainView={NotNull}", mainView is not null);
         if (mainView?.DataContext is MainShellViewModel vm)
         {
             _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到 Home");
@@ -106,15 +107,14 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
         else
         {
-            _logger.LogWarning("[Onboarding] MainShellViewModel 不可用！DataContext={Type}" , mainView?.DataContext?.GetType().FullName);
+            _logger.LogWarning("[Onboarding] MainShellViewModel 不可用！DataContext={Type}", mainView?.DataContext?.GetType().FullName);
         }
 
         _guide = mainView?.OnboardingGuide;
-        _logger.LogInformation("[Onboarding] Guide 控件={NotNull}" , _guide is not null);
+        _logger.LogInformation("[Onboarding] Guide 控件={NotNull}", _guide is not null);
         if (_guide is not null)
         {
             _guide.StepOpening += OnStepOpening;
-            _guide.StepOpened += OnStepOpened;
         }
         else
             _logger.LogError("[Onboarding] OnboardingGuide 控件为 null！无法显示引导");
@@ -124,21 +124,24 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         // 导致 Loaded 回调永远不执行。Guide 控件自带 TargetResolveDelay 重试。
         Dispatcher.UIThread.Post(() =>
         {
-            _logger.LogInformation("[Onboarding] Post 回调执行，_guide={NotNull}" , _guide is not null);
+            _logger.LogInformation("[Onboarding] Post 回调执行，_guide={NotNull}", _guide is not null);
             if (_guide is null) return;
             var steps = BuildAllStartupSteps();
-            _logger.LogInformation("[Onboarding] 构建了 {Count} 个 GuideStepOption" , steps.Count);
+            _logger.LogInformation("[Onboarding] 构建了 {Count} 个 GuideStepOption", steps.Count);
             _guide.StepsSource = steps;
+            // 阶段指示器：提供各阶段起始步骤索引（哨兵为总数，排除）
+            if (_guide.Indicator is PhaseGuideIndicator phaseIndicator)
+                phaseIndicator.PhaseStartIndexes = _activePhaseBoundaries.Take(_activePhaseBoundaries.Count - 1).ToList();
             _guide.GoTo(0);
             _guide.IsVisible = true;
             _guide.Show();
             // 首次出场：卡片缩放弹出动画（无延迟）
-            _logger.LogInformation("[Onboarding] Guide.Show() 已调用，IsOpen={IsOpen}" , _guide.IsOpen);
-        } , DispatcherPriority.Background);
+            _logger.LogInformation("[Onboarding] Guide.Show() 已调用，IsOpen={IsOpen}", _guide.IsOpen);
+        }, DispatcherPriority.Background);
     }
 
     /// <summary>检查并触发页面的独立引导块（首次访问时）。返回 true 表示触发了引导。</summary>
-    public bool TryShowPageGuide (PageKey page)
+    public bool TryShowPageGuide(PageKey page)
     {
         if (IsActive) return false;
 
@@ -150,7 +153,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
 
         var pageKey = page.ToString();
-        if (!_config.PageGuides.TryGetValue(pageKey , out var guideBlock))
+        if (!_config.PageGuides.TryGetValue(pageKey, out var guideBlock))
             return false;
 
         // 已展示过则跳过。若 CompletedPageGuides 尚未加载完成，
@@ -176,22 +179,24 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         _guide = guideControl;
         _guide.StepOpening += OnStepOpening;
-        _guide.StepOpened += OnStepOpened;
 
         Dispatcher.UIThread.Post(() =>
         {
             if (_guide is null) return;
             _guide.StepsSource = BuildStepsFromDefs(_activeStepDefs);
+            // 页面引导无阶段划分：按步骤显示进度
+            if (_guide.Indicator is PhaseGuideIndicator phaseIndicator)
+                phaseIndicator.PhaseStartIndexes = null;
             _guide.GoTo(0);
             _guide.IsVisible = true;
             _guide.Show();
-        } , DispatcherPriority.Background);
+        }, DispatcherPriority.Background);
 
         return true;
     }
 
     /// <summary>标记页面引导已完成并持久化。</summary>
-    public async Task MarkPageGuideShownAsync (PageKey page)
+    public async Task MarkPageGuideShownAsync(PageKey page)
     {
         var pageKey = page.ToString();
         _completedPageGuides[pageKey] = true;
@@ -208,7 +213,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
     }
 
-    public void HandleStepOpening (int stepIndex , IGuideStepOption step)
+    public void HandleStepOpening(int stepIndex, IGuideStepOption step)
     {
         if (stepIndex < 0 || stepIndex >= _activeStepDefs.Count) return;
 
@@ -227,7 +232,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             {
                 var phase = _config!.StartupPhases[phaseIndex];
                 if (phase.Page is not null
-                    && Enum.TryParse<PageKey>(phase.Page , out var pageKey))
+                    && Enum.TryParse<PageKey>(phase.Page, out var pageKey))
                 {
                     isPhaseTransition = true;
                     targetPage = pageKey;
@@ -276,13 +281,13 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
     }
 
-    public void HandleGuideCompleted ()
+    public void HandleGuideCompleted()
     {
         _isCompleting = true;
         _ = CompleteOnboardingAsync();
     }
 
-    public async Task<bool> HandleGuideClosedAsync ()
+    public async Task<bool> HandleGuideClosedAsync()
     {
         if (_isCompleting) return true;
         if (_isWindowObscured) return true;
@@ -290,7 +295,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         try
         {
             var confirmed = await _dialog.ShowConfirmAsync(
-                Resources.Guide_CloseConfirm_Title ,
+                Resources.Guide_CloseConfirm_Title,
                 Resources.Guide_CloseConfirm_Message);
             if (!confirmed) return false;
         }
@@ -301,7 +306,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>窗口失活（最小化/Alt+Tab）时静默隐藏 Guide Popup，不结束引导。</summary>
-    public void HandleWindowDeactivated ()
+    public void HandleWindowDeactivated()
     {
         if (!IsActive || _isCompleting || _guide is null || !_guide.IsOpen)
             return;
@@ -311,7 +316,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>窗口激活（恢复/Alt+Tab回）时重新显示 Guide，从同一步骤继续。</summary>
-    public void HandleWindowActivated ()
+    public void HandleWindowActivated()
     {
         if (!IsActive || _guide is null)
             return;
@@ -328,35 +333,67 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     // ──────────────────────── 示例数据注入（纯内存，不落盘） ────────────────────────
 
     /// <summary>根据页面注入示例数据，确保引导期间条件可见的目标控件正常显示。</summary>
-    private static void SeedPageData (PageKey page)
+    private void SeedPageData(PageKey page)
     {
         var mainView = GetMainView();
         if (mainView?.DataContext is not MainShellViewModel shell)
             return;
 
-        var pageVm = shell.CurrentViewModel;
-
-        switch (page)
-        {
-            case PageKey.MemberManagement:
-                SeedMemberManagementData(pageVm as MemberManagementViewModel);
-                break;
-            case PageKey.VenueConfiguration:
-                SeedVenueConfigurationData(pageVm as VenueConfigurationViewModel);
-                break;
-            case PageKey.StrategyConfiguration:
-                SeedStrategyConfigurationData(pageVm as StrategyConfigurationViewModel);
-                break;
-            case PageKey.SeatingArrangement:
-                SeedSeatingArrangementData(pageVm as SeatingArrangementViewModel);
-                break;
-            case PageKey.SnapshotHistory:
-                SeedSnapshotHistoryData(pageVm as SnapshotHistoryViewModel);
-                break;
-        }
+        _ = SeedPageDataAsync(page, shell.CurrentViewModel);
     }
 
-    private static void SeedMemberManagementData (MemberManagementViewModel? vm)
+    /// <summary>
+    /// 等待页面异步初始化完成后再注入示例数据。
+    /// 页面 VM 的 fire-and-forget 初始化（如 LoadVenueList）在 WASM/IndexedDB 下
+    /// 可能晚于引导阶段切换完成，且会整体替换集合 → 同步注入会被后续加载覆盖。
+    /// </summary>
+    private async Task SeedPageDataAsync(PageKey page, ViewModelBase? pageVm)
+    {
+        try
+        {
+            var initTask = pageVm switch
+            {
+                VenueConfigurationViewModel v => v.InitializationTask,
+                StrategyConfigurationViewModel s => s.InitializationTask,
+                SeatingArrangementViewModel a => a.InitializationTask,
+                SnapshotHistoryViewModel h => h.InitializationTask,
+                _ => null
+            };
+            if (initTask is not null)
+                await initTask.ConfigureAwait(true);
+        }
+        catch
+        {
+            // 页面初始化失败时仍尝试注入（不阻塞引导流程）
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            switch (page)
+            {
+                case PageKey.MemberManagement:
+                    SeedMemberManagementData(pageVm as MemberManagementViewModel);
+                    break;
+                case PageKey.VenueConfiguration:
+                    SeedVenueConfigurationData(pageVm as VenueConfigurationViewModel);
+                    break;
+                case PageKey.StrategyConfiguration:
+                    SeedStrategyConfigurationData(pageVm as StrategyConfigurationViewModel);
+                    break;
+                case PageKey.SeatingArrangement:
+                    SeedSeatingArrangementData(pageVm as SeatingArrangementViewModel);
+                    break;
+                case PageKey.SnapshotHistory:
+                    SeedSnapshotHistoryData(pageVm as SnapshotHistoryViewModel);
+                    break;
+            }
+
+            // 注入后重新应用当前步骤：目标控件可能刚变为可见/填充，需要重新解析与定位弹窗
+            _guide?.Refresh();
+        });
+    }
+
+    private static void SeedMemberManagementData(MemberManagementViewModel? vm)
     {
         if (vm is null) return;
 
@@ -380,14 +417,14 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         vm.StudentCount = vm.Students.Count;
         vm.IsEmpty = false;
         vm.IsLoading = false;
-        vm.StatusMessage = string.Format(Resources.Member_LoadedFmt , vm.Students.Count);
+        vm.StatusMessage = string.Format(Resources.Member_LoadedFmt, vm.Students.Count);
 
         // 追加演示数据集到现有列表（而非替换），避免覆盖用户真实数据集
         var demoDataset = new StudentDatasetInfo
         {
-            Id = DemoDatasetId ,
-            Name = "演示班级" ,
-            StudentCount = 6 ,
+            Id = DemoDatasetId,
+            Name = "演示班级",
+            StudentCount = 6,
             CreatedAt = DateTime.Now
         };
         // 仅在演示数据集不存在时才追加，防止重复
@@ -400,79 +437,65 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _memberManagementDemoInjected = true;
     }
 
-    private static void SeedVenueConfigurationData (VenueConfigurationViewModel? vm)
+    private static void SeedVenueConfigurationData(VenueConfigurationViewModel? vm)
     {
         if (vm is null) return;
-        // 使用 Background 优先级延迟注入：ViewModel 构造函数中的 LoadVenueList()
-        //（fire-and-forget）会异步加载并覆盖 VenueItems。先同步执行 NewVenueCommand
-        // 创建会场（该命令同步添加至现有集合），再将命名和状态消息延迟到异步 init 之后。
+        // 已等待 LoadVenueList 完成，此处创建的会场不会被异步加载覆盖
         vm.NewVenueCommand.Execute(null);
-        Dispatcher.UIThread.Post(() =>
-        {
-            vm.LayoutName = "演示教室";
-            vm.StatusMessage = "已创建演示会场（演示数据）";
-        } , DispatcherPriority.Background);
+        vm.LayoutName = "演示教室";
+        vm.StatusMessage = "已创建演示会场（演示数据）";
     }
 
-    private static void SeedStrategyConfigurationData (StrategyConfigurationViewModel? vm)
+    private static void SeedStrategyConfigurationData(StrategyConfigurationViewModel? vm)
     {
         if (vm is null) return;
-        // Background 延迟：ViewModel 构造函数中的 LoadAsync() 会异步填充 Strategies。
-        // 注入在异步 init 完成后选中第一个策略，触发 OnSelectedStrategyChanged
+        // 已等待 LoadAsync 完成：选中第一个策略，触发 OnSelectedStrategyChanged
         // → LoadDetailAsync → SelectedDetail 非空 → HasDetail=true → EditEnabledSwitch 可见。
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (vm.Strategies.Count == 0) return;
-            vm.SelectedStrategy = vm.Strategies[0];
-        } , DispatcherPriority.Background);
+        if (vm.Strategies.Count == 0) return;
+        vm.SelectedStrategy = vm.Strategies[0];
     }
 
-    private static void SeedSeatingArrangementData (SeatingArrangementViewModel? vm)
+    private static void SeedSeatingArrangementData(SeatingArrangementViewModel? vm)
     {
         if (vm is null) return;
-        // 使用 Background 优先级延迟注入：ViewModel 构造函数中的 LoadInitialDataAsync()
-        //（fire-and-forget）会异步加载并覆盖 VenueItems/DatasetItems。
-        // Background 优先级确保在异步 init 完成后才注入演示数据。
-        Dispatcher.UIThread.Post(() =>
-        {
-            vm.VenueItems.Clear();
-            vm.VenueItems.Add(new("demo-v" , "演示教室"));
-            vm.DatasetItems.Clear();
-            vm.DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds" , Name = "演示班级" , StudentCount = 6 });
-            vm.SelectedVenue = vm.VenueItems.FirstOrDefault();
-            vm.SelectedDataset = vm.DatasetItems.FirstOrDefault();
+        // 已等待 LoadInitialDataAsync/RefreshDataAsync 完成，注入不会被后续加载覆盖
+        vm.VenueItems.Clear();
+        vm.VenueItems.Add(new("demo-v", "演示教室"));
+        vm.DatasetItems.Clear();
+        vm.DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
+        vm.SelectedVenue = vm.VenueItems.FirstOrDefault();
+        vm.SelectedDataset = vm.DatasetItems.FirstOrDefault();
 
-            var names = new[] { "Alice" , "Bob" , "Charlie" , "Diana" , "Eve" , "Frank" };
-            var seats = new ObservableCollection<SeatDisplayItem>();
-            for (int r = 0; r < 4; r++)
-                for (int c = 0; c < 3; c++)
+        var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
+        var seats = new ObservableCollection<SeatDisplayItem>();
+        for (int r = 0; r < 4; r++)
+            for (int c = 0; c < 3; c++)
+            {
+                var idx = (r * 3) + c;
+                seats.Add(new SeatDisplayItem
                 {
-                    var idx = (r * 3) + c;
-                    seats.Add(new SeatDisplayItem
-                    {
-                        SeatId = $"R{r}C{c}" ,
-                        SeatLabel = $"R{r}C{c}" ,
-                        X = 200 + (c * 80) ,
-                        Y = 200 + (r * 60) ,
-                        Width = 50 ,
-                        Height = 30 ,
-                        IsOccupied = idx < 6 ,
-                        StudentName = idx < 6 ? names[idx] : null ,
-                        OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
-                    });
-                }
+                    SeatId = $"R{r}C{c}",
+                    SeatLabel = $"R{r}C{c}",
+                    X = 200 + (c * 80),
+                    Y = 200 + (r * 60),
+                    Width = 50,
+                    Height = 30,
+                    IsOccupied = idx < 6,
+                    StudentName = idx < 6 ? names[idx] : null,
+                    OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
+                });
+            }
 
-            vm.SeatItems = seats;
-            vm.OverlayItems = new ObservableCollection<SeatDisplayItem>();
-            vm.TotalSeats = 12;
-            vm.AssignedSeats = 6;
-            vm.HasGenerated = true;
-            vm.IsGenerating = false;
-            vm.StatusMessage = "已分配 6/12 个座位（演示数据）";
-        } , DispatcherPriority.Background);
+        vm.SeatItems = seats;
+        vm.OverlayItems = new ObservableCollection<SeatDisplayItem>();
+        vm.TotalSeats = 12;
+        vm.AssignedSeats = 6;
+        vm.HasGenerated = true;
+        vm.IsGenerating = false;
+        vm.StatusMessage = "已分配 6/12 个座位（演示数据）";
     }
 
-    private static void SeedSnapshotHistoryData (SnapshotHistoryViewModel? vm)
+    private static void SeedSnapshotHistoryData(SnapshotHistoryViewModel? vm)
     {
         if (vm is null) return;
         vm.Venues = new ObservableCollection<VenueItem>
@@ -496,7 +519,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>清除注入到所有页面 ViewModel 的示例数据。</summary>
-    private static void ClearPageData ()
+    private static void ClearPageData()
     {
         if (global::Avalonia.Application.Current is not App app) return;
         var sp = app.ServiceProvider;
@@ -578,7 +601,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
     }
 
-    private OnboardingConfig LoadConfig ()
+    private OnboardingConfig LoadConfig()
     {
         try
         {
@@ -596,12 +619,12 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex , "加载引导配置文件失败");
+            _logger.LogError(ex, "加载引导配置文件失败");
             return new OnboardingConfig();
         }
     }
 
-    private async Task LoadCompletedPageGuidesAsync ()
+    private async Task LoadCompletedPageGuidesAsync()
     {
         try
         {
@@ -619,7 +642,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>将启动引导的阶段→步骤平铺为全量列表，记录阶段边界。</summary>
-    private void FlattenStartupSteps ()
+    private void FlattenStartupSteps()
     {
         _activeStepDefs.Clear();
         _activePhaseBoundaries.Clear();
@@ -633,42 +656,42 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>构造启动引导的全量 GuideStepOption 列表。</summary>
-    private List<IGuideStepOption> BuildAllStartupSteps ()
+    private List<IGuideStepOption> BuildAllStartupSteps()
         => BuildStepsFromDefs(_activeStepDefs);
 
     /// <summary>从步骤定义列表构造 GuideStepOption 列表。纯机械转换。</summary>
-    private static List<IGuideStepOption> BuildStepsFromDefs (List<OnboardingStepDefinition> defs)
+    private static List<IGuideStepOption> BuildStepsFromDefs(List<OnboardingStepDefinition> defs)
     {
         var steps = new List<IGuideStepOption>();
         var resMgr = global::SeatFlow.Presentation.Avalonia.Lang.Resources.ResourceManager;
         var culture = global::SeatFlow.Presentation.Avalonia.Lang.Resources.Culture;
 
-        string R (string key)
+        string R(string key)
         {
-            try { return resMgr.GetString(key , culture) ?? key; }
+            try { return resMgr.GetString(key, culture) ?? key; }
             catch { return key; }
         }
 
         foreach (var stepDef in defs)
         {
-            var placement = Enum.TryParse<GuidePlacementMode>(stepDef.Placement , ignoreCase: true , out var p)
+            var placement = Enum.TryParse<GuidePlacementMode>(stepDef.Placement, ignoreCase: true, out var p)
                 ? p
                 : (GuidePlacementMode?)null;
 
             steps.Add(new GuideStepOption
             {
-                Title = R(stepDef.TitleKey) ,
-                Description = R(stepDef.DescKey) ,
-                Placement = placement ,
-                IsShowMask = stepDef.ShowMask ,
-                IsArrowVisible = stepDef.ShowArrow ,
+                Title = R(stepDef.TitleKey),
+                Description = R(stepDef.DescKey),
+                Placement = placement,
+                IsShowMask = stepDef.ShowMask,
+                IsArrowVisible = stepDef.ShowArrow,
             });
         }
 
         return steps;
     }
 
-    private static Control? ResolveTarget (string name)
+    private static Control? ResolveTarget(string name)
     {
         var mainView = GetMainView();
         if (mainView is null) return null;
@@ -705,7 +728,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return null;
     }
 
-    private int GetPhaseIndex (int stepIndex)
+    private int GetPhaseIndex(int stepIndex)
     {
         for (int i = _activePhaseBoundaries.Count - 2; i >= 0; i--)
             if (_activePhaseBoundaries[i] <= stepIndex)
@@ -718,14 +741,13 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// 关键：IsActive 和 _currentPageGuide 的清理必须在第一个 await 之前，
     /// 否则在 I/O 挂起期间用户触发 RestartGuide 会导致竞态条件。
     /// </summary>
-    private async Task CompleteOnboardingAsync ()
+    private async Task CompleteOnboardingAsync()
     {
         _logger.LogInformation("[Onboarding] 引导已全部完成");
 
         if (_guide is not null)
         {
             _guide.StepOpening -= OnStepOpening;
-            _guide.StepOpened -= OnStepOpened;
         }
 
         var wasPageGuide = _currentPageGuide;
@@ -769,39 +791,16 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
     }
 
-    private void OnStepOpening (object? sender , GuideStepEventArgs e)
+    private void OnStepOpening(object? sender, GuideStepEventArgs e)
     {
-        HandleStepOpening(e.Index , e.Step);
-    }
-
-    /// <summary>步骤打开后：同步阶段指示点数量和激活位置。</summary>
-    /// <remarks>
-    /// Guide 内部 SyncIndicator() 在 StepOpened 之前执行，会将 Indicator.StepCount
-    /// 重置为总步骤数。这里用 Background 优先级的延迟 Dispatch 覆盖回去，确保在 Guide
-    /// 的所有同步操作完成后，Indicator 显示的是阶段数而非步骤数。
-    /// </remarks>
-    private void OnStepOpened (object? sender , GuideStepEventArgs e)
-    {
-        if (_guide is null || _activePhaseBoundaries.Count <= 1)
-            return;
-
-        int phaseCount = _activePhaseBoundaries.Count - 1; // 减去哨兵
-        int phaseIndex = GetPhaseIndex(e.Index);
-        var guide = _guide; // 捕获引用
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            if (guide.Indicator is null) return;
-            guide.Indicator.StepCount = phaseCount;
-            guide.Indicator.ActiveIndex = phaseIndex;
-        } , DispatcherPriority.Background);
+        HandleStepOpening(e.Index, e.Step);
     }
 
     /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
-    private static async Task AnimateCardBounceAsync (Guide guide , int delayMs)
+    private static async Task AnimateCardBounceAsync(Guide guide, int delayMs)
     {
         // 查找模板中的卡片 Border
-        var card = FindTemplateChild<Border>(guide , "PART_CardRoot");
+        var card = FindTemplateChild<Border>(guide, "PART_CardRoot");
         if (card?.RenderTransform is ScaleTransform scale)
         {
             scale.ScaleX = 0.96;
@@ -813,7 +812,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>从控件模板中按名称查找子元素。</summary>
-    private static T? FindTemplateChild<T> (Control control , string name) where T : class
+    private static T? FindTemplateChild<T>(Control control, string name) where T : class
     {
         // 遍历视觉树查找命名元素
         var children = control.GetVisualDescendants();
@@ -825,7 +824,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         return null;
     }
 
-    private static MainView? GetMainView ()
+    private static MainView? GetMainView()
     {
         var lifetime = global::Avalonia.Application.Current?.ApplicationLifetime;
         if (lifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: MainWindow window })
@@ -836,7 +835,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>将配置中的页面名称解析为 PageKey 枚举值，失败返回 null。</summary>
-    private static PageKey? ParsePageKey (string? name)
+    private static PageKey? ParsePageKey(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
             return null;
