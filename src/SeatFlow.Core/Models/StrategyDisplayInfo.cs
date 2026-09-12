@@ -21,7 +21,7 @@ public sealed class StrategyDisplayInfo
 
     public int Priority { get; set; }
     public bool IsEnabled { get; set; }
-    public Dictionary<string , object?> Parameters { get; set; } = [];
+    public Dictionary<string, object?> Parameters { get; set; } = [];
 
     // ── 来自 Manifest 的声明式配置 ──
 
@@ -44,7 +44,7 @@ public sealed class StrategyDisplayInfo
     public bool HasDependentChildren => DependentChildren is { Count: > 0 };
 
     /// <summary>策略执行消息的多语言模板（来自 manifest messages）。key→语言词典。</summary>
-    public Dictionary<string , Dictionary<string , string>>? Messages { get; init; }
+    public Dictionary<string, Dictionary<string, string>>? Messages { get; init; }
 
     // ── 便捷判断 ──
 

@@ -14,7 +14,7 @@ namespace SeatFlow.Core.DomainServices
         /// 然后检测该坐标是否落在任意障碍物的矩形区域内。
         /// </summary>
         /// <param name="layout">教室布局定义。</param>
-        public static void ApplyObstacles (ClassroomLayoutDefinition layout)
+        public static void ApplyObstacles(ClassroomLayoutDefinition layout)
         {
             if (layout.Obstacles?.Count > 0)
             {
@@ -22,8 +22,8 @@ namespace SeatFlow.Core.DomainServices
                 {
                     if (!seat.IsAvailable) continue; // 已不可用则跳过
 
-                    var (px , py) = SeatGeometryHelper.GetPosition(seat , layout.Metadata);
-                    if (IsInsideAnyObstacle(px , py , layout.Obstacles))
+                    var (px, py) = SeatGeometryHelper.GetPosition(seat, layout.Metadata);
+                    if (IsInsideAnyObstacle(px, py, layout.Obstacles))
                     {
                         seat.IsAvailable = false;
                     }
@@ -35,7 +35,7 @@ namespace SeatFlow.Core.DomainServices
         /// 判断坐标 (x, y) 是否位于任意障碍物的矩形区域内。
         /// 障碍物矩形由左上角 (X, Y) 和宽高 (Width, Height) 定义。
         /// </summary>
-        private static bool IsInsideAnyObstacle (double x , double y , List<Obstacle> obstacles)
+        private static bool IsInsideAnyObstacle(double x, double y, List<Obstacle> obstacles)
         {
             foreach (var obs in obstacles)
             {

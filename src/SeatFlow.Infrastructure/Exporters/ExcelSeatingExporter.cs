@@ -10,7 +10,7 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
 {
     private readonly ILogger<ExcelSeatingExporter> _logger;
 
-    public ExcelSeatingExporter (ILogger<ExcelSeatingExporter> logger)
+    public ExcelSeatingExporter(ILogger<ExcelSeatingExporter> logger)
     {
         _logger = logger;
         ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
@@ -18,100 +18,100 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
 
     public ExportFormat Format => ExportFormat.Excel;
 
-    public async Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default)
+    public async Task ExportAsync(SeatingPlan plan, string path, CancellationToken cancellationToken = default)
     {
-        await ExportAsync(plan , path , new ExportOptions { Format = ExportFormat.Excel } , cancellationToken);
+        await ExportAsync(plan, path, new ExportOptions { Format = ExportFormat.Excel }, cancellationToken);
     }
 
-    public async Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    public async Task ExportAsync(SeatingPlan plan, string path, ExportOptions options, CancellationToken cancellationToken = default)
     {
         try
         {
             using var p = new ExcelPackage();
-            BuildPlanWorkbook(p , plan , options);
+            BuildPlanWorkbook(p, plan, options);
 
             var fi = new FileInfo(path);
-            await p.SaveAsAsync(fi , cancellationToken);
-            _logger.LogInformation("Excel 导出完成: {Path}，{Count} 条记录" , path , plan.Assignments.Count);
+            await p.SaveAsAsync(fi, cancellationToken);
+            _logger.LogInformation("Excel 导出完成: {Path}，{Count} 条记录", path, plan.Assignments.Count);
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException)
         {
-            _logger.LogError(ex , "Excel 导出失败，回退为 CSV: {Path}" , path);
+            _logger.LogError(ex, "Excel 导出失败，回退为 CSV: {Path}", path);
             var lines = new System.Collections.Generic.List<string> { "SeatId,StudentId" };
             foreach (var kv in plan.Assignments)
                 lines.Add($"{kv.Key},{(options.Anonymize ? "***" : kv.Value)}");
-            await File.WriteAllLinesAsync(path , lines , cancellationToken);
+            await File.WriteAllLinesAsync(path, lines, cancellationToken);
         }
     }
 
     /// <inheritdoc />
-    public async Task<byte[]> ExportBytesAsync (SeatingPlan plan , ExportOptions options , CancellationToken cancellationToken = default)
+    public async Task<byte[]> ExportBytesAsync(SeatingPlan plan, ExportOptions options, CancellationToken cancellationToken = default)
     {
         using var p = new ExcelPackage();
-        BuildPlanWorkbook(p , plan , options);
+        BuildPlanWorkbook(p, plan, options);
         return await p.GetAsByteArrayAsync(cancellationToken);
     }
 
-    private static void BuildPlanWorkbook (ExcelPackage p , SeatingPlan plan , ExportOptions options)
+    private static void BuildPlanWorkbook(ExcelPackage p, SeatingPlan plan, ExportOptions options)
     {
         var ws = p.Workbook.Worksheets.Add("Seating");
-        ws.Cells[1 , 1].Value = "SeatId";
-        ws.Cells[1 , 2].Value = options.Anonymize ? "StudentId (anonymized)" : "StudentId";
+        ws.Cells[1, 1].Value = "SeatId";
+        ws.Cells[1, 2].Value = options.Anonymize ? "StudentId (anonymized)" : "StudentId";
         int r = 2;
         foreach (var kv in plan.Assignments)
         {
-            ws.Cells[r , 1].Value = kv.Key;
-            ws.Cells[r , 2].Value = options.Anonymize ? "***" : kv.Value;
+            ws.Cells[r, 1].Value = kv.Key;
+            ws.Cells[r, 2].Value = options.Anonymize ? "***" : kv.Value;
             r++;
         }
 
         if (options.IncludeMetadata)
         {
             var metaWs = p.Workbook.Worksheets.Add("Metadata");
-            metaWs.Cells[1 , 1].Value = "Property";
-            metaWs.Cells[1 , 2].Value = "Value";
-            metaWs.Cells[2 , 1].Value = "ExportTime";
-            metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
-            metaWs.Cells[3 , 1].Value = "SeatCount";
-            metaWs.Cells[3 , 2].Value = plan.Assignments.Count;
+            metaWs.Cells[1, 1].Value = "Property";
+            metaWs.Cells[1, 2].Value = "Value";
+            metaWs.Cells[2, 1].Value = "ExportTime";
+            metaWs.Cells[2, 2].Value = DateTime.Now.ToString("O");
+            metaWs.Cells[3, 1].Value = "SeatCount";
+            metaWs.Cells[3, 2].Value = plan.Assignments.Count;
         }
     }
 
-    public async Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default)
+    public async Task ExportLayoutAsync(LayoutSeatingExportModel model, string path, ExportOptions options, CancellationToken cancellationToken = default)
     {
         try
         {
             using var p = new ExcelPackage();
-            BuildLayoutWorkbook(p , model , options , cancellationToken);
+            BuildLayoutWorkbook(p, model, options, cancellationToken);
 
             var fi = new FileInfo(path);
-            await p.SaveAsAsync(fi , cancellationToken);
-            _logger.LogInformation("Excel 布局导出完成: {Path}，{RowCount} 行" , path , model.Rows.Count);
+            await p.SaveAsAsync(fi, cancellationToken);
+            _logger.LogInformation("Excel 布局导出完成: {Path}，{RowCount} 行", path, model.Rows.Count);
         }
         catch (Exception ex) when (ex is InvalidOperationException or IOException)
         {
-            _logger.LogError(ex , "Excel 布局导出失败，回退为 CSV: {Path}" , path);
+            _logger.LogError(ex, "Excel 布局导出失败，回退为 CSV: {Path}", path);
             var lines = new System.Collections.Generic.List<string>();
             foreach (var row in model.Rows)
-                lines.Add(string.Join("," , row.Cells.Select(c => c.Text)));
-            await File.WriteAllLinesAsync(path , lines , cancellationToken);
+                lines.Add(string.Join(",", row.Cells.Select(c => c.Text)));
+            await File.WriteAllLinesAsync(path, lines, cancellationToken);
         }
     }
 
     /// <inheritdoc />
-    public async Task<byte[]> ExportLayoutBytesAsync (LayoutSeatingExportModel model , ExportOptions options , CancellationToken cancellationToken = default)
+    public async Task<byte[]> ExportLayoutBytesAsync(LayoutSeatingExportModel model, ExportOptions options, CancellationToken cancellationToken = default)
     {
         using var p = new ExcelPackage();
-        BuildLayoutWorkbook(p , model , options , cancellationToken);
+        BuildLayoutWorkbook(p, model, options, cancellationToken);
         return await p.GetAsByteArrayAsync(cancellationToken);
     }
 
-    private static void BuildLayoutWorkbook (ExcelPackage p , LayoutSeatingExportModel model , ExportOptions options , CancellationToken ct)
+    private static void BuildLayoutWorkbook(ExcelPackage p, LayoutSeatingExportModel model, ExportOptions options, CancellationToken ct)
     {
         var ws = p.Workbook.Worksheets.Add("Seating");
-        ws.Cells[1 , 1].Value = model.LayoutName;
-        ws.Cells[1 , 1].Style.Font.Bold = true;
-        ws.Cells[1 , 1].Style.Font.Size = 14;
+        ws.Cells[1, 1].Value = model.LayoutName;
+        ws.Cells[1, 1].Style.Font.Bold = true;
+        ws.Cells[1, 1].Style.Font.Size = 14;
 
         int r = 3;
         int rowIndex = 0;
@@ -124,16 +124,16 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
             bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(cell => cell.IsAisle);
             foreach (var cell in row.Cells)
             {
-                ws.Cells[r , c].Value = cell.Text;
+                ws.Cells[r, c].Value = cell.Text;
                 if (cell.IsUnassigned)
                 {
-                    ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkGray);
+                    ws.Cells[r, c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[r, c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.DarkGray);
                 }
                 else if (cell.IsAisle || isFullAisleRow)
                 {
-                    ws.Cells[r , c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    ws.Cells[r , c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    ws.Cells[r, c].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[r, c].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                 }
                 c++;
             }
@@ -144,12 +144,12 @@ public class ExcelSeatingExporter : ISeatingPlanExporter
         if (options.IncludeMetadata)
         {
             var metaWs = p.Workbook.Worksheets.Add("Metadata");
-            metaWs.Cells[1 , 1].Value = "Property";
-            metaWs.Cells[1 , 2].Value = "Value";
-            metaWs.Cells[2 , 1].Value = "ExportTime";
-            metaWs.Cells[2 , 2].Value = DateTime.Now.ToString("O");
-            metaWs.Cells[3 , 1].Value = "LayoutName";
-            metaWs.Cells[3 , 2].Value = model.LayoutName;
+            metaWs.Cells[1, 1].Value = "Property";
+            metaWs.Cells[1, 2].Value = "Value";
+            metaWs.Cells[2, 1].Value = "ExportTime";
+            metaWs.Cells[2, 2].Value = DateTime.Now.ToString("O");
+            metaWs.Cells[3, 1].Value = "LayoutName";
+            metaWs.Cells[3, 2].Value = model.LayoutName;
         }
     }
 }

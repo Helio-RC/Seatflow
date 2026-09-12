@@ -37,7 +37,7 @@ public class SeatingWorkspace
         /// 策略间共享的后备元数据字典。常用键应提取为 <see cref="SeatingContext"/> 的强类型属性，
         /// 此字典仅用于未规划的动态场景。
         /// </summary>
-        public Dictionary<string , object> Metadata { get; set; } = [];
+        public Dictionary<string, object> Metadata { get; set; } = [];
     }
 
     /// <summary>
@@ -46,13 +46,13 @@ public class SeatingWorkspace
     /// <param name="students">学生列表。</param>
     /// <param name="seats">座位列表。</param>
     /// <param name="logger">日志记录器（可选）。</param>
-    public SeatingWorkspace (IEnumerable<Student> students , IEnumerable<Seat> seats , ILogger<SeatingWorkspace>? logger = null)
+    public SeatingWorkspace(IEnumerable<Student> students, IEnumerable<Seat> seats, ILogger<SeatingWorkspace>? logger = null)
     {
         _students.AddRange(students ?? Enumerable.Empty<Student>());
         _seats.AddRange(seats ?? Enumerable.Empty<Seat>());
         _logger = logger;
-        _logger?.LogDebug("创建工作区：{StudentCount} 名学生，{SeatCount} 个座位" ,
-            _students.Count , _seats.Count);
+        _logger?.LogDebug("创建工作区：{StudentCount} 名学生，{SeatCount} 个座位",
+            _students.Count, _seats.Count);
     }
 
     /// <summary>
@@ -72,22 +72,22 @@ public class SeatingWorkspace
     /// 最终分配和快照恢复应保留默认 <c>true</c>。
     /// </param>
     /// <returns>是否分配成功。</returns>
-    public bool TryAssignSeat (string seatId , string studentId , out string error , bool updateHistory = true)
+    public bool TryAssignSeat(string seatId, string studentId, out string error, bool updateHistory = true)
     {
         error = string.Empty;
         var seat = _seats.FirstOrDefault(s => s.Id == seatId);
         var student = _students.FirstOrDefault(s => s.Id == studentId);
-        if (seat == null) { error = "Seat not found"; _logger?.LogWarning("TryAssignSeat：座位 {SeatId} 不存在" , seatId); return false; }
-        if (student == null) { error = "Student not found"; _logger?.LogWarning("TryAssignSeat：学生 {StudentId} 不存在" , studentId); return false; }
-        if (!seat.IsAvailable) { error = "Seat not available"; _logger?.LogDebug("TryAssignSeat：座位 {SeatId} 不可用" , seatId); return false; }
-        if (seat.IsFixed && seat.OccupantId != studentId) { error = "Seat is fixed by another student"; _logger?.LogWarning("TryAssignSeat：座位 {SeatId} 被固定给其他学生" , seatId); return false; }
+        if (seat == null) { error = "Seat not found"; _logger?.LogWarning("TryAssignSeat：座位 {SeatId} 不存在", seatId); return false; }
+        if (student == null) { error = "Student not found"; _logger?.LogWarning("TryAssignSeat：学生 {StudentId} 不存在", studentId); return false; }
+        if (!seat.IsAvailable) { error = "Seat not available"; _logger?.LogDebug("TryAssignSeat：座位 {SeatId} 不可用", seatId); return false; }
+        if (seat.IsFixed && seat.OccupantId != studentId) { error = "Seat is fixed by another student"; _logger?.LogWarning("TryAssignSeat：座位 {SeatId} 被固定给其他学生", seatId); return false; }
 
         // 防止同一学生分配到多个座位
         var alreadyAssignedSeat = _seats.FirstOrDefault(s => s.OccupantId == studentId && s.Id != seatId);
         if (alreadyAssignedSeat != null)
         {
             error = "Student already assigned to another seat";
-            _logger?.LogWarning("TryAssignSeat：学生 {StudentId} 已分配到座位 {OtherSeat}" , studentId , alreadyAssignedSeat.Id);
+            _logger?.LogWarning("TryAssignSeat：学生 {StudentId} 已分配到座位 {OtherSeat}", studentId, alreadyAssignedSeat.Id);
             return false;
         }
 
@@ -101,17 +101,17 @@ public class SeatingWorkspace
     /// <summary>
     /// 获取所有空座位（可用且非固定）。
     /// </summary>
-    public IEnumerable<Seat> GetEmptySeats () => _seats.Where(s => s.IsAvailable && !s.IsFixed);
+    public IEnumerable<Seat> GetEmptySeats() => _seats.Where(s => s.IsAvailable && !s.IsFixed);
 
     /// <summary>
     /// 根据条件查找座位。
     /// </summary>
-    public IEnumerable<Seat> FindSeats (Func<Seat , bool> predicate) => _seats.Where(predicate);
+    public IEnumerable<Seat> FindSeats(Func<Seat, bool> predicate) => _seats.Where(predicate);
 
     /// <summary>
     /// 从当前工作区构建座位安排计划（只读快照）。
     /// </summary>
-    public SeatingPlan BuildSeatingPlan ()
+    public SeatingPlan BuildSeatingPlan()
     {
         var plan = new SeatingPlan();
         foreach (var seat in _seats)
@@ -128,9 +128,9 @@ public class SeatingWorkspace
     /// 固定座位（<see cref="Seat.IsFixed"/>）不会被清空或修改。
     /// </summary>
     /// <param name="seatAssignments">快照中的座位分配字典（座位 ID → 学生 ID）。</param>
-    public void ApplySnapshotAssignments (Dictionary<string , string> seatAssignments)
+    public void ApplySnapshotAssignments(Dictionary<string, string> seatAssignments)
     {
-        _logger?.LogInformation("ApplySnapshotAssignments：应用 {Count} 条分配记录" , seatAssignments.Count);
+        _logger?.LogInformation("ApplySnapshotAssignments：应用 {Count} 条分配记录", seatAssignments.Count);
 
         // 清空所有非固定座位的当前分配
         foreach (var seat in _seats)
@@ -159,7 +159,7 @@ public class SeatingWorkspace
                 applied++;
             }
         }
-        _logger?.LogInformation("ApplySnapshotAssignments：成功应用 {Applied} 条" , applied);
+        _logger?.LogInformation("ApplySnapshotAssignments：成功应用 {Applied} 条", applied);
     }
 
     /// <inheritdoc />
@@ -167,19 +167,19 @@ public class SeatingWorkspace
     public IReadOnlyList<StrategyMessage> Messages => _messages;
 
     /// <inheritdoc />
-    public void LogWarning (string strategyId , string displayName , string messageKey , params object?[] args)
+    public void LogWarning(string strategyId, string displayName, string messageKey, params object?[] args)
     {
-        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Warning , strategyId , displayName , messageKey , args));
-        _logger?.LogDebug("[StrategyMsg:Warning][{DisplayName}] {MessageKey} → {Detailed}" ,
-            displayName , messageKey , ResolveArgsWithNames(args));
+        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Warning, strategyId, displayName, messageKey, args));
+        _logger?.LogDebug("[StrategyMsg:Warning][{DisplayName}] {MessageKey} → {Detailed}",
+            displayName, messageKey, ResolveArgsWithNames(args));
     }
 
     /// <inheritdoc />
-    public void LogError (string strategyId , string displayName , string messageKey , params object?[] args)
+    public void LogError(string strategyId, string displayName, string messageKey, params object?[] args)
     {
-        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Error , strategyId , displayName , messageKey , args));
-        _logger?.LogDebug("[StrategyMsg:Error][{DisplayName}] {MessageKey} → {Detailed}" ,
-            displayName , messageKey , ResolveArgsWithNames(args));
+        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Error, strategyId, displayName, messageKey, args));
+        _logger?.LogDebug("[StrategyMsg:Error][{DisplayName}] {MessageKey} → {Detailed}",
+            displayName, messageKey, ResolveArgsWithNames(args));
     }
 
     /// <summary>
@@ -189,32 +189,32 @@ public class SeatingWorkspace
     /// <param name="displayName">策略展示名称。</param>
     /// <param name="messageKey">对应 manifest messages 中的 i18n 键。</param>
     /// <param name="args">string.Format 参数。</param>
-    public void LogInfo (string strategyId , string displayName , string messageKey , params object?[] args)
+    public void LogInfo(string strategyId, string displayName, string messageKey, params object?[] args)
     {
-        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Info , strategyId , displayName , messageKey , args));
-        _logger?.LogDebug("[StrategyMsg:Info][{DisplayName}] {MessageKey} → {Detailed}" ,
-            displayName , messageKey , ResolveArgsWithNames(args));
+        _messages.Add(new StrategyMessage(StrategyMessageSeverity.Info, strategyId, displayName, messageKey, args));
+        _logger?.LogDebug("[StrategyMsg:Info][{DisplayName}] {MessageKey} → {Detailed}",
+            displayName, messageKey, ResolveArgsWithNames(args));
     }
 
     /// <summary>
     /// 将 args 中的学生 ID 解析为 "姓名(ID)" 格式，用于日志记录。
     /// 逗号分隔的 ID 列表会被逐个解析。
     /// </summary>
-    private List<string> ResolveArgsWithNames (object?[] args)
+    private List<string> ResolveArgsWithNames(object?[] args)
     {
-        var studentMap = _students.ToDictionary(s => s.Id , s => s);
+        var studentMap = _students.ToDictionary(s => s.Id, s => s);
         return args.Select(a =>
         {
             if (a is not string s) return a?.ToString() ?? "null";
-            return string.Join(", " , s.Split(',').Select(part =>
+            return string.Join(", ", s.Split(',').Select(part =>
             {
                 var id = part.Trim();
-                return studentMap.TryGetValue(id , out var student) ? $"{student.Name}({id})" : id;
+                return studentMap.TryGetValue(id, out var student) ? $"{student.Name}({id})" : id;
             }));
         }).ToList();
     }
 
-    public IReadOnlyDictionary<string , string> GetAssignments ()
+    public IReadOnlyDictionary<string, string> GetAssignments()
     {
         return BuildSeatingPlan().Assignments;
     }
@@ -227,5 +227,5 @@ public class SeatingWorkspace
 public class SeatingPlan
 {
     /// <summary>座位分配字典，Key 为座位 ID，Value 为学生 ID。</summary>
-    public Dictionary<string , string> Assignments { get; set; } = [];
+    public Dictionary<string, string> Assignments { get; set; } = [];
 }

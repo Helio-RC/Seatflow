@@ -3,7 +3,7 @@ namespace SeatFlow.Core.Tests.Models;
 public class VenueSnapshotInfoTests
 {
     [Fact]
-    public void Default_HasEmptyValues ()
+    public void Default_HasEmptyValues()
     {
         var v = new VenueSnapshotInfo();
         v.Name.Should().BeEmpty();
@@ -13,13 +13,13 @@ public class VenueSnapshotInfoTests
     }
 
     [Fact]
-    public void CanSetAllProperties ()
+    public void CanSetAllProperties()
     {
         var v = new VenueSnapshotInfo
         {
-            Name = "教室A" ,
-            LayoutType = LayoutType.Grid ,
-            SeatCount = 40 ,
+            Name = "教室A",
+            LayoutType = LayoutType.Grid,
+            SeatCount = 40,
             ObstacleCount = 2
         };
         v.Name.Should().Be("教室A");

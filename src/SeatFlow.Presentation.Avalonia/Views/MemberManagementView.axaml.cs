@@ -10,12 +10,12 @@ public partial class MemberManagementView : UserControl
 {
     private ViewModels.MemberManagementViewModel? _vm;
 
-    public MemberManagementView ()
+    public MemberManagementView()
     {
         InitializeComponent();
     }
 
-    protected override void OnDataContextChanged (EventArgs e)
+    protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
         _vm?.PropertyChanged -= OnSidebarWidthChanged;
@@ -27,7 +27,7 @@ public partial class MemberManagementView : UserControl
         }
     }
 
-    private void OnSidebarWidthChanged (object? sender , PropertyChangedEventArgs e)
+    private void OnSidebarWidthChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ViewModels.MemberManagementViewModel.SidebarListWidth)
             && sender is ViewModels.MemberManagementViewModel vm)
@@ -36,7 +36,7 @@ public partial class MemberManagementView : UserControl
         }
     }
 
-    private void SyncSidebar (double width)
+    private void SyncSidebar(double width)
     {
         var grid = this.FindControl<Grid>("SidebarGrid");
         if (grid != null && grid.ColumnDefinitions.Count > 0)
@@ -44,7 +44,7 @@ public partial class MemberManagementView : UserControl
     }
 
     /// <summary>新增行 Name 文本框按 Enter 时触发 AddNewStudentCommand。</summary>
-    public void OnNewStudentNameKeyDown (object? sender , KeyEventArgs e)
+    public void OnNewStudentNameKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter && DataContext is ViewModels.MemberManagementViewModel vm)
         {
@@ -53,14 +53,14 @@ public partial class MemberManagementView : UserControl
         }
     }
 
-    protected override void OnDetachedFromVisualTree (VisualTreeAttachmentEventArgs e)
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
         _vm?.PropertyChanged -= OnSidebarWidthChanged;
         _vm = null;
     }
 
-    protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 

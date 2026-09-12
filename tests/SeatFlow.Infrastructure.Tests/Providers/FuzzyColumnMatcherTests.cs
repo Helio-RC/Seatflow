@@ -7,22 +7,22 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_StandardTemplate_ShouldReturnIsStandardTemplateTrue ()
+    public void TryParse_StandardTemplate_ShouldReturnIsStandardTemplateTrue()
     {
         // 所有字段都在第 0 行 → 标准模板
-        var grid = new string?[3 , 4];
-        grid[0 , 0] = "姓名";
-        grid[0 , 1] = "身高";
-        grid[0 , 2] = "性别";
-        grid[0 , 3] = "需要前排";
-        grid[1 , 0] = "Alice";
-        grid[1 , 1] = "165";
-        grid[1 , 2] = "女";
-        grid[2 , 0] = "Bob";
-        grid[2 , 1] = "180";
-        grid[2 , 2] = "男";
+        var grid = new string?[3, 4];
+        grid[0, 0] = "姓名";
+        grid[0, 1] = "身高";
+        grid[0, 2] = "性别";
+        grid[0, 3] = "需要前排";
+        grid[1, 0] = "Alice";
+        grid[1, 1] = "165";
+        grid[1, 2] = "女";
+        grid[2, 0] = "Bob";
+        grid[2, 1] = "180";
+        grid[2, 2] = "男";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 3 , 4);
+        var result = FuzzyColumnMatcher.TryParse(grid, 3, 4);
 
         // 快速路径——归入标准模板
         result.IsStandardTemplate.Should().BeTrue();
@@ -30,16 +30,16 @@ public class FuzzyColumnMatcherTests
     }
 
     [Fact]
-    public void TryParse_StandardTemplateEnglishHeaders_ShouldDetect ()
+    public void TryParse_StandardTemplateEnglishHeaders_ShouldDetect()
     {
-        var grid = new string?[3 , 4];
-        grid[0 , 0] = "Name";
-        grid[0 , 1] = "Height";
-        grid[0 , 2] = "Gender";
-        grid[0 , 3] = "NeedsFrontRow";
-        grid[1 , 0] = "Alice";
+        var grid = new string?[3, 4];
+        grid[0, 0] = "Name";
+        grid[0, 1] = "Height";
+        grid[0, 2] = "Gender";
+        grid[0, 3] = "NeedsFrontRow";
+        grid[1, 0] = "Alice";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 2 , 4);
+        var result = FuzzyColumnMatcher.TryParse(grid, 2, 4);
 
         result.IsStandardTemplate.Should().BeTrue();
         result.HasNameField.Should().BeTrue();
@@ -50,22 +50,22 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_HeadersAtRow3_ShouldDetectAndParse ()
+    public void TryParse_HeadersAtRow3_ShouldDetectAndParse()
     {
         // 前 3 行为空/杂项，表头在第 3 行（0-indexed）
-        var grid = new string?[7 , 4];
-        grid[3 , 0] = "姓名";
-        grid[3 , 1] = "身高";
-        grid[3 , 2] = "性别";
+        var grid = new string?[7, 4];
+        grid[3, 0] = "姓名";
+        grid[3, 1] = "身高";
+        grid[3, 2] = "性别";
         // col 3 无映射字段
-        grid[4 , 0] = "Alice";
-        grid[4 , 1] = "165";
-        grid[4 , 2] = "女";
-        grid[5 , 0] = "Bob";
-        grid[5 , 1] = "180";
-        grid[5 , 2] = "男";
+        grid[4, 0] = "Alice";
+        grid[4, 1] = "165";
+        grid[4, 2] = "女";
+        grid[5, 0] = "Bob";
+        grid[5, 1] = "180";
+        grid[5, 2] = "男";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 7 , 4);
+        var result = FuzzyColumnMatcher.TryParse(grid, 7, 4);
 
         result.IsStandardTemplate.Should().BeFalse();
         result.HasNameField.Should().BeTrue();
@@ -78,17 +78,17 @@ public class FuzzyColumnMatcherTests
     }
 
     [Fact]
-    public void TryParse_HeadersAtRow5_ShouldSkipHeaderRows ()
+    public void TryParse_HeadersAtRow5_ShouldSkipHeaderRows()
     {
-        var grid = new string?[8 , 3];
-        grid[5 , 0] = "Name";
-        grid[5 , 1] = "Gender";
-        grid[6 , 0] = "Charlie";
-        grid[6 , 1] = "Male";
-        grid[7 , 0] = "Diana";
-        grid[7 , 1] = "Female";
+        var grid = new string?[8, 3];
+        grid[5, 0] = "Name";
+        grid[5, 1] = "Gender";
+        grid[6, 0] = "Charlie";
+        grid[6, 1] = "Male";
+        grid[7, 0] = "Diana";
+        grid[7, 1] = "Female";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 8 , 3);
+        var result = FuzzyColumnMatcher.TryParse(grid, 8, 3);
 
         result.Students.Should().NotBeNull();
         result.Students.Should().HaveCount(2);
@@ -101,15 +101,15 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_CaseInsensitiveHeaders_ShouldMatch ()
+    public void TryParse_CaseInsensitiveHeaders_ShouldMatch()
     {
-        var grid = new string?[2 , 3];
-        grid[0 , 0] = "NAME";
-        grid[0 , 1] = "gender";
-        grid[0 , 2] = "HEIGHT";
-        grid[1 , 0] = "Eve";
+        var grid = new string?[2, 3];
+        grid[0, 0] = "NAME";
+        grid[0, 1] = "gender";
+        grid[0, 2] = "HEIGHT";
+        grid[1, 0] = "Eve";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 2 , 3);
+        var result = FuzzyColumnMatcher.TryParse(grid, 2, 3);
 
         // 所有字段在 row 0 → 标准模板信号
         result.IsStandardTemplate.Should().BeTrue();
@@ -117,14 +117,14 @@ public class FuzzyColumnMatcherTests
     }
 
     [Fact]
-    public void TryParse_TrimmedHeaders_ShouldMatch ()
+    public void TryParse_TrimmedHeaders_ShouldMatch()
     {
-        var grid = new string?[2 , 2];
-        grid[0 , 0] = "  姓名  ";
-        grid[0 , 1] = " 性别 ";
-        grid[1 , 0] = "Frank";
+        var grid = new string?[2, 2];
+        grid[0, 0] = "  姓名  ";
+        grid[0, 1] = " 性别 ";
+        grid[1, 0] = "Frank";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 2 , 2);
+        var result = FuzzyColumnMatcher.TryParse(grid, 2, 2);
 
         // 所有字段在 row 0 → 标准模板信号
         result.IsStandardTemplate.Should().BeTrue();
@@ -136,24 +136,24 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_DoubleColumnList_ShouldAggregate ()
+    public void TryParse_DoubleColumnList_ShouldAggregate()
     {
         // | 名字 | 性别 | 名字 | 性别 |
-        var grid = new string?[3 , 4];
-        grid[0 , 0] = "姓名";
-        grid[0 , 1] = "性别";
-        grid[0 , 2] = "姓名";
-        grid[0 , 3] = "性别";
-        grid[1 , 0] = "Alice";
-        grid[1 , 1] = "女";
-        grid[1 , 2] = "Bob";
-        grid[1 , 3] = "男";
-        grid[2 , 0] = "Charlie";
-        grid[2 , 1] = "男";
-        grid[2 , 2] = "Diana";
-        grid[2 , 3] = "女";
+        var grid = new string?[3, 4];
+        grid[0, 0] = "姓名";
+        grid[0, 1] = "性别";
+        grid[0, 2] = "姓名";
+        grid[0, 3] = "性别";
+        grid[1, 0] = "Alice";
+        grid[1, 1] = "女";
+        grid[1, 2] = "Bob";
+        grid[1, 3] = "男";
+        grid[2, 0] = "Charlie";
+        grid[2, 1] = "男";
+        grid[2, 2] = "Diana";
+        grid[2, 3] = "女";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 3 , 4);
+        var result = FuzzyColumnMatcher.TryParse(grid, 3, 4);
 
         result.IsStandardTemplate.Should().BeFalse();
         result.Students.Should().HaveCount(4);
@@ -168,26 +168,26 @@ public class FuzzyColumnMatcherTests
     }
 
     [Fact]
-    public void TryParse_DoubleColumnIrregularPattern_ShouldHandle ()
+    public void TryParse_DoubleColumnIrregularPattern_ShouldHandle()
     {
         // | 名字 | 身高 | 名字 | 性别 |
         // Group 0: Name(0), Height(1)
         // Group 1: Name(2), Gender(3)
-        var grid = new string?[3 , 4];
-        grid[0 , 0] = "姓名";
-        grid[0 , 1] = "身高";
-        grid[0 , 2] = "姓名";
-        grid[0 , 3] = "性别";
-        grid[1 , 0] = "Alice";
-        grid[1 , 1] = "165";
-        grid[1 , 2] = "Bob";
-        grid[1 , 3] = "男";
-        grid[2 , 0] = "Charlie";
-        grid[2 , 1] = "170";
-        grid[2 , 2] = "";
-        grid[2 , 3] = "";
+        var grid = new string?[3, 4];
+        grid[0, 0] = "姓名";
+        grid[0, 1] = "身高";
+        grid[0, 2] = "姓名";
+        grid[0, 3] = "性别";
+        grid[1, 0] = "Alice";
+        grid[1, 1] = "165";
+        grid[1, 2] = "Bob";
+        grid[1, 3] = "男";
+        grid[2, 0] = "Charlie";
+        grid[2, 1] = "170";
+        grid[2, 2] = "";
+        grid[2, 3] = "";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 3 , 4);
+        var result = FuzzyColumnMatcher.TryParse(grid, 3, 4);
 
         // 空间位置分组：G0=[col0-1]=(Name,Height), G1=[col2-∞]=(Name,Gender)
         // Alice(0,1)→G0, Bob(2,3)→G1, Charlie(0,1)→G0
@@ -205,39 +205,39 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_TwoConsecutiveEmptyRows_ShouldTerminate ()
+    public void TryParse_TwoConsecutiveEmptyRows_ShouldTerminate()
     {
         // 表头在非第 0 行，让模糊匹配运行
-        var grid = new string?[7 , 2];
-        grid[1 , 0] = "姓名";
-        grid[1 , 1] = "身高";
-        grid[2 , 0] = "Alice";
-        grid[2 , 1] = "165";
-        grid[3 , 0] = "";       // 空行 1
-        grid[4 , 0] = "";       // 空行 2 → 终止
-        grid[5 , 0] = "Bob";    // 不应被读取
-        grid[6 , 0] = "Charlie";
+        var grid = new string?[7, 2];
+        grid[1, 0] = "姓名";
+        grid[1, 1] = "身高";
+        grid[2, 0] = "Alice";
+        grid[2, 1] = "165";
+        grid[3, 0] = "";       // 空行 1
+        grid[4, 0] = "";       // 空行 2 → 终止
+        grid[5, 0] = "Bob";    // 不应被读取
+        grid[6, 0] = "Charlie";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 7 , 2);
+        var result = FuzzyColumnMatcher.TryParse(grid, 7, 2);
 
         result.Students.Should().HaveCount(1);
         result.Students![0].Name.Should().Be("Alice");
     }
 
     [Fact]
-    public void TryParse_SingleEmptyRow_ShouldContinue ()
+    public void TryParse_SingleEmptyRow_ShouldContinue()
     {
         // 表头不在第 0 行，让模糊匹配真正运行
-        var grid = new string?[6 , 2];
-        grid[1 , 0] = "姓名";
-        grid[1 , 1] = "身高";
-        grid[2 , 0] = "Alice";
-        grid[2 , 1] = "165";
-        grid[3 , 0] = "";       // 空行 1（仅一个）
-        grid[4 , 0] = "Bob";    // 应被读取
-        grid[5 , 0] = "";
+        var grid = new string?[6, 2];
+        grid[1, 0] = "姓名";
+        grid[1, 1] = "身高";
+        grid[2, 0] = "Alice";
+        grid[2, 1] = "165";
+        grid[3, 0] = "";       // 空行 1（仅一个）
+        grid[4, 0] = "Bob";    // 应被读取
+        grid[5, 0] = "";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 6 , 2);
+        var result = FuzzyColumnMatcher.TryParse(grid, 6, 2);
 
         result.Students.Should().NotBeNull();
         result.Students.Should().HaveCount(2);
@@ -246,23 +246,23 @@ public class FuzzyColumnMatcherTests
     }
 
     [Fact]
-    public void TryParse_TwoConsecutiveEmptyPerColumn_ShouldTerminateIndependently ()
+    public void TryParse_TwoConsecutiveEmptyPerColumn_ShouldTerminateIndependently()
     {
         // 表头在非第 0 行，让模糊匹配运行
-        var grid = new string?[7 , 2];
-        grid[1 , 0] = "姓名";
-        grid[1 , 1] = "身高";
-        grid[2 , 0] = "Alice";
-        grid[2 , 1] = "165";
-        grid[3 , 0] = "Bob";
-        grid[3 , 1] = "170";
-        grid[4 , 0] = "Charlie";
-        grid[4 , 1] = "";       // Height 空 1
-        grid[5 , 0] = "Diana";
-        grid[5 , 1] = "";       // Height 空 2 → Height 列终止，但 Name 继续
-        grid[6 , 0] = "";       // Name 空 1
+        var grid = new string?[7, 2];
+        grid[1, 0] = "姓名";
+        grid[1, 1] = "身高";
+        grid[2, 0] = "Alice";
+        grid[2, 1] = "165";
+        grid[3, 0] = "Bob";
+        grid[3, 1] = "170";
+        grid[4, 0] = "Charlie";
+        grid[4, 1] = "";       // Height 空 1
+        grid[5, 0] = "Diana";
+        grid[5, 1] = "";       // Height 空 2 → Height 列终止，但 Name 继续
+        grid[6, 0] = "";       // Name 空 1
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 7 , 2);
+        var result = FuzzyColumnMatcher.TryParse(grid, 7, 2);
 
         result.Students.Should().HaveCount(4);
         result.Students![0].Name.Should().Be("Alice");
@@ -280,23 +280,23 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_RowBasedLayout_ShouldDetectAndParse ()
+    public void TryParse_RowBasedLayout_ShouldDetectAndParse()
     {
         // | 姓名   | Alice | Bob   |
         // | 身高   | 165   | 180   |
         // | 性别   | 女    | 男    |
-        var grid = new string?[3 , 3];
-        grid[0 , 0] = "姓名";
-        grid[1 , 0] = "身高";
-        grid[2 , 0] = "性别";
-        grid[0 , 1] = "Alice";
-        grid[1 , 1] = "165";
-        grid[2 , 1] = "女";
-        grid[0 , 2] = "Bob";
-        grid[1 , 2] = "180";
-        grid[2 , 2] = "男";
+        var grid = new string?[3, 3];
+        grid[0, 0] = "姓名";
+        grid[1, 0] = "身高";
+        grid[2, 0] = "性别";
+        grid[0, 1] = "Alice";
+        grid[1, 1] = "165";
+        grid[2, 1] = "女";
+        grid[0, 2] = "Bob";
+        grid[1, 2] = "180";
+        grid[2, 2] = "男";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 3 , 3);
+        var result = FuzzyColumnMatcher.TryParse(grid, 3, 3);
 
         result.Students.Should().HaveCount(2);
         result.Students![0].Name.Should().Be("Alice");
@@ -312,17 +312,17 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_NoRecognizableFields_ShouldReturnEmpty ()
+    public void TryParse_NoRecognizableFields_ShouldReturnEmpty()
     {
-        var grid = new string?[3 , 3];
-        grid[0 , 0] = "工号";
-        grid[0 , 1] = "部门";
-        grid[0 , 2] = "职位";
-        grid[1 , 0] = "001";
-        grid[1 , 1] = "技术部";
-        grid[1 , 2] = "工程师";
+        var grid = new string?[3, 3];
+        grid[0, 0] = "工号";
+        grid[0, 1] = "部门";
+        grid[0, 2] = "职位";
+        grid[1, 0] = "001";
+        grid[1, 1] = "技术部";
+        grid[1, 2] = "工程师";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 2 , 3);
+        var result = FuzzyColumnMatcher.TryParse(grid, 2, 3);
 
         result.HasNameField.Should().BeFalse();
         result.Students.Should().NotBeNull();
@@ -330,11 +330,11 @@ public class FuzzyColumnMatcherTests
     }
 
     [Fact]
-    public void TryParse_EmptyGrid_ShouldReturnEmpty ()
+    public void TryParse_EmptyGrid_ShouldReturnEmpty()
     {
-        var grid = new string?[0 , 0];
+        var grid = new string?[0, 0];
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 0 , 0);
+        var result = FuzzyColumnMatcher.TryParse(grid, 0, 0);
 
         result.HasNameField.Should().BeFalse();
         result.Students.Should().NotBeNull();
@@ -346,14 +346,14 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_OnlyNameColumn_ShouldReturnStudentsWithName ()
+    public void TryParse_OnlyNameColumn_ShouldReturnStudentsWithName()
     {
-        var grid = new string?[4 , 2];
-        grid[2 , 1] = "姓名";    // 非标准位置
-        grid[3 , 1] = "Alice";
+        var grid = new string?[4, 2];
+        grid[2, 1] = "姓名";    // 非标准位置
+        grid[3, 1] = "Alice";
         // 只有一行数据
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 4 , 2);
+        var result = FuzzyColumnMatcher.TryParse(grid, 4, 2);
 
         result.HasNameField.Should().BeTrue();
         result.Students.Should().HaveCount(1);
@@ -365,19 +365,19 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_MixedLanguageHeaders_ShouldMatch ()
+    public void TryParse_MixedLanguageHeaders_ShouldMatch()
     {
-        var grid = new string?[2 , 4];
-        grid[0 , 0] = "姓名";
-        grid[0 , 1] = "Height";
-        grid[0 , 2] = "性别";
-        grid[0 , 3] = "NeedsFrontRow";
-        grid[1 , 0] = "测试学生";
-        grid[1 , 1] = "175";
-        grid[1 , 2] = "男";
-        grid[1 , 3] = "是";
+        var grid = new string?[2, 4];
+        grid[0, 0] = "姓名";
+        grid[0, 1] = "Height";
+        grid[0, 2] = "性别";
+        grid[0, 3] = "NeedsFrontRow";
+        grid[1, 0] = "测试学生";
+        grid[1, 1] = "175";
+        grid[1, 2] = "男";
+        grid[1, 3] = "是";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 2 , 4);
+        var result = FuzzyColumnMatcher.TryParse(grid, 2, 4);
 
         result.IsStandardTemplate.Should().BeTrue(); // 都在第 0 行
         result.HasNameField.Should().BeTrue();
@@ -388,13 +388,13 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_ShouldReturnActualDimensions ()
+    public void TryParse_ShouldReturnActualDimensions()
     {
-        var grid = new string?[5 , 3];
-        grid[0 , 0] = "姓名";
-        grid[1 , 0] = "Alice";
+        var grid = new string?[5, 3];
+        grid[0, 0] = "姓名";
+        grid[1, 0] = "Alice";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 5 , 3);
+        var result = FuzzyColumnMatcher.TryParse(grid, 5, 3);
 
         result.ActualDataRows.Should().Be(5);
         result.ActualDataCols.Should().Be(3);
@@ -405,22 +405,22 @@ public class FuzzyColumnMatcherTests
     // ═══════════════════════════════════════════════
 
     [Fact]
-    public void TryParse_CommentRowAfterHeader_ShouldBeSkipped ()
+    public void TryParse_CommentRowAfterHeader_ShouldBeSkipped()
     {
         // 模拟：表头（非第 0 行） → 全空注释行 → 数据
-        var grid = new string?[7 , 2];
-        grid[2 , 0] = "姓名";
-        grid[2 , 1] = "身高";
-        grid[3 , 0] = "";        // 全空注释行（会被 IsCompletelyEmptyRow 跳过）
-        grid[3 , 1] = "";
-        grid[4 , 0] = "Alice";
-        grid[4 , 1] = "165";
-        grid[5 , 0] = "Bob";
-        grid[5 , 1] = "180";
-        grid[6 , 0] = "";
-        grid[6 , 1] = "";
+        var grid = new string?[7, 2];
+        grid[2, 0] = "姓名";
+        grid[2, 1] = "身高";
+        grid[3, 0] = "";        // 全空注释行（会被 IsCompletelyEmptyRow 跳过）
+        grid[3, 1] = "";
+        grid[4, 0] = "Alice";
+        grid[4, 1] = "165";
+        grid[5, 0] = "Bob";
+        grid[5, 1] = "180";
+        grid[6, 0] = "";
+        grid[6, 1] = "";
 
-        var result = FuzzyColumnMatcher.TryParse(grid , 7 , 2);
+        var result = FuzzyColumnMatcher.TryParse(grid, 7, 2);
 
         // 全空行在表头后被跳过，数据从 row 4 开始
         result.IsStandardTemplate.Should().BeFalse();

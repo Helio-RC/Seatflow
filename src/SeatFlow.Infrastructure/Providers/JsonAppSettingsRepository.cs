@@ -25,10 +25,10 @@ namespace SeatFlow.Infrastructure.Providers
         /// <param name="relativeFilePath">AppSettings.json 相对存储路径（如 <c>AppSettings.json</c>）。</param>
         /// <param name="migration">文件迁移服务。</param>
         /// <param name="logger">日志记录器。</param>
-        public JsonAppSettingsRepository (
-            ILocalDataStore store ,
-            string relativeFilePath ,
-            FileMigrationService migration ,
+        public JsonAppSettingsRepository(
+            ILocalDataStore store,
+            string relativeFilePath,
+            FileMigrationService migration,
             ILogger<JsonAppSettingsRepository>? logger = null)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
@@ -40,13 +40,13 @@ namespace SeatFlow.Infrastructure.Providers
         /// <summary>
         /// 初始化 AppSettings 仓储（兼容构造：直接指定完整文件路径）。
         /// </summary>
-        public JsonAppSettingsRepository (
-            string filePath ,
-            FileMigrationService migration ,
+        public JsonAppSettingsRepository(
+            string filePath,
+            FileMigrationService migration,
             ILogger<JsonAppSettingsRepository>? logger = null)
-            : this(new FileSystemDataStore(Path.GetDirectoryName(filePath) ?? "") ,
-                  Path.GetFileName(filePath) ,
-                  migration ,
+            : this(new FileSystemDataStore(Path.GetDirectoryName(filePath) ?? ""),
+                  Path.GetFileName(filePath),
+                  migration,
                   logger)
         {
             _desktopFilePath = filePath;
@@ -57,15 +57,15 @@ namespace SeatFlow.Infrastructure.Providers
         public string SettingsFilePath => _desktopFilePath ?? _filePath;
 
         /// <inheritdoc />
-        public Task<bool> ExistsAsync (CancellationToken cancellationToken = default)
-            => _store.ExistsAsync(_filePath , cancellationToken);
+        public Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
+            => _store.ExistsAsync(_filePath, cancellationToken);
 
-        public async Task<AppSettings> LoadAsync (CancellationToken cancellationToken = default)
+        public async Task<AppSettings> LoadAsync(CancellationToken cancellationToken = default)
         {
-            var json = await _store.ReadTextAsync(_filePath , cancellationToken);
+            var json = await _store.ReadTextAsync(_filePath, cancellationToken);
             if (json is null)
             {
-                _logger.LogDebug("AppSettings 文件不存在，使用默认设置：{Path}" , _filePath);
+                _logger.LogDebug("AppSettings 文件不存在，使用默认设置：{Path}", _filePath);
                 return new AppSettings();
             }
 
@@ -73,29 +73,29 @@ namespace SeatFlow.Infrastructure.Providers
             if (node is not null)
             {
                 var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
-                node = _migration.Migrate("appSettings" , node , fileVersion , FileVersionInfo.GetCurrentVersion("appSettings"));
+                node = _migration.Migrate("appSettings", node, fileVersion, FileVersionInfo.GetCurrentVersion("appSettings"));
                 json = node.ToJsonString();
             }
             var settings = JsonSerializer.Deserialize<AppSettings>(json);
             if (settings is null)
             {
-                _logger.LogWarning("AppSettings 反序列化结果为 null：{Path}" , _filePath);
+                _logger.LogWarning("AppSettings 反序列化结果为 null：{Path}", _filePath);
                 return new AppSettings();
             }
-            _logger.LogInformation("AppSettings 已加载：{Path}" , _filePath);
+            _logger.LogInformation("AppSettings 已加载：{Path}", _filePath);
             return settings;
         }
 
-        public async Task SaveAsync (AppSettings settings , CancellationToken cancellationToken = default)
+        public async Task SaveAsync(AppSettings settings, CancellationToken cancellationToken = default)
         {
             settings.Version = FileVersionInfo.GetCurrentVersion("appSettings");
             var options = JsonOptions.WriteIndented;
-            var json = JsonSerializer.Serialize(settings , options);
-            await _store.WriteTextAsync(_filePath , json , cancellationToken);
-            _logger.LogInformation("AppSettings 已保存：{Path}" , _filePath);
+            var json = JsonSerializer.Serialize(settings, options);
+            await _store.WriteTextAsync(_filePath, json, cancellationToken);
+            _logger.LogInformation("AppSettings 已保存：{Path}", _filePath);
         }
 
-        private static string NormalizePath (string path)
-            => path?.Replace('\\' , '/').TrimStart('/') ?? "";
+        private static string NormalizePath(string path)
+            => path?.Replace('\\', '/').TrimStart('/') ?? "";
     }
 }

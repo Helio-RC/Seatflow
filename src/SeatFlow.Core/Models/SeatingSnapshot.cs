@@ -22,9 +22,9 @@ namespace SeatFlow.Core.Models
         public string LayoutId { get; set; } = string.Empty;
 
         /// <summary>座位分配字典，Key 为座位 ID，Value 为学生 ID。</summary>
-        public Dictionary<string , string> SeatAssignments { get; set; } = [];
+        public Dictionary<string, string> SeatAssignments { get; set; } = [];
 
         /// <summary>附加元数据，可用于存储版本标签、操作人等信息。</summary>
-        public Dictionary<string , object> Metadata { get; set; } = [];
+        public Dictionary<string, object> Metadata { get; set; } = [];
     }
 }

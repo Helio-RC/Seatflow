@@ -14,6 +14,6 @@ namespace SeatFlow.Core.Providers
         /// <param name="path">输出文件路径。</param>
         /// <param name="students">学生列表。</param>
         /// <param name="cancellationToken">取消令牌。</param>
-        Task WriteAsync (string path , IEnumerable<Student> students , CancellationToken cancellationToken = default);
+        Task WriteAsync(string path, IEnumerable<Student> students, CancellationToken cancellationToken = default);
     }
 }

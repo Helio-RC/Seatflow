@@ -7,5 +7,5 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 public interface IUrlOpener
 {
     /// <summary>打开指定网址。</summary>
-    void OpenUrl (string url);
+    void OpenUrl(string url);
 }

@@ -10,17 +10,17 @@ namespace SeatFlow.Infrastructure.Layouts
         /// <summary>
         /// 根据坐标点列表构建自由形式布局（简单模式，无分组）。
         /// </summary>
-        public static ClassroomLayoutDefinition BuildFreeform (IEnumerable<(double X , double Y)> points)
+        public static ClassroomLayoutDefinition BuildFreeform(IEnumerable<(double X, double Y)> points)
         {
             var layout = new ClassroomLayoutDefinition
             {
-                LayoutType = LayoutType.Freeform ,
+                LayoutType = LayoutType.Freeform,
                 Metadata = new FreeformLayoutMetadata()
             };
 
-            foreach (var (x , y) in points)
+            foreach (var (x, y) in points)
             {
-                layout.Seats.Add(new FreeformSeat { X = x , Y = y });
+                layout.Seats.Add(new FreeformSeat { X = x, Y = y });
             }
 
             return layout;
@@ -31,23 +31,23 @@ namespace SeatFlow.Infrastructure.Layouts
         /// </summary>
         /// <param name="seatPoints">座位点列表（X/Y/Row/Column/GroupId）。</param>
         /// <param name="obstaclePoints">障碍物点列表（讲台/门的 X/Y/Width/Height/Type）。</param>
-        public static ClassroomLayoutDefinition BuildFreeform (
-            IEnumerable<(double X , double Y , int? Row , int? Column , int? GroupId)> seatPoints ,
-            IEnumerable<(double X , double Y , double Width , double Height , string Type)>? obstaclePoints = null)
+        public static ClassroomLayoutDefinition BuildFreeform(
+            IEnumerable<(double X, double Y, int? Row, int? Column, int? GroupId)> seatPoints,
+            IEnumerable<(double X, double Y, double Width, double Height, string Type)>? obstaclePoints = null)
         {
             var layout = new ClassroomLayoutDefinition
             {
-                LayoutType = LayoutType.Freeform ,
+                LayoutType = LayoutType.Freeform,
                 Metadata = new FreeformLayoutMetadata()
             };
 
-            foreach (var (x , y , row , col , groupId) in seatPoints)
+            foreach (var (x, y, row, col, groupId) in seatPoints)
             {
                 var seat = new FreeformSeat
                 {
-                    X = x ,
-                    Y = y ,
-                    Row = row ,
+                    X = x,
+                    Y = y,
+                    Row = row,
                     Column = col
                 };
                 if (groupId.HasValue)
@@ -57,14 +57,14 @@ namespace SeatFlow.Infrastructure.Layouts
 
             if (obstaclePoints != null)
             {
-                foreach (var (x , y , w , h , type) in obstaclePoints)
+                foreach (var (x, y, w, h, type) in obstaclePoints)
                 {
                     layout.Obstacles.Add(new Obstacle
                     {
-                        X = x ,
-                        Y = y ,
-                        Width = w ,
-                        Height = h ,
+                        X = x,
+                        Y = y,
+                        Width = w,
+                        Height = h,
                         Type = type
                     });
                 }

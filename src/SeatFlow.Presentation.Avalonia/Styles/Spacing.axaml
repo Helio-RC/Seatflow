@@ -1,9 +1,8 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- ═══ 间距令牌 ═══ -->
+  <!--  ═══ 间距令牌 ═══  -->
 
-  <!-- 页面统一外边距 (DockPanel/Border) -->
+  <!--  页面统一外边距 (DockPanel/Border)  -->
   <Style Selector="DockPanel.pageMargin">
     <Setter Property="Margin" Value="16" />
   </Style>
@@ -11,13 +10,13 @@
     <Setter Property="Margin" Value="16" />
   </Style>
 
-  <!-- 卡片内边距 -->
+  <!--  卡片内边距  -->
   <Style Selector="Border.cardPadding">
     <Setter Property="Padding" Value="20" />
     <Setter Property="CornerRadius" Value="8" />
   </Style>
 
-  <!-- 顶部工具栏外边距 -->
+  <!--  顶部工具栏外边距  -->
   <Style Selector="Border.toolbarTop">
     <Setter Property="Margin" Value="0,0,0,16" />
   </Style>
@@ -25,22 +24,22 @@
     <Setter Property="Margin" Value="0,0,0,16" />
   </Style>
 
-  <!-- 底部状态栏外边距 -->
+  <!--  底部状态栏外边距  -->
   <Style Selector="Border.statusBarBottom">
     <Setter Property="Padding" Value="0,8,0,0" />
   </Style>
 
-  <!-- 区块间距 -->
+  <!--  区块间距  -->
   <Style Selector="Border.sectionSpacing">
     <Setter Property="Margin" Value="0,0,0,12" />
   </Style>
 
-  <!-- 通用内边距 8px -->
+  <!--  通用内边距 8px  -->
   <Style Selector="Border.paddingSm">
     <Setter Property="Padding" Value="8" />
   </Style>
 
-  <!-- ═══ 圆角预设 (CornerRadius) ═══ -->
+  <!--  ═══ 圆角预设 (CornerRadius) ═══  -->
 
   <Style Selector="Border.radiusXs">
     <Setter Property="CornerRadius" Value="2" />
@@ -61,7 +60,7 @@
     <Setter Property="CornerRadius" Value="9999" />
   </Style>
 
-  <!-- ═══ 阴影预设 (BoxShadow) ═══ -->
+  <!--  ═══ 阴影预设 (BoxShadow) ═══  -->
 
   <Style Selector="Border.elevationNone">
     <Setter Property="BoxShadow" Value="{DynamicResource CardShadowNone}" />

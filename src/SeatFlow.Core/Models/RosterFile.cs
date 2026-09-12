@@ -16,7 +16,7 @@ namespace SeatFlow.Core.Models
         public List<Student> Students { get; set; } = [];
 
         /// <summary>附加元数据。</summary>
-        public Dictionary<string , object> Metadata { get; set; } = [];
+        public Dictionary<string, object> Metadata { get; set; } = [];
 
         /// <summary>学生列表内容的 SHA256 哈希（基于按 Id 排序后的 JSON 序列化数组）。</summary>
         public string? StudentsHash { get; set; }

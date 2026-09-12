@@ -28,7 +28,7 @@ namespace SeatFlow.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
 #pragma warning disable AVLN3001
-    public partial class App (IServiceProvider serviceProvider , bool isFirstInstance = true) : AvaloniaApplication
+    public partial class App(IServiceProvider serviceProvider, bool isFirstInstance = true) : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly bool _isFirstInstance = isFirstInstance;
@@ -48,13 +48,13 @@ namespace SeatFlow.Presentation.Avalonia
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
-        public override void Initialize ()
+        public override void Initialize()
         {
             ApplyLanguageFromSettings();
             AvaloniaXamlLoader.Load(this);
         }
 
-        private async Task RestoreSettingsAsync ()
+        private async Task RestoreSettingsAsync()
         {
             try
             {
@@ -79,7 +79,7 @@ namespace SeatFlow.Presentation.Avalonia
                     }
 
                     // 始终恢复窗口位置，包括 (0,0)（它是合法的屏幕坐标）
-                    window.Position = new PixelPoint((int)ws.Left , (int)ws.Top);
+                    window.Position = new PixelPoint((int)ws.Left, (int)ws.Top);
                 }
 
                 // 仅在配置文件不存在时创建默认文件，防止覆盖已有设置。
@@ -106,7 +106,7 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
-        private void ApplyLanguageFromSettings ()
+        private void ApplyLanguageFromSettings()
         {
             // 浏览器端禁止阻塞等待（Cannot wait on monitors on this runtime），
             // 语言已在 SeatFlow.Browser/Program.Main 中于 Avalonia 启动前异步预加载。
@@ -128,7 +128,7 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <summary>应用界面语言（供桌面 App.Initialize 与浏览器启动前预加载复用）。</summary>
-        internal static void ApplyLanguage (string language)
+        internal static void ApplyLanguage(string language)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
-        private void ApplyTheme (ThemeMode mode)
+        private void ApplyTheme(ThemeMode mode)
         {
             RequestedThemeVariant = mode switch
             {
@@ -158,7 +158,7 @@ namespace SeatFlow.Presentation.Avalonia
             };
         }
 
-        public override void OnFrameworkInitializationCompleted ()
+        public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
@@ -181,9 +181,9 @@ namespace SeatFlow.Presentation.Avalonia
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
                 watchdog.Start();
                 var pingTimer = new global::Avalonia.Threading.DispatcherTimer(
-                    TimeSpan.FromSeconds(3) ,
-                    global::Avalonia.Threading.DispatcherPriority.Background ,
-                    (_ , _) => watchdog.Ping());
+                    TimeSpan.FromSeconds(3),
+                    global::Avalonia.Threading.DispatcherPriority.Background,
+                    (_, _) => watchdog.Ping());
                 pingTimer.Start();
 
                 // 全角字符输入转换（全角数字/符号 → 半角）
@@ -196,7 +196,7 @@ namespace SeatFlow.Presentation.Avalonia
                 Behaviors.FileDropHandler.Attach(mainWindow.ShellView);
 
                 // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
-                desktop.ShutdownRequested += (_ , _) =>
+                desktop.ShutdownRequested += (_, _) =>
                 {
                     // 记录应用退出遥测（fire-and-forget，不阻塞退出）
                     try
@@ -264,7 +264,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 后台监听命名管道，接收第二个进程转发的 .seatsets 文件路径。
         /// 收到有效路径后通过 Dispatcher 排程到 UI 线程处理。
         /// </summary>
-        private void StartSeatSetsPipeServer ()
+        private void StartSeatSetsPipeServer()
         {
             _ = Task.Run(async () =>
             {
@@ -274,24 +274,24 @@ namespace SeatFlow.Presentation.Avalonia
                     try
                     {
                         using var server = new System.IO.Pipes.NamedPipeServerStream(
-                            SeatSetsPipeName , PipeDirection.In , 1);
+                            SeatSetsPipeName, PipeDirection.In, 1);
                         await server.WaitForConnectionAsync();
                         using var reader = new StreamReader(server);
                         var path = await reader.ReadLineAsync();
 
                         if (!string.IsNullOrEmpty(path) && File.Exists(path))
                         {
-                            logger.LogInformation("[SeatSets] 管道收到文件路径: {Path}" , path);
+                            logger.LogInformation("[SeatSets] 管道收到文件路径: {Path}", path);
                             Dispatcher.UIThread.Post(() =>
                             {
                                 PendingSeatSetsFilePath = path;
                                 HandlePendingSeatSetsFile();
-                            } , DispatcherPriority.Background);
+                            }, DispatcherPriority.Background);
                         }
                     }
                     catch (Exception ex)
                     {
-                        logger.LogWarning(ex , "[SeatSets] 管道服务器异常，1s 后重试");
+                        logger.LogWarning(ex, "[SeatSets] 管道服务器异常，1s 后重试");
                         await Task.Delay(1000);
                     }
                 }
@@ -302,7 +302,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 处理待导入的 .seatsets 文件（来自命令行参数、双击打开或管道转发）。
         /// 延迟到 Background 优先级执行，确保 UI 已完全初始化。
         /// </summary>
-        private void HandlePendingSeatSetsFile ()
+        private void HandlePendingSeatSetsFile()
         {
             var filePath = PendingSeatSetsFilePath;
             if (string.IsNullOrEmpty(filePath))
@@ -317,15 +317,15 @@ namespace SeatFlow.Presentation.Avalonia
             }, DispatcherPriority.Background);
         }
 
-        private async Task RunStartupChecksAsync (IClassicDesktopStyleApplicationLifetime desktop)
+        private async Task RunStartupChecksAsync(IClassicDesktopStyleApplicationLifetime desktop)
         {
             var dialog = _serviceProvider.GetRequiredService<IDialogService>();
 
             // 单实例检查
             if (!_isFirstInstance)
             {
-                await DialogServiceShim.ShowWarningAsync(dialog ,
-                    Lang.Resources.App_AlreadyRunning ,
+                await DialogServiceShim.ShowWarningAsync(dialog,
+                    Lang.Resources.App_AlreadyRunning,
                     Lang.Resources.App_AlreadyRunningMessage);
                 desktop.Shutdown();
                 return;
@@ -345,10 +345,10 @@ namespace SeatFlow.Presentation.Avalonia
 
             if (!settings.SuppressEnvironmentWarning)
             {
-                var (hasWarning , envMessage) = StartupGuard.CheckEnvironment();
+                var (hasWarning, envMessage) = StartupGuard.CheckEnvironment();
                 if (hasWarning)
                 {
-                    var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog , envMessage);
+                    var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog, envMessage);
                     if (result is 1) // "不再提醒" / "Don't remind again" 按钮
                     {
                         settings.SuppressEnvironmentWarning = true;
@@ -412,7 +412,7 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <summary>启动初始化（fire-and-forget）的异常兜底：避免未观察异常导致运行时被拆毁。</summary>
-        private async Task SafeInitializeAsync ()
+        private async Task SafeInitializeAsync()
         {
             try
             {
@@ -428,7 +428,7 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
-        private async Task InitializeAsync ()
+        private async Task InitializeAsync()
         {
             // 在 AppData 创建前先检查自动导入 .seatsets（仅在 AppData 不存在时生效）
             await CheckSeatSetsAutoImportAsync();
@@ -458,7 +458,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 文件路径在 DI 初始化前由 Program.DiscoverAutoImportSeatSetsFile 完成扫描，
         /// 避免了 AddSeatFlowApplication 创建 AppData/Logs 导致的误判。
         /// </summary>
-        private async Task CheckSeatSetsAutoImportAsync ()
+        private async Task CheckSeatSetsAutoImportAsync()
         {
             var seatsetsPath = AutoImportSeatSetsPath;
             if (string.IsNullOrEmpty(seatsetsPath))
@@ -683,7 +683,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 处理双击打开或命令行传入的 .seatsets 文件。
         /// 显示选择对话框让用户确认导入类别。
         /// </summary>
-        private async Task HandleSeatSetsFileOpenAsync (string filePath)
+        private async Task HandleSeatSetsFileOpenAsync(string filePath)
         {
             var dialog = _serviceProvider.GetRequiredService<IDialogService>();
             var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
@@ -696,7 +696,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 导入 SeatsSets 后刷新应用状态：重新加载设置、应用主题和语言、导航到主页。
         /// 确保导入的 AppSettings 立即生效，且所有页面数据反映最新状态。
         /// </summary>
-        internal static async Task RefreshAfterImportAsync (IServiceProvider serviceProvider)
+        internal static async Task RefreshAfterImportAsync(IServiceProvider serviceProvider)
         {
             try
             {
@@ -742,11 +742,11 @@ namespace SeatFlow.Presentation.Avalonia
 
     internal static class DialogServiceShim
     {
-        public static async Task ShowWarningAsync (IDialogService dialog , string title , string message)
+        public static async Task ShowWarningAsync(IDialogService dialog, string title, string message)
         {
             try
             {
-                await dialog.ShowWarningAsync(title , message);
+                await dialog.ShowWarningAsync(title, message);
             }
             catch
             {
@@ -755,14 +755,14 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <returns>0=确定, 1=不再提醒, null=关闭窗口</returns>
-        public static async Task<int?> ShowEnvironmentWarningAsync (IDialogService dialog , string message)
+        public static async Task<int?> ShowEnvironmentWarningAsync(IDialogService dialog, string message)
         {
             try
             {
                 return await dialog.ShowMultiOptionAsync(
-                    Lang.Resources.App_EnvironmentWarning ,
-                    message ,
-                    Lang.Resources.Common_OK ,
+                    Lang.Resources.App_EnvironmentWarning,
+                    message,
+                    Lang.Resources.Common_OK,
                     Lang.Resources.Common_DontRemind);
             }
             catch

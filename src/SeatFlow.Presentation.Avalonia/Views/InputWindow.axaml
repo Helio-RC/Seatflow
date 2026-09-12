@@ -1,14 +1,18 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
-        x:Class="SeatFlow.Presentation.Avalonia.Views.InputWindow"
-        x:CompileBindings="False"
-        Width="400" SizeToContent="Height" MinHeight="140"
-        CanResize="False" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="32"
-        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+<Window
+  x:Class="SeatFlow.Presentation.Avalonia.Views.InputWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
+  Width="400"
+  MinHeight="140"
+  x:CompileBindings="False"
+  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+  CanResize="False"
+  ExtendClientAreaTitleBarHeightHint="32"
+  ExtendClientAreaToDecorationsHint="True"
+  ShowInTaskbar="False"
+  SizeToContent="Height"
+  WindowStartupLocation="CenterOwner">
 
   <views:InputContent x:Name="ContentRoot" />
 </Window>

@@ -17,7 +17,7 @@ public static class JsonOptions
     /// <summary>缩进格式化 + camelCase 命名策略。</summary>
     public static readonly JsonSerializerOptions WriteIndentedCamelCase = new()
     {
-        WriteIndented = true ,
+        WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
@@ -30,7 +30,7 @@ public static class JsonOptions
     /// <summary>大小写不敏感读取 + camelCase 写入。</summary>
     public static readonly JsonSerializerOptions CamelCaseReadWrite = new()
     {
-        PropertyNameCaseInsensitive = true ,
+        PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 }

@@ -56,30 +56,30 @@ namespace SeatFlow.Core.Strategies
         /// <param name="context">RandomFill 上下文，提供重掷计数和日志接口。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>评估结果。</returns>
-        Task<DependentEvaluationResult> EvaluateAsync (
-            SeatingWorkspace workspace ,
-            Student student ,
-            Seat targetSeat ,
-            IRandomFillContext context ,
+        Task<DependentEvaluationResult> EvaluateAsync(
+            SeatingWorkspace workspace,
+            Student student,
+            Seat targetSeat,
+            IRandomFillContext context,
             CancellationToken cancellationToken);
 
         /// <summary>
         /// 验证策略配置是否有效。
         /// </summary>
-        ValidationResult ValidateConfiguration ();
+        ValidationResult ValidateConfiguration();
 
         /// <summary>
         /// 告知策略在 RandomFill 循环开始前已被前序策略（FixedSeat/FrontRowRotation）分配的学生 ID。
         /// 策略在执行时不应修改这些学生的座位。
         /// 默认不处理。
         /// </summary>
-        void SetPriorAssignedStudentIds (HashSet<string> ids) { }
+        void SetPriorAssignedStudentIds(HashSet<string> ids) { }
 
         /// <summary>
         /// 返回此策略认为有特殊约束、应优先分配以减少重掷的学生 ID 集合。
         /// 默认返回空集。DeskMate 覆写返回组内学生。
         /// </summary>
-        HashSet<string> GetConstrainedStudentIds () => [];
+        HashSet<string> GetConstrainedStudentIds() => [];
     }
 
     /// <summary>
@@ -106,14 +106,14 @@ namespace SeatFlow.Core.Strategies
     public static class DependentResult
     {
         /// <summary>批准该分配。</summary>
-        public static DependentEvaluationResult Approve () => new() { Approved = true };
+        public static DependentEvaluationResult Approve() => new() { Approved = true };
 
         /// <summary>拒绝该分配，请求重掷。</summary>
-        public static DependentEvaluationResult Reject (string? reason = null)
-            => new() { Approved = false , Message = reason };
+        public static DependentEvaluationResult Reject(string? reason = null)
+            => new() { Approved = false, Message = reason };
 
         /// <summary>已自行处理分配，RandomFill 跳过 TryAssignSeat。</summary>
-        public static DependentEvaluationResult Handled (string? message = null)
-            => new() { Approved = true , AlreadyHandled = true , Message = message };
+        public static DependentEvaluationResult Handled(string? message = null)
+            => new() { Approved = true, AlreadyHandled = true, Message = message };
     }
 }

@@ -15,30 +15,30 @@ namespace SeatFlow.Core.Exporters
         /// <summary>
         /// 使用默认选项导出座位安排计划（向后兼容）。
         /// </summary>
-        Task ExportAsync (SeatingPlan plan , string path , CancellationToken cancellationToken = default);
+        Task ExportAsync(SeatingPlan plan, string path, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 使用指定的导出选项导出座位安排计划。
         /// </summary>
-        Task ExportAsync (SeatingPlan plan , string path , ExportOptions options , CancellationToken cancellationToken = default);
+        Task ExportAsync(SeatingPlan plan, string path, ExportOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 使用结构化布局模型导出（保留行列/过道/环形结构，显示姓名而非 ID）。
         /// </summary>
-        Task ExportLayoutAsync (LayoutSeatingExportModel model , string path , ExportOptions options , CancellationToken cancellationToken = default);
+        Task ExportLayoutAsync(LayoutSeatingExportModel model, string path, ExportOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 导出为字节流（WASM/浏览器端调用；桌面实现默认经临时文件回退，
         /// 内存友好的实现可覆盖）。
         /// </summary>
-        async Task<byte[]> ExportBytesAsync (SeatingPlan plan , ExportOptions options , CancellationToken cancellationToken = default)
+        async Task<byte[]> ExportBytesAsync(SeatingPlan plan, ExportOptions options, CancellationToken cancellationToken = default)
         {
-            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath() ,
+            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
                 $"SeatFlow_{Guid.NewGuid():N}.export");
             try
             {
-                await ExportAsync(plan , tmp , options , cancellationToken);
-                return await System.IO.File.ReadAllBytesAsync(tmp , cancellationToken);
+                await ExportAsync(plan, tmp, options, cancellationToken);
+                return await System.IO.File.ReadAllBytesAsync(tmp, cancellationToken);
             }
             finally
             {
@@ -50,14 +50,14 @@ namespace SeatFlow.Core.Exporters
         /// <summary>
         /// 使用结构化布局模型导出为字节流（WASM/浏览器端调用）。
         /// </summary>
-        async Task<byte[]> ExportLayoutBytesAsync (LayoutSeatingExportModel model , ExportOptions options , CancellationToken cancellationToken = default)
+        async Task<byte[]> ExportLayoutBytesAsync(LayoutSeatingExportModel model, ExportOptions options, CancellationToken cancellationToken = default)
         {
-            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath() ,
+            var tmp = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
                 $"SeatFlow_{Guid.NewGuid():N}.export");
             try
             {
-                await ExportLayoutAsync(model , tmp , options , cancellationToken);
-                return await System.IO.File.ReadAllBytesAsync(tmp , cancellationToken);
+                await ExportLayoutAsync(model, tmp, options, cancellationToken);
+                return await System.IO.File.ReadAllBytesAsync(tmp, cancellationToken);
             }
             finally
             {

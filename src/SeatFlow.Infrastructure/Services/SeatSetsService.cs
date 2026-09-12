@@ -30,9 +30,9 @@ public class SeatSetsService : ISeatSetsService
     /// <param name="effectiveDataPath">有效数据目录路径（Venues/Rosters/Assignments/StrategyConfig 的父目录）。</param>
     /// <param name="settingsFilePath">AppSettings.json 文件的完整路径。</param>
     /// <param name="logger">日志记录器。</param>
-    public SeatSetsService (
-        string effectiveDataPath ,
-        string settingsFilePath ,
+    public SeatSetsService(
+        string effectiveDataPath,
+        string settingsFilePath,
         ILogger<SeatSetsService>? logger = null)
     {
         _effectiveDataPath = effectiveDataPath;
@@ -45,8 +45,8 @@ public class SeatSetsService : ISeatSetsService
     /// </summary>
     /// <param name="store">数据存储实现（IndexedDB）。</param>
     /// <param name="logger">日志记录器。</param>
-    public SeatSetsService (
-        ILocalDataStore store ,
+    public SeatSetsService(
+        ILocalDataStore store,
         ILogger<SeatSetsService>? logger = null)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
@@ -56,27 +56,27 @@ public class SeatSetsService : ISeatSetsService
     // ──────────────────────────────── 导出 ────────────────────────────────
 
     /// <inheritdoc />
-    public Task<int> ExportAsync (string outputPath , SeatSetsExportSelection selection ,
+    public Task<int> ExportAsync(string outputPath, SeatSetsExportSelection selection,
         CancellationToken ct = default)
     {
-        return ExportCoreAsync(selection , outputPath , ct);
+        return ExportCoreAsync(selection, outputPath, ct);
     }
 
     /// <inheritdoc />
-    public async Task<byte[]?> ExportBytesAsync (SeatSetsExportSelection selection ,
+    public async Task<byte[]?> ExportBytesAsync(SeatSetsExportSelection selection,
         CancellationToken ct = default)
     {
-        var (archive , _) = await BuildArchiveAsync(selection , ct);
+        var (archive, _) = await BuildArchiveAsync(selection, ct);
         if (archive is null) return null;
-        var json = JsonSerializer.Serialize(archive , JsonOptions.WriteIndentedCamelCase);
+        var json = JsonSerializer.Serialize(archive, JsonOptions.WriteIndentedCamelCase);
         return Encoding.UTF8.GetBytes(json);
     }
 
-    private async Task<int> ExportCoreAsync (SeatSetsExportSelection selection , string outputPath , CancellationToken ct)
+    private async Task<int> ExportCoreAsync(SeatSetsExportSelection selection, string outputPath, CancellationToken ct)
     {
-        _logger.LogInformation("开始导出数据包: {Path}, 选择: {@Selection}" , outputPath , selection);
+        _logger.LogInformation("开始导出数据包: {Path}, 选择: {@Selection}", outputPath, selection);
 
-        var (archive , totalFiles) = await BuildArchiveAsync(selection , ct);
+        var (archive, totalFiles) = await BuildArchiveAsync(selection, ct);
         if (archive is null)
         {
             _logger.LogWarning("没有可导出的数据");
@@ -84,23 +84,23 @@ public class SeatSetsService : ISeatSetsService
         }
 
         // 序列化并写入文件
-        var json = JsonSerializer.Serialize(archive , JsonOptions.WriteIndentedCamelCase);
-        await File.WriteAllTextAsync(outputPath , json , ct);
+        var json = JsonSerializer.Serialize(archive, JsonOptions.WriteIndentedCamelCase);
+        await File.WriteAllTextAsync(outputPath, json, ct);
 
-        _logger.LogInformation("数据包导出完成: {Path}, {FileCount} 个文件, 大小 {Size} 字节" ,
-            outputPath , totalFiles , new FileInfo(outputPath).Length);
+        _logger.LogInformation("数据包导出完成: {Path}, {FileCount} 个文件, 大小 {Size} 字节",
+            outputPath, totalFiles, new FileInfo(outputPath).Length);
 
         return totalFiles;
     }
 
-    private async Task<(SeatSetsArchive? Archive , int TotalFiles)> BuildArchiveAsync (SeatSetsExportSelection selection , CancellationToken ct)
+    private async Task<(SeatSetsArchive? Archive, int TotalFiles)> BuildArchiveAsync(SeatSetsExportSelection selection, CancellationToken ct)
     {
-        _logger.LogInformation("开始导出数据包, 选择: {@Selection}" , selection);
+        _logger.LogInformation("开始导出数据包, 选择: {@Selection}", selection);
 
         var archive = new SeatSetsArchive
         {
-            Version = SeatSetsConstants.CurrentFormatVersion ,
-            AppVersion = GetAppVersion() ,
+            Version = SeatSetsConstants.CurrentFormatVersion,
+            AppVersion = GetAppVersion(),
             CreatedAt = DateTime.UtcNow.ToString("O")
         };
 
@@ -108,62 +108,62 @@ public class SeatSetsService : ISeatSetsService
 
         // 逐类别收集文件
         if (selection.IncludeAppSettings)
-            totalFiles += await AddAppSettingsChunkAsync(archive , ct);
+            totalFiles += await AddAppSettingsChunkAsync(archive, ct);
 
         if (selection.IncludeVenues)
-            totalFiles += await AddVenuesChunkAsync(archive , ct);
+            totalFiles += await AddVenuesChunkAsync(archive, ct);
 
         if (selection.IncludeRosters)
-            totalFiles += await AddRostersChunkAsync(archive , ct);
+            totalFiles += await AddRostersChunkAsync(archive, ct);
 
         if (selection.IncludeSnapshots)
-            totalFiles += await AddSnapshotsChunkAsync(archive , ct);
+            totalFiles += await AddSnapshotsChunkAsync(archive, ct);
 
         if (selection.IncludeStrategyConfig)
-            totalFiles += await AddStrategyConfigChunkAsync(archive , ct);
+            totalFiles += await AddStrategyConfigChunkAsync(archive, ct);
 
         if (totalFiles == 0)
         {
             _logger.LogWarning("没有可导出的数据");
-            return (null , 0);
+            return (null, 0);
         }
 
         // 计算每块的哈希
-        foreach (var (category , chunk) in archive.Chunks)
+        foreach (var (category, chunk) in archive.Chunks)
         {
             chunk.Hash = ComputeChunkHash(chunk.Files);
-            _logger.LogDebug("Chunk {Category}: {FileCount} 个文件, Hash={Hash}" ,
-                category , chunk.Files.Count , chunk.Hash);
+            _logger.LogDebug("Chunk {Category}: {FileCount} 个文件, Hash={Hash}",
+                category, chunk.Files.Count, chunk.Hash);
         }
 
         // 计算整体归档哈希
         archive.ArchiveHash = ComputeArchiveHash(archive.Chunks);
-        _logger.LogInformation("归档哈希: {Hash}, 总文件数: {Total}" , archive.ArchiveHash , totalFiles);
+        _logger.LogInformation("归档哈希: {Hash}, 总文件数: {Total}", archive.ArchiveHash, totalFiles);
 
-        return (archive , totalFiles);
+        return (archive, totalFiles);
     }
 
     // ──────────────────────────────── 导入 ────────────────────────────────
 
     /// <inheritdoc />
-    public Task<SeatSetsImportResult> ImportAsync (string filePath , SeatSetsExportSelection selection ,
-        IProgress<double>? progress = null , CancellationToken ct = default)
+    public Task<SeatSetsImportResult> ImportAsync(string filePath, SeatSetsExportSelection selection,
+        IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        return ImportCoreAsync(filePath , selection , progress , ct);
+        return ImportCoreAsync(filePath, selection, progress, ct);
     }
 
     /// <inheritdoc />
-    public Task<SeatSetsImportResult> ImportBytesAsync (byte[] content , SeatSetsExportSelection selection ,
-        IProgress<double>? progress = null , CancellationToken ct = default)
+    public Task<SeatSetsImportResult> ImportBytesAsync(byte[] content, SeatSetsExportSelection selection,
+        IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        return ImportCoreAsync(content , selection , progress , ct);
+        return ImportCoreAsync(content, selection, progress, ct);
     }
 
-    private async Task<SeatSetsImportResult> ImportCoreAsync (string filePath , SeatSetsExportSelection selection ,
-        IProgress<double>? progress , CancellationToken ct)
+    private async Task<SeatSetsImportResult> ImportCoreAsync(string filePath, SeatSetsExportSelection selection,
+        IProgress<double>? progress, CancellationToken ct)
     {
         // 保持原有流程：先校验（文件存在/大小/哈希），失败即返回错误集合
-        var validation = await ValidateAsync(filePath , ct);
+        var validation = await ValidateAsync(filePath, ct);
         if (!validation.IsValid)
         {
             var result = new SeatSetsImportResult();
@@ -171,14 +171,14 @@ public class SeatSetsService : ISeatSetsService
             return result;
         }
 
-        var json = await File.ReadAllTextAsync(filePath , ct);
-        return await RestoreAsync(json , selection , progress , ct);
+        var json = await File.ReadAllTextAsync(filePath, ct);
+        return await RestoreAsync(json, selection, progress, ct);
     }
 
-    private async Task<SeatSetsImportResult> ImportCoreAsync (byte[] content , SeatSetsExportSelection selection ,
-        IProgress<double>? progress , CancellationToken ct)
+    private async Task<SeatSetsImportResult> ImportCoreAsync(byte[] content, SeatSetsExportSelection selection,
+        IProgress<double>? progress, CancellationToken ct)
     {
-        var validation = await ValidateBytesAsync(content , ct);
+        var validation = await ValidateBytesAsync(content, ct);
         if (!validation.IsValid)
         {
             var result = new SeatSetsImportResult();
@@ -187,13 +187,13 @@ public class SeatSetsService : ISeatSetsService
         }
 
         var json = Encoding.UTF8.GetString(content);
-        return await RestoreAsync(json , selection , progress , ct);
+        return await RestoreAsync(json, selection, progress, ct);
     }
 
-    private async Task<SeatSetsImportResult> RestoreAsync (string json , SeatSetsExportSelection selection ,
-        IProgress<double>? progress , CancellationToken ct)
+    private async Task<SeatSetsImportResult> RestoreAsync(string json, SeatSetsExportSelection selection,
+        IProgress<double>? progress, CancellationToken ct)
     {
-        _logger.LogInformation("开始导入数据包, 选择: {@Selection}" , selection);
+        _logger.LogInformation("开始导入数据包, 选择: {@Selection}", selection);
 
         var result = new SeatSetsImportResult();
 
@@ -201,7 +201,7 @@ public class SeatSetsService : ISeatSetsService
         SeatSetsArchive? archive;
         try
         {
-            archive = JsonSerializer.Deserialize<SeatSetsArchive>(json , JsonOptions.CaseInsensitiveRead);
+            archive = JsonSerializer.Deserialize<SeatSetsArchive>(json, JsonOptions.CaseInsensitiveRead);
         }
         catch (JsonException ex)
         {
@@ -217,37 +217,37 @@ public class SeatSetsService : ISeatSetsService
 
         // 3. 对每个选中的类别逐文件恢复
         var selectedCategories = selection.GetSelectedCategories();
-        var filesToRestore = new List<(string Category , string RelativePath , JsonElement Content)>();
+        var filesToRestore = new List<(string Category, string RelativePath, JsonElement Content)>();
 
         foreach (var category in selectedCategories)
         {
-            if (!archive.Chunks.TryGetValue(category , out var chunk))
+            if (!archive.Chunks.TryGetValue(category, out var chunk))
                 continue;
 
             // 验证 chunk 哈希
             var computedHash = ComputeChunkHash(chunk.Files);
             if (!string.IsNullOrEmpty(chunk.Hash) &&
-                !string.Equals(computedHash , chunk.Hash , StringComparison.OrdinalIgnoreCase))
+                !string.Equals(computedHash, chunk.Hash, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogWarning("Chunk {Category} 哈希不匹配，跳过该块全部 {Count} 个文件" ,
-                    category , chunk.Files.Count);
+                _logger.LogWarning("Chunk {Category} 哈希不匹配，跳过该块全部 {Count} 个文件",
+                    category, chunk.Files.Count);
                 result.Skipped += chunk.Files.Count;
                 result.Errors.Add($"数据块 [{category}] 哈希校验失败，已跳过");
                 continue;
             }
 
-            foreach (var (relPath , content) in chunk.Files)
+            foreach (var (relPath, content) in chunk.Files)
             {
-                filesToRestore.Add((category , relPath , content));
+                filesToRestore.Add((category, relPath, content));
             }
         }
 
         result.TotalFiles = filesToRestore.Count;
-        _logger.LogInformation("共 {Count} 个文件待恢复" , result.TotalFiles);
+        _logger.LogInformation("共 {Count} 个文件待恢复", result.TotalFiles);
 
         // 4. 逐文件恢复（尽力而为，单个失败不中断）
         int processed = 0;
-        foreach (var (category , relPath , content) in filesToRestore)
+        foreach (var (category, relPath, content) in filesToRestore)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -263,11 +263,11 @@ public class SeatSetsService : ISeatSetsService
                     var storePath = category == SeatSetsConstants.CategoryAppSettings
                         ? "AppSettings.json"
                         : relPath;
-                    await _store.WriteTextAsync(storePath , rawJson , ct);
+                    await _store.WriteTextAsync(storePath, rawJson, ct);
                 }
                 else
                 {
-                    var targetPath = ResolveTargetPath(category , relPath);
+                    var targetPath = ResolveTargetPath(category, relPath);
 
                     // 确保目标目录存在
                     var dir = Path.GetDirectoryName(targetPath);
@@ -276,25 +276,25 @@ public class SeatSetsService : ISeatSetsService
 
                     // 原子写入：先写临时文件，再重命名
                     var tempPath = targetPath + ".tmp";
-                    await File.WriteAllTextAsync(tempPath , rawJson , ct);
-                    File.Move(tempPath , targetPath , overwrite: true);
+                    await File.WriteAllTextAsync(tempPath, rawJson, ct);
+                    File.Move(tempPath, targetPath, overwrite: true);
                 }
 
                 result.Restored++;
-                _logger.LogDebug("已恢复: {Path}" , relPath);
+                _logger.LogDebug("已恢复: {Path}", relPath);
             }
             catch (Exception ex)
             {
                 result.Errors.Add($"{relPath}: {ex.Message}");
-                _logger.LogError(ex , "恢复文件失败: {Path}" , relPath);
+                _logger.LogError(ex, "恢复文件失败: {Path}", relPath);
             }
 
             processed++;
             progress?.Report((double)processed / result.TotalFiles);
         }
 
-        _logger.LogInformation("导入完成: 成功 {Restored}/{Total}, 跳过 {Skipped}, 错误 {ErrCount}" ,
-            result.Restored , result.TotalFiles , result.Skipped , result.Errors.Count);
+        _logger.LogInformation("导入完成: 成功 {Restored}/{Total}, 跳过 {Skipped}, 错误 {ErrCount}",
+            result.Restored, result.TotalFiles, result.Skipped, result.Errors.Count);
 
         return result;
     }
@@ -302,7 +302,7 @@ public class SeatSetsService : ISeatSetsService
     // ──────────────────────────────── 校验 ────────────────────────────────
 
     /// <inheritdoc />
-    public async Task<SeatSetsValidationResult> ValidateAsync (string filePath ,
+    public async Task<SeatSetsValidationResult> ValidateAsync(string filePath,
         CancellationToken ct = default)
     {
         var result = new SeatSetsValidationResult();
@@ -325,20 +325,20 @@ public class SeatSetsService : ISeatSetsService
                 return result;
             }
 
-            var json = await File.ReadAllTextAsync(filePath , ct);
-            return ValidateContentCore(json , result , filePath , ct);
+            var json = await File.ReadAllTextAsync(filePath, ct);
+            return ValidateContentCore(json, result, filePath, ct);
         }
         catch (Exception ex)
         {
             result.ValidationErrors.Add($"校验异常: {ex.Message}");
-            _logger.LogError(ex , "校验文件时发生异常: {Path}" , filePath);
+            _logger.LogError(ex, "校验文件时发生异常: {Path}", filePath);
         }
 
         return result;
     }
 
     /// <inheritdoc />
-    public async Task<SeatSetsValidationResult> ValidateBytesAsync (byte[] content ,
+    public async Task<SeatSetsValidationResult> ValidateBytesAsync(byte[] content,
         CancellationToken ct = default)
     {
         var result = new SeatSetsValidationResult();
@@ -354,12 +354,12 @@ public class SeatSetsService : ISeatSetsService
             }
 
             var json = Encoding.UTF8.GetString(content);
-            return ValidateContentCore(json , result , "(bytes)" , ct);
+            return ValidateContentCore(json, result, "(bytes)", ct);
         }
         catch (Exception ex)
         {
             result.ValidationErrors.Add($"校验异常: {ex.Message}");
-            _logger.LogError(ex , "校验字节内容时发生异常");
+            _logger.LogError(ex, "校验字节内容时发生异常");
         }
 
         return result;
@@ -368,13 +368,13 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 内容级校验（JSON 结构、版本、哈希、路径穿越），filePath/bytes 两个入口共用。
     /// </summary>
-    private SeatSetsValidationResult ValidateContentCore (string json , SeatSetsValidationResult result ,
-        string source , CancellationToken ct)
+    private SeatSetsValidationResult ValidateContentCore(string json, SeatSetsValidationResult result,
+        string source, CancellationToken ct)
     {
         SeatSetsArchive? archive;
         try
         {
-            archive = JsonSerializer.Deserialize<SeatSetsArchive>(json , JsonOptions.CaseInsensitiveRead);
+            archive = JsonSerializer.Deserialize<SeatSetsArchive>(json, JsonOptions.CaseInsensitiveRead);
         }
         catch (JsonException ex)
         {
@@ -400,19 +400,19 @@ public class SeatSetsService : ISeatSetsService
         }
 
         // 验证各块的哈希
-        foreach (var (category , chunk) in archive.Chunks)
+        foreach (var (category, chunk) in archive.Chunks)
         {
             if (chunk.Files.Count == 0) continue;
             var computed = ComputeChunkHash(chunk.Files);
             if (!string.IsNullOrEmpty(chunk.Hash) &&
-                !string.Equals(computed , chunk.Hash , StringComparison.OrdinalIgnoreCase))
+                !string.Equals(computed, chunk.Hash, StringComparison.OrdinalIgnoreCase))
             {
                 result.ValidationErrors.Add($"数据块 [{category}] 哈希不匹配");
             }
         }
 
         // 路径穿越检测：所有文件路径不得包含 ".." 段
-        foreach (var (category , chunk) in archive.Chunks)
+        foreach (var (category, chunk) in archive.Chunks)
         {
             foreach (var relPath in chunk.Files.Keys)
             {
@@ -428,7 +428,7 @@ public class SeatSetsService : ISeatSetsService
         if (!string.IsNullOrEmpty(archive.ArchiveHash))
         {
             var computedArchiveHash = ComputeArchiveHash(archive.Chunks);
-            result.ArchiveHashValid = string.Equals(computedArchiveHash , archive.ArchiveHash ,
+            result.ArchiveHashValid = string.Equals(computedArchiveHash, archive.ArchiveHash,
                 StringComparison.OrdinalIgnoreCase);
             if (!result.ArchiveHashValid)
             {
@@ -441,15 +441,15 @@ public class SeatSetsService : ISeatSetsService
         }
 
         result.IsValid = result.ValidationErrors.Count == 0;
-        _logger.LogInformation("校验完成: {Path}, Valid={Valid}, Size={Size}, Categories={Cats}" ,
-            source , result.IsValid , result.FileSize , result.AvailableCategories.Count);
+        _logger.LogInformation("校验完成: {Path}, Valid={Valid}, Size={Size}, Categories={Cats}",
+            source, result.IsValid, result.FileSize, result.AvailableCategories.Count);
         return result;
     }
 
     // ──────────────────────────────── 自动发现 ────────────────────────────────
 
     /// <inheritdoc />
-    public Task<string?> DiscoverAsync (CancellationToken ct = default)
+    public Task<string?> DiscoverAsync(CancellationToken ct = default)
     {
 #if BROWSER
         // 浏览器端无文件系统（WASM 沙箱），不支持 exe 目录发现
@@ -458,18 +458,18 @@ public class SeatSetsService : ISeatSetsService
         var exeDir = AppEnvironment.ExeDirectory;
         if (!Directory.Exists(exeDir))
         {
-            _logger.LogDebug("可执行文件目录不存在: {Dir}" , exeDir);
+            _logger.LogDebug("可执行文件目录不存在: {Dir}", exeDir);
             return Task.FromResult<string?>(null);
         }
 
         try
         {
-            var files = Directory.GetFiles(exeDir , $"*{SeatSetsConstants.FileExtension}" ,
+            var files = Directory.GetFiles(exeDir, $"*{SeatSetsConstants.FileExtension}",
                 SearchOption.TopDirectoryOnly);
 
             if (files.Length == 0)
             {
-                _logger.LogDebug("未在目录中发现 .seatsets 文件: {Dir}" , exeDir);
+                _logger.LogDebug("未在目录中发现 .seatsets 文件: {Dir}", exeDir);
                 return Task.FromResult<string?>(null);
             }
 
@@ -478,14 +478,14 @@ public class SeatSetsService : ISeatSetsService
                 .OrderByDescending(f => f.LastWriteTimeUtc)
                 .First();
 
-            _logger.LogInformation("自动发现数据包: {Path} ({Size} 字节, 修改时间 {Time})" ,
-                latest.FullName , latest.Length , latest.LastWriteTimeUtc);
+            _logger.LogInformation("自动发现数据包: {Path} ({Size} 字节, 修改时间 {Time})",
+                latest.FullName, latest.Length, latest.LastWriteTimeUtc);
 
             return Task.FromResult<string?>(latest.FullName);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex , "自动发现 .seatsets 文件时出错");
+            _logger.LogWarning(ex, "自动发现 .seatsets 文件时出错");
             return Task.FromResult<string?>(null);
         }
 #endif
@@ -494,35 +494,35 @@ public class SeatSetsService : ISeatSetsService
     // ──────────────────────────────── 探测类别 ────────────────────────────────
 
     /// <inheritdoc />
-    public Task<SeatSetsExportSelection> ProbeCategoriesAsync (string filePath ,
+    public Task<SeatSetsExportSelection> ProbeCategoriesAsync(string filePath,
         CancellationToken ct = default)
     {
-        return ProbeCoreAsync(async () => await File.ReadAllTextAsync(filePath , ct) , filePath);
+        return ProbeCoreAsync(async () => await File.ReadAllTextAsync(filePath, ct), filePath);
     }
 
     /// <inheritdoc />
-    public Task<SeatSetsExportSelection> ProbeCategoriesBytesAsync (byte[] content ,
+    public Task<SeatSetsExportSelection> ProbeCategoriesBytesAsync(byte[] content,
         CancellationToken ct = default)
     {
-        return ProbeCoreAsync(() => Task.FromResult(Encoding.UTF8.GetString(content)) , "(bytes)");
+        return ProbeCoreAsync(() => Task.FromResult(Encoding.UTF8.GetString(content)), "(bytes)");
     }
 
-    private async Task<SeatSetsExportSelection> ProbeCoreAsync (
-        Func<Task<string>> loadJson , string source)
+    private async Task<SeatSetsExportSelection> ProbeCoreAsync(
+        Func<Task<string>> loadJson, string source)
     {
         var selection = new SeatSetsExportSelection
         {
-            IncludeAppSettings = false ,
-            IncludeVenues = false ,
-            IncludeRosters = false ,
-            IncludeSnapshots = false ,
+            IncludeAppSettings = false,
+            IncludeVenues = false,
+            IncludeRosters = false,
+            IncludeSnapshots = false,
             IncludeStrategyConfig = false
         };
 
         try
         {
             var json = await loadJson();
-            var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json , JsonOptions.CaseInsensitiveRead);
+            var archive = JsonSerializer.Deserialize<SeatSetsArchive>(json, JsonOptions.CaseInsensitiveRead);
             if (archive?.Chunks == null)
                 return selection;
 
@@ -548,12 +548,12 @@ public class SeatSetsService : ISeatSetsService
                 }
             }
 
-            _logger.LogDebug("探测完成: {Path}, 类别: {Cats}" ,
-                source , string.Join(", " , archive.Chunks.Keys));
+            _logger.LogDebug("探测完成: {Path}, 类别: {Cats}",
+                source, string.Join(", ", archive.Chunks.Keys));
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex , "探测类别时出错: {Path}" , source);
+            _logger.LogWarning(ex, "探测类别时出错: {Path}", source);
         }
 
         return selection;
@@ -564,12 +564,12 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 收集 AppSettings.json 文件内容。
     /// </summary>
-    private async Task<int> AddAppSettingsChunkAsync (SeatSetsArchive archive , CancellationToken ct)
+    private async Task<int> AddAppSettingsChunkAsync(SeatSetsArchive archive, CancellationToken ct)
     {
         try
         {
             var json = _store is not null
-                ? await _store.ReadTextAsync("AppSettings.json" , ct)
+                ? await _store.ReadTextAsync("AppSettings.json", ct)
                 : File.Exists(_settingsFilePath!) ? File.ReadAllText(_settingsFilePath!) : null;
             if (json is null)
             {
@@ -578,7 +578,7 @@ public class SeatSetsService : ISeatSetsService
             }
 
             using var doc = JsonDocument.Parse(json);
-            var chunk = GetOrCreateChunk(archive , SeatSetsConstants.CategoryAppSettings);
+            var chunk = GetOrCreateChunk(archive, SeatSetsConstants.CategoryAppSettings);
             // AppSettings.json 直接位于 AppData 根目录
             chunk.Files["AppSettings.json"] = doc.RootElement.Clone();
             _logger.LogDebug("已收集 AppSettings");
@@ -586,7 +586,7 @@ public class SeatSetsService : ISeatSetsService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex , "读取 AppSettings 失败");
+            _logger.LogError(ex, "读取 AppSettings 失败");
             return 0;
         }
     }
@@ -594,73 +594,73 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 收集所有会场文件 (*.venue.json)。
     /// </summary>
-    private Task<int> AddVenuesChunkAsync (SeatSetsArchive archive , CancellationToken ct)
-        => CollectFilesFromDirectoryAsync(archive , SeatSetsConstants.CategoryVenues ,
-            ResolveDataDir("Venues") , "*.venue.json" , "Venues" , ct);
+    private Task<int> AddVenuesChunkAsync(SeatSetsArchive archive, CancellationToken ct)
+        => CollectFilesFromDirectoryAsync(archive, SeatSetsConstants.CategoryVenues,
+            ResolveDataDir("Venues"), "*.venue.json", "Venues", ct);
 
     /// <summary>
     /// 收集所有学生名单文件 (*.roster.json)。
     /// </summary>
-    private Task<int> AddRostersChunkAsync (SeatSetsArchive archive , CancellationToken ct)
-        => CollectFilesFromDirectoryAsync(archive , SeatSetsConstants.CategoryRosters ,
-            ResolveDataDir("Rosters") , "*.roster.json" , "Rosters" , ct);
+    private Task<int> AddRostersChunkAsync(SeatSetsArchive archive, CancellationToken ct)
+        => CollectFilesFromDirectoryAsync(archive, SeatSetsConstants.CategoryRosters,
+            ResolveDataDir("Rosters"), "*.roster.json", "Rosters", ct);
 
     /// <summary>
     /// 收集所有快照文件 (Assignments/ 下的所有 .json)。
     /// </summary>
-    private Task<int> AddSnapshotsChunkAsync (SeatSetsArchive archive , CancellationToken ct)
-        => CollectFilesRecursiveAsync(archive , SeatSetsConstants.CategorySnapshots ,
-            ResolveDataDir("Assignments") , "Assignments" , ct);
+    private Task<int> AddSnapshotsChunkAsync(SeatSetsArchive archive, CancellationToken ct)
+        => CollectFilesRecursiveAsync(archive, SeatSetsConstants.CategorySnapshots,
+            ResolveDataDir("Assignments"), "Assignments", ct);
 
     /// <summary>
     /// 收集所有策略配置文件 (StrategyConfig/ 下的所有 .config.json)。
     /// </summary>
-    private async Task<int> AddStrategyConfigChunkAsync (SeatSetsArchive archive , CancellationToken ct)
+    private async Task<int> AddStrategyConfigChunkAsync(SeatSetsArchive archive, CancellationToken ct)
     {
         var configPath = ResolveDataDir("StrategyConfig");
         // StrategyConfig 目录结构:
         //   {strategyId}.config.json (根级)
         //   {strategyId}/*.config.json (子目录)
         var count = await CollectFilesFromDirectoryAsync(
-            archive , SeatSetsConstants.CategoryStrategyConfig ,
-            configPath , "*.config.json" , "StrategyConfig" , ct , recursive: false);
+            archive, SeatSetsConstants.CategoryStrategyConfig,
+            configPath, "*.config.json", "StrategyConfig", ct, recursive: false);
 
         // 收集子目录中的配置
         try
         {
-            foreach (var subDir in await ListDirectoriesAsync(configPath , ct))
+            foreach (var subDir in await ListDirectoriesAsync(configPath, ct))
             {
                 ct.ThrowIfCancellationRequested();
                 var dirName = LastSegment(subDir);
                 var subFiles = await ListFilesAsync(
-                    _store is null ? Path.Combine(configPath , dirName) : JoinPath(configPath , dirName) ,
-                    "*.config.json" , ct , recursive: false);
+                    _store is null ? Path.Combine(configPath, dirName) : JoinPath(configPath, dirName),
+                    "*.config.json", ct, recursive: false);
                 foreach (var filePath in subFiles)
                 {
                     ct.ThrowIfCancellationRequested();
                     try
                     {
                         var readPath = _store is null
-                            ? Path.Combine(Path.Combine(configPath , dirName) , filePath)
+                            ? Path.Combine(Path.Combine(configPath, dirName), filePath)
                             : filePath;
-                        var json = await ReadDataTextAsync(readPath , ct);
+                        var json = await ReadDataTextAsync(readPath, ct);
                         if (json is null) continue;
                         using var doc = JsonDocument.Parse(json);
-                        var chunk = GetOrCreateChunk(archive , SeatSetsConstants.CategoryStrategyConfig);
+                        var chunk = GetOrCreateChunk(archive, SeatSetsConstants.CategoryStrategyConfig);
                         var relPath = $"StrategyConfig/{dirName}/{LastSegment(filePath)}";
                         chunk.Files[relPath] = doc.RootElement.Clone();
                         count++;
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex , "读取策略配置文件失败: {Path}" , filePath);
+                        _logger.LogWarning(ex, "读取策略配置文件失败: {Path}", filePath);
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex , "枚举策略配置子目录时出错");
+            _logger.LogWarning(ex, "枚举策略配置子目录时出错");
         }
 
         return count;
@@ -669,16 +669,16 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 从单个目录中收集匹配的文件。
     /// </summary>
-    private async Task<int> CollectFilesFromDirectoryAsync (
-        SeatSetsArchive archive ,
-        string category ,
-        string directoryRel ,
-        string searchPattern ,
-        string relativePrefix ,
-        CancellationToken ct ,
+    private async Task<int> CollectFilesFromDirectoryAsync(
+        SeatSetsArchive archive,
+        string category,
+        string directoryRel,
+        string searchPattern,
+        string relativePrefix,
+        CancellationToken ct,
         bool recursive = false)
     {
-        var files = await ListFilesAsync(directoryRel , searchPattern , ct , recursive);
+        var files = await ListFilesAsync(directoryRel, searchPattern, ct, recursive);
         int count = 0;
 
         foreach (var fileRel in files)
@@ -688,49 +688,49 @@ public class SeatSetsService : ISeatSetsService
             {
                 // 路径模式：fileRel 为相对目录名 → 拼回完整路径读取
                 // store 模式：fileRel 即存储根相对路径 → 直接读取
-                var readPath = _store is null ? Path.Combine(directoryRel , fileRel) : fileRel;
-                var json = await ReadDataTextAsync(readPath , ct);
+                var readPath = _store is null ? Path.Combine(directoryRel, fileRel) : fileRel;
+                var json = await ReadDataTextAsync(readPath, ct);
                 if (json is null) continue;
                 using var doc = JsonDocument.Parse(json);
-                var chunk = GetOrCreateChunk(archive , category);
+                var chunk = GetOrCreateChunk(archive, category);
 
                 chunk.Files[$"{relativePrefix}/{fileRel}"] = doc.RootElement.Clone();
                 count++;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex , "读取文件失败: {Path}" , fileRel);
+                _logger.LogWarning(ex, "读取文件失败: {Path}", fileRel);
             }
         }
 
-        _logger.LogDebug("已收集 {Category}: {Count} 个文件" , category , count);
+        _logger.LogDebug("已收集 {Category}: {Count} 个文件", category, count);
         return count;
     }
 
     /// <summary>
     /// 递归收集目录下所有 .json 文件（用于 Assignments 快照目录）。
     /// </summary>
-    private async Task<int> CollectFilesRecursiveAsync (
-        SeatSetsArchive archive ,
-        string category ,
-        string directoryRel ,
-        string relativePrefix ,
+    private async Task<int> CollectFilesRecursiveAsync(
+        SeatSetsArchive archive,
+        string category,
+        string directoryRel,
+        string relativePrefix,
         CancellationToken ct)
     {
         int count = 0;
         try
         {
-            var files = await ListFilesAsync(directoryRel , "*.json" , ct , recursive: true);
+            var files = await ListFilesAsync(directoryRel, "*.json", ct, recursive: true);
             foreach (var fileRel in files)
             {
                 ct.ThrowIfCancellationRequested();
                 try
                 {
-                    var readPath = _store is null ? Path.Combine(directoryRel , fileRel) : fileRel;
-                    var json = await ReadDataTextAsync(readPath , ct);
+                    var readPath = _store is null ? Path.Combine(directoryRel, fileRel) : fileRel;
+                    var json = await ReadDataTextAsync(readPath, ct);
                     if (json is null) continue;
                     using var doc = JsonDocument.Parse(json);
-                    var chunk = GetOrCreateChunk(archive , category);
+                    var chunk = GetOrCreateChunk(archive, category);
 
                     // 相对路径已经是 "Assignments/..." 形式（dataDir 内相对）
                     chunk.Files[$"{relativePrefix}/{fileRel}"] = doc.RootElement.Clone();
@@ -738,53 +738,53 @@ public class SeatSetsService : ISeatSetsService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex , "读取快照文件失败: {Path}" , fileRel);
+                    _logger.LogWarning(ex, "读取快照文件失败: {Path}", fileRel);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex , "枚举快照目录时出错");
+            _logger.LogWarning(ex, "枚举快照目录时出错");
         }
 
-        _logger.LogDebug("已收集 {Category}: {Count} 个文件" , category , count);
+        _logger.LogDebug("已收集 {Category}: {Count} 个文件", category, count);
         return count;
     }
 
     // ────────────── 双模式 I/O 辅助（路径模式 = 桌面文件系统；store 模式 = IndexedDB）──
 
     /// <summary>读取文本；路径模式允许根目录相对路径，store 模式直接用相对路径。</summary>
-    private async Task<string?> ReadDataTextAsync (string relativeOrPath , CancellationToken ct)
+    private async Task<string?> ReadDataTextAsync(string relativeOrPath, CancellationToken ct)
     {
         if (_store is not null)
-            return await _store.ReadTextAsync(relativeOrPath , ct);
+            return await _store.ReadTextAsync(relativeOrPath, ct);
         return File.Exists(relativeOrPath) ? File.ReadAllText(relativeOrPath) : null;
     }
 
-    private Task<IReadOnlyList<string>> ListFilesAsync (
-        string relativeOrPath , string pattern , CancellationToken ct , bool recursive = false)
+    private Task<IReadOnlyList<string>> ListFilesAsync(
+        string relativeOrPath, string pattern, CancellationToken ct, bool recursive = false)
     {
         if (_store is not null)
         {
             if (recursive)
             {
                 // store 模式递归：枚举前缀后按目录段过滤
-                return ListRecursiveAsync(relativeOrPath , pattern , ct);
+                return ListRecursiveAsync(relativeOrPath, pattern, ct);
             }
-            return _store.ListAsync(relativeOrPath , pattern , ct);
+            return _store.ListAsync(relativeOrPath, pattern, ct);
         }
         var dir = relativeOrPath;
         if (!Directory.Exists(dir) && !Path.IsPathRooted(relativeOrPath))
             return Task.FromResult<IReadOnlyList<string>>([]);
         if (!Directory.Exists(dir)) return Task.FromResult<IReadOnlyList<string>>([]);
         var option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        var list = Directory.GetFiles(dir , pattern , option)
-            .Select(f => Path.GetRelativePath(dir , f).Replace('\\' , '/'))
+        var list = Directory.GetFiles(dir, pattern, option)
+            .Select(f => Path.GetRelativePath(dir, f).Replace('\\', '/'))
             .ToList();
         return Task.FromResult<IReadOnlyList<string>>(list);
     }
 
-    private async Task<IReadOnlyList<string>> ListRecursiveAsync (string relativeDir , string pattern , CancellationToken ct)
+    private async Task<IReadOnlyList<string>> ListRecursiveAsync(string relativeDir, string pattern, CancellationToken ct)
     {
         var results = new List<string>();
         var dirs = new Stack<string>();
@@ -793,46 +793,46 @@ public class SeatSetsService : ISeatSetsService
         {
             ct.ThrowIfCancellationRequested();
             var dir = dirs.Pop();
-            foreach (var file in await _store!.ListAsync(dir , pattern , ct))
+            foreach (var file in await _store!.ListAsync(dir, pattern, ct))
             {
                 var rest = file[dir.TrimEnd('/').Length..].TrimStart('/');
                 if (!rest.Contains('/'))
                     results.Add(file);
             }
-            foreach (var sub in await _store.ListDirectoriesAsync(dir , ct))
-                dirs.Push(JoinPath(dir , sub));
+            foreach (var sub in await _store.ListDirectoriesAsync(dir, ct))
+                dirs.Push(JoinPath(dir, sub));
         }
         return results;
     }
 
-    private Task<IReadOnlyList<string>> ListDirectoriesAsync (string relativeOrPath , CancellationToken ct)
+    private Task<IReadOnlyList<string>> ListDirectoriesAsync(string relativeOrPath, CancellationToken ct)
     {
         if (_store is not null)
-            return _store.ListDirectoriesAsync(relativeOrPath , ct);
+            return _store.ListDirectoriesAsync(relativeOrPath, ct);
         var dir = relativeOrPath;
         if (!Directory.Exists(dir)) return Task.FromResult<IReadOnlyList<string>>([]);
         return Task.FromResult<IReadOnlyList<string>>(
             Directory.GetDirectories(dir).Select(d => Path.GetFileName(d)).ToList());
     }
 
-    private static string JoinPath (string a , string b)
+    private static string JoinPath(string a, string b)
         => a.TrimEnd('/') + "/" + b.TrimEnd('/');
 
-    private static string LastSegment (string path)
+    private static string LastSegment(string path)
         => path[(path.LastIndexOf('/') + 1)..];
 
     /// <summary>
     /// 解析数据子目录：路径模式返回绝对路径；store 模式返回相对目录。
     /// </summary>
-    private string ResolveDataDir (string relativeName)
-        => _store is null ? Path.Combine(_effectiveDataPath! , relativeName) : relativeName;
+    private string ResolveDataDir(string relativeName)
+        => _store is null ? Path.Combine(_effectiveDataPath!, relativeName) : relativeName;
 
     /// <summary>
     /// 获取或创建指定类别的 Chunk。
     /// </summary>
-    private static SeatSetsChunk GetOrCreateChunk (SeatSetsArchive archive , string category)
+    private static SeatSetsChunk GetOrCreateChunk(SeatSetsArchive archive, string category)
     {
-        if (!archive.Chunks.TryGetValue(category , out var chunk))
+        if (!archive.Chunks.TryGetValue(category, out var chunk))
         {
             chunk = new SeatSetsChunk();
             archive.Chunks[category] = chunk;
@@ -843,17 +843,17 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 计算单个 Chunk 的哈希（基于其 Files 字典的确定性 JSON 序列化）。
     /// </summary>
-    private static string ComputeChunkHash (Dictionary<string , JsonElement> files)
+    private static string ComputeChunkHash(Dictionary<string, JsonElement> files)
     {
         if (files.Count == 0)
             return string.Empty;
 
         // 按 key 排序以保证确定性
-        var sorted = new SortedDictionary<string , JsonElement>(files , StringComparer.Ordinal);
+        var sorted = new SortedDictionary<string, JsonElement>(files, StringComparer.Ordinal);
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
         writer.WriteStartObject();
-        foreach (var (key , value) in sorted)
+        foreach (var (key, value) in sorted)
         {
             writer.WritePropertyName(key);
             value.WriteTo(writer);
@@ -868,10 +868,10 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 计算归档级别的整体哈希（所有 chunk hash 拼接后取 SHA256）。
     /// </summary>
-    private static string ComputeArchiveHash (Dictionary<string , SeatSetsChunk> chunks)
+    private static string ComputeArchiveHash(Dictionary<string, SeatSetsChunk> chunks)
     {
-        var hashInput = string.Join("" ,
-            chunks.OrderBy(c => c.Key , StringComparer.Ordinal)
+        var hashInput = string.Join("",
+            chunks.OrderBy(c => c.Key, StringComparer.Ordinal)
                   .Select(c => c.Value.Hash ?? string.Empty));
 
         return ContentHashHelper.ComputeSha256(hashInput);
@@ -883,13 +883,13 @@ public class SeatSetsService : ISeatSetsService
     /// 仅路径模式（桌面端）使用；store 模式（WASM）不经过此处。
     /// </summary>
     /// <exception cref="InvalidOperationException">路径穿越检测时抛出。</exception>
-    private string ResolveTargetPath (string category , string relPath)
+    private string ResolveTargetPath(string category, string relPath)
     {
         if (_store is not null || _effectiveDataPath is null || _settingsFilePath is null)
             throw new InvalidOperationException("ResolveTargetPath 仅在路径模式下可用");
 
         // 规范化为平台路径分隔符，拒绝含 null 字节的路径
-        var normalized = relPath.Replace('/' , Path.DirectorySeparatorChar);
+        var normalized = relPath.Replace('/', Path.DirectorySeparatorChar);
         if (normalized.Contains('\0'))
             throw new InvalidOperationException($"文件路径包含非法字符: {relPath}");
 
@@ -903,13 +903,13 @@ public class SeatSetsService : ISeatSetsService
         }
         else
         {
-            fullPath = Path.GetFullPath(Path.Combine(_effectiveDataPath , normalized));
+            fullPath = Path.GetFullPath(Path.Combine(_effectiveDataPath, normalized));
             allowedBase = Path.GetFullPath(_effectiveDataPath);
         }
 
         // 路径穿越检测：解析后的绝对路径必须位于允许的基目录内
-        if (!fullPath.StartsWith(allowedBase + Path.DirectorySeparatorChar , StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(fullPath , allowedBase , StringComparison.OrdinalIgnoreCase))
+        if (!fullPath.StartsWith(allowedBase + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(fullPath, allowedBase, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
                 $"路径穿越检测: '{relPath}' 解析到 '{fullPath}'，不在允许的基目录 '{allowedBase}' 内");
@@ -921,7 +921,7 @@ public class SeatSetsService : ISeatSetsService
     /// <summary>
     /// 获取应用版本字符串。
     /// </summary>
-    private static string GetAppVersion ()
+    private static string GetAppVersion()
     {
         try
         {

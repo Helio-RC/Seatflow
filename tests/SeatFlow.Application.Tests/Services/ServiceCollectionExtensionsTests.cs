@@ -9,13 +9,13 @@ public class ServiceCollectionExtensionsTests : IDisposable
 {
     private readonly string _tempDir;
 
-    public ServiceCollectionExtensionsTests ()
+    public ServiceCollectionExtensionsTests()
     {
-        _tempDir = Path.Combine(Path.GetTempPath() , Guid.NewGuid().ToString());
+        _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDir);
     }
 
-    public void Dispose ()
+    public void Dispose()
     {
         Log.CloseAndFlush();
         if (Directory.Exists(_tempDir))
@@ -25,7 +25,7 @@ public class ServiceCollectionExtensionsTests : IDisposable
             {
                 try
                 {
-                    Directory.Delete(_tempDir , true);
+                    Directory.Delete(_tempDir, true);
                     break;
                 }
                 catch (IOException) when (i < 2)
@@ -38,10 +38,10 @@ public class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public void AddSeatFlowApplication_ShouldRegisterAllExpectedServices ()
+    public void AddSeatFlowApplication_ShouldRegisterAllExpectedServices()
     {
         var services = new ServiceCollection();
-        var snapshotBasePath = Path.Combine(_tempDir , "Snapshots");
+        var snapshotBasePath = Path.Combine(_tempDir, "Snapshots");
 
         services.AddSeatFlowApplication(snapshotBasePath);
         var provider = services.BuildServiceProvider();
@@ -78,10 +78,10 @@ public class ServiceCollectionExtensionsTests : IDisposable
     }
 
     [Fact]
-    public async Task AddSeatFlowApplication_CreatesExpectedDirectories ()
+    public async Task AddSeatFlowApplication_CreatesExpectedDirectories()
     {
         var services = new ServiceCollection();
-        var snapshotBasePath = Path.Combine(_tempDir , "Snapshots");
+        var snapshotBasePath = Path.Combine(_tempDir, "Snapshots");
 
         services.AddSeatFlowApplication(snapshotBasePath);
         var provider = services.BuildServiceProvider();
@@ -90,10 +90,10 @@ public class ServiceCollectionExtensionsTests : IDisposable
         var snapshotRepo = provider.GetRequiredService<ISeatingSnapshotRepository>();
         await snapshotRepo.SaveAsync(new SeatingSnapshot
         {
-            Id = "test_snap" ,
-            LayoutId = "venue1" ,
+            Id = "test_snap",
+            LayoutId = "venue1",
             CreatedAt = DateTime.Now
-        } , TestContext.Current.CancellationToken);
-        Assert.True(Directory.Exists(Path.Combine(snapshotBasePath , "Assignments" , "venue1")));
+        }, TestContext.Current.CancellationToken);
+        Assert.True(Directory.Exists(Path.Combine(snapshotBasePath, "Assignments", "venue1")));
     }
 }

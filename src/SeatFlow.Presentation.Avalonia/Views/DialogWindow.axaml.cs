@@ -12,36 +12,36 @@ namespace SeatFlow.Presentation.Avalonia.Views;
 internal partial class DialogWindow : Window
 {
     public static readonly StyledProperty<string> MessageProperty =
-        AvaloniaProperty.Register<DialogWindow , string>(nameof(Message));
+        AvaloniaProperty.Register<DialogWindow, string>(nameof(Message));
 
     public string Message
     {
         get => GetValue(MessageProperty);
-        set => SetValue(MessageProperty , value);
+        set => SetValue(MessageProperty, value);
     }
 
     public DialogKind Kind { get; set; } = DialogKind.Info;
 
     public static readonly StyledProperty<string?> Button1TextProperty =
-        AvaloniaProperty.Register<DialogWindow , string?>(nameof(Button1Text));
+        AvaloniaProperty.Register<DialogWindow, string?>(nameof(Button1Text));
     public static readonly StyledProperty<string?> Button2TextProperty =
-        AvaloniaProperty.Register<DialogWindow , string?>(nameof(Button2Text));
+        AvaloniaProperty.Register<DialogWindow, string?>(nameof(Button2Text));
     public static readonly StyledProperty<string?> Button3TextProperty =
-        AvaloniaProperty.Register<DialogWindow , string?>(nameof(Button3Text));
+        AvaloniaProperty.Register<DialogWindow, string?>(nameof(Button3Text));
 
-    public string? Button1Text { get => GetValue(Button1TextProperty); set => SetValue(Button1TextProperty , value); }
-    public string? Button2Text { get => GetValue(Button2TextProperty); set => SetValue(Button2TextProperty , value); }
-    public string? Button3Text { get => GetValue(Button3TextProperty); set => SetValue(Button3TextProperty , value); }
+    public string? Button1Text { get => GetValue(Button1TextProperty); set => SetValue(Button1TextProperty, value); }
+    public string? Button2Text { get => GetValue(Button2TextProperty); set => SetValue(Button2TextProperty, value); }
+    public string? Button3Text { get => GetValue(Button3TextProperty); set => SetValue(Button3TextProperty, value); }
 
     public int? DialogResult { get; private set; }
 
-    public DialogWindow ()
+    public DialogWindow()
     {
         InitializeComponent();
         ContentRoot.Completed += OnContentCompleted;
     }
 
-    protected override void OnLoaded (RoutedEventArgs e)
+    protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
         if (ContentRoot is { } content)
@@ -56,7 +56,7 @@ internal partial class DialogWindow : Window
         }
     }
 
-    private void OnContentCompleted (DialogContent content)
+    private void OnContentCompleted(DialogContent content)
     {
         DialogResult = content.DialogResult;
         // 0（OK/主按钮）与 1（第三按钮）视为确认 → true；2（取消）→ false。

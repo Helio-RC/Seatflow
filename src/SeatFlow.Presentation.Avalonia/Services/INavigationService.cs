@@ -22,6 +22,6 @@ public interface INavigationService
     ViewModelBase CurrentViewModel { get; }
     PageKey CurrentPage { get; }
     event Action? CurrentViewModelChanged;
-    void NavigateTo (PageKey page);
-    Task<bool> NavigateToAsync (PageKey page);
+    void NavigateTo(PageKey page);
+    Task<bool> NavigateToAsync(PageKey page);
 }

@@ -43,12 +43,12 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsOnboardingActive { get; set; }
 
-    private readonly Dictionary<string , bool> _pageNav = [];
+    private readonly Dictionary<string, bool> _pageNav = [];
     private bool _userWantsExpanded = true;
     private CancellationTokenSource? _pageLoadCts;
 
     /// <summary>加载页面导航配置（page_navigation.json 嵌入资源）。</summary>
-    private Dictionary<string , bool> LoadPageNav ()
+    private Dictionary<string, bool> LoadPageNav()
     {
         try
         {
@@ -58,7 +58,7 @@ public partial class MainShellViewModel : ViewModelBase
             if (stream == null) return [];
             using var doc = JsonDocument.Parse(stream);
             var pages = doc.RootElement.GetProperty("pages");
-            var result = new Dictionary<string , bool>();
+            var result = new Dictionary<string, bool>();
             foreach (var p in pages.EnumerateObject())
                 result[p.Name] = p.Value.GetBoolean();
             return result;
@@ -70,15 +70,15 @@ public partial class MainShellViewModel : ViewModelBase
         }
     }
 
-    private bool IsPageEnabled (string key) =>
-        !_pageNav.TryGetValue(key , out var enabled) || enabled;
+    private bool IsPageEnabled(string key) =>
+        !_pageNav.TryGetValue(key, out var enabled) || enabled;
 
     /// <summary>页面淡出时长。</summary>
     private static readonly TimeSpan FadeOutDuration = TimeSpan.FromMilliseconds(200);
     /// <summary>新旧页切换间隙。</summary>
     private static readonly TimeSpan StaggerDelay = TimeSpan.FromMilliseconds(100);
 
-    public MainShellViewModel (INavigationService navigation , IApplicationFacade facade , IOnboardingService onboarding , ILogger<MainShellViewModel>? logger = null)
+    public MainShellViewModel(INavigationService navigation, IApplicationFacade facade, IOnboardingService onboarding, ILogger<MainShellViewModel>? logger = null)
     {
         _navigation = navigation;
         _facade = facade;
@@ -95,7 +95,7 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>页面切换：旧页淡出 → 内容切换 → 新页淡入。</summary>
-    private async Task RunTransitionAsync ()
+    private async Task RunTransitionAsync()
     {
         _pageLoadCts?.Cancel();
         _pageLoadCts = new CancellationTokenSource();
@@ -115,13 +115,13 @@ public partial class MainShellViewModel : ViewModelBase
         try
         {
             PageOpacity = 0;
-            await Task.Delay(FadeOutDuration , ct);
+            await Task.Delay(FadeOutDuration, ct);
 
             CurrentViewModel = newVm;
             CurrentPage = newPage;
 
             PageOpacity = 1;
-            await Task.Delay(StaggerDelay , ct);
+            await Task.Delay(StaggerDelay, ct);
         }
         catch (OperationCanceledException)
         {
@@ -134,15 +134,15 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>延迟触发页面引导检查（等页面渲染完成）。</summary>
-    private void SchedulePageGuideCheck ()
+    private void SchedulePageGuideCheck()
     {
         Dispatcher.UIThread.Post(() =>
         {
             _onboarding.TryShowPageGuide(CurrentPage);
-        } , DispatcherPriority.Background);
+        }, DispatcherPriority.Background);
     }
 
-    public void OnWindowWidthChanged (double windowWidth)
+    public void OnWindowWidthChanged(double windowWidth)
     {
         // 引导期间不自动折叠侧边栏
         if (IsOnboardingActive)
@@ -154,20 +154,20 @@ public partial class MainShellViewModel : ViewModelBase
             IsSidebarExpanded = _userWantsExpanded;
     }
 
-    partial void OnIsSidebarExpandedChanged (bool value)
+    partial void OnIsSidebarExpandedChanged(bool value)
         => SidebarWidth = value ? 140 : 64;
 
     [RelayCommand]
-    private void ToggleSidebar ()
+    private void ToggleSidebar()
     {
         _userWantsExpanded = !_userWantsExpanded;
         IsSidebarExpanded = _userWantsExpanded;
     }
 
     [RelayCommand]
-    private async Task NavigateAsync (string pageName)
+    private async Task NavigateAsync(string pageName)
     {
-        if (Enum.TryParse<PageKey>(pageName , out var key))
+        if (Enum.TryParse<PageKey>(pageName, out var key))
         {
             if (!IsPageEnabled(pageName))
                 return;
@@ -176,7 +176,7 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>强制展开侧边栏（引导期间使用）。</summary>
-    public void EnsureSidebarExpanded ()
+    public void EnsureSidebarExpanded()
     {
         _userWantsExpanded = true;
         IsSidebarExpanded = true;
@@ -188,7 +188,7 @@ public partial class MainShellViewModel : ViewModelBase
     /// IsOnboardingActive 并立即返回。然后直接设置 CurrentViewModel 触发 ViewLocator
     /// 同步创建新页面 View，确保目标解析时 NameScope 可用。
     /// </remarks>
-    public void OnboardingNavigateTo (PageKey page)
+    public void OnboardingNavigateTo(PageKey page)
     {
         _navigation.NavigateTo(page);
         // NavigateTo 的 CurrentViewModelChanged 事件已触发 RunTransitionAsync，
@@ -200,7 +200,7 @@ public partial class MainShellViewModel : ViewModelBase
     }
 
     /// <summary>完成引导：关闭引导模式，持久化标记，导航到指定页面。</summary>
-    public async Task CompleteOnboardingAsync (PageKey navigateTo = PageKey.Home)
+    public async Task CompleteOnboardingAsync(PageKey navigateTo = PageKey.Home)
     {
         IsOnboardingActive = false;
 

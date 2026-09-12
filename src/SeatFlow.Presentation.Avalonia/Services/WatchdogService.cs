@@ -14,7 +14,7 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 /// <summary>
 /// UI 线程看门狗：定期检查 UI 线程心跳，若超过阈值无响应则记录诊断信息并强制退出。
 /// </summary>
-public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogService>? logger = null) : IDisposable
+public sealed class WatchdogService(int timeoutSeconds = 45, ILogger<WatchdogService>? logger = null) : IDisposable
 {
     private readonly int _timeoutSeconds = timeoutSeconds;
     private readonly CancellationTokenSource _cts = new();
@@ -23,27 +23,27 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
     private readonly ILogger<WatchdogService> _logger = logger ?? NullLogger<WatchdogService>.Instance;
     private static IDialogService? _dialog;
 
-    public static void SetDialogService (IDialogService dialog) => _dialog = dialog;
+    public static void SetDialogService(IDialogService dialog) => _dialog = dialog;
 
     /// <summary>启动看门狗（后台线程）。</summary>
-    public void Start ()
+    public void Start()
     {
-        _logger.LogInformation("看门狗已启动（超时阈值 {Timeout}s）" , _timeoutSeconds);
+        _logger.LogInformation("看门狗已启动（超时阈值 {Timeout}s）", _timeoutSeconds);
         _watchTask = Task.Run(WatchLoop);
     }
 
-    public void Ping ()
+    public void Ping()
     {
         _heartbeatTicks = DateTime.UtcNow.Ticks;
     }
 
-    private async Task WatchLoop ()
+    private async Task WatchLoop()
     {
         while (!_cts.IsCancellationRequested)
         {
             try
             {
-                await Task.Delay(1000 , _cts.Token).ConfigureAwait(false);
+                await Task.Delay(1000, _cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -53,16 +53,16 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
             var elapsed = DateTime.UtcNow.Ticks - Interlocked.Read(ref _heartbeatTicks);
             if (new TimeSpan(elapsed).TotalSeconds >= _timeoutSeconds)
             {
-                _logger.LogCritical("UI 线程超过 {Timeout}s 无响应，触发诊断转储" , _timeoutSeconds);
+                _logger.LogCritical("UI 线程超过 {Timeout}s 无响应，触发诊断转储", _timeoutSeconds);
                 await DumpAndExit(_timeoutSeconds);
             }
         }
     }
 
-    private static async Task DumpAndExit (int timeoutSeconds = 45)
+    private static async Task DumpAndExit(int timeoutSeconds = 45)
     {
         var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        var logPath = Path.Combine(AppEnvironment.ExeDirectory , $"err_{timestamp}.log");
+        var logPath = Path.Combine(AppEnvironment.ExeDirectory, $"err_{timestamp}.log");
 
         try
         {
@@ -110,9 +110,9 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
                 try
                 {
                     // 通过 MiniDump 或直接枚举线程来获取信息
-                    ThreadPool.GetAvailableThreads(out var worker , out var completion);
+                    ThreadPool.GetAvailableThreads(out var worker, out var completion);
                     sb.AppendLine($"线程池可用: Worker={worker}, Completion={completion}");
-                    ThreadPool.GetMaxThreads(out var maxWorker , out var maxCompletion);
+                    ThreadPool.GetMaxThreads(out var maxWorker, out var maxCompletion);
                     sb.AppendLine($"线程池上限: Worker={maxWorker}, Completion={maxCompletion}");
                 }
                 catch (Exception ex)
@@ -124,20 +124,20 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
             sb.AppendLine();
             sb.AppendLine("--- 诊断结束 ---");
 
-            await File.WriteAllTextAsync(logPath , sb.ToString()).ConfigureAwait(false);
+            await File.WriteAllTextAsync(logPath, sb.ToString()).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             // 最后的兜底：尝试写入最简日志
-            try { File.WriteAllText(logPath , $"看门狗诊断失败: {ex.Message}"); } catch { }
+            try { File.WriteAllText(logPath, $"看门狗诊断失败: {ex.Message}"); } catch { }
         }
         finally
         {
             // 尝试弹窗通知用户
             try
             {
-                var msg = string.Format(Resources.Watchdog_MessageFmt , timeoutSeconds , logPath);
-                _dialog?.ShowErrorAsync(Resources.Watchdog_Title , msg).Wait(3000);
+                var msg = string.Format(Resources.Watchdog_MessageFmt, timeoutSeconds, logPath);
+                _dialog?.ShowErrorAsync(Resources.Watchdog_Title, msg).Wait(3000);
             }
             catch { /* UI 可能已死锁，弹窗无法显示 */ }
 
@@ -145,7 +145,7 @@ public sealed class WatchdogService (int timeoutSeconds = 45 , ILogger<WatchdogS
         }
     }
 
-    public void Dispose ()
+    public void Dispose()
     {
         _cts.Cancel();
         _cts.Dispose();

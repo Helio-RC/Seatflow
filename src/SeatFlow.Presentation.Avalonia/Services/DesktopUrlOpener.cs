@@ -7,7 +7,7 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 /// </summary>
 public sealed class DesktopUrlOpener : IUrlOpener
 {
-    public void OpenUrl (string url)
+    public void OpenUrl(string url)
     {
         try
         {

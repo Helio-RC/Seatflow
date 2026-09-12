@@ -14,8 +14,8 @@ namespace SeatFlow.Core.Strategies
     /// <b>警告：</b>此策略可能导致前面的策略安排结果（同桌分组、同桌不重复等）失效。
     /// 最优解是使会场座位数和人员数量相近/匹配，以从根本上规避碎片化座位安排结果。
     /// </remarks>
-    public class DefragStrategy (
-        DefragConfiguration config ,
+    public class DefragStrategy(
+        DefragConfiguration config,
         ILogger<DefragStrategy>? logger = null) : ISeatingStrategy
     {
         private readonly DefragConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -29,7 +29,7 @@ namespace SeatFlow.Core.Strategies
         public DefragConfiguration Config => _config;
 
         /// <summary>使用默认配置创建实例。</summary>
-        public DefragStrategy () : this(new DefragConfiguration()) { }
+        public DefragStrategy() : this(new DefragConfiguration()) { }
 
         /// <summary>策略 ID："Defrag"。</summary>
         public string Id { get; } = "Defrag";
@@ -47,14 +47,14 @@ namespace SeatFlow.Core.Strategies
         /// 设置约束学生 ID 集合（固定座位学生 + DeskMate 组内学生）。
         /// 由 ApplicationFacade 在管道执行前调用。
         /// </summary>
-        public void SetConstrainedStudentIds (HashSet<string> ids)
+        public void SetConstrainedStudentIds(HashSet<string> ids)
         {
             _constrainedStudentIds = ids ?? [];
         }
 
         /// <inheritdoc />
-        public Task<StrategyExecutionResult> ExecuteAsync (
-            SeatingWorkspace workspace , CancellationToken cancellationToken)
+        public Task<StrategyExecutionResult> ExecuteAsync(
+            SeatingWorkspace workspace, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
             cancellationToken.ThrowIfCancellationRequested();
@@ -70,7 +70,7 @@ namespace SeatFlow.Core.Strategies
             if (emptySeats.Count == 0)
             {
                 _logger.LogDebug("Defrag：无可用空座，跳过");
-                workspace.LogWarning(Id , DisplayNameConst , "Defrag_NoGaps");
+                workspace.LogWarning(Id, DisplayNameConst, "Defrag_NoGaps");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
@@ -84,7 +84,7 @@ namespace SeatFlow.Core.Strategies
             if (occupiedSeats.Count == 0)
             {
                 _logger.LogDebug("Defrag：无被占非固定座位，跳过");
-                workspace.LogWarning(Id , DisplayNameConst , "Defrag_NoGaps");
+                workspace.LogWarning(Id, DisplayNameConst, "Defrag_NoGaps");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
@@ -92,36 +92,36 @@ namespace SeatFlow.Core.Strategies
             var studentMap = workspace.Students.ToDictionary(s => s.Id);
 
             // ── 步骤3：构建候选人池（后排无约束学生） ──
-            var candidates = new List<(Seat Seat , Student Student)>();
+            var candidates = new List<(Seat Seat, Student Student)>();
             foreach (var seat in occupiedSeats)
             {
                 if (seat.OccupantId is null) continue;
                 if (_constrainedStudentIds.Contains(seat.OccupantId)) continue;
-                if (!studentMap.TryGetValue(seat.OccupantId , out var student)) continue;
-                candidates.Add((seat , student));
+                if (!studentMap.TryGetValue(seat.OccupantId, out var student)) continue;
+                candidates.Add((seat, student));
             }
 
             if (candidates.Count == 0)
             {
                 _logger.LogDebug("Defrag：所有后排学生均受约束，跳过");
-                workspace.LogWarning(Id , DisplayNameConst , "Defrag_NoEligible");
+                workspace.LogWarning(Id, DisplayNameConst, "Defrag_NoEligible");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
             // ── 步骤4：逐空座处理（从前到后），将后排学生前移 ──
-            int movedCount = PerformForwardFill(workspace , emptySeats , candidates , cancellationToken);
+            int movedCount = PerformForwardFill(workspace, emptySeats, candidates, cancellationToken);
 
             // ── 步骤5：日志 ──
             if (movedCount > 0)
             {
-                _logger.LogInformation("Defrag 策略完成：已将 {Count} 名学生前移" , movedCount);
-                workspace.LogWarning(Id , DisplayNameConst , "Defrag_Moved" , movedCount);
-                workspace.LogWarning(Id , DisplayNameConst , "Defrag_EffectivenessNote");
+                _logger.LogInformation("Defrag 策略完成：已将 {Count} 名学生前移", movedCount);
+                workspace.LogWarning(Id, DisplayNameConst, "Defrag_Moved", movedCount);
+                workspace.LogWarning(Id, DisplayNameConst, "Defrag_EffectivenessNote");
             }
             else
             {
                 _logger.LogDebug("Defrag：无前排空位有后方学生可填，跳过");
-                workspace.LogWarning(Id , DisplayNameConst , "Defrag_NoGaps");
+                workspace.LogWarning(Id, DisplayNameConst, "Defrag_NoGaps");
             }
 
             return Task.FromResult(new StrategyExecutionResult { Success = true });
@@ -131,10 +131,10 @@ namespace SeatFlow.Core.Strategies
         /// 逐空座从前到后处理，将后方无约束学生前移填入。
         /// 每个候选人只被移动一次（从池中移除），旧座位不复用。
         /// </summary>
-        private int PerformForwardFill (
-            SeatingWorkspace workspace ,
-            List<Seat> emptySeats ,
-            List<(Seat Seat , Student Student)> candidates ,
+        private int PerformForwardFill(
+            SeatingWorkspace workspace,
+            List<Seat> emptySeats,
+            List<(Seat Seat, Student Student)> candidates,
             CancellationToken ct)
         {
             int moved = 0;
@@ -150,7 +150,7 @@ namespace SeatFlow.Core.Strategies
                 int candidateIndex = -1;
                 for (int i = 0; i < candidates.Count; i++)
                 {
-                    if (IsBehind(candidates[i].Seat , emptySeat))
+                    if (IsBehind(candidates[i].Seat, emptySeat))
                     {
                         candidateIndex = i;
                         break;
@@ -160,7 +160,7 @@ namespace SeatFlow.Core.Strategies
                 if (candidateIndex < 0)
                     continue; // 此空座后方无可移动学生
 
-                var (oldSeat , student) = candidates[candidateIndex];
+                var (oldSeat, student) = candidates[candidateIndex];
                 candidates.RemoveAt(candidateIndex);
 
                 // 安全检查：旧座位是否仍被该学生占用
@@ -172,12 +172,12 @@ namespace SeatFlow.Core.Strategies
                 oldSeat.IsAvailable = true;
 
                 // 分配到前排空座
-                if (workspace.TryAssignSeat(emptySeat.Id , student.Id , out var error))
+                if (workspace.TryAssignSeat(emptySeat.Id, student.Id, out var error))
                 {
                     moved++;
                     _logger.LogDebug(
-                        "Defrag：将学生 {Student} 从 {OldSeat} 前移到 {NewSeat}" ,
-                        student.Name , oldSeat.Id , emptySeat.Id);
+                        "Defrag：将学生 {Student} 从 {OldSeat} 前移到 {NewSeat}",
+                        student.Name, oldSeat.Id, emptySeat.Id);
                 }
                 else
                 {
@@ -185,8 +185,8 @@ namespace SeatFlow.Core.Strategies
                     oldSeat.OccupantId = student.Id;
                     oldSeat.IsAvailable = false;
                     _logger.LogWarning(
-                        "Defrag：移动学生 {Student} 到 {Seat} 失败：{Error}，已回滚" ,
-                        student.Id , emptySeat.Id , error);
+                        "Defrag：移动学生 {Student} 到 {Seat} 失败：{Error}，已回滚",
+                        student.Id, emptySeat.Id, error);
                 }
             }
 
@@ -197,7 +197,7 @@ namespace SeatFlow.Core.Strategies
         /// 获取座位的"靠前度"数值，用于排序和比较。
         /// 数值越小越靠前。无法确定靠前度的座位返回 double.MaxValue。
         /// </summary>
-        internal static double GetFrontnessValue (Seat seat)
+        internal static double GetFrontnessValue(Seat seat)
         {
             return seat switch
             {
@@ -212,7 +212,7 @@ namespace SeatFlow.Core.Strategies
         /// 判断 candidate 座位是否在 reference 座位的后方。
         /// 不限同列：任何布局类型中位置更靠后的都算后方。
         /// </summary>
-        internal static bool IsBehind (Seat candidate , Seat reference)
+        internal static bool IsBehind(Seat candidate, Seat reference)
         {
             if (candidate is GridSeat cg && reference is GridSeat rg)
                 return cg.Row > rg.Row;
@@ -225,7 +225,7 @@ namespace SeatFlow.Core.Strategies
         }
 
         /// <inheritdoc />
-        public ValidationResult ValidateConfiguration ()
+        public ValidationResult ValidateConfiguration()
             => new() { IsValid = true };
     }
 

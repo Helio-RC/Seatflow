@@ -17,7 +17,7 @@ internal partial class InputWindow : Window
         set => ContentRoot.Input = value;
     }
 
-    public InputWindow ()
+    public InputWindow()
     {
         InitializeComponent();
         ContentRoot.Completed += (_, confirmed) =>
@@ -27,7 +27,7 @@ internal partial class InputWindow : Window
         };
     }
 
-    protected override void OnLoaded (RoutedEventArgs e)
+    protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
         ContentRoot.OnContentAttached();

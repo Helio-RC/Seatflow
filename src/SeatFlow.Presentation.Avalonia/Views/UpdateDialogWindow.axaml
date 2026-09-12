@@ -1,95 +1,146 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:services="using:SeatFlow.Presentation.Avalonia.Services"
-        xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-        xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
-        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-        x:Class="SeatFlow.Presentation.Avalonia.Views.UpdateDialogWindow"
-        x:DataType="vm:UpdateDialogViewModel"
-        Width="520" Height="620"
-        CanResize="True" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="32"
-        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-        Title="{Binding Title}">
+<Window
+  x:Class="SeatFlow.Presentation.Avalonia.Views.UpdateDialogWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:services="using:SeatFlow.Presentation.Avalonia.Services"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  Title="{Binding Title}"
+  Width="520"
+  Height="620"
+  x:DataType="vm:UpdateDialogViewModel"
+  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+  CanResize="True"
+  ExtendClientAreaTitleBarHeightHint="32"
+  ExtendClientAreaToDecorationsHint="True"
+  ShowInTaskbar="False"
+  WindowStartupLocation="CenterOwner">
 
   <DockPanel Margin="20,48,20,16">
-    <!-- ═══ 底部按钮 + 进度条 ═══ -->
+    <!--  ═══ 底部按钮 + 进度条 ═══  -->
     <StackPanel DockPanel.Dock="Bottom" Spacing="12">
-      <!-- 下载进度条 -->
-      <ProgressBar IsVisible="{Binding IsDownloading}"
-                   Value="{Binding DownloadProgress}"
-                   Minimum="0" Maximum="100" Height="6" />
+      <!--  下载进度条  -->
+      <ProgressBar
+        Height="6"
+        IsVisible="{Binding IsDownloading}"
+        Maximum="100"
+        Minimum="0"
+        Value="{Binding DownloadProgress}" />
 
-      <!-- 按钮区域（下载中隐藏） -->
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8"
-                  IsVisible="{Binding IsDownloading, Converter={x:Static conv:BoolConverters.Negate}}">
-        <Button x:Name="CloseBtn" Classes="ActionCancel"
-                Content="{Binding CloseButtonText}" />
-        <Button x:Name="ActionBtn" Classes="ActionButton" IsDefault="True"
-                Command="{Binding PrimaryActionCommand}"
-                Content="{Binding UpdateButtonText}"
-                IsVisible="{Binding IsUpdateButtonVisible}"
-                IsEnabled="{Binding IsUpdateButtonEnabled}" />
+      <!--  按钮区域（下载中隐藏）  -->
+      <StackPanel
+        HorizontalAlignment="Right"
+        IsVisible="{Binding IsDownloading, Converter={x:Static conv:BoolConverters.Negate}}"
+        Orientation="Horizontal"
+        Spacing="8">
+        <Button
+          x:Name="CloseBtn"
+          Classes="ActionCancel"
+          Content="{Binding CloseButtonText}" />
+        <Button
+          x:Name="ActionBtn"
+          Classes="ActionButton"
+          Command="{Binding PrimaryActionCommand}"
+          Content="{Binding UpdateButtonText}"
+          IsDefault="True"
+          IsEnabled="{Binding IsUpdateButtonEnabled}"
+          IsVisible="{Binding IsUpdateButtonVisible}" />
       </StackPanel>
     </StackPanel>
 
-    <!-- ═══ 标题区域 ═══ -->
-    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-      <TextBlock Text="{Binding Title}" Classes="sectionTitle" TextWrapping="Wrap" />
-      <TextBlock Text="{Binding Subtitle}" Classes="body"
-                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                 TextWrapping="Wrap" Margin="0,4,0,0" />
+    <!--  ═══ 标题区域 ═══  -->
+    <StackPanel Margin="0,0,0,16" DockPanel.Dock="Top">
+      <TextBlock
+        Classes="sectionTitle"
+        Text="{Binding Title}"
+        TextWrapping="Wrap" />
+      <TextBlock
+        Margin="0,4,0,0"
+        Classes="body"
+        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+        Text="{Binding Subtitle}"
+        TextWrapping="Wrap" />
     </StackPanel>
 
-    <!-- ═══ Release Notes（Markdown 渲染） ═══ -->
-    <!-- 加载中指示 -->
-    <TextBlock IsVisible="{Binding IsLoadingNotes}" Text="Loading..."
-               Classes="caption" HorizontalAlignment="Center" Margin="0,20,0,0"
-               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    <!--  ═══ Release Notes（Markdown 渲染） ═══  -->
+    <!--  加载中指示  -->
+    <TextBlock
+      Margin="0,20,0,0"
+      HorizontalAlignment="Center"
+      Classes="caption"
+      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+      IsVisible="{Binding IsLoadingNotes}"
+      Text="Loading..." />
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  IsVisible="{Binding IsLoadingNotes, Converter={x:Static conv:BoolConverters.Negate}}">
+    <ScrollViewer IsVisible="{Binding IsLoadingNotes, Converter={x:Static conv:BoolConverters.Negate}}" VerticalScrollBarVisibility="Auto">
       <ItemsControl ItemsSource="{Binding ReleaseBlocks}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="services:MdBlock">
             <Panel>
-              <!-- Title -->
-              <TextBlock IsVisible="{Binding IsTitle}" Text="{Binding Text}"
-                         FontSize="20" FontWeight="Bold" Margin="0,12,0,2"
-                         TextWrapping="Wrap" />
-              <!-- Heading -->
-              <TextBlock IsVisible="{Binding IsHeading}" Text="{Binding Text}"
-                         FontSize="16" FontWeight="SemiBold" Margin="0,10,0,2"
-                         TextWrapping="Wrap" />
-              <!-- SubHeading -->
-              <TextBlock IsVisible="{Binding IsSubHeading}" Text="{Binding Text}"
-                         FontSize="14" FontWeight="SemiBold" Margin="0,6,0,2"
-                         TextWrapping="Wrap" />
-              <!-- ListItem -->
-              <StackPanel IsVisible="{Binding IsListItem}"
-                          Orientation="Horizontal" Spacing="4" Margin="12,1,0,1">
-                <TextBlock Text="·" FontSize="13"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                <TextBlock Text="{Binding Text}" FontSize="13"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                           TextWrapping="Wrap" />
+              <!--  Title  -->
+              <TextBlock
+                Margin="0,12,0,2"
+                FontSize="20"
+                FontWeight="Bold"
+                IsVisible="{Binding IsTitle}"
+                Text="{Binding Text}"
+                TextWrapping="Wrap" />
+              <!--  Heading  -->
+              <TextBlock
+                Margin="0,10,0,2"
+                FontSize="16"
+                FontWeight="SemiBold"
+                IsVisible="{Binding IsHeading}"
+                Text="{Binding Text}"
+                TextWrapping="Wrap" />
+              <!--  SubHeading  -->
+              <TextBlock
+                Margin="0,6,0,2"
+                FontSize="14"
+                FontWeight="SemiBold"
+                IsVisible="{Binding IsSubHeading}"
+                Text="{Binding Text}"
+                TextWrapping="Wrap" />
+              <!--  ListItem  -->
+              <StackPanel
+                Margin="12,1,0,1"
+                IsVisible="{Binding IsListItem}"
+                Orientation="Horizontal"
+                Spacing="4">
+                <TextBlock
+                  FontSize="13"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="·" />
+                <TextBlock
+                  FontSize="13"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="{Binding Text}"
+                  TextWrapping="Wrap" />
               </StackPanel>
-              <!-- Paragraph -->
-              <TextBlock IsVisible="{Binding IsParagraph}" Text="{Binding Text}"
-                         FontSize="13" TextWrapping="Wrap" Margin="0,3,0,3"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-              <!-- Code -->
-              <Border IsVisible="{Binding IsCode}"
-                      Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                      CornerRadius="4" Padding="12,8" Margin="0,4">
-                <TextBlock Text="{Binding Text}" FontSize="12"
-                           FontFamily="Cascadia Code, JetBrains Mono, Consolas, monospace"
-                           TextWrapping="Wrap" />
+              <!--  Paragraph  -->
+              <TextBlock
+                Margin="0,3,0,3"
+                FontSize="13"
+                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                IsVisible="{Binding IsParagraph}"
+                Text="{Binding Text}"
+                TextWrapping="Wrap" />
+              <!--  Code  -->
+              <Border
+                Margin="0,4"
+                Padding="12,8"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="4"
+                IsVisible="{Binding IsCode}">
+                <TextBlock
+                  FontFamily="Cascadia Code, JetBrains Mono, Consolas, monospace"
+                  FontSize="12"
+                  Text="{Binding Text}"
+                  TextWrapping="Wrap" />
               </Border>
-              <!-- Empty spacer -->
-              <Border IsVisible="{Binding IsEmpty}" Height="8" />
+              <!--  Empty spacer  -->
+              <Border Height="8" IsVisible="{Binding IsEmpty}" />
             </Panel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>

@@ -22,7 +22,7 @@ namespace SeatFlow.Core.Models
         public override SeatType Type => SeatType.Freeform;
 
         /// <summary>返回自由点坐标几何数据。</summary>
-        public override ISeatGeometry GeometryData => new FreeformPosition { X = X , Y = Y };
+        public override ISeatGeometry GeometryData => new FreeformPosition { X = X, Y = Y };
     }
 
     /// <summary>

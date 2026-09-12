@@ -14,7 +14,7 @@ namespace SeatFlow.Infrastructure.Providers
         private readonly ILocalDataStore? _store;
 
         /// <param name="store">存储抽象（可选；非空时支持存储相对路径源）。</param>
-        public XlsxStudentProvider (ILocalDataStore? store = null)
+        public XlsxStudentProvider(ILocalDataStore? store = null)
         {
             _store = store;
         }
@@ -23,15 +23,15 @@ namespace SeatFlow.Infrastructure.Providers
         //  IStudentProvider 实现
         // ═══════════════════════════════════════════════
 
-        public Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
+        public Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
         {
-            return LoadAsync(source , 0 , 0 , cancellationToken);
+            return LoadAsync(source, 0, 0, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<List<Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
+        public async Task<List<Student>> LoadAsync(string source, int maxRows, int maxCols, CancellationToken ct = default)
         {
-            var bytes = await StudentSourceResolver.ReadBytesAsync(source , _store , ct);
+            var bytes = await StudentSourceResolver.ReadBytesAsync(source, _store, ct);
             if (bytes is null)
                 return [];
 
@@ -43,55 +43,55 @@ namespace SeatFlow.Infrastructure.Providers
                 return [];
 
             // Phase 1: 构建二维网格（含合并格扩展，可限制范围）
-            var (cells , totalRows , totalCols) = BuildCellGrid(ws , maxRows , maxCols , ct);
+            var (cells, totalRows, totalCols) = BuildCellGrid(ws, maxRows, maxCols, ct);
 
             // Phase 2: 模糊字段匹配
-            var result = FuzzyColumnMatcher.TryParse(cells , totalRows , totalCols);
+            var result = FuzzyColumnMatcher.TryParse(cells, totalRows, totalCols);
 
             if (result.IsStandardTemplate)
             {
                 // 快速路径：表头在 row 0，数据从 row 2 开始（row 1=注释行）
-                return ParseStandardTemplate(cells , totalRows , totalCols , ct);
+                return ParseStandardTemplate(cells, totalRows, totalCols, ct);
             }
 
             if (result.Students != null)
                 return result.Students;
 
             // 回退
-            return ParseStandardTemplate(cells , totalRows , totalCols , ct);
+            return ParseStandardTemplate(cells, totalRows, totalCols, ct);
         }
 
         /// <inheritdoc />
-        public async Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
+        public async Task<(int Rows, int Cols)> GetDimensionsAsync(string source, CancellationToken ct = default)
         {
-            var bytes = await StudentSourceResolver.ReadBytesAsync(source , _store , ct);
+            var bytes = await StudentSourceResolver.ReadBytesAsync(source, _store, ct);
             if (bytes is null)
-                return (0 , 0);
+                return (0, 0);
 
             ExcelPackage.License.SetNonCommercialPersonal("SeatFlow");
             using var stream = new MemoryStream(bytes);
             using var package = new ExcelPackage(stream);
             var ws = package.Workbook.Worksheets[0];
             if (ws.Dimension == null)
-                return (0 , 0);
+                return (0, 0);
 
-            return (ws.Dimension.End.Row , ws.Dimension.End.Column);
+            return (ws.Dimension.End.Row, ws.Dimension.End.Column);
         }
 
         // ═══════════════════════════════════════════════
         //  内部方法
         // ═══════════════════════════════════════════════
 
-        private static (string?[,] Cells , int Rows , int Cols) BuildCellGrid (
-            ExcelWorksheet ws , int maxRows , int maxCols , CancellationToken ct)
+        private static (string?[,] Cells, int Rows, int Cols) BuildCellGrid(
+            ExcelWorksheet ws, int maxRows, int maxCols, CancellationToken ct)
         {
             int rowCount = ws.Dimension.End.Row;
             int colCount = ws.Dimension.End.Column;
 
-            int rowLimit = maxRows > 0 ? Math.Min(maxRows , rowCount) : rowCount;
-            int colLimit = maxCols > 0 ? Math.Min(maxCols , colCount) : colCount;
+            int rowLimit = maxRows > 0 ? Math.Min(maxRows, rowCount) : rowCount;
+            int colLimit = maxCols > 0 ? Math.Min(maxCols, colCount) : colCount;
 
-            var cells = new string?[rowLimit , colLimit];
+            var cells = new string?[rowLimit, colLimit];
 
             // 读取所有单元格值
             for (int r = 1; r <= rowLimit; r++)
@@ -99,7 +99,7 @@ namespace SeatFlow.Infrastructure.Providers
                 ct.ThrowIfCancellationRequested();
                 for (int c = 1; c <= colLimit; c++)
                 {
-                    cells[r - 1 , c - 1] = ws.Cells[r , c].GetValue<string>();
+                    cells[r - 1, c - 1] = ws.Cells[r, c].GetValue<string>();
                 }
             }
 
@@ -112,8 +112,8 @@ namespace SeatFlow.Infrastructure.Providers
                 var mergedRange = ws.Cells[mergeAddress];
                 int startRow = mergedRange.Start.Row;
                 int startCol = mergedRange.Start.Column;
-                int endRow = Math.Min(mergedRange.End.Row , rowLimit);
-                int endCol = Math.Min(mergedRange.End.Column , colLimit);
+                int endRow = Math.Min(mergedRange.End.Row, rowLimit);
+                int endCol = Math.Min(mergedRange.End.Column, colLimit);
 
                 // 单格不算"合并"
                 if (startRow == endRow && startCol == endCol)
@@ -123,7 +123,7 @@ namespace SeatFlow.Infrastructure.Providers
                 if (startRow > rowLimit || startCol > colLimit)
                     continue;
 
-                var topLeftValue = cells[startRow - 1 , startCol - 1];
+                var topLeftValue = cells[startRow - 1, startCol - 1];
                 if (string.IsNullOrWhiteSpace(topLeftValue))
                     continue;
 
@@ -136,27 +136,27 @@ namespace SeatFlow.Infrastructure.Providers
                 {
                     for (int c = startCol; c <= endCol; c++)
                     {
-                        cells[r - 1 , c - 1] = topLeftValue;
+                        cells[r - 1, c - 1] = topLeftValue;
                     }
                 }
             }
 
-            return (cells , rowLimit , colLimit);
+            return (cells, rowLimit, colLimit);
         }
 
         /// <summary>
         /// 标准模板快速路径：row 0 = 表头，row 1 = 注释行（跳过），row 2+ = 数据。
         /// </summary>
-        private static List<Student> ParseStandardTemplate (
-            string?[,] cells , int totalRows , int totalCols , CancellationToken ct = default)
+        private static List<Student> ParseStandardTemplate(
+            string?[,] cells, int totalRows, int totalCols, CancellationToken ct = default)
         {
             var list = new List<Student>();
 
             // 建立列名→属性映射
-            var columnMap = new Dictionary<int , string>();
+            var columnMap = new Dictionary<int, string>();
             for (int c = 0; c < totalCols; c++)
             {
-                var header = cells[0 , c];
+                var header = cells[0, c];
                 if (!string.IsNullOrWhiteSpace(header))
                 {
                     var prop = StudentDataMapping.ResolveProperty(header.Trim());
@@ -173,10 +173,10 @@ namespace SeatFlow.Infrastructure.Providers
             {
                 ct.ThrowIfCancellationRequested();
                 var student = new Student();
-                foreach (var (col , prop) in columnMap)
+                foreach (var (col, prop) in columnMap)
                 {
-                    var raw = cells[r , col];
-                    StudentDataMapping.SetProperty(student , prop , raw);
+                    var raw = cells[r, col];
+                    StudentDataMapping.SetProperty(student, prop, raw);
                 }
 
                 if (!string.IsNullOrWhiteSpace(student.Name))

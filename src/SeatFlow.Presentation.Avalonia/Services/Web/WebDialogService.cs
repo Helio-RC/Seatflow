@@ -16,10 +16,10 @@ public sealed class WebDialogService : IDialogService
 {
     private TopLevel? _topLevel;
 
-    public void SetTopLevel (TopLevel topLevel) => _topLevel = topLevel;
+    public void SetTopLevel(TopLevel topLevel) => _topLevel = topLevel;
 
-    private async Task<int?> ShowCoreAsync (string title , string message , DialogKind kind ,
-        string? button1 = null , string? button2 = null , string? button3 = null)
+    private async Task<int?> ShowCoreAsync(string title, string message, DialogKind kind,
+        string? button1 = null, string? button2 = null, string? button3 = null)
     {
         var host = await ResolveHostAsync();
         if (host is null) return null;
@@ -27,11 +27,11 @@ public sealed class WebDialogService : IDialogService
         var tcs = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);
         var content = new DialogContent
         {
-            DialogTitle = title ,
-            Message = message ,
-            Kind = kind ,
-            Button1Text = button1 ,
-            Button2Text = button2 ,
+            DialogTitle = title,
+            Message = message,
+            Kind = kind,
+            Button1Text = button1,
+            Button2Text = button2,
             Button3Text = button3
         };
         content.Completed += _ => tcs.TrySetResult(content.DialogResult);
@@ -53,31 +53,31 @@ public sealed class WebDialogService : IDialogService
         return result;
     }
 
-    public Task ShowErrorAsync (string title , string message)
-        => ShowAsync(title , message , DialogKind.Error);
+    public Task ShowErrorAsync(string title, string message)
+        => ShowAsync(title, message, DialogKind.Error);
 
-    public Task ShowWarningAsync (string title , string message)
-        => ShowAsync(title , message , DialogKind.Warning);
+    public Task ShowWarningAsync(string title, string message)
+        => ShowAsync(title, message, DialogKind.Warning);
 
-    public Task ShowInfoAsync (string title , string message)
-        => ShowAsync(title , message , DialogKind.Info);
+    public Task ShowInfoAsync(string title, string message)
+        => ShowAsync(title, message, DialogKind.Info);
 
-    public async Task<bool> ShowConfirmAsync (string title , string message)
-        => await ShowCoreAsync(title , message , DialogKind.Confirm) is 0;
+    public async Task<bool> ShowConfirmAsync(string title, string message)
+        => await ShowCoreAsync(title, message, DialogKind.Confirm) is 0;
 
-    public async Task<int?> ShowMultiOptionAsync (string title , string message ,
-        string primaryText , string secondaryText , string? cancelText = null)
-        => await ShowCoreAsync(title , message , DialogKind.MultiOption ,
-            primaryText , secondaryText , cancelText);
+    public async Task<int?> ShowMultiOptionAsync(string title, string message,
+        string primaryText, string secondaryText, string? cancelText = null)
+        => await ShowCoreAsync(title, message, DialogKind.MultiOption,
+            primaryText, secondaryText, cancelText);
 
-    public async Task<(bool Confirmed , string Input)> ShowInputAsync (string title , string prompt , string initialValue = "")
+    public async Task<(bool Confirmed, string Input)> ShowInputAsync(string title, string prompt, string initialValue = "")
     {
         var host = await ResolveHostAsync();
-        if (host is null) return (false , "");
+        if (host is null) return (false, "");
 
-        var tcs = new TaskCompletionSource<(bool , string)>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var content = new InputContent { Prompt = prompt , Input = initialValue };
-        content.Completed += (c , confirmed) => tcs.TrySetResult((confirmed , c.Input));
+        var tcs = new TaskCompletionSource<(bool, string)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var content = new InputContent { Prompt = prompt, Input = initialValue };
+        content.Completed += (c, confirmed) => tcs.TrySetResult((confirmed, c.Input));
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -96,10 +96,10 @@ public sealed class WebDialogService : IDialogService
         return result;
     }
 
-    private async Task ShowAsync (string title , string message , DialogKind kind)
-        => await ShowCoreAsync(title , message , kind);
+    private async Task ShowAsync(string title, string message, DialogKind kind)
+        => await ShowCoreAsync(title, message, kind);
 
-    private Task<MainView?> ResolveHostAsync ()
+    private Task<MainView?> ResolveHostAsync()
     {
         // 浏览器端优先从单视图宿主直接取 MainView（无需 TopLevel 引用）
         var lifetime = global::Avalonia.Application.Current?.ApplicationLifetime;

@@ -12,7 +12,7 @@ namespace SeatFlow.Core.Providers
         /// <param name="source">数据源路径或连接字符串，具体格式由实现类决定。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>学生列表。</returns>
-        Task<List<Models.Student>> LoadAsync (string source , CancellationToken cancellationToken = default);
+        Task<List<Models.Student>> LoadAsync(string source, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// 获取数据源文件的维度（行数 × 列数），用于导入前的范围判断。
@@ -21,9 +21,9 @@ namespace SeatFlow.Core.Providers
         /// <param name="source">数据源路径。</param>
         /// <param name="ct">取消令牌。</param>
         /// <returns>(行数, 列数)。(0, 0) 表示无法确定维度。</returns>
-        Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
+        Task<(int Rows, int Cols)> GetDimensionsAsync(string source, CancellationToken ct = default)
         {
-            return Task.FromResult((0 , 0));
+            return Task.FromResult((0, 0));
         }
 
         /// <summary>
@@ -35,9 +35,9 @@ namespace SeatFlow.Core.Providers
         /// <param name="maxCols">最大扫描列数。0 或负数表示不限制。</param>
         /// <param name="ct">取消令牌。</param>
         /// <returns>学生列表。</returns>
-        Task<List<Models.Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
+        Task<List<Models.Student>> LoadAsync(string source, int maxRows, int maxCols, CancellationToken ct = default)
         {
-            return LoadAsync(source , ct);
+            return LoadAsync(source, ct);
         }
     }
 }

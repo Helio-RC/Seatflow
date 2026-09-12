@@ -3,7 +3,7 @@ namespace SeatFlow.Core.Tests;
 public class ClassroomLayoutDefinitionTests
 {
     [Fact]
-    public void NewLayout_ShouldHaveEmptySeats ()
+    public void NewLayout_ShouldHaveEmptySeats()
     {
         var layout = new ClassroomLayoutDefinition();
         layout.Seats.Should().BeEmpty();
@@ -12,7 +12,7 @@ public class ClassroomLayoutDefinitionTests
     }
 
     [Fact]
-    public void Layout_WithSeats_ShouldExposeReadOnly ()
+    public void Layout_WithSeats_ShouldExposeReadOnly()
     {
         var layout = new ClassroomLayoutDefinition();
         var seat = new GridSeat();

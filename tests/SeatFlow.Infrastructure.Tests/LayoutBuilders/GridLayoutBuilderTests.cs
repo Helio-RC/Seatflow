@@ -3,9 +3,9 @@ namespace SeatFlow.Infrastructure.Tests.LayoutBuilders;
 public class GridLayoutBuilderTests
 {
     [Fact]
-    public void BuildGrid_ShouldCreateCorrectNumberOfSeats ()
+    public void BuildGrid_ShouldCreateCorrectNumberOfSeats()
     {
-        var layout = GridLayoutBuilder.BuildGrid(3 , 4);
+        var layout = GridLayoutBuilder.BuildGrid(3, 4);
         layout.Seats.Should().HaveCount(12);
         layout.LayoutType.Should().Be(LayoutType.Grid);
         var meta = layout.Metadata as GridLayoutMetadata;
@@ -15,9 +15,9 @@ public class GridLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildGrid_SeatsShouldHaveCorrectPositions ()
+    public void BuildGrid_SeatsShouldHaveCorrectPositions()
     {
-        var layout = GridLayoutBuilder.BuildGrid(2 , 2);
+        var layout = GridLayoutBuilder.BuildGrid(2, 2);
         var seats = layout.Seats.Cast<GridSeat>().ToList();
         // 行优先：第1行列1,列2; 第2行列1,列2
         seats[0].Row.Should().Be(1);
@@ -31,14 +31,14 @@ public class GridLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildGrid_WithColumnRowCounts_ShouldUsePerColumnRows ()
+    public void BuildGrid_WithColumnRowCounts_ShouldUsePerColumnRows()
     {
         var meta = new GridLayoutMetadata
         {
-            Rows = 10 ,
-            Columns = 3 ,
-            SeatsPerDesk = 1 ,
-            ColumnRowCounts = new List<int> { 3 , 2 , 1 }
+            Rows = 10,
+            Columns = 3,
+            SeatsPerDesk = 1,
+            ColumnRowCounts = new List<int> { 3, 2, 1 }
         };
         var layout = GridLayoutBuilder.BuildGrid(meta);
         layout.Seats.Count.Should().Be(6); // 3+2+1
@@ -62,13 +62,13 @@ public class GridLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildGrid_WithEmptyPositions_ShouldSkipThem ()
+    public void BuildGrid_WithEmptyPositions_ShouldSkipThem()
     {
         var meta = new GridLayoutMetadata
         {
-            Rows = 3 ,
-            Columns = 3 ,
-            SeatsPerDesk = 1 ,
+            Rows = 3,
+            Columns = 3,
+            SeatsPerDesk = 1,
             EmptyPositions = new List<GridPosition>
             {
                 new() { Row = 1, Column = 2 },
@@ -82,13 +82,13 @@ public class GridLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildGrid_WithColumnRowCounts_BackwardCompat_EmptyListUsesRows ()
+    public void BuildGrid_WithColumnRowCounts_BackwardCompat_EmptyListUsesRows()
     {
         var meta = new GridLayoutMetadata
         {
-            Rows = 4 ,
-            Columns = 3 ,
-            SeatsPerDesk = 1 ,
+            Rows = 4,
+            Columns = 3,
+            SeatsPerDesk = 1,
             ColumnRowCounts = [] // 空列表 -> 回退到 Rows
         };
         var layout = GridLayoutBuilder.BuildGrid(meta);
@@ -96,15 +96,15 @@ public class GridLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildGrid_WithAlternatingColumnRowCounts_ShouldBeRowMajor ()
+    public void BuildGrid_WithAlternatingColumnRowCounts_ShouldBeRowMajor()
     {
         // 模拟不规则教室：8列，单数列4行，双数列5行
         var meta = new GridLayoutMetadata
         {
-            Rows = 5 ,
-            Columns = 8 ,
-            SeatsPerDesk = 1 ,
-            ColumnRowCounts = new List<int> { 4 , 5 , 4 , 5 , 4 , 5 , 4 , 5 }
+            Rows = 5,
+            Columns = 8,
+            SeatsPerDesk = 1,
+            ColumnRowCounts = new List<int> { 4, 5, 4, 5, 4, 5, 4, 5 }
         };
         var layout = GridLayoutBuilder.BuildGrid(meta);
         layout.Seats.Count.Should().Be(36); // 4*4 + 5*4

@@ -1,34 +1,60 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.DialogContent"
-             x:CompileBindings="False"
-             Width="420" MinHeight="160"
-             Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.DialogContent"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  Width="420"
+  MinHeight="160"
+  x:CompileBindings="False"
+  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
 
   <DockPanel Margin="20,48,20,16">
-    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
-                HorizontalAlignment="Right" Margin="0,16,0,0" Spacing="8"
-                x:Name="ButtonPanel">
-      <Button x:Name="OkButton" Classes="ActionButton" IsDefault="True" HorizontalContentAlignment="Center"
-              Content="{x:Static lang:Resources.Common_OK}"/>
-      <Button x:Name="ThirdButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" Content="{x:Static lang:Resources.Common_OK}"/>
-      <Button x:Name="CancelButton" Classes="ActionButton" HorizontalContentAlignment="Center"
-              IsVisible="False" Content="{x:Static lang:Resources.Common_Cancel}"/>
+    <StackPanel
+      x:Name="ButtonPanel"
+      Margin="0,16,0,0"
+      HorizontalAlignment="Right"
+      DockPanel.Dock="Bottom"
+      Orientation="Horizontal"
+      Spacing="8">
+      <Button
+        x:Name="OkButton"
+        HorizontalContentAlignment="Center"
+        Classes="ActionButton"
+        Content="{x:Static lang:Resources.Common_OK}"
+        IsDefault="True" />
+      <Button
+        x:Name="ThirdButton"
+        HorizontalContentAlignment="Center"
+        Classes="ActionButton"
+        Content="{x:Static lang:Resources.Common_OK}"
+        IsVisible="False" />
+      <Button
+        x:Name="CancelButton"
+        HorizontalContentAlignment="Center"
+        Classes="ActionButton"
+        Content="{x:Static lang:Resources.Common_Cancel}"
+        IsVisible="False" />
     </StackPanel>
 
     <DockPanel>
-      <fic:FluentIcon x:Name="DialogIcon" DockPanel.Dock="Left"
-                      FontSize="28" Margin="0,0,16,0" VerticalAlignment="Top" />
+      <fic:FluentIcon
+        x:Name="DialogIcon"
+        Margin="0,0,16,0"
+        VerticalAlignment="Top"
+        DockPanel.Dock="Left"
+        FontSize="28" />
       <StackPanel Spacing="4">
-        <TextBlock x:Name="TitleBlock" Classes="sectionTitle"
-                   TextWrapping="Wrap" />
-        <TextBlock x:Name="MessageBlock" Classes="body"
-                   TextWrapping="Wrap"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <TextBlock
+          x:Name="TitleBlock"
+          Classes="sectionTitle"
+          TextWrapping="Wrap" />
+        <TextBlock
+          x:Name="MessageBlock"
+          Classes="body"
+          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          TextWrapping="Wrap" />
       </StackPanel>
     </DockPanel>
   </DockPanel>

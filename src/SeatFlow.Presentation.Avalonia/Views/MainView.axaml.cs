@@ -16,28 +16,28 @@ namespace SeatFlow.Presentation.Avalonia.Views
     {
         private readonly IOnboardingService _onboarding;
 
-        public MainView (IOnboardingService onboarding)
+        public MainView(IOnboardingService onboarding)
         {
             _onboarding = onboarding;
             InitializeComponent();
         }
 
         /// <summary>Guide 步骤全部完成（用户点击最后一步的"完成"按钮）。</summary>
-        private void OnGuideCompleted (object? sender , EventArgs e)
+        private void OnGuideCompleted(object? sender, EventArgs e)
             => _onboarding.HandleGuideCompleted();
 
         /// <summary>Guide 被用户关闭（点击 × 或按 Esc）。</summary>
-        private async void OnGuideClosed (object? sender , EventArgs e)
+        private async void OnGuideClosed(object? sender, EventArgs e)
         {
             if (!await _onboarding.HandleGuideClosedAsync())
                 OnboardingGuide.Show();
         }
 
         /// <summary>Guide 步骤切换前，解析 Target、处理跨阶段页面导航。</summary>
-        private void OnGuideStepOpening (object? sender , GuideStepEventArgs e)
-            => _onboarding.HandleStepOpening(e.Index , e.Step);
+        private void OnGuideStepOpening(object? sender, GuideStepEventArgs e)
+            => _onboarding.HandleStepOpening(e.Index, e.Step);
 
-        protected override void OnPropertyChanged (AvaloniaPropertyChangedEventArgs change)
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
 

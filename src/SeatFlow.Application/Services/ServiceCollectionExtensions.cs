@@ -49,10 +49,10 @@ namespace SeatFlow.Application.Services
         /// <param name="services">服务集合。</param>
         /// <param name="snapshotBasePath">数据存储的默认基路径。</param>
         /// <returns>服务集合，支持链式调用。</returns>
-        public static IServiceCollection AddSeatFlowApplication (this IServiceCollection services , string snapshotBasePath)
+        public static IServiceCollection AddSeatFlowApplication(this IServiceCollection services, string snapshotBasePath)
         {
             // 解析有效数据目录 + 读取日志配置（单次 I/O）
-            var defaultSettingsPath = Path.Combine(snapshotBasePath , "AppSettings.json");
+            var defaultSettingsPath = Path.Combine(snapshotBasePath, "AppSettings.json");
             var effectiveDataPath = snapshotBasePath;
             var logSettings = new LogSettings();
             try
@@ -60,7 +60,7 @@ namespace SeatFlow.Application.Services
                 if (File.Exists(defaultSettingsPath))
                 {
                     var json = File.ReadAllText(defaultSettingsPath);
-                    var existing = JsonSerializer.Deserialize<AppSettings>(json ,
+                    var existing = JsonSerializer.Deserialize<AppSettings>(json,
                         JsonOptions.CaseInsensitiveRead);
                     if (existing?.DataDirectory is { Length: > 0 } customPath && Directory.Exists(customPath))
                         effectiveDataPath = customPath;
@@ -75,26 +75,26 @@ namespace SeatFlow.Application.Services
             // 调试运行时自动提升日志详细度，无需修改配置文件
             if (System.Diagnostics.Debugger.IsAttached && logLevel > LogEventLevel.Debug)
                 logLevel = LogEventLevel.Debug;
-            var logDir = Path.Combine(effectiveDataPath , "Logs");
+            var logDir = Path.Combine(effectiveDataPath, "Logs");
             Directory.CreateDirectory(logDir);
 
             // 清理超出保留数量的旧日志文件
-            PruneOldLogFiles(logDir , logSettings.RetainedFileCountLimit);
+            PruneOldLogFiles(logDir, logSettings.RetainedFileCountLimit);
 
             // 实例隔离：每次启动创建独立日志文件，避免多实例写入冲突
             var instanceId = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-            var logPath = Path.Combine(logDir , $"SeatFlow_{instanceId}.log");
+            var logPath = Path.Combine(logDir, $"SeatFlow_{instanceId}.log");
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Is(logLevel)
                 .Enrich.WithThreadId();
 
             // 应用分模块日志等级覆盖（用户配置的 Key 去掉 "SeatFlow." 前缀）
-            foreach (var (category , levelStr) in logSettings.CategoryOverrides)
+            foreach (var (category, levelStr) in logSettings.CategoryOverrides)
             {
                 if (!string.IsNullOrWhiteSpace(category))
                 {
                     var catLevel = ParseLogLevel(levelStr);
-                    loggerConfig.MinimumLevel.Override($"SeatFlow.{category}" , catLevel);
+                    loggerConfig.MinimumLevel.Override($"SeatFlow.{category}", catLevel);
                 }
             }
 
@@ -105,16 +105,16 @@ namespace SeatFlow.Application.Services
 
             Log.Logger = loggerConfig
                 .WriteTo.File(
-                    logPath ,
-                    outputTemplate: outputTemplate ,
-                    fileSizeLimitBytes: logSettings.FileSizeLimitBytes ,
-                    retainedFileCountLimit: logSettings.RetainedFileCountLimit ,
-                    rollOnFileSizeLimit: true ,
+                    logPath,
+                    outputTemplate: outputTemplate,
+                    fileSizeLimitBytes: logSettings.FileSizeLimitBytes,
+                    retainedFileCountLimit: logSettings.RetainedFileCountLimit,
+                    rollOnFileSizeLimit: true,
                     flushToDiskInterval: TimeSpan.FromSeconds(5))
                 .CreateLogger();
 
-            return RegisterServices(services ,
-                new FileSystemDataStore(effectiveDataPath) ,
+            return RegisterServices(services,
+                new FileSystemDataStore(effectiveDataPath),
                 defaultAppSettingsPath: defaultSettingsPath,
                 withFileLogging: true);
         }
@@ -125,8 +125,8 @@ namespace SeatFlow.Application.Services
         /// </summary>
         /// <param name="services">服务集合。</param>
         /// <param name="store">数据存储实现（桌面 = 文件系统，WASM = IndexedDB）。</param>
-        public static IServiceCollection AddSeatFlowApplication (this IServiceCollection services , ILocalDataStore store)
-            => RegisterServices(services , store , defaultAppSettingsPath: null , withFileLogging: false);
+        public static IServiceCollection AddSeatFlowApplication(this IServiceCollection services, ILocalDataStore store)
+            => RegisterServices(services, store, defaultAppSettingsPath: null, withFileLogging: false);
 
         /// <summary>
         /// 注册全部策略/仓库/提供器服务。桌面与浏览器共用；差异点：
@@ -135,91 +135,91 @@ namespace SeatFlow.Application.Services
         /// <item>文件日志：仅桌面（Serilog File sink），浏览器不配置。</item>
         /// </list>
         /// </summary>
-        private static IServiceCollection RegisterServices (
-            IServiceCollection services ,
-            ILocalDataStore store ,
-            string? defaultAppSettingsPath ,
+        private static IServiceCollection RegisterServices(
+            IServiceCollection services,
+            ILocalDataStore store,
+            string? defaultAppSettingsPath,
             bool withFileLogging)
         {
             if (withFileLogging)
-                services.AddLogging(builder => builder.AddSerilog(Log.Logger , dispose: false));
+                services.AddLogging(builder => builder.AddSerilog(Log.Logger, dispose: false));
             else
                 services.AddLogging(); // 浏览器：无 sink（ILogger<T> 可解析，默认空实现）
             services.AddSingleton(store);
             services.AddSingleton(sp => new CsvStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
             services.AddSingleton(sp => new XlsxStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
             services.AddSingleton(sp => new JsonStudentProvider(sp.GetRequiredService<ILocalDataStore>()));
-            services.TryAddSingleton<IStudentProvider , CompositeStudentProvider>();
+            services.TryAddSingleton<IStudentProvider, CompositeStudentProvider>();
             services.AddSingleton<FileMigrationService>();
-            services.AddSingleton<IFileMigrator , VenueMigrators.Step_1_0_to_1_1>();
-            services.AddSingleton<IFileMigrator , SeatSetsMigrators.Step_1_0_to_1_1>();
+            services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>();
+            services.AddSingleton<IFileMigrator, SeatSetsMigrators.Step_1_0_to_1_1>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
-                new SeatingSnapshotRepository(store , "Assignments" ,
-                    sp.GetRequiredService<FileMigrationService>() ,
+                new SeatingSnapshotRepository(store, "Assignments",
+                    sp.GetRequiredService<FileMigrationService>(),
                     sp.GetRequiredService<ILogger<SeatingSnapshotRepository>>()));
             services.AddSingleton<FrontRowHistoryLoader>();
             services.AddSingleton<NoRepeatDeskMateHistoryLoader>();
-            services.AddSingleton<IApplicationFacade , ApplicationFacade>();
+            services.AddSingleton<IApplicationFacade, ApplicationFacade>();
 
 
             // 注册内置策略（工厂方法注入 ILogger<T>）
             services.AddSingleton<ISeatingStrategy>(sp => new FixedSeatStrategy(
-                new FixedSeatConfiguration() , sp.GetRequiredService<ILogger<FixedSeatStrategy>>()));
+                new FixedSeatConfiguration(), sp.GetRequiredService<ILogger<FixedSeatStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new RandomFillStrategy(
-                new Random() , sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
+                new Random(), sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
-                new FrontRowRotationStrategy.FrontRowRotationConfiguration() , sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
+                new FrontRowRotationStrategy.FrontRowRotationConfiguration(), sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
 
             // 注册 Defrag 策略（Priority=0，在 RandomFill 之后最后执行）
             services.AddSingleton<ISeatingStrategy>(sp => new DefragStrategy(
-                new DefragConfiguration() , sp.GetRequiredService<ILogger<DefragStrategy>>()));
+                new DefragConfiguration(), sp.GetRequiredService<ILogger<DefragStrategy>>()));
 
             // 注册依赖策略（在 RandomFill 上下文中执行）
             services.AddSingleton<IDependentSeatingStrategy>(sp => new DeskMateStrategy(
-                new DeskMateConfiguration() , sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
+                new DeskMateConfiguration(), sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new GenderRestrictedSeatStrategy(
-                new GenderRestrictedSeatConfiguration() , sp.GetRequiredService<ILogger<GenderRestrictedSeatStrategy>>()));
+                new GenderRestrictedSeatConfiguration(), sp.GetRequiredService<ILogger<GenderRestrictedSeatStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new NoRepeatDeskMateStrategy(
-                new NoRepeatDeskMateConfiguration() , sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
+                new NoRepeatDeskMateConfiguration(), sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
 
             // 注册导出器（browser 目标不注册 PDF/图片导出器：对应库在 WASM 不可用）
 #if !BROWSER
-            services.AddSingleton<ISeatingPlanExporter , PdfSeatingExporter>();
-            services.AddSingleton<ISeatingPlanExporter , ImageSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter, PdfSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter, ImageSeatingExporter>();
 #endif
-            services.AddSingleton<ISeatingPlanExporter , ExcelSeatingExporter>();
-            services.AddSingleton<ISeatingPlanExporter , CsvSeatingExporter>();
-            services.AddTransient<IStudentWriter , JsonStudentWriter>();
-            services.AddTransient<IStudentWriter , CsvStudentWriter>();
+            services.AddSingleton<ISeatingPlanExporter, ExcelSeatingExporter>();
+            services.AddSingleton<ISeatingPlanExporter, CsvSeatingExporter>();
+            services.AddTransient<IStudentWriter, JsonStudentWriter>();
+            services.AddTransient<IStudentWriter, CsvStudentWriter>();
 #if !BROWSER
-            services.AddTransient<IStudentWriter , XlsxStudentWriter>();
+            services.AddTransient<IStudentWriter, XlsxStudentWriter>();
 #else
             // WASM：XLSX 写入学籍（EPPlus 已验证可用），注册保留
             services.AddTransient<IStudentWriter , XlsxStudentWriter>();
 #endif
 
             // 注册冲突解决器
-            services.AddSingleton<IConflictResolver , DefaultConflictResolver>();
+            services.AddSingleton<IConflictResolver, DefaultConflictResolver>();
 
             // 注册场地仓储（全局单例，使用有效数据路径）
-            services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(store , "Venues" ,
-                sp.GetRequiredService<FileMigrationService>() ,
+            services.AddSingleton<IVenueRepository>(sp => new JsonVenueRepository(store, "Venues",
+                sp.GetRequiredService<FileMigrationService>(),
                 sp.GetRequiredService<ILogger<JsonVenueRepository>>()));
 
             // 注册 AppSettings 仓储（始终位于默认数据目录，避免查找自身的鸡生蛋问题）
             if (defaultAppSettingsPath is not null)
             {
-                services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(defaultAppSettingsPath ,
+                services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(defaultAppSettingsPath,
                     sp.GetRequiredService<FileMigrationService>()));
             }
             else
             {
-                services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(store , "AppSettings.json" ,
+                services.AddSingleton<IAppSettingsRepository>(sp => new JsonAppSettingsRepository(store, "AppSettings.json",
                     sp.GetRequiredService<FileMigrationService>()));
             }
 
             // 注册学生数据集仓储（全局单例）
-            services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(store , "Rosters" ,
+            services.AddSingleton<IStudentDatasetRepository>(sp => new JsonStudentDatasetRepository(store, "Rosters",
                 sp.GetRequiredService<FileMigrationService>(),
                 sp.GetRequiredService<ILogger<JsonStudentDatasetRepository>>()));
 
@@ -229,25 +229,25 @@ namespace SeatFlow.Application.Services
 
             // 注册策略运行时配置仓储（per-file，全局单例）
             services.AddSingleton(sp => new StrategyConfigFileRepository(
-                store , "StrategyConfig" ,
-                sp.GetRequiredService<FileMigrationService>() ,
+                store, "StrategyConfig",
+                sp.GetRequiredService<FileMigrationService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyConfigFileRepository>>()));
 
             // 注册策略数据集配置仓储（per-strategy sub-directory，全局单例）
             services.AddSingleton(sp => new StrategyDatasetConfigRepository(
-                store , "StrategyConfig" ,
-                sp.GetRequiredService<FileMigrationService>() ,
+                store, "StrategyConfig",
+                sp.GetRequiredService<FileMigrationService>(),
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<StrategyDatasetConfigRepository>>()));
 
             // 注册 .seatsets 数据包服务（全局单例。浏览器端备份包导出/导入仍可用：数据来自 store）
             services.AddSingleton<ISeatSetsService>(sp => new SeatSetsService(
-                store ,
+                store,
                 sp.GetRequiredService<ILogger<SeatSetsService>>()));
 
             return services;
         }
 
-        private static LogEventLevel ParseLogLevel (string level) => level?.ToLowerInvariant() switch
+        private static LogEventLevel ParseLogLevel(string level) => level?.ToLowerInvariant() switch
         {
             "debug" => LogEventLevel.Debug,
             "information" => LogEventLevel.Information,
@@ -261,12 +261,12 @@ namespace SeatFlow.Application.Services
         /// 清理旧的日志文件，仅保留最近 <paramref name="retainCount"/> 个。
         /// 文件按创建时间降序排列（最新的在前）。
         /// </summary>
-        private static void PruneOldLogFiles (string logDir , int retainCount)
+        private static void PruneOldLogFiles(string logDir, int retainCount)
         {
             if (retainCount <= 0) return;
             try
             {
-                var files = Directory.GetFiles(logDir , "SeatFlow_*.log")
+                var files = Directory.GetFiles(logDir, "SeatFlow_*.log")
                     .Select(f => new FileInfo(f))
                     .OrderByDescending(f => f.CreationTimeUtc)
                     .ToList();

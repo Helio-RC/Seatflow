@@ -3,7 +3,7 @@ namespace SeatFlow.Core.Tests.Utilities;
 public class CircularHistoryTests
 {
     [Fact]
-    public void Resize_Expand_KeepsAllEntries ()
+    public void Resize_Expand_KeepsAllEntries()
     {
         var history = new CircularHistory<string>(3);
         history.Add("a");
@@ -12,11 +12,11 @@ public class CircularHistoryTests
 
         history.Resize(5);
 
-        history.GetAll().Should().BeEquivalentTo(["a" , "b" , "c"]);
+        history.GetAll().Should().BeEquivalentTo(["a", "b", "c"]);
     }
 
     [Fact]
-    public void Resize_Shrink_KeepsMostRecent ()
+    public void Resize_Shrink_KeepsMostRecent()
     {
         var history = new CircularHistory<string>(5);
         history.Add("a");
@@ -28,11 +28,11 @@ public class CircularHistoryTests
         history.Resize(3);
 
         // 缩容后仅保留最近 3 条
-        history.GetAll().Should().BeEquivalentTo(["c" , "d" , "e"]);
+        history.GetAll().Should().BeEquivalentTo(["c", "d", "e"]);
     }
 
     [Fact]
-    public void Resize_SameCapacity_NoOp ()
+    public void Resize_SameCapacity_NoOp()
     {
         var history = new CircularHistory<string>(3);
         history.Add("x");
@@ -40,11 +40,11 @@ public class CircularHistoryTests
 
         history.Resize(3);
 
-        history.GetAll().Should().BeEquivalentTo(["x" , "y"]);
+        history.GetAll().Should().BeEquivalentTo(["x", "y"]);
     }
 
     [Fact]
-    public void Resize_NegativeCapacity_Throws ()
+    public void Resize_NegativeCapacity_Throws()
     {
         var history = new CircularHistory<string>(3);
         var act = () => history.Resize(-1);
@@ -52,7 +52,7 @@ public class CircularHistoryTests
     }
 
     [Fact]
-    public void Resize_ZeroCapacity_Throws ()
+    public void Resize_ZeroCapacity_Throws()
     {
         var history = new CircularHistory<string>(3);
         var act = () => history.Resize(0);
@@ -60,7 +60,7 @@ public class CircularHistoryTests
     }
 
     [Fact]
-    public void Resize_ShrinkToExactlyCount_KeepsAll ()
+    public void Resize_ShrinkToExactlyCount_KeepsAll()
     {
         var history = new CircularHistory<string>(5);
         history.Add("a");
@@ -69,6 +69,6 @@ public class CircularHistoryTests
 
         history.Resize(3);
 
-        history.GetAll().Should().BeEquivalentTo(["a" , "b" , "c"]);
+        history.GetAll().Should().BeEquivalentTo(["a", "b", "c"]);
     }
 }

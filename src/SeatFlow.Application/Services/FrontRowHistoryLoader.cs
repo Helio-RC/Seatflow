@@ -11,8 +11,8 @@ namespace SeatFlow.Application.Services;
 /// 前排轮换历史加载器。从该会场最近 N 个快照中恢复学生的前排座位历史，
 /// 使 <see cref="Core.Strategies.FrontRowRotationStrategy"/> 的历史惩罚机制在跨会话场景下也能生效。
 /// </summary>
-internal class FrontRowHistoryLoader (
-    ISeatingSnapshotRepository snapshotRepository ,
+internal class FrontRowHistoryLoader(
+    ISeatingSnapshotRepository snapshotRepository,
     ILogger<FrontRowHistoryLoader>? logger = null)
 {
     private readonly ISeatingSnapshotRepository _snapshotRepository = snapshotRepository ?? throw new ArgumentNullException(nameof(snapshotRepository));
@@ -26,10 +26,10 @@ internal class FrontRowHistoryLoader (
     /// <param name="venueId">会场 ID。</param>
     /// <param name="historyWindowSize">参考历史快照个数。</param>
     /// <param name="ct">取消令牌。</param>
-    public async Task PopulateFrontRowHistoryAsync (
-        SeatingWorkspace workspace ,
-        string venueId ,
-        int historyWindowSize ,
+    public async Task PopulateFrontRowHistoryAsync(
+        SeatingWorkspace workspace,
+        string venueId,
+        int historyWindowSize,
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(workspace);
@@ -40,11 +40,11 @@ internal class FrontRowHistoryLoader (
         }
 
         // 1. 加载该会场所有快照，取最近 historyWindowSize 个
-        var snapshots = await _snapshotRepository.ListByVenueAsync(venueId , ct);
+        var snapshots = await _snapshotRepository.ListByVenueAsync(venueId, ct);
         var recentSnapshots = snapshots.Take(historyWindowSize).ToList();
         if (recentSnapshots.Count == 0)
         {
-            _logger.LogDebug("会场 {VenueId} 无历史快照，跳过前排历史恢复" , venueId);
+            _logger.LogDebug("会场 {VenueId} 无历史快照，跳过前排历史恢复", venueId);
             return;
         }
 
@@ -57,11 +57,11 @@ internal class FrontRowHistoryLoader (
         int restoredCount = 0;
         foreach (var snapshot in Enumerable.Reverse(recentSnapshots))
         {
-            var layoutJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
-                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+            var layoutJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata, "venueFile")
+                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata, "venueLayout");
             if (string.IsNullOrEmpty(layoutJson))
             {
-                _logger.LogDebug("快照 {SnapshotId} 无嵌入会场布局，跳过" , snapshot.Id);
+                _logger.LogDebug("快照 {SnapshotId} 无嵌入会场布局，跳过", snapshot.Id);
                 continue;
             }
 
@@ -72,30 +72,30 @@ internal class FrontRowHistoryLoader (
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex , "快照 {SnapshotId} 的嵌入布局反序列化失败，跳过" , snapshot.Id);
+                _logger.LogWarning(ex, "快照 {SnapshotId} 的嵌入布局反序列化失败，跳过", snapshot.Id);
                 continue;
             }
 
             if (layout == null)
             {
-                _logger.LogDebug("快照 {SnapshotId} 反序列化布局为 null，跳过" , snapshot.Id);
+                _logger.LogDebug("快照 {SnapshotId} 反序列化布局为 null，跳过", snapshot.Id);
                 continue;
             }
 
             var frontSeatIds = IdentifyFrontRowSeats(layout);
-            foreach (var (seatId , studentId) in snapshot.SeatAssignments)
+            foreach (var (seatId, studentId) in snapshot.SeatAssignments)
             {
                 if (string.IsNullOrEmpty(studentId)) continue;
                 if (!frontSeatIds.Contains(seatId)) continue;
-                if (!studentMap.TryGetValue(studentId , out var student)) continue;
+                if (!studentMap.TryGetValue(studentId, out var student)) continue;
 
                 student.RecentSeatHistory.Add(seatId);
                 restoredCount++;
             }
         }
 
-        _logger.LogInformation("从 {SnapshotCount} 个快照恢复了 {EntryCount} 条前排历史记录" ,
-            recentSnapshots.Count , restoredCount);
+        _logger.LogInformation("从 {SnapshotCount} 个快照恢复了 {EntryCount} 条前排历史记录",
+            recentSnapshots.Count, restoredCount);
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ internal class FrontRowHistoryLoader (
     /// </summary>
     /// <param name="layout">会场布局定义。</param>
     /// <returns>前排座位 ID 的集合。</returns>
-    public static HashSet<string> IdentifyFrontRowSeats (ClassroomLayoutDefinition layout)
+    public static HashSet<string> IdentifyFrontRowSeats(ClassroomLayoutDefinition layout)
     {
         ArgumentNullException.ThrowIfNull(layout);
         int frontRowCount = layout.Metadata switch
@@ -113,6 +113,6 @@ internal class FrontRowHistoryLoader (
             PolarLayoutMetadata pm => pm.FrontRowCount,
             _ => 1
         };
-        return SeatGeometryHelper.IdentifyFrontRowSeats(layout.Seats , frontRowCount);
+        return SeatGeometryHelper.IdentifyFrontRowSeats(layout.Seats, frontRowCount);
     }
 }

@@ -32,12 +32,12 @@ namespace SeatFlow.Application.Services
         /// <summary>
         /// 管道内部统一执行项。
         /// </summary>
-        private sealed record PipelineStrategyItem (
-            string Id ,
-            string Name ,
-            int Priority ,
-            bool IsEnabled ,
-            Func<SeatingWorkspace , CancellationToken , Task<(bool Success , string Message)>> Execute);
+        private sealed record PipelineStrategyItem(
+            string Id,
+            string Name,
+            int Priority,
+            bool IsEnabled,
+            Func<SeatingWorkspace, CancellationToken, Task<(bool Success, string Message)>> Execute);
 
         private readonly List<PipelineStrategyItem> _strategies = [];
         private readonly ILogger<StrategyExecutionPipeline>? _logger;
@@ -49,18 +49,18 @@ namespace SeatFlow.Application.Services
         /// <param name="strategies">要执行的策略集合。</param>
         /// <param name="logger">日志记录器。</param>
         /// <param name="throwOnFailure">是否在策略失败时抛出异常。</param>
-        public StrategyExecutionPipeline (
-            IEnumerable<ISeatingStrategy> strategies ,
-            ILogger<StrategyExecutionPipeline>? logger = null ,
+        public StrategyExecutionPipeline(
+            IEnumerable<ISeatingStrategy> strategies,
+            ILogger<StrategyExecutionPipeline>? logger = null,
             bool throwOnFailure = false)
         {
             ArgumentNullException.ThrowIfNull(strategies);
             _strategies.AddRange(strategies.Select(s => new PipelineStrategyItem(
-                s.Id , s.Name , s.Priority , s.IsEnabled ,
-                async (w , ct) =>
+                s.Id, s.Name, s.Priority, s.IsEnabled,
+                async (w, ct) =>
                 {
-                    var r = await s.ExecuteAsync(w , ct);
-                    return (r.Success , r.Message);
+                    var r = await s.ExecuteAsync(w, ct);
+                    return (r.Success, r.Message);
                 })));
             _logger = logger;
             _throwOnFailure = throwOnFailure;
@@ -73,9 +73,9 @@ namespace SeatFlow.Application.Services
         /// <param name="progress">用于报告执行进度的对象。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>执行完成后生成的座位安排计划。</returns>
-        public async Task<SeatingPlan> ExecuteAsync (
-            SeatingWorkspace workspace ,
-            IProgress<SeatingProgress>? progress = null ,
+        public async Task<SeatingPlan> ExecuteAsync(
+            SeatingWorkspace workspace,
+            IProgress<SeatingProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
             var enabledStrategies = _strategies.Where(s => s.IsEnabled).OrderByDescending(s => s.Priority).ToList();
@@ -89,31 +89,31 @@ namespace SeatFlow.Application.Services
 
                 progress?.Report(new SeatingProgress
                 {
-                    CurrentStep = ++current ,
-                    TotalSteps = total ,
+                    CurrentStep = ++current,
+                    TotalSteps = total,
                     StatusMessage = $"正在执行策略: {strategy.Name}"
                 });
 
-                var result = await strategy.Execute(workspace , cancellationToken);
+                var result = await strategy.Execute(workspace, cancellationToken);
                 if (!result.Success)
                 {
                     failedStrategies.Add($"{strategy.Name}({strategy.Id}): {result.Message}");
-                    workspace.LogError(strategy.Id , strategy.Name , "Pipeline_ExecFailed" , result.Message);
-                    _logger?.LogError("策略执行失败: {StrategyName} ({StrategyId}) - {Message}" ,
-                        strategy.Name , strategy.Id , result.Message);
+                    workspace.LogError(strategy.Id, strategy.Name, "Pipeline_ExecFailed", result.Message);
+                    _logger?.LogError("策略执行失败: {StrategyName} ({StrategyId}) - {Message}",
+                        strategy.Name, strategy.Id, result.Message);
                 }
             }
 
             if (failedStrategies.Count != 0 && _throwOnFailure)
             {
-                throw new StrategyExecutionException($"以下策略执行失败: {string.Join("; " , failedStrategies)}");
+                throw new StrategyExecutionException($"以下策略执行失败: {string.Join("; ", failedStrategies)}");
             }
 
             return workspace.BuildSeatingPlan();
         }
     }
 
-    public class StrategyExecutionException (string message) : System.Exception(message)
+    public class StrategyExecutionException(string message) : System.Exception(message)
     {
     }
 }

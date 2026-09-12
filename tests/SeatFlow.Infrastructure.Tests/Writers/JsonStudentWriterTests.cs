@@ -5,7 +5,7 @@ namespace SeatFlow.Infrastructure.Tests.Writers;
 public class JsonStudentWriterTests
 {
     [Fact]
-    public async Task WriteAsync_ShouldCreateRosterFile ()
+    public async Task WriteAsync_ShouldCreateRosterFile()
     {
         var students = new List<Student>
     {
@@ -16,12 +16,12 @@ public class JsonStudentWriterTests
         try
         {
             var writer = new JsonStudentWriter();
-            await writer.WriteAsync(path , students , CancellationToken.None);
+            await writer.WriteAsync(path, students, CancellationToken.None);
 
-            var json = await File.ReadAllTextAsync(path , TestContext.Current.CancellationToken);
+            var json = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
             // camelCase 命名策略，验证包含 "name": "Alice"
             json.Should().Contain("\"name\": \"Alice\"");
-            var roster = JsonSerializer.Deserialize<RosterFile>(json , JsonOptions.CaseInsensitiveRead);
+            var roster = JsonSerializer.Deserialize<RosterFile>(json, JsonOptions.CaseInsensitiveRead);
             roster.Should().NotBeNull();
             roster!.Students.Should().HaveCount(2);
         }

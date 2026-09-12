@@ -10,7 +10,7 @@ namespace SeatFlow.Core.Strategies
     /// 因为最先执行且通过 IsFixed 锁定，后续策略的 GetEmptySeats() 自动排除这些座位，
     /// 确保固定分配不受其他任何策略影响。适用于特殊需求学生（如残障学生固定前排座位）。
     /// </summary>
-    public class FixedSeatStrategy (FixedSeatConfiguration config , ILogger<FixedSeatStrategy>? logger = null) : ISeatingStrategy
+    public class FixedSeatStrategy(FixedSeatConfiguration config, ILogger<FixedSeatStrategy>? logger = null) : ISeatingStrategy
     {
         private readonly FixedSeatConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
         private readonly ILogger<FixedSeatStrategy> _logger = logger ?? NullLogger<FixedSeatStrategy>.Instance;
@@ -18,7 +18,7 @@ namespace SeatFlow.Core.Strategies
         /// <summary>
         /// 使用默认空配置创建实例。
         /// </summary>
-        public FixedSeatStrategy () : this(new FixedSeatConfiguration()) { }
+        public FixedSeatStrategy() : this(new FixedSeatConfiguration()) { }
 
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public FixedSeatConfiguration Config => _config;
@@ -43,10 +43,10 @@ namespace SeatFlow.Core.Strategies
         /// 1. 根据配置将指定座位标记为 IsFixed 并分配学生。
         /// 2. 确保所有固定座位保持不可用状态（不被其他策略修改）。
         /// </summary>
-        public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
+        public Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
-            _logger.LogInformation("FixedSeat 策略开始执行：{AssignmentCount} 个固定分配" ,
+            _logger.LogInformation("FixedSeat 策略开始执行：{AssignmentCount} 个固定分配",
                 _config.FixedAssignments.Count);
 
             var assignedCount = 0;
@@ -55,8 +55,8 @@ namespace SeatFlow.Core.Strategies
                 var seat = workspace.FindSeats(s => s.Id == kv.Key).FirstOrDefault();
                 if (seat == null)
                 {
-                    _logger.LogWarning("FixedSeat：座位 {SeatId} 不存在，跳过" , kv.Key);
-                    workspace.LogWarning(Id , DisplayNameConst , "FixedSeat_NotFound" , kv.Key);
+                    _logger.LogWarning("FixedSeat：座位 {SeatId} 不存在，跳过", kv.Key);
+                    workspace.LogWarning(Id, DisplayNameConst, "FixedSeat_NotFound", kv.Key);
                     continue;
                 }
 
@@ -66,12 +66,12 @@ namespace SeatFlow.Core.Strategies
                     // 如果座位已被其他人占用则清除
                     if (seat.OccupantId != null && seat.OccupantId != kv.Value)
                     {
-                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被占用，清除后重新分配" , kv.Key);
-                        workspace.LogWarning(Id , DisplayNameConst , "FixedSeat_Occupied" , kv.Key);
+                        _logger.LogWarning("FixedSeat：座位 {SeatId} 被占用，清除后重新分配", kv.Key);
+                        workspace.LogWarning(Id, DisplayNameConst, "FixedSeat_Occupied", kv.Key);
                         seat.OccupantId = null;
                         seat.IsAvailable = true;
                     }
-                    bool success = workspace.TryAssignSeat(seat.Id , kv.Value , out _);
+                    bool success = workspace.TryAssignSeat(seat.Id, kv.Value, out _);
                     if (success)
                     {
                         seat.IsFixed = true;
@@ -79,8 +79,8 @@ namespace SeatFlow.Core.Strategies
                     }
                     else
                     {
-                        _logger.LogWarning("FixedSeat：分配座位 {SeatId} 给学生 {StudentId} 失败" , kv.Key , kv.Value);
-                        workspace.LogError(Id , DisplayNameConst , "FixedSeat_AssignFailed" , kv.Key , kv.Value);
+                        _logger.LogWarning("FixedSeat：分配座位 {SeatId} 给学生 {StudentId} 失败", kv.Key, kv.Value);
+                        workspace.LogError(Id, DisplayNameConst, "FixedSeat_AssignFailed", kv.Key, kv.Value);
                     }
                 }
                 else
@@ -101,19 +101,19 @@ namespace SeatFlow.Core.Strategies
                 }
             }
 
-            _logger.LogInformation("FixedSeat 策略完成：成功分配 {Assigned} 个，防御性修复 {Fixed} 个" ,
-                assignedCount , fixedCount);
+            _logger.LogInformation("FixedSeat 策略完成：成功分配 {Assigned} 个，防御性修复 {Fixed} 个",
+                assignedCount, fixedCount);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 
         /// <summary>
         /// 验证配置：FixedAssignments 不能为 null。
         /// </summary>
-        public ValidationResult ValidateConfiguration ()
+        public ValidationResult ValidateConfiguration()
         {
             if (_config.FixedAssignments == null)
             {
-                return new ValidationResult { IsValid = false , Error = "FixedAssignments cannot be null." };
+                return new ValidationResult { IsValid = false, Error = "FixedAssignments cannot be null." };
             }
             return new ValidationResult { IsValid = true };
         }
@@ -125,6 +125,6 @@ namespace SeatFlow.Core.Strategies
     public class FixedSeatConfiguration
     {
         /// <summary>固定分配字典，Key 为座位 ID，Value 为学生 ID。</summary>
-        public Dictionary<string , string> FixedAssignments { get; set; } = [];
+        public Dictionary<string, string> FixedAssignments { get; set; } = [];
     }
 }

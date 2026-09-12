@@ -18,5 +18,5 @@ public interface IFileMigrator
     string ToVersion { get; }
 
     /// <summary>对 JSON 树执行原地迁移，返回迁移后的根节点。</summary>
-    JsonNode Migrate (JsonNode root);
+    JsonNode Migrate(JsonNode root);
 }

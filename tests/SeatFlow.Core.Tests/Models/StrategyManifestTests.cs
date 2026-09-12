@@ -3,7 +3,7 @@ namespace SeatFlow.Core.Tests.Models;
 public class StrategyManifestTests
 {
     [Fact]
-    public void Default_HasEmptyValues ()
+    public void Default_HasEmptyValues()
     {
         var m = new StrategyManifest();
         m.Id.Should().BeEmpty();
@@ -15,18 +15,18 @@ public class StrategyManifestTests
     }
 
     [Fact]
-    public void CanSetAllProperties ()
+    public void CanSetAllProperties()
     {
         var m = new StrategyManifest
         {
-            Id = "RandomFill" ,
-            Name = "Random Fill" ,
-            DisplayName = "随机填充" ,
-            Version = "1.0.0" ,
-            Description = "将剩余学生随机填入空位" ,
-            Author = "SeatFlow" ,
-            Category = "fill" ,
-            DefaultPriority = 10 ,
+            Id = "RandomFill",
+            Name = "Random Fill",
+            DisplayName = "随机填充",
+            Version = "1.0.0",
+            Description = "将剩余学生随机填入空位",
+            Author = "SeatFlow",
+            Category = "fill",
+            DefaultPriority = 10,
             DefaultEnabled = true
         };
         m.Id.Should().Be("RandomFill");

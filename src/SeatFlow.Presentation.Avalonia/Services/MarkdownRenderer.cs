@@ -9,20 +9,20 @@ public enum MdBlockKind { Title, Heading, SubHeading, ListItem, Paragraph, Code,
 
 /// <param name="Text">渲染文本（内联样式已展平为纯文本）</param>
 /// <param name="Kind">块类型</param>
-public record MdBlock (string Text, MdBlockKind Kind)
+public record MdBlock(string Text, MdBlockKind Kind)
 {
-    public bool IsTitle      => Kind == MdBlockKind.Title;
-    public bool IsHeading    => Kind == MdBlockKind.Heading;
+    public bool IsTitle => Kind == MdBlockKind.Title;
+    public bool IsHeading => Kind == MdBlockKind.Heading;
     public bool IsSubHeading => Kind == MdBlockKind.SubHeading;
-    public bool IsListItem   => Kind == MdBlockKind.ListItem;
-    public bool IsParagraph  => Kind == MdBlockKind.Paragraph;
-    public bool IsCode       => Kind == MdBlockKind.Code;
-    public bool IsEmpty      => Kind == MdBlockKind.Empty;
+    public bool IsListItem => Kind == MdBlockKind.ListItem;
+    public bool IsParagraph => Kind == MdBlockKind.Paragraph;
+    public bool IsCode => Kind == MdBlockKind.Code;
+    public bool IsEmpty => Kind == MdBlockKind.Empty;
 }
 
 public static class MarkdownRenderer
 {
-    public static List<MdBlock> Render (string markdown)
+    public static List<MdBlock> Render(string markdown)
     {
         var document = Markdown.Parse(markdown);
         var blocks = new List<MdBlock>();
@@ -33,7 +33,7 @@ public static class MarkdownRenderer
         return blocks;
     }
 
-    private static void RenderBlock (Block block, List<MdBlock> blocks)
+    private static void RenderBlock(Block block, List<MdBlock> blocks)
     {
         switch (block)
         {
@@ -58,11 +58,11 @@ public static class MarkdownRenderer
                 foreach (var item in l)
                 {
                     if (item is ListItemBlock li)
-                    foreach (var sub in li)
-                    {
-                        if (sub is ParagraphBlock lp)
-                            blocks.Add(new MdBlock(FlattenInlines(lp.Inline), MdBlockKind.ListItem));
-                    }
+                        foreach (var sub in li)
+                        {
+                            if (sub is ParagraphBlock lp)
+                                blocks.Add(new MdBlock(FlattenInlines(lp.Inline), MdBlockKind.ListItem));
+                        }
                 }
                 break;
 
@@ -73,7 +73,7 @@ public static class MarkdownRenderer
     }
 
     /// <summary>展平内联元素为纯文本</summary>
-    private static string FlattenInlines (ContainerInline? container)
+    private static string FlattenInlines(ContainerInline? container)
     {
         if (container is null) return "";
 
@@ -83,7 +83,7 @@ public static class MarkdownRenderer
         return sb.ToString();
     }
 
-    private static void AppendInline (Inline inline, System.Text.StringBuilder sb)
+    private static void AppendInline(Inline inline, System.Text.StringBuilder sb)
     {
         switch (inline)
         {

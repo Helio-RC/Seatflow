@@ -6,13 +6,13 @@ namespace SeatFlow.Presentation.Avalonia.Behaviors;
 /// </summary>
 public static class ChineseInputNormalizer
 {
-    public static void Attach (global::Avalonia.Input.InputElement root)
+    public static void Attach(global::Avalonia.Input.InputElement root)
     {
-        root.AddHandler(global::Avalonia.Input.InputElement.TextInputEvent , OnTextInput ,
+        root.AddHandler(global::Avalonia.Input.InputElement.TextInputEvent, OnTextInput,
             global::Avalonia.Interactivity.RoutingStrategies.Tunnel);
     }
 
-    private static void OnTextInput (object? sender , global::Avalonia.Input.TextInputEventArgs e)
+    private static void OnTextInput(object? sender, global::Avalonia.Input.TextInputEventArgs e)
     {
         if (string.IsNullOrEmpty(e.Text)) return;
         var normalized = Normalize(e.Text);
@@ -20,7 +20,7 @@ public static class ChineseInputNormalizer
             e.Text = normalized;
     }
 
-    public static string Normalize (string input)
+    public static string Normalize(string input)
     {
         if (string.IsNullOrEmpty(input)) return input;
         var chars = input.ToCharArray();

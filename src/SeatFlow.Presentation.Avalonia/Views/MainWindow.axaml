@@ -1,19 +1,25 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
-        x:Class="SeatFlow.Presentation.Avalonia.Views.MainWindow"
-        Icon="/Assets/icon_with_background.ico"
-        Title="{x:Static lang:Resources.App_Title}" Width="1200" Height="800"
-        MinWidth="550" MinHeight="600"
-        CanResize="True"
-        DragDrop.AllowDrop="True"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="32"
-        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+<Window
+  x:Class="SeatFlow.Presentation.Avalonia.Views.MainWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  Title="{x:Static lang:Resources.App_Title}"
+  Width="1200"
+  Height="800"
+  MinWidth="550"
+  MinHeight="600"
+  d:DesignHeight="800"
+  d:DesignWidth="1200"
+  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+  CanResize="True"
+  DragDrop.AllowDrop="True"
+  ExtendClientAreaTitleBarHeightHint="32"
+  ExtendClientAreaToDecorationsHint="True"
+  Icon="/Assets/icon_with_background.ico"
+  mc:Ignorable="d">
 
-  <!-- 桌面外壳：共享的 MainView 承载全部界面；顶部 32px 为扩展标题栏预留 -->
+  <!--  桌面外壳：共享的 MainView 承载全部界面；顶部 32px 为扩展标题栏预留  -->
   <ContentControl x:Name="ShellHost" Margin="0,32,0,0" />
 </Window>

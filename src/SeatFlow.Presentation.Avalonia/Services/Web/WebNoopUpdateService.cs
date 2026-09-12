@@ -14,21 +14,21 @@ public sealed class WebNoopUpdateService : IUpdateService
 
     public bool UpdatePendingRestart => false;
 
-    public Task<UpdateCheckResult> CheckForUpdatesAsync (CancellationToken ct = default)
+    public Task<UpdateCheckResult> CheckForUpdatesAsync(CancellationToken ct = default)
         => Task.FromResult(new UpdateCheckResult
         {
-            ServiceStatus = UpdateServiceStatus.NotInstalled ,
+            ServiceStatus = UpdateServiceStatus.NotInstalled,
             CurrentVersion = VersionInfo.Version
         });
 
-    public Task DownloadUpdatesAsync (IProgress<int>? progress = null , CancellationToken ct = default)
+    public Task DownloadUpdatesAsync(IProgress<int>? progress = null, CancellationToken ct = default)
         => Task.CompletedTask;
 
-    public void ApplyUpdatesAndRestart () { }
+    public void ApplyUpdatesAndRestart() { }
 
-    public Task<string?> FetchReleaseNotesAsync (string? version = null , CancellationToken ct = default)
+    public Task<string?> FetchReleaseNotesAsync(string? version = null, CancellationToken ct = default)
         => Task.FromResult<string?>(null);
 
-    public string GetGitHubReleasesUrl (string? version = null)
+    public string GetGitHubReleasesUrl(string? version = null)
         => "https://github.com/SeatFlow/SeatFlow/releases";
 }

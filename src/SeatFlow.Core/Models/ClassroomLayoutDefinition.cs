@@ -22,7 +22,7 @@ namespace SeatFlow.Core.Models
         public string LayoutTypeString
         {
             get => LayoutType.ToString();
-            set => LayoutType = Enum.TryParse<LayoutType>(value , out var result) ? result : LayoutType.Grid;
+            set => LayoutType = Enum.TryParse<LayoutType>(value, out var result) ? result : LayoutType.Grid;
         }
 
         /// <summary>座位列表（可变）。</summary>

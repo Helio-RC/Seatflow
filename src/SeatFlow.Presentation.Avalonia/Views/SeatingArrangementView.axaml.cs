@@ -11,13 +11,13 @@ namespace SeatFlow.Presentation.Avalonia.Views;
 
 public partial class SeatingArrangementView : UserControl
 {
-    public SeatingArrangementView ()
+    public SeatingArrangementView()
     {
         InitializeComponent();
         Loaded += OnLoaded;
     }
 
-    private void OnLoaded (object? sender , RoutedEventArgs e)
+    private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ViewModels.SeatingArrangementViewModel vm)
             _ = vm.RefreshDataAsync();
@@ -33,10 +33,10 @@ public partial class SeatingArrangementView : UserControl
 
     // ── 拖放辅助方法 ──
 
-    private static bool DragHasFormat (IDataTransfer transfer , DataFormat format)
+    private static bool DragHasFormat(IDataTransfer transfer, DataFormat format)
         => transfer.Formats.Contains(format);
 
-    private static string? DragGetString (IDataTransfer transfer , DataFormat format)
+    private static string? DragGetString(IDataTransfer transfer, DataFormat format)
     {
         foreach (var item in transfer.Items)
         {
@@ -50,7 +50,7 @@ public partial class SeatingArrangementView : UserControl
 
     private Popup? _dragPopup;
 
-    private void ShowDragCard (string name , Control placementTarget)
+    private void ShowDragCard(string name, Control placementTarget)
     {
         var accentColor = (Color)placementTarget.FindResource("SystemAccentColor")!;
         var cardBg = (IBrush)placementTarget.FindResource("SystemControlBackgroundChromeWhiteBrush")!;
@@ -59,31 +59,31 @@ public partial class SeatingArrangementView : UserControl
         var isDark = global::Avalonia.Application.Current!.ActualThemeVariant == global::Avalonia.Styling.ThemeVariant.Dark;
         var cardShadow = new BoxShadows(new BoxShadow
         {
-            OffsetX = 0 ,
-            OffsetY = 2 ,
-            Blur = 8 ,
-            Color = Color.FromArgb(isDark ? (byte)0x40 : (byte)0x18 , 0 , 0 , 0)
+            OffsetX = 0,
+            OffsetY = 2,
+            Blur = 8,
+            Color = Color.FromArgb(isDark ? (byte)0x40 : (byte)0x18, 0, 0, 0)
         });
 
         _dragPopup = new Popup
         {
-            PlacementTarget = placementTarget ,
-            Placement = PlacementMode.Pointer ,
-            IsLightDismissEnabled = false ,
-            HorizontalOffset = 12 ,
-            VerticalOffset = 12 ,
+            PlacementTarget = placementTarget,
+            Placement = PlacementMode.Pointer,
+            IsLightDismissEnabled = false,
+            HorizontalOffset = 12,
+            VerticalOffset = 12,
             Child = new Border
             {
-                Background = cardBg ,
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0 , accentColor.R , accentColor.G , accentColor.B)) ,
-                BorderThickness = new Thickness(2) ,
-                CornerRadius = new CornerRadius(4) ,
-                Padding = new Thickness(10 , 5) ,
-                BoxShadow = cardShadow ,
+                Background = cardBg,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0, accentColor.R, accentColor.G, accentColor.B)),
+                BorderThickness = new Thickness(2),
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(10, 5),
+                BoxShadow = cardShadow,
                 Child = new TextBlock
                 {
-                    Text = name ,
-                    Foreground = cardFg ,
+                    Text = name,
+                    Foreground = cardFg,
                     FontSize = 13
                 }
             }
@@ -91,7 +91,7 @@ public partial class SeatingArrangementView : UserControl
         _dragPopup.IsOpen = true;
     }
 
-    private void HideDragCard ()
+    private void HideDragCard()
     {
         if (_dragPopup == null) return;
         _dragPopup.IsOpen = false;
@@ -100,7 +100,7 @@ public partial class SeatingArrangementView : UserControl
 
     // ── 座位点击/拖拽 ──
 
-    private async void SeatBorder_PointerPressed (object? sender , PointerPressedEventArgs e)
+    private async void SeatBorder_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Border border
             || border.DataContext is not ViewModels.SeatDisplayItem item)
@@ -111,15 +111,15 @@ public partial class SeatingArrangementView : UserControl
         {
             var data = new DataTransfer();
             var studentItem = new DataTransferItem();
-            studentItem.Set(DragFormats.StudentDrag , item.StudentId);
+            studentItem.Set(DragFormats.StudentDrag, item.StudentId);
             data.Add(studentItem);
             var seatItem = new DataTransferItem();
-            seatItem.Set(DragFormats.SeatDrag , item.SeatId);
+            seatItem.Set(DragFormats.SeatDrag, item.SeatId);
             data.Add(seatItem);
 
-            ShowDragCard(item.DisplayText ?? "?" , border);
+            ShowDragCard(item.DisplayText ?? "?", border);
 
-            var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
+            var result = await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
 
             HideDragCard();
 
@@ -135,7 +135,7 @@ public partial class SeatingArrangementView : UserControl
 
     // ── 未分配列表拖动 ──
 
-    private async void UnassignedStudent_PointerPressed (object? sender , PointerPressedEventArgs e)
+    private async void UnassignedStudent_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Border border
             || border.DataContext is not Core.Models.Student student)
@@ -143,12 +143,12 @@ public partial class SeatingArrangementView : UserControl
 
         var data = new DataTransfer();
         var studentItem2 = new DataTransferItem();
-        studentItem2.Set(DragFormats.StudentDrag , student.Id);
+        studentItem2.Set(DragFormats.StudentDrag, student.Id);
         data.Add(studentItem2);
 
-        ShowDragCard(student.Name ?? "?" , border);
+        ShowDragCard(student.Name ?? "?", border);
 
-        var result = await DragDrop.DoDragDropAsync(e , data , DragDropEffects.Move);
+        var result = await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
 
         HideDragCard();
 
@@ -162,7 +162,7 @@ public partial class SeatingArrangementView : UserControl
 
     // ── 座位放置目标 ──
 
-    private void Seat_DragOver (object? sender , DragEventArgs e)
+    private void Seat_DragOver(object? sender, DragEventArgs e)
     {
         if (sender is not Border border
             || border.DataContext is not ViewModels.SeatDisplayItem seat)
@@ -171,15 +171,15 @@ public partial class SeatingArrangementView : UserControl
         if (seat.IsFixed) { e.DragEffects = DragDropEffects.None; return; }
 
         var transfer = e.DataTransfer;
-        bool hasStudent = DragHasFormat(transfer , DragFormats.StudentDrag);
-        bool hasSeat = DragHasFormat(transfer , DragFormats.SeatDrag);
+        bool hasStudent = DragHasFormat(transfer, DragFormats.StudentDrag);
+        bool hasSeat = DragHasFormat(transfer, DragFormats.SeatDrag);
 
         if (seat.IsOccupied && !hasSeat)
         { e.DragEffects = DragDropEffects.None; return; }
 
         if (hasSeat)
         {
-            var srcSeatId = DragGetString(transfer , DragFormats.SeatDrag);
+            var srcSeatId = DragGetString(transfer, DragFormats.SeatDrag);
             if (srcSeatId == seat.SeatId)
             { e.DragEffects = DragDropEffects.None; return; }
         }
@@ -189,7 +189,7 @@ public partial class SeatingArrangementView : UserControl
         e.Handled = true;
     }
 
-    private async void Seat_Drop (object? sender , DragEventArgs e)
+    private async void Seat_Drop(object? sender, DragEventArgs e)
     {
         if (sender is not Border border
             || border.DataContext is not ViewModels.SeatDisplayItem seat
@@ -199,14 +199,14 @@ public partial class SeatingArrangementView : UserControl
         seat.IsDragHover = false;
 
         var transfer = e.DataTransfer;
-        var studentId = DragGetString(transfer , DragFormats.StudentDrag);
-        var sourceSeatId = DragGetString(transfer , DragFormats.SeatDrag);
+        var studentId = DragGetString(transfer, DragFormats.StudentDrag);
+        var sourceSeatId = DragGetString(transfer, DragFormats.SeatDrag);
         if (string.IsNullOrEmpty(studentId)) return;
 
-        await vm.ExecuteDropAsync(studentId , sourceSeatId , seat.SeatId);
+        await vm.ExecuteDropAsync(studentId, sourceSeatId, seat.SeatId);
     }
 
-    private void Seat_DragLeave (object? sender , DragEventArgs e)
+    private void Seat_DragLeave(object? sender, DragEventArgs e)
     {
         if (sender is Border border
             && border.DataContext is ViewModels.SeatDisplayItem seat)
@@ -217,19 +217,19 @@ public partial class SeatingArrangementView : UserControl
 
     private IBrush? _trashOriginalBg;
 
-    private void Trash_DragOver (object? sender , DragEventArgs e)
+    private void Trash_DragOver(object? sender, DragEventArgs e)
     {
-        bool hasSeat = DragHasFormat(e.DataTransfer , DragFormats.SeatDrag);
+        bool hasSeat = DragHasFormat(e.DataTransfer, DragFormats.SeatDrag);
         e.DragEffects = hasSeat ? DragDropEffects.Move : DragDropEffects.None;
         e.Handled = true;
 
         if (sender is not Border trashBorder) return;
 
         _trashOriginalBg ??= trashBorder.Background;
-        trashBorder.Background = new SolidColorBrush(Color.FromArgb(0x40 , 0xE8 , 0x11 , 0x23));
+        trashBorder.Background = new SolidColorBrush(Color.FromArgb(0x40, 0xE8, 0x11, 0x23));
     }
 
-    private void RestoreTrashBackground (object? sender)
+    private void RestoreTrashBackground(object? sender)
     {
         if (sender is Border trashBorder && _trashOriginalBg != null)
         {
@@ -238,23 +238,23 @@ public partial class SeatingArrangementView : UserControl
         }
     }
 
-    private async void Trash_Drop (object? sender , DragEventArgs e)
+    private async void Trash_Drop(object? sender, DragEventArgs e)
     {
         RestoreTrashBackground(sender);
 
-        var seatId = DragGetString(e.DataTransfer , DragFormats.SeatDrag);
+        var seatId = DragGetString(e.DataTransfer, DragFormats.SeatDrag);
         if (string.IsNullOrEmpty(seatId)) return;
 
         if (DataContext is ViewModels.SeatingArrangementViewModel vm)
             await vm.ExecuteRemoveToTrashAsync(seatId);
     }
 
-    private void Trash_DragLeave (object? sender , DragEventArgs e)
+    private void Trash_DragLeave(object? sender, DragEventArgs e)
     {
         RestoreTrashBackground(sender);
     }
 
-    private async void Trash_PointerPressed (object? sender , PointerPressedEventArgs e)
+    private async void Trash_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is ViewModels.SeatingArrangementViewModel vm)
             await vm.RemoveToTrashCommand.ExecuteAsync(null);

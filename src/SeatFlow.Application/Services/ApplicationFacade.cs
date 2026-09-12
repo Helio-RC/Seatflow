@@ -35,17 +35,17 @@ namespace SeatFlow.Application.Services
     ///   <item>保存 <see cref="SeatingSnapshot"/> 快照以支持回滚</item>
     /// </list>
     /// </remarks>
-    public class ApplicationFacade (
-        IServiceProvider serviceProvider ,
-        ISeatingSnapshotRepository snapshotRepository ,
-        IEnumerable<ISeatingPlanExporter> exporters ,
-        IAppSettingsRepository appSettingsRepo ,
-        IVenueRepository venueRepo ,
-        IStudentDatasetRepository datasetRepo ,
-        StrategyManifestProvider manifestProvider ,
-        StrategyConfigFileRepository strategyConfigRepo ,
-        StrategyDatasetConfigRepository datasetConfigRepo ,
-        ISeatSetsService seatSetsService ,
+    public class ApplicationFacade(
+        IServiceProvider serviceProvider,
+        ISeatingSnapshotRepository snapshotRepository,
+        IEnumerable<ISeatingPlanExporter> exporters,
+        IAppSettingsRepository appSettingsRepo,
+        IVenueRepository venueRepo,
+        IStudentDatasetRepository datasetRepo,
+        StrategyManifestProvider manifestProvider,
+        StrategyConfigFileRepository strategyConfigRepo,
+        StrategyDatasetConfigRepository datasetConfigRepo,
+        ISeatSetsService seatSetsService,
         ILogger<ApplicationFacade> logger) : IApplicationFacade
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -74,66 +74,66 @@ namespace SeatFlow.Application.Services
         private static readonly TimeSpan StrategyDisplayCacheDuration = TimeSpan.FromSeconds(30);
 
         /// <inheritdoc />
-        public Task<AppConfiguration> LoadConfigurationAsync (string path , CancellationToken cancellationToken = default)
+        public Task<AppConfiguration> LoadConfigurationAsync(string path, CancellationToken cancellationToken = default)
             => Task.FromResult(new AppConfiguration());
 
         /// <inheritdoc />
-        public Task<AppSettings> LoadAppSettingsAsync (CancellationToken cancellationToken = default)
+        public Task<AppSettings> LoadAppSettingsAsync(CancellationToken cancellationToken = default)
             => _appSettingsRepo.LoadAsync(cancellationToken);
 
         /// <inheritdoc />
-        public Task SaveAppSettingsAsync (AppSettings settings , CancellationToken cancellationToken = default)
-            => _appSettingsRepo.SaveAsync(settings , cancellationToken);
+        public Task SaveAppSettingsAsync(AppSettings settings, CancellationToken cancellationToken = default)
+            => _appSettingsRepo.SaveAsync(settings, cancellationToken);
 
         /// <inheritdoc />
-        public Task SaveVenueAsync (string venueId , ClassroomLayoutDefinition layout , CancellationToken cancellationToken = default)
-            => _venueRepo.SaveAsync(venueId , layout , cancellationToken);
+        public Task SaveVenueAsync(string venueId, ClassroomLayoutDefinition layout, CancellationToken cancellationToken = default)
+            => _venueRepo.SaveAsync(venueId, layout, cancellationToken);
 
         /// <inheritdoc />
-        public Task<ClassroomLayoutDefinition?> LoadVenueAsync (string venueId , CancellationToken cancellationToken = default)
-            => _venueRepo.LoadAsync(venueId , cancellationToken);
+        public Task<ClassroomLayoutDefinition?> LoadVenueAsync(string venueId, CancellationToken cancellationToken = default)
+            => _venueRepo.LoadAsync(venueId, cancellationToken);
 
         /// <inheritdoc />
-        public Task<string?> GetVenueHashAsync (string venueId , CancellationToken ct = default)
-            => _venueRepo.GetContentHashAsync(venueId , ct);
+        public Task<string?> GetVenueHashAsync(string venueId, CancellationToken ct = default)
+            => _venueRepo.GetContentHashAsync(venueId, ct);
 
         /// <inheritdoc />
-        public Task<IEnumerable<string>> ListVenueIdsAsync (CancellationToken cancellationToken = default)
+        public Task<IEnumerable<string>> ListVenueIdsAsync(CancellationToken cancellationToken = default)
             => _venueRepo.ListVenueIdsAsync(cancellationToken);
 
         /// <inheritdoc />
-        public Task DeleteVenueAsync (string venueId , CancellationToken cancellationToken = default)
-            => _venueRepo.DeleteAsync(venueId , cancellationToken);
+        public Task DeleteVenueAsync(string venueId, CancellationToken cancellationToken = default)
+            => _venueRepo.DeleteAsync(venueId, cancellationToken);
 
         /// <inheritdoc />
-        public async Task<List<Student>> LoadStudentsAsync (string source , CancellationToken cancellationToken = default)
+        public async Task<List<Student>> LoadStudentsAsync(string source, CancellationToken cancellationToken = default)
         {
             var provider = _serviceProvider.GetService<IStudentProvider>();
             if (provider == null) return new List<Student>();
-            return await provider.LoadAsync(source , cancellationToken);
+            return await provider.LoadAsync(source, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<List<Student>> LoadStudentsAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
+        public async Task<List<Student>> LoadStudentsAsync(string source, int maxRows, int maxCols, CancellationToken ct = default)
         {
             var provider = _serviceProvider.GetService<IStudentProvider>();
             if (provider == null) return new List<Student>();
-            return await provider.LoadAsync(source , maxRows , maxCols , ct);
+            return await provider.LoadAsync(source, maxRows, maxCols, ct);
         }
 
         /// <inheritdoc />
-        public async Task<(int Rows , int Cols)> GetDataSourceDimensionsAsync (string source , CancellationToken ct = default)
+        public async Task<(int Rows, int Cols)> GetDataSourceDimensionsAsync(string source, CancellationToken ct = default)
         {
             if (string.IsNullOrEmpty(source) || !File.Exists(source))
-                return (0 , 0);
+                return (0, 0);
 
             var provider = _serviceProvider.GetService<IStudentProvider>();
-            if (provider == null) return (0 , 0);
-            return await provider.GetDimensionsAsync(source , ct);
+            if (provider == null) return (0, 0);
+            return await provider.GetDimensionsAsync(source, ct);
         }
 
         /// <inheritdoc />
-        public async Task ExportStudentsAsync (string path , IEnumerable<Student> students , ExportFormat format , CancellationToken cancellationToken = default)
+        public async Task ExportStudentsAsync(string path, IEnumerable<Student> students, ExportFormat format, CancellationToken cancellationToken = default)
         {
             var writers = _serviceProvider.GetServices<IStudentWriter>();
             IStudentWriter writer = format switch
@@ -146,23 +146,23 @@ namespace SeatFlow.Application.Services
                     ?? throw new InvalidOperationException("未注册 JsonStudentWriter"),
                 _ => throw new NotSupportedException($"不支持的导出格式: {format}")
             };
-            await writer.WriteAsync(path , students , cancellationToken);
+            await writer.WriteAsync(path, students, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<SeatingWorkspace> GenerateSeatingAsync (
-            SeatingRequest request ,
-            IProgress<SeatingProgress>? progress = null ,
+        public async Task<SeatingWorkspace> GenerateSeatingAsync(
+            SeatingRequest request,
+            IProgress<SeatingProgress>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("开始生成座位：数据集={DataSource}，会场={VenueId}" ,
+            logger.LogInformation("开始生成座位：数据集={DataSource}，会场={VenueId}",
                 request.StudentDataSource ?? "当前", request.LayoutId ?? "当前");
 
             // 1. 加载学生数据
             var studentProvider = _serviceProvider.GetService<IStudentProvider>();
             var students = studentProvider == null
                 ? new List<Student>()
-                : await studentProvider.LoadAsync(request.StudentDataSource ?? string.Empty , cancellationToken);
+                : await studentProvider.LoadAsync(request.StudentDataSource ?? string.Empty, cancellationToken);
 
             // 2. 生成座位布局
             List<Seat> seats;
@@ -170,7 +170,7 @@ namespace SeatFlow.Application.Services
             if (!string.IsNullOrEmpty(request.LayoutId))
             {
                 // 从已保存的会场加载布局
-                venueLayout = await _venueRepo.LoadAsync(request.LayoutId , cancellationToken);
+                venueLayout = await _venueRepo.LoadAsync(request.LayoutId, cancellationToken);
                 _currentLayout = venueLayout;
                 if (venueLayout != null)
                 {
@@ -189,7 +189,7 @@ namespace SeatFlow.Application.Services
             }
 
             // 3. 创建工作区
-            var workspace = new SeatingWorkspace(students , seats ,
+            var workspace = new SeatingWorkspace(students, seats,
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
@@ -205,7 +205,7 @@ namespace SeatFlow.Application.Services
                 int windowSize = frontRowStrategy?.Config.HistoryWindowSize ?? 10;
                 var historyLoader = _serviceProvider.GetRequiredService<FrontRowHistoryLoader>();
                 await historyLoader.PopulateFrontRowHistoryAsync(
-                    workspace , request.LayoutId , windowSize , cancellationToken);
+                    workspace, request.LayoutId, windowSize, cancellationToken);
 
                 // 3d. 加载同桌不重复历史（过去的同桌对）
                 var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
@@ -214,7 +214,7 @@ namespace SeatFlow.Application.Services
                 {
                     var ndLoader = _serviceProvider.GetRequiredService<NoRepeatDeskMateHistoryLoader>();
                     await ndLoader.PopulateDeskMateHistoryAsync(
-                        workspace , request.LayoutId , noRepeat.Config.HistoryWindowSize , noRepeat , cancellationToken);
+                        workspace, request.LayoutId, noRepeat.Config.HistoryWindowSize, noRepeat, cancellationToken);
                 }
             }
 
@@ -226,7 +226,7 @@ namespace SeatFlow.Application.Services
 
             // 4c. 恢复持久化的策略配置（Priority、IsEnabled、Parameters），覆盖重启后默认值
             await RestorePersistedStrategyConfigsAsync(
-                builtInStrategies , builtInDependents , cancellationToken);
+                builtInStrategies, builtInDependents, cancellationToken);
 
             // 5. 排除标记为不可见（visible=false）的策略
             var strategies = new List<ISeatingStrategy>(builtInStrategies);
@@ -263,7 +263,7 @@ namespace SeatFlow.Application.Services
             }
 
             // 6c. 加载代码块配置并应用到 FixedSeat / DeskMate 策略
-            await ApplyCodeBlockConfigsAsync(strategies , request , venueLayout , cancellationToken);
+            await ApplyCodeBlockConfigsAsync(strategies, request, venueLayout, cancellationToken);
 
             // 6c-b. 收集约束学生 ID 并注入 DefragStrategy（固定座位 + DeskMate 组）
             var defragStrategy = strategies.OfType<DefragStrategy>().FirstOrDefault();
@@ -285,7 +285,7 @@ namespace SeatFlow.Application.Services
                     }
                 }
                 defragStrategy.SetConstrainedStudentIds(constrainedIds);
-                logger.LogInformation("Defrag：已注入 {Count} 个约束学生 ID" , constrainedIds.Count);
+                logger.LogInformation("Defrag：已注入 {Count} 个约束学生 ID", constrainedIds.Count);
             }
 
             // 6d. 收集依赖策略并注入到 RandomFill
@@ -302,12 +302,12 @@ namespace SeatFlow.Application.Services
             if (randomFill != null && dependentStrategies.Count > 0)
             {
                 randomFill.LoadDependentStrategies(dependentStrategies);
-                logger.LogInformation("已将 {Count} 个依赖策略注入 RandomFill" , dependentStrategies.Count);
+                logger.LogInformation("已将 {Count} 个依赖策略注入 RandomFill", dependentStrategies.Count);
             }
 
             // 7. 执行策略管道
             var pipeline = new StrategyExecutionPipeline(strategies);
-            var plan = await pipeline.ExecuteAsync(workspace , progress , cancellationToken);
+            var plan = await pipeline.ExecuteAsync(workspace, progress, cancellationToken);
 
             // 8. 解决冲突
             var conflictResolver = _serviceProvider.GetService<IConflictResolver>();
@@ -318,8 +318,8 @@ namespace SeatFlow.Application.Services
                 {
                     progress?.Report(new SeatingProgress
                     {
-                        CurrentStep = 1 ,
-                        TotalSteps = 1 ,
+                        CurrentStep = 1,
+                        TotalSteps = 1,
                         StatusMessage = $"检测到 {conflictResult.Conflicts.Count} 个冲突，已自动处理"
                     });
                 }
@@ -330,8 +330,8 @@ namespace SeatFlow.Application.Services
 
             progress?.Report(new SeatingProgress
             {
-                CurrentStep = 1 ,
-                TotalSteps = 1 ,
+                CurrentStep = 1,
+                TotalSteps = 1,
                 StatusMessage = "座位生成完成"
             });
 
@@ -351,22 +351,22 @@ namespace SeatFlow.Application.Services
         }
 
         /// <inheritdoc />
-        public async Task ExportSeatingPlanAsync (
-    SeatingWorkspace workspace ,
-    ClassroomLayoutDefinition? layout ,
-    string path ,
-    ExportOptions options ,
+        public async Task ExportSeatingPlanAsync(
+    SeatingWorkspace workspace,
+    ClassroomLayoutDefinition? layout,
+    string path,
+    ExportOptions options,
     CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("开始导出座位：格式={Format}，路径={Path}" , options.Format , path);
+            logger.LogInformation("开始导出座位：格式={Format}，路径={Path}", options.Format, path);
             try
             {
                 ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format) ?? throw new NotSupportedException($"No exporter registered for format {options.Format}.");
                 if (layout != null)
                 {
                     var assignments = workspace.BuildSeatingPlan().Assignments;
-                    var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
-                    var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
+                    var studentNames = workspace.Students.ToDictionary(s => s.Id, s => s.Name);
+                    var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames);
                     // 教师视角：行前后反转（讲台移至底部）+ 列左右镜像（教师左侧对应学生右侧）
                     if (options.Perspective == LayoutPerspective.TeacherView)
                     {
@@ -374,20 +374,20 @@ namespace SeatFlow.Application.Services
                         foreach (var row in model.Rows)
                             row.Cells.Reverse();
                     }
-                    await exporter.ExportLayoutAsync(model , path , options , cancellationToken);
+                    await exporter.ExportLayoutAsync(model, path, options, cancellationToken);
                 }
                 else
                 {
                     var plan = workspace.BuildSeatingPlan();
-                    await exporter.ExportAsync(plan , path , options , cancellationToken);
+                    await exporter.ExportAsync(plan, path, options, cancellationToken);
                 }
-                logger.LogInformation("座位导出完成：格式={Format}，路径={Path}" , options.Format , path);
+                logger.LogInformation("座位导出完成：格式={Format}，路径={Path}", options.Format, path);
 
                 // 记录导出成功遥测
                 try
                 {
                     var telemetry = _serviceProvider.GetService<ITelemetryService>();
-                    telemetry?.RecordExport(options.Format.ToString() , success: true);
+                    telemetry?.RecordExport(options.Format.ToString(), success: true);
                 }
                 catch { /* 遥测未注册时静默处理 */ }
             }
@@ -397,7 +397,7 @@ namespace SeatFlow.Application.Services
                 try
                 {
                     var telemetry = _serviceProvider.GetService<ITelemetryService>();
-                    telemetry?.RecordExport(options.Format.ToString() , success: false);
+                    telemetry?.RecordExport(options.Format.ToString(), success: false);
                     telemetry?.RecordError("export", ex.Message.Length > 200 ? ex.Message[..200] : ex.Message);
                 }
                 catch { /* 遥测未注册时静默处理 */ }
@@ -408,10 +408,10 @@ namespace SeatFlow.Application.Services
         /// <summary>
         /// 导出座位安排为字节流（WASM/浏览器端）：模型构建逻辑与文件版一致。
         /// </summary>
-        public async Task<byte[]> ExportSeatingPlanBytesAsync (
-            SeatingWorkspace workspace ,
-            ClassroomLayoutDefinition? layout ,
-            ExportOptions options ,
+        public async Task<byte[]> ExportSeatingPlanBytesAsync(
+            SeatingWorkspace workspace,
+            ClassroomLayoutDefinition? layout,
+            ExportOptions options,
             CancellationToken cancellationToken = default)
         {
             ISeatingPlanExporter? exporter = _exporters.FirstOrDefault(e => e.Format == options.Format)
@@ -419,73 +419,73 @@ namespace SeatFlow.Application.Services
             if (layout != null)
             {
                 var assignments = workspace.BuildSeatingPlan().Assignments;
-                var studentNames = workspace.Students.ToDictionary(s => s.Id , s => s.Name);
-                var model = LayoutSeatingExportModel.FromLayout(layout , assignments , studentNames);
+                var studentNames = workspace.Students.ToDictionary(s => s.Id, s => s.Name);
+                var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames);
                 if (options.Perspective == LayoutPerspective.TeacherView)
                 {
                     model.Rows.Reverse();
                     foreach (var row in model.Rows)
                         row.Cells.Reverse();
                 }
-                return await exporter.ExportLayoutBytesAsync(model , options , cancellationToken);
+                return await exporter.ExportLayoutBytesAsync(model, options, cancellationToken);
             }
             var plan = workspace.BuildSeatingPlan();
-            return await exporter.ExportBytesAsync(plan , options , cancellationToken);
+            return await exporter.ExportBytesAsync(plan, options, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExecuteCommandAsync (IUndoableCommand command , CancellationToken cancellationToken = default , bool recordInHistory = true)
+        public async Task<bool> ExecuteCommandAsync(IUndoableCommand command, CancellationToken cancellationToken = default, bool recordInHistory = true)
         {
             if (_currentWorkspace == null) return false;
 
             if (!recordInHistory)
             {
                 // 直接在工作区上执行命令，不记录到 CommandHistory，避免与 ViewModel 的快照历史双重累积
-                return await command.ExecuteAsync(_currentWorkspace , cancellationToken);
+                return await command.ExecuteAsync(_currentWorkspace, cancellationToken);
             }
 
-            return await _history.ExecuteAsync(command , _currentWorkspace , cancellationToken);
+            return await _history.ExecuteAsync(command, _currentWorkspace, cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<bool> UndoAsync (CancellationToken cancellationToken = default)
+        public Task<bool> UndoAsync(CancellationToken cancellationToken = default)
         {
             if (_currentWorkspace == null) return Task.FromResult(false);
-            return _history.UndoAsync(_currentWorkspace , cancellationToken);
+            return _history.UndoAsync(_currentWorkspace, cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<bool> RedoAsync (CancellationToken cancellationToken = default)
+        public Task<bool> RedoAsync(CancellationToken cancellationToken = default)
         {
             if (_currentWorkspace == null) return Task.FromResult(false);
-            return _history.RedoAsync(_currentWorkspace , cancellationToken);
+            return _history.RedoAsync(_currentWorkspace, cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<SeatingWorkspace?> GetCurrentWorkspaceAsync (CancellationToken cancellationToken = default)
+        public Task<SeatingWorkspace?> GetCurrentWorkspaceAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(_currentWorkspace);
 
         /// <inheritdoc />
-        public Task<ClassroomLayoutDefinition?> GetCurrentLayoutAsync (CancellationToken cancellationToken = default)
+        public Task<ClassroomLayoutDefinition?> GetCurrentLayoutAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(_currentLayout);
 
         /// <inheritdoc />
-        public void ClearWorkspace ()
+        public void ClearWorkspace()
         {
             _currentWorkspace = null;
             _currentLayout = null;
         }
 
         /// <inheritdoc />
-        public async Task<SeatingWorkspace> CreateEmptyWorkspaceAsync (
-            string layoutId , string datasetId , CancellationToken cancellationToken = default)
+        public async Task<SeatingWorkspace> CreateEmptyWorkspaceAsync(
+            string layoutId, string datasetId, CancellationToken cancellationToken = default)
         {
             // 1. 加载会场布局
-            var layout = await _venueRepo.LoadAsync(layoutId , cancellationToken);
+            var layout = await _venueRepo.LoadAsync(layoutId, cancellationToken);
             _currentLayout = layout;
 
             // 2. 加载学生数据
-            var students = await _datasetRepo.LoadAsync(datasetId , cancellationToken) ?? [];
+            var students = await _datasetRepo.LoadAsync(datasetId, cancellationToken) ?? [];
 
             // 3. 获取座位列表
             List<Seat> seats;
@@ -500,122 +500,122 @@ namespace SeatFlow.Application.Services
             }
 
             // 4. 创建工作区（不执行策略管道）
-            var workspace = new SeatingWorkspace(students , seats ,
+            var workspace = new SeatingWorkspace(students, seats,
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
-            logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位" ,
-                layoutId , students.Count , seats.Count);
+            logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位",
+                layoutId, students.Count, seats.Count);
 
             return workspace;
         }
 
         /// <summary>轮转旧快照：超出上限删除最旧的。</summary>
-        private async Task RotateSnapshotsAsync (string venueId , CancellationToken ct)
+        private async Task RotateSnapshotsAsync(string venueId, CancellationToken ct)
         {
             var settings = await _appSettingsRepo.LoadAsync(ct);
             int max = settings.MaxSnapshotsPerVenue;
             if (max <= 0) return;
 
-            var snapshots = (await _snapshotRepository.ListByVenueAsync(venueId , ct))
+            var snapshots = (await _snapshotRepository.ListByVenueAsync(venueId, ct))
                 .OrderBy(s => s.CreatedAt).ToList();
             while (snapshots.Count > max)
             {
-                try { await _snapshotRepository.DeleteAsync(snapshots[0].Id , ct); }
-                catch (Exception ex) { logger.LogWarning(ex , "快照轮转删除失败：{Id}" , snapshots[0].Id); }
+                try { await _snapshotRepository.DeleteAsync(snapshots[0].Id, ct); }
+                catch (Exception ex) { logger.LogWarning(ex, "快照轮转删除失败：{Id}", snapshots[0].Id); }
                 snapshots.RemoveAt(0);
             }
         }
 
         /// <summary>检查快照关联会场的完整性。返回 (exists, hashMatch)。</summary>
-        public async Task<(bool Exists , bool HashMatch)> CheckVenueIntegrityAsync (
-            string venueId , string? snapshotVenueHash , CancellationToken ct = default)
+        public async Task<(bool Exists, bool HashMatch)> CheckVenueIntegrityAsync(
+            string venueId, string? snapshotVenueHash, CancellationToken ct = default)
         {
-            var curHash = await _venueRepo.GetContentHashAsync(venueId , ct);
-            if (curHash == null) return (false , false); // 会场文件不存在
-            if (snapshotVenueHash == null) return (true , true); // 旧快照无哈希，默认匹配
-            return (true , curHash == snapshotVenueHash);
+            var curHash = await _venueRepo.GetContentHashAsync(venueId, ct);
+            if (curHash == null) return (false, false); // 会场文件不存在
+            if (snapshotVenueHash == null) return (true, true); // 旧快照无哈希，默认匹配
+            return (true, curHash == snapshotVenueHash);
         }
 
         /// <summary>将快照中嵌入的会场布局恢复/导入为会场文件。</summary>
-        public async Task<string> ImportVenueFromSnapshotAsync (
-            string venueLayoutJson , string? newName = null , CancellationToken ct = default)
+        public async Task<string> ImportVenueFromSnapshotAsync(
+            string venueLayoutJson, string? newName = null, CancellationToken ct = default)
         {
             var layout = SnapshotLayoutHelper.DeserializeVenueFromEmbeddedJson(venueLayoutJson)
                 ?? throw new InvalidOperationException("无法反序列化快照中的会场布局");
             var venueId = Guid.NewGuid().ToString("N")[..8];
             layout.Id = venueId;
             if (newName != null) layout.Name = newName;
-            await _venueRepo.SaveAsync(venueId , layout , ct);
+            await _venueRepo.SaveAsync(venueId, layout, ct);
             return venueId;
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync (string venueId , CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<SeatingSnapshot>> GetSnapshotsAsync(string venueId, CancellationToken cancellationToken = default)
         {
             // 从存储库中按 venueId 过滤快照
-            return await _snapshotRepository.ListByVenueAsync(venueId , cancellationToken);
+            return await _snapshotRepository.ListByVenueAsync(venueId, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task DeleteSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
-            => await _snapshotRepository.DeleteAsync(snapshotId , cancellationToken);
+        public async Task DeleteSnapshotAsync(string snapshotId, CancellationToken cancellationToken = default)
+            => await _snapshotRepository.DeleteAsync(snapshotId, cancellationToken);
 
         /// <inheritdoc />
         public bool HasActiveWorkspace => _currentWorkspace != null;
 
         /// <inheritdoc />
-        public async Task<SeatingSnapshot?> CreateSnapshotAsync (string description , CancellationToken cancellationToken = default)
+        public async Task<SeatingSnapshot?> CreateSnapshotAsync(string description, CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("开始创建快照：描述={Description}" , description);
+            logger.LogInformation("开始创建快照：描述={Description}", description);
             if (_currentWorkspace == null) return null;
 
             var plan = _currentWorkspace.BuildSeatingPlan();
             var studentNames = _currentWorkspace.Students
                 .Where(s => plan.Assignments.ContainsValue(s.Id))
-                .ToDictionary(s => s.Id , s => s.Name);
+                .ToDictionary(s => s.Id, s => s.Name);
             var studentHash = SeatFlow.Infrastructure.Utils.ContentHashHelper.ComputeSha256(
                 string.Concat(_currentWorkspace.Students.Where(s => plan.Assignments.ContainsValue(s.Id)).OrderBy(s => s.Id).Select(s => $"{s.Id}|{s.Name}")));
-            var snapshotMeta = new Dictionary<string , object> { ["studentNames"] = studentNames , ["studentHash"] = studentHash };
+            var snapshotMeta = new Dictionary<string, object> { ["studentNames"] = studentNames, ["studentHash"] = studentHash };
             var venueId = _currentLayout?.Id;
             if (!string.IsNullOrEmpty(venueId))
             {
-                var vh = await _venueRepo.GetContentHashAsync(venueId , cancellationToken);
+                var vh = await _venueRepo.GetContentHashAsync(venueId, cancellationToken);
                 if (vh != null) snapshotMeta["venueHash"] = vh;
-                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(venueId , cancellationToken);
+                var rawVenueJson = await _venueRepo.GetRawVenueFileAsync(venueId, cancellationToken);
                 if (rawVenueJson != null)
                     snapshotMeta["venueFile"] = System.Text.Json.Nodes.JsonNode.Parse(rawVenueJson)!;
             }
             var snapshot = new SeatingSnapshot
             {
-                Description = description ,
-                LayoutId = venueId ?? (plan.Assignments.Count > 0 ? "current" : "empty") ,
-                SeatAssignments = plan.Assignments ,
+                Description = description,
+                LayoutId = venueId ?? (plan.Assignments.Count > 0 ? "current" : "empty"),
+                SeatAssignments = plan.Assignments,
                 Metadata = snapshotMeta
             };
-            await _snapshotRepository.SaveAsync(snapshot , cancellationToken);
+            await _snapshotRepository.SaveAsync(snapshot, cancellationToken);
             if (!string.IsNullOrEmpty(venueId))
-                await RotateSnapshotsAsync(venueId , cancellationToken);
-            logger.LogInformation("快照已创建：{SnapshotId}，{Count} 条分配" , snapshot.Id , snapshot.SeatAssignments.Count);
+                await RotateSnapshotsAsync(venueId, cancellationToken);
+            logger.LogInformation("快照已创建：{SnapshotId}，{Count} 条分配", snapshot.Id, snapshot.SeatAssignments.Count);
             return snapshot;
         }
 
         /// <inheritdoc />
-        public async Task RollbackToSnapshotAsync (string snapshotId , CancellationToken cancellationToken = default)
+        public async Task RollbackToSnapshotAsync(string snapshotId, CancellationToken cancellationToken = default)
         {
-            logger.LogInformation("开始回滚快照：{SnapshotId}" , snapshotId);
-            var snapshot = await _snapshotRepository.LoadAsync(snapshotId , cancellationToken) ?? throw new InvalidOperationException($"Snapshot {snapshotId} not found");
+            logger.LogInformation("开始回滚快照：{SnapshotId}", snapshotId);
+            var snapshot = await _snapshotRepository.LoadAsync(snapshotId, cancellationToken) ?? throw new InvalidOperationException($"Snapshot {snapshotId} not found");
 
             // 回滚前自动保存当前状态为备份快照，确保可撤销
             if (_currentWorkspace != null)
             {
-                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}" , cancellationToken); } catch { }
+                try { await CreateSnapshotAsync($"回滚前的自动备份 - {DateTime.Now:yyyy-MM-dd HH:mm}", cancellationToken); } catch { }
             }
 
             // 优先使用快照中嵌入的会场布局（自包含，不依赖外部会场文件）
             ClassroomLayoutDefinition? layout = null;
-            var venueFileJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueFile")
-                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata , "venueLayout");
+            var venueFileJson = SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata, "venueFile")
+                ?? SnapshotLayoutHelper.GetMetaStringFromMetadata(snapshot.Metadata, "venueLayout");
             if (!string.IsNullOrEmpty(venueFileJson))
                 layout = SnapshotLayoutHelper.DeserializeVenueFromEmbeddedJson(venueFileJson);
 
@@ -626,7 +626,7 @@ namespace SeatFlow.Application.Services
                 && snapshot.LayoutId != "empty"
                 && snapshot.LayoutId != "current")
             {
-                try { layout = await venueRepo.LoadAsync(snapshot.LayoutId , cancellationToken); } catch { }
+                try { layout = await venueRepo.LoadAsync(snapshot.LayoutId, cancellationToken); } catch { }
             }
 
             _currentLayout = layout;
@@ -636,24 +636,24 @@ namespace SeatFlow.Application.Services
                 .Where(v => !string.IsNullOrEmpty(v))
                 .Distinct()
                 .ToList();
-            var students = await BuildStudentsForSnapshotAsync(studentIds , cancellationToken);
+            var students = await BuildStudentsForSnapshotAsync(studentIds, cancellationToken);
 
-            _currentWorkspace = new SeatingWorkspace(students , seats);
+            _currentWorkspace = new SeatingWorkspace(students, seats);
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
-            logger.LogInformation("快照回滚完成：{SnapshotId}，{StudentCount} 学生，{SeatCount} 座位" ,
-                snapshotId , students.Count , seats.Count);
+            logger.LogInformation("快照回滚完成：{SnapshotId}，{StudentCount} 学生，{SeatCount} 座位",
+                snapshotId, students.Count, seats.Count);
         }
 
         /// <summary>
         /// 从已保存的学生数据集中尽可能匹配真实学生信息，无法匹配的用 ID 作为名称的存根学生。
         /// </summary>
-        private async Task<List<Student>> BuildStudentsForSnapshotAsync (List<string> studentIds , CancellationToken ct)
+        private async Task<List<Student>> BuildStudentsForSnapshotAsync(List<string> studentIds, CancellationToken ct)
         {
             if (studentIds.Count == 0)
                 return [];
 
             var idSet = new HashSet<string>(studentIds);
-            var studentMap = new Dictionary<string , Student>();
+            var studentMap = new Dictionary<string, Student>();
 
             // 尝试从所有已保存的学生数据集加载真实数据
             try
@@ -661,7 +661,7 @@ namespace SeatFlow.Application.Services
                 var datasets = await _datasetRepo.ListAsync(ct);
                 foreach (var ds in datasets)
                 {
-                    var loaded = await _datasetRepo.LoadAsync(ds.Id , ct);
+                    var loaded = await _datasetRepo.LoadAsync(ds.Id, ct);
                     if (loaded != null)
                     {
                         foreach (var s in loaded)
@@ -678,40 +678,40 @@ namespace SeatFlow.Application.Services
                 studentMap.TryGetValue(id , out var real) ? real : new Student { Id = id , Name = id } )];
         }
 
-        public async Task<string> SaveStudentDatasetAsync (string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
+        public async Task<string> SaveStudentDatasetAsync(string name, List<Student> students, string? originalFileName = null, CancellationToken ct = default)
         {
             var id = Guid.NewGuid().ToString("N");
-            await _datasetRepo.SaveAsync(id , name , students , originalFileName , ct);
+            await _datasetRepo.SaveAsync(id, name, students, originalFileName, ct);
             return id;
         }
 
-        public Task UpdateStudentDatasetAsync (string id , string name , List<Student> students , string? originalFileName = null , CancellationToken ct = default)
+        public Task UpdateStudentDatasetAsync(string id, string name, List<Student> students, string? originalFileName = null, CancellationToken ct = default)
         {
             // 与 SaveStudentDatasetAsync 的关键区别：不生成新 GUID，直接使用传入的 id 覆写已有文件
-            return _datasetRepo.SaveAsync(id , name , students , originalFileName , ct);
+            return _datasetRepo.SaveAsync(id, name, students, originalFileName, ct);
         }
 
-        public Task<List<Student>?> LoadStudentDatasetAsync (string id , CancellationToken ct = default)
-            => _datasetRepo.LoadAsync(id , ct);
+        public Task<List<Student>?> LoadStudentDatasetAsync(string id, CancellationToken ct = default)
+            => _datasetRepo.LoadAsync(id, ct);
 
-        public Task<IReadOnlyList<StudentDatasetInfo>> ListStudentDatasetsAsync (CancellationToken ct = default)
+        public Task<IReadOnlyList<StudentDatasetInfo>> ListStudentDatasetsAsync(CancellationToken ct = default)
             => _datasetRepo.ListAsync(ct);
 
-        public Task DeleteStudentDatasetAsync (string id , CancellationToken ct = default)
-            => _datasetRepo.DeleteAsync(id , ct);
+        public Task DeleteStudentDatasetAsync(string id, CancellationToken ct = default)
+            => _datasetRepo.DeleteAsync(id, ct);
 
         /// <inheritdoc />
-        public Task RenameStudentDatasetAsync (string id , string newName , CancellationToken ct = default)
-            => _datasetRepo.RenameAsync(id , newName , ct);
+        public Task RenameStudentDatasetAsync(string id, string newName, CancellationToken ct = default)
+            => _datasetRepo.RenameAsync(id, newName, ct);
 
         /// <inheritdoc />
-        public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync (CancellationToken ct = default)
+        public async Task<List<StrategyDisplayInfo>> GetStrategiesAsync(CancellationToken ct = default)
         {
             // 短期缓存：侧栏频繁切换时避免重复 I/O 和 DI 解析
             if (_cachedStrategyDisplayInfos is not null
                 && DateTime.Now - _cachedStrategyDisplayInfosAt < StrategyDisplayCacheDuration)
             {
-                logger.LogDebug("GetStrategiesAsync：返回缓存结果（{Age:F0}s 前）" ,
+                logger.LogDebug("GetStrategiesAsync：返回缓存结果（{Age:F0}s 前）",
                     (DateTime.Now - _cachedStrategyDisplayInfosAt).TotalSeconds);
                 return _cachedStrategyDisplayInfos;
             }
@@ -730,7 +730,7 @@ namespace SeatFlow.Application.Services
                 var runtimeStrategy = builtInInstances.FirstOrDefault(s => s.Id == manifest.Id);
                 var depStrategy = builtInDependents.FirstOrDefault(d => d.Id == manifest.Id);
 
-                var info = BuildDisplayInfo(manifest , "builtin" , persisted , runtimeStrategy , depStrategy);
+                var info = BuildDisplayInfo(manifest, "builtin", persisted, runtimeStrategy, depStrategy);
                 result.Add(info);
             }
 
@@ -741,35 +741,35 @@ namespace SeatFlow.Application.Services
             var depCount = dependents.Count;
             // 独立策略在前（外部管道），依赖策略在后（将被 ViewModel 嵌套到宿主下）
             independents.AddRange(dependents);
-                logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，独立 {Ind} 个，依赖 {Dep} 个" ,
-                    builtInManifests.Count , indCount , depCount);
+            logger.LogInformation("加载策略列表：内置 {BuiltIn} 个，独立 {Ind} 个，依赖 {Dep} 个",
+                builtInManifests.Count, indCount, depCount);
             _cachedStrategyDisplayInfos = independents;
             _cachedStrategyDisplayInfosAt = DateTime.Now;
             return independents;
         }
 
         /// <inheritdoc />
-        public async Task SaveStrategyConfigAsync (string strategyId , StrategyConfig config , CancellationToken ct = default)
+        public async Task SaveStrategyConfigAsync(string strategyId, StrategyConfig config, CancellationToken ct = default)
         {
             _cachedStrategyDisplayInfos = null; // 使 GetStrategiesAsync 缓存失效
             // 如果 Parameters 为 null（仅保存优先级/开关），保留已有参数
             if (config.Parameters == null)
             {
-                var existing = await _strategyConfigRepo.LoadAsync(strategyId , ct);
+                var existing = await _strategyConfigRepo.LoadAsync(strategyId, ct);
                 config.Parameters = existing?.Parameters ?? [];
             }
 
-            logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}" ,
-                strategyId , config.Priority , config.IsEnabled);
+            logger.LogInformation("保存策略配置：{Id}，优先级 {Priority}，启用 {Enabled}",
+                strategyId, config.Priority, config.IsEnabled);
 
             // 配置路由：内置策略 → StrategyConfigFileRepository
-            await _strategyConfigRepo.SaveAsync(strategyId , config , ct);
+            await _strategyConfigRepo.SaveAsync(strategyId, config, ct);
 
             var builtInInstances = _cachedStrategies ??= [.. _serviceProvider.GetServices<ISeatingStrategy>()];
             var strategy = builtInInstances.FirstOrDefault(s => s.Id == strategyId);
             if (strategy is not null)
             {
-                ApplyPersistedConfigToInstance(config , strategy , null);
+                ApplyPersistedConfigToInstance(config, strategy, null);
                 return;
             }
 
@@ -778,66 +778,66 @@ namespace SeatFlow.Application.Services
             var depStrategy = cachedDeps.FirstOrDefault(d => d.Id == strategyId);
             if (depStrategy is not null)
             {
-                ApplyPersistedConfigToInstance(config , null , depStrategy);
+                ApplyPersistedConfigToInstance(config, null, depStrategy);
             }
         }
 
         /// <inheritdoc />
-        public async Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync (string strategyId , CancellationToken ct = default)
+        public async Task<List<StrategyDatasetConfig>> LoadStrategyDatasetConfigsAsync(string strategyId, CancellationToken ct = default)
         {
-            return await _datasetConfigRepo.LoadAllAsync(strategyId , ct);
+            return await _datasetConfigRepo.LoadAllAsync(strategyId, ct);
         }
 
         private static readonly JsonSerializerOptions StudentHashOptions = new()
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase ,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = true
         };
 
         /// <inheritdoc />
-        public async Task SaveStrategyDatasetConfigAsync (StrategyDatasetConfig config , CancellationToken ct = default)
+        public async Task SaveStrategyDatasetConfigAsync(StrategyDatasetConfig config, CancellationToken ct = default)
         {
             string? studentHash = null;
 
             if (!string.IsNullOrEmpty(config.DatasetId))
             {
-                var students = await _datasetRepo.LoadAsync(config.DatasetId , ct);
+                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
                 if (students is { Count: > 0 })
                 {
                     var sorted = students.OrderBy(s => s.Id).ToList();
-                    var json = JsonSerializer.Serialize(sorted , StudentHashOptions);
+                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
                     studentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
                 }
             }
 
             string? venueHash = null;
             if (!string.IsNullOrEmpty(config.VenueId))
-                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId , ct);
+                venueHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
 
             // 配置路由
-            await _datasetConfigRepo.SaveAsync(config , studentHash , venueHash , ct);
+            await _datasetConfigRepo.SaveAsync(config, studentHash, venueHash, ct);
         }
 
         /// <inheritdoc />
-        public async Task DeleteStrategyDatasetConfigAsync (string strategyId , string datasetId , string? venueId , CancellationToken ct = default)
+        public async Task DeleteStrategyDatasetConfigAsync(string strategyId, string datasetId, string? venueId, CancellationToken ct = default)
         {
-            await _datasetConfigRepo.DeleteAsync(strategyId , datasetId , venueId , ct);
+            await _datasetConfigRepo.DeleteAsync(strategyId, datasetId, venueId, ct);
         }
 
         /// <inheritdoc />
-        public async Task<(bool studentOk , bool venueOk)> CheckDatasetIntegrityAsync (StrategyDatasetConfig config , CancellationToken ct = default)
+        public async Task<(bool studentOk, bool venueOk)> CheckDatasetIntegrityAsync(StrategyDatasetConfig config, CancellationToken ct = default)
         {
             bool studentOk = true;
             bool venueOk = true;
 
             if (!string.IsNullOrEmpty(config.DatasetId) && !string.IsNullOrEmpty(config.StudentsHash))
             {
-                var students = await _datasetRepo.LoadAsync(config.DatasetId , ct);
+                var students = await _datasetRepo.LoadAsync(config.DatasetId, ct);
                 string? currentHash = null;
                 if (students is { Count: > 0 })
                 {
                     var sorted = students.OrderBy(s => s.Id).ToList();
-                    var json = JsonSerializer.Serialize(sorted , StudentHashOptions);
+                    var json = JsonSerializer.Serialize(sorted, StudentHashOptions);
                     currentHash = Infrastructure.Utils.ContentHashHelper.ComputeSha256(json);
                 }
                 studentOk = currentHash == config.StudentsHash;
@@ -845,11 +845,11 @@ namespace SeatFlow.Application.Services
 
             if (!string.IsNullOrEmpty(config.VenueId) && !string.IsNullOrEmpty(config.ContentHash))
             {
-                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId , ct);
+                var currentHash = await _venueRepo.GetContentHashAsync(config.VenueId, ct);
                 venueOk = currentHash == config.ContentHash;
             }
 
-            return (studentOk , venueOk);
+            return (studentOk, venueOk);
         }
 
         #region Strategy Helpers
@@ -857,10 +857,10 @@ namespace SeatFlow.Application.Services
         /// <summary>
         /// 加载代码块配置（FixedSeat/DeskMate 等）并应用到策略实例。
         /// </summary>
-        private async Task ApplyCodeBlockConfigsAsync (
-            List<ISeatingStrategy> strategies ,
-            SeatingRequest request ,
-            ClassroomLayoutDefinition? venueLayout ,
+        private async Task ApplyCodeBlockConfigsAsync(
+            List<ISeatingStrategy> strategies,
+            SeatingRequest request,
+            ClassroomLayoutDefinition? venueLayout,
             CancellationToken ct)
         {
             string? datasetId = request.DatasetId;
@@ -873,17 +873,17 @@ namespace SeatFlow.Application.Services
             // 处理独立策略的代码块配置（FixedSeat）
             foreach (var strategy in strategies)
             {
-                var config = await _datasetConfigRepo.LoadAsync(strategy.Id , datasetId ?? string.Empty , venueId , ct);
+                var config = await _datasetConfigRepo.LoadAsync(strategy.Id, datasetId ?? string.Empty, venueId, ct);
                 if (config?.Rows is not { Count: > 0 }) continue;
 
                 switch (strategy)
                 {
                     case FixedSeatStrategy fs:
-                        bool fsCleaned = CleanInvalidSeatRows(config , venueLayout);
-                        fsCleaned |= CleanFixedSeatDeletedStudents(config , validStudents);
+                        bool fsCleaned = CleanInvalidSeatRows(config, venueLayout);
+                        fsCleaned |= CleanFixedSeatDeletedStudents(config, validStudents);
                         if (fsCleaned)
-                            await SaveDatasetConfigAsync(config , ct);
-                        ApplyFixedSeatConfig(fs , config , venueLayout);
+                            await SaveDatasetConfigAsync(config, ct);
+                        ApplyFixedSeatConfig(fs, config, venueLayout);
                         break;
                 }
             }
@@ -892,20 +892,20 @@ namespace SeatFlow.Application.Services
             var dependentStrategies = _serviceProvider.GetServices<IDependentSeatingStrategy>().ToList();
             foreach (var dep in dependentStrategies)
             {
-                var config = await _datasetConfigRepo.LoadAsync(dep.Id , datasetId ?? string.Empty , venueId , ct);
+                var config = await _datasetConfigRepo.LoadAsync(dep.Id, datasetId ?? string.Empty, venueId, ct);
                 if (config?.Rows is not { Count: > 0 }) continue;
 
                 if (dep is DeskMateStrategy ds)
                 {
-                    if (CleanDeskMateDeletedStudents(config , validStudents))
-                        await _datasetConfigRepo.SaveAsync(config , config.StudentsHash , config.ContentHash , ct);
-                    ApplyDeskMateConfig(ds , config);
+                    if (CleanDeskMateDeletedStudents(config, validStudents))
+                        await _datasetConfigRepo.SaveAsync(config, config.StudentsHash, config.ContentHash, ct);
+                    ApplyDeskMateConfig(ds, config);
                 }
                 else if (dep is GenderRestrictedSeatStrategy grs)
                 {
-                    if (CleanInvalidSeatRows(config , venueLayout))
-                        await _datasetConfigRepo.SaveAsync(config , config.StudentsHash , config.ContentHash , ct);
-                    ApplyGenderRestrictionConfig(grs , config , venueLayout);
+                    if (CleanInvalidSeatRows(config, venueLayout))
+                        await _datasetConfigRepo.SaveAsync(config, config.StudentsHash, config.ContentHash, ct);
+                    ApplyGenderRestrictionConfig(grs, config, venueLayout);
                 }
             }
         }
@@ -914,16 +914,16 @@ namespace SeatFlow.Application.Services
         /// 将 StrategyDatasetConfig 的 Rows 转换为 FixedSeatConfiguration.FixedAssignments。
         /// ConfigRow 中的 SeatRow/SeatColumn/SeatRing/SeatAngle/SeatX/SeatY → 查找实际座位 ID。
         /// </summary>
-        private static void ApplyFixedSeatConfig (
-            FixedSeatStrategy strategy ,
-            StrategyDatasetConfig config ,
+        private static void ApplyFixedSeatConfig(
+            FixedSeatStrategy strategy,
+            StrategyDatasetConfig config,
             ClassroomLayoutDefinition? venueLayout)
         {
-            var assignments = new Dictionary<string , string>();
+            var assignments = new Dictionary<string, string>();
             foreach (var row in config.Rows)
             {
                 if (string.IsNullOrEmpty(row.StudentId)) continue;
-                var seat = FindSeatByPosition(venueLayout , row);
+                var seat = FindSeatByPosition(venueLayout, row);
                 if (seat is not null)
                     assignments[seat.Id] = row.StudentId;
             }
@@ -935,7 +935,7 @@ namespace SeatFlow.Application.Services
         /// 将 StrategyDatasetConfig 的 Rows 转换为 DeskMateConfiguration.Groups。
         /// 每行一个 DeskMateGroup，StudentId + Values["student1"/"student2"/...] → 组内学生 ID 列表。
         /// </summary>
-        private static void ApplyDeskMateConfig (DeskMateStrategy strategy , StrategyDatasetConfig config)
+        private static void ApplyDeskMateConfig(DeskMateStrategy strategy, StrategyDatasetConfig config)
         {
             strategy.Config.Groups.Clear();
             foreach (var row in config.Rows)
@@ -947,7 +947,7 @@ namespace SeatFlow.Application.Services
                 for (int i = 1; i <= 10; i++)
                 {
                     var key = $"student{i}";
-                    if (row.Values?.TryGetValue(key , out var sid) == true && sid?.ToString() is string s && !string.IsNullOrEmpty(s))
+                    if (row.Values?.TryGetValue(key, out var sid) == true && sid?.ToString() is string s && !string.IsNullOrEmpty(s))
                         group.StudentIds.Add(s);
                 }
                 if (group.StudentIds.Count >= 2)
@@ -959,25 +959,25 @@ namespace SeatFlow.Application.Services
         /// 将 StrategyDatasetConfig 的 Rows 转换为 GenderRestrictedSeatConfiguration.SeatGenderRestrictions。
         /// 每行通过座位位置查找实际 Seat.Id，Gender 字段值映射为 Gender 枚举，构建限制字典。
         /// </summary>
-        private static void ApplyGenderRestrictionConfig (
-            GenderRestrictedSeatStrategy strategy ,
-            StrategyDatasetConfig config ,
+        private static void ApplyGenderRestrictionConfig(
+            GenderRestrictedSeatStrategy strategy,
+            StrategyDatasetConfig config,
             ClassroomLayoutDefinition? venueLayout)
         {
-            var restrictions = new Dictionary<string , Gender>();
+            var restrictions = new Dictionary<string, Gender>();
             foreach (var row in config.Rows)
             {
-                var seat = FindSeatByPosition(venueLayout , row);
+                var seat = FindSeatByPosition(venueLayout, row);
                 if (seat is null) continue;
 
-                if (row.Values?.TryGetValue("Gender" , out var genderObj) != true || genderObj is null)
+                if (row.Values?.TryGetValue("Gender", out var genderObj) != true || genderObj is null)
                     continue;
 
                 var genderStr = genderObj.ToString();
                 Gender? parsed = null;
-                if (string.Equals(genderStr , "Male" , StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(genderStr, "Male", StringComparison.OrdinalIgnoreCase))
                     parsed = Gender.Male;
-                else if (string.Equals(genderStr , "Female" , StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(genderStr, "Female", StringComparison.OrdinalIgnoreCase))
                     parsed = Gender.Female;
 
                 if (parsed is null) continue;
@@ -990,7 +990,7 @@ namespace SeatFlow.Application.Services
         /// <summary>
         /// 根据 ConfigRow 中的座位位置信息在会场布局中查找对应的 Seat 对象。
         /// </summary>
-        private static Seat? FindSeatByPosition (ClassroomLayoutDefinition? layout , StrategyConfigRow row)
+        private static Seat? FindSeatByPosition(ClassroomLayoutDefinition? layout, StrategyConfigRow row)
         {
             if (layout is null) return null;
 
@@ -1022,8 +1022,8 @@ namespace SeatFlow.Application.Services
         /// 移除配置行中座位位置在当前会场布局中不存在的行（会场缩小导致旧位置越界）。
         /// </summary>
         /// <returns>是否有行被移除。</returns>
-        internal static bool CleanInvalidSeatRows (
-            StrategyDatasetConfig config ,
+        internal static bool CleanInvalidSeatRows(
+            StrategyDatasetConfig config,
             ClassroomLayoutDefinition? venueLayout)
         {
             if (config.Rows.Count == 0)
@@ -1040,7 +1040,7 @@ namespace SeatFlow.Application.Services
             }
 
             var validRows = config.Rows
-                .Where(row => FindSeatByPosition(venueLayout , row) != null)
+                .Where(row => FindSeatByPosition(venueLayout, row) != null)
                 .ToList();
 
             if (validRows.Count == config.Rows.Count)
@@ -1054,8 +1054,8 @@ namespace SeatFlow.Application.Services
         /// 移除 FixedSeat 配置中引用已删除学生的行。
         /// </summary>
         /// <returns>是否有行被移除。</returns>
-        internal static bool CleanFixedSeatDeletedStudents (
-            StrategyDatasetConfig config ,
+        internal static bool CleanFixedSeatDeletedStudents(
+            StrategyDatasetConfig config,
             HashSet<string> validStudentIds)
         {
             if (config.Rows.Count == 0)
@@ -1076,8 +1076,8 @@ namespace SeatFlow.Application.Services
         /// 剩余小于 2 人则删除整行，否则重建该行仅保留有效学生。
         /// </summary>
         /// <returns>是否有行被移除或修改。</returns>
-        internal static bool CleanDeskMateDeletedStudents (
-            StrategyDatasetConfig config ,
+        internal static bool CleanDeskMateDeletedStudents(
+            StrategyDatasetConfig config,
             HashSet<string> validStudentIds)
         {
             if (config.Rows.Count == 0)
@@ -1100,7 +1100,7 @@ namespace SeatFlow.Application.Services
                 for (int i = 1; i <= 10; i++)
                 {
                     var key = $"student{i}";
-                    if (row.Values?.TryGetValue(key , out var sid) == true
+                    if (row.Values?.TryGetValue(key, out var sid) == true
                         && sid?.ToString() is string s
                         && !string.IsNullOrEmpty(s))
                     {
@@ -1121,15 +1121,15 @@ namespace SeatFlow.Application.Services
                 // 重建行，仅保留有效学生（重新编号 student1/student2/...）
                 var newRow = new StrategyConfigRow
                 {
-                    Index = row.Index ,
-                    StudentId = validIds[0] ,
-                    SeatRow = row.SeatRow ,
-                    SeatColumn = row.SeatColumn ,
-                    SeatRing = row.SeatRing ,
-                    SeatAngle = row.SeatAngle ,
-                    SeatX = row.SeatX ,
-                    SeatY = row.SeatY ,
-                    Values = new Dictionary<string , object?>()
+                    Index = row.Index,
+                    StudentId = validIds[0],
+                    SeatRow = row.SeatRow,
+                    SeatColumn = row.SeatColumn,
+                    SeatRing = row.SeatRing,
+                    SeatAngle = row.SeatAngle,
+                    SeatX = row.SeatX,
+                    SeatY = row.SeatY,
+                    Values = new Dictionary<string, object?>()
                 };
                 for (int i = 1; i < validIds.Count; i++)
                     newRow.Values[$"student{i}"] = validIds[i];
@@ -1147,42 +1147,42 @@ namespace SeatFlow.Application.Services
         /// <summary>
         /// 保存清理后的数据集配置。保留现有的哈希值（数据本身未变，只是移除了失效行）。
         /// </summary>
-        private async Task SaveDatasetConfigAsync (
-            StrategyDatasetConfig config ,
+        private async Task SaveDatasetConfigAsync(
+            StrategyDatasetConfig config,
             CancellationToken ct)
         {
             await _datasetConfigRepo.SaveAsync(
-                config , config.StudentsHash , config.ContentHash , ct);
+                config, config.StudentsHash, config.ContentHash, ct);
         }
 
-        private static StrategyDisplayInfo BuildDisplayInfo (
-            StrategyManifest manifest ,
-            string source ,
-            Dictionary<string , StrategyConfig> persisted ,
-            ISeatingStrategy? runtimeStrategy ,
+        private static StrategyDisplayInfo BuildDisplayInfo(
+            StrategyManifest manifest,
+            string source,
+            Dictionary<string, StrategyConfig> persisted,
+            ISeatingStrategy? runtimeStrategy,
             IDependentSeatingStrategy? depStrategy = null)
         {
             var info = new StrategyDisplayInfo
             {
-                Id = manifest.Id ,
-                DisplayName = manifest.DisplayName ,
-                Description = manifest.Description ,
-                Author = manifest.Author ,
-                Category = manifest.Category ,
-                Source = source ,
-                DefaultPriority = manifest.DefaultPriority ,
-                DefaultEnabled = manifest.DefaultEnabled ,
-                Priority = manifest.DefaultPriority ,
-                IsEnabled = manifest.DefaultEnabled ,
-                ParameterDefinitions = manifest.Parameters ,
-                CodeBlocks = manifest.CodeBlocks ,
-                Messages = manifest.Messages ,
-                Visible = manifest.Visible ,
+                Id = manifest.Id,
+                DisplayName = manifest.DisplayName,
+                Description = manifest.Description,
+                Author = manifest.Author,
+                Category = manifest.Category,
+                Source = source,
+                DefaultPriority = manifest.DefaultPriority,
+                DefaultEnabled = manifest.DefaultEnabled,
+                Priority = manifest.DefaultPriority,
+                IsEnabled = manifest.DefaultEnabled,
+                ParameterDefinitions = manifest.Parameters,
+                CodeBlocks = manifest.CodeBlocks,
+                Messages = manifest.Messages,
+                Visible = manifest.Visible,
                 IsIndependent = manifest.IsIndependent
             };
 
             // 用持久化的配置覆盖默认值
-            if (persisted.TryGetValue(manifest.Id , out var savedConfig))
+            if (persisted.TryGetValue(manifest.Id, out var savedConfig))
             {
                 info.Priority = savedConfig.Priority;
                 info.IsEnabled = savedConfig.IsEnabled;
@@ -1201,14 +1201,14 @@ namespace SeatFlow.Application.Services
             return info;
         }
 
-        private static Dictionary<string , object?> ExtractParameters (ISeatingStrategy strategy)
+        private static Dictionary<string, object?> ExtractParameters(ISeatingStrategy strategy)
         {
             return strategy switch
             {
-                FrontRowRotationStrategy fr => new Dictionary<string , object?>
+                FrontRowRotationStrategy fr => new Dictionary<string, object?>
                 {
-                    ["HistoryWeight"] = fr.Config.HistoryWeight ,
-                    ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus ,
+                    ["HistoryWeight"] = fr.Config.HistoryWeight,
+                    ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
                 DefragStrategy => [],
@@ -1216,11 +1216,11 @@ namespace SeatFlow.Application.Services
             };
         }
 
-        private static Dictionary<string , object?> ExtractDependentParameters (IDependentSeatingStrategy strategy)
+        private static Dictionary<string, object?> ExtractDependentParameters(IDependentSeatingStrategy strategy)
         {
             return strategy switch
             {
-                NoRepeatDeskMateStrategy nd => new Dictionary<string , object?>
+                NoRepeatDeskMateStrategy nd => new Dictionary<string, object?>
                 {
                     ["HistoryWindowSize"] = nd.Config.HistoryWindowSize
                 },
@@ -1229,30 +1229,30 @@ namespace SeatFlow.Application.Services
             };
         }
 
-        private static void ApplyConfiguration (ISeatingStrategy strategy , Dictionary<string , object?> parameters)
+        private static void ApplyConfiguration(ISeatingStrategy strategy, Dictionary<string, object?> parameters)
         {
             if (parameters.Count == 0) return;
 
             switch (strategy)
             {
                 case FrontRowRotationStrategy fr:
-                    fr.Config.HistoryWeight = GetParamInt(parameters , "HistoryWeight");
-                    fr.Config.NeedsFrontRowBonus = GetParamInt(parameters , "NeedsFrontRowBonus");
-                    fr.Config.FrontRowCount = GetParamInt(parameters , "FrontRowCount");
+                    fr.Config.HistoryWeight = GetParamInt(parameters, "HistoryWeight");
+                    fr.Config.NeedsFrontRowBonus = GetParamInt(parameters, "NeedsFrontRowBonus");
+                    fr.Config.FrontRowCount = GetParamInt(parameters, "FrontRowCount");
                     break;
                 case DefragStrategy:
                     break; // 零参数策略
             }
         }
 
-        private static void ApplyDependentConfiguration (IDependentSeatingStrategy strategy , Dictionary<string , object?> parameters)
+        private static void ApplyDependentConfiguration(IDependentSeatingStrategy strategy, Dictionary<string, object?> parameters)
         {
             if (parameters.Count == 0) return;
 
             switch (strategy)
             {
                 case NoRepeatDeskMateStrategy nd:
-                    nd.Config.HistoryWindowSize = GetParamInt(parameters , "HistoryWindowSize");
+                    nd.Config.HistoryWindowSize = GetParamInt(parameters, "HistoryWindowSize");
                     break;
                 case GenderRestrictedSeatStrategy:
                     // 无策略级参数
@@ -1260,17 +1260,17 @@ namespace SeatFlow.Application.Services
             }
         }
 
-        private static int GetParamInt (Dictionary<string , object?> p , string key)
+        private static int GetParamInt(Dictionary<string, object?> p, string key)
         {
-            if (!p.TryGetValue(key , out var v) || v is null) return 0;
+            if (!p.TryGetValue(key, out var v) || v is null) return 0;
             if (v is int i) return i;
             if (v is JsonElement je && je.ValueKind == JsonValueKind.Number) return je.GetInt32();
             return 0;
         }
 
-        private static bool GetParamBool (Dictionary<string , object?> p , string key)
+        private static bool GetParamBool(Dictionary<string, object?> p, string key)
         {
-            if (!p.TryGetValue(key , out var v) || v is null) return false;
+            if (!p.TryGetValue(key, out var v) || v is null) return false;
             if (v is bool b) return b;
             if (v is JsonElement je)
                 return je.ValueKind == JsonValueKind.True;
@@ -1281,22 +1281,22 @@ namespace SeatFlow.Application.Services
         /// 将持久化的 StrategyConfig（Priority、IsEnabled、Parameters）应用到策略实例。
         /// 供 <see cref="SaveStrategyConfigAsync"/> 和 <see cref="RestorePersistedStrategyConfigsAsync"/> 共用。
         /// </summary>
-        private static void ApplyPersistedConfigToInstance (
-            StrategyConfig config ,
-            ISeatingStrategy? strategy ,
+        private static void ApplyPersistedConfigToInstance(
+            StrategyConfig config,
+            ISeatingStrategy? strategy,
             IDependentSeatingStrategy? depStrategy)
         {
             if (strategy is not null)
             {
                 strategy.Priority = config.Priority;
                 strategy.IsEnabled = config.IsEnabled;
-                ApplyConfiguration(strategy , config.Parameters);
+                ApplyConfiguration(strategy, config.Parameters);
             }
             else if (depStrategy is not null)
             {
                 depStrategy.Priority = config.Priority;
                 depStrategy.IsEnabled = config.IsEnabled;
-                ApplyDependentConfiguration(depStrategy , config.Parameters);
+                ApplyDependentConfiguration(depStrategy, config.Parameters);
             }
         }
 
@@ -1304,9 +1304,9 @@ namespace SeatFlow.Application.Services
         /// 从持久化存储恢复策略配置（Priority、IsEnabled、Parameters），
         /// 覆盖 DI 单例的默认值。解决重启后策略参数丢失问题。
         /// </summary>
-        private async Task RestorePersistedStrategyConfigsAsync (
-            List<ISeatingStrategy> strategies ,
-            List<IDependentSeatingStrategy> dependentStrategies ,
+        private async Task RestorePersistedStrategyConfigsAsync(
+            List<ISeatingStrategy> strategies,
+            List<IDependentSeatingStrategy> dependentStrategies,
             CancellationToken ct)
         {
             var persisted = await _strategyConfigRepo.LoadAllAsync(ct);
@@ -1315,24 +1315,24 @@ namespace SeatFlow.Application.Services
 
             foreach (var strategy in strategies)
             {
-                if (persisted.TryGetValue(strategy.Id , out var config))
-                    ApplyPersistedConfigToInstance(config , strategy , null);
+                if (persisted.TryGetValue(strategy.Id, out var config))
+                    ApplyPersistedConfigToInstance(config, strategy, null);
             }
 
             foreach (var dep in dependentStrategies)
             {
-                if (persisted.TryGetValue(dep.Id , out var config))
-                    ApplyPersistedConfigToInstance(config , null , dep);
+                if (persisted.TryGetValue(dep.Id, out var config))
+                    ApplyPersistedConfigToInstance(config, null, dep);
             }
 
-            logger.LogDebug("已从持久化恢复 {Count} 个策略配置" , persisted.Count);
+            logger.LogDebug("已从持久化恢复 {Count} 个策略配置", persisted.Count);
         }
 
         /// <summary>
         /// 遍历所有策略的数据集配置，删除引用了已删除数据集或会场的孤立配置文件。
         /// 在每次 GenerateSeatingAsync 时执行，防止磁盘残留无效配置。
         /// </summary>
-        private async Task CleanupOrphanedDatasetConfigsAsync (CancellationToken ct)
+        private async Task CleanupOrphanedDatasetConfigsAsync(CancellationToken ct)
         {
             // 1. 收集有效数据集 ID 和会场 ID
             var validDatasetIds = (await _datasetRepo.ListAsync(ct))
@@ -1350,7 +1350,7 @@ namespace SeatFlow.Application.Services
             // 3. 检查每个策略的所有数据集配置
             foreach (var sid in strategyIds)
             {
-                var configs = await _datasetConfigRepo.LoadAllAsync(sid , ct);
+                var configs = await _datasetConfigRepo.LoadAllAsync(sid, ct);
 
                 foreach (var config in configs)
                 {
@@ -1363,11 +1363,11 @@ namespace SeatFlow.Application.Services
                         continue;
 
                     logger.LogWarning(
-                        "清理孤立策略配置：{StrategyId} / Dataset={DatasetId} / Venue={VenueId}（数据集存在={DsOk}，会场存在={VOk}）" ,
-                        sid , config.DatasetId , config.VenueId , !datasetGone , !venueGone);
+                        "清理孤立策略配置：{StrategyId} / Dataset={DatasetId} / Venue={VenueId}（数据集存在={DsOk}，会场存在={VOk}）",
+                        sid, config.DatasetId, config.VenueId, !datasetGone, !venueGone);
 
                     await _datasetConfigRepo.DeleteAsync(
-                        sid , config.DatasetId ?? string.Empty , config.VenueId , ct);
+                        sid, config.DatasetId ?? string.Empty, config.VenueId, ct);
                 }
             }
         }
@@ -1381,14 +1381,14 @@ namespace SeatFlow.Application.Services
         /// </summary>
         /// <param name="request">座位生成请求。</param>
         /// <returns>生成的座位列表。</returns>
-        private static List<Seat> BuildSeatsFromRequest (SeatingRequest request)
+        private static List<Seat> BuildSeatsFromRequest(SeatingRequest request)
         {
             ClassroomLayoutDefinition layout = request.LayoutType switch
             {
                 LayoutType.Grid => BuildGridLayout(request.LayoutParameters),
                 LayoutType.Polar => BuildPolarLayout(request.LayoutParameters),
                 LayoutType.Freeform => BuildFreeformLayout(request.LayoutParameters),
-                _ => BuildGridLayout(new Dictionary<string , object> { ["Rows"] = 3 , ["Columns"] = 3 })
+                _ => BuildGridLayout(new Dictionary<string, object> { ["Rows"] = 3, ["Columns"] = 3 })
             };
 
             ObstacleProcessor.ApplyObstacles(layout);
@@ -1400,30 +1400,30 @@ namespace SeatFlow.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "Rows" 和 "Columns" 键。</param>
         /// <returns>网格布局定义。</returns>
-        private static ClassroomLayoutDefinition BuildGridLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildGridLayout(Dictionary<string, object> parameters)
         {
-            int rows = GetParameter(parameters , "Rows" , 3);
-            int columns = GetParameter(parameters , "Columns" , 3);
+            int rows = GetParameter(parameters, "Rows", 3);
+            int columns = GetParameter(parameters, "Columns", 3);
             var meta = new GridLayoutMetadata
             {
-                Rows = rows ,
-                Columns = columns ,
-                SeatsPerDesk = GetParameter(parameters , "SeatsPerDesk" , 1) ,
-                HorizontalSpacing = GetParameter(parameters , "HorizontalSpacing" , 1.0) ,
-                VerticalSpacing = GetParameter(parameters , "VerticalSpacing" , 1.0) ,
-                IntraDeskSpacing = GetParameter(parameters , "IntraDeskSpacing" , 0.0) ,
-                InterDeskSpacing = GetParameter(parameters , "InterDeskSpacing" , 10.0) ,
-                OriginX = GetParameter(parameters , "OriginX" , 0.0) ,
-                OriginY = GetParameter(parameters , "OriginY" , 0.0) ,
-                ColumnRowCounts = GetParameter<List<int>>(parameters , "ColumnRowCounts" , []) ,
-                AisleAfterColumns = GetParameter<List<int>>(parameters , "AisleAfterColumns" , []) ,
-                AisleAfterRows = GetParameter<List<int>>(parameters , "AisleAfterRows" , []) ,
-                AisleWidth = GetParameter(parameters , "AisleWidth" , 0.0) ,
-                FrontRowCount = GetParameter(parameters , "FrontRowCount" , 1) ,
-                HasPodium = GetParameter(parameters , "HasPodium" , false) ,
-                PodiumWidth = GetParameter(parameters , "PodiumWidth" , 0.0) ,
-                PodiumHeight = GetParameter(parameters , "PodiumHeight" , 0.0) ,
-                EmptyPositions = GetParameter<List<GridPosition>>(parameters , "EmptyPositions" , [])
+                Rows = rows,
+                Columns = columns,
+                SeatsPerDesk = GetParameter(parameters, "SeatsPerDesk", 1),
+                HorizontalSpacing = GetParameter(parameters, "HorizontalSpacing", 1.0),
+                VerticalSpacing = GetParameter(parameters, "VerticalSpacing", 1.0),
+                IntraDeskSpacing = GetParameter(parameters, "IntraDeskSpacing", 0.0),
+                InterDeskSpacing = GetParameter(parameters, "InterDeskSpacing", 10.0),
+                OriginX = GetParameter(parameters, "OriginX", 0.0),
+                OriginY = GetParameter(parameters, "OriginY", 0.0),
+                ColumnRowCounts = GetParameter<List<int>>(parameters, "ColumnRowCounts", []),
+                AisleAfterColumns = GetParameter<List<int>>(parameters, "AisleAfterColumns", []),
+                AisleAfterRows = GetParameter<List<int>>(parameters, "AisleAfterRows", []),
+                AisleWidth = GetParameter(parameters, "AisleWidth", 0.0),
+                FrontRowCount = GetParameter(parameters, "FrontRowCount", 1),
+                HasPodium = GetParameter(parameters, "HasPodium", false),
+                PodiumWidth = GetParameter(parameters, "PodiumWidth", 0.0),
+                PodiumHeight = GetParameter(parameters, "PodiumHeight", 0.0),
+                EmptyPositions = GetParameter<List<GridPosition>>(parameters, "EmptyPositions", [])
             };
             return GridLayoutBuilder.BuildGrid(meta);
         }
@@ -1433,17 +1433,17 @@ namespace SeatFlow.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "RadiusStep"、"Rings" 和 "SeatsPerRing" 键。</param>
         /// <returns>极坐标布局定义。</returns>
-        private static ClassroomLayoutDefinition BuildPolarLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildPolarLayout(Dictionary<string, object> parameters)
         {
             var meta = new PolarLayoutMetadata
             {
-                RadiusStep = GetParameter(parameters , "RadiusStep" , 1.0) ,
-                Rings = GetParameter(parameters , "Rings" , 2) ,
-                SeatsPerRing = GetParameter(parameters , "SeatsPerRing" , 8) ,
-                RingSeatCounts = GetParameter<List<int>>(parameters , "RingSeatCounts" , []) ,
-                StartAngleDegrees = GetParameter(parameters , "StartAngleDegrees" , 0.0) ,
-                EndAngleDegrees = GetParameter(parameters , "EndAngleDegrees" , 180.0) ,
-                EmptyPositions = GetParameter<List<PolarRingAngle>>(parameters , "EmptyPositions" , [])
+                RadiusStep = GetParameter(parameters, "RadiusStep", 1.0),
+                Rings = GetParameter(parameters, "Rings", 2),
+                SeatsPerRing = GetParameter(parameters, "SeatsPerRing", 8),
+                RingSeatCounts = GetParameter<List<int>>(parameters, "RingSeatCounts", []),
+                StartAngleDegrees = GetParameter(parameters, "StartAngleDegrees", 0.0),
+                EndAngleDegrees = GetParameter(parameters, "EndAngleDegrees", 180.0),
+                EmptyPositions = GetParameter<List<PolarRingAngle>>(parameters, "EmptyPositions", [])
             };
             return PolarLayoutBuilder.BuildPolar(meta);
         }
@@ -1453,21 +1453,21 @@ namespace SeatFlow.Application.Services
         /// </summary>
         /// <param name="parameters">布局参数字典，支持 "Points" 键（坐标点列表）。</param>
         /// <returns>自由形式布局定义。</returns>
-        private static ClassroomLayoutDefinition BuildFreeformLayout (Dictionary<string , object> parameters)
+        private static ClassroomLayoutDefinition BuildFreeformLayout(Dictionary<string, object> parameters)
         {
-            var points = new List<(double X , double Y , int? Row , int? Column , int? GroupId)>();
-            if (parameters.TryGetValue("Points" , out var rawPoints) && rawPoints is System.Collections.IList list)
+            var points = new List<(double X, double Y, int? Row, int? Column, int? GroupId)>();
+            if (parameters.TryGetValue("Points", out var rawPoints) && rawPoints is System.Collections.IList list)
             {
                 foreach (var item in list)
                 {
-                    if (item is Dictionary<string , object> dict)
+                    if (item is Dictionary<string, object> dict)
                     {
-                        double x = GetParameter(dict , "X" , 0.0);
-                        double y = GetParameter(dict , "Y" , 0.0);
-                        int? row = dict.ContainsKey("Row") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Row" , 0) : null;
-                        int? col = dict.ContainsKey("Column") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict , "Column" , 0) : null;
-                        int? groupId = dict.ContainsKey("GroupId") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict , "GroupId" , 0) : null;
-                        points.Add((x , y , row , col , groupId));
+                        double x = GetParameter(dict, "X", 0.0);
+                        double y = GetParameter(dict, "Y", 0.0);
+                        int? row = dict.ContainsKey("Row") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict, "Row", 0) : null;
+                        int? col = dict.ContainsKey("Column") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict, "Column", 0) : null;
+                        int? groupId = dict.ContainsKey("GroupId") ? global::SeatFlow.Application.Services.ApplicationFacade.GetParameter<int>(dict, "GroupId", 0) : null;
+                        points.Add((x, y, row, col, groupId));
                     }
                 }
             }
@@ -1482,14 +1482,14 @@ namespace SeatFlow.Application.Services
         /// <param name="key">键名。</param>
         /// <param name="defaultValue">默认值。</param>
         /// <returns>转换后的值或默认值。</returns>
-        private static T GetParameter<T> (Dictionary<string , object> parameters , string key , T defaultValue)
+        private static T GetParameter<T>(Dictionary<string, object> parameters, string key, T defaultValue)
         {
-            if (parameters.TryGetValue(key , out var value))
+            if (parameters.TryGetValue(key, out var value))
             {
                 try
                 {
                     if (value is T typedValue) return typedValue;
-                    return (T)Convert.ChangeType(value , typeof(T));
+                    return (T)Convert.ChangeType(value, typeof(T));
                 }
                 catch { return defaultValue; }
             }

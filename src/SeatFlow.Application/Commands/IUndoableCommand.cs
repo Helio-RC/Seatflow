@@ -15,12 +15,12 @@ namespace SeatFlow.Application.Commands
         /// <param name="workspace">当前工作区。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>是否执行成功。</returns>
-        Task<bool> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default);
+        Task<bool> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken = default);
 
         /// <summary>撤销命令。</summary>
         /// <param name="workspace">当前工作区。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>是否撤销成功。</returns>
-        Task<bool> UndoAsync (SeatingWorkspace workspace , CancellationToken cancellationToken = default);
+        Task<bool> UndoAsync(SeatingWorkspace workspace, CancellationToken cancellationToken = default);
     }
 }

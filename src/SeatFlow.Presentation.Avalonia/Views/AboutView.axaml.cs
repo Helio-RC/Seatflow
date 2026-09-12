@@ -4,7 +4,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
 {
     public partial class AboutView : UserControl
     {
-        public AboutView ()
+        public AboutView()
         {
             InitializeComponent();
         }

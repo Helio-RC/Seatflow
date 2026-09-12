@@ -15,7 +15,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
         private readonly INavigationService _navigation;
         private bool _isClosingConfirmed;
 
-        public MainWindow (IOnboardingService onboarding , INavigationService navigation , MainView shellView)
+        public MainWindow(IOnboardingService onboarding, INavigationService navigation, MainView shellView)
         {
             _onboarding = onboarding;
             _navigation = navigation;
@@ -27,24 +27,24 @@ namespace SeatFlow.Presentation.Avalonia.Views
             // 引导期间窗口最小化/Alt+Tab 时，Guide 的 Popup
             // (ShouldUseOverlayLayer=False) 可能残留为孤儿 OS 窗口。
             // 订阅窗口激活/失活事件以同步隐藏/恢复。
-            Activated += (_ , _) => _onboarding.HandleWindowActivated();
-            Deactivated += (_ , _) => _onboarding.HandleWindowDeactivated();
+            Activated += (_, _) => _onboarding.HandleWindowActivated();
+            Deactivated += (_, _) => _onboarding.HandleWindowDeactivated();
         }
 
         /// <summary>共享外壳视图。桌面端由本窗口承载，浏览器端直接作为单视图内容。</summary>
         public MainView ShellView { get; }
 
-        protected override async void OnClosing (WindowClosingEventArgs e)
+        protected override async void OnClosing(WindowClosingEventArgs e)
         {
             // 已确认关闭：保存窗口状态并真正退出
             if (_isClosingConfirmed)
             {
                 var state = new WindowStateSettings
                 {
-                    Left = Position.X ,
-                    Top = Position.Y ,
-                    Width = Width ,
-                    Height = Height ,
+                    Left = Position.X,
+                    Top = Position.Y,
+                    Width = Width,
+                    Height = Height,
                     IsMaximized = WindowState == WindowState.Maximized
                 };
 
@@ -77,7 +77,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
         /// 异步 continuation 无法回发到 UI 线程，导致写入丢失。
         /// 使用 Task.Run 将整个操作放到线程池，避免阻塞 UI 线程时发生死锁。
         /// </remarks>
-        private static void SaveWindowStateBlocking (WindowStateSettings state)
+        private static void SaveWindowStateBlocking(WindowStateSettings state)
         {
             try
             {

@@ -24,12 +24,12 @@ namespace SeatFlow.Browser;
 internal sealed class Program
 {
     [SupportedOSPlatform("browser")]
-    private static async Task Main (string[] args)
+    private static async Task Main(string[] args)
     {
         // 加载 IndexedDB 桥接模块（ILocalDataStore 的 WASM 实现依赖）
-        await JSHost.ImportAsync("sf.idb" , "/js/interop.js");
+        await JSHost.ImportAsync("sf.idb", "/js/interop.js");
         // 加载文件互操作模块（打开/保存）
-        await JSHost.ImportAsync("sf.files" , "/js/files.js");
+        await JSHost.ImportAsync("sf.files", "/js/files.js");
 
         var services = new ServiceCollection();
 
@@ -42,18 +42,18 @@ internal sealed class Program
             .SetMinimumLevel(LogLevel.Information));
 
         // 平台服务：浏览器端实现（IndexedDB 存储 / overlay 对话框 / 占位文件与更新服务）
-        services.AddSingleton<INavigationService , NavigationService>();
-        services.AddSingleton<IFileService , WebFileService>();
-        services.AddSingleton<IDialogService , WebDialogService>();
-        services.AddSingleton<IUrlOpener , WebUrlOpener>();
-        services.AddSingleton<IUpdateService , WebNoopUpdateService>();
-        services.AddSingleton<IArrangementCounterService , ArrangementCounterService>();
-        services.AddSingleton<ITelemetryService , NullTelemetryService>();
+        services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IFileService, WebFileService>();
+        services.AddSingleton<IDialogService, WebDialogService>();
+        services.AddSingleton<IUrlOpener, WebUrlOpener>();
+        services.AddSingleton<IUpdateService, WebNoopUpdateService>();
+        services.AddSingleton<IArrangementCounterService, ArrangementCounterService>();
+        services.AddSingleton<ITelemetryService, NullTelemetryService>();
 
         // 注册 ViewModels（与桌面端 Program 保持一致）
         // 浏览器端不能构造 Window，外壳使用 MainView（UserControl）
         services.AddSingleton<MainView>();
-        services.AddSingleton<IOnboardingService , OnboardingService>();
+        services.AddSingleton<IOnboardingService, OnboardingService>();
         services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
         services.AddSingleton<MainShellViewModel>();
         services.AddSingleton<HomeViewModel>();
@@ -90,7 +90,7 @@ internal sealed class Program
     }
 
     [SupportedOSPlatform("browser")]
-    private static Task StartBrowserAppAsync (IServiceProvider services)
+    private static Task StartBrowserAppAsync(IServiceProvider services)
         => BuildAvaloniaApp(services)
             .WithInterFont()
             .With(new FontManagerOptions
@@ -108,6 +108,6 @@ internal sealed class Program
             .LogToTrace()
             .StartBrowserAppAsync("out");
 
-    public static AppBuilder BuildAvaloniaApp (IServiceProvider services)
-        => AppBuilder.Configure(() => new App(services , isFirstInstance: true));
+    public static AppBuilder BuildAvaloniaApp(IServiceProvider services)
+        => AppBuilder.Configure(() => new App(services, isFirstInstance: true));
 }

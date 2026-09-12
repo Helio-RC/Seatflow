@@ -46,18 +46,18 @@ internal static partial class FuzzyColumnMatcher
     /// <see cref="FuzzyParseResult.Students"/> 为 null → 标准模板；
     /// 空列表 → 无可识别字段或无可解析数据。
     /// </returns>
-    internal static FuzzyParseResult TryParse (string?[,] cells , int rows , int cols)
+    internal static FuzzyParseResult TryParse(string?[,] cells, int rows, int cols)
     {
-        var hits = FindFieldHits(cells , rows , cols);
+        var hits = FindFieldHits(cells, rows, cols);
         var hasName = hits.ContainsKey("Name");
 
         if (IsStandardTemplate(hits))
         {
             return new FuzzyParseResult
             {
-                IsStandardTemplate = true ,
-                HasNameField = hasName ,
-                ActualDataRows = rows ,
+                IsStandardTemplate = true,
+                HasNameField = hasName,
+                ActualDataRows = rows,
                 ActualDataCols = cols
             };
         }
@@ -66,24 +66,24 @@ internal static partial class FuzzyColumnMatcher
         {
             return new FuzzyParseResult
             {
-                Students = [] ,
-                HasNameField = false ,
-                ActualDataRows = rows ,
+                Students = [],
+                HasNameField = false,
+                ActualDataRows = rows,
                 ActualDataCols = cols
             };
         }
 
         var layout = DetectLayout(hits);
         var students = layout == LayoutType.Columnar
-            ? ParseColumnar(cells , rows , cols , hits)
-            : ParseRowBased(cells , rows , cols , hits);
+            ? ParseColumnar(cells, rows, cols, hits)
+            : ParseRowBased(cells, rows, cols, hits);
 
         return new FuzzyParseResult
         {
-            Students = students ,
-            IsStandardTemplate = false ,
-            HasNameField = hasName ,
-            ActualDataRows = rows ,
+            Students = students,
+            IsStandardTemplate = false,
+            HasNameField = hasName,
+            ActualDataRows = rows,
             ActualDataCols = cols
         };
     }
@@ -96,16 +96,16 @@ internal static partial class FuzzyColumnMatcher
     /// 扫描所有单元格，使用 <see cref="StudentDataMapping.ResolveProperty"/> 匹配已知字段名。
     /// </summary>
     /// <returns>属性名 → 命中位置列表。</returns>
-    private static Dictionary<string , List<(int Row , int Col)>> FindFieldHits (
-        string?[,] cells , int rows , int cols)
+    private static Dictionary<string, List<(int Row, int Col)>> FindFieldHits(
+        string?[,] cells, int rows, int cols)
     {
-        var hits = new Dictionary<string , List<(int Row , int Col)>>();
+        var hits = new Dictionary<string, List<(int Row, int Col)>>();
 
         for (int r = 0; r < rows; r++)
         {
             for (int c = 0; c < cols; c++)
             {
-                var value = cells[r , c];
+                var value = cells[r, c];
                 if (string.IsNullOrWhiteSpace(value))
                     continue;
 
@@ -115,7 +115,7 @@ internal static partial class FuzzyColumnMatcher
 
                 if (!hits.ContainsKey(prop))
                     hits[prop] = [];
-                hits[prop].Add((r , c));
+                hits[prop].Add((r, c));
             }
         }
 
@@ -130,15 +130,15 @@ internal static partial class FuzzyColumnMatcher
     /// 所有命中都在第 0 行 且 每个属性最多击中一次 → 标准模板格式。
     /// 排除双列名单（同一字段重复出现）等需要模糊聚合的场景。
     /// </summary>
-    private static bool IsStandardTemplate (
-        Dictionary<string , List<(int Row , int Col)>> hits)
+    private static bool IsStandardTemplate(
+        Dictionary<string, List<(int Row, int Col)>> hits)
     {
         if (hits.Count == 0)
             return false;
 
-        foreach (var (prop , positions) in hits)
+        foreach (var (prop, positions) in hits)
         {
-            foreach (var (row , _) in positions)
+            foreach (var (row, _) in positions)
             {
                 if (row != 0)
                     return false;
@@ -159,20 +159,20 @@ internal static partial class FuzzyColumnMatcher
     /// <summary>
     /// 按命中集中在行/列的比例判定布局方向。
     /// </summary>
-    private static LayoutType DetectLayout (
-        Dictionary<string , List<(int Row , int Col)>> hits)
+    private static LayoutType DetectLayout(
+        Dictionary<string, List<(int Row, int Col)>> hits)
     {
-        var hitsByRow = new Dictionary<int , int>();
-        var hitsByCol = new Dictionary<int , int>();
+        var hitsByRow = new Dictionary<int, int>();
+        var hitsByCol = new Dictionary<int, int>();
 
         foreach (var positions in hits.Values)
         {
-            foreach (var (row , col) in positions)
+            foreach (var (row, col) in positions)
             {
-                hitsByRow.TryGetValue(row , out var rc);
+                hitsByRow.TryGetValue(row, out var rc);
                 hitsByRow[row] = rc + 1;
 
-                hitsByCol.TryGetValue(col , out var cc);
+                hitsByCol.TryGetValue(col, out var cc);
                 hitsByCol[col] = cc + 1;
             }
         }
@@ -200,9 +200,9 @@ internal static partial class FuzzyColumnMatcher
     /// <summary>
     /// 列式布局：字段名分布在同一行（表头行），数据向下延伸。
     /// </summary>
-    private static List<Student> ParseColumnar (
-        string?[,] cells , int totalRows , int totalCols ,
-        Dictionary<string , List<(int Row , int Col)>> hits)
+    private static List<Student> ParseColumnar(
+        string?[,] cells, int totalRows, int totalCols,
+        Dictionary<string, List<(int Row, int Col)>> hits)
     {
         // 1. 属性名 → 去重排序后的列号
         var propertyColumns = ComputePropertyColumns(hits);
@@ -212,7 +212,7 @@ internal static partial class FuzzyColumnMatcher
         int dataStartRow = maxHeaderRow + 1;
 
         // 跳过紧跟在表头后的一行（如果是全空/注释行）
-        if (dataStartRow < totalRows && IsCompletelyEmptyRow(cells , dataStartRow , totalCols))
+        if (dataStartRow < totalRows && IsCompletelyEmptyRow(cells, dataStartRow, totalCols))
             dataStartRow++;
 
         // 3. 构建列组（用于双列聚合）
@@ -221,11 +221,11 @@ internal static partial class FuzzyColumnMatcher
             return [];
 
         // 4. 收集字段（列） → 值列表
-        var fieldValues = ReadFieldValuesColumnar(cells , totalRows , totalCols ,
-            columnGroups , dataStartRow);
+        var fieldValues = ReadFieldValuesColumnar(cells, totalRows, totalCols,
+            columnGroups, dataStartRow);
 
         // 5. 聚合为学生列表
-        return BuildStudentsFromFieldValues(fieldValues , columnGroups);
+        return BuildStudentsFromFieldValues(fieldValues, columnGroups);
     }
 
     /// <summary>
@@ -233,13 +233,13 @@ internal static partial class FuzzyColumnMatcher
     /// 与 <see cref="IsNearlyEmptyCol"/> 不同——行检查要求完全为空（更严格），
     /// 因为单列中的非空值就可能是一个有效数据行的起点。
     /// </summary>
-    private static bool IsCompletelyEmptyRow (string?[,] cells , int row , int totalCols)
+    private static bool IsCompletelyEmptyRow(string?[,] cells, int row, int totalCols)
     {
         int nonEmptyCount = 0;
-        int scanned = Math.Min(totalCols , 20);
+        int scanned = Math.Min(totalCols, 20);
         for (int c = 0; c < scanned; c++)
         {
-            if (!string.IsNullOrWhiteSpace(cells[row , c]))
+            if (!string.IsNullOrWhiteSpace(cells[row, c]))
                 nonEmptyCount++;
         }
 
@@ -251,12 +251,12 @@ internal static partial class FuzzyColumnMatcher
     /// 属性名 → 去重排序后的列号列表。
     /// 例：{ Name: [0,3], Gender: [1,4], Height: [2] }
     /// </summary>
-    private static Dictionary<string , List<int>> ComputePropertyColumns (
-        Dictionary<string , List<(int Row , int Col)>> hits)
+    private static Dictionary<string, List<int>> ComputePropertyColumns(
+        Dictionary<string, List<(int Row, int Col)>> hits)
     {
-        var result = new Dictionary<string , List<int>>();
+        var result = new Dictionary<string, List<int>>();
 
-        foreach (var (prop , positions) in hits)
+        foreach (var (prop, positions) in hits)
         {
             var cols = positions
                 .Select(p => p.Col)
@@ -273,8 +273,8 @@ internal static partial class FuzzyColumnMatcher
     /// 构建列组——用于双列/多列名单聚合。
     /// 以重复次数最多的字段列作为锚点划定组边界，按列的空间位置分配。
     /// </summary>
-    private static List<List<(string Property , int Col)>> ComputeColumnGroups (
-        Dictionary<string , List<int>> propertyColumns)
+    private static List<List<(string Property, int Col)>> ComputeColumnGroups(
+        Dictionary<string, List<int>> propertyColumns)
     {
         if (propertyColumns.Count == 0)
             return [];
@@ -285,17 +285,17 @@ internal static partial class FuzzyColumnMatcher
 
         // 2. 初始化空组
         int maxGroups = anchorCols.Count;
-        var groups = new List<List<(string Property , int Col)>>();
+        var groups = new List<List<(string Property, int Col)>>();
         for (int g = 0; g < maxGroups; g++)
             groups.Add([]);
 
         // 3. 将所有 (属性, 列) 按空间位置分配到对应组
-        foreach (var (prop , cols) in propertyColumns)
+        foreach (var (prop, cols) in propertyColumns)
         {
             foreach (var col in cols)
             {
-                int groupIndex = FindGroupIndex(col , anchorCols);
-                groups[groupIndex].Add((prop , col));
+                int groupIndex = FindGroupIndex(col, anchorCols);
+                groups[groupIndex].Add((prop, col));
             }
         }
 
@@ -307,7 +307,7 @@ internal static partial class FuzzyColumnMatcher
     /// 根据锚点边界确定列/行所属的组索引。
     /// 列在锚点之间 → 前一个锚点的组；在第一锚点之前 → Group 0；在最后锚点之后 → 最后一组。
     /// </summary>
-    private static int FindGroupIndex (int pos , List<int> anchorPositions)
+    private static int FindGroupIndex(int pos, List<int> anchorPositions)
     {
         if (pos < anchorPositions[0])
             return 0;
@@ -324,9 +324,9 @@ internal static partial class FuzzyColumnMatcher
     /// <summary>
     /// 按列读取所有字段的数据值，每列独立跟踪 2-连续空终止。
     /// </summary>
-    private static Dictionary<int , List<string?>> ReadFieldValuesColumnar (
-        string?[,] cells , int totalRows , int totalCols ,
-        List<List<(string Property , int Col)>> columnGroups , int dataStartRow)
+    private static Dictionary<int, List<string?>> ReadFieldValuesColumnar(
+        string?[,] cells, int totalRows, int totalCols,
+        List<List<(string Property, int Col)>> columnGroups, int dataStartRow)
     {
         // 收集所有相关的列
         var allCols = new HashSet<int>();
@@ -335,9 +335,9 @@ internal static partial class FuzzyColumnMatcher
                 allCols.Add(col);
 
         // 每个列的连续空计数器
-        var colConsecutiveEmpty = new Dictionary<int , int>();
+        var colConsecutiveEmpty = new Dictionary<int, int>();
         var colExhausted = new HashSet<int>();
-        var colValues = new Dictionary<int , List<string?>>();
+        var colValues = new Dictionary<int, List<string?>>();
 
         foreach (int col in allCols)
             colValues[col] = [];
@@ -353,10 +353,10 @@ internal static partial class FuzzyColumnMatcher
 
                 allExhausted = false;
 
-                var value = cells[r , col];
+                var value = cells[r, col];
                 if (string.IsNullOrWhiteSpace(value))
                 {
-                    colConsecutiveEmpty.TryGetValue(col , out var cnt);
+                    colConsecutiveEmpty.TryGetValue(col, out var cnt);
                     colConsecutiveEmpty[col] = cnt + 1;
                     if (cnt + 1 >= 2)
                         colExhausted.Add(col);
@@ -379,18 +379,18 @@ internal static partial class FuzzyColumnMatcher
     /// <summary>
     /// 将按列收集的字段值聚合为学生列表，按行对齐。
     /// </summary>
-    private static List<Student> BuildStudentsFromFieldValues (
-        Dictionary<int , List<string?>> colValues ,
-        List<List<(string Property , int Col)>> columnGroups)
+    private static List<Student> BuildStudentsFromFieldValues(
+        Dictionary<int, List<string?>> colValues,
+        List<List<(string Property, int Col)>> columnGroups)
     {
         // 找出各组中的最大行数
         int maxRows = 0;
         foreach (var group in columnGroups)
         {
             int groupRows = group.Count > 0
-                ? group.Max(g => colValues.TryGetValue(g.Col , out var vals) ? vals.Count : 0)
+                ? group.Max(g => colValues.TryGetValue(g.Col, out var vals) ? vals.Count : 0)
                 : 0;
-            maxRows = Math.Max(maxRows , groupRows);
+            maxRows = Math.Max(maxRows, groupRows);
         }
 
         var students = new List<Student>();
@@ -402,14 +402,14 @@ internal static partial class FuzzyColumnMatcher
                 var student = new Student();
                 bool hasData = false;
 
-                foreach (var (property , col) in group)
+                foreach (var (property, col) in group)
                 {
-                    if (colValues.TryGetValue(col , out var vals) && r < vals.Count)
+                    if (colValues.TryGetValue(col, out var vals) && r < vals.Count)
                     {
                         var value = vals[r];
                         if (!string.IsNullOrWhiteSpace(value))
                         {
-                            StudentDataMapping.SetProperty(student , property , value);
+                            StudentDataMapping.SetProperty(student, property, value);
                             hasData = true;
                         }
                     }

@@ -11,20 +11,20 @@ internal static class StudentSourceResolver
     /// <summary>
     /// 读取数据源字节。优先文件系统；不存在且提供 store 时走 store。
     /// </summary>
-    public static async Task<byte[]?> ReadBytesAsync (string source , ILocalDataStore? store , CancellationToken ct)
+    public static async Task<byte[]?> ReadBytesAsync(string source, ILocalDataStore? store, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(source))
             return null;
         if (File.Exists(source))
-            return await File.ReadAllBytesAsync(source , ct);
+            return await File.ReadAllBytesAsync(source, ct);
         if (store is not null)
-            return await store.ReadBytesAsync(Normalize(source) , ct);
+            return await store.ReadBytesAsync(Normalize(source), ct);
         return null;
     }
 
     /// <summary>
     /// 规范化为存储相对路径（统一 '/' 分隔，去前缀分隔符）。
     /// </summary>
-    public static string Normalize (string source)
-        => source.Replace('\\' , '/').TrimStart('/');
+    public static string Normalize(string source)
+        => source.Replace('\\', '/').TrimStart('/');
 }

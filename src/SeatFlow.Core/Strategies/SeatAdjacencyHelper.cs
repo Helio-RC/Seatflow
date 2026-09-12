@@ -24,7 +24,7 @@ namespace SeatFlow.Core.Strategies
         /// 自由点座位：同 LogicalGroup，或欧几里得距离 ≤1.5。
         /// 混合类型座位不视为相邻。
         /// </summary>
-        public static bool AreSeatsAdjacent (Seat a , Seat b)
+        public static bool AreSeatsAdjacent(Seat a, Seat b)
         {
             if (a is GridSeat ga && b is GridSeat gb)
             {
@@ -45,13 +45,13 @@ namespace SeatFlow.Core.Strategies
                 if (sameRing)
                 {
                     double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
-                    double angleDiff = Math.Min(raw , 360.0 - raw);
+                    double angleDiff = Math.Min(raw, 360.0 - raw);
                     if (angleDiff <= PolarSameRingAngleThreshold) return true;
                 }
                 else
                 {
                     double raw = Math.Abs(pa.AngleDegrees - pb.AngleDegrees);
-                    double angleDiff = Math.Min(raw , 360.0 - raw);
+                    double angleDiff = Math.Min(raw, 360.0 - raw);
                     if (angleDiff < PolarCrossRingAngleTolerance)
                         return true;
                 }
@@ -81,11 +81,11 @@ namespace SeatFlow.Core.Strategies
         /// Grid 布局：同行、相邻列、同一 SeatsPerDesk 分组。
         /// 非 Grid 布局委托给 <see cref="AreSeatsAdjacent"/>（LogicalGroup / 几何判定）。
         /// </summary>
-        public static bool AreDeskMates (Seat a , Seat b , int seatsPerDesk)
+        public static bool AreDeskMates(Seat a, Seat b, int seatsPerDesk)
         {
             // 非 Grid 布局使用通用 adjacency 判定（LogicalGroup / 几何距离）
             if (a is not GridSeat ga || b is not GridSeat gb)
-                return AreSeatsAdjacent(a , b);
+                return AreSeatsAdjacent(a, b);
 
             // 必须同行且相邻列
             if (ga.Row != gb.Row || Math.Abs(ga.Column - gb.Column) != 1)

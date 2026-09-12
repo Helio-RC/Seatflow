@@ -62,7 +62,7 @@ namespace SeatFlow.Core.Models
         public override SeatType Type => SeatType.Grid;
 
         /// <summary>返回网格坐标几何数据。</summary>
-        public override ISeatGeometry GeometryData => new GridPosition { Row = Row , Column = Column };
+        public override ISeatGeometry GeometryData => new GridPosition { Row = Row, Column = Column };
     }
 
     /// <summary>
@@ -83,6 +83,6 @@ namespace SeatFlow.Core.Models
         public override SeatType Type => SeatType.Polar;
 
         /// <summary>返回极坐标几何数据。</summary>
-        public override ISeatGeometry GeometryData => new PolarPosition { Radius = Radius , AngleDegrees = AngleDegrees };
+        public override ISeatGeometry GeometryData => new PolarPosition { Radius = Radius, AngleDegrees = AngleDegrees };
     }
 }

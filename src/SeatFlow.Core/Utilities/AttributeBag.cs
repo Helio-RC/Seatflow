@@ -9,12 +9,12 @@ namespace SeatFlow.Core.Utilities
     /// </summary>
     public class AttributeBag
     {
-        private readonly ConcurrentDictionary<string , object?> _store = new();
+        private readonly ConcurrentDictionary<string, object?> _store = new();
 
         /// <summary>
         /// 设置指定键的值。
         /// </summary>
-        public void Set (string key , object? value) => _store[key] = value;
+        public void Set(string key, object? value) => _store[key] = value;
 
         /// <summary>
         /// 尝试获取指定键的值，并转换为指定类型。
@@ -23,9 +23,9 @@ namespace SeatFlow.Core.Utilities
         /// <param name="key">键名。</param>
         /// <param name="value">输出值，失败时为 default。</param>
         /// <returns>是否成功获取并转换。</returns>
-        public bool TryGet<T> (string key , out T? value)
+        public bool TryGet<T>(string key, out T? value)
         {
-            if (_store.TryGetValue(key , out var obj) && obj is T t)
+            if (_store.TryGetValue(key, out var obj) && obj is T t)
             {
                 value = t;
                 return true;
@@ -37,6 +37,6 @@ namespace SeatFlow.Core.Utilities
         /// <summary>
         /// 获取所有键值对。
         /// </summary>
-        public IEnumerable<KeyValuePair<string , object?>> GetAll () => _store;
+        public IEnumerable<KeyValuePair<string, object?>> GetAll() => _store;
     }
 }

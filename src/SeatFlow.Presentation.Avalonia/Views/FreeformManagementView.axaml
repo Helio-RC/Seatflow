@@ -1,231 +1,354 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-             xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
-             xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
-             xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.FreeformManagementView"
-             x:DataType="vm:FreeformManagementViewModel">
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.FreeformManagementView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
+  xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:FreeformManagementViewModel">
 
   <DockPanel Classes="pageMargin">
-    <!-- 顶部工具栏 -->
-    <Border DockPanel.Dock="Top" Classes="toolbarTop">
+    <!--  顶部工具栏  -->
+    <Border Classes="toolbarTop" DockPanel.Dock="Top">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Freeform_Title}" Classes="pageTitle"
-                   VerticalAlignment="Center" />
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
-          <Button Command="{Binding ExportTemplateCommand}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}"
-                  HorizontalContentAlignment="Center">
+        <TextBlock
+          VerticalAlignment="Center"
+          Classes="pageTitle"
+          DockPanel.Dock="Left"
+          Text="{x:Static lang:Resources.Freeform_Title}" />
+        <StackPanel
+          DockPanel.Dock="Right"
+          Orientation="Horizontal"
+          Spacing="8">
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}"
+            Command="{Binding ExportTemplateCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Document}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Freeform_Template}" Classes="body" />
+              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Document}" />
+              <TextBlock Classes="body" Text="{x:Static lang:Resources.Freeform_Template}" />
             </StackPanel>
           </Button>
-          <Button x:Name="ImportCsvButton" Command="{Binding ImportCsvCommand}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Data_Import}"
-                  HorizontalContentAlignment="Center">
+          <Button
+            x:Name="ImportCsvButton"
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Data_Import}"
+            Command="{Binding ImportCsvCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportCSV}" Classes="body" />
+              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowDownload}" />
+              <TextBlock Classes="body" Text="{x:Static lang:Resources.Freeform_ImportCSV}" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding ImportJsonCommand}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Data_Import}"
-                  HorizontalContentAlignment="Center">
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Data_Import}"
+            Command="{Binding ImportJsonCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDownload}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Freeform_ImportJSON}" Classes="body" />
+              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowDownload}" />
+              <TextBlock Classes="body" Text="{x:Static lang:Resources.Freeform_ImportJSON}" />
             </StackPanel>
           </Button>
-          <Button x:Name="SaveLayoutButton" Command="{Binding SaveLayoutCommand}"
-                  IsEnabled="{Binding HasPoints}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Freeform_SaveLayout}"
-                  HorizontalContentAlignment="Center" Classes="accent">
+          <Button
+            x:Name="SaveLayoutButton"
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Freeform_SaveLayout}"
+            Classes="accent"
+            Command="{Binding SaveLayoutCommand}"
+            IsEnabled="{Binding HasPoints}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Save}" Classes="body" />
+              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
+              <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Save}" />
             </StackPanel>
           </Button>
         </StackPanel>
       </DockPanel>
     </Border>
 
-    <!-- 底部状态栏 -->
-    <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
+    <!--  底部状态栏  -->
+    <Border Padding="0,8,0,0" DockPanel.Dock="Bottom">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding ElementCountDisplay}"
-                   Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-        <TextBlock Text="{Binding StatusMessage}" Classes="caption"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <TextBlock
+          Classes="caption"
+          DockPanel.Dock="Right"
+          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          Text="{Binding ElementCountDisplay}" />
+        <TextBlock
+          Classes="caption"
+          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          Text="{Binding StatusMessage}" />
       </DockPanel>
     </Border>
 
     <Grid ColumnDefinitions="Auto,*">
-      <!-- 左侧：已保存的布局 -->
-      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" MinWidth="240"
-              Background="{DynamicResource SidebarBackgroundBrush}">
+      <!--  左侧：已保存的布局  -->
+      <Border
+        Grid.Column="0"
+        MinWidth="240"
+        Margin="0,0,8,0"
+        Background="{DynamicResource SidebarBackgroundBrush}"
+        CornerRadius="6">
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Freeform_SavedLayouts}"
-                     Classes="bodyStrong" Margin="0,0,0,8" />
+          <TextBlock
+            Margin="0,0,0,8"
+            Classes="bodyStrong"
+            DockPanel.Dock="Top"
+            Text="{x:Static lang:Resources.Freeform_SavedLayouts}" />
 
-          <StackPanel DockPanel.Dock="Bottom" Spacing="4" Margin="0,8,0,0">
-            <Button Command="{Binding LoadSavedLayoutsCommand}"
-                    HorizontalContentAlignment="Stretch">
-              <StackPanel Orientation="Horizontal" Spacing="6"
-                          HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14" />
-                <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" Classes="bodySmall" />
+          <StackPanel
+            Margin="0,8,0,0"
+            DockPanel.Dock="Bottom"
+            Spacing="4">
+            <Button HorizontalContentAlignment="Stretch" Command="{Binding LoadSavedLayoutsCommand}">
+              <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+                <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Refresh}" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding DeleteLayoutCommand}"
-                    IsEnabled="{Binding HasSelectedLayout}"
-                    HorizontalContentAlignment="Stretch">
-              <StackPanel Orientation="Horizontal" Spacing="6"
-                          HorizontalAlignment="Center">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14" />
-                <TextBlock Text="{x:Static lang:Resources.Common_Delete}" Classes="bodySmall" />
+            <Button
+              HorizontalContentAlignment="Stretch"
+              Command="{Binding DeleteLayoutCommand}"
+              IsEnabled="{Binding HasSelectedLayout}">
+              <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+                <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Delete}" />
               </StackPanel>
             </Button>
           </StackPanel>
 
-          <ListBox ItemsSource="{Binding SavedLayouts}"
-                   SelectedItem="{Binding SelectedLayout, Mode=TwoWay}"
-                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
+          <ListBox
+            Background="{DynamicResource SidebarBackgroundBrush}"
+            BorderThickness="0"
+            ItemsSource="{Binding SavedLayouts}"
+            SelectedItem="{Binding SelectedLayout, Mode=TwoWay}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
-                <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,6"/>
+                <TextBlock
+                  Margin="4,6"
+                  Classes="bodySmall"
+                  Text="{Binding Name}" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
         </DockPanel>
       </Border>
 
-      <!-- 右侧 -->
+      <!--  右侧  -->
       <Grid Grid.Column="1">
-        <!-- 空状态 -->
-        <Border IsVisible="{Binding IsEmpty}"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                Padding="40" CornerRadius="8">
-          <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Grid}" FontSize="48"
-                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                            HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Static lang:Resources.Common_NoData}" Classes="sectionTitle"
-                       HorizontalAlignment="Center"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="{x:Static lang:Resources.Data_Import}"
-                       Classes="caption" HorizontalAlignment="Center"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <!--  空状态  -->
+        <Border
+          Padding="40"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          CornerRadius="8"
+          IsVisible="{Binding IsEmpty}">
+          <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="8">
+            <fic:FluentIcon
+              HorizontalAlignment="Center"
+              FontSize="48"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Icon="{x:Static ficEnum:Icon.Grid}" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="sectionTitle"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Text="{x:Static lang:Resources.Common_NoData}" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="caption"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Text="{x:Static lang:Resources.Data_Import}" />
           </StackPanel>
         </Border>
 
-        <!-- 编辑器 -->
-        <DockPanel IsVisible="{Binding HasPoints}" HorizontalAlignment="Stretch">
-          <!-- 名称栏 -->
-          <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+        <!--  编辑器  -->
+        <DockPanel HorizontalAlignment="Stretch" IsVisible="{Binding HasPoints}">
+          <!--  名称栏  -->
+          <StackPanel
+            Margin="0,0,0,12"
+            DockPanel.Dock="Top"
+            Spacing="8">
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <TextBlock Text="{x:Static lang:Resources.Freeform_LayoutName}" Classes="bodySmall" VerticalAlignment="Center"/>
-              <TextBox Text="{Binding LayoutName, Mode=TwoWay}" FontSize="14"/>
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="bodySmall"
+                Text="{x:Static lang:Resources.Freeform_LayoutName}" />
+              <TextBox FontSize="14" Text="{Binding LayoutName, Mode=TwoWay}" />
             </StackPanel>
           </StackPanel>
 
-          <!-- 工具栏 -->
-          <Border DockPanel.Dock="Top" Padding="0,0,0,8"
-                  BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                  BorderThickness="0,0,0,1" Margin="0,0,0,8">
+          <!--  工具栏  -->
+          <Border
+            Margin="0,0,0,8"
+            Padding="0,0,0,8"
+            BorderBrush="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+            BorderThickness="0,0,0,1"
+            DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button x:Name="AddPointButton" Command="{Binding AddPointCommand}" HorizontalContentAlignment="Center"
-                      Padding="8,4" FontSize="12">
+              <Button
+                x:Name="AddPointButton"
+                Padding="8,4"
+                HorizontalContentAlignment="Center"
+                Command="{Binding AddPointCommand}"
+                FontSize="12">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
-                  <TextBlock Text="{x:Static lang:Resources.Freeform_AddPoint}" Classes="caption"/>
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Add}" />
+                  <TextBlock Classes="caption" Text="{x:Static lang:Resources.Freeform_AddPoint}" />
                 </StackPanel>
               </Button>
-              <Button Command="{Binding ClearPointsCommand}"
-                      IsEnabled="{Binding HasPoints}" HorizontalContentAlignment="Center"
-                      Padding="8,4" FontSize="12">
+              <Button
+                Padding="8,4"
+                HorizontalContentAlignment="Center"
+                Command="{Binding ClearPointsCommand}"
+                FontSize="12"
+                IsEnabled="{Binding HasPoints}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-                  <TextBlock Text="{x:Static lang:Resources.Freeform_ClearData}" Classes="caption"/>
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+                  <TextBlock Classes="caption" Text="{x:Static lang:Resources.Freeform_ClearData}" />
                 </StackPanel>
               </Button>
-              <Button Command="{Binding UnloadCommand}"
-                      IsEnabled="{Binding HasPoints}" HorizontalContentAlignment="Center"
-                      Padding="8,4" FontSize="12">
+              <Button
+                Padding="8,4"
+                HorizontalContentAlignment="Center"
+                Command="{Binding UnloadCommand}"
+                FontSize="12"
+                IsEnabled="{Binding HasPoints}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.UninstallApp}" FontSize="14"/>
-                  <TextBlock Text="{x:Static lang:Resources.Data_UnloadData}" Classes="caption"/>
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.UninstallApp}" />
+                  <TextBlock Classes="caption" Text="{x:Static lang:Resources.Data_UnloadData}" />
                 </StackPanel>
               </Button>
-              <TextBlock Text="{Binding ElementCountDisplay}"
-                         Classes="caption" VerticalAlignment="Center"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="caption"
+                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                Text="{Binding ElementCountDisplay}" />
             </StackPanel>
           </Border>
 
-          <!-- 坐标列表 + 预览 -->
+          <!--  坐标列表 + 预览  -->
           <ScrollViewer HorizontalScrollBarVisibility="Auto">
-            <Grid ColumnDefinitions="*,*" RowDefinitions="*" MinWidth="760">
-              <!-- 坐标表格 -->
-              <ScrollViewer Grid.Column="0" MinWidth="420"
-                            HorizontalScrollBarVisibility="Auto">
+            <Grid
+              MinWidth="760"
+              ColumnDefinitions="*,*"
+              RowDefinitions="*">
+              <!--  坐标表格  -->
+              <ScrollViewer
+                Grid.Column="0"
+                MinWidth="420"
+                HorizontalScrollBarVisibility="Auto">
                 <ListBox ItemsSource="{Binding Points}">
                   <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:FreeformPoint">
-                      <Border Padding="8,6" BorderThickness="0,0,0,1"
-                              BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
+                      <Border
+                        Padding="8,6"
+                        BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
+                        BorderThickness="0,0,0,1">
                         <StackPanel Spacing="6">
-                          <!-- 第一行: 编号, X, Y, 类型 -->
+                          <!--  第一行: 编号, X, Y, 类型  -->
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding DisplayIndex, StringFormat={}{0}.}"
-                                       FontSize="12" FontWeight="SemiBold" Width="24"
-                                       VerticalAlignment="Center"
-                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                            <TextBlock Text="X:" Classes="caption" VerticalAlignment="Center" Width="16"/>
-                            <NumericUpDown Value="{Binding X, Mode=TwoWay}"
-                                           Minimum="0" Maximum="5000" FontSize="12"
-                                           PlaceholderText="{x:Static lang:Resources.Freeform_XCoord}"
-                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_XTooltip}"/>
-                            <TextBlock Text="Y:" Classes="caption" VerticalAlignment="Center" Width="16"/>
-                            <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
-                                           Minimum="0" Maximum="5000" FontSize="12"
-                                           PlaceholderText="{x:Static lang:Resources.Freeform_YCoord}"
-                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_YTooltip}"/>
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_Type}" Classes="caption" VerticalAlignment="Center"/>
-                            <ComboBox SelectedIndex="{ReflectionBinding ElementType}"
-                                      FontSize="12"
-                                      ToolTip.Tip="{x:Static lang:Resources.Freeform_TypeTooltip}">
-                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Seat}"/>
-                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Podium}"/>
-                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Door}"/>
+                            <TextBlock
+                              Width="24"
+                              VerticalAlignment="Center"
+                              FontSize="12"
+                              FontWeight="SemiBold"
+                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                              Text="{Binding DisplayIndex, StringFormat={}{0}.}" />
+                            <TextBlock
+                              Width="16"
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="X:" />
+                            <NumericUpDown
+                              FontSize="12"
+                              Maximum="5000"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_XCoord}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_XTooltip}"
+                              Value="{Binding X, Mode=TwoWay}" />
+                            <TextBlock
+                              Width="16"
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="Y:" />
+                            <NumericUpDown
+                              FontSize="12"
+                              Maximum="5000"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_YCoord}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_YTooltip}"
+                              Value="{Binding Y, Mode=TwoWay}" />
+                            <TextBlock
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="{x:Static lang:Resources.Freeform_Type}" />
+                            <ComboBox
+                              FontSize="12"
+                              SelectedIndex="{ReflectionBinding ElementType}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_TypeTooltip}">
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Seat}" />
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Podium}" />
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Door}" />
                             </ComboBox>
                           </StackPanel>
-                          <!-- 第二行: 行, 列, 组 -->
+                          <!--  第二行: 行, 列, 组  -->
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_RowLabel}" Classes="caption" VerticalAlignment="Center" Width="16"/>
-                            <NumericUpDown Value="{Binding Row, Mode=TwoWay}"
-                                           Minimum="0" Maximum="100" FontSize="12"
-                                           PlaceholderText="{x:Static lang:Resources.Freeform_RowPH}"
-                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_RowPH}"/>
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_ColLabel}" Classes="caption" VerticalAlignment="Center" Width="16"/>
-                            <NumericUpDown Value="{Binding Column, Mode=TwoWay}"
-                                           Minimum="0" Maximum="100" FontSize="12"
-                                           PlaceholderText="{x:Static lang:Resources.Freeform_ColPH}"
-                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_ColPH}"/>
-                            <TextBlock Text="{x:Static lang:Resources.Freeform_GroupLabel}" Classes="caption" VerticalAlignment="Center" Width="16"/>
-                            <NumericUpDown Value="{Binding GroupId, Mode=TwoWay}"
-                                           Minimum="0" Maximum="7" FontSize="12"
-                                           PlaceholderText="{x:Static lang:Resources.Freeform_GroupPH}"
-                                           ToolTip.Tip="{x:Static lang:Resources.Freeform_GroupTooltip}"/>
-                            <Button Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
-                                    CommandParameter="{Binding}"
-                                    Padding="6,2" FontSize="12"
-                                    VerticalAlignment="Center" HorizontalAlignment="Right"
-                                    AutomationProperties.Name="{x:Static lang:Resources.Freeform_DeletePoint}">
-                              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="12"/>
+                            <TextBlock
+                              Width="16"
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="{x:Static lang:Resources.Freeform_RowLabel}" />
+                            <NumericUpDown
+                              FontSize="12"
+                              Maximum="100"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_RowPH}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_RowPH}"
+                              Value="{Binding Row, Mode=TwoWay}" />
+                            <TextBlock
+                              Width="16"
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="{x:Static lang:Resources.Freeform_ColLabel}" />
+                            <NumericUpDown
+                              FontSize="12"
+                              Maximum="100"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_ColPH}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_ColPH}"
+                              Value="{Binding Column, Mode=TwoWay}" />
+                            <TextBlock
+                              Width="16"
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="{x:Static lang:Resources.Freeform_GroupLabel}" />
+                            <NumericUpDown
+                              FontSize="12"
+                              Maximum="7"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_GroupPH}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_GroupTooltip}"
+                              Value="{Binding GroupId, Mode=TwoWay}" />
+                            <Button
+                              Padding="6,2"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              AutomationProperties.Name="{x:Static lang:Resources.Freeform_DeletePoint}"
+                              Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
+                              CommandParameter="{Binding}"
+                              FontSize="12">
+                              <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Delete}" />
                             </Button>
                           </StackPanel>
                         </StackPanel>
@@ -235,58 +358,73 @@
                 </ListBox>
               </ScrollViewer>
 
-              <!-- 预览画布 -->
-              <Border Grid.Column="1" Margin="8,0,0,0"
-                      Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                      CornerRadius="4" Padding="4">
+              <!--  预览画布  -->
+              <Border
+                Grid.Column="1"
+                Margin="8,0,0,0"
+                Padding="4"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="4">
                 <Grid>
-                  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                Background="{DynamicResource PreviewBackgroundBrush}"
-                                behaviors:CanvasZoomPan.Enabled="True">
+                  <ScrollViewer
+                    behaviors:CanvasZoomPan.Enabled="True"
+                    Background="{DynamicResource PreviewBackgroundBrush}"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding Points}">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                          <Canvas Width="800" Height="600"/>
+                          <Canvas Width="800" Height="600" />
                         </ItemsPanelTemplate>
                       </ItemsControl.ItemsPanel>
                       <ItemsControl.Styles>
-                        <Style Selector="ItemsControl > ContentPresenter">
-                          <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                          <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                        <Style Selector="ItemsControl &gt; ContentPresenter">
+                          <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                          <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
                         </Style>
                       </ItemsControl.Styles>
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FreeformPoint">
                           <Panel>
-                            <!-- 座位：圆点 -->
-                            <Border Width="12" Height="12"
-                                    CornerRadius="6" Opacity="0.85"
-                                    IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
-                                    ConverterParameter=0}"
-                                    Background="{DynamicResource SystemAccentColor}"
-                                    ToolTip.Tip="{Binding TooltipDisplay}"/>
-                            <!-- 讲台：大圆点 -->
-                            <Border Width="40" Height="40"
-                                    CornerRadius="20" Opacity="0.6"
-                                    IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
-                                    ConverterParameter=1}"
-                                    Background="{DynamicResource PreviewPodiumFillBrush}"
-                                    ToolTip.Tip="{Binding TooltipDisplay}"/>
-                            <!-- 门：矩形 -->
-                            <Border Width="36" Height="24"
-                                    CornerRadius="4" Opacity="0.7"
-                                    IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual},
-                                    ConverterParameter=2}"
-                                    Background="{DynamicResource PreviewDoorFillBrush}"
-                                    ToolTip.Tip="{Binding TooltipDisplay}"/>
+                            <!--  座位：圆点  -->
+                            <Border
+                              Width="12"
+                              Height="12"
+                              Background="{DynamicResource SystemAccentColor}"
+                              CornerRadius="6"
+                              IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual}, ConverterParameter=0}"
+                              Opacity="0.85"
+                              ToolTip.Tip="{Binding TooltipDisplay}" />
+                            <!--  讲台：大圆点  -->
+                            <Border
+                              Width="40"
+                              Height="40"
+                              Background="{DynamicResource PreviewPodiumFillBrush}"
+                              CornerRadius="20"
+                              IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual}, ConverterParameter=1}"
+                              Opacity="0.6"
+                              ToolTip.Tip="{Binding TooltipDisplay}" />
+                            <!--  门：矩形  -->
+                            <Border
+                              Width="36"
+                              Height="24"
+                              Background="{DynamicResource PreviewDoorFillBrush}"
+                              CornerRadius="4"
+                              IsVisible="{Binding ElementType, Converter={x:Static conv:BoolConverters.TrueWhenEqual}, ConverterParameter=2}"
+                              Opacity="0.7"
+                              ToolTip.Tip="{Binding TooltipDisplay}" />
                           </Panel>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                   </ScrollViewer>
-                  <TextBlock Text="{x:Static lang:Resources.Venue_DragHint}" Classes="small" Opacity="0.4"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,10,6"/>
+                  <TextBlock
+                    Margin="0,0,10,6"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Classes="small"
+                    Opacity="0.4"
+                    Text="{x:Static lang:Resources.Venue_DragHint}" />
                 </Grid>
               </Border>
             </Grid>

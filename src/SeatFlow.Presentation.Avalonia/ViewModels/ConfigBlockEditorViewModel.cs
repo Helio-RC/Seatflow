@@ -14,7 +14,7 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// <summary>
 /// 配置块编辑器 ViewModel。管理单个 codeBlock 的数据集选择、配置行编辑和保存。
 /// </summary>
-public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : ViewModelBase
+public partial class ConfigBlockEditorViewModel(IApplicationFacade facade) : ViewModelBase
 {
     private readonly IApplicationFacade _facade = facade;
     private CancellationTokenSource? _loadCts;
@@ -58,17 +58,17 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     [ObservableProperty]
     public partial DatasetItem? SelectedVenue { get; set; }
 
-    partial void OnSelectedDatasetChanged (DatasetItem? value)
+    partial void OnSelectedDatasetChanged(DatasetItem? value)
     {
         _ = LoadAndPopulateAsync();
     }
 
-    partial void OnSelectedVenueChanged (DatasetItem? value)
+    partial void OnSelectedVenueChanged(DatasetItem? value)
     {
         _ = LoadAndPopulateAsync();
     }
 
-    private async Task LoadAndPopulateAsync ()
+    private async Task LoadAndPopulateAsync()
     {
         _loadCts?.Cancel();
         _loadCts = new CancellationTokenSource();
@@ -102,15 +102,15 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     public bool SeatsPerDeskFromVenue => CodeBlock?.SeatsPerDeskFromVenue == true;
 
     [RelayCommand]
-    private void AddRow ()
+    private void AddRow()
     {
-        var row = new ConfigBlockRowViewModel(CodeBlock , SeatsPerDesk)
+        var row = new ConfigBlockRowViewModel(CodeBlock, SeatsPerDesk)
         {
             Index = Rows.Count + 1
         };
         if (_cachedStudents is not null)
             row.LoadStudents(_cachedStudents);
-        row.PropertyChanged += (_ , _) => IsDirty = true;
+        row.PropertyChanged += (_, _) => IsDirty = true;
         WireRowStudentPickers(row);
         Rows.Add(row);
         if (_cachedLayout is not null)
@@ -120,7 +120,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     }
 
     [RelayCommand]
-    private void RemoveRow (ConfigBlockRowViewModel? row)
+    private void RemoveRow(ConfigBlockRowViewModel? row)
     {
         if (row is not null && Rows.Remove(row))
         {
@@ -131,7 +131,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
         }
     }
 
-    private void Reindex ()
+    private void Reindex()
     {
         for (int i = 0; i < Rows.Count; i++)
             Rows[i].Index = i + 1;
@@ -139,12 +139,12 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
 
     // ── 加载/保存 ──
 
-    public void Initialize (StrategyCodeBlock codeBlock , string strategyId ,
-        IEnumerable<DatasetItem> datasets , IEnumerable<DatasetItem> venues)
+    public void Initialize(StrategyCodeBlock codeBlock, string strategyId,
+        IEnumerable<DatasetItem> datasets, IEnumerable<DatasetItem> venues)
     {
         CodeBlock = codeBlock;
         StrategyId = strategyId;
-        SeatsPerDesk = Math.Max(1 , codeBlock?.StudentPickerCount ?? 1);
+        SeatsPerDesk = Math.Max(1, codeBlock?.StudentPickerCount ?? 1);
         AvailableDatasets = new ObservableCollection<DatasetItem>(datasets);
         AvailableVenues = new ObservableCollection<DatasetItem>(venues);
 
@@ -157,7 +157,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
         OnPropertyChanged(nameof(IsValuePair));
     }
 
-    private async Task LoadConfigAsync (CancellationToken ct)
+    private async Task LoadConfigAsync(CancellationToken ct)
     {
         if (string.IsNullOrEmpty(StrategyId)) return;
 
@@ -182,7 +182,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
             }
         }
 
-        var configs = await _facade.LoadStrategyDatasetConfigsAsync(StrategyId , ct);
+        var configs = await _facade.LoadStrategyDatasetConfigsAsync(StrategyId, ct);
         ct.ThrowIfCancellationRequested();
 
         // 过滤：根据 LoadTrigger 选择匹配策略
@@ -198,8 +198,8 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
         {
             foreach (var row in config.Rows)
             {
-                var vm = ConfigBlockRowViewModel.FromConfigRow(row , CodeBlock , SeatsPerDesk);
-                vm.PropertyChanged += (_ , _) => IsDirty = true;
+                var vm = ConfigBlockRowViewModel.FromConfigRow(row, CodeBlock, SeatsPerDesk);
+                vm.PropertyChanged += (_, _) => IsDirty = true;
                 WireRowStudentPickers(vm);
                 Rows.Add(vm);
             }
@@ -211,10 +211,10 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
         ApplyGlobalDedup();
     }
 
-    private async Task PopulateStudentPickersAsync (CancellationToken ct)
+    private async Task PopulateStudentPickersAsync(CancellationToken ct)
     {
         if (SelectedDataset is null || !ShowStudentPicker) return;
-        var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id , ct);
+        var students = await _facade.LoadStudentDatasetAsync(SelectedDataset.Id, ct);
         if (students is null) return;
         _cachedStudents = students;
         foreach (var row in Rows)
@@ -225,16 +225,16 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     /// <summary>
     /// 加载选中会场的数据：更新 SeatsPerDesk（DeskMate）和座位选择器范围（所有布局类型）。
     /// </summary>
-    private async Task LoadVenueLayoutInfoAsync (CancellationToken ct)
+    private async Task LoadVenueLayoutInfoAsync(CancellationToken ct)
     {
         if (SelectedVenue is null) { _cachedLayout = null; return; }
-        var layout = await _facade.LoadVenueAsync(SelectedVenue.Id , ct);
+        var layout = await _facade.LoadVenueAsync(SelectedVenue.Id, ct);
         if (layout is null) return;
 
         // SeatsPerDesk 动态更新（仅 DeskMate：SeatsPerDeskFromVenue=true）
         if (SeatsPerDeskFromVenue && layout.Metadata is GridLayoutMetadata gridMeta)
         {
-            var newSize = Math.Max(1 , gridMeta.SeatsPerDesk);
+            var newSize = Math.Max(1, gridMeta.SeatsPerDesk);
             if (SeatsPerDesk != newSize)
             {
                 if (Rows.Count > 0)
@@ -253,7 +253,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     /// <summary>
     /// 根据会场布局元数据更新所有行的座位选择器范围。
     /// </summary>
-    private void ApplyVenueLayoutBounds (ClassroomLayoutDefinition layout)
+    private void ApplyVenueLayoutBounds(ClassroomLayoutDefinition layout)
     {
         if (layout.Metadata is GridLayoutMetadata gm)
         {
@@ -262,8 +262,8 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
                 : gm.Rows;
             foreach (var row in Rows)
             {
-                row.SeatPicker.GridMaxRow = Math.Max(1 , maxRow);
-                row.SeatPicker.GridMaxColumn = Math.Max(1 , gm.Columns);
+                row.SeatPicker.GridMaxRow = Math.Max(1, maxRow);
+                row.SeatPicker.GridMaxColumn = Math.Max(1, gm.Columns);
             }
         }
         else if (layout.Metadata is PolarLayoutMetadata pm)
@@ -273,14 +273,14 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
                 : pm.Rings;
             foreach (var row in Rows)
             {
-                row.SeatPicker.PolarMaxRing = Math.Max(1 , maxRing);
+                row.SeatPicker.PolarMaxRing = Math.Max(1, maxRing);
             }
         }
         // Freeform: 无 Metadata 范围，保持默认值
     }
 
     [RelayCommand]
-    private async Task SaveConfigAsync (CancellationToken ct)
+    private async Task SaveConfigAsync(CancellationToken ct)
     {
         // 根据 codeBlock 声明检查必选选择器是否已选定
         // 避免 dataType:Both 时仅选一项就保存出不完整的配置
@@ -291,12 +291,12 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
 
         var config = new StrategyDatasetConfig
         {
-            StrategyId = StrategyId ,
-            DatasetId = SelectedDataset?.Id ,
-            VenueId = SelectedVenue?.Id ,
+            StrategyId = StrategyId,
+            DatasetId = SelectedDataset?.Id,
+            VenueId = SelectedVenue?.Id,
             Rows = [.. Rows.Select(r => r.ToConfigRow())]
         };
-        await _facade.SaveStrategyDatasetConfigAsync(config , ct);
+        await _facade.SaveStrategyDatasetConfigAsync(config, ct);
         IsDirty = false;
     }
 
@@ -307,7 +307,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     /// <summary>
     /// 为指定行的所有 StudentPicker 订阅变更事件，当选中学生变化时触发全局防重复。
     /// </summary>
-    private void WireRowStudentPickers (ConfigBlockRowViewModel row)
+    private void WireRowStudentPickers(ConfigBlockRowViewModel row)
     {
         foreach (var sp in row.StudentPickers)
         {
@@ -320,7 +320,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     /// <summary>
     /// 取消订阅指定行的 StudentPicker 变更事件。
     /// </summary>
-    private void UnwireRowStudentPickers (ConfigBlockRowViewModel row)
+    private void UnwireRowStudentPickers(ConfigBlockRowViewModel row)
     {
         foreach (var sp in row.StudentPickers)
         {
@@ -329,13 +329,13 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
         row.OnStudentSelectionChanged -= OnRowStudentSelectionChanged;
     }
 
-    private void OnStudentPickerChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnStudentPickerChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(StudentPickerViewModel.SelectedStudent))
             ApplyGlobalDedup();
     }
 
-    private void OnRowStudentSelectionChanged ()
+    private void OnRowStudentSelectionChanged()
     {
         ApplyGlobalDedup();
     }
@@ -345,7 +345,7 @@ public partial class ConfigBlockEditorViewModel (IApplicationFacade facade) : Vi
     /// 将其他选择器已选的学生 ID 设为当前选择器的排除列表。
     /// 仅当 CodeBlock.PreventDuplicateAcrossRows 为 true 时生效。
     /// </summary>
-    private void ApplyGlobalDedup ()
+    private void ApplyGlobalDedup()
     {
         if (_applyingGlobalDedup) return;
         if (CodeBlock?.PreventDuplicateAcrossRows != true) return;
@@ -422,9 +422,9 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     public partial StrategyCodeBlock? CodeBlock { get; set; }
     private bool _applyingRowDedup;
     /// <summary>待定学生选择（索引→学生ID），在 LoadStudents 完成后自动应用。</summary>
-    private Dictionary<int , string?>? _pendingSelections;
+    private Dictionary<int, string?>? _pendingSelections;
 
-    public ConfigBlockRowViewModel (StrategyCodeBlock? codeBlock , int seatsPerDesk = 1)
+    public ConfigBlockRowViewModel(StrategyCodeBlock? codeBlock, int seatsPerDesk = 1)
     {
         CodeBlock = codeBlock;
         SeatsPerDesk = seatsPerDesk;
@@ -440,7 +440,7 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     /// <summary>当任何 StudentPicker 的选中学生变化时触发（用于编辑器级别的全局防重复）。</summary>
     public event Action? OnStudentSelectionChanged;
 
-    private void OnStudentPickerPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnStudentPickerPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(StudentPickerViewModel.SelectedStudent))
         {
@@ -455,7 +455,7 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     /// 注意：若同时启用了 PreventDuplicateAcrossRows，则由 ConfigBlockEditorViewModel 统一处理，
     /// 本方法仅在没有全局防重复时执行（避免重复计算排除集）。
     /// </summary>
-    private void ApplyRowLevelDedup ()
+    private void ApplyRowLevelDedup()
     {
         if (_applyingRowDedup) return;
         if (CodeBlock?.PreventDuplicateInRow != true) return;
@@ -524,22 +524,22 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     public bool ShowGenderPicker => CodeBlock?.ShowGenderPicker == true;
 
     /// <summary>性别下拉选项列表（静态）。</summary>
-    public static List<string> GenderOptions { get; } = ["Male" , "Female"];
+    public static List<string> GenderOptions { get; } = ["Male", "Female"];
 
     /// <summary>性别选择器的当前值（"Male" / "Female" / null），直接读写 CustomValues["Gender"]。</summary>
     [ObservableProperty]
     public partial string? GenderValue { get; set; }
 
-    partial void OnGenderValueChanged (string? value)
+    partial void OnGenderValueChanged(string? value)
     {
         CustomValues["Gender"] = value;
     }
 
     /// <summary>自定义字段值。</summary>
     [ObservableProperty]
-    public partial Dictionary<string , object?> CustomValues { get; set; } = [];
+    public partial Dictionary<string, object?> CustomValues { get; set; } = [];
 
-    public void SetCustomValue (string name , object? value)
+    public void SetCustomValue(string name, object? value)
     {
         CustomValues[name] = value;
         OnPropertyChanged(nameof(CustomValues));
@@ -551,7 +551,7 @@ public partial class ConfigBlockRowViewModel : ObservableObject
         && CodeBlock?.DataType is StrategyDataType.Venue or StrategyDataType.Both;
 
     /// <summary>加载学生到所有 StudentPicker，加载后自动应用待定的持久化选择。</summary>
-    public void LoadStudents (IEnumerable<SeatFlow.Core.Models.Student> students)
+    public void LoadStudents(IEnumerable<SeatFlow.Core.Models.Student> students)
     {
         var list = students.ToList();
         foreach (var sp in StudentPickers)
@@ -562,34 +562,34 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     /// <summary>
     /// 在学生列表就绪后应用 FromConfigRow 存储的待定选择。
     /// </summary>
-    private void ApplyPendingSelections ()
+    private void ApplyPendingSelections()
     {
         if (_pendingSelections is null) return;
         for (int i = 0; i < StudentPickers.Count; i++)
         {
-            if (_pendingSelections.TryGetValue(i , out var sid))
+            if (_pendingSelections.TryGetValue(i, out var sid))
                 StudentPickers[i].SelectById(sid);
         }
         _pendingSelections = null;
     }
 
-    public static ConfigBlockRowViewModel FromConfigRow (StrategyConfigRow row , StrategyCodeBlock? codeBlock , int seatsPerDesk = 1)
+    public static ConfigBlockRowViewModel FromConfigRow(StrategyConfigRow row, StrategyCodeBlock? codeBlock, int seatsPerDesk = 1)
     {
-        var vm = new ConfigBlockRowViewModel(codeBlock , seatsPerDesk)
+        var vm = new ConfigBlockRowViewModel(codeBlock, seatsPerDesk)
         {
-            Index = row.Index ,
+            Index = row.Index,
             CustomValues = row.Values ?? []
         };
         // 延迟学生选择：将 ID 存入 _pendingSelections，等 LoadStudents 完成后自动应用
         // （避免 SelectById 在 Students 列表为空时被调用导致选中信息丢失）
-        vm._pendingSelections = new Dictionary<int , string?>();
+        vm._pendingSelections = new Dictionary<int, string?>();
         if (row.StudentId is not null)
             vm._pendingSelections[0] = row.StudentId;
         // 额外的同桌学生（存入 CustomValues["student1"], ["student2"], ...）
         for (int i = 1; i < vm.StudentPickers.Count; i++)
         {
             var key = $"student{i}";
-            if (row.Values?.TryGetValue(key , out var sid) == true)
+            if (row.Values?.TryGetValue(key, out var sid) == true)
                 vm._pendingSelections[i] = sid?.ToString();
         }
         vm.SeatPicker.Row = row.SeatRow ?? 1;
@@ -599,28 +599,28 @@ public partial class ConfigBlockRowViewModel : ObservableObject
         vm.SeatPicker.X = row.SeatX ?? 0;
         vm.SeatPicker.Y = row.SeatY ?? 0;
         // 恢复性别值
-        if (row.Values?.TryGetValue("Gender" , out var gv) == true)
+        if (row.Values?.TryGetValue("Gender", out var gv) == true)
             vm.GenderValue = gv?.ToString();
         return vm;
     }
 
-    public StrategyConfigRow ToConfigRow ()
+    public StrategyConfigRow ToConfigRow()
     {
-        var values = new Dictionary<string , object?>(CustomValues);
+        var values = new Dictionary<string, object?>(CustomValues);
         // 第一个学生存到 StudentId，其余存到 values
         var studentId = StudentPickers.Count > 0 ? StudentPickers[0].SelectedStudentId : null;
         for (int i = 1; i < StudentPickers.Count; i++)
             values[$"student{i}"] = StudentPickers[i].SelectedStudentId;
         return new StrategyConfigRow
         {
-            Index = Index ,
-            StudentId = studentId ,
-            SeatRow = SeatPicker.IsGrid ? SeatPicker.Row : null ,
-            SeatColumn = SeatPicker.IsGrid ? SeatPicker.Column : null ,
-            SeatRing = SeatPicker.IsPolar ? SeatPicker.Ring : null ,
-            SeatAngle = SeatPicker.IsPolar ? SeatPicker.Angle : null ,
-            SeatX = SeatPicker.IsFreeform ? SeatPicker.X : null ,
-            SeatY = SeatPicker.IsFreeform ? SeatPicker.Y : null ,
+            Index = Index,
+            StudentId = studentId,
+            SeatRow = SeatPicker.IsGrid ? SeatPicker.Row : null,
+            SeatColumn = SeatPicker.IsGrid ? SeatPicker.Column : null,
+            SeatRing = SeatPicker.IsPolar ? SeatPicker.Ring : null,
+            SeatAngle = SeatPicker.IsPolar ? SeatPicker.Angle : null,
+            SeatX = SeatPicker.IsFreeform ? SeatPicker.X : null,
+            SeatY = SeatPicker.IsFreeform ? SeatPicker.Y : null,
             Values = values
         };
     }
@@ -633,5 +633,5 @@ public class DatasetItem
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public override string ToString () => string.IsNullOrEmpty(Name) ? Id : Name;
+    public override string ToString() => string.IsNullOrEmpty(Name) ? Id : Name;
 }

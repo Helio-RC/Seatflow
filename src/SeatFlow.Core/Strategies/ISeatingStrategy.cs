@@ -48,13 +48,13 @@ namespace SeatFlow.Core.Strategies
         /// <param name="workspace">当前工作区，包含学生和座位数据。</param>
         /// <param name="cancellationToken">取消令牌。</param>
         /// <returns>执行结果，包含成功状态和消息。</returns>
-        Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken);
+        Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken);
 
         /// <summary>
         /// 验证策略配置是否有效。
         /// </summary>
         /// <returns>验证结果。</returns>
-        ValidationResult ValidateConfiguration ();
+        ValidationResult ValidateConfiguration();
     }
 
     /// <summary>
