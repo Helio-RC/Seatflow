@@ -16,26 +16,26 @@ public class NavigationService : INavigationService
     public PageKey CurrentPage { get; private set; } = (PageKey)(-1);
     public event Action? CurrentViewModelChanged;
 
-    public NavigationService (IServiceProvider serviceProvider , ILogger<NavigationService> logger)
+    public NavigationService(IServiceProvider serviceProvider, ILogger<NavigationService> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         NavigateTo(PageKey.Home);
     }
 
-    public void NavigateTo (PageKey page)
+    public void NavigateTo(PageKey page)
     {
         if (page == CurrentPage) return;
         SwitchToPage(page);
     }
 
-    public async Task<bool> NavigateToAsync (PageKey page)
+    public async Task<bool> NavigateToAsync(PageKey page)
     {
         if (page == CurrentPage) return false;
 
         if (CurrentViewModel is not null && !await CurrentViewModel.CanLeaveAsync())
         {
-            _logger.LogInformation("导航被拦截：{From} → {To}，当前页面拒绝离开" , CurrentPage , page);
+            _logger.LogInformation("导航被拦截：{From} → {To}，当前页面拒绝离开", CurrentPage, page);
             return false;
         }
 
@@ -43,7 +43,7 @@ public class NavigationService : INavigationService
         return true;
     }
 
-    private void SwitchToPage (PageKey page)
+    private void SwitchToPage(PageKey page)
     {
         CurrentPage = page;
         CurrentViewModel = page switch
@@ -59,7 +59,7 @@ public class NavigationService : INavigationService
             PageKey.About => _serviceProvider.GetRequiredService<AboutViewModel>(),
             _ => throw new ArgumentOutOfRangeException(nameof(page))
         };
-        _logger.LogInformation("导航切换：{From} → {To}" , CurrentPage , page);
+        _logger.LogInformation("导航切换：{From} → {To}", CurrentPage, page);
 
         // 记录页面访问遥测
         try

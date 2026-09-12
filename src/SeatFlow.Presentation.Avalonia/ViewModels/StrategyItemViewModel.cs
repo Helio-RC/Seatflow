@@ -7,15 +7,15 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// 侧栏策略列表中的单个策略项。追踪自身的优先级/启用状态变更。
 /// 支持嵌套子项（依赖策略始终显示在宿主下方，用左侧竖线区分）。
 /// </summary>
-public partial class StrategyItemViewModel (
-    string id ,
-    string displayName ,
-    string source ,
-    bool isBuiltIn ,
-    int priority ,
-    int defaultPriority ,
-    bool isEnabled ,
-    bool isIndependent = true ,
+public partial class StrategyItemViewModel(
+    string id,
+    string displayName,
+    string source,
+    bool isBuiltIn,
+    int priority,
+    int defaultPriority,
+    bool isEnabled,
+    bool isIndependent = true,
     bool isDependentChild = false) : ObservableObject
 {
     public string Id { get; } = id;
@@ -51,13 +51,13 @@ public partial class StrategyItemViewModel (
     /// <summary>是否显示左侧竖线（宿主或有依赖子项）。</summary>
     public bool ShowLeftBar => HasChildren || IsDependentChild;
 
-    partial void OnPriorityChanged (int value) => HasChanges = true;
-    partial void OnIsEnabledChanged (bool value) => HasChanges = true;
+    partial void OnPriorityChanged(int value) => HasChanges = true;
+    partial void OnIsEnabledChanged(bool value) => HasChanges = true;
 
     public string PriorityDisplay => IsIndependent
-        ? string.Format(Lang.Resources.Strategy_PipelinePriorityFmt , Priority)
-        : string.Format(Lang.Resources.Strategy_ContextPriorityFmt , Priority);
+        ? string.Format(Lang.Resources.Strategy_PipelinePriorityFmt, Priority)
+        : string.Format(Lang.Resources.Strategy_ContextPriorityFmt, Priority);
     public string EnableTooltipDisplay => IsEnabled ? Lang.Resources.Common_Enabled : Lang.Resources.Common_Disabled;
 
-    public void MarkClean () => HasChanges = false;
+    public void MarkClean() => HasChanges = false;
 }

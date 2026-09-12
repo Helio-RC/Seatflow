@@ -1,176 +1,231 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-             xmlns:core="using:SeatFlow.Core.Models"
-             xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.SnapshotHistoryView"
-             x:DataType="vm:SnapshotHistoryViewModel">
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.SnapshotHistoryView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:core="using:SeatFlow.Core.Models"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:SnapshotHistoryViewModel">
 
   <DockPanel Classes="pageMargin">
-    <!-- 顶部标题栏 -->
-    <Border DockPanel.Dock="Top" Classes="toolbarTop">
+    <!--  顶部标题栏  -->
+    <Border Classes="toolbarTop" DockPanel.Dock="Top">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Snapshot_Title}" Classes="pageTitle"
-                   VerticalAlignment="Center" />
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
-          <!-- 会场下拉 -->
-          <ComboBox x:Name="VenueComboBox" ItemsSource="{Binding Venues}"
-                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}"
-                    Width="200" FontSize="13"
-                    PlaceholderText="{x:Static lang:Resources.Snapshot_SelectVenue}">
+        <TextBlock
+          VerticalAlignment="Center"
+          Classes="pageTitle"
+          DockPanel.Dock="Left"
+          Text="{x:Static lang:Resources.Snapshot_Title}" />
+        <StackPanel
+          DockPanel.Dock="Right"
+          Orientation="Horizontal"
+          Spacing="8">
+          <!--  会场下拉  -->
+          <ComboBox
+            x:Name="VenueComboBox"
+            Width="200"
+            FontSize="13"
+            ItemsSource="{Binding Venues}"
+            PlaceholderText="{x:Static lang:Resources.Snapshot_SelectVenue}"
+            SelectedItem="{Binding SelectedVenue, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
-                <TextBlock Text="{Binding Name}" Classes="bodySmall"/>
+                <TextBlock Classes="bodySmall" Text="{Binding Name}" />
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-          <Button Command="{Binding LoadVenuesCommand}"
-                  HorizontalContentAlignment="Center">
+          <Button HorizontalContentAlignment="Center" Command="{Binding LoadVenuesCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14"/>
-              <TextBlock Text="{x:Static lang:Resources.Common_Refresh}" Classes="bodySmall"/>
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+              <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Refresh}" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding CreateSnapshotCommand}"
-                  IsEnabled="{Binding CanCreateSnapshot}"
-                  HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_Create}"
-                  IsVisible="{Binding IsNotBatchMode}">
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Snapshot_Create}"
+            Command="{Binding CreateSnapshotCommand}"
+            IsEnabled="{Binding CanCreateSnapshot}"
+            IsVisible="{Binding IsNotBatchMode}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="14"/>
-              <TextBlock Text="{x:Static lang:Resources.Snapshot_Create}" Classes="bodySmall"/>
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
+              <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Snapshot_Create}" />
             </StackPanel>
           </Button>
-          <!-- 批量删除按钮（非批量模式） -->
-          <Button Command="{Binding EnterBatchDeleteModeCommand}"
-                  IsEnabled="{Binding CanEnterBatchDelete}"
-                  IsVisible="{Binding IsNotBatchMode}"
-                  HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}">
+          <!--  批量删除按钮（非批量模式）  -->
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}"
+            Command="{Binding EnterBatchDeleteModeCommand}"
+            IsEnabled="{Binding CanEnterBatchDelete}"
+            IsVisible="{Binding IsNotBatchMode}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-              <TextBlock Text="{x:Static lang:Resources.Snapshot_BatchDelete}" Classes="bodySmall"/>
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+              <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Snapshot_BatchDelete}" />
             </StackPanel>
           </Button>
-          <!-- 批量删除确认按钮（批量模式） -->
-          <Button Command="{Binding ConfirmBatchDeleteCommand}"
-                  IsVisible="{Binding IsBatchDeleteMode}"
-                  HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_ConfirmDelete}">
+          <!--  批量删除确认按钮（批量模式）  -->
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Snapshot_ConfirmDelete}"
+            Command="{Binding ConfirmBatchDeleteCommand}"
+            IsVisible="{Binding IsBatchDeleteMode}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"
-                              Foreground="{DynamicResource ErrorBrush}"/>
-              <TextBlock Text="{x:Static lang:Resources.Snapshot_ConfirmDelete}" Classes="bodySmall"
-                         Foreground="{DynamicResource ErrorBrush}"/>
+              <fic:FluentIcon
+                FontSize="14"
+                Foreground="{DynamicResource ErrorBrush}"
+                Icon="{x:Static ficEnum:Icon.Delete}" />
+              <TextBlock
+                Classes="bodySmall"
+                Foreground="{DynamicResource ErrorBrush}"
+                Text="{x:Static lang:Resources.Snapshot_ConfirmDelete}" />
             </StackPanel>
           </Button>
-          <Button Command="{Binding ExitBatchDeleteModeCommand}"
-                  IsVisible="{Binding IsBatchDeleteMode}"
-                  HorizontalContentAlignment="Center"
-                  AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}">
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Snapshot_BatchDelete}"
+            Command="{Binding ExitBatchDeleteModeCommand}"
+            IsVisible="{Binding IsBatchDeleteMode}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="{x:Static lang:Resources.Common_Cancel}" Classes="bodySmall"/>
+              <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Cancel}" />
             </StackPanel>
           </Button>
         </StackPanel>
       </DockPanel>
     </Border>
 
-    <!-- 底部状态栏 -->
-    <Border DockPanel.Dock="Bottom" Classes="statusBarBottom">
+    <!--  底部状态栏  -->
+    <Border Classes="statusBarBottom" DockPanel.Dock="Bottom">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding SnapshotQuotaDisplay}"
-                   Classes="caption" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-        <TextBlock Text="{Binding StatusMessage}"
-                   Classes="caption"
-                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <TextBlock
+          Classes="caption"
+          DockPanel.Dock="Right"
+          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          Text="{Binding SnapshotQuotaDisplay}" />
+        <TextBlock
+          Classes="caption"
+          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          Text="{Binding StatusMessage}" />
       </DockPanel>
     </Border>
 
     <Grid ColumnDefinitions="280,4,*">
-      <!-- 左侧：快照列表 -->
-      <Border Grid.Column="0" Margin="0,0,8,0" CornerRadius="6" 
-              Background="{DynamicResource SidebarBackgroundBrush}">
-        <Grid RowDefinitions="Auto,*" Margin="8">
-          <TextBlock Grid.Row="0" Text="{x:Static lang:Resources.Snapshot_List}"
-                     Classes="bodyStrong" Margin="0,0,0,8" />
+      <!--  左侧：快照列表  -->
+      <Border
+        Grid.Column="0"
+        Margin="0,0,8,0"
+        Background="{DynamicResource SidebarBackgroundBrush}"
+        CornerRadius="6">
+        <Grid Margin="8" RowDefinitions="Auto,*">
+          <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,8"
+            Classes="bodyStrong"
+            Text="{x:Static lang:Resources.Snapshot_List}" />
 
-          <!-- 加载遮罩 -->
-          <Border Grid.Row="1" IsVisible="{Binding IsLoading}"
-                  Classes="loadingOverlay" ZIndex="10">
-            <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <ProgressBar IsIndeterminate="True" Width="160" Height="4" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Loading}" Classes="caption"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                         HorizontalAlignment="Center" />
+          <!--  加载遮罩  -->
+          <Border
+            Grid.Row="1"
+            Classes="loadingOverlay"
+            IsVisible="{Binding IsLoading}"
+            ZIndex="10">
+            <StackPanel
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Spacing="12">
+              <ProgressBar
+                Width="160"
+                Height="4"
+                IsIndeterminate="True" />
+              <TextBlock
+                HorizontalAlignment="Center"
+                Classes="caption"
+                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                Text="{x:Static lang:Resources.Common_Loading}" />
             </StackPanel>
           </Border>
 
-          <!-- 正常模式 -->
+          <!--  正常模式  -->
           <Grid Grid.Row="1" IsVisible="{Binding IsNotBatchMode}">
-            <!-- 空列表 -->
+            <!--  空列表  -->
             <Border IsVisible="{Binding !HasSnapshots}">
-              <StackPanel Spacing="8"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                          Margin="20">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="32"
-                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                HorizontalAlignment="Center" />
-                <TextBlock Text="{x:Static lang:Resources.Snapshot_NoSelectedVenue}"
-                           Classes="caption" HorizontalAlignment="Center"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                           TextWrapping="Wrap" />
+              <StackPanel
+                Margin="20"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="8">
+                <fic:FluentIcon
+                  HorizontalAlignment="Center"
+                  FontSize="32"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Icon="{x:Static ficEnum:Icon.History}" />
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="caption"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="{x:Static lang:Resources.Snapshot_NoSelectedVenue}"
+                  TextWrapping="Wrap" />
               </StackPanel>
             </Border>
-            <!-- 正常模式列表 -->
-            <ListBox x:Name="SnapshotListBox" ItemsSource="{Binding Snapshots}"
-                     SelectedItem="{Binding SelectedSnapshot, Mode=TwoWay}"
-                     IsVisible="{Binding HasSnapshots}"
-                     BorderThickness="0"
-                     Background="{DynamicResource SidebarBackgroundBrush}">
+            <!--  正常模式列表  -->
+            <ListBox
+              x:Name="SnapshotListBox"
+              Background="{DynamicResource SidebarBackgroundBrush}"
+              BorderThickness="0"
+              IsVisible="{Binding HasSnapshots}"
+              ItemsSource="{Binding Snapshots}"
+              SelectedItem="{Binding SelectedSnapshot, Mode=TwoWay}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="core:SeatingSnapshot">
                   <StackPanel Margin="4,4">
-                    <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                               Classes="bodySmall" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding Description}"
-                               Classes="small"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               TextWrapping="Wrap" MaxHeight="32"/>
-                    <TextBlock Text="{Binding SeatAssignments.Count}"
-                               Classes="micro"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    <TextBlock
+                      Classes="bodySmall"
+                      FontWeight="SemiBold"
+                      Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+                    <TextBlock
+                      MaxHeight="32"
+                      Classes="small"
+                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      Text="{Binding Description}"
+                      TextWrapping="Wrap" />
+                    <TextBlock
+                      Classes="micro"
+                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      Text="{Binding SeatAssignments.Count}" />
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
           </Grid>
 
-          <!-- 批量模式 -->
+          <!--  批量模式  -->
           <StackPanel Grid.Row="1" IsVisible="{Binding IsBatchDeleteMode}">
-            <CheckBox IsChecked="{Binding IsAllSelected, Mode=TwoWay}"
-                      Margin="4,4,4,8" FontSize="13">
-              <TextBlock Text="{Binding SelectAllDisplay}"
-                         Classes="bodySmall" />
+            <CheckBox
+              Margin="4,4,4,8"
+              FontSize="13"
+              IsChecked="{Binding IsAllSelected, Mode=TwoWay}">
+              <TextBlock Classes="bodySmall" Text="{Binding SelectAllDisplay}" />
             </CheckBox>
-            <ListBox ItemsSource="{Binding CheckableItems}"
-                     BorderThickness="0"
-                     Background="{DynamicResource SidebarBackgroundBrush}">
+            <ListBox
+              Background="{DynamicResource SidebarBackgroundBrush}"
+              BorderThickness="0"
+              ItemsSource="{Binding CheckableItems}">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:SelectableItem">
-                  <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="4,4">
+                  <CheckBox Margin="4,4" IsChecked="{Binding IsSelected, Mode=TwoWay}">
                     <StackPanel>
-                      <TextBlock Text="{Binding Snapshot.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                                 Classes="bodySmallStrong"/>
-                      <TextBlock Text="{Binding Snapshot.Description}"
-                                 Classes="small"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                 TextWrapping="Wrap" MaxHeight="32"/>
-                      <TextBlock Text="{Binding Snapshot.SeatAssignments.Count}"
-                                 Classes="micro"
-                                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                      <TextBlock Classes="bodySmallStrong" Text="{Binding Snapshot.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
+                      <TextBlock
+                        MaxHeight="32"
+                        Classes="small"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Text="{Binding Snapshot.Description}"
+                        TextWrapping="Wrap" />
+                      <TextBlock
+                        Classes="micro"
+                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        Text="{Binding Snapshot.SeatAssignments.Count}" />
                     </StackPanel>
                   </CheckBox>
                 </DataTemplate>
@@ -180,153 +235,209 @@
         </Grid>
       </Border>
 
-      <GridSplitter Grid.Column="1" Width="4" Background="Transparent" />
+      <GridSplitter
+        Grid.Column="1"
+        Width="4"
+        Background="Transparent" />
 
-      <!-- 右侧：详情 -->
+      <!--  右侧：详情  -->
       <Grid Grid.Column="2">
-        <!-- 未选中 -->
-        <Border IsVisible="{Binding !HasSelectedSnapshot}"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                Padding="40" CornerRadius="8">
-          <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.History}" FontSize="48"
-                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                            HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Static lang:Resources.Snapshot_SelectHint}"
-                       Classes="body" HorizontalAlignment="Center"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <!--  未选中  -->
+        <Border
+          Padding="40"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          CornerRadius="8"
+          IsVisible="{Binding !HasSelectedSnapshot}">
+          <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="8">
+            <fic:FluentIcon
+              HorizontalAlignment="Center"
+              FontSize="48"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Icon="{x:Static ficEnum:Icon.History}" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="body"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Text="{x:Static lang:Resources.Snapshot_SelectHint}" />
           </StackPanel>
         </Border>
 
-        <!-- 详情（仅 SelectedSnapshot 非 null 时显示） -->
-        <Border IsVisible="{Binding HasSelectedSnapshot}" Padding="16" CornerRadius="6"
-                Background="{DynamicResource SidebarBackgroundBrush}">
+        <!--  详情（仅 SelectedSnapshot 非 null 时显示）  -->
+        <Border
+          Padding="16"
+          Background="{DynamicResource SidebarBackgroundBrush}"
+          CornerRadius="6"
+          IsVisible="{Binding HasSelectedSnapshot}">
           <DockPanel>
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
-                        HorizontalAlignment="Right" Margin="0,12,0,0">
-              <Button Command="{Binding DeleteSnapshotCommand}"
-                      HorizontalContentAlignment="Center"
-                      AutomationProperties.Name="{x:Static lang:Resources.Snapshot_DeleteHint}">
+            <StackPanel
+              Margin="0,12,0,0"
+              HorizontalAlignment="Right"
+              DockPanel.Dock="Bottom"
+              Orientation="Horizontal"
+              Spacing="8">
+              <Button
+                HorizontalContentAlignment="Center"
+                AutomationProperties.Name="{x:Static lang:Resources.Snapshot_DeleteHint}"
+                Command="{Binding DeleteSnapshotCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
-                  <TextBlock Text="{x:Static lang:Resources.Common_Delete}" Classes="bodySmall"/>
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+                  <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Delete}" />
                 </StackPanel>
               </Button>
-              <Button x:Name="RollbackButton" Command="{Binding RollbackCommand}" Classes="accent"
-                      HorizontalContentAlignment="Center"
-                      IsEnabled="{Binding !HasRollbackDisabled}"
-                      AutomationProperties.Name="{x:Static lang:Resources.Snapshot_RollbackHint}">
+              <Button
+                x:Name="RollbackButton"
+                HorizontalContentAlignment="Center"
+                AutomationProperties.Name="{x:Static lang:Resources.Snapshot_RollbackHint}"
+                Classes="accent"
+                Command="{Binding RollbackCommand}"
+                IsEnabled="{Binding !HasRollbackDisabled}">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="14"/>
-                  <TextBlock Text="{x:Static lang:Resources.Snapshot_Rollback}" Classes="bodySmall"/>
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
+                  <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Snapshot_Rollback}" />
                 </StackPanel>
               </Button>
             </StackPanel>
 
             <ScrollViewer>
               <StackPanel Spacing="14">
-                <!-- 用 ContentControl + DataTemplate 防止 SelectedSnapshot 为 null 时绑定报错 -->
+                <!--  用 ContentControl + DataTemplate 防止 SelectedSnapshot 为 null 时绑定报错  -->
                 <ContentControl Content="{Binding SelectedSnapshot}">
                   <ContentControl.ContentTemplate>
                     <DataTemplate x:DataType="core:SeatingSnapshot">
                       <StackPanel Spacing="10">
-                        <TextBlock Text="{x:Static lang:Resources.Snapshot_Detail}" Classes="sectionTitle"/>
+                        <TextBlock Classes="sectionTitle" Text="{x:Static lang:Resources.Snapshot_Detail}" />
                         <StackPanel Spacing="4">
-                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_Id}"/>
-                          <TextBlock Text="{Binding Id}"
-                                     Classes="small" TextWrapping="Wrap"
-                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_Id}" />
+                          <TextBlock
+                            Classes="small"
+                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            Text="{Binding Id}"
+                            TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_CreatedAt}"/>
-                          <TextBlock Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
-                                     Classes="caption"/>
+                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_CreatedAt}" />
+                          <TextBlock Classes="caption" Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" />
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_Description}"/>
-                          <TextBlock Text="{Binding Description}"
-                                     Classes="caption" TextWrapping="Wrap"
-                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_Description}" />
+                          <TextBlock
+                            Classes="caption"
+                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            Text="{Binding Description}"
+                            TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_SeatCount}"/>
-                          <TextBlock Text="{Binding SeatAssignments.Count}"
-                                     Classes="caption"/>
+                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_SeatCount}" />
+                          <TextBlock Classes="caption" Text="{Binding SeatAssignments.Count}" />
                         </StackPanel>
                         <StackPanel Spacing="4">
-                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_LinkedVenue}"/>
-                          <TextBlock Text="{Binding LayoutId}"
-                                     Classes="small" TextWrapping="Wrap"
-                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                          <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_LinkedVenue}" />
+                          <TextBlock
+                            Classes="small"
+                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            Text="{Binding LayoutId}"
+                            TextWrapping="Wrap" />
                         </StackPanel>
                       </StackPanel>
                     </DataTemplate>
                   </ContentControl.ContentTemplate>
                 </ContentControl>
 
-                <!-- 警告横幅 -->
-                <Border IsVisible="{Binding IsVenueDeleted}" Padding="10" CornerRadius="4"
-                        Classes="bgError">
+                <!--  警告横幅  -->
+                <Border
+                  Padding="10"
+                  Classes="bgError"
+                  CornerRadius="4"
+                  IsVisible="{Binding IsVenueDeleted}">
                   <StackPanel Spacing="4">
-                    <TextBlock Text="{x:Static lang:Resources.Snapshot_VenueDeletedPreview}" Classes="bodySmallStrong"
-                               Foreground="{DynamicResource ErrorBrush}"/>
-                    <TextBlock Text="{x:Static lang:Resources.Snapshot_VenueDeletedMsg}" Classes="small"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               TextWrapping="Wrap"/>
+                    <TextBlock
+                      Classes="bodySmallStrong"
+                      Foreground="{DynamicResource ErrorBrush}"
+                      Text="{x:Static lang:Resources.Snapshot_VenueDeletedPreview}" />
+                    <TextBlock
+                      Classes="small"
+                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      Text="{x:Static lang:Resources.Snapshot_VenueDeletedMsg}"
+                      TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
-                <Border IsVisible="{Binding IsVenueChanged}" Padding="10" CornerRadius="4"
-                        Classes="bgWarning">
+                <Border
+                  Padding="10"
+                  Classes="bgWarning"
+                  CornerRadius="4"
+                  IsVisible="{Binding IsVenueChanged}">
                   <StackPanel Spacing="4">
-                    <TextBlock Text="{Binding VenueWarningText}" Classes="bodySmallStrong"
-                               Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="{x:Static lang:Resources.Snapshot_VenueChanged}" Classes="small"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               TextWrapping="Wrap"/>
+                    <TextBlock
+                      Classes="bodySmallStrong"
+                      Foreground="{DynamicResource WarningBrush}"
+                      Text="{Binding VenueWarningText}" />
+                    <TextBlock
+                      Classes="small"
+                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      Text="{x:Static lang:Resources.Snapshot_VenueChanged}"
+                      TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
-                <Border IsVisible="{Binding IsDataChanged}" Padding="10" CornerRadius="4"
-                        Classes="bgWarning">
+                <Border
+                  Padding="10"
+                  Classes="bgWarning"
+                  CornerRadius="4"
+                  IsVisible="{Binding IsDataChanged}">
                   <StackPanel Spacing="4">
-                    <TextBlock Text="{x:Static lang:Resources.Snapshot_DataChanged}" Classes="bodySmallStrong"
-                               Foreground="{DynamicResource WarningBrush}"/>
-                    <TextBlock Text="{x:Static lang:Resources.Snapshot_DataChangedMsg}" Classes="small"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               TextWrapping="Wrap"/>
+                    <TextBlock
+                      Classes="bodySmallStrong"
+                      Foreground="{DynamicResource WarningBrush}"
+                      Text="{x:Static lang:Resources.Snapshot_DataChanged}" />
+                    <TextBlock
+                      Classes="small"
+                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                      Text="{x:Static lang:Resources.Snapshot_DataChangedMsg}"
+                      TextWrapping="Wrap" />
                   </StackPanel>
                 </Border>
 
-                <!-- 会场预览（绑定 ViewModel 属性，置于 ContentControl 外部避免 DataContext 错误） -->
-                <Border IsVisible="{Binding HasPreview}" Padding="8" CornerRadius="4"
-                        Background="{DynamicResource SystemControlBackgroundBaseLowBrush}">
+                <!--  会场预览（绑定 ViewModel 属性，置于 ContentControl 外部避免 DataContext 错误）  -->
+                <Border
+                  Padding="8"
+                  Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                  CornerRadius="4"
+                  IsVisible="{Binding HasPreview}">
                   <StackPanel Spacing="8">
-                    <TextBlock Text="{x:Static lang:Resources.Snapshot_Preview}" Classes="bodySmallStrong"/>
+                    <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Snapshot_Preview}" />
                     <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Auto">
                       <ItemsControl ItemsSource="{Binding PreviewSeats}">
                         <ItemsControl.ItemsPanel>
                           <ItemsPanelTemplate>
-                            <Canvas Width="{Binding PreviewCanvasWidth}"
-                                    Height="{Binding PreviewCanvasHeight}"/>
+                            <Canvas Width="{Binding PreviewCanvasWidth}" Height="{Binding PreviewCanvasHeight}" />
                           </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.Styles>
                           <Style Selector="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
                           </Style>
                         </ItemsControl.Styles>
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:SeatDisplayItem">
-                            <Border Width="{Binding Width}" Height="{Binding Height}"
-                                    CornerRadius="{Binding CornerRadius}" BorderThickness="1"
-                                    Background="{Binding BackgroundBrush}"
-                                    BorderBrush="{Binding BorderBrush}"
-                                    ToolTip.Tip="{Binding TooltipText}">
-                              <TextBlock Text="{Binding DisplayText}"
-                                         FontSize="8" Margin="1"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"
-                                         TextTrimming="CharacterEllipsis"/>
+                            <Border
+                              Width="{Binding Width}"
+                              Height="{Binding Height}"
+                              Background="{Binding BackgroundBrush}"
+                              BorderBrush="{Binding BorderBrush}"
+                              BorderThickness="1"
+                              CornerRadius="{Binding CornerRadius}"
+                              ToolTip.Tip="{Binding TooltipText}">
+                              <TextBlock
+                                Margin="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="8"
+                                Text="{Binding DisplayText}"
+                                TextTrimming="CharacterEllipsis" />
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>

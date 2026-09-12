@@ -31,12 +31,12 @@ internal static class KeyboardShortcutHandler
     ];
 
     /// <summary>向指定窗口注册全局 KeyDown 处理（Tunnel 路由）。</summary>
-    public static void Attach (Window window)
+    public static void Attach(Window window)
     {
-        window.AddHandler(InputElement.KeyDownEvent , OnKeyDown , RoutingStrategies.Tunnel);
+        window.AddHandler(InputElement.KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
-    private static void OnKeyDown (object? sender , KeyEventArgs e)
+    private static void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (sender is not Window window) return;
         if (window.DataContext is not MainShellViewModel shell) return;
@@ -84,20 +84,20 @@ internal static class KeyboardShortcutHandler
 
             // ── Esc: 取消选择 / 关闭弹窗 ──
             case Key.Escape:
-                e.Handled = cfg.EscapeEnabled && HandleEscape(shell , currentVm);
+                e.Handled = cfg.EscapeEnabled && HandleEscape(shell, currentVm);
                 break;
         }
     }
 
     /// <summary>焦点是否位于文本输入控件中（此时不应拦截编辑快捷键）。</summary>
-    private static bool IsTextInputFocused (TopLevel topLevel)
+    private static bool IsTextInputFocused(TopLevel topLevel)
     {
         var focused = topLevel.FocusManager?.GetFocusedElement();
         return focused is TextBox or AutoCompleteBox;
     }
 
     /// <summary>向当前页面的保存命令分派 Ctrl+S。</summary>
-    private static void HandleSave (ViewModelBase? vm)
+    private static void HandleSave(ViewModelBase? vm)
     {
         if (vm == null) return;
 
@@ -114,7 +114,7 @@ internal static class KeyboardShortcutHandler
     }
 
     /// <summary>处理 Esc 键：取消交换模式、取消选择。返回 <c>true</c> 表示事件已消费。</summary>
-    private static bool HandleEscape (MainShellViewModel shell , ViewModelBase? currentVm)
+    private static bool HandleEscape(MainShellViewModel shell, ViewModelBase? currentVm)
     {
         // 引导弹窗激活时，让 Guide 控件自行处理 Esc 关闭
         if (shell.IsOnboardingActive)

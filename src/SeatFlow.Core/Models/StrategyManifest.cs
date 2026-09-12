@@ -58,5 +58,5 @@ public sealed class StrategyManifest
     /// 策略执行消息的多语言模板（可选）。key 为消息标识符，value 为多语言词典。
     /// 模板中用 {0} {1} 占位，运行时 string.Format 替换。
     /// </summary>
-    public Dictionary<string , Dictionary<string , string>>? Messages { get; init; }
+    public Dictionary<string, Dictionary<string, string>>? Messages { get; init; }
 }

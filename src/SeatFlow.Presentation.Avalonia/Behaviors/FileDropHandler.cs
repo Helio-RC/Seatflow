@@ -17,21 +17,21 @@ using AvaloniaApp = Avalonia.Application;
 namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
 /// <summary>
-/// 全局文件拖放导入行为。注册在 MainWindow 上，拦截 OS 文件拖放事件，
+/// 全局文件拖放导入行为。注册在 <see cref="Views.MainView"/> 上，拦截 OS 文件拖放事件，
 /// 根据当前页面的 ViewModel 是否实现 <see cref="IFileDropHandler"/> 来路由处理。
 /// 拖入文件时显示遮罩覆盖层（支持/不支持两种状态）。
 /// </summary>
 internal static class FileDropHandler
 {
-    private static Window? _window;
+    private static Control? _host;
 
-    public static void Attach(Window window)
+    public static void Attach(Control host)
     {
-        _window = window;
-        DragDrop.AddDragOverHandler(window, OnDragOver);
-        DragDrop.AddDropHandler(window, OnDrop);
-        DragDrop.AddDragEnterHandler(window, OnDragEnter);
-        DragDrop.AddDragLeaveHandler(window, OnDragLeave);
+        _host = host;
+        DragDrop.AddDragOverHandler(host, OnDragOver);
+        DragDrop.AddDropHandler(host, OnDrop);
+        DragDrop.AddDragEnterHandler(host, OnDragEnter);
+        DragDrop.AddDragLeaveHandler(host, OnDragLeave);
     }
 
     private static ViewModelBase? ResolveCurrentViewModel()
@@ -82,14 +82,14 @@ internal static class FileDropHandler
     /// <summary>显示遮罩覆盖层并根据页面对文件的接受情况设置图标、文字和边框颜色。</summary>
     private static void SetOverlayState(bool accepted)
     {
-        if (_window is null) return;
+        if (_host is null) return;
 
-        var overlay = _window.FindControl<Border>("FileDropOverlay");
+        var overlay = _host.FindControl<Border>("FileDropOverlay");
         if (overlay is null) return;
 
-        var icon = _window.FindControl<FluentIcons.Avalonia.FluentIcon>("FileDropOverlayIcon");
-        var text = _window.FindControl<TextBlock>("FileDropOverlayText");
-        var card = _window.FindControl<Border>("FileDropOverlayCard");
+        var icon = _host.FindControl<FluentIcons.Avalonia.FluentIcon>("FileDropOverlayIcon");
+        var text = _host.FindControl<TextBlock>("FileDropOverlayText");
+        var card = _host.FindControl<Border>("FileDropOverlayCard");
 
         // 使用 Application 级别的资源查找（Window.FindResource 找不到主题级资源）
         var accentBrush = AvaloniaApp.Current?.FindResource("SystemAccentColor") as IBrush;
@@ -113,8 +113,8 @@ internal static class FileDropHandler
 
     private static void HideOverlay()
     {
-        if (_window is null) return;
-        var overlay = _window.FindControl<Border>("FileDropOverlay");
+        if (_host is null) return;
+        var overlay = _host.FindControl<Border>("FileDropOverlay");
         if (overlay is not null)
             overlay.IsVisible = false;
     }

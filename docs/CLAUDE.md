@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 dotnet build                    # Build all 7 projects (uses .slnx, requires .NET 10 SDK)
 dotnet test                     # Run all tests (xUnit v3, Microsoft.Testing.Platform)
 dotnet test --filter "FullyQualifiedName~TestName"  # Run a single test
-dotnet run --project src/SeatFlow.Presentation.Avalonia   # Launch the desktop app
+dotnet run --project src/SeatFlow.Desktop   # Launch the desktop app
 ```
 
 **Test stack**: xUnit v3 + FluentAssertions + NSubstitute. Tests are in 3 projects: `*.Core.Tests`, `*.Application.Tests`, `*.Infrastructure.Tests`. Each has `<ImplicitUsings>enable</ImplicitUsings>` (provides `System`, `System.Collections.Generic`, `System.Linq`, `System.Threading.Tasks`). Project-specific global usings are in `Usings.cs` (or `Using.cs` in Application.Tests).
@@ -42,6 +42,9 @@ SeatFlow is a .NET 10 cross-platform desktop seating arrangement system using Av
 **Navigation**: `INavigationService` + `MainShellViewModel` manages 9 pages via `PageKey` enum (`Home`, `MemberManagement`, `VenueConfiguration`, `FreeformManagement`, `StrategyConfiguration`, `SeatingArrangement`, `SnapshotHistory`, `Settings`, `About`). `ViewLocator` auto-resolves `XXXViewModel` → `XXXView` by convention: replaces `"ViewModel"` with `"View"` in the type name via reflection.
 
 **Project dependency chain**: `Presentation.Avalonia` → `Application` → `Core`，`Infrastructure` → `Core`. `Application` orchestrates; `Infrastructure` implements providers/exporters/layouts/repos; `Core` owns entities, strategy interfaces, and the workspace.
+
+**Web/WASM 双壳（2026-09）**: `SeatFlow.Presentation.Avalonia` 现在是共享类库（`net10.0;net10.0-browser`），启动逻辑拆到 `SeatFlow.Desktop`（EXE，AssemblyName=`SeatFlow`）与 `SeatFlow.Browser`（`net10.0-browser` 静态站）。存储经 `ILocalDataStore`（桌面=文件系统 / WASM=IndexedDB，`src/SeatFlow.Browser/wwwroot/js/interop.js` 桥）。PDF/图片导出、自动更新、Watchdog、单实例等仅桌面；Web 对话框为 overlay（`WebDialogService`）。
+浏览器端外壳为 `MainView : UserControl`（`Views/MainView.axaml`，经 `ISingleViewApplicationLifetime.MainView` 挂载；WASM 不能构造 `Window`，`MainWindow` 仅桌面使用）。浏览器 JSON 需 `<JsonSerializerIsReflectionEnabledByDefault>true</...>`（裁剪默认禁用反射序列化）；日志经 `BrowserConsoleLoggerProvider` 输出到 DevTools Console；CJK 字形由嵌入的 Noto Sans SC 回退（仅 browser TFM 打包，SIL OFL 1.1）；语言在 `Program.Main` 于 Avalonia 启动前异步预加载（WASM 禁止同步阻塞等待）。详见 `docs/WebDeployment.md`。
 
 **Strategy pipeline**: Uses a **fill-in-order** model for independent strategies. Dependent strategies execute inside RandomFill's assignment loop via `IDependentSeatingStrategy`. All strategies operate on the same `SeatingWorkspace`. Independent strategies execute in **descending Priority order** (higher = earlier = dibs on empty seats). No "override" semantics; first to fill a seat keeps it. `IsFixed=true` (set by FixedSeat) causes `GetEmptySeats()` to exclude those seats, providing natural protection.
 
@@ -113,7 +116,7 @@ Users can override via `DataDirectory` in AppSettings.json.
 **App startup sequence**:
 1. `StartupGuard.CheckEnvironment()` — validates .NET runtime >= 10 and supported OS (Windows 10+, macOS 12+, Linux any). Shows warning dialog and exits if unsupported.
 2. `App.Initialize()` — `ApplyLanguageFromSettings()` sets `CurrentUICulture` + `Resources.Culture`, then `AvaloniaXamlLoader.Load(this)` (language MUST be set before XAML loading so `{x:Static}` resolves correctly)
-3. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel`/`MainWindow` from DI, wire DataContext
+3. `OnFrameworkInitializationCompleted` — Resolve `MainShellViewModel` + `MainWindow`（桌面）或 `MainView`（浏览器）from DI, wire DataContext
 4. Call `IFileService.SetTopLevel()` and `IDialogService.SetTopLevel()` with MainWindow
 5. Initialize `ViewModelBase.Dialog` (static) and `ViewModelBase` logger
 6. Start `WatchdogService` with a 3s DispatcherTimer ping

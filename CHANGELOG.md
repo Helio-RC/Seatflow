@@ -4,6 +4,15 @@
 
 ## [2.0.0] — 2026-09-05
 
+### Added
+- **Web/WASM 浏览器支持（双壳架构）**：`SeatFlow.Presentation.Avalonia` 转为共享类库（`net10.0;net10.0-browser`），启动逻辑拆分为 `SeatFlow.Desktop`（桌面 EXE）与 `SeatFlow.Browser`（WASM 静态站）；存储经 `ILocalDataStore` 抽象（桌面=文件系统 / Web=IndexedDB）
+- 浏览器端文件互操作（`interop.js` / `files.js`）：IndexedDB 数据桥接、文件选择与 Blob 下载，CSV/XLSX/JSON 导入导出与 `.seatsets` 打包在 Web 端等价可用
+- Web 端 CJK 字体回退（Noto Sans SC，SIL OFL 1.1）、DevTools Console 日志、语言预加载、模态对话框 overlay 化
+
+### Changed
+- `IFileService` 字节化与 `IUrlOpener` 抽象；PDF/图片导出、自动更新、Watchdog、单实例等桌面专属能力在 Web 端隐藏
+- 新增 `net10.0-browser` 目标的 SkiaSharp 链接顺序 workaround（dotnet/runtime#109289）
+
 ### Removed
 - **移除插件系统（ADR-013）**：删除 `SeatFlow.Contracts`、`SeatFlow.Plugins.Sdk`、`SeatFlow.Plugin.TestFixture` 项目与 `src/plugin-examples/`，并移除 `NLua`、`Microsoft.CodeAnalysis.CSharp.Scripting` 两个 NuGet 依赖
 - 删除插件运行时（`PluginManager`、`PluginLoadContext`、包清单与配置服务）与 Lua/C# 脚本策略（`Application/Scripting/`）

@@ -16,13 +16,13 @@ namespace SeatFlow.Core.DomainServices
         /// <param name="metadata">布局元数据，必须与座位类型匹配。</param>
         /// <returns>物理坐标 (X, Y)。</returns>
         /// <exception cref="ArgumentException">座位类型不支持或元数据不匹配时抛出。</exception>
-        public static (double X , double Y) GetPosition (Seat seat , LayoutMetadata metadata)
+        public static (double X, double Y) GetPosition(Seat seat, LayoutMetadata metadata)
         {
             return seat switch
             {
-                GridSeat grid => GetGridPosition(grid , metadata as GridLayoutMetadata),
-                PolarSeat polar => GetPolarPosition(polar , metadata as PolarLayoutMetadata),
-                FreeformSeat free => (free.X , free.Y),
+                GridSeat grid => GetGridPosition(grid, metadata as GridLayoutMetadata),
+                PolarSeat polar => GetPolarPosition(polar, metadata as PolarLayoutMetadata),
+                FreeformSeat free => (free.X, free.Y),
                 _ => throw new ArgumentException($"Unsupported seat type: {seat.GetType().Name}")
             };
         }
@@ -31,7 +31,7 @@ namespace SeatFlow.Core.DomainServices
         /// 计算网格座位的物理坐标。
         /// 支持桌面分组（IntraDeskSpacing / InterDeskSpacing）、过道（AisleAfterColumns / AisleAfterRows / AisleWidth）。
         /// </summary>
-        private static (double X , double Y) GetGridPosition (GridSeat seat , GridLayoutMetadata? gridMeta)
+        private static (double X, double Y) GetGridPosition(GridSeat seat, GridLayoutMetadata? gridMeta)
         {
             if (gridMeta == null)
                 throw new ArgumentException("Grid seat requires GridLayoutMetadata.");
@@ -58,7 +58,7 @@ namespace SeatFlow.Core.DomainServices
             for (int r = 1; r < seat.Row; r++)
                 y += aisleAfterRows.Contains(r) ? aisle : gridMeta.VerticalSpacing;
 
-            return (x , y);
+            return (x, y);
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace SeatFlow.Core.DomainServices
         ///       Y = OriginY + Radius × sin(Angle)
         /// 角度从度转换为弧度进行计算。
         /// </summary>
-        private static (double X , double Y) GetPolarPosition (PolarSeat seat , PolarLayoutMetadata? polarMeta)
+        private static (double X, double Y) GetPolarPosition(PolarSeat seat, PolarLayoutMetadata? polarMeta)
         {
             if (polarMeta == null)
                 throw new ArgumentException("Polar seat requires PolarLayoutMetadata.");
@@ -75,7 +75,7 @@ namespace SeatFlow.Core.DomainServices
             double rad = seat.AngleDegrees * Math.PI / 180.0;
             double x = polarMeta.OriginX + (seat.Radius * Math.Cos(rad));
             double y = polarMeta.OriginY + (seat.Radius * Math.Sin(rad));
-            return (x , y);
+            return (x, y);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace SeatFlow.Core.DomainServices
         /// <param name="seats">座位集合。</param>
         /// <param name="frontRowCount">前排行数。</param>
         /// <returns>前排座位 ID 的集合。</returns>
-        public static HashSet<string> IdentifyFrontRowSeats (IEnumerable<Seat> seats , int frontRowCount)
+        public static HashSet<string> IdentifyFrontRowSeats(IEnumerable<Seat> seats, int frontRowCount)
         {
             ArgumentNullException.ThrowIfNull(seats);
             var seatList = seats as IReadOnlyCollection<Seat> ?? seats.ToList();

@@ -5,12 +5,12 @@ public class ConfigCleanupTests
     // ── CleanInvalidSeatRows ──
 
     [Fact]
-    public void CleanInvalidSeatRows_AllValid_NoChange ()
+    public void CleanInvalidSeatRows_AllValid_NoChange()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            LayoutType = LayoutType.Grid ,
-            Seats = [new GridSeat { Id = "s1" , Row = 1 , Column = 1 } , new GridSeat { Id = "s2" , Row = 2 , Column = 3 }]
+            LayoutType = LayoutType.Grid,
+            Seats = [new GridSeat { Id = "s1", Row = 1, Column = 1 }, new GridSeat { Id = "s2", Row = 2, Column = 3 }]
         };
         var config = new StrategyDatasetConfig
         {
@@ -21,19 +21,19 @@ public class ConfigCleanupTests
             ]
         };
 
-        bool changed = ApplicationFacade.CleanInvalidSeatRows(config , layout);
+        bool changed = ApplicationFacade.CleanInvalidSeatRows(config, layout);
 
         changed.Should().BeFalse();
         config.Rows.Should().HaveCount(2);
     }
 
     [Fact]
-    public void CleanInvalidSeatRows_SomeOOB_RowsRemoved ()
+    public void CleanInvalidSeatRows_SomeOOB_RowsRemoved()
     {
         var layout = new ClassroomLayoutDefinition
         {
-            LayoutType = LayoutType.Grid ,
-            Seats = [new GridSeat { Id = "s1" , Row = 1 , Column = 1 }]
+            LayoutType = LayoutType.Grid,
+            Seats = [new GridSeat { Id = "s1", Row = 1, Column = 1 }]
         };
         var config = new StrategyDatasetConfig
         {
@@ -44,7 +44,7 @@ public class ConfigCleanupTests
             ]
         };
 
-        bool changed = ApplicationFacade.CleanInvalidSeatRows(config , layout);
+        bool changed = ApplicationFacade.CleanInvalidSeatRows(config, layout);
 
         changed.Should().BeTrue();
         config.Rows.Should().HaveCount(1);
@@ -52,7 +52,7 @@ public class ConfigCleanupTests
     }
 
     [Fact]
-    public void CleanInvalidSeatRows_NullLayout_RemovesAllPositionedRows ()
+    public void CleanInvalidSeatRows_NullLayout_RemovesAllPositionedRows()
     {
         var config = new StrategyDatasetConfig
         {
@@ -64,7 +64,7 @@ public class ConfigCleanupTests
             ]
         };
 
-        bool changed = ApplicationFacade.CleanInvalidSeatRows(config , null);
+        bool changed = ApplicationFacade.CleanInvalidSeatRows(config, null);
 
         changed.Should().BeTrue();
         config.Rows.Should().HaveCount(1);
@@ -72,12 +72,12 @@ public class ConfigCleanupTests
     }
 
     [Fact]
-    public void CleanInvalidSeatRows_EmptyConfig_NoChange ()
+    public void CleanInvalidSeatRows_EmptyConfig_NoChange()
     {
-        var layout = new ClassroomLayoutDefinition { LayoutType = LayoutType.Grid , Seats = [] };
+        var layout = new ClassroomLayoutDefinition { LayoutType = LayoutType.Grid, Seats = [] };
         var config = new StrategyDatasetConfig { Rows = [] };
 
-        bool changed = ApplicationFacade.CleanInvalidSeatRows(config , layout);
+        bool changed = ApplicationFacade.CleanInvalidSeatRows(config, layout);
 
         changed.Should().BeFalse();
     }
@@ -85,7 +85,7 @@ public class ConfigCleanupTests
     // ── CleanFixedSeatDeletedStudents ──
 
     [Fact]
-    public void CleanFixedSeatDeletedStudents_AllValid_NoChange ()
+    public void CleanFixedSeatDeletedStudents_AllValid_NoChange()
     {
         var config = new StrategyDatasetConfig
         {
@@ -95,16 +95,16 @@ public class ConfigCleanupTests
                 new() { StudentId = "s2" }
             ]
         };
-        var validIds = new HashSet<string> { "s1" , "s2" , "s3" };
+        var validIds = new HashSet<string> { "s1", "s2", "s3" };
 
-        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config, validIds);
 
         changed.Should().BeFalse();
         config.Rows.Should().HaveCount(2);
     }
 
     [Fact]
-    public void CleanFixedSeatDeletedStudents_SomeGone_RowsRemoved ()
+    public void CleanFixedSeatDeletedStudents_SomeGone_RowsRemoved()
     {
         var config = new StrategyDatasetConfig
         {
@@ -114,9 +114,9 @@ public class ConfigCleanupTests
                 new() { StudentId = "s2" }   // deleted
             ]
         };
-        var validIds = new HashSet<string> { "s1" , "s3" };
+        var validIds = new HashSet<string> { "s1", "s3" };
 
-        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config, validIds);
 
         changed.Should().BeTrue();
         config.Rows.Should().HaveCount(1);
@@ -124,7 +124,7 @@ public class ConfigCleanupTests
     }
 
     [Fact]
-    public void CleanFixedSeatDeletedStudents_EmptyStudentId_Kept ()
+    public void CleanFixedSeatDeletedStudents_EmptyStudentId_Kept()
     {
         var config = new StrategyDatasetConfig
         {
@@ -136,7 +136,7 @@ public class ConfigCleanupTests
         };
         var validIds = new HashSet<string> { "s1" };
 
-        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config, validIds);
 
         changed.Should().BeTrue();
         config.Rows.Should().HaveCount(1);
@@ -144,14 +144,14 @@ public class ConfigCleanupTests
     }
 
     [Fact]
-    public void CleanFixedSeatDeletedStudents_EmptyValidSet_RemovesAll ()
+    public void CleanFixedSeatDeletedStudents_EmptyValidSet_RemovesAll()
     {
         var config = new StrategyDatasetConfig
         {
-            Rows = [new() { StudentId = "s1" } , new() { StudentId = "s2" }]
+            Rows = [new() { StudentId = "s1" }, new() { StudentId = "s2" }]
         };
 
-        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config , []);
+        bool changed = ApplicationFacade.CleanFixedSeatDeletedStudents(config, []);
 
         changed.Should().BeTrue();
         config.Rows.Should().BeEmpty();
@@ -160,7 +160,7 @@ public class ConfigCleanupTests
     // ── CleanDeskMateDeletedStudents ──
 
     [Fact]
-    public void CleanDeskMateDeletedStudents_AllValid_NoChange ()
+    public void CleanDeskMateDeletedStudents_AllValid_NoChange()
     {
         var config = new StrategyDatasetConfig
         {
@@ -173,16 +173,16 @@ public class ConfigCleanupTests
                 }
             ]
         };
-        var validIds = new HashSet<string> { "s1" , "s2" , "s3" };
+        var validIds = new HashSet<string> { "s1", "s2", "s3" };
 
-        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config, validIds);
 
         changed.Should().BeFalse();
         config.Rows.Should().HaveCount(1);
     }
 
     [Fact]
-    public void CleanDeskMateDeletedStudents_OneGone_GroupRepacked ()
+    public void CleanDeskMateDeletedStudents_OneGone_GroupRepacked()
     {
         var config = new StrategyDatasetConfig
         {
@@ -196,9 +196,9 @@ public class ConfigCleanupTests
                 }
             ]
         };
-        var validIds = new HashSet<string> { "s1" , "s3" };  // s2 deleted
+        var validIds = new HashSet<string> { "s1", "s3" };  // s2 deleted
 
-        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config, validIds);
 
         changed.Should().BeTrue();
         config.Rows.Should().HaveCount(1);
@@ -210,7 +210,7 @@ public class ConfigCleanupTests
     }
 
     [Fact]
-    public void CleanDeskMateDeletedStudents_TwoGone_OneLeft_RowRemoved ()
+    public void CleanDeskMateDeletedStudents_TwoGone_OneLeft_RowRemoved()
     {
         var config = new StrategyDatasetConfig
         {
@@ -225,14 +225,14 @@ public class ConfigCleanupTests
         };
         var validIds = new HashSet<string> { "s1" };  // only s1 remains, s2 deleted
 
-        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config, validIds);
 
         changed.Should().BeTrue();
         config.Rows.Should().BeEmpty();
     }
 
     [Fact]
-    public void CleanDeskMateDeletedStudents_SeatPositionPreserved ()
+    public void CleanDeskMateDeletedStudents_SeatPositionPreserved()
     {
         var config = new StrategyDatasetConfig
         {
@@ -246,9 +246,9 @@ public class ConfigCleanupTests
                 }
             ]
         };
-        var validIds = new HashSet<string> { "s1" , "s2" };  // s3 deleted
+        var validIds = new HashSet<string> { "s1", "s2" };  // s3 deleted
 
-        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config , validIds);
+        bool changed = ApplicationFacade.CleanDeskMateDeletedStudents(config, validIds);
 
         changed.Should().BeTrue();
         config.Rows.Should().HaveCount(1);

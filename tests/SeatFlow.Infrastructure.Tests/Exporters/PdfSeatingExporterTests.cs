@@ -3,11 +3,11 @@ namespace SeatFlow.Infrastructure.Tests.Exporters;
 public class PdfSeatingExporterTests
 {
     [Fact]
-    public async Task ExportAsync_ShouldCreatePdfFile ()
+    public async Task ExportAsync_ShouldCreatePdfFile()
     {
         var plan = new SeatingPlan
         {
-            Assignments = new Dictionary<string , string>
+            Assignments = new Dictionary<string, string>
             {
                 { "seat1", "student1" }
             }
@@ -17,7 +17,7 @@ public class PdfSeatingExporterTests
 
         try
         {
-            await exporter.ExportAsync(plan , path , CancellationToken.None);
+            await exporter.ExportAsync(plan, path, CancellationToken.None);
             File.Exists(path).Should().BeTrue();
         }
         finally

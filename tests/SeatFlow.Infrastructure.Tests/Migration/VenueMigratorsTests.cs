@@ -5,47 +5,47 @@ namespace SeatFlow.Infrastructure.Tests.Migration;
 
 public class VenueMigratorsTests
 {
-    private static JsonObject MakeVenueJson (
-        string layoutTypeString ,
-        List<(int Row , int Col)> seats)
+    private static JsonObject MakeVenueJson(
+        string layoutTypeString,
+        List<(int Row, int Col)> seats)
     {
         var seatsArray = new JsonArray();
-        foreach (var (r , c) in seats)
+        foreach (var (r, c) in seats)
         {
             seatsArray.Add(new JsonObject
             {
-                ["Type"] = "Grid" ,
-                ["row"] = r ,
-                ["column"] = c ,
-                ["id"] = Guid.NewGuid().ToString() ,
-                ["isAvailable"] = true ,
+                ["Type"] = "Grid",
+                ["row"] = r,
+                ["column"] = c,
+                ["id"] = Guid.NewGuid().ToString(),
+                ["isAvailable"] = true,
                 ["isFixed"] = false
             });
         }
 
         return new JsonObject
         {
-            ["version"] = "1.0" ,
-            ["venueId"] = "test" ,
+            ["version"] = "1.0",
+            ["venueId"] = "test",
             ["layout"] = new JsonObject
             {
-                ["layoutType"] = 0 ,                       // 数字枚举
-                ["layoutTypeString"] = layoutTypeString ,  // 字符串形式
+                ["layoutType"] = 0,                       // 数字枚举
+                ["layoutTypeString"] = layoutTypeString,  // 字符串形式
                 ["seats"] = seatsArray
             }
         };
     }
 
     [Fact]
-    public void Migrate_GridWithColumnMajorSeats_ShouldReorderToRowMajor ()
+    public void Migrate_GridWithColumnMajorSeats_ShouldReorderToRowMajor()
     {
         // 列主序：c1(r1,r2), c2(r1,r2)
-        var columnMajor = new List<(int Row , int Col)>
+        var columnMajor = new List<(int Row, int Col)>
         {
             (1 , 1) , (2 , 1) ,  // col 1
             (1 , 2) , (2 , 2) ,  // col 2
         };
-        var root = MakeVenueJson("Grid" , columnMajor);
+        var root = MakeVenueJson("Grid", columnMajor);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -65,17 +65,17 @@ public class VenueMigratorsTests
     }
 
     [Fact]
-    public void Migrate_GridWithIrregularColumnRowCounts_ShouldReorderToRowMajor ()
+    public void Migrate_GridWithIrregularColumnRowCounts_ShouldReorderToRowMajor()
     {
         // 模拟：8列，单数列4行，双数列5行 (column-major order)
-        var columnMajor = new List<(int Row , int Col)>();
+        var columnMajor = new List<(int Row, int Col)>();
         for (int c = 1; c <= 8; c++)
         {
             int rowsForCol = c % 2 == 1 ? 4 : 5;
             for (int r = 1; r <= rowsForCol; r++)
-                columnMajor.Add((r , c));
+                columnMajor.Add((r, c));
         }
-        var root = MakeVenueJson("Grid" , columnMajor);
+        var root = MakeVenueJson("Grid", columnMajor);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -97,9 +97,9 @@ public class VenueMigratorsTests
     }
 
     [Fact]
-    public void Migrate_PolarLayout_ShouldUpdateVersionOnly ()
+    public void Migrate_PolarLayout_ShouldUpdateVersionOnly()
     {
-        var root = MakeVenueJson("Polar" , [(1 , 1)]);
+        var root = MakeVenueJson("Polar", [(1, 1)]);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -110,9 +110,9 @@ public class VenueMigratorsTests
     }
 
     [Fact]
-    public void Migrate_FreeformLayout_ShouldUpdateVersionOnly ()
+    public void Migrate_FreeformLayout_ShouldUpdateVersionOnly()
     {
-        var root = MakeVenueJson("Freeform" , [(1 , 1)]);
+        var root = MakeVenueJson("Freeform", [(1, 1)]);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -121,9 +121,9 @@ public class VenueMigratorsTests
     }
 
     [Fact]
-    public void Migrate_EmptySeats_ShouldNotThrow ()
+    public void Migrate_EmptySeats_ShouldNotThrow()
     {
-        var root = MakeVenueJson("Grid" , []);
+        var root = MakeVenueJson("Grid", []);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);
@@ -133,9 +133,9 @@ public class VenueMigratorsTests
     }
 
     [Fact]
-    public void Migrate_SingleSeat_ShouldNotThrow ()
+    public void Migrate_SingleSeat_ShouldNotThrow()
     {
-        var root = MakeVenueJson("Grid" , [(1 , 1)]);
+        var root = MakeVenueJson("Grid", [(1, 1)]);
         var migrator = new VenueMigrators.Step_1_0_to_1_1();
 
         var result = migrator.Migrate(root);

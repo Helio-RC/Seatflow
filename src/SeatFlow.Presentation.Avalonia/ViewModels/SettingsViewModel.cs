@@ -30,6 +30,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     private readonly IFileService _fileService;
     private readonly ITelemetryService _telemetry;
     private readonly IUpdateService _updateService;
+    private readonly IUrlOpener _urlOpener;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingsViewModel> _logger;
 
@@ -38,7 +39,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
 
     [ObservableProperty]
     public partial int ThemeIndex { get; set; }
-    public List<string> ThemeOptions { get; } = [Resources.Theme_System , Resources.Theme_Light , Resources.Theme_Dark];
+    public List<string> ThemeOptions { get; } = [Resources.Theme_System, Resources.Theme_Light, Resources.Theme_Dark];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedLanguage))]
@@ -57,7 +58,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         get => _selectedLanguage ?? LanguageOptions.Find(static o => o.Code == "");
         set
         {
-            if (SetProperty(ref _selectedLanguage , value))
+            if (SetProperty(ref _selectedLanguage, value))
                 Language = value?.Code ?? "";
         }
     }
@@ -70,7 +71,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
 
     [ObservableProperty]
     public partial int ZoomIndex { get; set; } = 1;
-    public List<string> ZoomOptions { get; } = [Resources.Zoom_75 , Resources.Zoom_100 , Resources.Zoom_125 , Resources.Zoom_150];
+    public List<string> ZoomOptions { get; } = [Resources.Zoom_75, Resources.Zoom_100, Resources.Zoom_125, Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
     private int _dialogLock;
@@ -159,7 +160,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     [ObservableProperty]
     public partial bool HasPendingUpdate { get; set; }
 
-    public SettingsViewModel (IApplicationFacade facade , IDialogService dialog , IOnboardingService onboarding , IFileService fileService , ITelemetryService telemetry , IUpdateService updateService , IServiceProvider serviceProvider , ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOnboardingService onboarding, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, ILogger<SettingsViewModel>? logger = null)
     {
         _facade = facade;
         _dialog = dialog;
@@ -167,12 +168,16 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         _fileService = fileService;
         _telemetry = telemetry;
         _updateService = updateService;
+        _urlOpener = urlOpener;
         _serviceProvider = serviceProvider;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
 
-    private async Task LoadAsync (CancellationToken ct)
+    /// <summary>当前运行平台是否为浏览器（WASM）。更新/存储卡片在网页版隐藏。</summary>
+    public bool IsWebPlatform => OperatingSystem.IsBrowser();
+
+    private async Task LoadAsync(CancellationToken ct)
     {
         try
         {
@@ -208,7 +213,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
             SyncShortcutConfig();
 
             var logLevel = settings.Logging.MinimumLevel;
-            LogLevelIndex = logLevel switch { "Debug" => 0 , "Warning" => 2 , "Error" => 3 , _ => 1 };
+            LogLevelIndex = logLevel switch { "Debug" => 0, "Warning" => 2, "Error" => 3, _ => 1 };
 
             AutoUpdate = settings.AutoUpdate;
             AutoUpdateIndex = AutoUpdate switch
@@ -230,17 +235,17 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         }
     }
 
-    partial void OnLanguageChanged (string value)
+    partial void OnLanguageChanged(string value)
     {
         var option = LanguageOptions.FirstOrDefault(o => o.Code == value);
-        if (option != null && !ReferenceEquals(option , _selectedLanguage))
+        if (option != null && !ReferenceEquals(option, _selectedLanguage))
         {
             _selectedLanguage = option;
             OnPropertyChanged(nameof(SelectedLanguage));
         }
     }
 
-    partial void OnThemeIndexChanged (int value)
+    partial void OnThemeIndexChanged(int value)
     {
         var mode = value switch { 1 => ThemeMode.Light, 2 => ThemeMode.Dark, _ => ThemeMode.System };
         if (Theme == mode) return;
@@ -257,15 +262,15 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         }
     }
 
-    partial void OnZoomIndexChanged (int value)
+    partial void OnZoomIndexChanged(int value)
     {
         var zoom = value switch { 0 => 0.75, 1 => 1.0, 2 => 1.25, 3 => 1.5, _ => 1.0 };
         _defaultZoomLevel = zoom;
     }
 
-    partial void OnLogLevelIndexChanged (int value) { }
+    partial void OnLogLevelIndexChanged(int value) { }
 
-    partial void OnAutoUpdateIndexChanged (int value)
+    partial void OnAutoUpdateIndexChanged(int value)
     {
         AutoUpdate = value switch
         {
@@ -277,21 +282,21 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     }
 
     /// <summary>将 ViewModel 中的快捷键开关同步到静态行为配置。</summary>
-    private void SyncShortcutConfig ()
+    private void SyncShortcutConfig()
     {
         Behaviors.KeyboardShortcutHandler.ShortcutConfig = new KeyboardShortcutConfig
         {
-            UndoEnabled = UndoShortcutEnabled ,
-            RedoEnabled = RedoShortcutEnabled ,
-            SaveEnabled = SaveShortcutEnabled ,
-            ZoomWithCtrlEnabled = ZoomShortcutEnabled ,
-            DeleteEnabled = DeleteShortcutEnabled ,
+            UndoEnabled = UndoShortcutEnabled,
+            RedoEnabled = RedoShortcutEnabled,
+            SaveEnabled = SaveShortcutEnabled,
+            ZoomWithCtrlEnabled = ZoomShortcutEnabled,
+            DeleteEnabled = DeleteShortcutEnabled,
             EscapeEnabled = EscapeShortcutEnabled
         };
     }
 
     [RelayCommand]
-    private async Task SaveSettingsAsync (CancellationToken ct)
+    private async Task SaveSettingsAsync(CancellationToken ct)
     {
         try
         {
@@ -321,26 +326,28 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
             settings.Logging.MinimumLevel = LogLevelIndex switch { 0 => "Debug", 2 => "Warning", 3 => "Error", _ => "Information" };
             settings.AutoUpdate = AutoUpdate;
 
-            await _facade.SaveAppSettingsAsync(settings , ct);
+            await _facade.SaveAppSettingsAsync(settings, ct);
 
             // 同步内存中的遥测状态（SetEnabled 内部也会持久化，此时 settings 已完整）
             _telemetry.SetEnabled(TelemetryEnabled);
 
-            var langChanged = !string.Equals(_originalLanguage , Language , StringComparison.Ordinal);
+            var langChanged = !string.Equals(_originalLanguage, Language, StringComparison.Ordinal);
             _originalLanguage = Language;
 
             if (langChanged)
             {
                 var clicked = await _dialog.ShowMultiOptionAsync(
-                    Resources.Settings_LangChangedTitle ,
-                    Resources.Settings_LangChangedMessage ,
-                    Resources.Settings_LangChangedRestart ,
+                    Resources.Settings_LangChangedTitle,
+                    Resources.Settings_LangChangedMessage,
+                    Resources.Settings_LangChangedRestart,
                     Resources.Common_Later);
                 if (clicked == 0)
                 {
+#if !BROWSER
                     Process.Start(Environment.ProcessPath!);
                     if (AvaloniaApplication.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                         desktop.Shutdown();
+#endif
                     return;
                 }
             }
@@ -350,7 +357,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         catch (Exception ex)
         {
             StatusMessage = Resources.Settings_SaveFailed;
-            await _dialog.ShowErrorAsync(Resources.Settings_SaveFailed , ex.Message);
+            await _dialog.ShowErrorAsync(Resources.Settings_SaveFailed, ex.Message);
         }
         finally
         {
@@ -359,9 +366,9 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     }
 
     [RelayCommand]
-    private async Task ResetDefaultsAsync ()
+    private async Task ResetDefaultsAsync()
     {
-        var confirmed = await _dialog.ShowConfirmAsync(Resources.Settings_ResetTitle , Resources.Settings_ResetConfirm);
+        var confirmed = await _dialog.ShowConfirmAsync(Resources.Settings_ResetTitle, Resources.Settings_ResetConfirm);
         if (!confirmed) return;
 
         ThemeIndex = 0;
@@ -381,9 +388,9 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     }
 
     [RelayCommand]
-    private async Task BrowseDataDirectoryAsync (CancellationToken ct)
+    private async Task BrowseDataDirectoryAsync(CancellationToken ct)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock , 1 , 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
         try
         {
             try
@@ -396,24 +403,24 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
 
                 var folders = await storageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
                 {
-                    Title = Resources.Settings_FolderTitle ,
+                    Title = Resources.Settings_FolderTitle,
                     AllowMultiple = false
                 });
 
                 if (folders.Count > 0)
                     DataDirectory = folders[0].Path.LocalPath;
             }
-            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger.LogDebug(ex , "目录选择取消"); }
+            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) { _logger.LogDebug(ex, "目录选择取消"); }
             catch (Exception ex)
             {
-                await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed , ex.Message);
+                await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed, ex.Message);
             }
         }
-        finally { await Task.Delay(150 , CancellationToken.None); Interlocked.Exchange(ref _dialogLock , 0); }
+        finally { await Task.Delay(150, CancellationToken.None); Interlocked.Exchange(ref _dialogLock, 0); }
     }
 
     [RelayCommand]
-    private async Task RestartGuideAsync ()
+    private async Task RestartGuideAsync()
     {
         try
         {
@@ -430,7 +437,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     }
 
     [RelayCommand]
-    private async Task ExportSeatSetsAsync (CancellationToken ct)
+    private async Task ExportSeatSetsAsync(CancellationToken ct)
     {
         string? exportPath = null;
         try
@@ -495,7 +502,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         }
     }
     [RelayCommand]
-    private async Task ImportSeatSetsAsync (CancellationToken ct)
+    private async Task ImportSeatSetsAsync(CancellationToken ct)
     {
         var seatSetsFilter = new FilePickerFileType("SeatFlow Data Package")
         {
@@ -521,7 +528,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     IReadOnlyList<string> IFileDropHandler.AcceptedFileExtensions { get; } =
         [".seatsets"];
 
-    async Task<bool> IFileDropHandler.HandleFileDropAsync (IReadOnlyList<string> filePaths , CancellationToken ct)
+    async Task<bool> IFileDropHandler.HandleFileDropAsync(IReadOnlyList<string> filePaths, CancellationToken ct)
     {
         StatusMessage = Resources.SeatSets_Processing;
         var result = await SeatSetsImportHelper.ImportAsync(
@@ -531,7 +538,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     }
 
     [RelayCommand]
-    private void OpenDataDirectory ()
+    private void OpenDataDirectory()
     {
         var path = string.IsNullOrWhiteSpace(DataDirectory)
             ? AppEnvironment.DefaultDataDirectory
@@ -539,22 +546,24 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
 
         try
         {
+#if !BROWSER
             if (Directory.Exists(path))
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             else
-                _ = _dialog.ShowWarningAsync(Resources.Settings_DirNotFound ,
-                    string.Format(Resources.Settings_DirNotFoundFormat , path));
+#endif
+                _ = _dialog.ShowWarningAsync(Resources.Settings_DirNotFound,
+                    string.Format(Resources.Settings_DirNotFoundFormat, path));
         }
         catch (Exception ex)
         {
-            _ = _dialog.ShowErrorAsync(Resources.Settings_OpenDirFailed , ex.Message);
+            _ = _dialog.ShowErrorAsync(Resources.Settings_OpenDirFailed, ex.Message);
         }
     }
 
     // ---- 更新命令 ----
 
     [RelayCommand]
-    private async Task CheckForUpdateAsync ()
+    private async Task CheckForUpdateAsync()
     {
         if (IsCheckingUpdate)
             return;
@@ -608,7 +617,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     /// <summary>
     /// 弹出发布说明对话框，让用户决定是否下载/安装更新。
     /// </summary>
-    private async Task ShowUpdateDialogAsync (string newVersion)
+    private async Task ShowUpdateDialogAsync(string newVersion)
     {
         try
         {
@@ -651,7 +660,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
             if (!goToGitHub) return;
 
             var url = _updateService.GetGitHubReleasesUrl(VersionInfo.Version);
-            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            _urlOpener.OpenUrl(url);
         }
         catch (Exception ex)
         {
@@ -663,7 +672,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     /// 检查是否有已下载但尚未应用的更新。
     /// 在页面加载时调用，避免用户下载后关闭应用再打开时丢失待应用状态。
     /// </summary>
-    private void RefreshPendingUpdateState ()
+    private void RefreshPendingUpdateState()
     {
         HasPendingUpdate = _updateService.UpdatePendingRestart;
         if (HasPendingUpdate)
@@ -674,7 +683,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     }
 
     [RelayCommand]
-    private async Task DownloadAndApplyUpdateAsync ()
+    private async Task DownloadAndApplyUpdateAsync()
     {
         if (IsDownloading)
             return;
@@ -719,7 +728,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     /// 应用已下载的更新并重启（无需重新下载）。
     /// </summary>
     [RelayCommand]
-    private async Task ApplyPendingUpdateAndRestartAsync ()
+    private async Task ApplyPendingUpdateAndRestartAsync()
     {
         if (!_updateService.UpdatePendingRestart)
             return;
@@ -740,14 +749,14 @@ public sealed record LanguageOption
     public string Code { get; }
     public string DisplayName => _displayNameProvider();
 
-    public LanguageOption (string code , Func<string> displayNameProvider)
+    public LanguageOption(string code, Func<string> displayNameProvider)
     {
         Code = code;
         _displayNameProvider = displayNameProvider;
     }
 
-    public override string ToString () => DisplayName;
+    public override string ToString() => DisplayName;
 
-    public bool Equals (LanguageOption? other) => other is not null && Code == other.Code;
-    public override int GetHashCode () => Code.GetHashCode();
+    public bool Equals(LanguageOption? other) => other is not null && Code == other.Code;
+    public override int GetHashCode() => Code.GetHashCode();
 }

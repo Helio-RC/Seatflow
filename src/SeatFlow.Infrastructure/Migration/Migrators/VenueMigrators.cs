@@ -12,7 +12,7 @@ public static class VenueMigrators
     /// <summary>
     /// 1.0 → 1.1：将 Grid 布局座位的 JSON 数组从列主序重排为行主序（按 Row → Column 排序）。
     /// </summary>
-    public sealed class Step_1_0_to_1_1 (ILogger<VenueMigrators.Step_1_0_to_1_1>? logger = null) : IFileMigrator
+    public sealed class Step_1_0_to_1_1(ILogger<VenueMigrators.Step_1_0_to_1_1>? logger = null) : IFileMigrator
     {
         private readonly ILogger<Step_1_0_to_1_1> _logger = logger ?? NullLogger<Step_1_0_to_1_1>.Instance;
 
@@ -20,7 +20,7 @@ public static class VenueMigrators
         public string FromVersion => "1.0";
         public string ToVersion => "1.1";
 
-        public JsonNode Migrate (JsonNode root)
+        public JsonNode Migrate(JsonNode root)
         {
             var layoutStr = root["layout"]?["layoutTypeString"]?.ToString();
             if (layoutStr != "Grid")
@@ -36,16 +36,16 @@ public static class VenueMigrators
                 return root;
             }
 
-            static int SafeInt (JsonNode? node , int fallback)
+            static int SafeInt(JsonNode? node, int fallback)
                 => node is JsonValue v && v.TryGetValue<int>(out var n) ? n : fallback;
 
             var sorted = seats
                 .OfType<JsonObject>()
                 .Select(s => new
                 {
-                    Node = s ,
-                    Row = SafeInt(s["row"] , int.MaxValue) ,
-                    Column = SafeInt(s["column"] , int.MaxValue)
+                    Node = s,
+                    Row = SafeInt(s["row"], int.MaxValue),
+                    Column = SafeInt(s["column"], int.MaxValue)
                 })
                 .OrderBy(s => s.Row)
                 .ThenBy(s => s.Column)

@@ -15,7 +15,7 @@ namespace SeatFlow.Core.Models
         public bool IncludeMetadata { get; set; }
 
         /// <summary>附加设置字典，供导出器扩展使用。</summary>
-        public Dictionary<string , object> AdditionalSettings { get; set; } = [];
+        public Dictionary<string, object> AdditionalSettings { get; set; } = [];
 
         /// <summary>导出视角（学生视角/教师视角）。默认学生视角。</summary>
         public LayoutPerspective Perspective { get; set; } = LayoutPerspective.StudentView;

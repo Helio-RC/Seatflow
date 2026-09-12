@@ -1,554 +1,1075 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-             xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
-             xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
-             xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.VenueConfigurationView"
-             x:DataType="vm:VenueConfigurationViewModel">
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.VenueConfigurationView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
+  xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:VenueConfigurationViewModel">
 
   <DockPanel Classes="pageMargin">
-    <!-- 顶部工具栏 -->
-    <Border DockPanel.Dock="Top" Classes="toolbarTop">
+    <!--  顶部工具栏  -->
+    <Border Classes="toolbarTop" DockPanel.Dock="Top">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Venue_Title}" Classes="pageTitle" 
-                   VerticalAlignment="Center" />
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
-          <Button Command="{Binding DeleteVenueCommand}"
-                  IsEnabled="{Binding HasSelectedVenue}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Venue_DeleteVenue}"
-                  HorizontalContentAlignment="Center">
+        <TextBlock
+          VerticalAlignment="Center"
+          Classes="pageTitle"
+          DockPanel.Dock="Left"
+          Text="{x:Static lang:Resources.Venue_Title}" />
+        <StackPanel
+          DockPanel.Dock="Right"
+          Orientation="Horizontal"
+          Spacing="8">
+          <Button
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Venue_DeleteVenue}"
+            Command="{Binding DeleteVenueCommand}"
+            IsEnabled="{Binding HasSelectedVenue}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Delete}" Classes="body" />
+              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Delete}" />
+              <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Delete}" />
             </StackPanel>
           </Button>
-          <Button x:Name="SaveVenueButton" Command="{Binding SaveVenueCommand}"
-                  IsEnabled="{Binding HasSelectedVenue}"
-                  AutomationProperties.Name="{x:Static lang:Resources.Venue_SaveVenue}"
-                  HorizontalContentAlignment="Center" Classes="accent">
+          <Button
+            x:Name="SaveVenueButton"
+            HorizontalContentAlignment="Center"
+            AutomationProperties.Name="{x:Static lang:Resources.Venue_SaveVenue}"
+            Classes="accent"
+            Command="{Binding SaveVenueCommand}"
+            IsEnabled="{Binding HasSelectedVenue}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-              <TextBlock Text="{x:Static lang:Resources.Common_Save}" Classes="body" />
+              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
+              <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Save}" />
             </StackPanel>
           </Button>
         </StackPanel>
       </DockPanel>
     </Border>
 
-    <!-- 底部状态栏 -->
-    <Border DockPanel.Dock="Bottom" Classes="statusBarBottom">
-      <TextBlock Text="{Binding StatusMessage}" Classes="caption"
-                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+    <!--  底部状态栏  -->
+    <Border Classes="statusBarBottom" DockPanel.Dock="Bottom">
+      <TextBlock
+        Classes="caption"
+        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+        Text="{Binding StatusMessage}" />
     </Border>
 
-    <!-- 中间内容区 -->
+    <!--  中间内容区  -->
     <Grid x:Name="SidebarGrid">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="240"/>
-        <ColumnDefinition Width="4"/>
-        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="240" />
+        <ColumnDefinition Width="4" />
+        <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
-      <!-- 左侧：会场列表 -->
-      <Border Grid.Column="0" Width="{Binding SidebarListWidth}" Margin="0,0,8,0" CornerRadius="6"
-              ClipToBounds="True" HorizontalAlignment="Left"
-              Background="{DynamicResource SidebarBackgroundBrush}">
+      <!--  左侧：会场列表  -->
+      <Border
+        Grid.Column="0"
+        Width="{Binding SidebarListWidth}"
+        Margin="0,0,8,0"
+        HorizontalAlignment="Left"
+        Background="{DynamicResource SidebarBackgroundBrush}"
+        ClipToBounds="True"
+        CornerRadius="6">
         <Border.Transitions>
           <Transitions>
-            <DoubleTransition Property="Width" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+            <DoubleTransition
+              Easing="CubicEaseInOut"
+              Property="Width"
+              Duration="0:0:0.25" />
           </Transitions>
         </Border.Transitions>
         <DockPanel Margin="8">
-          <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Venue_List}"
-                     Classes="bodyStrong" Margin="3,0,0,8" />
+          <TextBlock
+            Margin="3,0,0,8"
+            Classes="bodyStrong"
+            DockPanel.Dock="Top"
+            Text="{x:Static lang:Resources.Venue_List}" />
           <Border DockPanel.Dock="Bottom">
             <Panel>
-              <!-- 展开状态 -->
+              <!--  展开状态  -->
               <Border>
                 <Border.Transitions>
                   <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseInOut" />
+                    <DoubleTransition
+                      Easing="CubicEaseInOut"
+                      Property="Opacity"
+                      Duration="0:0:0.18" />
                   </Transitions>
                 </Border.Transitions>
-                <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                            IsHitTestVisible="{Binding IsSidebarExpanded}" HorizontalAlignment="Left">
-                  <Button Command="{Binding LoadVenueListCommand}" CommandParameter="MemberManagement"
-                          HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+                <StackPanel
+                  Margin="10,0,10,4"
+                  HorizontalAlignment="Left"
+                  IsHitTestVisible="{Binding IsSidebarExpanded}"
+                  Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
+                  Spacing="8">
+                  <Button
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding LoadVenueListCommand}"
+                    CommandParameter="MemberManagement">
                     <StackPanel Orientation="Horizontal">
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
-                      <TextBlock Text="{x:Static lang:Resources.Venue_Refresh}" Classes="bodySmall" VerticalAlignment="Center"/>
+                      <fic:FluentIcon
+                        Height="20"
+                        FontSize="20"
+                        Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+                      <TextBlock
+                        VerticalAlignment="Center"
+                        Classes="bodySmall"
+                        Text="{x:Static lang:Resources.Venue_Refresh}" />
                     </StackPanel>
                   </Button>
-                  <Button x:Name="NewVenueButton" Command="{Binding NewVenueCommand}" CommandParameter="VenueConfiguration"
-                          AutomationProperties.Name="{x:Static lang:Resources.Venue_New}"
-                          HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+                  <Button
+                    x:Name="NewVenueButton"
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Left"
+                    AutomationProperties.Name="{x:Static lang:Resources.Venue_New}"
+                    Command="{Binding NewVenueCommand}"
+                    CommandParameter="VenueConfiguration">
                     <StackPanel Orientation="Horizontal">
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
-                      <TextBlock Text="{x:Static lang:Resources.Venue_New}" Classes="bodySmall" VerticalAlignment="Center"/>
+                      <fic:FluentIcon
+                        Height="20"
+                        FontSize="20"
+                        Icon="{x:Static ficEnum:Icon.Add}" />
+                      <TextBlock
+                        VerticalAlignment="Center"
+                        Classes="bodySmall"
+                        Text="{x:Static lang:Resources.Venue_New}" />
                     </StackPanel>
                   </Button>
-                  <Button Command="{Binding ToggleSidebarCommand}"
-                          HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+                  <Button
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding ToggleSidebarCommand}">
                     <StackPanel Orientation="Horizontal">
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftContract}" FontSize="20" Height="20"/>
-                      <TextBlock Text="{x:Static lang:Resources.Nav_CollapseSidebar}" Classes="bodySmall" VerticalAlignment="Center"/>
+                      <fic:FluentIcon
+                        Height="20"
+                        FontSize="20"
+                        Icon="{x:Static ficEnum:Icon.PanelLeftContract}" />
+                      <TextBlock
+                        VerticalAlignment="Center"
+                        Classes="bodySmall"
+                        Text="{x:Static lang:Resources.Nav_CollapseSidebar}" />
                     </StackPanel>
                   </Button>
                 </StackPanel>
               </Border>
 
-              <!-- 折叠状态 -->
+              <!--  折叠状态  -->
               <Border>
                 <Border.Transitions>
                   <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="CubicEaseInOut" />
+                    <DoubleTransition
+                      Easing="CubicEaseInOut"
+                      Property="Opacity"
+                      Duration="0:0:0.25" />
                   </Transitions>
                 </Border.Transitions>
-                <StackPanel Margin="10,0,10,4" Spacing="8" Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                            IsHitTestVisible="{Binding IsSidebarCollapsed}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                <StackPanel
+                  Margin="10,0,10,4"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Bottom"
+                  IsHitTestVisible="{Binding IsSidebarCollapsed}"
+                  Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
+                  Spacing="8">
                   <StackPanel.Transitions>
                     <Transitions>
-                      <DoubleTransition Property="Opacity" Duration="0:0:0.25" Easing="SineEaseInOut" />
+                      <DoubleTransition
+                        Easing="SineEaseInOut"
+                        Property="Opacity"
+                        Duration="0:0:0.25" />
                     </Transitions>
                   </StackPanel.Transitions>
-                  <Button HorizontalContentAlignment="Left"
-                          Command="{Binding LoadVenueListCommand}"
-                          ToolTip.Tip="{x:Static lang:Resources.Venue_Refresh}">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="20" Height="20"/>
+                  <Button
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding LoadVenueListCommand}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_Refresh}">
+                    <fic:FluentIcon
+                      Height="20"
+                      FontSize="20"
+                      Icon="{x:Static ficEnum:Icon.ArrowSync}" />
                   </Button>
-                  <Button HorizontalContentAlignment="Left"
-                          Command="{Binding NewVenueCommand}"
-                          ToolTip.Tip="{x:Static lang:Resources.Venue_New}">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="20" Height="20"/>
+                  <Button
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding NewVenueCommand}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_New}">
+                    <fic:FluentIcon
+                      Height="20"
+                      FontSize="20"
+                      Icon="{x:Static ficEnum:Icon.Add}" />
                   </Button>
-                  <Button HorizontalContentAlignment="Left"
-                          Command="{Binding ToggleSidebarCommand}"
-                          ToolTip.Tip="{x:Static lang:Resources.Venue_ExpandList}">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" FontSize="20" Height="20"/>
+                  <Button
+                    HorizontalContentAlignment="Left"
+                    Command="{Binding ToggleSidebarCommand}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_ExpandList}">
+                    <fic:FluentIcon
+                      Height="20"
+                      FontSize="20"
+                      Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" />
                   </Button>
                 </StackPanel>
               </Border>
             </Panel>
           </Border>
-          <ListBox DockPanel.Dock="Bottom" ItemsSource="{Binding VenueItems}"
-                   SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}"
-                   BorderThickness="0" Background="{DynamicResource SidebarBackgroundBrush}">
+          <ListBox
+            Background="{DynamicResource SidebarBackgroundBrush}"
+            BorderThickness="0"
+            DockPanel.Dock="Bottom"
+            ItemsSource="{Binding VenueItems}"
+            SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
-                <TextBlock Text="{Binding Name}" Classes="bodySmall" Margin="4,6"/>
+                <TextBlock
+                  Margin="4,6"
+                  Classes="bodySmall"
+                  Text="{Binding Name}" />
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
         </DockPanel>
       </Border>
 
-      <!-- 分隔条 -->
-      <GridSplitter Grid.Column="1" Width="4" Background="Transparent" IsEnabled="False" IsVisible="False"
-                    HorizontalAlignment="Stretch" />
+      <!--  分隔条  -->
+      <GridSplitter
+        Grid.Column="1"
+        Width="4"
+        HorizontalAlignment="Stretch"
+        Background="Transparent"
+        IsEnabled="False"
+        IsVisible="False" />
 
-      <!-- 右侧 -->
+      <!--  右侧  -->
       <Grid Grid.Column="2">
-        <!-- 空状态提示 -->
-        <Border IsVisible="{Binding HasSelectedVenue, Converter={x:Static conv:BoolConverters.Negate}}"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                Padding="40" CornerRadius="8">
-          <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Building}" FontSize="48"
-                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                            HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Static lang:Resources.Venue_NoSelection}" Classes="sectionTitle"
-                       HorizontalAlignment="Center"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-            <TextBlock Text="{x:Static lang:Resources.Venue_SelectHint}"
-                       Classes="caption" HorizontalAlignment="Center"
-                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+        <!--  空状态提示  -->
+        <Border
+          Padding="40"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          CornerRadius="8"
+          IsVisible="{Binding HasSelectedVenue, Converter={x:Static conv:BoolConverters.Negate}}">
+          <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="8">
+            <fic:FluentIcon
+              HorizontalAlignment="Center"
+              FontSize="48"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Icon="{x:Static ficEnum:Icon.Building}" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="sectionTitle"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Text="{x:Static lang:Resources.Venue_NoSelection}" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="caption"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Text="{x:Static lang:Resources.Venue_SelectHint}" />
           </StackPanel>
         </Border>
 
-        <!-- 布局编辑器 -->
+        <!--  布局编辑器  -->
         <ScrollViewer IsVisible="{Binding HasSelectedVenue}">
           <DockPanel Margin="16,0">
-            <!-- 名称和类型区 -->
-            <StackPanel DockPanel.Dock="Top" Spacing="12" Classes="toolbarTop">
+            <!--  名称和类型区  -->
+            <StackPanel
+              Classes="toolbarTop"
+              DockPanel.Dock="Top"
+              Spacing="12">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_Name}" Classes="bodySmall" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding LayoutName, Mode=TwoWay}" Width="200" FontSize="14"/>
+                <TextBlock
+                  VerticalAlignment="Center"
+                  Classes="bodySmall"
+                  Text="{x:Static lang:Resources.Venue_Name}" />
+                <TextBox
+                  Width="200"
+                  FontSize="14"
+                  Text="{Binding LayoutName, Mode=TwoWay}" />
               </StackPanel>
               <StackPanel x:Name="LayoutTypePanel" Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_LayoutType}" Classes="bodyStrong"/>
+                <TextBlock Classes="bodyStrong" Text="{x:Static lang:Resources.Venue_LayoutType}" />
                 <StackPanel Orientation="Horizontal" Spacing="16">
-                  <RadioButton GroupName="LayoutType" IsChecked="{Binding IsGridSelected, Mode=OneWay}"
-                               IsEnabled="{Binding CanChangeLayoutType}"
-                               Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Grid"
-                               Content="{x:Static lang:Resources.Venue_GridType}"/>
-                  <RadioButton GroupName="LayoutType" IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
-                               IsEnabled="{Binding CanChangeLayoutType}"
-                               Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Polar"
-                               Content="{x:Static lang:Resources.Venue_PolarType}"/>
-                  <RadioButton GroupName="LayoutType" IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
-                               IsEnabled="{Binding CanChangeLayoutType}"
-                               Command="{Binding SelectLayoutTypeCommand}" CommandParameter="Freeform"
-                               Content="{x:Static lang:Resources.Venue_FreeformType}"/>
+                  <RadioButton
+                    Command="{Binding SelectLayoutTypeCommand}"
+                    CommandParameter="Grid"
+                    Content="{x:Static lang:Resources.Venue_GridType}"
+                    GroupName="LayoutType"
+                    IsChecked="{Binding IsGridSelected, Mode=OneWay}"
+                    IsEnabled="{Binding CanChangeLayoutType}" />
+                  <RadioButton
+                    Command="{Binding SelectLayoutTypeCommand}"
+                    CommandParameter="Polar"
+                    Content="{x:Static lang:Resources.Venue_PolarType}"
+                    GroupName="LayoutType"
+                    IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
+                    IsEnabled="{Binding CanChangeLayoutType}" />
+                  <RadioButton
+                    Command="{Binding SelectLayoutTypeCommand}"
+                    CommandParameter="Freeform"
+                    Content="{x:Static lang:Resources.Venue_FreeformType}"
+                    GroupName="LayoutType"
+                    IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
+                    IsEnabled="{Binding CanChangeLayoutType}" />
                 </StackPanel>
               </StackPanel>
             </StackPanel>
 
-            <!-- Grid 基础参数面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Grid 基础参数面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsGridSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_BasicParams}" Classes="bodySmallStrong"/>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Rows}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridRows, Mode=TwoWay}"
-                                 Minimum="1" Maximum="100"
-                                 PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Cols}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridColumns, Mode=TwoWay}"
-                                 Minimum="1" Maximum="100"
-                                 PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_BasicParams}" />
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto,Auto,Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_Rows}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="100"
+                    Minimum="1"
+                    PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"
+                    Value="{Binding GridRows, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_Cols}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Maximum="100"
+                    Minimum="1"
+                    PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"
+                    Value="{Binding GridColumns, Mode=TwoWay}" />
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_HSpacing}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding GridHorizontalSpacing, Mode=TwoWay}"
-                                 Minimum="4" Maximum="600"
-                                 PlaceholderText="{x:Static lang:Resources.Venue_HSpacingPH}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_HSpacingTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_VSpacing}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="3" Grid.Row="1" Value="{Binding GridVerticalSpacing, Mode=TwoWay}"
-                                 Minimum="4" Maximum="600"
-                                 PlaceholderText="{x:Static lang:Resources.Venue_VSpacingPH}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"/>
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_HSpacing}" />
+                  <NumericUpDown
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Maximum="600"
+                    Minimum="4"
+                    PlaceholderText="{x:Static lang:Resources.Venue_HSpacingPH}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_HSpacingTooltip}"
+                    Value="{Binding GridHorizontalSpacing, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_VSpacing}" />
+                  <NumericUpDown
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    Maximum="600"
+                    Minimum="4"
+                    PlaceholderText="{x:Static lang:Resources.Venue_VSpacingPH}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"
+                    Value="{Binding GridVerticalSpacing, Mode=TwoWay}" />
 
-                  <TextBlock Grid.Column="0" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginX}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding GridOriginX, Mode=TwoWay}"
-                                 Minimum="0" Maximum="2000"
-                                 PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginY}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="3" Grid.Row="2" Value="{Binding GridOriginY, Mode=TwoWay}"
-                                 Minimum="0" Maximum="2000"
-                                 PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"/>
+                  <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_OriginX}" />
+                  <NumericUpDown
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Maximum="2000"
+                    Minimum="0"
+                    PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"
+                    Value="{Binding GridOriginX, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_OriginY}" />
+                  <NumericUpDown
+                    Grid.Row="2"
+                    Grid.Column="3"
+                    Maximum="2000"
+                    Minimum="0"
+                    PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"
+                    Value="{Binding GridOriginY, Mode=TwoWay}" />
                 </Grid>
 
-                <!-- 可选配置分隔条 -->
-                <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-                  <TextBlock Text="{x:Static lang:Resources.Venue_Optional}" Classes="small" Opacity="0.5"/>
+                <!--  可选配置分隔条  -->
+                <Border
+                  Padding="0,4,0,0"
+                  BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                  BorderThickness="0,1,0,0">
+                  <TextBlock
+                    Classes="small"
+                    Opacity="0.5"
+                    Text="{x:Static lang:Resources.Venue_Optional}" />
                 </Border>
 
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
-                           ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DisabledSeats}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <TextBox Grid.Column="3" Grid.Row="0" Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
-                           ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}"/>
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" />
+                  <TextBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    FontSize="13"
+                    PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
+                    Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
+                  <TextBox
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    FontSize="13"
+                    PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
+                    Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}" />
                 </Grid>
               </StackPanel>
             </Border>
 
-            <!-- Grid 桌面配置面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Grid 桌面配置面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsGridSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_DeskConfig}" Classes="bodySmallStrong"/>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DeskSize}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridSeatsPerDesk, Mode=TwoWay}"
-                                 Minimum="1" Maximum="6"
-                                 PlaceholderText="2"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSizeTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DeskInnerSpacing}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="3" Grid.Row="0" Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}"
-                                 Minimum="4" Maximum="200"
-                                 PlaceholderText="12 px"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_DeskInnerSpacingTooltip}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_DeskConfig}" />
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_DeskSize}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="6"
+                    Minimum="1"
+                    PlaceholderText="2"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSizeTooltip}"
+                    Value="{Binding GridSeatsPerDesk, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_DeskInnerSpacing}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Maximum="200"
+                    Minimum="4"
+                    PlaceholderText="12 px"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DeskInnerSpacingTooltip}"
+                    Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}" />
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DeskSpacing}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridInterDeskSpacing, Mode=TwoWay}"
-                                 Minimum="4" Maximum="400"
-                                 PlaceholderText="40 px"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSpacingTooltip}"/>
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_DeskSpacing}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="400"
+                    Minimum="4"
+                    PlaceholderText="40 px"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSpacingTooltip}"
+                    Value="{Binding GridInterDeskSpacing, Mode=TwoWay}" />
                 </Grid>
               </StackPanel>
             </Border>
 
-            <!-- Grid 过道配置面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Grid 过道配置面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsGridSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_AisleConfig}" Classes="bodySmallStrong"/>
-                <TextBlock Text="{x:Static lang:Resources.Venue_ColumnAisles}" Classes="caption"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_AisleConfig}" />
+                <TextBlock
+                  Classes="caption"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="{x:Static lang:Resources.Venue_ColumnAisles}" />
                 <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <WrapPanel/>
+                      <WrapPanel />
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:AisleOption">
-                      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                Content="{Binding Label}"
-                                FontSize="12" Margin="0,0,12,4"
-                                ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}"/>
+                      <CheckBox
+                        Margin="0,0,12,4"
+                        Content="{Binding Label}"
+                        FontSize="12"
+                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                        ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Text="{x:Static lang:Resources.Venue_RowAisles}" Classes="caption" Margin="0,8,0,0"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                <TextBlock
+                  Margin="0,8,0,0"
+                  Classes="caption"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="{x:Static lang:Resources.Venue_RowAisles}" />
                 <ItemsControl ItemsSource="{Binding AisleRowOptions}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <WrapPanel/>
+                      <WrapPanel />
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:AisleOption">
-                      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                Content="{Binding Label}"
-                                FontSize="12" Margin="0,0,12,4"
-                                ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}"/>
+                      <CheckBox
+                        Margin="0,0,12,4"
+                        Content="{Binding Label}"
+                        FontSize="12"
+                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                        ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                  <TextBlock Text="{x:Static lang:Resources.Venue_AisleWidth}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Value="{Binding GridAisleWidth, Mode=TwoWay}"
-                                 Minimum="12" Maximum="300"
-                                 PlaceholderText="60 px"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_AisleWidthTooltip}"/>
+                <StackPanel
+                  Margin="0,8,0,0"
+                  Orientation="Horizontal"
+                  Spacing="8">
+                  <TextBlock
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_AisleWidth}" />
+                  <NumericUpDown
+                    Maximum="300"
+                    Minimum="12"
+                    PlaceholderText="60 px"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_AisleWidthTooltip}"
+                    Value="{Binding GridAisleWidth, Mode=TwoWay}" />
                 </StackPanel>
               </StackPanel>
             </Border>
 
-            <!-- Grid 教室特征面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsGridSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Grid 教室特征面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsGridSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" Classes="bodySmallStrong"/>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_FrontRows}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridFrontRowCount, Mode=TwoWay}"
-                                 Minimum="1" Maximum="10"
-                                 PlaceholderText="1"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_FrontRowsTooltip}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" />
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto,Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_FrontRows}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="10"
+                    Minimum="1"
+                    PlaceholderText="1"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_FrontRowsTooltip}"
+                    Value="{Binding GridFrontRowCount, Mode=TwoWay}" />
 
-                  <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
-                            IsChecked="{Binding GridHasPodium, Mode=TwoWay}"
-                            Content="{x:Static lang:Resources.Venue_HasPodium}" FontSize="13"
-                            ToolTip.Tip="{x:Static lang:Resources.Venue_HasPodiumTooltip}"/>
+                  <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Grid.ColumnSpan="2"
+                    Content="{x:Static lang:Resources.Venue_HasPodium}"
+                    FontSize="13"
+                    IsChecked="{Binding GridHasPodium, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_HasPodiumTooltip}" />
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left"
-                      IsVisible="{Binding GridHasPodium}">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_PodiumWidth}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding GridPodiumWidth, Mode=TwoWay}"
-                                 Minimum="20" Maximum="400"
-                                 PlaceholderText="60 px"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumWidthTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_PodiumHeight}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding GridPodiumHeight, Mode=TwoWay}"
-                                 Minimum="20" Maximum="200"
-                                 PlaceholderText="40 px"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumHeightTooltip}"/>
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  IsVisible="{Binding GridHasPodium}"
+                  RowDefinitions="Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_PodiumWidth}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="400"
+                    Minimum="20"
+                    PlaceholderText="60 px"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumWidthTooltip}"
+                    Value="{Binding GridPodiumWidth, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_PodiumHeight}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Maximum="200"
+                    Minimum="20"
+                    PlaceholderText="40 px"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumHeightTooltip}"
+                    Value="{Binding GridPodiumHeight, Mode=TwoWay}" />
                 </Grid>
               </StackPanel>
             </Border>
 
-            <!-- Polar 基础参数面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsPolarSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Polar 基础参数面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsPolarSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_BasicParams}" Classes="bodySmallStrong"/>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_Rings}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarRings, Mode=TwoWay}"
-                                 Minimum="1" Maximum="20"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RingsTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_SeatsPerRing}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarSeatsPerRing, Mode=TwoWay}"
-                                 Minimum="2" Maximum="120"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_SeatsPerRingTooltip}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_BasicParams}" />
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto,Auto,Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_Rings}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="20"
+                    Minimum="1"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingsTooltip}"
+                    Value="{Binding PolarRings, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_SeatsPerRing}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Maximum="120"
+                    Minimum="2"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_SeatsPerRingTooltip}"
+                    Value="{Binding PolarSeatsPerRing, Mode=TwoWay}" />
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RadiusStep}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarRadiusStep, Mode=TwoWay}"
-                                 Minimum="8" Maximum="400"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RadiusStepTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_StartAngle}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarStartAngle, Mode=TwoWay}"
-                                 Minimum="0" Maximum="360"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_StartAngleTooltip}"/>
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_RadiusStep}" />
+                  <NumericUpDown
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Maximum="400"
+                    Minimum="8"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RadiusStepTooltip}"
+                    Value="{Binding PolarRadiusStep, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_StartAngle}" />
+                  <NumericUpDown
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    Maximum="360"
+                    Minimum="0"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_StartAngleTooltip}"
+                    Value="{Binding PolarStartAngle, Mode=TwoWay}" />
 
-                  <TextBlock Grid.Column="0" Grid.Row="2" Text="{x:Static lang:Resources.Venue_EndAngle}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="2" Value="{Binding PolarEndAngle, Mode=TwoWay}"
-                                 Minimum="10" Maximum="360"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_EndAngleTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="2" Text="{x:Static lang:Resources.Venue_OriginX}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding PolarOriginX, Mode=TwoWay}"
-                                 Minimum="0" Maximum="2000"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginXTooltip}"/>
+                  <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_EndAngle}" />
+                  <NumericUpDown
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Maximum="360"
+                    Minimum="10"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_EndAngleTooltip}"
+                    Value="{Binding PolarEndAngle, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_OriginX}" />
+                  <NumericUpDown
+                    Grid.Row="2"
+                    Grid.Column="3"
+                    Maximum="2000"
+                    Minimum="0"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginXTooltip}"
+                    Value="{Binding PolarOriginX, Mode=TwoWay}" />
                 </Grid>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_OriginY}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarOriginY, Mode=TwoWay}"
-                                 Minimum="0" Maximum="2000"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginYTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RingSeats}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RingSeatsPH}"
-                           ToolTip.Tip="{x:Static lang:Resources.Venue_RingSeatsTooltip}"/>
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_OriginY}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="2000"
+                    Minimum="0"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginYTooltip}"
+                    Value="{Binding PolarOriginY, Mode=TwoWay}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_RingSeats}" />
+                  <TextBox
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    FontSize="13"
+                    PlaceholderText="{x:Static lang:Resources.Venue_RingSeatsPH}"
+                    Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingSeatsTooltip}" />
                 </Grid>
 
-                <!-- 可选配置分隔条 -->
-                <Border BorderThickness="0,1,0,0" Padding="0,4,0,0"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-                  <TextBlock Text="{x:Static lang:Resources.Venue_Optional}" Classes="small" Opacity="0.5"/>
+                <!--  可选配置分隔条  -->
+                <Border
+                  Padding="0,4,0,0"
+                  BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                  BorderThickness="0,1,0,0">
+                  <TextBlock
+                    Classes="small"
+                    Opacity="0.5"
+                    Text="{x:Static lang:Resources.Venue_Optional}" />
                 </Border>
 
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_DisabledSeats}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_PolarDisabledPH}"
-                           ToolTip.Tip="{x:Static lang:Resources.Venue_PolarDisabledTooltip}"/>
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
+                  <TextBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    FontSize="13"
+                    PlaceholderText="{x:Static lang:Resources.Venue_PolarDisabledPH}"
+                    Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarDisabledTooltip}" />
                 </Grid>
               </StackPanel>
             </Border>
 
-            <!-- Polar 教室特征面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsPolarSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Polar 教室特征面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsPolarSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" Classes="bodySmallStrong"/>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_FrontRows}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="0" Value="{Binding PolarFrontRowCount, Mode=TwoWay}"
-                                 Minimum="1" Maximum="10"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PolarFrontRowsTooltip}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" />
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto,Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_FrontRows}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Maximum="10"
+                    Minimum="1"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarFrontRowsTooltip}"
+                    Value="{Binding PolarFrontRowCount, Mode=TwoWay}" />
 
-                  <CheckBox Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2"
-                            IsChecked="{Binding PolarHasPodium, Mode=TwoWay}"
-                            Content="{x:Static lang:Resources.Venue_HasPodium}" FontSize="13"/>
+                  <CheckBox
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    Grid.ColumnSpan="2"
+                    Content="{x:Static lang:Resources.Venue_HasPodium}"
+                    FontSize="13"
+                    IsChecked="{Binding PolarHasPodium, Mode=TwoWay}" />
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_PodiumRadius}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Column="1" Grid.Row="1" Value="{Binding PolarPodiumRadius, Mode=TwoWay}"
-                                 Minimum="10" Maximum="200" IsEnabled="{Binding PolarHasPodium}"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumRadiusTooltip}"/>
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_PodiumRadius}" />
+                  <NumericUpDown
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    IsEnabled="{Binding PolarHasPodium}"
+                    Maximum="200"
+                    Minimum="10"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumRadiusTooltip}"
+                    Value="{Binding PolarPodiumRadius, Mode=TwoWay}" />
                 </Grid>
               </StackPanel>
             </Border>
 
-            <!-- Polar 通道配置面板 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsPolarSelected}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  Polar 通道配置面板  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsPolarSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_ChannelConfig}" Classes="bodySmallStrong"/>
-                <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto,Auto"
-                      RowSpacing="6" ColumnSpacing="12"
-                      HorizontalAlignment="Left">
-                  <TextBlock Grid.Column="0" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RadialAisleAngles}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RadialAislePH}"
-                           ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleAnglesTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="0" Text="{x:Static lang:Resources.Venue_RadialAisleWidth}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}"
-                                 Minimum="1" Maximum="30"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleWidthTooltip}"/>
+                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_ChannelConfig}" />
+                <Grid
+                  HorizontalAlignment="Left"
+                  ColumnDefinitions="Auto,*,Auto,*"
+                  ColumnSpacing="12"
+                  RowDefinitions="Auto,Auto"
+                  RowSpacing="6">
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_RadialAisleAngles}" />
+                  <TextBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    FontSize="13"
+                    PlaceholderText="{x:Static lang:Resources.Venue_RadialAislePH}"
+                    Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleAnglesTooltip}" />
+                  <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_RadialAisleWidth}" />
+                  <NumericUpDown
+                    Grid.Row="0"
+                    Grid.Column="3"
+                    Maximum="30"
+                    Minimum="1"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleWidthTooltip}"
+                    Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}" />
 
-                  <TextBlock Grid.Column="0" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RingAislePositions}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
-                           FontSize="13" PlaceholderText="{x:Static lang:Resources.Venue_RingAislePH}"
-                           ToolTip.Tip="{x:Static lang:Resources.Venue_RingAislePositionsTooltip}"/>
-                  <TextBlock Grid.Column="2" Grid.Row="1" Text="{x:Static lang:Resources.Venue_RingAisleWidth}" VerticalAlignment="Center" Classes="bodySmall"/>
-                  <NumericUpDown Grid.Row="1" Grid.Column="3" Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}"
-                                 Minimum="4" Maximum="200"
-                                 ToolTip.Tip="{x:Static lang:Resources.Venue_RingAisleWidthTooltip}"/>
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_RingAislePositions}" />
+                  <TextBox
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    FontSize="13"
+                    PlaceholderText="{x:Static lang:Resources.Venue_RingAislePH}"
+                    Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingAislePositionsTooltip}" />
+                  <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Classes="bodySmall"
+                    Text="{x:Static lang:Resources.Venue_RingAisleWidth}" />
+                  <NumericUpDown
+                    Grid.Row="1"
+                    Grid.Column="3"
+                    Maximum="200"
+                    Minimum="4"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingAisleWidthTooltip}"
+                    Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}" />
                 </Grid>
               </StackPanel>
             </Border>
 
-            <!-- 门配置面板（Grid + Polar 共用） -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsDoorPanelVisible}"
-                    Padding="12" Margin="0,0,0,8"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                    Classes="radiusSm">
+            <!--  门配置面板（Grid + Polar 共用）  -->
+            <Border
+              Margin="0,0,0,8"
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsDoorPanelVisible}">
               <StackPanel Spacing="4">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <TextBlock Text="{x:Static lang:Resources.Venue_DoorSection}" Classes="bodySmallStrong" VerticalAlignment="Center"/>
-                  <Button Command="{Binding AddDoorCommand}" Padding="8,2" Classes="caption"
-                          ToolTip.Tip="{x:Static lang:Resources.Venue_AddDoorTooltip}">
+                  <TextBlock
+                    VerticalAlignment="Center"
+                    Classes="bodySmallStrong"
+                    Text="{x:Static lang:Resources.Venue_DoorSection}" />
+                  <Button
+                    Padding="8,2"
+                    Classes="caption"
+                    Command="{Binding AddDoorCommand}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_AddDoorTooltip}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                      <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Add}" FontSize="14"/>
-                      <TextBlock Text="{x:Static lang:Resources.Venue_AddDoor}" Classes="caption"/>
+                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Add}" />
+                      <TextBlock Classes="caption" Text="{x:Static lang:Resources.Venue_AddDoor}" />
                     </StackPanel>
                   </Button>
                 </StackPanel>
-                <ItemsControl ItemsSource="{Binding DoorItems}" HorizontalAlignment="Stretch">
+                <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding DoorItems}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:DoorItem">
-                      <Border Padding="4,2" BorderThickness="0,0,0,1" HorizontalAlignment="Stretch"
-                              BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}">
-                        <Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto" HorizontalAlignment="Left" VerticalAlignment="Center"
-                              RowSpacing="8" ColumnSpacing="16">
-                          <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Label}" Classes="caption"
-                                     VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Left"/>
-                          <StackPanel Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="1">
-                            <TextBlock Text="X :" Classes="caption" VerticalAlignment="Center"/>
-                            <NumericUpDown Value="{Binding X, Mode=TwoWay}"
-                                           Minimum="0" Maximum="2000" Classes="caption"
-                                           ToolTip.Tip="{x:Static lang:Resources.Venue_DoorXTooltip}"/>
-                            <TextBlock Text="Y :" Classes="caption" VerticalAlignment="Center" Margin="8,0,0,0" HorizontalAlignment="Right"/>
-                            <NumericUpDown Value="{Binding Y, Mode=TwoWay}"
-                                           Minimum="0" Maximum="2000" Classes="caption"
-                                           ToolTip.Tip="{x:Static lang:Resources.Venue_DoorYTooltip}"/>
+                      <Border
+                        Padding="4,2"
+                        HorizontalAlignment="Stretch"
+                        BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
+                        BorderThickness="0,0,0,1">
+                        <Grid
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Center"
+                          ColumnDefinitions="Auto,*,Auto,*"
+                          ColumnSpacing="16"
+                          RowDefinitions="Auto"
+                          RowSpacing="8">
+                          <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,0,8,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Classes="caption"
+                            Text="{Binding Label}" />
+                          <StackPanel
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Spacing="1">
+                            <TextBlock
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="X :" />
+                            <NumericUpDown
+                              Classes="caption"
+                              Maximum="2000"
+                              Minimum="0"
+                              ToolTip.Tip="{x:Static lang:Resources.Venue_DoorXTooltip}"
+                              Value="{Binding X, Mode=TwoWay}" />
+                            <TextBlock
+                              Margin="8,0,0,0"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Center"
+                              Classes="caption"
+                              Text="Y :" />
+                            <NumericUpDown
+                              Classes="caption"
+                              Maximum="2000"
+                              Minimum="0"
+                              ToolTip.Tip="{x:Static lang:Resources.Venue_DoorYTooltip}"
+                              Value="{Binding Y, Mode=TwoWay}" />
                           </StackPanel>
-                          <Button Grid.Row="0" Grid.Column="3" Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
-                                  CommandParameter="{Binding}"
-                                  Padding="4" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Delete}" FontSize="14"/>
+                          <Button
+                            Grid.Row="0"
+                            Grid.Column="3"
+                            Padding="4"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
+                            CommandParameter="{Binding}"
+                            FontSize="12">
+                            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
                           </Button>
                         </Grid>
                       </Border>
@@ -558,103 +1079,130 @@
               </StackPanel>
             </Border>
 
-            <!-- Freeform 提示 -->
-            <Border DockPanel.Dock="Top" IsVisible="{Binding IsFreeformSelected}"
-                    Padding="12" Classes="toolbarTop radiusSm"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+            <!--  Freeform 提示  -->
+            <Border
+              Padding="12"
+              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+              Classes="toolbarTop radiusSm"
+              DockPanel.Dock="Top"
+              IsVisible="{Binding IsFreeformSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Text="{x:Static lang:Resources.Venue_FreeformHint}"
-                           Classes="bodySmall" TextWrapping="Wrap"/>
-                <Button Command="{Binding NavigateToFreeformCommand}"
-                        HorizontalContentAlignment="Center" HorizontalAlignment="Left"
-                        Padding="8,4" FontSize="12">
+                <TextBlock
+                  Classes="bodySmall"
+                  Text="{x:Static lang:Resources.Venue_FreeformHint}"
+                  TextWrapping="Wrap" />
+                <Button
+                  Padding="8,4"
+                  HorizontalAlignment="Left"
+                  HorizontalContentAlignment="Center"
+                  Command="{Binding NavigateToFreeformCommand}"
+                  FontSize="12">
                   <StackPanel Orientation="Horizontal" Spacing="4">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowMove}" FontSize="14"/>
-                    <TextBlock Text="{x:Static lang:Resources.Venue_OpenFreeform}" Classes="caption"/>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowMove}" />
+                    <TextBlock Classes="caption" Text="{x:Static lang:Resources.Venue_OpenFreeform}" />
                   </StackPanel>
                 </Button>
               </StackPanel>
             </Border>
 
-            <!-- 预览区域 -->
+            <!--  预览区域  -->
             <StackPanel Spacing="8">
               <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock Text="{x:Static lang:Resources.Venue_Preview}" Classes="bodyStrong" VerticalAlignment="Center"/>
-                <Button Command="{Binding RegeneratePreviewCommand}"
-                        HorizontalContentAlignment="Center" Padding="8,4" FontSize="12">
+                <TextBlock
+                  VerticalAlignment="Center"
+                  Classes="bodyStrong"
+                  Text="{x:Static lang:Resources.Venue_Preview}" />
+                <Button
+                  Padding="8,4"
+                  HorizontalContentAlignment="Center"
+                  Command="{Binding RegeneratePreviewCommand}"
+                  FontSize="12">
                   <StackPanel Orientation="Horizontal" Spacing="4">
-                    <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowSync}" FontSize="14"/>
-                    <TextBlock Text="{x:Static lang:Resources.Venue_RefreshPreview}" Classes="caption"/>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+                    <TextBlock Classes="caption" Text="{x:Static lang:Resources.Venue_RefreshPreview}" />
                   </StackPanel>
                 </Button>
               </StackPanel>
 
-              <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                      Classes="radiusSm" MinHeight="300" Padding="8">
+              <Border
+                MinHeight="300"
+                Padding="8"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                Classes="radiusSm">
                 <Grid>
-                  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                Background="{DynamicResource PreviewBackgroundBrush}"
-                                behaviors:CanvasZoomPan.Enabled="True">
+                  <ScrollViewer
+                    behaviors:CanvasZoomPan.Enabled="True"
+                    Background="{DynamicResource PreviewBackgroundBrush}"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto">
                     <Grid>
-                      <!-- 座位层 -->
+                      <!--  座位层  -->
                       <ItemsControl ItemsSource="{Binding PreviewSeats}">
                         <ItemsControl.ItemsPanel>
                           <ItemsPanelTemplate>
-                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
+                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
                           </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.Styles>
                           <Style Selector="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
                           </Style>
                         </ItemsControl.Styles>
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:SeatPreview">
-                            <Border Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-                                    CornerRadius="{ReflectionBinding CornerRadius}"
-                                    BorderThickness="{ReflectionBinding BorderThickness}"
-                                    BorderBrush="{StaticResource PreviewSeatBorderBrush}"
-                                    ToolTip.Tip="{Binding Label}">
+                            <Border
+                              Width="{ReflectionBinding Width}"
+                              Height="{ReflectionBinding Height}"
+                              BorderBrush="{StaticResource PreviewSeatBorderBrush}"
+                              BorderThickness="{ReflectionBinding BorderThickness}"
+                              CornerRadius="{ReflectionBinding CornerRadius}"
+                              ToolTip.Tip="{Binding Label}">
                               <Border.Background>
-                                <SolidColorBrush Color="{DynamicResource SystemAccentColor}"/>
+                                <SolidColorBrush Color="{DynamicResource SystemAccentColor}" />
                               </Border.Background>
                             </Border>
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
 
-                      <!-- 覆盖层: 讲台/障碍物/门 -->
+                      <!--  覆盖层: 讲台/障碍物/门  -->
                       <ItemsControl ItemsSource="{Binding PreviewOverlays}">
                         <ItemsControl.ItemsPanel>
                           <ItemsPanelTemplate>
-                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}"/>
+                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
                           </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.Styles>
                           <Style Selector="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}"/>
-                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}"/>
+                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
                           </Style>
                         </ItemsControl.Styles>
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:SeatPreview">
-                            <Panel Width="{ReflectionBinding Width}" Height="{ReflectionBinding Height}"
-                                   RenderTransformOrigin="0,0"
-                                   ToolTip.Tip="{Binding Label}">
-                              <Border CornerRadius="1000"
-                                      BorderThickness="{ReflectionBinding BorderThickness}"
-                                      Background="{ReflectionBinding BackgroundColor}"
-                                      BorderBrush="{ReflectionBinding BorderColor}"
-                                      Opacity="0.7"/>
-                              <Path Data="{ReflectionBinding PathGeometry}"
-                                    Fill="{StaticResource PreviewPodiumFillBrush}"
-                                    Opacity="0.7"/>
-                              <TextBlock Text="{Binding Label}" Classes="small"
-                                         HorizontalAlignment="Center"
-                                         VerticalAlignment="Center"/>
+                            <Panel
+                              Width="{ReflectionBinding Width}"
+                              Height="{ReflectionBinding Height}"
+                              RenderTransformOrigin="0,0"
+                              ToolTip.Tip="{Binding Label}">
+                              <Border
+                                Background="{ReflectionBinding BackgroundColor}"
+                                BorderBrush="{ReflectionBinding BorderColor}"
+                                BorderThickness="{ReflectionBinding BorderThickness}"
+                                CornerRadius="1000"
+                                Opacity="0.7" />
+                              <Path
+                                Data="{ReflectionBinding PathGeometry}"
+                                Fill="{StaticResource PreviewPodiumFillBrush}"
+                                Opacity="0.7" />
+                              <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Classes="small"
+                                Text="{Binding Label}" />
                               <Panel.RenderTransform>
-                                <RotateTransform Angle="{ReflectionBinding Rotation}"/>
+                                <RotateTransform Angle="{ReflectionBinding Rotation}" />
                               </Panel.RenderTransform>
                             </Panel>
                           </DataTemplate>
@@ -662,9 +1210,13 @@
                       </ItemsControl>
                     </Grid>
                   </ScrollViewer>
-                  <TextBlock Text="{x:Static lang:Resources.Venue_DragHint}" Classes="small" Opacity="0.4"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,12,8"/>
+                  <TextBlock
+                    Margin="0,0,12,8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Classes="small"
+                    Opacity="0.4"
+                    Text="{x:Static lang:Resources.Venue_DragHint}" />
                 </Grid>
               </Border>
             </StackPanel>

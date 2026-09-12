@@ -17,9 +17,9 @@ public partial class ParameterEditorViewModel : ViewModelBase
     /// <summary>
     /// 从 manifest 的 ParameterDefinitions 加载，用已有值填充。
     /// </summary>
-    public void LoadParameters (
-        List<StrategyParameterDefinition>? definitions ,
-        Dictionary<string , object?>? currentValues)
+    public void LoadParameters(
+        List<StrategyParameterDefinition>? definitions,
+        Dictionary<string, object?>? currentValues)
     {
         foreach (var p in Parameters)
             p.PropertyChanged -= OnParameterPropertyChanged;
@@ -28,14 +28,14 @@ public partial class ParameterEditorViewModel : ViewModelBase
 
         foreach (var def in definitions)
         {
-            var value = currentValues?.TryGetValue(def.Name , out var v) == true ? v : def.DefaultValue;
-            var param = new EditableParameter(def , value);
+            var value = currentValues?.TryGetValue(def.Name, out var v) == true ? v : def.DefaultValue;
+            var param = new EditableParameter(def, value);
             param.PropertyChanged += OnParameterPropertyChanged;
             Parameters.Add(param);
         }
     }
 
-    private void OnParameterPropertyChanged (object? sender , System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnParameterPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(EditableParameter.IsDirty))
             OnPropertyChanged(nameof(IsDirty));
@@ -44,9 +44,9 @@ public partial class ParameterEditorViewModel : ViewModelBase
     /// <summary>
     /// 收集当前所有参数值到字典。
     /// </summary>
-    public Dictionary<string , object?> CollectValues ()
+    public Dictionary<string, object?> CollectValues()
     {
-        var dict = new Dictionary<string , object?>();
+        var dict = new Dictionary<string, object?>();
         foreach (var p in Parameters)
             dict[p.Definition.Name] = p.Value;
         return dict;
@@ -61,7 +61,7 @@ public partial class ParameterEditorViewModel : ViewModelBase
 /// <summary>
 /// 单个可编辑参数。
 /// </summary>
-public partial class EditableParameter (StrategyParameterDefinition definition , object? value) : ObservableObject
+public partial class EditableParameter(StrategyParameterDefinition definition, object? value) : ObservableObject
 {
     public StrategyParameterDefinition Definition { get; } = definition;
 
@@ -73,9 +73,9 @@ public partial class EditableParameter (StrategyParameterDefinition definition ,
 
     private readonly object? _originalValue = value;
 
-    partial void OnValueChanged (object? value)
+    partial void OnValueChanged(object? value)
     {
-        IsDirty = !Equals(value , _originalValue);
+        IsDirty = !Equals(value, _originalValue);
     }
 
     // Convenience casts for XAML bindings

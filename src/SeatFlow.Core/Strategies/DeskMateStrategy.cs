@@ -19,7 +19,7 @@ namespace SeatFlow.Core.Strategies
     /// 在随机填充过程中实时检测同桌关系并协调分配，不再依赖预先存在的连续块。
     /// </para>
     /// </remarks>
-    public class DeskMateStrategy (DeskMateConfiguration config , ILogger<DeskMateStrategy>? logger = null , Random? random = null) : IDependentSeatingStrategy
+    public class DeskMateStrategy(DeskMateConfiguration config, ILogger<DeskMateStrategy>? logger = null, Random? random = null) : IDependentSeatingStrategy
     {
         private readonly DeskMateConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
         private readonly ILogger<DeskMateStrategy> _logger = logger ?? NullLogger<DeskMateStrategy>.Instance;
@@ -30,10 +30,10 @@ namespace SeatFlow.Core.Strategies
         public DeskMateConfiguration Config => _config;
 
         /// <summary>使用默认配置创建实例。</summary>
-        public DeskMateStrategy () : this(new DeskMateConfiguration()) { }
+        public DeskMateStrategy() : this(new DeskMateConfiguration()) { }
 
         /// <summary>同步会场每桌座位数，用于同桌边界检查。</summary>
-        public void SetSeatsPerDesk (int count) => _config.SeatsPerDesk = Math.Max(1 , count);
+        public void SetSeatsPerDesk(int count) => _config.SeatsPerDesk = Math.Max(1, count);
 
         /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
         public const string DisplayNameConst = "同桌分组";
@@ -54,11 +54,11 @@ namespace SeatFlow.Core.Strategies
         public bool IsEnabled { get; set; } = true;
 
         /// <inheritdoc />
-        public Task<DependentEvaluationResult> EvaluateAsync (
-            SeatingWorkspace workspace ,
-            Student student ,
-            Seat targetSeat ,
-            IRandomFillContext context ,
+        public Task<DependentEvaluationResult> EvaluateAsync(
+            SeatingWorkspace workspace,
+            Student student,
+            Seat targetSeat,
+            IRandomFillContext context,
             CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
@@ -67,21 +67,21 @@ namespace SeatFlow.Core.Strategies
             ArgumentNullException.ThrowIfNull(context);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var result = Evaluate(workspace , student , targetSeat , context);
+            var result = Evaluate(workspace, student, targetSeat, context);
             return Task.FromResult(result);
         }
 
-        private DependentEvaluationResult Evaluate (
-            SeatingWorkspace workspace ,
-            Student student ,
-            Seat targetSeat ,
+        private DependentEvaluationResult Evaluate(
+            SeatingWorkspace workspace,
+            Student student,
+            Seat targetSeat,
             IRandomFillContext context)
         {
             // 获取当前已分配的学生 ID
             var assignedIds = workspace.BuildSeatingPlan().Assignments.Values.ToHashSet();
 
             // 查找该学生所属的同桌组
-            var group = FindGroupForStudent(student , assignedIds);
+            var group = FindGroupForStudent(student, assignedIds);
             if (group is null)
                 return DependentResult.Approve();
 
@@ -97,28 +97,28 @@ namespace SeatFlow.Core.Strategies
                 .ToList();
 
             _logger.LogDebug(
-                "DeskMate 评估：学生 {Student}，目标座位 {Seat}，组大小 {GroupSize}，未分配 {Unassigned}，已分配 {PreAssigned}" ,
-                student.Name , targetSeat.Id , group.StudentIds.Count , unassignedMates.Count , preAssignedMates.Count);
+                "DeskMate 评估：学生 {Student}，目标座位 {Seat}，组大小 {GroupSize}，未分配 {Unassigned}，已分配 {PreAssigned}",
+                student.Name, targetSeat.Id, group.StudentIds.Count, unassignedMates.Count, preAssignedMates.Count);
 
             // ── 场景1：有组员已被前序策略分配（near-occupied） ──
             if (preAssignedMates.Count > 0)
             {
                 return HandleNearOccupied(
-                    workspace , student , targetSeat , preAssignedMates , context);
+                    workspace, student, targetSeat, preAssignedMates, context);
             }
 
             // ── 场景2：所有组员均未分配（coordinated assignment） ──
             if (unassignedMates.Count > 0)
             {
                 return HandleCoordinatedAssignment(
-                    workspace , student , targetSeat , unassignedMates , context);
+                    workspace, student, targetSeat, unassignedMates, context);
             }
 
             // ── 场景3：该学生是组内唯一未分配成员（其余均已在之前迭代中分配） ──
             // 这种情况可能发生在之前的 EvaluateAsync 调用已处理了其他组员
             // 直接批准，由 RandomFill 正常分配
             _logger.LogDebug(
-                "DeskMate：学生 {Student} 是组内最后未分配成员，批准由 RandomFill 处理" ,
+                "DeskMate：学生 {Student} 是组内最后未分配成员，批准由 RandomFill 处理",
                 student.Name);
             return DependentResult.Approve();
         }
@@ -128,11 +128,11 @@ namespace SeatFlow.Core.Strategies
         /// 若 targetSeat 邻接已分配组员的座位 → 批准。
         /// 否则尝试在已分配组员座位旁找空座 → 切换分配（Handled）。
         /// </summary>
-        private DependentEvaluationResult HandleNearOccupied (
-            SeatingWorkspace workspace ,
-            Student student ,
-            Seat targetSeat ,
-            List<string> preAssignedMates ,
+        private DependentEvaluationResult HandleNearOccupied(
+            SeatingWorkspace workspace,
+            Student student,
+            Seat targetSeat,
+            List<string> preAssignedMates,
             IRandomFillContext context)
         {
             // 获取已分配组员占用的座位
@@ -143,15 +143,15 @@ namespace SeatFlow.Core.Strategies
             {
                 // 理论上不应发生（已分配学生应有座位），容错处理
                 _logger.LogWarning("DeskMate：已分配组员未找到座位，批准当前分配");
-                context.LogWarning(Id , DisplayNameConst , "DeskMate_OccupiedSeatNotFound");
+                context.LogWarning(Id, DisplayNameConst, "DeskMate_OccupiedSeatNotFound");
                 return DependentResult.Approve();
             }
 
             // 检查 targetSeat 是否与任何组员的座位相邻
-            bool isAdjacent = occupiedSeats.Any(occ => SeatAdjacencyHelper.AreDeskMates(occ , targetSeat , _config.SeatsPerDesk));
+            bool isAdjacent = occupiedSeats.Any(occ => SeatAdjacencyHelper.AreDeskMates(occ, targetSeat, _config.SeatsPerDesk));
             if (isAdjacent)
             {
-                _logger.LogDebug("DeskMate：目标座位 {SeatId} 与已分配组员相邻，批准" , targetSeat.Id);
+                _logger.LogDebug("DeskMate：目标座位 {SeatId} 与已分配组员相邻，批准", targetSeat.Id);
                 return DependentResult.Approve();
             }
 
@@ -160,24 +160,24 @@ namespace SeatFlow.Core.Strategies
             var candidates = new List<Seat>();
             foreach (var occSeat in occupiedSeats)
             {
-                var nearby = emptySeats.Where(e => SeatAdjacencyHelper.AreDeskMates(occSeat , e , _config.SeatsPerDesk)).ToList();
+                var nearby = emptySeats.Where(e => SeatAdjacencyHelper.AreDeskMates(occSeat, e, _config.SeatsPerDesk)).ToList();
                 candidates.AddRange(nearby);
             }
 
             if (candidates.Count > 0)
             {
                 var chosen = candidates[_random.Next(candidates.Count)];
-                if (workspace.TryAssignSeat(chosen.Id , student.Id , out _))
+                if (workspace.TryAssignSeat(chosen.Id, student.Id, out _))
                 {
-                    _logger.LogInformation("DeskMate：将学生 {Student} 分配到组员邻座 {SeatId}（原提议 {OriginalSeat} 不邻接）" ,
-                        student.Name , chosen.Id , targetSeat.Id);
-                    workspace.LogWarning(Id , DisplayNameConst , "DeskMate_NearOccupied" , student.Id , chosen.Id);
+                    _logger.LogInformation("DeskMate：将学生 {Student} 分配到组员邻座 {SeatId}（原提议 {OriginalSeat} 不邻接）",
+                        student.Name, chosen.Id, targetSeat.Id);
+                    workspace.LogWarning(Id, DisplayNameConst, "DeskMate_NearOccupied", student.Id, chosen.Id);
                     return DependentResult.Handled();
                 }
             }
 
             // 无相邻空座可用，请求重掷
-            _logger.LogDebug("DeskMate：学生 {Student} 无法在已分配组员旁找到空座，请求重掷" , student.Name);
+            _logger.LogDebug("DeskMate：学生 {Student} 无法在已分配组员旁找到空座，请求重掷", student.Name);
             return DependentResult.Reject();
         }
 
@@ -188,18 +188,18 @@ namespace SeatFlow.Core.Strategies
         /// 2. 空座不足 → 尝试腾挪相邻被占座位（非固定、非组内成员）到附近空座
         /// 3. 仍不足 → 部分分配 + 警告（不再 Reject 拆散组）
         /// </summary>
-        private DependentEvaluationResult HandleCoordinatedAssignment (
-            SeatingWorkspace workspace ,
-            Student student ,
-            Seat targetSeat ,
-            List<string> unassignedMates ,
+        private DependentEvaluationResult HandleCoordinatedAssignment(
+            SeatingWorkspace workspace,
+            Student student,
+            Seat targetSeat,
+            List<string> unassignedMates,
             IRandomFillContext context)
         {
             int neededAdjacent = unassignedMates.Count;
 
             // ── 收集相邻空座和被占座 ──
             var allSeatsAround = workspace.FindSeats(s =>
-                s.Id != targetSeat.Id && SeatAdjacencyHelper.AreDeskMates(targetSeat , s , _config.SeatsPerDesk)).ToList();
+                s.Id != targetSeat.Id && SeatAdjacencyHelper.AreDeskMates(targetSeat, s, _config.SeatsPerDesk)).ToList();
             var adjacentEmpty = allSeatsAround.Where(s => s.IsAvailable && !s.IsFixed).ToList();
             var adjacentOccupied = allSeatsAround
                 .Where(s => !s.IsAvailable && !s.IsFixed && s.OccupantId is not null)
@@ -209,15 +209,15 @@ namespace SeatFlow.Core.Strategies
             adjacentOccupied = [.. adjacentOccupied.Where(s => !unassignedMates.Contains(s.OccupantId!))];
 
             _logger.LogDebug(
-                "DeskMate：相邻空座 {Empty} 个，相邻被占座 {Occupied} 个，需要 {Needed} 个" ,
-                adjacentEmpty.Count , adjacentOccupied.Count , neededAdjacent);
+                "DeskMate：相邻空座 {Empty} 个，相邻被占座 {Occupied} 个，需要 {Needed} 个",
+                adjacentEmpty.Count, adjacentOccupied.Count, neededAdjacent);
 
             // ── 层级1：相邻空座足够 → 直接分配 ──
             if (adjacentEmpty.Count >= neededAdjacent)
             {
                 return AssignMatesToAdjacentSeats(
-                    workspace , student , targetSeat , unassignedMates ,
-                    adjacentEmpty , context);
+                    workspace, student, targetSeat, unassignedMates,
+                    adjacentEmpty, context);
             }
 
             // ── 层级2：空座不足，尝试腾挪被占座 ──
@@ -231,7 +231,7 @@ namespace SeatFlow.Core.Strategies
                     .ToList();
 
                 // 打乱被占座顺序，避免总是腾挪同一个位置
-                Shuffle(adjacentOccupied , _random);
+                Shuffle(adjacentOccupied, _random);
 
                 foreach (var occSeat in adjacentOccupied)
                 {
@@ -242,8 +242,8 @@ namespace SeatFlow.Core.Strategies
                     if (_priorAssignedIds.Contains(occSeat.OccupantId))
                     {
                         _logger.LogDebug(
-                            "DeskMate：跳过前序策略已安置的学生 {Student}（座位 {Seat}），不腾挪" ,
-                            occSeat.OccupantId , occSeat.Id);
+                            "DeskMate：跳过前序策略已安置的学生 {Student}（座位 {Seat}），不腾挪",
+                            occSeat.OccupantId, occSeat.Id);
                         continue;
                     }
 
@@ -253,15 +253,15 @@ namespace SeatFlow.Core.Strategies
                         .FirstOrDefault(s => !adjacentEmpty.Contains(s) && !freedSeats.Contains(s));
 
                     if (candidateEmpty is not null
-                        && workspace.TryAssignSeat(candidateEmpty.Id , occSeat.OccupantId , out _ , updateHistory: false))
+                        && workspace.TryAssignSeat(candidateEmpty.Id, occSeat.OccupantId, out _, updateHistory: false))
                     {
                         // 腾出被占座，加入可用列表（中间腾挪不更新历史，防止污染 RecentSeatHistory）
                         occSeat.OccupantId = null;
                         occSeat.IsAvailable = true;
                         freedSeats.Add(occSeat);
                         _logger.LogInformation(
-                            "DeskMate：腾挪占座者 {OccupantId} 从 {OldSeat} 到 {NewSeat}，释放座位给同桌" ,
-                            occSeat.OccupantId ?? "?" , occSeat.Id , candidateEmpty.Id);
+                            "DeskMate：腾挪占座者 {OccupantId} 从 {OldSeat} 到 {NewSeat}，释放座位给同桌",
+                            occSeat.OccupantId ?? "?", occSeat.Id, candidateEmpty.Id);
                     }
                 }
             }
@@ -270,7 +270,7 @@ namespace SeatFlow.Core.Strategies
             if (shortage > 0 && freedSeats.Count == 0)
             {
                 _logger.LogDebug(
-                    "DeskMate：需要腾挪 {Shortage} 个座位但无可腾挪的候选（前序分配或无非组占座者）" ,
+                    "DeskMate：需要腾挪 {Shortage} 个座位但无可腾挪的候选（前序分配或无非组占座者）",
                     shortage);
             }
 
@@ -279,14 +279,14 @@ namespace SeatFlow.Core.Strategies
 
             // ── 层级3：分配所有可用的相邻座位 ──
             var result = AssignMatesToAdjacentSeats(
-                workspace , student , targetSeat , unassignedMates ,
-                availableSeats , context);
+                workspace, student, targetSeat, unassignedMates,
+                availableSeats, context);
 
             // 如果腾挪后仍然不足，记录警告但不 Reject（部分分配优于拆散）
             if (availableSeats.Count < neededAdjacent && context.RerollCount == 0)
             {
-                context.LogWarning(Id , DisplayNameConst , "DeskMate_NotEnoughSeats" ,
-                    student.Id , neededAdjacent , availableSeats.Count);
+                context.LogWarning(Id, DisplayNameConst, "DeskMate_NotEnoughSeats",
+                    student.Id, neededAdjacent, availableSeats.Count);
             }
 
             return result;
@@ -295,29 +295,29 @@ namespace SeatFlow.Core.Strategies
         /// <summary>
         /// 将组员分配到相邻座位列表，返回 Handled 结果。
         /// </summary>
-        private DependentEvaluationResult AssignMatesToAdjacentSeats (
-            SeatingWorkspace workspace ,
-            Student student ,
-            Seat targetSeat ,
-            List<string> unassignedMates ,
-            List<Seat> seatPool ,
+        private DependentEvaluationResult AssignMatesToAdjacentSeats(
+            SeatingWorkspace workspace,
+            Student student,
+            Seat targetSeat,
+            List<string> unassignedMates,
+            List<Seat> seatPool,
             IRandomFillContext context)
         {
             // 先分配 student 到 targetSeat
-            if (!workspace.TryAssignSeat(targetSeat.Id , student.Id , out var err))
+            if (!workspace.TryAssignSeat(targetSeat.Id, student.Id, out var err))
             {
-                _logger.LogWarning("DeskMate：分配学生 {Student} 到 {Seat} 失败：{Error}" ,
-                    student.Name , targetSeat.Id , err);
-                context.LogWarning(Id , DisplayNameConst , "DeskMate_AssignFailed" ,
-                    student.Id , targetSeat.Id , err);
+                _logger.LogWarning("DeskMate：分配学生 {Student} 到 {Seat} 失败：{Error}",
+                    student.Name, targetSeat.Id, err);
+                context.LogWarning(Id, DisplayNameConst, "DeskMate_AssignFailed",
+                    student.Id, targetSeat.Id, err);
                 return DependentResult.Approve(); // 退回给 RandomFill 处理
             }
 
             // 分配组员
             int assignedMates = 0;
             var unassignedIds = new List<string>(unassignedMates);
-            Shuffle(unassignedIds , _random);
-            Shuffle(seatPool , _random);
+            Shuffle(unassignedIds, _random);
+            Shuffle(seatPool, _random);
 
             var pool = new List<Seat>(seatPool);
             foreach (var mateId in unassignedIds)
@@ -325,7 +325,7 @@ namespace SeatFlow.Core.Strategies
                 bool assigned = false;
                 for (int i = 0; i < pool.Count; i++)
                 {
-                    if (pool[i].IsAvailable && workspace.TryAssignSeat(pool[i].Id , mateId , out _))
+                    if (pool[i].IsAvailable && workspace.TryAssignSeat(pool[i].Id, mateId, out _))
                     {
                         assigned = true;
                         pool.RemoveAt(i);
@@ -336,13 +336,13 @@ namespace SeatFlow.Core.Strategies
             }
 
             _logger.LogInformation(
-                "DeskMate：协调分配完成——学生 {Student} → {Seat}，组员 {Assigned}/{Total} 人" ,
-                student.Name , targetSeat.Id , assignedMates , unassignedMates.Count);
+                "DeskMate：协调分配完成——学生 {Student} → {Seat}，组员 {Assigned}/{Total} 人",
+                student.Name, targetSeat.Id, assignedMates, unassignedMates.Count);
 
             if (assignedMates < unassignedMates.Count)
             {
-                context.LogWarning(Id , DisplayNameConst , "DeskMate_PartialAssign" ,
-                    student.Id , assignedMates , unassignedMates.Count);
+                context.LogWarning(Id, DisplayNameConst, "DeskMate_PartialAssign",
+                    student.Id, assignedMates, unassignedMates.Count);
             }
 
             return DependentResult.Handled();
@@ -354,7 +354,7 @@ namespace SeatFlow.Core.Strategies
         /// 优先从 <see cref="DeskMateConfiguration.Groups"/> 查找，
         /// 其次从 Student.Extensions["DeskMates"] 查找（向后兼容）。
         /// </summary>
-        private DeskMateGroup? FindGroupForStudent (Student student , HashSet<string> assignedIds)
+        private DeskMateGroup? FindGroupForStudent(Student student, HashSet<string> assignedIds)
         {
             // 先从配置中的组查找
             foreach (var group in _config.Groups)
@@ -366,12 +366,12 @@ namespace SeatFlow.Core.Strategies
                         .Where(id => id == student.Id || !assignedIds.Contains(id))
                         .ToList();
                     if (activeIds.Count >= 1)
-                        return new DeskMateGroup { GroupId = group.GroupId , StudentIds = activeIds };
+                        return new DeskMateGroup { GroupId = group.GroupId, StudentIds = activeIds };
                 }
             }
 
             // 从 Extensions["DeskMates"] 查找（向后兼容）
-            if (student.Extensions.TryGet<List<string>>("DeskMates" , out var mates) && mates is { Count: > 0 })
+            if (student.Extensions.TryGet<List<string>>("DeskMates", out var mates) && mates is { Count: > 0 })
             {
                 var groupIds = new List<string> { student.Id };
                 foreach (var mate in mates)
@@ -389,30 +389,30 @@ namespace SeatFlow.Core.Strategies
         /// <summary>
         /// Fisher-Yates 洗牌算法。
         /// </summary>
-        private static void Shuffle<T> (IList<T> list , Random random)
+        private static void Shuffle<T>(IList<T> list, Random random)
         {
             for (int i = list.Count - 1; i > 0; i--)
             {
                 int j = random.Next(i + 1);
-                (list[j] , list[i]) = (list[i] , list[j]);
+                (list[j], list[i]) = (list[i], list[j]);
             }
         }
 
         /// <summary>
         /// 验证配置：Groups 不能为 null，每个组至少包含 2 名学生。
         /// </summary>
-        public ValidationResult ValidateConfiguration ()
+        public ValidationResult ValidateConfiguration()
         {
             if (_config.Groups == null)
             {
-                return new ValidationResult { IsValid = false , Error = "Groups cannot be null." };
+                return new ValidationResult { IsValid = false, Error = "Groups cannot be null." };
             }
 
             foreach (var group in _config.Groups)
             {
                 if (group.StudentIds == null || group.StudentIds.Count < 2)
                 {
-                    return new ValidationResult { IsValid = false , Error = $"Group {group.GroupId} must have at least 2 students." };
+                    return new ValidationResult { IsValid = false, Error = $"Group {group.GroupId} must have at least 2 students." };
                 }
             }
 
@@ -420,10 +420,10 @@ namespace SeatFlow.Core.Strategies
         }
 
         /// <inheritdoc />
-        public void SetPriorAssignedStudentIds (HashSet<string> ids) => _priorAssignedIds = ids;
+        public void SetPriorAssignedStudentIds(HashSet<string> ids) => _priorAssignedIds = ids;
 
         /// <inheritdoc />
-        public HashSet<string> GetConstrainedStudentIds ()
+        public HashSet<string> GetConstrainedStudentIds()
         {
             var ids = new HashSet<string>();
             foreach (var g in _config.Groups)

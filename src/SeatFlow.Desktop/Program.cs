@@ -27,7 +27,7 @@ namespace SeatFlow.Presentation.Avalonia
         internal const string SeatSetsPipeName = "SeatFlow_SeatSetsPipe";
 
         [STAThread]
-        public static void Main (string[] args)
+        public static void Main(string[] args)
         {
             // Velopack 钩子：必须在 Main() 最开头调用。
             // 正常启动时 Run() 立即返回；安装/更新/卸载钩子模式下，钩子执行完毕从 Run() 内部退出。
@@ -48,7 +48,7 @@ namespace SeatFlow.Presentation.Avalonia
             {
                 var firstArg = args[0];
                 if (!string.IsNullOrEmpty(firstArg) &&
-                    firstArg.EndsWith(".seatsets" , StringComparison.OrdinalIgnoreCase) &&
+                    firstArg.EndsWith(".seatsets", StringComparison.OrdinalIgnoreCase) &&
                     File.Exists(firstArg))
                 {
                     seatsetsFilePath = Path.GetFullPath(firstArg);
@@ -66,7 +66,7 @@ namespace SeatFlow.Presentation.Avalonia
             // AddSeatFlowApplication 会创建 Logs 目录使 AppData 存在，导致后续检查失效
             var autoImportPath = DiscoverAutoImportSeatSetsFile();
 
-            using var mutex = new Mutex(true , @"Global\SeatFlow_SeatingArrangement" , out bool isFirstInstance);
+            using var mutex = new Mutex(true, @"Global\SeatFlow_SeatingArrangement", out bool isFirstInstance);
 
             var services = new ServiceCollection();
             // 使用 OS 标准数据目录（而非 exe 同目录）
@@ -77,20 +77,22 @@ namespace SeatFlow.Presentation.Avalonia
             services.AddSeatFlowTelemetry();
 
             // 注册导航服务
-            services.AddSingleton<INavigationService , NavigationService>();
-            services.AddSingleton<IFileService , FileService>();
-            services.AddSingleton<IDialogService , DialogService>();
+            services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<IFileService, FileService>();
+            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IUrlOpener, DesktopUrlOpener>();
             services.AddSingleton<WatchdogService>();
 
             // 注册更新服务（Velopack 自动更新）
-            services.AddSingleton<IUpdateService , UpdateService>();
+            services.AddSingleton<IUpdateService, UpdateService>();
 
             // 注册排座次数计数器
-            services.AddSingleton<IArrangementCounterService , ArrangementCounterService>();
+            services.AddSingleton<IArrangementCounterService, ArrangementCounterService>();
 
             // 注册 ViewModels
+            services.AddSingleton<MainView>();
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<IOnboardingService , OnboardingService>();
+            services.AddSingleton<IOnboardingService, OnboardingService>();
             services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<HomeViewModel>();
@@ -117,12 +119,12 @@ namespace SeatFlow.Presentation.Avalonia
             // 将自动发现的 .seatsets 文件路径传递给 App（用于首次启动数据恢复）
             App.AutoImportSeatSetsPath = autoImportPath;
 
-            BuildAvaloniaApp(serviceProvider , isFirstInstance)
+            BuildAvaloniaApp(serviceProvider, isFirstInstance)
                 .StartWithClassicDesktopLifetime(args);
         }
 
-        public static AppBuilder BuildAvaloniaApp (IServiceProvider serviceProvider , bool isFirstInstance)
-            => AppBuilder.Configure(() => new App(serviceProvider , isFirstInstance))
+        public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider, bool isFirstInstance)
+            => AppBuilder.Configure(() => new App(serviceProvider, isFirstInstance))
                 .UsePlatformDetect()
 #if DEBUG
                 .WithDeveloperTools()
@@ -133,7 +135,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// <summary>
         /// 获取 Velopack 安装根目录，非安装模式返回 null。
         /// </summary>
-        private static string? GetInstallRootDirectory ()
+        private static string? GetInstallRootDirectory()
         {
             try
             {
@@ -154,7 +156,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 安装时 hook：将安装程序同目录下的 .seatsets 文件复制到应用安装根目录。
         /// 由 --veloapp-install CLI 参数触发，必须在 30 秒内完成。
         /// </summary>
-        private static void CopySeatSetsFromInstallerDir ()
+        private static void CopySeatSetsFromInstallerDir()
         {
             try
             {
@@ -168,11 +170,11 @@ namespace SeatFlow.Presentation.Avalonia
 
                 Directory.CreateDirectory(root);
 
-                var seatSetsFiles = Directory.GetFiles(currentDir , "*.seatsets" , SearchOption.TopDirectoryOnly);
+                var seatSetsFiles = Directory.GetFiles(currentDir, "*.seatsets", SearchOption.TopDirectoryOnly);
                 foreach (var file in seatSetsFiles)
                 {
-                    var dest = Path.Combine(root , Path.GetFileName(file));
-                    File.Copy(file , dest , overwrite: true);
+                    var dest = Path.Combine(root, Path.GetFileName(file));
+                    File.Copy(file, dest, overwrite: true);
                 }
             }
             catch
@@ -181,31 +183,31 @@ namespace SeatFlow.Presentation.Avalonia
             }
         }
 
-        [DllImport("user32.dll" , CharSet = CharSet.Unicode)]
-        private static extern int MessageBoxW (IntPtr hWnd , string text , string caption , uint type);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int MessageBoxW(IntPtr hWnd, string text, string caption, uint type);
 
         [DllImport("shell32.dll")]
-        private static extern void SHChangeNotify (int wEventId , uint uFlags , IntPtr dwItem1 , IntPtr dwItem2);
+        private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
         private const int SHCNE_ASSOCCHANGED = 0x08000000;
         private const uint SHCNF_IDLIST = 0x0000;
 
-        private static void ShowFatalDialog (string title , string message)
+        private static void ShowFatalDialog(string title, string message)
         {
             try
             {
                 if (OperatingSystem.IsWindows())
                 {
-                    _ = MessageBoxW(IntPtr.Zero , message , title , 0x00000010); // MB_ICONERROR
+                    _ = MessageBoxW(IntPtr.Zero, message, title, 0x00000010); // MB_ICONERROR
                 }
                 else if (OperatingSystem.IsLinux())
                 {
-                    Process.Start("zenity" , $"--error --width=480 --title=\"{title}\" --text=\"{message.Replace("\"" , "\\\"")}\"");
+                    Process.Start("zenity", $"--error --width=480 --title=\"{title}\" --text=\"{message.Replace("\"", "\\\"")}\"");
                 }
                 else if (OperatingSystem.IsMacOS())
                 {
-                    var escaped = message.Replace("\\" , "\\\\").Replace("\"" , "\\\"").Replace("\n" , "\\n");
-                    Process.Start("osascript" , $"-e \"display dialog \\\"{escaped}\\\" with title \\\"{title}\\\" buttons {{\\\"OK\\\"}} default button 1 with icon stop\"");
+                    var escaped = message.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n");
+                    Process.Start("osascript", $"-e \"display dialog \\\"{escaped}\\\" with title \\\"{title}\\\" buttons {{\\\"OK\\\"}} default button 1 with icon stop\"");
                 }
                 else
                 {
@@ -223,7 +225,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 仅在首次启动（AppData 不存在）或注册表值与当前不一致时写入，
         /// 避免每次启动无意义的磁盘 I/O。写入后通知 Shell 刷新图标缓存。
         /// </summary>
-        private static void RegisterSeatSetsFileAssociation ()
+        private static void RegisterSeatSetsFileAssociation()
         {
             if (!OperatingSystem.IsWindows())
                 return;
@@ -243,42 +245,42 @@ namespace SeatFlow.Presentation.Avalonia
                 using var extKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     @"Software\Classes\.seatsets");
                 var oldProgId = extKey.GetValue("") as string;
-                if (!appDataExists || !string.Equals(oldProgId , progId , StringComparison.Ordinal))
+                if (!appDataExists || !string.Equals(oldProgId, progId, StringComparison.Ordinal))
                 {
-                    extKey.SetValue("" , progId);
+                    extKey.SetValue("", progId);
                     changed = true;
                 }
 
                 using var progKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     $@"Software\Classes\{progId}");
                 var oldDesc = progKey.GetValue("") as string;
-                if (!appDataExists || !string.Equals(oldDesc , "SeatFlow Data Package" , StringComparison.Ordinal))
+                if (!appDataExists || !string.Equals(oldDesc, "SeatFlow Data Package", StringComparison.Ordinal))
                 {
-                    progKey.SetValue("" , "SeatFlow Data Package");
+                    progKey.SetValue("", "SeatFlow Data Package");
                     changed = true;
                 }
 
                 using var iconKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     $@"Software\Classes\{progId}\DefaultIcon");
                 var oldIcon = iconKey.GetValue("") as string;
-                if (!appDataExists || !string.Equals(oldIcon , iconValue , StringComparison.Ordinal))
+                if (!appDataExists || !string.Equals(oldIcon, iconValue, StringComparison.Ordinal))
                 {
-                    iconKey.SetValue("" , iconValue);
+                    iconKey.SetValue("", iconValue);
                     changed = true;
                 }
 
                 using var cmdKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
                     $@"Software\Classes\{progId}\shell\open\command");
                 var oldCmd = cmdKey.GetValue("") as string;
-                if (!appDataExists || !string.Equals(oldCmd , cmdValue , StringComparison.Ordinal))
+                if (!appDataExists || !string.Equals(oldCmd, cmdValue, StringComparison.Ordinal))
                 {
-                    cmdKey.SetValue("" , cmdValue);
+                    cmdKey.SetValue("", cmdValue);
                     changed = true;
                 }
 
                 // 仅在确实写入后才通知 Shell 刷新图标缓存
                 if (changed)
-                    SHChangeNotify(SHCNE_ASSOCCHANGED , SHCNF_IDLIST , IntPtr.Zero , IntPtr.Zero);
+                    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero);
             }
             catch
             {
@@ -291,7 +293,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// 仅在 AppData 不存在时生效（即真正的首次启动）。
         /// 扫描时进行轻量前置校验：大小合理、可解析为 JSON、含 formatVersion 字段。
         /// </summary>
-        private static string? DiscoverAutoImportSeatSetsFile ()
+        private static string? DiscoverAutoImportSeatSetsFile()
         {
             try
             {
@@ -301,7 +303,7 @@ namespace SeatFlow.Presentation.Avalonia
 
                 // 确定扫描目录：Velopack 安装时扫描 RootAppDir，开发/便携模式扫描 ExeDirectory
                 var scanDir = GetInstallRootDirectory() ?? AppEnvironment.ExeDirectory;
-                var files = Directory.GetFiles(scanDir , "*.seatsets" , SearchOption.TopDirectoryOnly);
+                var files = Directory.GetFiles(scanDir, "*.seatsets", SearchOption.TopDirectoryOnly);
                 if (files.Length == 0)
                     return null;
 
@@ -324,7 +326,7 @@ namespace SeatFlow.Presentation.Avalonia
                         var root = doc.RootElement;
                         if (root.ValueKind != JsonValueKind.Object)
                             continue;
-                        if (!root.TryGetProperty("formatVersion" , out _))
+                        if (!root.TryGetProperty("formatVersion", out _))
                             continue;
                     }
                     catch
@@ -347,12 +349,12 @@ namespace SeatFlow.Presentation.Avalonia
         /// 尝试通过命名管道将 .seatsets 文件路径转发给已有实例。
         /// 成功返回 true（调用方应静默退出），失败返回 false（可能是首个实例）。
         /// </summary>
-        private static bool TryForwardToExistingInstance (string filePath)
+        private static bool TryForwardToExistingInstance(string filePath)
         {
             try
             {
                 using var client = new NamedPipeClientStream(
-                    "." , SeatSetsPipeName , PipeDirection.Out);
+                    ".", SeatSetsPipeName, PipeDirection.Out);
                 // 短超时——如果连接不上说明没有已有实例在监听
                 client.Connect(2000);
                 using var writer = new StreamWriter(client);

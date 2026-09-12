@@ -1,4 +1,4 @@
-﻿using SeatFlow.Core.Workspace;
+using SeatFlow.Core.Workspace;
 
 namespace SeatFlow.Application.Interfaces
 {
@@ -14,7 +14,7 @@ namespace SeatFlow.Application.Interfaces
         /// </summary>
         /// <param name="workspace">当前工作区。</param>
         /// <returns>解决结果及冲突详情。</returns>
-        ConflictResolutionResult Resolve (SeatingWorkspace workspace);
+        ConflictResolutionResult Resolve(SeatingWorkspace workspace);
     }
 
     /// <summary>

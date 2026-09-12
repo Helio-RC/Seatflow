@@ -5,12 +5,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Application.Services
 {
-    public class DefaultConflictResolver (ILogger<DefaultConflictResolver>? logger = null) : IConflictResolver
+    public class DefaultConflictResolver(ILogger<DefaultConflictResolver>? logger = null) : IConflictResolver
     {
         private readonly ILogger<DefaultConflictResolver> _logger = logger ?? NullLogger<DefaultConflictResolver>.Instance;
 
         /// <inheritdoc />
-        public ConflictResolutionResult Resolve (SeatingWorkspace workspace)
+        public ConflictResolutionResult Resolve(SeatingWorkspace workspace)
         {
             var result = new ConflictResolutionResult { Success = true };
             var assignments = workspace.BuildSeatingPlan().Assignments;
@@ -18,15 +18,15 @@ namespace SeatFlow.Application.Services
             // 1. 检测重复分配（同一学生出现在多个座位）
             var studentToSeats = assignments.GroupBy(kv => kv.Value)
                 .Where(g => g.Count() > 1)
-                .ToDictionary(g => g.Key , g => g.Select(kv => kv.Key).ToList());
+                .ToDictionary(g => g.Key, g => g.Select(kv => kv.Key).ToList());
 
             foreach (var dup in studentToSeats)
             {
                 result.Conflicts.Add(new ConflictInfo
                 {
-                    Type = ConflictType.DuplicateAssignment ,
-                    StudentId = dup.Key ,
-                    Description = $"学生 {dup.Key} 被分配到多个座位: {string.Join(", " , dup.Value)}"
+                    Type = ConflictType.DuplicateAssignment,
+                    StudentId = dup.Key,
+                    Description = $"学生 {dup.Key} 被分配到多个座位: {string.Join(", ", dup.Value)}"
                 });
 
                 // 解决：保留第一个分配，清除其余
@@ -52,8 +52,8 @@ namespace SeatFlow.Application.Services
                 {
                     result.Conflicts.Add(new ConflictInfo
                     {
-                        Type = ConflictType.FixedSeatMismatch ,
-                        SeatId = seat.Id ,
+                        Type = ConflictType.FixedSeatMismatch,
+                        SeatId = seat.Id,
                         Description = $"固定座位 {seat.Id} 未分配学生"
                     });
                 }
@@ -64,7 +64,7 @@ namespace SeatFlow.Application.Services
 
             result.Success = result.Conflicts.Count == 0;
             if (result.Conflicts.Count > 0)
-                _logger.LogInformation("冲突检测发现 {Count} 个冲突" , result.Conflicts.Count);
+                _logger.LogInformation("冲突检测发现 {Count} 个冲突", result.Conflicts.Count);
             else
                 _logger.LogDebug("冲突检测完成，无冲突");
             return result;

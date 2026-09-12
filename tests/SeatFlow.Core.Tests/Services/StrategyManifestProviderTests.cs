@@ -5,7 +5,7 @@ namespace SeatFlow.Core.Tests.Services;
 public class StrategyManifestProviderTests
 {
     [Fact]
-    public void GetBuiltInManifests_ReturnsAllBuiltIn ()
+    public void GetBuiltInManifests_ReturnsAllBuiltIn()
     {
         var provider = new StrategyManifestProvider();
         var manifests = provider.GetBuiltInManifests();
@@ -14,7 +14,7 @@ public class StrategyManifestProviderTests
     }
 
     [Fact]
-    public void Manifests_HaveRequiredFields ()
+    public void Manifests_HaveRequiredFields()
     {
         var provider = new StrategyManifestProvider();
         foreach (var m in provider.GetBuiltInManifests())
@@ -28,7 +28,7 @@ public class StrategyManifestProviderTests
     }
 
     [Fact]
-    public void Manifests_HaveUniqueIds ()
+    public void Manifests_HaveUniqueIds()
     {
         var provider = new StrategyManifestProvider();
         var ids = provider.GetBuiltInManifests().Select(m => m.Id).ToList();
@@ -36,7 +36,7 @@ public class StrategyManifestProviderTests
     }
 
     [Fact]
-    public void ContainsExpectedStrategies ()
+    public void ContainsExpectedStrategies()
     {
         var provider = new StrategyManifestProvider();
         var ids = provider.GetBuiltInManifests().Select(m => m.Id).ToHashSet();

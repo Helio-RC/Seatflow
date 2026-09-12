@@ -3,7 +3,7 @@ namespace SeatFlow.Core.Tests.Models;
 public class StrategyConfigTests
 {
     [Fact]
-    public void Default_HasEmptyValues ()
+    public void Default_HasEmptyValues()
     {
         var c = new StrategyConfig();
         c.Priority.Should().Be(0);
@@ -12,15 +12,15 @@ public class StrategyConfigTests
     }
 
     [Fact]
-    public void CanSetParameters ()
+    public void CanSetParameters()
     {
         var c = new StrategyConfig
         {
-            Priority = 50 ,
-            IsEnabled = true ,
-            Parameters = new Dictionary<string , object?>
+            Priority = 50,
+            IsEnabled = true,
+            Parameters = new Dictionary<string, object?>
             {
-                ["group1"] = "Alice,Bob" ,
+                ["group1"] = "Alice,Bob",
                 ["maxDistance"] = 3
             }
         };
@@ -31,7 +31,7 @@ public class StrategyConfigTests
     }
 
     [Fact]
-    public void Parameters_AreMutable ()
+    public void Parameters_AreMutable()
     {
         var c = new StrategyConfig();
         c.Parameters["key"] = 42;

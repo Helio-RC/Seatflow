@@ -1,12 +1,13 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-             xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
-             xmlns:fic="using:FluentIcons.Avalonia"
-             xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.StrategyConfigurationView"
-             x:DataType="vm:StrategyConfigurationViewModel">
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.StrategyConfigurationView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:StrategyConfigurationViewModel">
 
   <Design.DataContext>
     <vm:StrategyConfigurationViewModel />
@@ -18,102 +19,130 @@
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
 
-    <!-- ═══════════ 侧栏：策略列表 ═══════════ -->
-    <Border Grid.Column="0" Margin="0,0,8,0"
-            CornerRadius="6" ClipToBounds="True"
-            Background="{DynamicResource SidebarBackgroundBrush}">
+    <!--  ═══════════ 侧栏：策略列表 ═══════════  -->
+    <Border
+      Grid.Column="0"
+      Margin="0,0,8,0"
+      Background="{DynamicResource SidebarBackgroundBrush}"
+      ClipToBounds="True"
+      CornerRadius="6">
 
       <DockPanel Margin="8">
-        <!-- 标题 -->
-        <TextBlock DockPanel.Dock="Top" Text="{x:Static lang:Resources.Strategy_List}" Classes="sectionTitle"
-                   Margin="0,0,0,8" />
+        <!--  标题  -->
+        <TextBlock
+          Margin="0,0,0,8"
+          Classes="sectionTitle"
+          DockPanel.Dock="Top"
+          Text="{x:Static lang:Resources.Strategy_List}" />
 
-        <!-- 配置失效提示 -->
-        <Border DockPanel.Dock="Top" Margin="0,0,0,8" Padding="8,6"
-                CornerRadius="4"
-                Background="{DynamicResource WarningBackgroundBrush}">
-          <TextBlock Text="{x:Static lang:Resources.Strategy_ConfigInvalidHint}"
-                     Classes="small"
-                     TextWrapping="Wrap"
-                     Foreground="{DynamicResource WarningForegroundBrush}" />
+        <!--  配置失效提示  -->
+        <Border
+          Margin="0,0,0,8"
+          Padding="8,6"
+          Background="{DynamicResource WarningBackgroundBrush}"
+          CornerRadius="4"
+          DockPanel.Dock="Top">
+          <TextBlock
+            Classes="small"
+            Foreground="{DynamicResource WarningForegroundBrush}"
+            Text="{x:Static lang:Resources.Strategy_ConfigInvalidHint}"
+            TextWrapping="Wrap" />
         </Border>
 
-        <!-- 底部：图例 + 操作按钮 -->
-        <Border DockPanel.Dock="Bottom" Padding="0,8,0,0">
+        <!--  底部：图例 + 操作按钮  -->
+        <Border Padding="0,8,0,0" DockPanel.Dock="Bottom">
           <StackPanel Spacing="4">
-            <!-- 图例说明 -->
-            <Border Padding="8,4,8,6"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                    BorderThickness="0,1,0,0">
+            <!--  图例说明  -->
+            <Border
+              Padding="8,4,8,6"
+              BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+              BorderThickness="0,1,0,0">
               <StackPanel Spacing="2">
-                <TextBlock Text="{x:Static lang:Resources.Strategy_LegendPriority}"
-                           Classes="small"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_LegendBar}"
-                           Classes="small"
-                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+                <TextBlock
+                  Classes="small"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="{x:Static lang:Resources.Strategy_LegendPriority}" />
+                <TextBlock
+                  Classes="small"
+                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Text="{x:Static lang:Resources.Strategy_LegendBar}" />
               </StackPanel>
             </Border>
-            <Button Command="{Binding MoveUpCommand}"
-                    CommandParameter="{Binding SelectedStrategy}"
-                    AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveUp}"
-                    HorizontalContentAlignment="Left" Padding="8,5">
+            <Button
+              Padding="8,5"
+              HorizontalContentAlignment="Left"
+              AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveUp}"
+              Command="{Binding MoveUpCommand}"
+              CommandParameter="{Binding SelectedStrategy}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUp}" FontSize="20" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveUp}" Classes="bodySmall" />
+                <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.ArrowUp}" />
+                <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Strategy_MoveUp}" />
               </StackPanel>
             </Button>
-            <Button Command="{Binding MoveDownCommand}"
-                    CommandParameter="{Binding SelectedStrategy}"
-                    AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveDown}"
-                    HorizontalContentAlignment="Left" Padding="8,5">
+            <Button
+              Padding="8,5"
+              HorizontalContentAlignment="Left"
+              AutomationProperties.Name="{x:Static lang:Resources.Strategy_MoveDown}"
+              Command="{Binding MoveDownCommand}"
+              CommandParameter="{Binding SelectedStrategy}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowDown}" FontSize="20" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_MoveDown}" Classes="bodySmall" />
+                <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.ArrowDown}" />
+                <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Strategy_MoveDown}" />
               </StackPanel>
             </Button>
             <Separator Margin="0,2" />
-            <Button x:Name="SaveAllButton" Command="{Binding SaveAllCommand}"
-                    IsEnabled="{Binding HasChanges}"
-                    AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
-                    HorizontalContentAlignment="Left" Padding="8,5">
+            <Button
+              x:Name="SaveAllButton"
+              Padding="8,5"
+              HorizontalContentAlignment="Left"
+              AutomationProperties.Name="{x:Static lang:Resources.Strategy_SaveChangesHint}"
+              Command="{Binding SaveAllCommand}"
+              IsEnabled="{Binding HasChanges}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="20" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveChanges}" Classes="bodySmall" />
+                <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.Save}" />
+                <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Strategy_SaveChanges}" />
               </StackPanel>
             </Button>
           </StackPanel>
         </Border>
 
-        <!-- 策略列表 -->
-        <ListBox x:Name="StrategyListBox" ItemsSource="{Binding Strategies}"
-                 SelectedItem="{Binding SelectedStrategy, Mode=TwoWay}"
-                 BorderThickness="0"
-                 Background="{DynamicResource SidebarBackgroundBrush}">
+        <!--  策略列表  -->
+        <ListBox
+          x:Name="StrategyListBox"
+          Background="{DynamicResource SidebarBackgroundBrush}"
+          BorderThickness="0"
+          ItemsSource="{Binding Strategies}"
+          SelectedItem="{Binding SelectedStrategy, Mode=TwoWay}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:StrategyItemViewModel">
               <StackPanel>
                 <Border Padding="8,6" CornerRadius="4">
                   <Grid>
                     <DockPanel>
-                      <ToggleSwitch DockPanel.Dock="Right"
-                                    IsChecked="{Binding IsEnabled, Mode=TwoWay}"
-                                    VerticalAlignment="Center" />
-                      <!-- 左侧竖线（宿主策略或依赖子项，Markdown 引用风格） -->
-                      <Border DockPanel.Dock="Left"
-                              IsVisible="{Binding ShowLeftBar}"
-                              Width="4"
-                              Background="{DynamicResource SystemAccentColor}"
-                              CornerRadius="2"
-                              Margin="0,2,4,2"
-                              VerticalAlignment="Stretch" />
-                      <StackPanel Spacing="2" Margin="0,0,0,0">
-                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                   TextTrimming="CharacterEllipsis" FontSize="13" />
+                      <ToggleSwitch
+                        VerticalAlignment="Center"
+                        DockPanel.Dock="Right"
+                        IsChecked="{Binding IsEnabled, Mode=TwoWay}" />
+                      <!--  左侧竖线（宿主策略或依赖子项，Markdown 引用风格）  -->
+                      <Border
+                        Width="4"
+                        Margin="0,2,4,2"
+                        VerticalAlignment="Stretch"
+                        Background="{DynamicResource SystemAccentColor}"
+                        CornerRadius="2"
+                        DockPanel.Dock="Left"
+                        IsVisible="{Binding ShowLeftBar}" />
+                      <StackPanel Margin="0,0,0,0" Spacing="2">
+                        <TextBlock
+                          FontSize="13"
+                          FontWeight="SemiBold"
+                          Text="{Binding DisplayName}"
+                          TextTrimming="CharacterEllipsis" />
                         <StackPanel Orientation="Horizontal" Spacing="6">
-                          <TextBlock Classes="small"
-                                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                     Text="{Binding PriorityDisplay}" />
+                          <TextBlock
+                            Classes="small"
+                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                            Text="{Binding PriorityDisplay}" />
                         </StackPanel>
                       </StackPanel>
                     </DockPanel>
@@ -126,113 +155,176 @@
       </DockPanel>
     </Border>
 
-    <!-- ═══════════ 右侧详情 ═══════════ -->
+    <!--  ═══════════ 右侧详情 ═══════════  -->
     <Grid Grid.Column="1">
-      <!-- 空状态：未选中策略 -->
-      <Border IsVisible="{Binding HasSelection, Converter={x:Static conv:BoolConverters.Negate}}"
-              HorizontalAlignment="Center" VerticalAlignment="Center"
-              Padding="40" CornerRadius="8"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-        <StackPanel Spacing="8" HorizontalAlignment="Center">
-          <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Options}" FontSize="48"
-                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                          HorizontalAlignment="Center" />
-          <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint2}" Classes="sectionTitle" HorizontalAlignment="Center" />
-          <TextBlock Text="{x:Static lang:Resources.Strategy_SelectHint}" Classes="caption"
-                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                     HorizontalAlignment="Center" />
+      <!--  空状态：未选中策略  -->
+      <Border
+        Padding="40"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+        CornerRadius="8"
+        IsVisible="{Binding HasSelection, Converter={x:Static conv:BoolConverters.Negate}}">
+        <StackPanel HorizontalAlignment="Center" Spacing="8">
+          <fic:FluentIcon
+            HorizontalAlignment="Center"
+            FontSize="48"
+            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+            Icon="{x:Static ficEnum:Icon.Options}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="sectionTitle"
+            Text="{x:Static lang:Resources.Strategy_SelectHint2}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="caption"
+            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+            Text="{x:Static lang:Resources.Strategy_SelectHint}" />
         </StackPanel>
       </Border>
 
-      <!-- 详情状态 -->
+      <!--  详情状态  -->
       <ScrollViewer IsVisible="{Binding HasDetail}" VerticalScrollBarVisibility="Auto">
         <StackPanel Spacing="16">
-          <!-- 策略名称 + 来源标签 -->
-          <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                  CornerRadius="8" Padding="20">
+          <!--  策略名称 + 来源标签  -->
+          <Border
+            Padding="20"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            CornerRadius="8">
             <StackPanel Spacing="8">
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedDetail.DisplayName}"
-                           Classes="pageTitle" VerticalAlignment="Center" />
-                <Border DockPanel.Dock="Right" CornerRadius="4" Padding="8,3"
-                        Background="{DynamicResource SystemControlAccentBrush}"
-                        VerticalAlignment="Center">
-                  <TextBlock Text="{Binding DetailSourceDisplay}"
-                             Classes="small"
-                             Foreground="{DynamicResource SystemControlBackgroundChromeWhiteBrush}" />
+                <TextBlock
+                  VerticalAlignment="Center"
+                  Classes="pageTitle"
+                  DockPanel.Dock="Left"
+                  Text="{Binding SelectedDetail.DisplayName}" />
+                <Border
+                  Padding="8,3"
+                  VerticalAlignment="Center"
+                  Background="{DynamicResource SystemControlAccentBrush}"
+                  CornerRadius="4"
+                  DockPanel.Dock="Right">
+                  <TextBlock
+                    Classes="small"
+                    Foreground="{DynamicResource SystemControlBackgroundChromeWhiteBrush}"
+                    Text="{Binding DetailSourceDisplay}" />
                 </Border>
               </DockPanel>
-              <TextBlock Text="{Binding SelectedDetail.Description}"
-                         Classes="body" TextWrapping="Wrap"
-                         Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+              <TextBlock
+                Classes="body"
+                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                Text="{Binding SelectedDetail.Description}"
+                TextWrapping="Wrap" />
               <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Classes="bodySmall" Text="{Binding DetailAuthorDisplay}" Margin="0,4,0,0" />
-                <TextBlock Classes="bodySmall" Text="{Binding DetailCategoryDisplay}" Margin="0,4,0,0" />
-                <TextBlock Classes="bodySmall" Text="{Binding DetailDefaultPriorityDisplay}" Margin="0,4,0,0" />
+                <TextBlock
+                  Margin="0,4,0,0"
+                  Classes="bodySmall"
+                  Text="{Binding DetailAuthorDisplay}" />
+                <TextBlock
+                  Margin="0,4,0,0"
+                  Classes="bodySmall"
+                  Text="{Binding DetailCategoryDisplay}" />
+                <TextBlock
+                  Margin="0,4,0,0"
+                  Classes="bodySmall"
+                  Text="{Binding DetailDefaultPriorityDisplay}" />
               </StackPanel>
             </StackPanel>
           </Border>
 
-          <!-- 基本配置 -->
-          <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                  CornerRadius="8" Padding="20">
+          <!--  基本配置  -->
+          <Border
+            Padding="20"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            CornerRadius="8">
             <StackPanel Spacing="14">
-              <TextBlock Text="{x:Static lang:Resources.Strategy_BasicConfig}" Classes="sectionTitle" />
+              <TextBlock Classes="sectionTitle" Text="{x:Static lang:Resources.Strategy_BasicConfig}" />
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_PriorityLabel}" Classes="body"
-                           VerticalAlignment="Center" Width="140" />
-                <NumericUpDown Value="{Binding EditPriority, Mode=TwoWay}"
-                               Minimum="0" Maximum="999" Increment="1"
-                               MinWidth="120" HorizontalAlignment="Right" />
+                <TextBlock
+                  Width="140"
+                  VerticalAlignment="Center"
+                  Classes="body"
+                  DockPanel.Dock="Left"
+                  Text="{x:Static lang:Resources.Strategy_PriorityLabel}" />
+                <NumericUpDown
+                  MinWidth="120"
+                  HorizontalAlignment="Right"
+                  Increment="1"
+                  Maximum="999"
+                  Minimum="0"
+                  Value="{Binding EditPriority, Mode=TwoWay}" />
               </DockPanel>
               <Separator />
               <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{x:Static lang:Resources.Strategy_EnableLabel}" Classes="body"
-                           VerticalAlignment="Center" Width="140" />
-                <ToggleSwitch x:Name="EditEnabledSwitch" IsChecked="{Binding EditIsEnabled, Mode=TwoWay}"
-                              HorizontalAlignment="Right" />
+                <TextBlock
+                  Width="140"
+                  VerticalAlignment="Center"
+                  Classes="body"
+                  DockPanel.Dock="Left"
+                  Text="{x:Static lang:Resources.Strategy_EnableLabel}" />
+                <ToggleSwitch
+                  x:Name="EditEnabledSwitch"
+                  HorizontalAlignment="Right"
+                  IsChecked="{Binding EditIsEnabled, Mode=TwoWay}" />
               </DockPanel>
             </StackPanel>
           </Border>
 
-          <!-- 策略参数（manifest parameters[] 驱动） -->
-          <Border IsVisible="{Binding HasParameters}"
-                  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                  CornerRadius="8" Padding="20">
+          <!--  策略参数（manifest parameters[] 驱动）  -->
+          <Border
+            Padding="20"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            CornerRadius="8"
+            IsVisible="{Binding HasParameters}">
             <ContentControl Content="{Binding ParameterEditor}" />
           </Border>
 
-          <!-- 配置块（manifest codeBlocks[] 驱动） -->
+          <!--  配置块（manifest codeBlocks[] 驱动）  -->
           <ItemsControl ItemsSource="{Binding ConfigBlockEditors}" />
 
-          <!-- 保存/重置按钮 -->
-          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
-            <Button Command="{Binding ResetConfigCommand}"
-                    HorizontalContentAlignment="Center" Padding="12,6">
+          <!--  保存/重置按钮  -->
+          <StackPanel
+            Margin="0,0,0,16"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+              Padding="12,6"
+              HorizontalContentAlignment="Center"
+              Command="{Binding ResetConfigCommand}">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.ArrowUndo}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_RestoreDefaults}" Classes="body" />
+                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
+                <TextBlock Classes="body" Text="{x:Static lang:Resources.Strategy_RestoreDefaults}" />
               </StackPanel>
             </Button>
-                <Button Command="{Binding SaveCurrentConfigCommand}"
-                    HorizontalContentAlignment="Center" Padding="12,6"
-                    IsDefault="True">
+            <Button
+              Padding="12,6"
+              HorizontalContentAlignment="Center"
+              Command="{Binding SaveCurrentConfigCommand}"
+              IsDefault="True">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon Icon="{x:Static ficEnum:Icon.Save}" FontSize="16" />
-                <TextBlock Text="{x:Static lang:Resources.Strategy_SaveConfig}" Classes="body" />
+                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
+                <TextBlock Classes="body" Text="{x:Static lang:Resources.Strategy_SaveConfig}" />
               </StackPanel>
             </Button>
           </StackPanel>
         </StackPanel>
       </ScrollViewer>
 
-      <!-- 加载遮罩 -->
-      <Border IsVisible="{Binding IsLoading}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
-          <ProgressBar IsIndeterminate="True" Width="200" />
-          <TextBlock Text="{x:Static lang:Resources.Common_Processing}" Classes="body" HorizontalAlignment="Center" />
+      <!--  加载遮罩  -->
+      <Border
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        IsVisible="{Binding IsLoading}">
+        <StackPanel
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Spacing="8">
+          <ProgressBar Width="200" IsIndeterminate="True" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="body"
+            Text="{x:Static lang:Resources.Common_Processing}" />
         </StackPanel>
       </Border>
     </Grid>

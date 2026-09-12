@@ -65,21 +65,21 @@ public partial class SeatDisplayItem : ObservableObject
     // ── Tooltip ──
     public string TooltipText => IsOccupied
         ? $"{StudentName} - {SeatLabel}"
-        : string.Format(Resources.Seating_EmptySeatFmt , SeatLabel);
+        : string.Format(Resources.Seating_EmptySeatFmt, SeatLabel);
 
     // ── 颜色 ──
-    private static readonly SolidColorBrush EmptyBg = new(Color.FromArgb(0x20 , 0xA0 , 0xA0 , 0xA0));
-    private static readonly SolidColorBrush EmptyBorder = new(Color.FromArgb(0x80 , 0xA0 , 0xA0 , 0xA0));
-    private static readonly SolidColorBrush OccupiedBg = new(Color.FromArgb(0x60 , 0x16 , 0xA3 , 0x4A));
-    private static readonly SolidColorBrush OccupiedBorder = new(Color.FromArgb(0xFF , 0x16 , 0xA3 , 0x4A));
-    private static readonly SolidColorBrush FixedBg = new(Color.FromArgb(0x20 , 0x25 , 0x63 , 0xEB));
-    private static readonly SolidColorBrush FixedBorder = new(Color.FromArgb(0xFF , 0x25 , 0x63 , 0xEB));
-    private static readonly SolidColorBrush SwapBg = new(Color.FromArgb(0x40 , 0xF9 , 0x73 , 0x16));
-    private static readonly SolidColorBrush SwapBorder = new(Color.FromArgb(0xFF , 0xF9 , 0x73 , 0x16));
-    private static readonly SolidColorBrush StaleBg = new(Color.FromArgb(0x30 , 0xF9 , 0xA8 , 0x25));
-    private static readonly SolidColorBrush StaleBorder = new(Color.FromArgb(0xFF , 0xF9 , 0xA8 , 0x25));
-    private static readonly SolidColorBrush DropTargetBg = new(Color.FromArgb(0x40 , 0x00 , 0x78 , 0xD4));
-    private static readonly SolidColorBrush DropTargetBorder = new(Color.FromArgb(0xFF , 0x00 , 0x78 , 0xD4));
+    private static readonly SolidColorBrush EmptyBg = new(Color.FromArgb(0x20, 0xA0, 0xA0, 0xA0));
+    private static readonly SolidColorBrush EmptyBorder = new(Color.FromArgb(0x80, 0xA0, 0xA0, 0xA0));
+    private static readonly SolidColorBrush OccupiedBg = new(Color.FromArgb(0x60, 0x16, 0xA3, 0x4A));
+    private static readonly SolidColorBrush OccupiedBorder = new(Color.FromArgb(0xFF, 0x16, 0xA3, 0x4A));
+    private static readonly SolidColorBrush FixedBg = new(Color.FromArgb(0x20, 0x25, 0x63, 0xEB));
+    private static readonly SolidColorBrush FixedBorder = new(Color.FromArgb(0xFF, 0x25, 0x63, 0xEB));
+    private static readonly SolidColorBrush SwapBg = new(Color.FromArgb(0x40, 0xF9, 0x73, 0x16));
+    private static readonly SolidColorBrush SwapBorder = new(Color.FromArgb(0xFF, 0xF9, 0x73, 0x16));
+    private static readonly SolidColorBrush StaleBg = new(Color.FromArgb(0x30, 0xF9, 0xA8, 0x25));
+    private static readonly SolidColorBrush StaleBorder = new(Color.FromArgb(0xFF, 0xF9, 0xA8, 0x25));
+    private static readonly SolidColorBrush DropTargetBg = new(Color.FromArgb(0x40, 0x00, 0x78, 0xD4));
+    private static readonly SolidColorBrush DropTargetBorder = new(Color.FromArgb(0xFF, 0x00, 0x78, 0xD4));
 
     public IBrush BackgroundBrush => IsDragHover ? DropTargetBg :
         IsSelectedForSwap ? SwapBg :

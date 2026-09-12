@@ -1,32 +1,60 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-             x:DataType="vm:SeatPositionPickerViewModel"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.SeatPositionPickerView">
-    <StackPanel Orientation="Horizontal" Spacing="4">
-        <!-- Grid：范围由会场 GridLayoutMetadata 决定 -->
-        <StackPanel Orientation="Horizontal" Spacing="4"
-                    IsVisible="{Binding IsGrid}">
-            <TextBlock Text="行" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding Row}" Minimum="1" Maximum="{Binding GridMaxRow}"/>
-            <TextBlock Text="列" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding Column}" Minimum="1" Maximum="{Binding GridMaxColumn}"/>
-        </StackPanel>
-        <!-- Polar：范围由会场 PolarLayoutMetadata 决定 -->
-        <StackPanel Orientation="Horizontal" Spacing="4"
-                    IsVisible="{Binding IsPolar}">
-            <TextBlock Text="环" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding Ring}" Minimum="1" Maximum="{Binding PolarMaxRing}"/>
-            <TextBlock Text="角度" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding Angle}" Minimum="0" Maximum="360" Increment="15" />
-        </StackPanel>
-        <!-- Freeform：范围由会场实际坐标决定 -->
-        <StackPanel Orientation="Horizontal" Spacing="4"
-                    IsVisible="{Binding IsFreeform}">
-            <TextBlock Text="X" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding X}" Minimum="0" Maximum="{Binding FreeformMaxX}" Increment="0.5" />
-            <TextBlock Text="Y" VerticalAlignment="Center" />
-            <NumericUpDown Value="{Binding Y}" Minimum="0" Maximum="{Binding FreeformMaxY}" Increment="0.5" />
-        </StackPanel>
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.SeatPositionPickerView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:SeatPositionPickerViewModel">
+  <StackPanel Orientation="Horizontal" Spacing="4">
+    <!--  Grid：范围由会场 GridLayoutMetadata 决定  -->
+    <StackPanel
+      IsVisible="{Binding IsGrid}"
+      Orientation="Horizontal"
+      Spacing="4">
+      <TextBlock VerticalAlignment="Center" Text="行" />
+      <NumericUpDown
+        Maximum="{Binding GridMaxRow}"
+        Minimum="1"
+        Value="{Binding Row}" />
+      <TextBlock VerticalAlignment="Center" Text="列" />
+      <NumericUpDown
+        Maximum="{Binding GridMaxColumn}"
+        Minimum="1"
+        Value="{Binding Column}" />
     </StackPanel>
+    <!--  Polar：范围由会场 PolarLayoutMetadata 决定  -->
+    <StackPanel
+      IsVisible="{Binding IsPolar}"
+      Orientation="Horizontal"
+      Spacing="4">
+      <TextBlock VerticalAlignment="Center" Text="环" />
+      <NumericUpDown
+        Maximum="{Binding PolarMaxRing}"
+        Minimum="1"
+        Value="{Binding Ring}" />
+      <TextBlock VerticalAlignment="Center" Text="角度" />
+      <NumericUpDown
+        Increment="15"
+        Maximum="360"
+        Minimum="0"
+        Value="{Binding Angle}" />
+    </StackPanel>
+    <!--  Freeform：范围由会场实际坐标决定  -->
+    <StackPanel
+      IsVisible="{Binding IsFreeform}"
+      Orientation="Horizontal"
+      Spacing="4">
+      <TextBlock VerticalAlignment="Center" Text="X" />
+      <NumericUpDown
+        Increment="0.5"
+        Maximum="{Binding FreeformMaxX}"
+        Minimum="0"
+        Value="{Binding X}" />
+      <TextBlock VerticalAlignment="Center" Text="Y" />
+      <NumericUpDown
+        Increment="0.5"
+        Maximum="{Binding FreeformMaxY}"
+        Minimum="0"
+        Value="{Binding Y}" />
+    </StackPanel>
+  </StackPanel>
 </UserControl>

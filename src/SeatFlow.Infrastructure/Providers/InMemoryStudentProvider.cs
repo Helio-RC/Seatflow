@@ -13,7 +13,7 @@ namespace SeatFlow.Infrastructure.Providers
     public class InMemoryStudentProvider : IStudentProvider
     {
         /// <inheritdoc />
-        public Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
+        public Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
         {
             var list = new List<Student>
             {

@@ -3,9 +3,9 @@ namespace SeatFlow.Infrastructure.Tests.LayoutBuilders;
 public class PolarLayoutBuilderTests
 {
     [Fact]
-    public void BuildPolar_ShouldCreateCorrectNumberOfSeats ()
+    public void BuildPolar_ShouldCreateCorrectNumberOfSeats()
     {
-        var layout = PolarLayoutBuilder.BuildPolar(1.0 , 2 , 8);
+        var layout = PolarLayoutBuilder.BuildPolar(1.0, 2, 8);
         layout.Seats.Should().HaveCount(16);
         layout.LayoutType.Should().Be(LayoutType.Polar);
         var meta = layout.Metadata as PolarLayoutMetadata;
@@ -15,16 +15,16 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_FullCircle_NoAisles_ShouldGenerateUniformSeats ()
+    public void BuildPolar_FullCircle_NoAisles_ShouldGenerateUniformSeats()
     {
         var meta = new PolarLayoutMetadata
         {
-            Rings = 3 ,
-            SeatsPerRing = 8 ,
-            RadiusStep = 40 ,
-            StartAngleDegrees = 0 ,
-            EndAngleDegrees = 360 ,
-            OriginX = 200 ,
+            Rings = 3,
+            SeatsPerRing = 8,
+            RadiusStep = 40,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 360,
+            OriginX = 200,
             OriginY = 200
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -33,16 +33,16 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_HalfCircle_ShouldRespectAngleRange ()
+    public void BuildPolar_HalfCircle_ShouldRespectAngleRange()
     {
         var meta = new PolarLayoutMetadata
         {
-            Rings = 1 ,
-            SeatsPerRing = 6 ,
-            RadiusStep = 40 ,
-            StartAngleDegrees = 0 ,
-            EndAngleDegrees = 180 ,
-            OriginX = 200 ,
+            Rings = 1,
+            SeatsPerRing = 6,
+            RadiusStep = 40,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 180,
+            OriginX = 200,
             OriginY = 200
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -55,17 +55,17 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_WithRadialAisles_ShouldAssignLogicalGroup ()
+    public void BuildPolar_WithRadialAisles_ShouldAssignLogicalGroup()
     {
         var meta = new PolarLayoutMetadata
         {
-            RingSeatCounts = new List<int> { 12 } ,
-            RadiusStep = 40 ,
-            StartAngleDegrees = 0 ,
-            EndAngleDegrees = 360 ,
-            OriginX = 200 ,
-            OriginY = 200 ,
-            AisleRadialAngles = new List<double> { 0 , 90 , 180 , 270 } ,
+            RingSeatCounts = new List<int> { 12 },
+            RadiusStep = 40,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 360,
+            OriginX = 200,
+            OriginY = 200,
+            AisleRadialAngles = new List<double> { 0, 90, 180, 270 },
             AisleRadialWidthDegrees = 5
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -74,34 +74,34 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_WithCircularAisles_ShouldIncreaseRadius ()
+    public void BuildPolar_WithCircularAisles_ShouldIncreaseRadius()
     {
         var meta = new PolarLayoutMetadata
         {
-            Rings = 3 ,
-            SeatsPerRing = 8 ,
-            RadiusStep = 40 ,
-            AisleCircularAfterRings = new List<int> { 1 , 2 } ,
-            AisleCircularWidth = 20 ,
+            Rings = 3,
+            SeatsPerRing = 8,
+            RadiusStep = 40,
+            AisleCircularAfterRings = new List<int> { 1, 2 },
+            AisleCircularWidth = 20,
             HasPodium = false
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
         var seats = layout.Seats.Cast<PolarSeat>().ToList();
-        seats.First(s => s.Ring == 1).Radius.Should().BeApproximately(40 , 1e-9);
-        seats.First(s => s.Ring == 2).Radius.Should().BeApproximately(100 , 1e-9);
-        seats.First(s => s.Ring == 3).Radius.Should().BeApproximately(160 , 1e-9);
+        seats.First(s => s.Ring == 1).Radius.Should().BeApproximately(40, 1e-9);
+        seats.First(s => s.Ring == 2).Radius.Should().BeApproximately(100, 1e-9);
+        seats.First(s => s.Ring == 3).Radius.Should().BeApproximately(160, 1e-9);
     }
 
     [Fact]
-    public void BuildPolar_WithPodium_ShouldAddObstacle ()
+    public void BuildPolar_WithPodium_ShouldAddObstacle()
     {
         var meta = new PolarLayoutMetadata
         {
-            Rings = 1 ,
-            SeatsPerRing = 8 ,
-            HasPodium = true ,
-            PodiumRadius = 30 ,
-            OriginX = 200 ,
+            Rings = 1,
+            SeatsPerRing = 8,
+            HasPodium = true,
+            PodiumRadius = 30,
+            OriginX = 200,
             OriginY = 200
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -112,30 +112,30 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_NoPodium_ShouldNotAddObstacle ()
+    public void BuildPolar_NoPodium_ShouldNotAddObstacle()
     {
-        var meta = new PolarLayoutMetadata { Rings = 1 , SeatsPerRing = 8 , HasPodium = false };
+        var meta = new PolarLayoutMetadata { Rings = 1, SeatsPerRing = 8, HasPodium = false };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
         layout.Obstacles.Should().BeEmpty();
     }
 
     [Fact]
-    public void BuildPolar_BackwardCompat_RingsAndSeatsPerRing ()
+    public void BuildPolar_BackwardCompat_RingsAndSeatsPerRing()
     {
-        var layout = PolarLayoutBuilder.BuildPolar(40 , 2 , 10);
+        var layout = PolarLayoutBuilder.BuildPolar(40, 2, 10);
         layout.Seats.Count.Should().Be(20);
         layout.LayoutType.Should().Be(LayoutType.Polar);
     }
 
     [Fact]
-    public void BuildPolar_RingSeatCounts_TakesPrecedence ()
+    public void BuildPolar_RingSeatCounts_TakesPrecedence()
     {
         var meta = new PolarLayoutMetadata
         {
-            Rings = 10 ,
-            SeatsPerRing = 100 ,
-            RingSeatCounts = new List<int> { 4 , 6 , 8 } ,
-            RadiusStep = 40 ,
+            Rings = 10,
+            SeatsPerRing = 100,
+            RingSeatCounts = new List<int> { 4, 6, 8 },
+            RadiusStep = 40,
             HasPodium = false
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -143,15 +143,15 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_QuarterCircle_ShouldProduceSeatsInRange ()
+    public void BuildPolar_QuarterCircle_ShouldProduceSeatsInRange()
     {
         var meta = new PolarLayoutMetadata
         {
-            Rings = 1 ,
-            SeatsPerRing = 10 ,
-            RadiusStep = 40 ,
-            StartAngleDegrees = 0 ,
-            EndAngleDegrees = 90 ,
+            Rings = 1,
+            SeatsPerRing = 10,
+            RadiusStep = 40,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 90,
             HasPodium = false
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -163,14 +163,14 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_NoSegments_AngleRangeTooNarrow_ShouldReturnEmpty ()
+    public void BuildPolar_NoSegments_AngleRangeTooNarrow_ShouldReturnEmpty()
     {
         var meta = new PolarLayoutMetadata
         {
-            StartAngleDegrees = 0 ,
-            EndAngleDegrees = 2 ,
-            AisleRadialAngles = new List<double> { 0 } ,
-            AisleRadialWidthDegrees = 10 ,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 2,
+            AisleRadialAngles = new List<double> { 0 },
+            AisleRadialWidthDegrees = 10,
             HasPodium = false
         };
         var layout = PolarLayoutBuilder.BuildPolar(meta);
@@ -178,15 +178,15 @@ public class PolarLayoutBuilderTests
     }
 
     [Fact]
-    public void BuildPolar_WithEmptyPositions_ShouldSkipThem ()
+    public void BuildPolar_WithEmptyPositions_ShouldSkipThem()
     {
         var meta = new PolarLayoutMetadata
         {
-            RingSeatCounts = new List<int> { 4 , 4 } ,
-            RadiusStep = 40 ,
-            StartAngleDegrees = 0 ,
-            EndAngleDegrees = 360 ,
-            HasPodium = false ,
+            RingSeatCounts = new List<int> { 4, 4 },
+            RadiusStep = 40,
+            StartAngleDegrees = 0,
+            EndAngleDegrees = 360,
+            HasPodium = false,
             EmptyPositions = new List<PolarRingAngle>
             {
                 new() { Ring = 1, AngleDegrees = 45 },

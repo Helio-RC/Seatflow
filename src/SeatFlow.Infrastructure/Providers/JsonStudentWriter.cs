@@ -14,18 +14,18 @@ namespace SeatFlow.Infrastructure.Providers
     public class JsonStudentWriter : IStudentWriter
     {
         /// <inheritdoc />
-        public async Task WriteAsync (string path , IEnumerable<Student> students , CancellationToken cancellationToken = default)
+        public async Task WriteAsync(string path, IEnumerable<Student> students, CancellationToken cancellationToken = default)
         {
             var roster = new RosterFile
             {
-                Version = "1.1" ,
+                Version = "1.1",
                 Students = new List<Student>(students)
             };
 
             var options = JsonOptions.WriteIndentedCamelCase;
 
-            var json = JsonSerializer.Serialize(roster , options);
-            await File.WriteAllTextAsync(path , json , cancellationToken);
+            var json = JsonSerializer.Serialize(roster, options);
+            await File.WriteAllTextAsync(path, json, cancellationToken);
         }
     }
 }

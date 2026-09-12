@@ -9,7 +9,7 @@ set -euo pipefail
 OLDPWD="$PWD"; trap 'cd "$OLDPWD"' EXIT
 cd ../..
 
-APP_NAME="SeatFlow"; PROJECT="src/SeatFlow.Presentation.Avalonia"; CONFIG="Release"
+APP_NAME="SeatFlow"; PROJECT="src/SeatFlow.Desktop"; CONFIG="Release"
 RIDS=("win-x64" "linux-x64" "osx-x64" "osx-arm64")
 SUFFIXES=(".exe" "" "" ""); SEL=(0 0 0 0)
 TYPE_IDX=2; TRIM_SEL=0; AOT=0; CLEAN=0; CURSOR=0; SUFFIX=""; VERSION=""; ITEMS=16
@@ -22,6 +22,19 @@ sha_table(){
     if [ ${#files[@]} -eq 0 ]; then echo -e "\e[33m没有找到已发布文件\e[0m"; return; fi
     echo ""; echo "| 文件 | SHA256 |"; echo "|------|--------|"
     for f in "${files[@]}"; do h=$(sha256sum "$f"|awk '{print tolower($1)}'); n=$(basename "$f"); echo "| \`$n\` | $h |"; done
+}
+
+publish_web(){
+    local base="publish/web"; mkdir -p "$base"
+    local tmp="$base/.tmp_web"; rm -rf "$tmp"
+    echo ""; echo -e "\e[36m══════════════════════════════════════════\e[0m"
+    echo -e "\e[36m  WebAssembly (静态站点)\e[0m"
+    echo -e "\e[36m══════════════════════════════════════════\e[0m"
+    step "开始编译..." 33
+    dotnet publish "src/SeatFlow.Browser" -c "$CONFIG" -o "$tmp"
+    local fn="$APP_NAME${VERSION:+-$VERSION}-web.tar.gz"
+    tar -czf "$base/$fn" -C "$tmp/wwwroot" . && rm -rf "$tmp"
+    local s; s=$(du -h "$base/$fn"|cut -f1); step "完成 → $base/$fn ($s)" 32
 }
 
 publish_one(){
@@ -64,6 +77,7 @@ if [ $# -gt 0 ]; then
     MODE="${1:-both}"; CONFIG="${2:-Release}"; [ "${3:-}" = "opt" ] && TRIM_SEL=1; SUFFIX="${4:-}"; VERSION="${5:-}"; [ "${6:-}" = "clean" ] && CLEAN=1; [ "${7:-}" = "aot" ] && AOT=1
     if [ "$CLEAN" = "1" ] && [ -d publish ]; then find publish -type f | while read -r f; do echo -e "\e[90m  $f\e[0m"; done; read -r -p "确认删除以上文件? (y/N) " c; [ "$c" = "y" ] && { rm -rf publish; echo -e "\e[33m已清空\e[0m"; } || echo -e "\e[90m已取消\e[0m"; fi
     S=$(date +%s)
+    if [ "$MODE" = "web" ]; then publish_web; E=$(date +%s); echo -e "\n\e[36m完成 $((E-S))s\e[0m"; exit 0; fi
     if [ "$MODE" != "slim" ]; then echo -e "\n\e[35m--- 自包含 ---\e[0m"; publish_one "true" "full" "${RIDS[@]}"; fi
     if [ "$MODE" != "full" ]; then echo -e "\n\e[35m--- 依赖运行时 ---\e[0m"; publish_one "false" "slim" "${RIDS[@]}"; fi
     E=$(date +%s); echo -e "\n\e[36m完成 $((E-S))s\e[0m"; sha_table; exit 0

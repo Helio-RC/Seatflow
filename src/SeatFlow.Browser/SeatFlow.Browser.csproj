@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0-browser</TargetFramework>
+    <!-- 单线程模式 + 链接顺序 workaround（官方 Avalonia samples 同款配置）：
+         dotnet/runtime#109289 导致 SkiaSharp native .a 链接顺序错误 → 符号缺失 →
+         TypeInitialization_Type, SkiaSharp.SKImageInfo。修复后单线程变体亦含 Skia，
+         且无需 COOP/COEP 跨源隔离（部署更简单）。 -->
+    <WasmEnableThreads>false</WasmEnableThreads>
+    <!-- 裁剪默认禁用反射式 System.Text.Json（JsonSerializerIsReflectionDisabled 异常）。
+         SeatFlow 的仓储/序列化大量使用反射式 JsonSerializer，且 SeatFlow.* 已全量 TrimmerRoot，
+         因此显式重新启用反射序列化。 -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>..\SeatFlow.Presentation.Avalonia\Assets\icon_with_background.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Browser" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SeatFlow.Presentation.Avalonia\SeatFlow.Presentation.Avalonia.csproj" />
+    <ProjectReference Include="..\SeatFlow.Application\SeatFlow.Application.csproj" />
+  </ItemGroup>
+
+  <!-- Phase 0 验证结论：EPPlus 需显式 TrimRoot 才进入发布产物 -->
+  <ItemGroup>
+    <TrimmerRootAssembly Include="EPPlus" />
+    <TrimmerRootAssembly Include="EPPlus.Interfaces" />
+    <!-- ViewLocator 按命名约定反射解析 VM→View；裁剪会误删 View 类型 → 保 SeatFlow 全程序集 -->
+    <TrimmerRootAssembly Include="SeatFlow.Presentation.Avalonia" />
+    <TrimmerRootAssembly Include="SeatFlow.Application" />
+    <TrimmerRootAssembly Include="SeatFlow.Core" />
+    <TrimmerRootAssembly Include="SeatFlow.Infrastructure" />
+  </ItemGroup>
+
+  <!-- https://github.com/dotnet/runtime/issues/109289
+       官方 Avalonia.Browser.targets 的链接顺序 workaround（NuGet 12.1.x 未包含，
+       会导致 SkiaSharp native 符号缺失 → TypeInitialization_Type）。 -->
+  <Target Name="Issue109289_Workaround"
+          Condition="'$(DisableIssue109289Workaround)' != 'true' AND $([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), '9.0'))"
+          AfterTargets="_BrowserWasmWriteRspForLinking">
+    <ItemGroup>
+      <_WasmLinkStepArgs Remove="@(_EmccLinkStepArgs)" />
+      <_EmccLinkStepArgs Remove="&quot;%(_WasmNativeFileForLinking.Identity)&quot;" />
+      <_WasmLinkDependencies Remove="@(_WasmNativeFileForLinking)" />
+
+      <_SkiaSharpToReorder Include="@(_WasmNativeFileForLinking)" Condition="$([System.String]::Copy('%(FullPath)').Contains('SkiaSharp'))" />
+      <_WasmNativeFileForLinking Remove="@(_SkiaSharpToReorder)" />
+      <_WasmNativeFileForLinking Include="@(_SkiaSharpToReorder)" />
+
+      <_EmccLinkStepArgs Include="&quot;%(_WasmNativeFileForLinking.Identity)&quot;" />
+      <_WasmLinkDependencies Include="@(_WasmNativeFileForLinking)" />
+      <_WasmLinkStepArgs Include="@(_EmccLinkStepArgs)" />
+    </ItemGroup>
+  </Target>
+</Project>

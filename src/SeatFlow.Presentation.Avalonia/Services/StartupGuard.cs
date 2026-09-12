@@ -7,26 +7,26 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 
 internal static class StartupGuard
 {
-    public static (bool HasWarning , string Message) CheckEnvironment ()
+    public static (bool HasWarning, string Message) CheckEnvironment()
     {
         var sb = new StringBuilder();
         var major = Environment.Version.Major;
 
         if (major < 10)
         {
-            sb.AppendLine(string.Format(Resources.Startup_DotNetVersion , Environment.Version));
+            sb.AppendLine(string.Format(Resources.Startup_DotNetVersion, Environment.Version));
         }
 
         if (!IsSupportedOS())
         {
-            sb.Append(string.Format(Resources.Startup_UnsupportedOS , RuntimeInformation.OSDescription));
+            sb.Append(string.Format(Resources.Startup_UnsupportedOS, RuntimeInformation.OSDescription));
         }
 
         var message = sb.ToString().TrimEnd();
-        return (message.Length > 0 , message);
+        return (message.Length > 0, message);
     }
 
-    private static bool IsSupportedOS ()
+    private static bool IsSupportedOS()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return Environment.OSVersion.Version.Major >= 10;

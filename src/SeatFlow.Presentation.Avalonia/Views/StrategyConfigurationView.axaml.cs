@@ -4,7 +4,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
 {
     public partial class StrategyConfigurationView : UserControl
     {
-        public StrategyConfigurationView ()
+        public StrategyConfigurationView()
         {
             InitializeComponent();
         }

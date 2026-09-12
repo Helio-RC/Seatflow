@@ -1,54 +1,68 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-        xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-        x:Class="SeatFlow.Presentation.Avalonia.Views.SeatSetsSelectionWindow"
-        x:DataType="vm:SeatSetsSelectionViewModel"
-        Width="440" SizeToContent="Height" MinHeight="320"
-        CanResize="False" ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="32"
-        Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+<Window
+  x:Class="SeatFlow.Presentation.Avalonia.Views.SeatSetsSelectionWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  Width="440"
+  MinHeight="320"
+  x:DataType="vm:SeatSetsSelectionViewModel"
+  Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+  CanResize="False"
+  ExtendClientAreaTitleBarHeightHint="32"
+  ExtendClientAreaToDecorationsHint="True"
+  ShowInTaskbar="False"
+  SizeToContent="Height"
+  WindowStartupLocation="CenterOwner">
 
   <Design.DataContext>
     <vm:SeatSetsSelectionViewModel />
   </Design.DataContext>
 
   <DockPanel Margin="24,52,24,20">
-    <!-- 底部按钮 -->
-    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
-                HorizontalAlignment="Right" Margin="0,20,0,0" Spacing="8">
-      <Button x:Name="CancelButton" Classes="ActionCancel"
-              Content="{x:Static lang:Resources.Common_Cancel}"/>
-      <Button x:Name="ConfirmButton" Classes="ActionButton" IsDefault="True"
-              Content="{x:Static lang:Resources.Common_OK}"/>
+    <!--  底部按钮  -->
+    <StackPanel
+      Margin="0,20,0,0"
+      HorizontalAlignment="Right"
+      DockPanel.Dock="Bottom"
+      Orientation="Horizontal"
+      Spacing="8">
+      <Button
+        x:Name="CancelButton"
+        Classes="ActionCancel"
+        Content="{x:Static lang:Resources.Common_Cancel}" />
+      <Button
+        x:Name="ConfirmButton"
+        Classes="ActionButton"
+        Content="{x:Static lang:Resources.Common_OK}"
+        IsDefault="True" />
     </StackPanel>
 
-    <!-- 内容区域 -->
+    <!--  内容区域  -->
     <StackPanel Spacing="12">
-      <!-- 提示文字 -->
-      <TextBlock Classes="body" TextWrapping="Wrap"
-                 Text="{Binding Title}" FontWeight="SemiBold" />
+      <!--  提示文字  -->
+      <TextBlock
+        Classes="body"
+        FontWeight="SemiBold"
+        Text="{Binding Title}"
+        TextWrapping="Wrap" />
 
-      <!-- 全选/取消全选 -->
-      <Button x:Name="ToggleAllButton" Classes="linkButton"
-              HorizontalContentAlignment="Left" Padding="0"
-              Content="{Binding ToggleAllText}" />
+      <!--  全选/取消全选  -->
+      <Button
+        x:Name="ToggleAllButton"
+        Padding="0"
+        HorizontalContentAlignment="Left"
+        Classes="linkButton"
+        Content="{Binding ToggleAllText}" />
 
-      <!-- 类别复选框列表 -->
-      <Border Classes="Card" Padding="16,12">
+      <!--  类别复选框列表  -->
+      <Border Padding="16,12" Classes="Card">
         <StackPanel Spacing="8">
-          <CheckBox IsChecked="{Binding IncludeAppSettings, Mode=TwoWay}"
-                    Content="{x:Static lang:Resources.SeatSets_AppSettings_Label}" />
-          <CheckBox IsChecked="{Binding IncludeVenues, Mode=TwoWay}"
-                    Content="{x:Static lang:Resources.SeatSets_Venues_Label}" />
-          <CheckBox IsChecked="{Binding IncludeRosters, Mode=TwoWay}"
-                    Content="{x:Static lang:Resources.SeatSets_Rosters_Label}" />
-          <CheckBox IsChecked="{Binding IncludeSnapshots, Mode=TwoWay}"
-                    Content="{x:Static lang:Resources.SeatSets_Snapshots_Label}" />
-          <CheckBox IsChecked="{Binding IncludeStrategyConfig, Mode=TwoWay}"
-                    Content="{x:Static lang:Resources.SeatSets_StrategyConfig_Label}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_AppSettings_Label}" IsChecked="{Binding IncludeAppSettings, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_Venues_Label}" IsChecked="{Binding IncludeVenues, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_Rosters_Label}" IsChecked="{Binding IncludeRosters, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_Snapshots_Label}" IsChecked="{Binding IncludeSnapshots, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_StrategyConfig_Label}" IsChecked="{Binding IncludeStrategyConfig, Mode=TwoWay}" />
         </StackPanel>
       </Border>
     </StackPanel>

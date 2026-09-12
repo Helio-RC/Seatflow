@@ -6,11 +6,11 @@ namespace SeatFlow.Infrastructure.Tests.Exporters;
 public class ExcelSeatingExporterTests
 {
     [Fact]
-    public async Task ExportAsync_ShouldCreateExcelFile ()
+    public async Task ExportAsync_ShouldCreateExcelFile()
     {
         var plan = new SeatingPlan
         {
-            Assignments = new Dictionary<string , string>
+            Assignments = new Dictionary<string, string>
             {
                 { "seat1", "student1" }
             }
@@ -20,7 +20,7 @@ public class ExcelSeatingExporterTests
 
         try
         {
-            await exporter.ExportAsync(plan , path , CancellationToken.None);
+            await exporter.ExportAsync(plan, path, CancellationToken.None);
             File.Exists(path).Should().BeTrue();
         }
         finally
@@ -30,11 +30,11 @@ public class ExcelSeatingExporterTests
     }
 
     [Fact]
-    public async Task ExportAsync_WithOptions_ShouldIncludeMetadataSheet ()
+    public async Task ExportAsync_WithOptions_ShouldIncludeMetadataSheet()
     {
         var plan = new SeatingPlan
         {
-            Assignments = new Dictionary<string , string>
+            Assignments = new Dictionary<string, string>
             {
                 { "seat1", "student1" }
             }
@@ -45,7 +45,7 @@ public class ExcelSeatingExporterTests
         try
         {
             var options = new ExportOptions { IncludeMetadata = true };
-            await exporter.ExportAsync(plan , path , options , CancellationToken.None);
+            await exporter.ExportAsync(plan, path, options, CancellationToken.None);
             // 简单验证文件存在（实际可通过EPPlus读取元数据表，略）
             File.Exists(path).Should().BeTrue();
         }

@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Lang;
 using CommunityToolkit.Mvvm.Input;
 using AvaloniaApplication = Avalonia.Application;
+using SeatFlow.Presentation.Avalonia.Services;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -33,12 +34,15 @@ public partial class AboutViewModel : ViewModelBase
 
     public List<DependencyInfo> Dependencies { get; }
 
-    public AboutViewModel ()
+    private readonly IUrlOpener? _urlOpener;
+
+    public AboutViewModel(IUrlOpener? urlOpener = null)
     {
         var data = LoadAboutData();
+        _urlOpener = urlOpener;
 
         Version = $"{VersionInfo.Version}-{VersionInfo.CommitId}";
-        VersionDisplay = string.Format(Resources.About_Version , Version);
+        VersionDisplay = string.Format(Resources.About_Version, Version);
 
         RuntimeVersion = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
         AvaloniaVersion = typeof(AvaloniaApplication).Assembly.GetName().Version?.ToString() ?? "";
@@ -59,14 +63,14 @@ public partial class AboutViewModel : ViewModelBase
             .Select(d =>
             {
                 var pkgId = d.PackageId ?? d.Name;
-                var version = PackageVersions.Map.TryGetValue(pkgId , out var v) ? v : "?";
-                return new DependencyInfo(d.Name , version , d.Purpose , d.License , d.Url);
+                var version = PackageVersions.Map.TryGetValue(pkgId, out var v) ? v : "?";
+                return new DependencyInfo(d.Name, version, d.Purpose, d.License, d.Url);
             })
             .ToList();
     }
 
     [RelayCommand]
-    private static async Task OpenUrl (string url)
+    private async Task OpenUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
             return;
@@ -84,27 +88,27 @@ public partial class AboutViewModel : ViewModelBase
             }
         }
 
-        // 回退：无头环境 / 测试场景
-        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        // 回退：无头环境 / 浏览器（WASM）→ 平台 URL 打开器
+        _urlOpener?.OpenUrl(url);
     }
 
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private static AboutData LoadAboutData ()
+    private static AboutData LoadAboutData()
     {
         var assembly = typeof(AboutViewModel).Assembly;
         const string resourceName = "SeatFlow.Presentation.Avalonia.Data.about.json";
         using var stream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidDataException($"Embedded resource not found: {resourceName}");
 
-        var all = JsonSerializer.Deserialize<Dictionary<string , AboutData>>(stream , _jsonOptions)
-                  ?? new Dictionary<string , AboutData>();
+        var all = JsonSerializer.Deserialize<Dictionary<string, AboutData>>(stream, _jsonOptions)
+                  ?? new Dictionary<string, AboutData>();
 
         // 按当前语言查找，回退到 zh-CN
         var culture = CultureInfo.CurrentUICulture;
-        if (all.TryGetValue(culture.Name , out var match)) return match;
-        if (all.TryGetValue(culture.TwoLetterISOLanguageName , out match)) return match;
-        if (all.TryGetValue("zh-CN" , out match)) return match;
+        if (all.TryGetValue(culture.Name, out var match)) return match;
+        if (all.TryGetValue(culture.TwoLetterISOLanguageName, out match)) return match;
+        if (all.TryGetValue("zh-CN", out match)) return match;
 
         // 最后一个回退：取第一个可用语言
         return all.Values.FirstOrDefault() ?? new AboutData();
@@ -134,7 +138,7 @@ public partial class AboutViewModel : ViewModelBase
     }
 }
 
-public class DependencyInfo (string name , string version , string purpose , string license , string url)
+public class DependencyInfo(string name, string version, string purpose, string license, string url)
 {
     public string Name { get; } = name;
     public string Version { get; } = version;

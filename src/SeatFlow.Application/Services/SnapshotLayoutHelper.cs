@@ -14,7 +14,7 @@ internal static class SnapshotLayoutHelper
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    static SnapshotLayoutHelper ()
+    static SnapshotLayoutHelper()
     {
         VenueFileReadOptions.Converters.Add(new SeatJsonConverter());
     }
@@ -23,23 +23,23 @@ internal static class SnapshotLayoutHelper
     /// 从快照元数据中嵌入的会场 JSON 反序列化会场布局定义。
     /// 同时兼容 VenueFile 包装格式和 ClassroomLayoutDefinition 直接序列化的旧格式。
     /// </summary>
-    internal static ClassroomLayoutDefinition? DeserializeVenueFromEmbeddedJson (string json)
+    internal static ClassroomLayoutDefinition? DeserializeVenueFromEmbeddedJson(string json)
     {
         // venueFile 格式（VenueFile 包装）
-        var venueFile = JsonSerializer.Deserialize<VenueFile>(json , VenueFileReadOptions);
+        var venueFile = JsonSerializer.Deserialize<VenueFile>(json, VenueFileReadOptions);
         if (venueFile?.Layout != null)
             return venueFile.Layout;
         // venueLayout 旧格式（ClassroomLayoutDefinition 直接序列化，兼容旧快照）
-        return JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json , VenueFileReadOptions);
+        return JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json, VenueFileReadOptions);
     }
 
     /// <summary>
     /// 从快照元数据字典中安全提取字符串值。
     /// 兼容 <see cref="string"/> 和 <see cref="System.Text.Json.JsonElement"/> 两种值类型。
     /// </summary>
-    internal static string? GetMetaStringFromMetadata (Dictionary<string , object> meta , string key)
+    internal static string? GetMetaStringFromMetadata(Dictionary<string, object> meta, string key)
     {
-        if (!meta.TryGetValue(key , out var value) || value is null) return null;
+        if (!meta.TryGetValue(key, out var value) || value is null) return null;
         return value switch
         {
             string s => s,

@@ -1,29 +1,36 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-             x:DataType="vm:ParameterEditorViewModel"
-             x:Class="SeatFlow.Presentation.Avalonia.Views.ParameterEditorView">
-    <ItemsControl ItemsSource="{Binding Parameters}">
-        <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:EditableParameter">
-                <DockPanel Margin="0,4" LastChildFill="True">
-                    <TextBlock Text="{Binding LocalizedLabel}"
-                               DockPanel.Dock="Left"
-                               VerticalAlignment="Center" Width="160"
-                               TextWrapping="Wrap" Margin="0,0,12,0" />
-                    <NumericUpDown Value="{Binding NumberValue}"
-                                   IsVisible="{Binding IsNumberInput}"
-                                   Minimum="{Binding Definition.MinValue}"
-                                   Maximum="{Binding Definition.MaxValue}"
-                                   HorizontalAlignment="Stretch" />
-                    <TextBox Text="{Binding TextValue}"
-                             IsVisible="{Binding IsTextInput}"
-                             HorizontalAlignment="Stretch" />
-                    <ToggleSwitch IsChecked="{Binding ToggleValue}"
-                                  IsVisible="{Binding IsToggleSwitch}"
-                                  HorizontalAlignment="Left" />
-                </DockPanel>
-            </DataTemplate>
-        </ItemsControl.ItemTemplate>
-    </ItemsControl>
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.ParameterEditorView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:ParameterEditorViewModel">
+  <ItemsControl ItemsSource="{Binding Parameters}">
+    <ItemsControl.ItemTemplate>
+      <DataTemplate x:DataType="vm:EditableParameter">
+        <DockPanel Margin="0,4" LastChildFill="True">
+          <TextBlock
+            Width="160"
+            Margin="0,0,12,0"
+            VerticalAlignment="Center"
+            DockPanel.Dock="Left"
+            Text="{Binding LocalizedLabel}"
+            TextWrapping="Wrap" />
+          <NumericUpDown
+            HorizontalAlignment="Stretch"
+            IsVisible="{Binding IsNumberInput}"
+            Maximum="{Binding Definition.MaxValue}"
+            Minimum="{Binding Definition.MinValue}"
+            Value="{Binding NumberValue}" />
+          <TextBox
+            HorizontalAlignment="Stretch"
+            IsVisible="{Binding IsTextInput}"
+            Text="{Binding TextValue}" />
+          <ToggleSwitch
+            HorizontalAlignment="Left"
+            IsChecked="{Binding ToggleValue}"
+            IsVisible="{Binding IsToggleSwitch}" />
+        </DockPanel>
+      </DataTemplate>
+    </ItemsControl.ItemTemplate>
+  </ItemsControl>
 </UserControl>

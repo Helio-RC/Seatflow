@@ -3,32 +3,31 @@
   原始 Color / SolidColorBrush 令牌定义位置：App.axaml → Application.Resources → ThemeDictionaries。
 -->
 
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- ═══ 语义色样式类（用于 Icon / TextBlock 着色） ═══ -->
+  <!--  ═══ 语义色样式类（用于 Icon / TextBlock 着色） ═══  -->
 
-  <!-- 成功：绿色 -->
+  <!--  成功：绿色  -->
   <Style Selector="TextBlock.textSuccess">
     <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
   </Style>
 
-  <!-- 警告：橙色 -->
+  <!--  警告：橙色  -->
   <Style Selector="TextBlock.textWarning">
     <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
   </Style>
 
-  <!-- 错误：红色 -->
+  <!--  错误：红色  -->
   <Style Selector="TextBlock.textError">
     <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
   </Style>
 
-  <!-- 信息：蓝色 -->
+  <!--  信息：蓝色  -->
   <Style Selector="TextBlock.textInfo">
     <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
   </Style>
 
-  <!-- ═══ 语义背景色样式类 ═══ -->
+  <!--  ═══ 语义背景色样式类 ═══  -->
 
   <Style Selector="Border.bgError">
     <Setter Property="Background" Value="{DynamicResource ErrorBgBrush}" />
@@ -37,15 +36,15 @@
     <Setter Property="Background" Value="{DynamicResource WarningBgBrush}" />
   </Style>
 
-  <!-- ═══ Surface 样式类 ═══ -->
+  <!--  ═══ Surface 样式类 ═══  -->
 
-  <!-- 卡片容器 -->
+  <!--  卡片容器  -->
   <Style Selector="Border.surfaceCard">
     <Setter Property="Background" Value="{DynamicResource SurfaceCardBrush}" />
     <Setter Property="CornerRadius" Value="8" />
   </Style>
 
-  <!-- 加载遮罩 -->
+  <!--  加载遮罩  -->
   <Style Selector="Border.loadingOverlay">
     <Setter Property="Background" Value="{DynamicResource LoadingOverlayBrush}" />
   </Style>

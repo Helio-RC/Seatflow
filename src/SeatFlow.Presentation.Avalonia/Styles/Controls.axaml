@@ -1,7 +1,6 @@
-<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- ═══ 设置行（About / Settings 共用） ═══ -->
+  <!--  ═══ 设置行（About / Settings 共用） ═══  -->
 
   <Style Selector="Border.settingRow">
     <Setter Property="Padding" Value="0,12,0,12" />
@@ -20,7 +19,7 @@
     <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
   </Style>
 
-  <!-- ═══ 设置卡片 ═══ -->
+  <!--  ═══ 设置卡片 ═══  -->
 
   <Style Selector="Border.settingsCard">
     <Setter Property="Background" Value="{DynamicResource SurfaceCardBrush}" />
@@ -29,7 +28,7 @@
     <Setter Property="Padding" Value="20" />
   </Style>
 
-  <!-- 卡片内部设置行（轻量分隔线） -->
+  <!--  卡片内部设置行（轻量分隔线）  -->
 
   <Style Selector="Border.settingRowInner">
     <Setter Property="Padding" Value="0,10" />
@@ -37,7 +36,7 @@
     <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundChromeHighBrush}" />
   </Style>
 
-  <!-- ═══ 链接按钮 ═══ -->
+  <!--  ═══ 链接按钮 ═══  -->
 
   <Style Selector="Button.linkButton">
     <Setter Property="Background" Value="Transparent" />
@@ -50,7 +49,7 @@
     <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark2}" />
   </Style>
 
-  <!-- 依赖项链接（About 页专用，Padding 更小） -->
+  <!--  依赖项链接（About 页专用，Padding 更小）  -->
   <Style Selector="Button.depLink">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
@@ -58,7 +57,7 @@
     <Setter Property="Padding" Value="4" />
   </Style>
 
-  <!-- ═══ 对话框操作按钮 ═══ -->
+  <!--  ═══ 对话框操作按钮 ═══  -->
 
   <Style Selector="Button.ActionButton">
     <Setter Property="MinWidth" Value="80" />
@@ -73,7 +72,7 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" />
   </Style>
 
-  <!-- ═══ Accent 强调按钮 ═══ -->
+  <!--  ═══ Accent 强调按钮 ═══  -->
 
   <Style Selector="Button.accent">
     <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
@@ -84,7 +83,7 @@
   </Style>
 
 
-  <!-- ═══ 链接卡片按钮（About 页专用） ═══ -->
+  <!--  ═══ 链接卡片按钮（About 页专用） ═══  -->
 
   <Style Selector="Button.linkCard">
     <Setter Property="Background" Value="Transparent" />
@@ -107,7 +106,7 @@
     <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}" />
   </Style>
 
-  <!-- ═══ 版本信息徽章 ═══ -->
+  <!--  ═══ 版本信息徽章 ═══  -->
 
   <Style Selector="Border.versionBadge">
     <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
@@ -115,14 +114,14 @@
     <Setter Property="Padding" Value="10,6" />
   </Style>
 
-  <!-- ═══ 等宽字体文本 ═══ -->
+  <!--  ═══ 等宽字体文本 ═══  -->
 
   <Style Selector="TextBlock.textMono">
     <Setter Property="FontFamily" Value="Cascadia Code, JetBrains Mono, Consolas, monospace" />
     <Setter Property="FontSize" Value="11" />
   </Style>
 
-  <!-- ═══ 依赖项卡片项 ═══ -->
+  <!--  ═══ 依赖项卡片项 ═══  -->
 
   <Style Selector="Border.depCardItem">
     <Setter Property="Background" Value="Transparent" />
@@ -141,7 +140,7 @@
     <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
   </Style>
 
-  <!-- ═══ 装饰圆点 ═══ -->
+  <!--  ═══ 装饰圆点 ═══  -->
 
   <Style Selector="Border.badgeDot">
     <Setter Property="Width" Value="6" />

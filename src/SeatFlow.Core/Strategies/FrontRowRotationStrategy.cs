@@ -10,7 +10,7 @@ namespace SeatFlow.Core.Strategies
     /// 在 FixedSeat 锁定固定座位后执行，从剩余空座中识别前排座位，
     /// 按需求分数分配给最需要的学生。分数公式与前相同。
     /// </summary>
-    public class FrontRowRotationStrategy (FrontRowRotationStrategy.FrontRowRotationConfiguration config , ILogger<FrontRowRotationStrategy>? logger = null , Random? random = null) : ISeatingStrategy
+    public class FrontRowRotationStrategy(FrontRowRotationStrategy.FrontRowRotationConfiguration config, ILogger<FrontRowRotationStrategy>? logger = null, Random? random = null) : ISeatingStrategy
     {
         private readonly FrontRowRotationConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
         private readonly ILogger<FrontRowRotationStrategy> _logger = logger ?? NullLogger<FrontRowRotationStrategy>.Instance;
@@ -19,13 +19,13 @@ namespace SeatFlow.Core.Strategies
         /// <summary>
         /// 使用默认配置创建实例。
         /// </summary>
-        public FrontRowRotationStrategy () : this(new FrontRowRotationConfiguration()) { }
+        public FrontRowRotationStrategy() : this(new FrontRowRotationConfiguration()) { }
 
         /// <summary>获取策略配置对象，供 Application 层读取和修改配置参数。</summary>
         public FrontRowRotationConfiguration Config => _config;
 
         /// <summary>设置前排行数（从布局元数据同步）。</summary>
-        public void SetFrontRowCount (int count) => _config.FrontRowCount = Math.Max(1 , count);
+        public void SetFrontRowCount(int count) => _config.FrontRowCount = Math.Max(1, count);
 
         /// <summary>策略展示名称（与 manifest displayName 一致）。</summary>
         public const string DisplayNameConst = "前排轮换";
@@ -48,10 +48,10 @@ namespace SeatFlow.Core.Strategies
         /// 2. 计算每个未分配学生的前排需求分数。
         /// 3. 按分数从高到低分配前排座位。
         /// </summary>
-        public Task<StrategyExecutionResult> ExecuteAsync (SeatingWorkspace workspace , CancellationToken cancellationToken)
+        public Task<StrategyExecutionResult> ExecuteAsync(SeatingWorkspace workspace, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(workspace);
-            _logger.LogInformation("FrontRowRotation 策略开始执行：前排数 {FrontRowCount}" ,
+            _logger.LogInformation("FrontRowRotation 策略开始执行：前排数 {FrontRowCount}",
                 _config.FrontRowCount);
 
             var emptySeats = workspace.GetEmptySeats().ToList();
@@ -62,13 +62,13 @@ namespace SeatFlow.Core.Strategies
             }
 
             // 收集前排座位（复用 SeatGeometryHelper 共享逻辑）
-            var frontRowIds = SeatGeometryHelper.IdentifyFrontRowSeats(emptySeats , _config.FrontRowCount);
+            var frontRowIds = SeatGeometryHelper.IdentifyFrontRowSeats(emptySeats, _config.FrontRowCount);
             var frontRowSeats = emptySeats.Where(s => frontRowIds.Contains(s.Id)).ToList();
 
             if (frontRowSeats.Count == 0)
             {
                 _logger.LogDebug("FrontRowRotation：未识别到前排座位，跳过");
-                workspace.LogWarning(Id , DisplayNameConst , "FrontRow_NoSeats");
+                workspace.LogWarning(Id, DisplayNameConst, "FrontRow_NoSeats");
                 return Task.FromResult(new StrategyExecutionResult { Success = true });
             }
 
@@ -86,40 +86,40 @@ namespace SeatFlow.Core.Strategies
                 int score = (s.NeedsFrontRow ? _config.NeedsFrontRowBonus : 0)
             + s.FrontRowPreferenceScore
             - (frontRowHistoryCount * _config.HistoryWeight);
-                return (Student: s , Score: score);
+                return (Student: s, Score: score);
             }).OrderByDescending(x => x.Score).ToList();
 
-            int assignCount = Math.Min(frontRowSeats.Count , studentScores.Count);
+            int assignCount = Math.Min(frontRowSeats.Count, studentScores.Count);
 
             // 随机洗牌：同时打乱座位和学生，确保前排学生均匀分布而非偏向一侧
-            Shuffle(frontRowSeats , _random);
+            Shuffle(frontRowSeats, _random);
             var selectedStudents = studentScores.Take(assignCount).Select(x => x.Student).ToList();
-            Shuffle(selectedStudents , _random);
+            Shuffle(selectedStudents, _random);
 
             for (int i = 0; i < assignCount && !cancellationToken.IsCancellationRequested; i++)
             {
-                workspace.TryAssignSeat(frontRowSeats[i].Id , selectedStudents[i].Id , out _);
+                workspace.TryAssignSeat(frontRowSeats[i].Id, selectedStudents[i].Id, out _);
             }
 
             // 若需要前排的学生多于前排座位数，记录警告
             var needFrontRowCount = studentScores.Count(x => x.Student.NeedsFrontRow);
             if (needFrontRowCount > frontRowSeats.Count)
-                workspace.LogWarning(Id , DisplayNameConst , "FrontRow_Overflow" ,
-                    needFrontRowCount , frontRowSeats.Count);
+                workspace.LogWarning(Id, DisplayNameConst, "FrontRow_Overflow",
+                    needFrontRowCount, frontRowSeats.Count);
 
-            _logger.LogInformation("FrontRowRotation 策略完成：{FrontSeats} 个前排座位，分配 {Assigned} 名学生" ,
-                frontRowSeats.Count , assignCount);
+            _logger.LogInformation("FrontRowRotation 策略完成：{FrontSeats} 个前排座位，分配 {Assigned} 名学生",
+                frontRowSeats.Count, assignCount);
             return Task.FromResult(new StrategyExecutionResult { Success = true });
         }
 
         /// <summary>
         /// 验证配置：HistoryWeight 不能为负数。
         /// </summary>
-        public ValidationResult ValidateConfiguration ()
+        public ValidationResult ValidateConfiguration()
         {
             if (_config.HistoryWeight < 0)
             {
-                return new ValidationResult { IsValid = false , Error = "HistoryWeight must be non-negative." };
+                return new ValidationResult { IsValid = false, Error = "HistoryWeight must be non-negative." };
             }
             return new ValidationResult { IsValid = true };
         }
@@ -127,12 +127,12 @@ namespace SeatFlow.Core.Strategies
         /// <summary>
         /// Fisher-Yates 洗牌算法，用于随机化学生在前排座位中的分配。
         /// </summary>
-        private static void Shuffle<T> (IList<T> list , Random random)
+        private static void Shuffle<T>(IList<T> list, Random random)
         {
             for (int i = list.Count - 1; i > 0; i--)
             {
                 int j = random.Next(i + 1);
-                (list[j] , list[i]) = (list[i] , list[j]);
+                (list[j], list[i]) = (list[i], list[j]);
             }
         }
 

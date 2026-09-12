@@ -1,36 +1,47 @@
 using System.Text.Json;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Providers;
+using SeatFlow.Core.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Infrastructure.Providers;
 
-public class JsonStudentProvider (ILogger<JsonStudentProvider>? logger = null) : IStudentProvider
+public class JsonStudentProvider : IStudentProvider
 {
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly ILogger<JsonStudentProvider> _logger = logger ?? NullLogger<JsonStudentProvider>.Instance;
+    private readonly ILocalDataStore? _store;
+    private readonly ILogger<JsonStudentProvider> _logger;
 
-    public Task<List<Student>> LoadAsync (string source , CancellationToken cancellationToken = default)
+    /// <param name="store">存储抽象（可选；非空时支持存储相对路径源）。</param>
+    /// <param name="logger">日志记录器。</param>
+    public JsonStudentProvider(ILocalDataStore? store = null, ILogger<JsonStudentProvider>? logger = null)
     {
-        return LoadAsync(source , 0 , 0 , cancellationToken);
+        _store = store;
+        _logger = logger ?? NullLogger<JsonStudentProvider>.Instance;
+    }
+
+    public Task<List<Student>> LoadAsync(string source, CancellationToken cancellationToken = default)
+    {
+        return LoadAsync(source, 0, 0, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<List<Student>> LoadAsync (string source , int maxRows , int maxCols , CancellationToken ct = default)
+    public async Task<List<Student>> LoadAsync(string source, int maxRows, int maxCols, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(source) || !File.Exists(source)) return [];
+        var bytes = await StudentSourceResolver.ReadBytesAsync(source, _store, ct);
+        if (bytes is null) return [];
 
         try
         {
-            await using var stream = File.OpenRead(source);
-            var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream , Options , ct);
-            _logger.LogInformation("JSON 学生数据已加载：{Source}（{Count} 人）" ,
-                source , roster?.Students.Count ?? 0);
+            await using var stream = new MemoryStream(bytes);
+            var roster = await JsonSerializer.DeserializeAsync<RosterFile>(stream, Options, ct);
+            _logger.LogInformation("JSON 学生数据已加载：{Source}（{Count} 人）",
+                source, roster?.Students.Count ?? 0);
             var students = roster?.Students ?? [];
 
             if (maxRows > 0 && students.Count > maxRows)
@@ -40,27 +51,28 @@ public class JsonStudentProvider (ILogger<JsonStudentProvider>? logger = null) :
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex , "JSON 学生数据解析失败：{Source}" , source);
+            _logger.LogWarning(ex, "JSON 学生数据解析失败：{Source}", source);
             return [];
         }
     }
 
     /// <inheritdoc />
-    public Task<(int Rows , int Cols)> GetDimensionsAsync (string source , CancellationToken ct = default)
+    public async Task<(int Rows, int Cols)> GetDimensionsAsync(string source, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(source) || !File.Exists(source))
-            return Task.FromResult((0 , 0));
+        var bytes = await StudentSourceResolver.ReadBytesAsync(source, _store, ct);
+        if (bytes is null)
+            return (0, 0);
 
         try
         {
-            using var stream = File.OpenRead(source);
-            var roster = JsonSerializer.Deserialize<RosterFile>(stream , Options);
+            using var stream = new MemoryStream(bytes);
+            var roster = JsonSerializer.Deserialize<RosterFile>(stream, Options);
             int count = roster?.Students.Count ?? 0;
-            return Task.FromResult((count , 1));
+            return (count, 1);
         }
         catch (Exception)
         {
-            return Task.FromResult((0 , 0));
+            return (0, 0);
         }
     }
 }

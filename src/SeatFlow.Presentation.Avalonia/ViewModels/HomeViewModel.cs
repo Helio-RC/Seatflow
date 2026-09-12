@@ -10,6 +10,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
+using SeatFlow.Presentation.Avalonia.Services;
 using Microsoft.Extensions.DependencyInjection;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
@@ -37,14 +38,17 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
 
     public List<MdBlock> ReleaseBlocks { get; } = [];
 
-    public HomeViewModel (IServiceProvider? serviceProvider = null)
+    public HomeViewModel(IServiceProvider? serviceProvider = null)
     {
         _serviceProvider = serviceProvider;
 
         var data = LoadAboutData();
 
         UserName = Environment.UserName;
-        UserInitialChar = ToMathBold(UserName.FirstOrDefault());
+        // 直接使用普通大写首字母 + 样式加粗（FontWeight）：
+        // 数学粗体字符（U+1D400+）不在 Inter/Noto Sans SC 覆盖范围内，WASM 下会乱码
+        var initial = UserName.FirstOrDefault();
+        UserInitialChar = initial == default ? "•" : char.ToUpperInvariant(initial).ToString();
 
         var avatarPath = FindUserAvatar();
         if (avatarPath is not null)
@@ -58,7 +62,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
         {
             < 12 => Resources.Home_Greeting_Morning,
             < 18 => Resources.Home_Greeting_Afternoon,
-            _    => Resources.Home_Greeting_Evening,
+            _ => Resources.Home_Greeting_Evening,
         };
         var personalized = string.Format(template, UserName);
         var sep = CultureInfo.CurrentUICulture.Name.StartsWith("zh") ? "！" : "! ";
@@ -77,7 +81,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
     //  RELEASE.md 读取 + Markdig 渲染
     // ═══════════════════════════════════════════════
 
-    private static List<MdBlock> LoadReleaseNotes ()
+    private static List<MdBlock> LoadReleaseNotes()
     {
         var assembly = typeof(HomeViewModel).Assembly;
         const string resourceName = "SeatFlow.Presentation.Avalonia.Data.release.md";
@@ -102,7 +106,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
     // ═══════════════════════════════════════════════
 
     [RelayCommand]
-    private static async Task OpenUrl (string url)
+    private async Task OpenUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
             return;
@@ -119,14 +123,16 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
             }
         }
 
-        Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        // 兜底：无头环境 / 浏览器（WASM）→ 平台 URL 打开器
+        var opener = _serviceProvider?.GetService<IUrlOpener>();
+        opener?.OpenUrl(url);
     }
 
     // ═══════════════════════════════════════════════
     //  about.json 读取
     // ═══════════════════════════════════════════════
 
-    private static AboutPageData LoadAboutData ()
+    private static AboutPageData LoadAboutData()
     {
         var assembly = typeof(AboutViewModel).Assembly;
         const string resourceName = "SeatFlow.Presentation.Avalonia.Data.about.json";
@@ -156,7 +162,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
     //  平台头像查找
     // ═══════════════════════════════════════════════
 
-    private static string? FindUserAvatar ()
+    private static string? FindUserAvatar()
     {
         if (OperatingSystem.IsWindows())
             return FindWindowsAvatar();
@@ -167,7 +173,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
         return null;
     }
 
-    private static string? FindWindowsAvatar ()
+    private static string? FindWindowsAvatar()
     {
         var dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -184,7 +190,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
             ?.FullName;
     }
 
-    private static string? FindMacAvatar ()
+    private static string? FindMacAvatar()
     {
         try
         {
@@ -216,7 +222,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
         return null;
     }
 
-    private static string? FindLinuxAvatar ()
+    private static string? FindLinuxAvatar()
     {
         var home = Environment.GetEnvironmentVariable("HOME");
         if (home is not null)
@@ -234,27 +240,13 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
     }
 
     // ═══════════════════════════════════════════════
-    //  装饰 Unicode 首字符
-    // ═══════════════════════════════════════════════
-
-    private static string ToMathBold (char c)
-    {
-        return c switch
-        {
-            >= 'A' and <= 'Z' => char.ConvertFromUtf32(0x1D400 + (c - 'A')),
-            >= 'a' and <= 'z' => char.ConvertFromUtf32(0x1D41A + (c - 'a')),
-            _                  => c.ToString()
-        };
-    }
-
-    // ═══════════════════════════════════════════════
     //  IFileDropHandler
     // ═══════════════════════════════════════════════
 
     IReadOnlyList<string> IFileDropHandler.AcceptedFileExtensions { get; } =
         [".seatsets"];
 
-    async Task<bool> IFileDropHandler.HandleFileDropAsync (IReadOnlyList<string> filePaths , CancellationToken ct)
+    async Task<bool> IFileDropHandler.HandleFileDropAsync(IReadOnlyList<string> filePaths, CancellationToken ct)
     {
         if (_serviceProvider is null)
             return false;

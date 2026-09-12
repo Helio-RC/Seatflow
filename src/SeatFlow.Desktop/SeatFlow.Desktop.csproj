@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!-- 保持 EXE 名称为 SeatFlow.exe（历史产物名，文档/打包脚本依赖） -->
+    <AssemblyName>SeatFlow</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\SeatFlow.Presentation.Avalonia\Assets\icon_with_background.ico</ApplicationIcon>
+    <Deterministic>true</Deterministic>
+    <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)'))=./</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Velopack" Version="1.2.110-ge826545" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SeatFlow.Presentation.Avalonia\SeatFlow.Presentation.Avalonia.csproj" />
+    <ProjectReference Include="..\SeatFlow.Application\SeatFlow.Application.csproj" />
+  </ItemGroup>
+</Project>

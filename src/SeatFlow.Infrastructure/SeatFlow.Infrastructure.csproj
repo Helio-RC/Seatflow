@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0;net10.0-browser</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,12 +18,13 @@
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.10" />
-    <PackageReference Include="QuestPDF" Version="2026.7.2" />
+    <!-- QuestPDF/SkiaSharp 仅桌面目标：WASM 下不可用（Phase 0 验证结论） -->
+    <PackageReference Include="QuestPDF" Version="2026.7.2" Condition="'$(TargetFramework)' != 'net10.0-browser'" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
-    <PackageReference Include="SkiaSharp" Version="4.151.0" />
+    <PackageReference Include="SkiaSharp" Version="4.151.0" Condition="'$(TargetFramework)' != 'net10.0-browser'" />
   </ItemGroup>
 
   <ItemGroup>

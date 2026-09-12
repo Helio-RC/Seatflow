@@ -19,7 +19,7 @@ public class CircularHistory<T> : IEnumerable<T>
     /// </summary>
     /// <param name="capacity">容量，必须大于 0。</param>
     /// <exception cref="ArgumentOutOfRangeException">容量小于等于 0 时抛出。</exception>
-    public CircularHistory (int capacity)
+    public CircularHistory(int capacity)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
         _buffer = new T[capacity];
@@ -29,7 +29,7 @@ public class CircularHistory<T> : IEnumerable<T>
     /// 添加一个元素到缓冲区。如果已满，覆盖最旧的元素。
     /// 若元素已存在于缓冲区中，则忽略本次添加（去重）。
     /// </summary>
-    public void Add (T item)
+    public void Add(T item)
     {
         // 去重：避免快照回滚等场景下同一元素重复出现
         if (_count > 0 && Contains(item)) return;
@@ -42,11 +42,11 @@ public class CircularHistory<T> : IEnumerable<T>
     /// <summary>
     /// 检查元素是否已存在于缓冲区中。
     /// </summary>
-    private bool Contains (T item)
+    private bool Contains(T item)
     {
         foreach (var existing in this)
         {
-            if (EqualityComparer<T>.Default.Equals(existing , item))
+            if (EqualityComparer<T>.Default.Equals(existing, item))
                 return true;
         }
         return false;
@@ -55,7 +55,7 @@ public class CircularHistory<T> : IEnumerable<T>
     /// <summary>
     /// 获取所有历史记录，按从旧到新的顺序排列。
     /// </summary>
-    public IEnumerable<T> GetAll ()
+    public IEnumerable<T> GetAll()
     {
         return this;
     }
@@ -65,7 +65,7 @@ public class CircularHistory<T> : IEnumerable<T>
     /// </summary>
     /// <param name="newCapacity">新容量，必须大于 0。</param>
     /// <exception cref="ArgumentOutOfRangeException">容量小于等于 0 时抛出。</exception>
-    public void Resize (int newCapacity)
+    public void Resize(int newCapacity)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(newCapacity);
         if (newCapacity == _buffer.Length) return;
@@ -76,13 +76,13 @@ public class CircularHistory<T> : IEnumerable<T>
         _count = 0;
 
         // 缩容时只保留最新的 newCapacity 条；扩容时全部保留
-        int start = Math.Max(0 , oldEntries.Count - newCapacity);
+        int start = Math.Max(0, oldEntries.Count - newCapacity);
         for (int i = start; i < oldEntries.Count; i++)
             Add(oldEntries[i]);
     }
 
     /// <inheritdoc />
-    public IEnumerator<T> GetEnumerator ()
+    public IEnumerator<T> GetEnumerator()
     {
         for (int i = 0; i < _count; i++)
         {
@@ -92,5 +92,5 @@ public class CircularHistory<T> : IEnumerable<T>
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator () => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
