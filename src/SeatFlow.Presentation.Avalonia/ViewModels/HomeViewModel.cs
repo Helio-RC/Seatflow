@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Input;
-using SeatFlow.Presentation.Avalonia.Services;
 using Microsoft.Extensions.DependencyInjection;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
@@ -190,6 +190,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
             ?.FullName;
     }
 
+    [SupportedOSPlatform("macos")]
     private static string? FindMacAvatar()
     {
         try

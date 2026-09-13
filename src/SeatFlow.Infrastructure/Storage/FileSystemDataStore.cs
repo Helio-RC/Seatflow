@@ -88,9 +88,9 @@ public class FileSystemDataStore(
         var dir = ToAbsolutePath(relativeDir);
         if (!Directory.Exists(dir)) return Task.FromResult<IReadOnlyList<string>>([]);
         var list = Directory.EnumerateDirectories(dir)
-            .Select(Path.GetFileName)
+            .Select(d => Path.GetFileName(d) ?? string.Empty)
             .OrderBy(x => x, StringComparer.Ordinal)
-            .ToList()!;
+            .ToList();
         return Task.FromResult<IReadOnlyList<string>>(list);
     }
 

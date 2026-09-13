@@ -268,6 +268,10 @@ namespace SeatFlow.Presentation.Avalonia
         {
             _ = Task.Run(async () =>
             {
+                // 浏览器端（WASM）无命名管道 API，且单进程模型无需转发
+                if (OperatingSystem.IsBrowser())
+                    return;
+
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
                 while (true)
                 {
@@ -653,8 +657,7 @@ namespace SeatFlow.Presentation.Avalonia
                 if (!goToGitHub) return;
 
                 var url = updateService.GetGitHubReleasesUrl(VersionInfo.Version);
-                System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+                _serviceProvider.GetRequiredService<IUrlOpener>().OpenUrl(url);
             }
             catch (Exception ex)
             {

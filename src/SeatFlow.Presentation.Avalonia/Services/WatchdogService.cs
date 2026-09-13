@@ -72,29 +72,32 @@ public sealed class WatchdogService(int timeoutSeconds = 45, ILogger<WatchdogSer
             sb.AppendLine($"超时阈值: 45 秒");
             sb.AppendLine();
 
-            // 进程信息
-            using var proc = Process.GetCurrentProcess();
-            sb.AppendLine("--- 进程信息 ---");
-            sb.AppendLine($"进程名: {proc.ProcessName}");
-            sb.AppendLine($"PID: {proc.Id}");
-            sb.AppendLine($"工作集: {proc.WorkingSet64 / 1024 / 1024} MB");
-            sb.AppendLine($"线程数: {proc.Threads.Count}");
-            sb.AppendLine($"句柄数: {proc.HandleCount}");
-            sb.AppendLine($"启动时间: {proc.StartTime:yyyy-MM-dd HH:mm:ss}");
-            sb.AppendLine($"总 CPU 时间: {proc.TotalProcessorTime}");
-            sb.AppendLine();
-
-            // 所有线程堆栈
-            sb.AppendLine("--- 线程堆栈 ---");
-            foreach (ProcessThread pt in proc.Threads)
+            // 进程信息（浏览器端（WASM）无进程诊断 API，整体跳过）
+            if (!OperatingSystem.IsBrowser())
             {
-                try
+                using var proc = Process.GetCurrentProcess();
+                sb.AppendLine("--- 进程信息 ---");
+                sb.AppendLine($"进程名: {proc.ProcessName}");
+                sb.AppendLine($"PID: {proc.Id}");
+                sb.AppendLine($"工作集: {proc.WorkingSet64 / 1024 / 1024} MB");
+                sb.AppendLine($"线程数: {proc.Threads.Count}");
+                sb.AppendLine($"句柄数: {proc.HandleCount}");
+                sb.AppendLine($"启动时间: {proc.StartTime:yyyy-MM-dd HH:mm:ss}");
+                sb.AppendLine($"总 CPU 时间: {proc.TotalProcessorTime}");
+                sb.AppendLine();
+
+                // 所有线程堆栈
+                sb.AppendLine("--- 线程堆栈 ---");
+                foreach (ProcessThread pt in proc.Threads)
                 {
-                    sb.AppendLine($"线程 ID={pt.Id}, 状态={pt.ThreadState}, CPU时间={pt.TotalProcessorTime}");
+                    try
+                    {
+                        sb.AppendLine($"线程 ID={pt.Id}, 状态={pt.ThreadState}, CPU时间={pt.TotalProcessorTime}");
+                    }
+                    catch { /* 某些线程信息不可读 */ }
                 }
-                catch { /* 某些线程信息不可读 */ }
+                sb.AppendLine();
             }
-            sb.AppendLine();
 
             // 托管线程堆栈（仅本进程可见的部分）
             sb.AppendLine("--- 托管线程堆栈 ---");

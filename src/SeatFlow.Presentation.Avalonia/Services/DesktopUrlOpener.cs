@@ -1,10 +1,12 @@
 using System.Diagnostics;
+using System.Runtime.Versioning;
 
 namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>
 /// 桌面端 URL 打开器：调用系统 <c>Process.Start</c>（ShellExecute）。
 /// </summary>
+[UnsupportedOSPlatform("browser")]
 public sealed class DesktopUrlOpener : IUrlOpener
 {
     public void OpenUrl(string url)
