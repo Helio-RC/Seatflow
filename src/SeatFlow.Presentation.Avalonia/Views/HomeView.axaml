@@ -128,21 +128,22 @@
                     Text="{Binding Text}"
                     TextWrapping="Wrap" />
                   <!--  ListItem  -->
-                  <StackPanel
+                  <Grid
                     Margin="12,1,0,1"
-                    IsVisible="{Binding IsListItem}"
-                    Orientation="Horizontal"
-                    Spacing="4">
+                    ColumnDefinitions="Auto,*"
+                    IsVisible="{Binding IsListItem}">
                     <TextBlock
                       FontSize="13"
                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                       Text="·" />
                     <TextBlock
+                      Grid.Column="1"
+                      Margin="4,0,0,0"
                       FontSize="13"
                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                       Text="{Binding Text}"
                       TextWrapping="Wrap" />
-                  </StackPanel>
+                  </Grid>
                   <!--  Paragraph  -->
                   <TextBlock
                     Margin="0,3,0,3"
