@@ -13,17 +13,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ##  Build & Test
 
 ```bash
-dotnet build                    # Build all 7 projects (uses .slnx, requires .NET 10 SDK)
+dotnet build                    # Build all 9 projects (uses .slnx, requires .NET 10 SDK)
 dotnet test                     # Run all tests (xUnit v3, Microsoft.Testing.Platform)
 dotnet test --filter "FullyQualifiedName~TestName"  # Run a single test
 dotnet run --project src/SeatFlow.Desktop   # Launch the desktop app
+```
+
+**常用任务（`dotnet r`，npm scripts 风格）**：`run-script` 本地工具读取 `global.json` 的 `scripts` 对象。首次使用先 `dotnet tool restore`。
+**⚠️ 仅限本地开发：禁止在 CI/CD 流水线中使用 `dotnet r`**（第三方本地工具，需 restore + roll-forward，不适合流水线）；CI/CD 请直接调用 `dotnet build/test/publish` 或 `scripts/build/publish.sh`、`scripts/release/release.py`。
+
+```bash
+dotnet r              # 列出全部脚本
+dotnet r build        # 构建整个解决方案
+dotnet r test         # 运行全部测试
+dotnet r run          # 启动桌面应用
+dotnet r web          # 发布 Web/WASM 静态站点（Release）
+dotnet r desktop      # 发布桌面应用（当前平台，Release）
+dotnet r clean        # 清理构建产物
+dotnet r format       # 代码格式检查/修复
+dotnet r ci           # build + test
+dotnet r build -- -c Release   # `--` 之后的参数透传给命令
 ```
 
 **Test stack**: xUnit v3 + FluentAssertions + NSubstitute. Tests are in 3 projects: `*.Core.Tests`, `*.Application.Tests`, `*.Infrastructure.Tests`. Each has `<ImplicitUsings>enable</ImplicitUsings>` (provides `System`, `System.Collections.Generic`, `System.Linq`, `System.Threading.Tasks`). Project-specific global usings are in `Usings.cs` (or `Using.cs` in Application.Tests).
 
 **No `Directory.Build.props` or `Directory.Packages.props`** — package versions are managed directly in each `.csproj`.
 
-**dotnet tools**: `avaloniaui.developertools` (avdt) is installed in repo-root `dotnet-tools.json`. 使用前先确认当前环境是否有桌面显示支持，若无头则跳过 avdt。构建时无需此工具。
+**dotnet tools**: repo-root `dotnet-tools.json` 含 `avaloniaui.developertools` (avdt)、`vpk`、`run-script`（命令 `dotnet r`，读取 `global.json` 的 `scripts`）。avdt 使用前先确认当前环境是否有桌面显示支持，若无头则跳过；构建时无需这些工具。
 
 ## Architecture
 
