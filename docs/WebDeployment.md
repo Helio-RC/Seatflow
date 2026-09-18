@@ -3,6 +3,8 @@
 SeatFlow 浏览器版基于 Avalonia WebAssembly（`net10.0-browser`），产物为纯静态站点
 （`wwwroot/`），可部署到任意静态托管（Nginx、CDN、GitHub Pages、OSS、S3……）。
 
+> **状态**：Web 版已完成构建与运行验证；当前暂不提供正式部署，也不随桌面安装包发布。
+
 ## 构建与发布
 
 ```bash
@@ -20,7 +22,9 @@ cd scripts/build
 ## 部署要求
 
 - **跨源隔离**：默认单线程变体（`WasmEnableThreads=false`）不需要 COOP/COEP；
-  若改用多线程变体，则必须携带以下响应头（并启用 `WasmEnableThreads=true`）：
+  多线程变体虽在构建/渲染上可用，但当前 Avalonia 版本下 UI 输入失效，暂不采用
+  （见下方「多线程实测」）。若未来重试多线程，则必须携带以下响应头（并启用
+  `WasmEnableThreads=true`）：
   ```
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
@@ -43,6 +47,7 @@ cd scripts/build
 | 自动更新 / Watchdog / 单实例 | Velopack 等 | 不适用（已移除） |
 | 数据目录设置 | 路径选择 | 隐藏（无文件系统） |
 | 对话框 | 模态 Window | 窗口内 overlay |
+| 换页动画 | 淡出/淡入（`MainShellViewModel.RunTransitionAsync`） | 直接切换（禁用动画，降低 WASM 渲染开销） |
 
 Web 版在设置页隐藏"更新卡片"与"存储卡片"（路径概念不适用）；
 导出菜单隐藏 PDF/图片格式。
@@ -65,6 +70,57 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
 注意：Avalonia WASM 渲染依赖 **WebGL（CanvasKit）**。Headless/CI 无 GPU 环境
 （SwiftShader 未启用）会报 `HTMLCanvasElement.getContext returned null`——
 这是环境限制，真实浏览器（Chrome/Edge/Firefox）可直接使用。
+
+## 多线程实测（WasmEnableThreads，2026-09-16）
+
+**结论：可构建、可启动、可渲染，但 UI 输入永久失效 → 暂不启用（保持单线程）。**
+
+### 根因：MT 输入队列不唤醒 dispatcher（上游 Avalonia 缺陷）
+
+MT 模式下 Avalonia 的输入链路（Avalonia 12.1.2，main 分支同码，均未修复）：
+
+1. `BrowserAppBuilder.StartBrowserAppAsync` 检测到线程可用且
+   `BrowserPlatformOptions.PreferManagedThreadDispatcher != false` 时，会**新建一个托管线程**
+   承载整个 Avalonia（`App.Run` → `Dispatcher.MainLoop` →
+   `ManagedDispatcherImpl.RunLoop`），而 UI 主循环空闲时阻塞在 `_wakeup.WaitOne()`。
+2. `WindowingPlatform.Register` 此时创建 `ManualRawEventGrouperDispatchQueue` 并交给
+   `ManagedDispatcherImpl` 作为输入提供者。
+3. DOM 输入事件由 JS 主线程触发 JSExport → `BrowserInputHandler.ScheduleInput` →
+   `RawEventGrouper` → `ManualRawEventGrouperDispatchQueue.Add`。
+   **该 `Add` 仅入队，不调用 `Signal()`/`Post()`**（对比单线程路径
+   `AutomaticRawEventGrouperDispatchQueue.Add` 会 `Dispatcher.Post(...)` → `Signal()`）。
+4. 于是：dispatcher 线程睡着 → 无人唤醒 → 队列永不排空 → 所有输入无响应；
+   只有恰好有其他 Dispatcher 活动（timer/post/`InvokeAsync`）时才顺带被处理。
+
+**验证实验（决定性）**：MT 构建中点击“暂不开启”无反应（事件已进入队列）；
+随后调用一次 `CanvasHelper.OnSizeChanged`（内部 `Dispatcher.UIThread.InvokeAsync` 会 Signal），
+**先前排队的点击立即生效**——弹窗关闭、引导打开。证明事件确实只在队列中等待唤醒。
+
+### 验证环境与结果
+
+（Chrome 153 headless + SwiftShader 软件 WebGL，COOP/COEP 已开启）
+
+| 检查项 | 结果 |
+|---|---|
+| `WasmEnableThreads=true` 构建 | ✅ 成功（切换到 `Microsoft.NETCore.App.Runtime.Mono.multithread` 运行时包） |
+| 线程运行时加载 | ✅ `dotnet.native.worker.*.mjs`（`Module.PThread`，pthreads=8） |
+| `crossOriginIsolated` / `SharedArrayBuffer` | ✅ true / 可用 |
+| 应用启动与渲染 | ✅ canvas 正常绘制（画布已 `transferControlToOffscreen` 到 worker） |
+| DOM 输入事件到达 | ✅ 可信 `pointerdown/up/click` 均到达 `avalonia-native-host` |
+| **Avalonia UI 响应** | ❌ 点击/键盘无反应，直到 dispatcher 被外部唤醒 |
+| 最小复现（官方 Avalonia 12.1.2 最小应用 + MT） | ❌ 同样现象 → 非 SeatFlow 特有问题 |
+
+- 对照：同一应用单线程构建下，相同点击可正常关闭对话框/进入引导。
+- 上游背景：Avalonia #15709（"rest of the backend isn't MT-ready…"）、#15849（输入重构，
+  但未覆盖手动队列唤醒）、#18213（MT + TextBox 仍未修复）；最新稳定版 12.1.2 为项目当前版本。
+- 若要启用 MT，需要上游修复（在 `ManualRawEventGrouperDispatchQueue.Add` 中唤醒 dispatcher），
+  或在应用侧规避（例如周期性 `Dispatcher.UIThread.Post` no-op 以保持轮询——不推荐，开销与侵入性大）。
+- 复测方法：改 `WasmEnableThreads=true` 后发布，使用带
+  `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`
+  的静态服务器；等待上游 MT 输入问题修复后重新评估。
+- 排障注意：MT 构建必须安装 `wasm-tools` workload，否则 `WasmBuildNative` 不会执行、
+  原生库（Skia/HarfBuzz/pthread 符号）不链接，worker 内 `pthread_self()` 抛
+  `DllNotFoundException: *` 导致启动白屏。
 
 ## 已知限制
 

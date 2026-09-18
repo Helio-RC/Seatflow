@@ -4,7 +4,10 @@
     <!-- 单线程模式 + 链接顺序 workaround（官方 Avalonia samples 同款配置）：
          dotnet/runtime#109289 导致 SkiaSharp native .a 链接顺序错误 → 符号缺失 →
          TypeInitialization_Type, SkiaSharp.SKImageInfo。修复后单线程变体亦含 Skia，
-         且无需 COOP/COEP 跨源隔离（部署更简单）。 -->
+         且无需 COOP/COEP 跨源隔离（部署更简单）。
+         多线程（WasmEnableThreads=true）实测结论（2026-09-16）：可构建/启动/渲染，
+         但 UI 输入永久无响应——MT 走 ManualRawEventGrouperDispatchQueue，入队不唤醒
+         dispatcher（需等待一次其它 Dispatcher 活动才会被排出）。详见 docs/WebDeployment.md。 -->
     <WasmEnableThreads>false</WasmEnableThreads>
     <!-- 裁剪默认禁用反射式 System.Text.Json（JsonSerializerIsReflectionDisabled 异常）。
          SeatFlow 的仓储/序列化大量使用反射式 JsonSerializer，且 SeatFlow.* 已全量 TrimmerRoot，
