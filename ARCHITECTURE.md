@@ -1,6 +1,6 @@
 一、项目目标与核心原则
 
-目标：构建一个高度模块化、可扩展、易维护的.NET10跨平台桌面座位安排与轮换系统。
+目标：构建一个高度模块化、可扩展、易维护的.NET10跨平台（桌面 + 浏览器）座位安排与轮换系统。
 
 核心原则：
 
@@ -14,12 +14,12 @@
 
 二、整体架构分层
 
-采用经典三层架构 + 插件化扩展：
+采用经典分层架构 + 桌面/浏览器双壳：
 
 ```
 ┌─────────────────────────────────────────────────┐
 │               Presentation Layer                 │
-│        (Avalonia UI)                        │
+│   (Avalonia UI 共享库 + 桌面/浏览器壳)              │
 └─────────────────────────────────────────────────┘
                         │
 ┌─────────────────────────────────────────────────┐
@@ -52,10 +52,12 @@
 ```
 SeatFlow.slnx
 ├── src/
-│   ├── SeatFlow.Core              # 领域核心
-│   ├── SeatFlow.Application       # 应用层（编排、策略调度）
-│   ├── SeatFlow.Infrastructure    # 基础设施（数据访问、布局实现）
-│   ├── SeatFlow.Presentation.Avalonia  # Avalonia UI 主程序
+│   ├── SeatFlow.Core                    # 领域核心
+│   ├── SeatFlow.Application             # 应用层（编排、策略调度）
+│   ├── SeatFlow.Infrastructure          # 基础设施（数据访问、布局实现、存储抽象）
+│   ├── SeatFlow.Presentation.Avalonia   # 共享 UI 库（net10.0;net10.0-browser）
+│   ├── SeatFlow.Desktop                 # 桌面壳（EXE，Velopack 自动更新）
+│   └── SeatFlow.Browser                 # 浏览器壳（WASM 静态站）
 └── tests/
     ├── SeatFlow.Core.Tests          # 核心领域测试
     ├── SeatFlow.Application.Tests   # 应用层测试
@@ -83,7 +85,7 @@ public class Student
     // 轮换权重（用于距离讲台轮换算法）
     public int FrontRowPreferenceScore { get; set; }
     
-    // 扩展数据挂载点（插件使用）
+    // 扩展数据挂载点（策略/导入自定义字段）
     public AttributeBag Extensions { get; set; } = new();
 }
 ```
@@ -217,7 +219,7 @@ Handled 后仍继续运行后续依赖策略以供检查/警告。
 
 ```
 独立策略 Priority 降序 →
-  FixedSeat(100)         ← 最先执行：锁定固定座位（IsFixed=true，通过 Capability.MarkFixedSeat 能力）
+  FixedSeat(100)         ← 最先执行：锁定固定座位（IsFixed=true，后续 GetEmptySeats() 自动排除）
   FrontRowRotation(50)  ← 第二执行：在非固定空座中填前排
   RandomFill(1)       ← 兜底填充：
     └─ 内部上下文 (依赖策略按 Priority 降序) →
@@ -225,11 +227,6 @@ Handled 后仍继续运行后续依赖策略以供检查/警告。
        GenderRestrictedSeat(45)   ← 检查性别限制，不匹配时重定向
        NoRepeatDeskMate(40)       ← 检查相邻已占座是否与历史同桌重复，重复则重掷
   Defrag(0)            ← 最后执行："扫地僧"碎片整理，后排无约束学生前移
-
-能力系统（Capability.cs）：
-  Manifest capabilities 声明 → Facade 注册 → Workspace 校验 → 接口调用
-  · MarkFixedSeat — IFixedSeatCapability.TryMarkFixed()
-  · 日后在 Capability.cs 追加 const + interface 即可拓展
 ```
 
 > **关键设计决策**：高 Priority = 先执行 = 优先挑选座位。冲突解决 = Priority 数值（先到先得）。
@@ -409,6 +406,14 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 · 使用 IProgress<SeatingProgress> 报告长时间操作状态。
 · 命令模式（ICommand）绑定 UI 操作。
 
+6.4 双壳架构与平台差异
+
+· **共享 UI 库**：`SeatFlow.Presentation.Avalonia` 同时面向 `net10.0` 与 `net10.0-browser`，承载全部 View / ViewModel；`MainView : UserControl` 为共享外壳，桌面 `MainWindow : Window` 与浏览器单视图（`ISingleViewApplicationLifetime.MainView`）分别承载。
+· **启动壳**：`SeatFlow.Desktop`（桌面 EXE，含 Velopack 自动更新、Watchdog、单实例）与 `SeatFlow.Browser`（WASM 静态站，产物为 `wwwroot/`）。
+· **平台实现注入**：`ILocalDataStore`（桌面 `FileSystemDataStore` / Web `IndexedDbDataStore`，IndexedDB 经 `wwwroot/js/interop.js` 桥接）、`IUrlOpener`、`IDialogService`（桌面模态窗口 / Web 窗口内 overlay）、`IFileService`（桌面文件选择器 / Web 文件选择与 Blob 下载）。
+· **桌面专属能力**：PDF/图片导出、自动更新等仅桌面可用，Web 端隐藏或替换为 No-op。
+· 浏览器端构建、部署要求（COOP/COEP、MIME、CSP）与已知限制详见 `docs/WebDeployment.md`。
+
 ---
 
 七、补充考量与边缘情况
@@ -434,14 +439,15 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 场景 策略
 座位不足 提前容量检查，抛出明确异常
 固定座位冲突 配置验证阶段检测，Fill-in-Order 模型下 FixedSeat 最先执行锁定座位
-插件加载失败 提供“安全模式”跳过插件
+Web 端存储异常 提示浏览器存储（IndexedDB）不可用或容量不足，建议导出 .seatsets 备份
 配置文件损坏 自动加载最近有效备份
 策略执行超时 CancellationToken + 超时设置
 
 7.4 部署与更新
 
 · 打包格式：Windows (.msi / .zip)、Linux (AppImage / Flatpak)、macOS (.app / .pkg，计划中暂无安装包)。
-· 自动更新：可选集成 Velopack 或 Squirrel。
+· 自动更新：桌面版集成 Velopack（安装包与增量更新）。
+· Web 版：`dotnet publish src/SeatFlow.Browser -c Release` 产出 `wwwroot/` 静态站点，可部署到任意静态托管；部署要求详见 `docs/WebDeployment.md`。
 
 7.5 测试策略
 
@@ -449,11 +455,10 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 · 集成测试：完整管道。
 · 快照测试：验证输出一致性。
 · 性能基准：BenchmarkDotNet。
-· 沙箱测试：脚本死循环隔离。
 
 7.6 安全与隐私
 
-· 脚本沙箱：禁用 IO/网络，限制执行时间与内存。
+· 浏览器存储隔离：Web 端数据保存在浏览器 IndexedDB，遵循同源策略。
 · 导出匿名化：支持仅显示学号。
 · 日志脱敏：避免打印完整姓名。
 
@@ -465,11 +470,12 @@ ViewModel 通过构造函数注入 IApplicationFacade，调用业务逻辑。
 Phase 1 领域建模、基础架构搭建 核心实体、DI 配置、网格布局
 Phase 2 数据加载与导出 Xlsx/Csv 读取、Excel 导出
 Phase 3 内置策略实现 7 策略（FixedSeat, FrontRowRotation, DeskMate, RandomFill, GenderRestrictedSeat, NoRepeatDeskMate, Defrag）
-Phase 4 插件系统 插件管理器、Assembly 加载
-Phase 5 脚本支持 Lua/C# 引擎集成、受限 API
+Phase 4 插件系统（已取消） 2.0.0 移除插件机制，改为内置策略 + issue 提议
+Phase 5 脚本支持（已取消） 随插件系统一并移除（ADR-013）
 Phase 6 高级布局 + 拖放 圆形/扇形/自由点、拖拽换座、CanvasZoomPan
 Phase 7 配置管理与版本迁移 文件版本管理、迁移管线、快照回滚、完整性检测
 Phase 8 测试与文档 单元测试覆盖、用户手册
+Web Web/WASM 双壳 共享 UI 库 + Desktop/Browser 壳、ILocalDataStore 存储抽象、IndexedDB 桥
 （CLI 工具 命令行为后续规划中功能）
 
 ---
@@ -486,6 +492,6 @@ IConflictResolver Application 座位冲突解决
 
 ---
 
-文档版本：1.2
-最后更新：2026-05-24
-适用项目：座位安排/轮换系统（跨平台桌面版 .NET 10 + Avalonia 12）
+文档版本：1.3
+最后更新：2026-09-12
+适用项目：座位安排/轮换系统（跨平台桌面版 + Web/WASM 浏览器版，.NET 10 + Avalonia 12）

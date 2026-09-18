@@ -3,8 +3,8 @@
 
 # <img src="Assets/SF_icon_mini_background.png" height = "50" width = "50" alt="图片名称" align=center /> SeatFlow - 座流
 
-**跨平台桌面座位安排与轮换系统**  
-自动/手动排座 · 多数据源导入导出 · 历史快照回滚
+**跨平台座位安排与轮换系统（桌面 + 浏览器）**  
+自动/手动排座 · 多数据源导入导出 · 历史快照回滚 · Web/WASM 浏览器版
 
 [![GitHub release](https://img.shields.io/github/v/release/Helio-RC/Seatflow?include_prereleases&label=Release&logo=github&style=flat-square)](https://github.com/Helio-RC/Seatflow/releases)
 [![GitHub stars](https://img.shields.io/github/stars/Helio-RC/Seatflow?style=flat-square&logo=github)](https://github.com/Helio-RC/Seatflow/stargazers)
@@ -25,13 +25,14 @@
 
 - [x] **多格式数据导入** — CSV、Excel（XLSX）、JSON 学生名单导入
 - [x] **智能排座引擎** — 7 条内置策略管道执行（4 独立 + 3 依赖）：固定座位、前排轮换、性别限制、同桌分组、同桌上一次、随机填充、碎片整理；策略按优先级 Fill-in-Order 模型执行
-- [x] **策略扩展建议** — 新策略以内置方式加入（2.0.0 起插件系统移除，通过 [New Strategy issue 模板](.github/ISSUE_TEMPLATE/new-strategy.md) 提议
+- [x] **策略扩展建议** — 新策略以内置方式加入（2.0.0 起插件系统已移除），可通过 [New Strategy issue 模板](.github/ISSUE_TEMPLATE/new-strategy.md) 提议
 - [x] **手动微调** — 拖拽交换座位，全功能撤销/重做
 - [x] **多种布局** — 网格、环形/扇形、自由点教室布局；支持障碍物（柱子、讲台）
-- [x] **多格式导出** — Excel、CSV、PDF、图片导出座位表
+- [x] **多格式导出** — Excel、CSV、PDF、图片导出座位表（PDF/图片仅桌面版）
 - [x] **历史快照** — 手动保存排座快照，支持回滚到任意历史版本
 - [x] **配置驱动** — 策略优先级、布局参数、导出选项均可配置
-- [x] **跨平台** — Windows / Linux 原生运行（macOS 支持计划中，暂无安装包）
+- [x] **浏览器版（Web/WASM）** — 共享 UI 外壳，无需安装即可在浏览器中使用；数据存储在 IndexedDB，支持 Excel/CSV 导入导出与 `.seatsets` 打包迁移
+- [x] **跨平台** — Windows / Linux 原生运行（macOS 支持计划中，暂无安装包）；Web/WASM 浏览器版已完成构建与运行验证，暂不提供正式部署
 
 ---
 
@@ -42,13 +43,21 @@
 > - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 > - Windows 11 / Linux Ubuntu 22.04+（或其他 Linux 发行版）。macOS 支持计划中，暂无安装包。
 
-**构建与运行**
+**构建与运行（桌面版）**
 
 ```bash
 git clone https://github.com/Helio-RC/Seatflow.git
 cd SeatFlow
 dotnet build
-dotnet run --project src/SeatFlow.Presentation.Avalonia
+dotnet run --project src/SeatFlow.Desktop
+```
+
+**构建浏览器版（Web/WASM）**
+
+```bash
+dotnet workload install wasm-tools        # 一次性前置
+dotnet publish src/SeatFlow.Browser -c Release
+# 产物：src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot（纯静态站点）
 ```
 
 **运行测试**
@@ -71,13 +80,15 @@ dotnet test
 .NET 10 + Avalonia 12 + CommunityToolkit.Mvvm，分层架构，外观模式统一入口，命令模式实现撤销/重做。
 
 ```
-Presentation (Avalonia UI)  ← 用户界面、MVVM
+SeatFlow.Desktop（桌面壳）    SeatFlow.Browser（WASM 静态站）
+        └──────────┬──────────┘
+Presentation.Avalonia（共享 UI 库，net10.0 / net10.0-browser）
         ↓  IApplicationFacade
 Application                 ← 编排、策略管道、命令栈
    ↓            ↓
 Core           Infrastructure
 领域模型        文件 I/O、布局生成器
-策略接口        导出器、仓库、迁移
+策略接口        导出器、仓库、迁移、存储抽象（ILocalDataStore）
 ```
 
 | 层 | 职责 |
@@ -85,7 +96,7 @@ Core           Infrastructure
 | **Core** | 领域实体（`Student`, `Seat`）、策略接口、领域服务 |
 | **Application** | 外观模式入口、策略管道、撤销/重做 |
 | **Infrastructure** | CSV/Excel/JSON 导入导出、网格/环形/自由布局构建、PDF/图片导出、文件版本迁移 |
-| **Presentation** | Avalonia 12 桌面 UI、MVVM（CommunityToolkit.Mvvm）、编译绑定 |
+| **Presentation** | Avalonia 12 共享 UI 库（MVVM、编译绑定）；由 `SeatFlow.Desktop`（桌面壳）与 `SeatFlow.Browser`（WASM 静态站）两个启动壳承载 |
 
 ## ⚖️ 许可
 
@@ -97,6 +108,7 @@ MIT License © 2026 SeatFlow Contributors
 |------|------|
 | [docs/INDEX.md](docs/INDEX.md) | 文档导航地图（修改文档前先查阅联动规则） |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 项目目标与架构设计 |
+| [docs/WebDeployment.md](docs/WebDeployment.md) | Web/WASM 构建、部署与平台差异 |
 | [docs/Phases.md](docs/Phases.md) | 实现阶段与详细规划 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 开发环境搭建与参与指南 |
 | [CLAUDE.md](CLAUDE.md) | AI 编码助手配置 |

@@ -11,25 +11,25 @@
 | 层次 | 技术选型 | 版本 | 用途 |
 |------|----------|------|------|
 | 运行时 | .NET 10 | 10.0.x | 跨平台基础 |
-| UI 框架 | Avalonia UI | 12.0 | 跨平台桌面界面 |
+| UI 框架 | Avalonia UI | 12.x | 跨平台桌面 + 浏览器（WASM）界面 |
 | MVVM 框架 | CommunityToolkit.Mvvm | 8.4 | 响应式绑定、命令 |
 | 依赖注入 | Microsoft.Extensions.DependencyInjection | 10.0.x | DI 容器 |
 | 配置管理 | Microsoft.Extensions.Configuration | 10.0.x | JSON 配置读取 |
 | 日志 | Serilog | 4.x | 结构化日志 |
 | Excel 处理 | EPPlus / ClosedXML | - | 导入导出 .xlsx |
 | CSV 处理 | CsvHelper | - | CSV 导入导出 |
-| 脚本引擎 | NLua / Microsoft.CodeAnalysis.CSharp.Scripting | - | Lua / C# 脚本插件 |
-| 插件加载 | System.Runtime.Loader | - | Assembly 动态加载（可回收 ALC，卸载 + 压缩式 GC） |
-| PDF 生成 | QuestPDF | - | 座位表导出 PDF |
+| PDF 生成 | QuestPDF | - | 座位表导出 PDF（仅桌面） |
 | 序列化 | System.Text.Json | 10.0.x | JSON 处理 |
 | 测试框架 | xUnit + NSubstitute + FluentAssertions | - | 单元/集成测试 |
 | 性能基准 | BenchmarkDotNet | - | 性能测试 |
-| 打包/更新 | Velopack | - | 安装包与自动更新 |
+| 打包/更新 | Velopack | - | 安装包与自动更新（仅桌面） |
+| Web 运行时 | .NET WebAssembly（net10.0-browser） | 10.0.x | 浏览器静态站（Avalonia.Browser），构建机需 wasm-tools workload |
 
 ### 1.2 开发环境
 
 - IDE：Visual Studio 2022 / JetBrains Rider / VS Code
 - 操作系统：Windows 11 / macOS / Ubuntu（开发与测试均需覆盖）
+- 浏览器版构建前置：`dotnet workload install wasm-tools`（每台构建机一次）
 - 版本控制：Git + GitHub / Azure DevOps
 - CI/CD：GitHub Actions 或 Azure Pipelines（多平台构建）
 
@@ -45,14 +45,14 @@ SeatFlow/
 │   ├── Models/                          # Student, ClassroomLayoutDefinition 等
 │   ├── Providers/                       # 接口：IStudentProvider, IVenueRepository 等
 │   ├── DomainServices/                  # ObstacleProcessor, SeatGeometryHelper 等
-│   ├── Strategies/                      # ISeatingStrategy + 4 个内置实现
+│   ├── Storage/                         # ILocalDataStore 存储抽象
+│   ├── Strategies/                      # ISeatingStrategy / IDependentSeatingStrategy + 7 条内置策略
 │   │   └── Manifests/                   # 声明式配置 JSON
 │   └── Utilities/                       # AttributeBag, CircularHistory
 │
 ├── src/SeatFlow.Application/                  # 应用层
 │   ├── Interfaces/                      # IApplicationFacade
-│   ├── Services/                        # ApplicationFacade, ServiceCollectionExtensions
-│   └── Pipelines/                       # StrategyExecutionPipeline
+│   └── Services/                        # ApplicationFacade, StrategyExecutionPipeline, ServiceCollectionExtensions
 │
 ├── src/SeatFlow.Infrastructure/               # 基础设施层
 │   ├── Providers/                       # Csv/Xlsx/JsonStudentProvider, CompositeStudentProvider
@@ -60,17 +60,21 @@ SeatFlow/
 │   ├── Exporters/                       # ExcelSeatingExporter, CsvSeatingExporter, PdfSeatingExporter, ImageSeatingExporter
 │   ├── Repositories/                    # JsonVenueRepository, SeatingSnapshotRepository 等
 │   ├── Writers/                         # JsonStudentWriter, CsvStudentWriter, XlsxStudentWriter
+│   ├── Storage/                         # FileSystemDataStore（桌面）/ IndexedDbDataStore.browser.cs（Web）
 │   └── Migration/                       # FileMigrationService, IFileMigrator, file_versions.json
 │
-├── src/SeatFlow.Presentation.Avalonia/        # Avalonia UI 主程序
-│   ├── Views/
+├── src/SeatFlow.Presentation.Avalonia/        # 共享 UI 库（net10.0;net10.0-browser）
+│   ├── Views/                           # 含 MainView.axaml（桌面/浏览器共享外壳）
 │   ├── ViewModels/
 │   ├── Converters/
 │   ├── Behaviors/
-│   ├── Services/                        # INavigationService, IDialogService 等
+│   ├── Services/                        # INavigationService, IDialogService 等 + Web/ 平台实现
 │   ├── Lang/                            # .resx 国际化资源
 │   ├── Data/                            # about.json, page_navigation.json
 │   └── Assets/
+│
+├── src/SeatFlow.Desktop/                # 桌面壳（EXE，Velopack 更新）
+├── src/SeatFlow.Browser/                # 浏览器壳（WASM 静态站 + JS 互操作桥）
 │
 ├── tests/SeatFlow.Core.Tests/
 ├── tests/SeatFlow.Application.Tests/
@@ -97,7 +101,7 @@ SeatFlow/
 | 实现 Core 层基础实体 | Student, Seat, ClassroomLayout 等 | 不可变设计、值对象 | 2d |
 | 实现 AttributeBag 扩展数据容器 | AttributeBag 类 | `Dictionary<string, object>` + 线程安全 | 0.5d |
 | 实现 CircularHistory<T> 环形缓冲区 | 用于座位历史记录 | 泛型、索引器、容量限制 | 0.5d |
-| 定义 Contracts 层接口 | ISeatingStrategy, IStudentProvider 等 | 接口抽象 | 1d |
+| 定义 Core 层接口 | ISeatingStrategy, IStudentProvider 等 | 接口抽象 | 1d |
 | 配置 DI 容器 | 在 Application 和 Presentation 中集成 | `Microsoft.Extensions.DependencyInjection` | 1d |
 | 实现 IApplicationFacade 空壳 | 为 UI 层提供入口 | 外观模式 | 0.5d |
 | 创建 Avalonia 基础窗口与 MVVM 骨架 | 主窗口、视图定位、命令绑定 | ReactiveUI / CommunityToolkit.Mvvm | 2d |
@@ -312,7 +316,7 @@ SeatFlow/
 | 快照测试 | 验证输出一致性 | Verify 库 | 1d |
 | 性能基准测试 | 大型数据集策略执行时间 | BenchmarkDotNet | 1d |
 | 编写用户手册 | 操作指南、配置说明 | Markdown | 2d |
-| 编写开发者文档 | 插件开发指南 | Markdown | 2d |
+| 编写开发者文档 | 开发者指南（架构、双壳、构建发布） | Markdown | 2d |
 | 本地化资源整理 | 中英文 .resx | - | 1d |
 
 ---
@@ -322,10 +326,9 @@ SeatFlow/
 | 难点 | 解决方案 |
 |------|----------|
 | 跨平台 UI 一致性 | Avalonia 提供一致的渲染，在三个平台充分测试 |
-| 插件热卸载 | 使用 `AssemblyLoadContext`，确保没有引用泄露，定期 GC |
+| WASM 浏览器端性能 | 单线程策略执行较桌面慢，优化算法与渲染；详见 `docs/WebDeployment.md` |
 | 大型布局渲染性能 | 虚拟化画布，只渲染可见区域座位（类似 `VirtualizingStackPanel`） |
 | 复杂策略的性能 | 使用高效数据结构（如 `HashSet` 索引），并行执行无冲突策略 |
-| 脚本安全 | Lua 裁剪环境 + 超时控制；C# 脚本限制引用 |
 | 配置文件兼容性 | 版本迁移管线确保旧配置可升级 |
 | 撤销/重做内存占用 | 命令栈记录增量变化，而非完整快照，最大深度限制 |
 
@@ -338,12 +341,13 @@ SeatFlow/
 | Phase 1 | 领域建模与基础架构 | 2-3 周 | 可显示网格布局的原型 |
 | Phase 2 | 数据加载与导出 | 2 周 | 支持导入导出 Excel/CSV |
 | Phase 3 | 内置策略实现 | 3-4 周 | 完整自动排座功能 |
-| Phase 4 | 插件系统 | 2-3 周 | 可加载外部 DLL 策略 |
-| Phase 5 | 脚本支持 | 2 周 | Lua 脚本策略可用 |
+| Phase 4 | ~~插件系统~~（已取消） | — | 2.0.0 移除插件机制，改为内置策略 |
+| Phase 5 | ~~脚本支持~~（已取消） | — | 随插件系统一并移除（ADR-013） |
 | Phase 6 | 高级布局与可视化 | 3-4 周 | 圆形/扇形布局，拖拽交互 |
 | Phase 7 | 配置管理与存储 | 2 周 | 快照、版本迁移、加密 |
 | Phase 8 | CLI 工具 | 1-2 周 | 命令行版本可用 |
 | Phase 9 | 测试与文档 | 2 周 | 发布就绪版本 |
+| Web | Web/WASM 双壳 | — | 浏览器静态站、ILocalDataStore 存储抽象、IndexedDB 桥 |
 
 **总预计时间**：约 **18-24 周**（4-6 个月），视团队规模与投入程度可调整。
 
@@ -354,7 +358,7 @@ SeatFlow/
 | 风险 | 概率 | 影响 | 应对措施 |
 |------|------|------|----------|
 | Avalonia 在 Linux 下的稳定性问题 | 中 | 高 | 提前在目标发行版测试，参与社区修复 |
-| 插件系统内存泄漏 | 中 | 中 | 使用 `WeakReference` 和内存分析工具监控 |
+| 浏览器存储容量限制 | 低 | 中 | IndexedDB 容量不足时提示导出 .seatsets 备份（见 `docs/WebDeployment.md`） |
 | 复杂布局算法有误 | 低 | 中 | 充分单元测试，提供手动微调补救 |
 | 第三方库版本冲突 | 低 | 中 | 版本号直接在各 `.csproj` 中管理（项目未使用 `Directory.Packages.props`） |
 | 性能不达标（大型数据集） | 中 | 高 | 早期引入性能基准测试，持续优化 |
@@ -367,16 +371,16 @@ SeatFlow/
    - Windows (.msi / .zip)
    - macOS (.app / .pkg)
    - Linux (AppImage / .deb / .rpm)
+   - Web/WASM 静态站点（`wwwroot/`，可部署到任意静态托管）
 
 2. **文档**：
    - 用户操作手册
-   - 插件开发指南
+   - 浏览器版构建与部署说明（`docs/WebDeployment.md`）
    - 配置文件规范说明
 
 3. **示例文件**：
    - 示例会场定义（网格、圆形、阶梯教室）
    - 示例学生名单
-   - 示例插件源码
 
 4. **测试报告**：
    - 单元测试覆盖率报告

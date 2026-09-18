@@ -36,12 +36,10 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │       ├── ADR-010-velopack-oss-distribution.md ← Velopack 自动更新与 OSS 分发架构
 │       ├── ADR-011-keyboard-shortcuts.md ← 全局键盘快捷键系统（Behavior + Tunnel + 设置开关）
 │       └── ADR-013-remove-plugin-system.md ← 移除插件系统（2026-09）
-├── docs/presentation/
-│   ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
-│   ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
-│   └── Fluent_Icons.md       ← 已使用的 FluentUI 图标清单
-└── docs/sdk/
-    └── README.md             ← 插件开发 SDK 指南
+└── docs/presentation/
+    ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
+    ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
+    └── Fluent_Icons.md       ← 已使用的 FluentUI 图标清单
 ```
 
 ## 文档职责与联动规则
@@ -117,10 +115,10 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **何时更新**: 新增拖放交互、Avalonia 版本升级后 API 变更、发现新的拖放坑
 - **关联文档**: CLAUDE.md（Behaviors 节）、SeatingArrangementView.axaml.cs
 
-### docs/sdk/README.md
-- **覆盖**: 插件开发指南、接口参考、打包格式
-- **何时更新**: 插件 API 变更、打包格式变更
-- **关联文档**: ARCHITECTURE.md（插件化架构）
+### docs/WebDeployment.md
+- **覆盖**: Web/WASM 浏览器版构建与部署、平台差异、JS 互操作桥、已知限制与排障
+- **何时更新**: 双壳结构、存储抽象、浏览器平台实现或部署要求变更
+- **关联文档**: ARCHITECTURE.md（6.4 双壳架构）、CLAUDE.md（Web/WASM 双壳）
 
 ## 常见变更场景的文档联动清单
 
@@ -136,4 +134,5 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 修改 JSON 序列化格式 | CLAUDE.md（JSON 约定）、docs/CLAUDE.md、CONTRIBUTING.md（字段约定） |
 | 修改快照/完整性检测逻辑 | CLAUDE.md（快照完整性检测/轮转/嵌入）、docs/CLAUDE.md、ARCHITECTURE.md（5.3 节） |
 | 修改构建/测试流程 | CLAUDE.md、CONTRIBUTING.md、README.md |
+| 修改 Web/WASM 双壳、存储抽象或浏览器平台实现 | docs/WebDeployment.md、ARCHITECTURE.md（6.4 节）、CLAUDE.md（Web/WASM 双壳）、README.md |
 | 推进开发阶段 | README.md（状态表）、Phases.md |

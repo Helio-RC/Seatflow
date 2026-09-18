@@ -19,7 +19,8 @@ dotnet restore
 | `dotnet build` | 构建全部 9 个项目 |
 | `dotnet test` | 运行所有测试 |
 | `dotnet test --filter "FullyQualifiedName~TestName"` | 运行单个测试 |
-| `dotnet run --project src/SeatFlow.Presentation.Avalonia` | 启动桌面应用 |
+| `dotnet run --project src/SeatFlow.Desktop` | 启动桌面应用 |
+| `dotnet publish src/SeatFlow.Browser -c Release` | 发布浏览器版（WASM 静态站，前置 `dotnet workload install wasm-tools`） |
 
 测试栈：xUnit v3 + FluentAssertions + NSubstitute。测试项目分布在 `*.Core.Tests`、`*.Application.Tests`、`*.Infrastructure.Tests`。
 
@@ -27,16 +28,18 @@ dotnet restore
 
 ```
 SeatFlow.slnx
-├── src/SeatFlow.Core/                  → 领域核心：实体、策略接口、领域服务
+├── src/SeatFlow.Core/                  → 领域核心：实体、策略接口、领域服务、存储抽象（ILocalDataStore）
 ├── src/SeatFlow.Application/           → 应用层：外观、策略管道、命令历史、DI
-├── src/SeatFlow.Infrastructure/        → 基础设施：数据提供者、导出器、布局构建器、仓储
-├── src/SeatFlow.Presentation.Avalonia/ → Avalonia 12 桌面应用
+├── src/SeatFlow.Infrastructure/        → 基础设施：数据提供者、导出器、布局构建器、仓储、存储实现
+├── src/SeatFlow.Presentation.Avalonia/ → 共享 UI 库（net10.0;net10.0-browser）
+├── src/SeatFlow.Desktop/               → 桌面壳（EXE，Velopack 自动更新）
+├── src/SeatFlow.Browser/               → 浏览器壳（WASM 静态站）
 ├── tests/SeatFlow.Core.Tests/
 ├── tests/SeatFlow.Application.Tests/
 └── tests/SeatFlow.Infrastructure.Tests/
 ```
 
-**分层依赖**：`Presentation.Avalonia` → `Application` → (`Core`, `Contracts`, `Infrastructure`)
+**分层依赖**：`Desktop` / `Browser` → `Presentation.Avalonia` → `Application` → (`Core`, `Infrastructure`)；`Infrastructure` → `Core`
 
 包版本在每个 `.csproj` 中直接管理，无 `Directory.Build.props` 或 `Directory.Packages.props`。
 
@@ -48,7 +51,7 @@ SeatFlow.slnx
 - **外观模式** — `IApplicationFacade` 是 UI 层唯一入口
 - **策略模式** — `ISeatingStrategy` 按优先级管道执行
 - **命令模式** — `IUndoableCommand` + `CommandHistory` 撤销/重做
-- **插件隔离** — `AssemblyLoadContext`（`isCollectible: true`）独立加载外部 DLL，卸载遵循官方可回收模式（弱引用探测 + 压缩式强制 GC）
+- **双壳与存储抽象** — `Presentation.Avalonia` 为共享 UI 库（`net10.0;net10.0-browser`），桌面/浏览器启动壳分别注入 `ILocalDataStore` 实现（文件系统 / IndexedDB）；平台差异见 `docs/WebDeployment.md`
 
 ## 编码约定
 
@@ -62,7 +65,7 @@ SeatFlow.slnx
 
 使用 .NET `.resx` 资源文件，位于 `src/SeatFlow.Presentation.Avalonia/Lang/`：
 
-- `Resources.resx` — 中性语言 (zh-CN)，~570 键
+- `Resources.resx` — 中性语言 (zh-CN)，~700 键
 - `Resources.en-US.resx` — 英文卫星资源
 - `Resources.Designer.cs` — 手动维护的强类型访问器类
 
