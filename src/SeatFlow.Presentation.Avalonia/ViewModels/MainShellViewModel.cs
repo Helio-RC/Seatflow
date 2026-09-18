@@ -78,6 +78,9 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>新旧页切换间隙。</summary>
     private static readonly TimeSpan StaggerDelay = TimeSpan.FromMilliseconds(100);
 
+    /// <summary>浏览器端（WASM）：禁用换页动画（直接切换，避免淡出/淡入渲染开销与闪烁）。</summary>
+    private static bool IsWebPlatform => OperatingSystem.IsBrowser();
+
     public MainShellViewModel(INavigationService navigation, IApplicationFacade facade, IOnboardingService onboarding, ILogger<MainShellViewModel>? logger = null)
     {
         _navigation = navigation;
@@ -108,6 +111,16 @@ public partial class MainShellViewModel : ViewModelBase
         // 跳过动画以避免 PageOpacity=0 闪烁并确保 View 立即可用。
         if (IsOnboardingActive)
         {
+            SchedulePageGuideCheck();
+            return;
+        }
+
+        // 浏览器端（WASM）：禁用换页动画，直接切换页面
+        if (IsWebPlatform)
+        {
+            CurrentViewModel = newVm;
+            CurrentPage = newPage;
+            PageOpacity = 1;
             SchedulePageGuideCheck();
             return;
         }
