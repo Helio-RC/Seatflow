@@ -1,7 +1,4 @@
 {
-  // scripts 仅为本地开发便捷入口（dotnet r），依赖第三方本地工具；
-  // 禁止在 CI/CD 流水线中调用 dotnet r —— 请直接使用 dotnet build/test/publish
-  // 或 scripts/ 下的发布脚本（scripts/build/publish.sh、scripts/release/release.py）。
   "test": {
     "runner": "Microsoft.Testing.Platform"
   },
