@@ -255,10 +255,18 @@ class ReleaseManager:
 
         return cfg
 
+    @staticmethod
+    def _worker_scripts(cf: dict) -> list:
+        """解析 Worker 脚本名：支持单个名称、逗号分隔字符串或数组。"""
+        raw = cf.get("workerScripts") or cf.get("workerScript") or []
+        if isinstance(raw, str):
+            return [name for name in raw.replace(",", " ").split() if name]
+        return [str(name) for name in raw if name]
+
     def _has_cloudflare_config(self) -> bool:
         """检查 Cloudflare Worker 配置是否完整。"""
         cf = self.config.get("cloudflare", {})
-        return all(cf.get(k) for k in ("accountId", "workerScript", "apiToken"))
+        return bool(cf.get("accountId") and cf.get("apiToken")) and bool(self._worker_scripts(cf))
 
     def _load_version_info(self) -> dict:
         """读取 version.json。"""
@@ -1120,10 +1128,11 @@ class ReleaseManager:
     # ── 步骤 8: Cloudflare Worker Secret 轮换 ──
 
     def rotate_worker_secrets(self, force: bool = False) -> bool:
-        """将 Worker 专用 OSS 只读凭证通过 Cloudflare API 下发到 Worker Secret。
+        """将 OSS 密钥通过 Cloudflare API 下发到 Worker Secret（多个 Worker 共用同一把密钥）。
 
-        Worker 凭证与上传用的 oss.accessKeyId/Secret 是不同的子账号密钥：
-        Worker 仅需 OSS 只读权限（回源下载），上传主密钥拥有写权限，不能混用。
+        目标 Worker 支持多个：cloudflare.workerScript 可为逗号分隔字符串或数组
+        （如 "oss-proxy,online_worktable"）；密钥优先取 cloudflare.workerOss*，
+        未配置时回退到 oss.accessKeyId/Secret。
 
         当 force=True 时跳过所有前置条件检查（供 --rotate-worker-secrets 专用模式使用）。
         """
@@ -1140,20 +1149,17 @@ class ReleaseManager:
             return False
         cf = self.config["cloudflare"]
         account_id = cf["accountId"]
-        script = cf["workerScript"]
         api_token = cf["apiToken"]
+        scripts = self._worker_scripts(cf)
 
-        worker_key_id = cf.get("workerOssKeyId")
-        worker_key_secret = cf.get("workerOssKeySecret")
+        oss = self.config.get("oss", {})
+        worker_key_id = cf.get("workerOssKeyId") or oss.get("accessKeyId")
+        worker_key_secret = cf.get("workerOssKeySecret") or oss.get("accessKeySecret")
         if not worker_key_id or not worker_key_secret:
-            print("[8] Worker Secret 轮换  → 跳过 (cloudflare.workerOssKeyId/Secret 未配置)")
+            print("[8] Worker Secret 轮换  → 跳过 (未配置 OSS 密钥)")
             return False
 
-        api_url = (
-            f"https://api.cloudflare.com/client/v4/accounts/{account_id}"
-            f"/workers/scripts/{script}/secrets-bulk"
-        )
-
+        api_base = "https://api.cloudflare.com/client/v4"
         payload = {
             "OSS_ACCESS_KEY_ID": {
                 "name": "OSS_ACCESS_KEY_ID",
@@ -1167,39 +1173,39 @@ class ReleaseManager:
             },
         }
 
-        print(f"[8] Worker Secret 轮换: {script}...")
-
         if self.dry_run:
             # 脱敏显示
             masked = dict(payload)
             for k in masked:
                 masked[k] = {**masked[k], "text": masked[k]["text"][:4] + "***"}
-            print(f"  [dry-run] 将 PATCH {api_url}")
+            for script in scripts:
+                api_url = f"{api_base}/accounts/{account_id}/workers/scripts/{script}/secrets-bulk"
+                print(f"  [dry-run] 将 PATCH {api_url}")
             print(f"  [dry-run] payload: {json.dumps(masked, ensure_ascii=False, indent=2)}")
             return False
 
-        resp = requests.patch(
-            api_url,
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {api_token}",
-                "Content-Type": "application/merge-patch+json",
-            },
-        )
-
-        if resp.status_code == 200:
-            result = resp.json()
-            if result.get("success"):
-                print(f"  ✓ Secret 已更新（Worker 自动重新部署）")
-                return True
-            else:
-                errors = result.get("errors", [])
-                for e in errors:
+        ok = True
+        for script in scripts:
+            api_url = f"{api_base}/accounts/{account_id}/workers/scripts/{script}/secrets-bulk"
+            print(f"[8] Worker Secret 轮换: {script}...")
+            resp = requests.patch(
+                api_url,
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {api_token}",
+                    "Content-Type": "application/merge-patch+json",
+                },
+            )
+            if resp.status_code == 200 and resp.json().get("success"):
+                print("  ✓ Secret 已更新（Worker 自动重新部署）")
+                continue
+            if resp.status_code == 200:
+                for e in resp.json().get("errors", []):
                     print(f"  ✗ CF API 错误: {e.get('message', e)}")
-                return False
-        else:
-            print(f"  ✗ CF API HTTP {resp.status_code}: {resp.text}")
-            return False
+            else:
+                print(f"  ✗ CF API HTTP {resp.status_code}: {resp.text}")
+            ok = False
+        return ok
 
     @staticmethod
     def _is_installer(file_name: str) -> bool:
@@ -1300,7 +1306,7 @@ class ReleaseManager:
             # Worker Secret 轮换模式 — 仅推送密钥到 Cloudflare Worker
             if self.rotate_worker_only:
                 if not self._has_cloudflare_config():
-                    print("错误: cloudflare 配置不完整（需 accountId/workerScript/apiToken）")
+                    print("错误: cloudflare 配置不完整（需 accountId/apiToken/workerScript；workerScript 支持逗号分隔多个）")
                     return 1
                 ok = self.rotate_worker_secrets(force=True)
                 print(f"\n=== Worker Secret 轮换 {'完成' if ok else '失败'} ===")

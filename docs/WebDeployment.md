@@ -3,7 +3,7 @@
 SeatFlow 浏览器版基于 Avalonia WebAssembly（`net10.0-browser`），产物为纯静态站点
 （`wwwroot/`），可部署到任意静态托管（Nginx、CDN、GitHub Pages、OSS、S3……）。
 
-> **状态**：Web 版已完成构建与运行验证；当前暂不提供正式部署，也不随桌面安装包发布。
+> **状态**：Web 版已正式部署于 `https://online.seatflow.work`（OSS 版本化目录 + Cloudflare KV 切换 + `online_worktable` Worker 代理）；预发布/手动发布不进入发布流水线。
 
 ## 构建与发布
 
@@ -42,6 +42,38 @@ cd scripts/build
 - **压缩**：发布产物自带 `.br/.gz` 副本（参考 `wwwroot/*.br|*.gz`），CDN/服务器启用
   Brotli 压缩可使初始下载减 60-70%（未优化基线 ≈ 91MB 原始 / ~30MB 压缩）
 - **路径**：默认相对路径部署；若部署在子路径，保持 `wwwroot` 目录结构整体上传
+
+## 在线版托管（online.seatflow.work）
+
+```
+浏览器 → https://online.seatflow.work（Cloudflare Worker `online_worktable`）
+           ├─ KV ONLINE_KV.current = 当前版本号（isolate 缓存 60s，故障回退上次可用版本）
+           ├─ 回源 OSS 私有桶 seatflow-download 的 online_worktable/<version>/<wwwroot 相对路径>
+           └─ Accept-Encoding: br → 优先取 <key>.br（缺失回退原文件）；Range 请求走原文件
+```
+
+- **发布条件**：仅正式版（`version.json` 不含 `-`）。`release.yml → publish.yml` 成功后，`publish-web.yml` 自动接力构建 `SeatFlow.Browser` 并发布；预发布与手动发布不进入流水线（未发布的 wasm 本地自测）。
+- **上传内容**：`wwwroot` 全部原文件 + `.br`，跳过 `.gz`/`.map`；对象键 `online_worktable/<version>/<相对路径>`（`scripts/ci/upload_web_oss.py`）。
+- **原子切换**：全部对象上传并通过完整性校验（key/大小全量比对）后才写 KV `current`；上传失败不影响线上旧版本。
+- **缓存与索引**：内容哈希文件 `immutable`（1 年），入口文件 `no-cache`；统一 `X-Robots-Tag: noindex` + 合成 `Disallow: /` 的 robots.txt。
+- **保留策略**：发布成功后保留最近 5 个版本目录（`--keep 5`），KV `current` 指向的版本永不删除。
+- **回滚**（秒级，需 CF 凭证）：
+
+  ```bash
+  CF_ACCOUNT_ID=... CF_API_TOKEN=... \
+  python3 scripts/ci/upload_web_oss.py --version <旧版本号> --switch-only
+  ```
+
+- **生效延迟**：KV 最终一致 + Worker isolate 缓存 60s，全局切换通常 < 2 分钟。
+- **发布排障**：
+
+  | 现象 | 原因 |
+  |------|------|
+  | 部署后白屏 / `SkiaSharp.SKImageInfo` | 构建缺少 wasm-tools（`dotnet.native.*.wasm` < 5MB，workflow 已前置校验） |
+  | `/` 返回 503 | KV `current` 未写 / 写入失败 |
+  | 500 `Missing OSS credentials` | Worker secrets 未下发（`worker-secret-sync` 未覆盖该 Worker） |
+  | 切换后仍是旧版 | KV 传播中，等待约 2 分钟后重试 |
+  | `.wasm` 返回 `application/octet-stream` | 请求未经过 Worker（检查 `X-Served-By`） |
 
 ## 平台差异（Web vs 桌面）
 

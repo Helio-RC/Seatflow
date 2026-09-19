@@ -11,7 +11,7 @@
   },
   "cloudflare": {
     "accountId": "YOUR_CLOUDFLARE_ACCOUNT_ID",
-    "workerScript": "oss-private-proxy",
+    "workerScript": "oss-proxy,online_worktable",
     "apiToken": "YOUR_CLOUDFLARE_API_TOKEN",
     "workerOssKeyId": "YOUR_WORKER_OSS_ACCESS_KEY",
     "workerOssKeySecret": "YOUR_WORKER_OSS_ACCESS_SECRET"

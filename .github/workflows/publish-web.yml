@@ -1,0 +1,196 @@
+name: Publish SeatFlow Web
+
+# 在线版（WASM）发布：桌面发布工作流成功后接力，仅正式版（版本号不含 "-"）。
+# 预发布 / 手动发布不进入本流程；未发布的 wasm 由开发者本地自测。
+on:
+  workflow_run:
+    workflows: ['Publish SeatFlow']
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency: publish-web-${{ github.ref }}
+
+env:
+  PIP_BREAK_SYSTEM_PACKAGES: '1'
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Job 0: 版本门禁（轻量）
+  #   仅当上游 publish.yml 是「push 触发的自动链路」成功运行时才放行；
+  #   手动 publish 运行的 job 会被跳过（conclusion 不是 success），
+  #   预发布版本（含 "-"）在此被拦截。
+  # ──────────────────────────────────────────────
+  gate:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'workflow_run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      stable: ${{ steps.meta.outputs.stable }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Resolve version
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          V=$(python3 -c "import json; print(json.load(open('version.json'))['version'])")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if [[ "$V" == *-* ]]; then
+            echo "stable=false" >> "$GITHUB_OUTPUT"
+            echo "预发布版本 $V：不进入在线版发布流程。"
+          else
+            echo "stable=true" >> "$GITHUB_OUTPUT"
+            echo "正式版本 $V：将发布到在线版。"
+          fi
+
+  # ──────────────────────────────────────────────
+  # Job 1: 构建并发布在线版
+  #   上传 online_worktable/<version>/（原文件 + .br）→ 完整性校验
+  #   → 写 KV current → 冒烟断言 → 清理旧版本
+  # ──────────────────────────────────────────────
+  deploy-web:
+    needs: gate
+    if: needs.gate.outputs.stable == 'true'
+    runs-on: ubuntu-latest
+    environment: OSS
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-web-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      # 缺 wasm-tools 时 publish 仍会"成功"，但原生库不链接 → 部署白屏
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Publish WASM
+        shell: bash
+        run: |
+          set -o pipefail
+          dotnet publish src/SeatFlow.Browser -c Release -o web-out 2>&1 | tee /tmp/publish-web.log
+
+      - name: Verify publish output
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f web-out/wwwroot/index.html
+          test -f web-out/wwwroot/_framework/dotnet.js
+          if grep -q "won't be linked in" /tmp/publish-web.log; then
+            echo "✗ 原生库未链接（缺少 wasm-tools），产物会白屏"
+            exit 1
+          fi
+          NATIVE=$(ls web-out/wwwroot/_framework/dotnet.native.*.wasm | head -1)
+          test -n "$NATIVE"
+          SIZE=$(stat -c%s "$NATIVE")
+          echo "dotnet.native wasm: $SIZE bytes"
+          [ "$SIZE" -gt 5000000 ] || { echo "✗ 原生库未链接（dotnet.native < 5MB）"; exit 1; }
+
+      - name: Install oss2
+        run: pip install oss2 packaging
+
+      - name: Upload to OSS (no switch)
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+          OSS_BUCKET: ${{ vars.OSS_BUCKET }}
+        run: |
+          python3 scripts/ci/upload_web_oss.py \
+            --version "${{ needs.gate.outputs.version }}" \
+            --wwwroot web-out/wwwroot \
+            --no-switch
+
+      - name: Read current version
+        id: current
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          PREV=$(python3 scripts/ci/upload_web_oss.py --print-current)
+          echo "previous=$PREV" >> "$GITHUB_OUTPUT"
+          echo "当前线上版本: ${PREV:-（无）}"
+
+      - name: Switch current version (KV)
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          python3 scripts/ci/upload_web_oss.py \
+            --version "${{ needs.gate.outputs.version }}" \
+            --switch-only
+
+      - name: Smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          V="${{ needs.gate.outputs.version }}"
+          URL="https://online.seatflow.work"
+          LIVE=""
+          for i in $(seq 1 60); do
+            LIVE=$(curl -sI "$URL/" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-online-version"{print $2}')
+            if [ "$LIVE" = "$V" ]; then
+              echo "✓ 在线版已切换到 $LIVE"
+              break
+            fi
+            echo "等待 KV 生效（$i/60）..."
+            sleep 5
+          done
+          if [ "$LIVE" != "$V" ]; then
+            echo "✗ 等待超时：线上版本 ${LIVE:-（无）} != $V"
+            exit 1
+          fi
+          BR=$(curl -sI -H 'Accept-Encoding: br' "$URL/_framework/dotnet.js" | tr -d '\r')
+          echo "$BR" | grep -qi '^content-encoding: br' || { echo "✗ br 协商失败"; exit 1; }
+          echo "$BR" | grep -qi '^content-type: text/javascript' || { echo "✗ dotnet.js MIME 异常"; exit 1; }
+          curl -s "$URL/robots.txt" | grep -q 'Disallow: /' || { echo "✗ robots.txt 未禁止索引"; exit 1; }
+          echo "✓ 冒烟检查通过"
+
+      - name: Prune old versions
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+          OSS_BUCKET: ${{ vars.OSS_BUCKET }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          python3 scripts/ci/upload_web_oss.py --prune-only --keep 5
+
+      - name: Rollback hint on failure
+        if: failure()
+        shell: bash
+        run: |
+          V="${{ needs.gate.outputs.version }}"
+          PREV="${{ steps.current.outputs.previous }}"
+          echo "::error::在线版发布失败（版本 $V），站点可能仍为旧版本或已切换未通过冒烟。"
+          if [ -n "$PREV" ] && [ "$PREV" != "$V" ]; then
+            echo "回滚命令（需 CF 凭证）：python3 scripts/ci/upload_web_oss.py --version \"$PREV\" --switch-only"
+          else
+            echo "未捕获到可回滚的上一版本（首次上线？），请人工确认 KV current。"
+          fi

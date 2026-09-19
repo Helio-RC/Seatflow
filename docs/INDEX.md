@@ -23,7 +23,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
 │   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
 │   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
-│   ├── WebDeployment.md       ← Web/WASM 部署指南（平台差异、JS 桥、已知限制）
+│   ├── WebDeployment.md       ← Web/WASM 部署指南（在线版托管、平台差异、JS 桥、已知限制）
 │   └── adr/
 │       ├── ADR-001-avalonia-ui-framework.md        ← 选择 Avalonia UI 的决策
 │       ├── ADR-002-mvvm-framework.md               ← 选择 CommunityToolkit.Mvvm 的决策
@@ -116,8 +116,8 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **关联文档**: CLAUDE.md（Behaviors 节）、SeatingArrangementView.axaml.cs
 
 ### docs/WebDeployment.md
-- **覆盖**: Web/WASM 浏览器版构建与部署、平台差异、JS 互操作桥、已知限制与排障
-- **何时更新**: 双壳结构、存储抽象、浏览器平台实现或部署要求变更
+- **覆盖**: Web/WASM 浏览器版构建与部署、在线版托管（OSS 版本目录 + KV 切换 + Worker）、平台差异、JS 互操作桥、已知限制与排障
+- **何时更新**: 双壳结构、存储抽象、浏览器平台实现、在线版发布流程或部署要求变更
 - **关联文档**: ARCHITECTURE.md（6.4 双壳架构）、CLAUDE.md（Web/WASM 双壳）
 
 ## 常见变更场景的文档联动清单

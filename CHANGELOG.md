@@ -2,6 +2,15 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Added
+- **在线版（Web/WASM）正式部署**：`publish-web.yml` 在桌面正式版发布成功后自动构建 WASM 并发布到 `https://online.seatflow.work`（OSS 版本化目录 `online_worktable/<version>/` + Cloudflare KV 原子切换 + `.br` 协商回源；预发布/手动发布不进入流水线）
+- `scripts/ci/upload_web_oss.py`：上传与完整性校验、KV 切换、秒级回滚（`--switch-only`）、旧版本清理（保留最近 5 个，current 永不删除）
+
+### Fixed
+- `rotate_worker_secrets.py` 下发密钥名修正为 `OSS_ACCESS_KEY_ID` / `OSS_ACCESS_KEY_SECRET`（与 Worker 读取绑定一致），并支持一次轮换 `oss-proxy,online_worktable` 两个脚本；`release.py` 本地轮换同步支持多脚本与共用密钥回退
+
 ## [2.0.0] — 2026-09-05
 
 ### Added

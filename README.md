@@ -32,7 +32,7 @@
 - [x] **历史快照** — 手动保存排座快照，支持回滚到任意历史版本
 - [x] **配置驱动** — 策略优先级、布局参数、导出选项均可配置
 - [x] **浏览器版（Web/WASM）** — 共享 UI 外壳，无需安装即可在浏览器中使用；数据存储在 IndexedDB，支持 Excel/CSV 导入导出与 `.seatsets` 打包迁移
-- [x] **跨平台** — Windows / Linux 原生运行（macOS 支持计划中，暂无安装包）；Web/WASM 浏览器版已完成构建与运行验证，暂不提供正式部署
+- [x] **跨平台** — Windows / Linux 原生运行（macOS 支持计划中，暂无安装包）；Web/WASM 浏览器版已正式部署（https://online.seatflow.work）
 
 ---
 
