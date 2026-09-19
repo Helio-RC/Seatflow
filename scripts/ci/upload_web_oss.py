@@ -4,6 +4,7 @@
 职责:
   1. 上传 wwwroot 全部原文件 + .br（跳过 .gz/.map）→ <prefix>/<version>/
   2. 用 list_objects_v2 全量比对 key/大小，确保上传完整后才允许切流
+     （缺失/大小不符即失败；重复构建产生的旧指纹对象仅告警）
   3. 写 Cloudflare KV（key 默认 current）完成原子切换
   4. 按保留策略清理旧版本目录（绝不删除 KV 当前版本）
   5. --switch-only / --print-current 支撑秒级回滚
@@ -232,11 +233,12 @@ def do_verify(bucket, version_prefix: str, files: dict) -> None:
     mismatched = sorted(
         key for key in set(expected) & set(remote) if expected[key] != remote[key]
     )
-    if missing or extra or mismatched:
+    if extra:
+        # 同一版本重复构建会产生新的内容指纹文件，旧指纹成为无害残留，不作为失败
+        log(f"    ! 忽略 {len(extra)} 个历史指纹对象（重复构建残留），如: {extra[:5]}")
+    if missing or mismatched:
         if missing:
             log(f"    ✗ 缺失 {len(missing)} 个对象，如: {missing[:5]}")
-        if extra:
-            log(f"    ✗ 多出 {len(extra)} 个对象，如: {extra[:5]}")
         if mismatched:
             log(f"    ✗ 大小不一致 {len(mismatched)} 个对象，如: {mismatched[:5]}")
         raise RuntimeError("完整性校验失败，未写入 KV")
