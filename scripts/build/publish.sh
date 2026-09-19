@@ -25,13 +25,30 @@ sha_table(){
 }
 
 publish_web(){
+    # 前置校验：缺少 wasm-tools workload 时 dotnet publish 仍会“成功”，但原生库
+    # （Skia/HarfBuzz）不会链接，产物在浏览器中启动即白屏：
+    # TypeInitialization_Type, SkiaSharp.SKImageInfo
+    if ! dotnet workload list 2>/dev/null | grep -q "wasm-tools"; then
+        step "缺少 wasm-tools workload，请先执行：dotnet workload install wasm-tools" 31
+        return 1
+    fi
+
     local base="publish/web"; mkdir -p "$base"
     local tmp="$base/.tmp_web"; rm -rf "$tmp"
     echo ""; echo -e "\e[36m══════════════════════════════════════════\e[0m"
     echo -e "\e[36m  WebAssembly (静态站点)\e[0m"
     echo -e "\e[36m══════════════════════════════════════════\e[0m"
     step "开始编译..." 33
-    dotnet publish "src/SeatFlow.Browser" -c "$CONFIG" -o "$tmp"
+    local log="$base/.publish_web.log"
+    if ! dotnet publish "src/SeatFlow.Browser" -c "$CONFIG" -o "$tmp" 2>&1 | tee "$log"; then
+        step "编译失败，详见 $log" 31
+        return 1
+    fi
+    if grep -q "won't be linked in" "$log"; then
+        step "原生库未链接（产物不可用）：安装 wasm-tools 后重试（$log）" 31
+        return 1
+    fi
+    rm -f "$log"
     local fn="$APP_NAME${VERSION:+-$VERSION}-web.tar.gz"
     tar -czf "$base/$fn" -C "$tmp/wwwroot" . && rm -rf "$tmp"
     local s; s=$(du -h "$base/$fn"|cut -f1); step "完成 → $base/$fn ($s)" 32

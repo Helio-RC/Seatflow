@@ -14,10 +14,18 @@ dotnet workload install wasm-tools
 # 发布（产物：src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot）
 dotnet publish src/SeatFlow.Browser -c Release
 
-# 或使用统一脚本（打出 SeatsFlow-xxx-web.tar.gz）
+# 或使用统一脚本（打出 SeatsFlow-xxx-web.tar.gz；缺 workload 时会直接报错）
 cd scripts/build
 ./publish.sh web Release
 ```
+
+> ⚠️ **`wasm-tools` 必须安装**：缺少时 `dotnet publish` 仍会“成功”，但原生库
+> （SkiaSharp/HarfBuzz）不会被链接（日志出现
+> `@(NativeFileReference) ... won't be linked in`），部署后启动即白屏，Console 报
+> `TypeInitialization_Type, SkiaSharp.SKImageInfo`。
+> **产物自检**：`_framework/dotnet.native.*.wasm` 正常约 9 MB（未链接只有约 3 MB）。
+> 外部构建平台（Cloudflare Workers Builds、其他 CI）同样需要先安装该 workload，
+> 参考 `.github/workflows/unit-tests.yml`。
 
 ## 部署要求
 
@@ -118,9 +126,11 @@ MT 模式下 Avalonia 的输入链路（Avalonia 12.1.2，main 分支同码，�
 - 复测方法：改 `WasmEnableThreads=true` 后发布，使用带
   `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`
   的静态服务器；等待上游 MT 输入问题修复后重新评估。
-- 排障注意：MT 构建必须安装 `wasm-tools` workload，否则 `WasmBuildNative` 不会执行、
-  原生库（Skia/HarfBuzz/pthread 符号）不链接，worker 内 `pthread_self()` 抛
-  `DllNotFoundException: *` 导致启动白屏。
+- 排障注意：任何 Web 构建（含单线程）都必须安装 `wasm-tools` workload，否则
+  `WasmBuildNative` 不会执行、原生库（Skia/HarfBuzz）不链接：单线程下报
+  `TypeInitialization_Type, SkiaSharp.SKImageInfo`，MT 下 worker 内
+  `pthread_self()` 抛 `DllNotFoundException: *`。（`scripts/build/publish.sh web`
+  已加前置校验与日志检测。）
 
 ## 已知限制
 
