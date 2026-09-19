@@ -2,18 +2,11 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [Unreleased]
+## [2.0.0] — 2026-09-19
 
 ### Added
 - **在线版（Web/WASM）正式部署**：`publish-web.yml` 在桌面正式版发布成功后自动构建 WASM 并发布到 `https://online.seatflow.work`（OSS 版本化目录 `online_worktable/<version>/` + Cloudflare KV 原子切换 + `.br` 协商回源；预发布/手动发布不进入流水线）
 - `scripts/ci/upload_web_oss.py`：上传与完整性校验、KV 切换、秒级回滚（`--switch-only`）、旧版本清理（保留最近 5 个，current 永不删除）
-
-### Fixed
-- `rotate_worker_secrets.py` 下发密钥名修正为 `OSS_ACCESS_KEY_ID` / `OSS_ACCESS_KEY_SECRET`（与 Worker 读取绑定一致），并支持一次轮换 `oss-proxy,online_worktable` 两个脚本；`release.py` 本地轮换同步支持多脚本与共用密钥回退
-
-## [2.0.0] — 2026-09-05
-
-### Added
 - **Web/WASM 浏览器支持（双壳架构）**：`SeatFlow.Presentation.Avalonia` 转为共享类库（`net10.0;net10.0-browser`），启动逻辑拆分为 `SeatFlow.Desktop`（桌面 EXE）与 `SeatFlow.Browser`（WASM 静态站）；存储经 `ILocalDataStore` 抽象（桌面=文件系统 / Web=IndexedDB）
 - 浏览器端文件互操作（`interop.js` / `files.js`）：IndexedDB 数据桥接、文件选择与 Blob 下载，CSV/XLSX/JSON 导入导出与 `.seatsets` 打包在 Web 端等价可用
 - Web 端 CJK 字体回退（Noto Sans SC，SIL OFL 1.1）、DevTools Console 日志、语言预加载、模态对话框 overlay 化
@@ -28,6 +21,9 @@
 - 删除能力系统（`Capability.cs`、`IFixedSeatCapability`、`TryMarkFixed` 能力校验），`FixedSeatStrategy` 直接设置 `Seat.IsFixed`
 - 删除插件管理页（`PageKey.PluginManagement`）、相关 i18n 键与 `onboarding_config.json` 页面引导
 - 删除插件系统文档：`docs/sdk/`、ADR-007、ADR-012；ADR-003 修订为纯分层架构；ADR-013 记录本决策
+
+### Fixed
+- `rotate_worker_secrets.py` 下发密钥名修正为 `OSS_ACCESS_KEY_ID` / `OSS_ACCESS_KEY_SECRET`（与 Worker 读取绑定一致），并支持一次轮换 `oss-proxy,online_worktable` 两个脚本；`release.py` 本地轮换同步支持多脚本与共用密钥回退
 
 ## [1.4.1] — 2026-07-24
 
