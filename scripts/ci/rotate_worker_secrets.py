@@ -50,10 +50,10 @@ def push_secrets(account_id: str, script: str, payload: dict) -> bool:
     request = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
-        method="PUT",
+        method="PATCH",
         headers={
             "Authorization": f"Bearer {os.environ['CF_API_TOKEN']}",
-            "Content-Type": "application/json",
+            "Content-Type": "application/merge-patch+json",
         },
     )
     try:
@@ -89,8 +89,20 @@ def main() -> int:
 
     account_id = os.environ["CF_ACCOUNT_ID"]
     payload = {
-        SECRET_ID_NAME: os.environ["OSS_KEY_ID"],
-        SECRET_KEY_NAME: os.environ["OSS_KEY_SECRET"],
+        # Cloudflare secrets-bulk 仅支持 PATCH（application/merge-patch+json），
+        # 且 body 需包在 "secrets" 下：{"secrets": {"NAME": {"name","text","type"}}}
+        "secrets": {
+            SECRET_ID_NAME: {
+                "name": SECRET_ID_NAME,
+                "text": os.environ["OSS_KEY_ID"],
+                "type": "secret_text",
+            },
+            SECRET_KEY_NAME: {
+                "name": SECRET_KEY_NAME,
+                "text": os.environ["OSS_KEY_SECRET"],
+                "type": "secret_text",
+            },
+        },
     }
 
     print(f"Worker secrets 轮换：{', '.join(scripts)}")

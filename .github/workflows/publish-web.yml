@@ -152,13 +152,20 @@ jobs:
           V="${{ needs.gate.outputs.version }}"
           URL="https://online.seatflow.work"
           LIVE=""
-          for i in $(seq 1 60); do
-            LIVE=$(curl -sI "$URL/" | tr -d '\r' | awk -F': ' 'tolower($1)=="x-online-version"{print $2}')
+          for i in $(seq 1 120); do
+            RESP=$(curl -sS -D - -o /dev/null "$URL/" | tr -d '\r')
+            STATUS=$(printf '%s\n' "$RESP" | head -1 | awk '{print $2}')
+            LIVE=$(printf '%s\n' "$RESP" | awk -F': ' 'tolower($1)=="x-online-version"{print $2}')
+            if [ "$STATUS" = "500" ]; then
+              echo "✗ 线上返回 500（Worker 配置异常，如缺少 OSS 凭据）："
+              curl -s "$URL/" | head -5
+              exit 1
+            fi
             if [ "$LIVE" = "$V" ]; then
               echo "✓ 在线版已切换到 $LIVE"
               break
             fi
-            echo "等待 KV 生效（$i/60）..."
+            echo "等待 KV 生效（$i/120，当前 HTTP ${STATUS:-?}）..."
             sleep 5
           done
           if [ "$LIVE" != "$V" ]; then

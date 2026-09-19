@@ -1160,17 +1160,20 @@ class ReleaseManager:
             return False
 
         api_base = "https://api.cloudflare.com/client/v4"
+        # secrets-bulk 仅支持 PATCH（merge-patch），body 需包在 "secrets" 下
         payload = {
-            "OSS_ACCESS_KEY_ID": {
-                "name": "OSS_ACCESS_KEY_ID",
-                "text": worker_key_id,
-                "type": "secret_text",
-            },
-            "OSS_ACCESS_KEY_SECRET": {
-                "name": "OSS_ACCESS_KEY_SECRET",
-                "text": worker_key_secret,
-                "type": "secret_text",
-            },
+            "secrets": {
+                "OSS_ACCESS_KEY_ID": {
+                    "name": "OSS_ACCESS_KEY_ID",
+                    "text": worker_key_id,
+                    "type": "secret_text",
+                },
+                "OSS_ACCESS_KEY_SECRET": {
+                    "name": "OSS_ACCESS_KEY_SECRET",
+                    "text": worker_key_secret,
+                    "type": "secret_text",
+                },
+            }
         }
 
         if self.dry_run:
