@@ -280,6 +280,10 @@ public class Resources
     public static string Nav_About => ResourceManager.GetString("Nav_About", Culture)!;
     public static string Nav_AppShort => ResourceManager.GetString("Nav_AppShort", Culture)!;
     public static string Nav_CollapseSidebar => ResourceManager.GetString("Nav_CollapseSidebar", Culture)!;
+    public static string Nav_Group_Data => ResourceManager.GetString("Nav_Group_Data", Culture)!;
+    public static string Nav_Group_Records => ResourceManager.GetString("Nav_Group_Records", Culture)!;
+    public static string Nav_Group_Rules => ResourceManager.GetString("Nav_Group_Rules", Culture)!;
+    public static string Nav_Group_Workflow => ResourceManager.GetString("Nav_Group_Workflow", Culture)!;
     public static string Nav_MemberManagement => ResourceManager.GetString("Nav_MemberManagement", Culture)!;
     public static string Nav_ExpandSidebar => ResourceManager.GetString("Nav_ExpandSidebar", Culture)!;
     public static string Nav_Freeform => ResourceManager.GetString("Nav_Freeform", Culture)!;
@@ -327,7 +331,15 @@ public class Resources
     public static string Seating_ExportTimeout => ResourceManager.GetString("Seating_ExportTimeout", Culture)!;
     public static string Seating_ExportTitle => ResourceManager.GetString("Seating_ExportTitle", Culture)!;
     public static string Seating_ExportedFmt => ResourceManager.GetString("Seating_ExportedFmt", Culture)!;
+    public static string Seating_InspectorShort => ResourceManager.GetString("Seating_InspectorShort", Culture)!;
+    public static string Seating_PickerShort => ResourceManager.GetString("Seating_PickerShort", Culture)!;
+    public static string Seating_PickerTitle => ResourceManager.GetString("Seating_PickerTitle", Culture)!;
+    public static string Seating_ReleaseNotes => ResourceManager.GetString("Seating_ReleaseNotes", Culture)!;
     public static string Seating_StudentView => ResourceManager.GetString("Seating_StudentView", Culture)!;
+    public static string Seating_TabHistory => ResourceManager.GetString("Seating_TabHistory", Culture)!;
+    public static string Seating_TabMessages => ResourceManager.GetString("Seating_TabMessages", Culture)!;
+    public static string Seating_TabStrategies => ResourceManager.GetString("Seating_TabStrategies", Culture)!;
+    public static string Seating_TabUnassigned => ResourceManager.GetString("Seating_TabUnassigned", Culture)!;
     public static string Seating_TeacherView => ResourceManager.GetString("Seating_TeacherView", Culture)!;
     public static string Seating_Generate => ResourceManager.GetString("Seating_Generate", Culture)!;
     public static string Seating_GenerateDesc => ResourceManager.GetString("Seating_GenerateDesc", Culture)!;
@@ -460,6 +472,8 @@ public class Resources
     public static string Settings_UpdateNotInstalled => ResourceManager.GetString("Settings_UpdateNotInstalled", Culture)!;
     public static string Settings_UpdatePendingRestart => ResourceManager.GetString("Settings_UpdatePendingRestart", Culture)!;
     public static string Settings_UpdateRestartConfirm => ResourceManager.GetString("Settings_UpdateRestartConfirm", Culture)!;
+    public static string Shell_CloseOverlay => ResourceManager.GetString("Shell_CloseOverlay", Culture)!;
+    public static string Shell_CompactNav => ResourceManager.GetString("Shell_CompactNav", Culture)!;
     public static string Snapshot_BatchDelete => ResourceManager.GetString("Snapshot_BatchDelete", Culture)!;
     public static string Snapshot_BatchDeleteFailed => ResourceManager.GetString("Snapshot_BatchDeleteFailed", Culture)!;
     public static string Snapshot_BatchDeleteMsg => ResourceManager.GetString("Snapshot_BatchDeleteMsg", Culture)!;

@@ -825,6 +825,18 @@
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>收起侧栏</value>
   </data>
+  <data name="Nav_Group_Data" xml:space="preserve">
+    <value>资料</value>
+  </data>
+  <data name="Nav_Group_Records" xml:space="preserve">
+    <value>记录</value>
+  </data>
+  <data name="Nav_Group_Rules" xml:space="preserve">
+    <value>规则</value>
+  </data>
+  <data name="Nav_Group_Workflow" xml:space="preserve">
+    <value>工作流</value>
+  </data>
   <data name="Nav_MemberManagement" xml:space="preserve">
     <value>人员管理</value>
   </data>
@@ -838,7 +850,7 @@
     <value>首页</value>
   </data>
   <data name="Nav_Seating" xml:space="preserve">
-    <value>座位安排</value>
+    <value>排座工作台</value>
   </data>
   <data name="Nav_Settings" xml:space="preserve">
     <value>设置</value>
@@ -966,9 +978,33 @@
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>已导出至 {0}</value>
   </data>
+  <data name="Seating_InspectorShort" xml:space="preserve">
+    <value>面板</value>
+  </data>
+  <data name="Seating_PickerShort" xml:space="preserve">
+    <value>数据</value>
+  </data>
+  <data name="Seating_PickerTitle" xml:space="preserve">
+    <value>数据选择</value>
+  </data>
+  <data name="Seating_ReleaseNotes" xml:space="preserve">
+    <value>更新说明</value>
+  </data>
   <data name="Seating_StudentView" xml:space="preserve">
     <value>学生视角</value>
     <comment>导出子菜单标题：学生视角导出格式</comment>
+  </data>
+  <data name="Seating_TabHistory" xml:space="preserve">
+    <value>记录</value>
+  </data>
+  <data name="Seating_TabMessages" xml:space="preserve">
+    <value>消息</value>
+  </data>
+  <data name="Seating_TabStrategies" xml:space="preserve">
+    <value>策略</value>
+  </data>
+  <data name="Seating_TabUnassigned" xml:space="preserve">
+    <value>未分配</value>
   </data>
   <data name="Seating_TeacherView" xml:space="preserve">
     <value>教师视角</value>
@@ -1077,7 +1113,7 @@
     <value>已保存到快照</value>
   </data>
   <data name="Seating_MemberData" xml:space="preserve">
-    <value>数据</value>
+    <value>名单</value>
   </data>
   <data name="Seating_MemberDatasetList" xml:space="preserve">
     <value>数据集列表</value>
@@ -1366,6 +1402,12 @@
   </data>
   <data name="Settings_UpdateRestartConfirm" xml:space="preserve">
     <value>更新已下载完成，需要重启应用才能生效。是否立即重启？</value>
+  </data>
+  <data name="Shell_CloseOverlay" xml:space="preserve">
+    <value>关闭弹层</value>
+  </data>
+  <data name="Shell_CompactNav" xml:space="preserve">
+    <value>导航</value>
   </data>
   <data name="Snapshot_BatchDelete" xml:space="preserve">
     <value>批量删除</value>

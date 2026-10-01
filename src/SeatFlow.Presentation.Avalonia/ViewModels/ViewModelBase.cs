@@ -48,6 +48,32 @@ public abstract class ViewModelBase : ObservableObject
     }
 
     /// <summary>
+    /// 执行可取消操作：用户主动取消（<see cref="OperationCanceledException"/>）静默返回，不弹错误框；
+    /// 其他异常仍按 <see cref="SafeExecuteAsync(Func{Task}, string?)"/> 语义记录并弹窗。
+    /// 适用场景：长任务在页面离开时被取消（如生成座位安排）。
+    /// </summary>
+    protected async Task<bool> SafeCancelableAsync(Func<Task> action, string? errorTitle = null)
+    {
+        errorTitle ??= Resources.Common_OperationFailed;
+        try
+        {
+            await action();
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            Logger?.LogDebug("操作被取消（用户主动取消/离开页面）：{Title}", errorTitle);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
+            await Dialog.ShowErrorAsync(errorTitle, ex.Message);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 在带超时的 try-catch 中执行操作。超时后自动取消 CancellationToken 并弹窗提示，不会终止程序。
     /// </summary>
     /// <param name="action">接受 CancellationToken 的异步操作，超时后 token 会被取消</param>

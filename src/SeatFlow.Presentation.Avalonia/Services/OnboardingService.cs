@@ -100,10 +100,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _logger.LogInformation("[Onboarding] MainView={NotNull}", mainView is not null);
         if (mainView?.DataContext is MainShellViewModel vm)
         {
-            _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到 Home");
+            _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到排座工作台（默认入口）");
             vm.IsOnboardingActive = true;
             vm.EnsureSidebarExpanded();
-            vm.OnboardingNavigateTo(PageKey.Home);
+            vm.OnboardingNavigateTo(PageKey.SeatingArrangement);
         }
         else
         {
@@ -120,7 +120,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             _logger.LogError("[Onboarding] OnboardingGuide 控件为 null！无法显示引导");
 
         // 使用 Background 优先级（而非 Loaded），因为 Loaded 依赖布局 pass，
-        // 但如果当前页面已是 Home，NavigateTo 会跳过导航，不触发布局 pass，
+        // 但如果当前页面已是目标页，NavigateTo 会跳过导航，不触发布局 pass，
         // 导致 Loaded 回调永远不执行。Guide 控件自带 TargetResolveDelay 重试。
         Dispatcher.UIThread.Post(() =>
         {
@@ -221,8 +221,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         // 1. 先处理跨阶段页面导航（在解析 Target 之前），
         //    确保目标控件所在的新页面 View 已创建，NameScope 可用。
-        //    OnboardingNavigateTo 同步设置 CurrentViewModel 触发 ViewLocator，
-        //    RunTransitionAsync 因 IsOnboardingActive=true 提前返回，无闪烁。
+        //    OnboardingNavigateTo 同步设置 CurrentViewModel 触发 ViewLocator（M3 起切页即同步，无动画）。
         bool isPhaseTransition = false;
         PageKey targetPage = default;
         var phaseIndex = GetPhaseIndex(stepIndex);
@@ -258,12 +257,13 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             if (phase.SeedData)
             {
                 // MemberManagement 第二次进入：先代码内离开-重入，强制页面重建后再注入
+                // M3：Home 已移除，中间页改用排座工作台（默认入口）
                 if (targetPage == PageKey.MemberManagement)
                 {
                     var mainView = GetMainView();
                     if (mainView?.DataContext is MainShellViewModel shell)
                     {
-                        shell.OnboardingNavigateTo(PageKey.Home);
+                        shell.OnboardingNavigateTo(PageKey.SeatingArrangement);
                         shell.OnboardingNavigateTo(PageKey.MemberManagement);
                     }
                 }
@@ -360,11 +360,14 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                 _ => null
             };
             if (initTask is not null)
-                await initTask.ConfigureAwait(true);
+            {
+                // 兜底超时：页面因故未完成初始化时不阻塞引导流程
+                await initTask.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(true);
+            }
         }
         catch
         {
-            // 页面初始化失败时仍尝试注入（不阻塞引导流程）
+            // 页面初始化失败/超时/取消时仍尝试注入（不阻塞引导流程）
         }
 
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -458,7 +461,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private static void SeedSeatingArrangementData(SeatingArrangementViewModel? vm)
     {
         if (vm is null) return;
-        // 已等待 LoadInitialDataAsync/RefreshDataAsync 完成，注入不会被后续加载覆盖
+        // 已等待 OnEnterAsync 内的 RefreshDataAsync 完成，注入不会被后续加载覆盖
         vm.VenueItems.Clear();
         vm.VenueItems.Add(new("demo-v", "演示教室"));
         vm.DatasetItems.Clear();
@@ -593,6 +596,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             seatVm.DatasetItems.Clear();
             seatVm.SelectedVenue = null;
             seatVm.SelectedDataset = null;
+            // 列表已清空 → 下次进入重新加载（页面缓存策略失效化）
+            seatVm.InvalidateData();
         }
         if (sp.GetService(typeof(SnapshotHistoryViewModel)) is SnapshotHistoryViewModel snapVm)
         {
@@ -778,7 +783,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             var mainView = GetMainView();
             if (mainView?.DataContext is MainShellViewModel vm)
             {
-                var navigateTo = ParsePageKey(_config?.CompleteAction) ?? PageKey.Home;
+                var navigateTo = ParsePageKey(_config?.CompleteAction) ?? PageKey.SeatingArrangement;
                 await vm.CompleteOnboardingAsync(navigateTo);
             }
         }

@@ -726,8 +726,18 @@ namespace SeatFlow.Presentation.Avalonia
                 }
                 catch (CultureNotFoundException) { /* 无效语言代码，保持当前 */ }
 
-                // 导航到主页
-                navigation.NavigateTo(PageKey.Home);
+                // M3：失效排座工作台的会场/名单列表缓存（覆盖设置页 / 系统文件关联等全部导入入口）
+                if (serviceProvider.GetService<SeatingArrangementViewModel>() is { } seatVm)
+                {
+                    seatVm.InvalidateData();
+
+                    // 当前已停留在工作台时 NavigateTo 会被跳过（不触发重新进入/加载），需显式刷新
+                    if (navigation.CurrentPage == PageKey.SeatingArrangement)
+                        await seatVm.RefreshDataAsync();
+                }
+
+                // 导航到默认入口（M3 起为排座工作台）
+                navigation.NavigateTo(PageKey.SeatingArrangement);
             }
             catch (Exception ex)
             {

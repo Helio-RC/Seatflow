@@ -825,6 +825,18 @@ This cannot be undone.</value>
   <data name="Nav_CollapseSidebar" xml:space="preserve">
     <value>Collapse sidebar</value>
   </data>
+  <data name="Nav_Group_Data" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Nav_Group_Records" xml:space="preserve">
+    <value>Records</value>
+  </data>
+  <data name="Nav_Group_Rules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="Nav_Group_Workflow" xml:space="preserve">
+    <value>Workflow</value>
+  </data>
   <data name="Nav_MemberManagement" xml:space="preserve">
     <value>Members</value>
   </data>
@@ -838,7 +850,7 @@ This cannot be undone.</value>
     <value>Home</value>
   </data>
   <data name="Nav_Seating" xml:space="preserve">
-    <value>Seating</value>
+    <value>Seating Workbench</value>
   </data>
   <data name="Nav_Settings" xml:space="preserve">
     <value>Settings</value>
@@ -966,8 +978,32 @@ This cannot be undone.</value>
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>Exported to {0}</value>
   </data>
+  <data name="Seating_InspectorShort" xml:space="preserve">
+    <value>Panel</value>
+  </data>
+  <data name="Seating_PickerShort" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Seating_PickerTitle" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="Seating_ReleaseNotes" xml:space="preserve">
+    <value>Release notes</value>
+  </data>
   <data name="Seating_StudentView" xml:space="preserve">
     <value>Student View</value>
+  </data>
+  <data name="Seating_TabHistory" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Seating_TabMessages" xml:space="preserve">
+    <value>Messages</value>
+  </data>
+  <data name="Seating_TabStrategies" xml:space="preserve">
+    <value>Strategies</value>
+  </data>
+  <data name="Seating_TabUnassigned" xml:space="preserve">
+    <value>Unassigned</value>
   </data>
   <data name="Seating_TeacherView" xml:space="preserve">
     <value>Teacher View</value>
@@ -1075,7 +1111,7 @@ This cannot be undone.</value>
     <value>Saved to snapshot</value>
   </data>
   <data name="Seating_MemberData" xml:space="preserve">
-    <value>Member data</value>
+    <value>Roster</value>
   </data>
   <data name="Seating_MemberDatasetList" xml:space="preserve">
     <value>Member dataset list</value>
@@ -1364,6 +1400,12 @@ This cannot be undone.</value>
   </data>
   <data name="Settings_UpdateRestartConfirm" xml:space="preserve">
     <value>Update downloaded. A restart is required to apply the update. Restart now?</value>
+  </data>
+  <data name="Shell_CloseOverlay" xml:space="preserve">
+    <value>Close overlay</value>
+  </data>
+  <data name="Shell_CompactNav" xml:space="preserve">
+    <value>Menu</value>
   </data>
   <data name="Snapshot_BatchDelete" xml:space="preserve">
     <value>Batch delete</value>

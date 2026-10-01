@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -10,18 +11,47 @@ using SeatFlow.Presentation.Avalonia.ViewModels;
 
 namespace SeatFlow.Presentation.Avalonia.Views;
 
+/// <summary>
+/// 排座工作台视图（M3：三栏 + 页签检查器）。
+/// 说明：当前 <c>NavigationService</c> 尚未调用 <c>IPageLifecycle</c>，
+/// 因此在 Loaded/Unloaded 桥接页面生命周期（进入时加载、离开时取消在途任务）。
+/// </summary>
 public partial class SeatingArrangementView : UserControl
 {
+    private CancellationTokenSource? _lifecycleCts;
+
     public SeatingArrangementView()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
+        _lifecycleCts?.Cancel();
+        _lifecycleCts?.Dispose();
+        _lifecycleCts = new CancellationTokenSource();
+
         if (DataContext is SeatingArrangementViewModel vm)
-            _ = vm.RefreshDataAsync();
+            _ = vm.OnEnterAsync(_lifecycleCts.Token);
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        _lifecycleCts?.Cancel();
+        _lifecycleCts?.Dispose();
+        _lifecycleCts = null;
+
+        if (DataContext is SeatingArrangementViewModel vm)
+            _ = vm.OnLeaveAsync();
+    }
+
+    /// <summary>紧凑模式抽屉遮罩点击：关闭抽屉。</summary>
+    private void DrawerMask_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is SeatingArrangementViewModel vm)
+            vm.CloseDrawersCommand.Execute(null);
     }
 
     // ── 拖放数据格式（自绘座位的内部拖拽不再走系统 DnD；此处用于「未分配学生 → 画布」） ──

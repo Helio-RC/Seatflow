@@ -2,41 +2,144 @@
   x:Class="SeatFlow.Presentation.Avalonia.Views.SeatingArrangementView"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
   xmlns:controls="using:SeatFlow.Presentation.Avalonia.Controls"
   xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
   xmlns:core="using:SeatFlow.Core.Models"
   xmlns:fic="using:FluentIcons.Avalonia"
   xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
   xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:services="using:SeatFlow.Presentation.Avalonia.Services"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:SeatingArrangementViewModel">
 
-  <DockPanel Classes="pageMargin">
-    <!--  ═══ 工具栏 ═══  -->
-    <Border Classes="sectionSpacing" DockPanel.Dock="Top">
+  <UserControl.Styles>
+    <!--  选择列表（方向 B：选中=纸面底 + 强调描边）  -->
+    <Style Selector="ListBox.sf-select">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.sf-select ListBoxItem">
+      <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    </Style>
+    <Style Selector="ListBox.sf-select ListBoxItem:pointerover /template/ Border#PART_BackgroundBorder">
+      <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.sf-select ListBoxItem:selected /template/ Border#PART_BackgroundBorder">
+      <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+  </UserControl.Styles>
+
+  <DockPanel>
+    <!--  ═══ 命令栏 ═══  -->
+    <Border DockPanel.Dock="Top" Classes="sf-toolbar">
       <DockPanel>
-        <TextBlock
-          VerticalAlignment="Center"
-          Classes="pageTitle"
-          DockPanel.Dock="Left"
-          Text="{x:Static lang:Resources.Seating_Title}" />
+        <!--  标题 + 副标题（会场 · 名单）  -->
         <StackPanel
-          DockPanel.Dock="Right"
+          VerticalAlignment="Center"
+          DockPanel.Dock="Left"
           Orientation="Horizontal"
           Spacing="8">
-          <!--  导出按钮 + Flyout  -->
+          <TextBlock
+            Classes="sf-h1"
+            IsVisible="{Binding CompactCommandTextVisible}"
+            Text="{x:Static lang:Resources.Nav_Seating}" />
+          <TextBlock
+            VerticalAlignment="Bottom"
+            Classes="sf-sm sf-faint"
+            IsVisible="{Binding CompactCommandTextVisible}"
+            Text="{Binding WorkbenchSubtitle}" />
+        </StackPanel>
+
+        <StackPanel
+          HorizontalAlignment="Right"
+          VerticalAlignment="Center"
+          DockPanel.Dock="Right"
+          Orientation="Horizontal"
+          Spacing="6">
+          <!--  紧凑模式：数据 / 面板抽屉开关  -->
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_PickerShort}"
+            Classes="sf-btn sf-sm"
+            Command="{Binding TogglePickerDrawerCommand}"
+            IsVisible="{Binding Layout.IsCompact}">
+            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_PickerShort}" />
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_InspectorShort}"
+            Classes="sf-btn sf-sm"
+            Command="{Binding ToggleInspectorDrawerCommand}"
+            IsVisible="{Binding Layout.IsCompact}">
+            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_InspectorShort}" />
+          </Button>
+          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsCompact}" />
+
+          <!--  撤销 / 重做  -->
+          <Button
+            x:Name="UndoButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_UndoSwap}"
+            Classes="sf-btn"
+            Command="{Binding UndoCommand}"
+            IsEnabled="{Binding CanUndo}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Seating_Undo}" />
+            </StackPanel>
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_RedoSwap}"
+            Classes="sf-btn"
+            Command="{Binding RedoCommand}"
+            IsEnabled="{Binding CanRedo}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowRedo}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Seating_Redo}" />
+            </StackPanel>
+          </Button>
+          <Border Classes="sf-sep-v" />
+
+          <!--  保存快照  -->
+          <Button
+            x:Name="SaveSnapshotButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}"
+            Classes="sf-btn"
+            Command="{Binding SaveToSnapshotCommand}"
+            IsEnabled="{Binding HasUnsavedChanges}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Common_Save}" />
+            </StackPanel>
+          </Button>
+
+          <!--  导出菜单（学生/教师 × Excel/CSV/PDF/PNG；Web 隐藏 PDF/PNG）  -->
           <Button
             x:Name="ExportButton"
-            HorizontalContentAlignment="Center"
             AutomationProperties.Name="{x:Static lang:Resources.Data_Export}"
+            Classes="sf-btn"
             IsEnabled="{Binding HasGenerated}">
             <Button.Flyout>
               <MenuFlyout>
-                <!--  学生视角  -->
                 <MenuItem
                   Classes="sectionTitle"
-                  Foreground="{DynamicResource SystemAccentColor}"
+                  Foreground="{DynamicResource SfAccentBrush}"
                   IsEnabled="False">
                   <MenuItem.Header>
                     <TextBlock Text="{x:Static lang:Resources.Seating_StudentView}" />
@@ -55,21 +158,26 @@
                     <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.DocumentTable}" />
                   </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Command="{Binding ExportPdfCommand}" Header="PDF (.pdf)">
+                <MenuItem
+                  Command="{Binding ExportPdfCommand}"
+                  Header="PDF (.pdf)"
+                  IsVisible="{Binding !IsWebPlatform}">
                   <MenuItem.Icon>
                     <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.DocumentPdf}" />
                   </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Command="{Binding ExportImageCommand}" Header="{x:Static lang:Resources.Seating_ExportPNG}">
+                <MenuItem
+                  Command="{Binding ExportImageCommand}"
+                  Header="{x:Static lang:Resources.Seating_ExportPNG}"
+                  IsVisible="{Binding !IsWebPlatform}">
                   <MenuItem.Icon>
                     <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Image}" />
                   </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
-                <!--  教师视角  -->
                 <MenuItem
                   Classes="sectionTitle"
-                  Foreground="{DynamicResource SystemAccentColor}"
+                  Foreground="{DynamicResource SfAccentBrush}"
                   IsEnabled="False">
                   <MenuItem.Header>
                     <TextBlock Text="{x:Static lang:Resources.Seating_TeacherView}" />
@@ -107,72 +215,84 @@
               </MenuFlyout>
             </Button.Flyout>
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.SaveArrowRight}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Seating_Export}" />
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.SaveArrowRight}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Seating_Export}" />
+              <fic:FluentIcon FontSize="10" Icon="{x:Static ficEnum:Icon.ChevronDown}" />
             </StackPanel>
           </Button>
-          <!--  保存到快照  -->
+
+          <!--  生成 / 创建空白  -->
           <Button
-            x:Name="SaveSnapshotButton"
-            HorizontalContentAlignment="Center"
-            AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}"
-            Command="{Binding SaveToSnapshotCommand}"
-            IsEnabled="{Binding HasUnsavedChanges}">
+            x:Name="GenerateButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Nav_Seating}"
+            Classes="sf-btn sf-primary"
+            Command="{Binding GenerateSeatingCommand}"
+            IsEnabled="{Binding CanGenerate}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Save}" />
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+              <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.Seating_Generate}" />
             </StackPanel>
           </Button>
-          <!--  撤销  -->
           <Button
-            x:Name="UndoButton"
-            HorizontalContentAlignment="Center"
-            AutomationProperties.Name="{x:Static lang:Resources.Seating_UndoSwap}"
-            Command="{Binding UndoCommand}"
-            IsEnabled="{Binding CanUndo}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Seating_Undo}" />
-            </StackPanel>
-          </Button>
-          <!--  重做  -->
-          <Button
-            HorizontalContentAlignment="Center"
-            AutomationProperties.Name="{x:Static lang:Resources.Seating_RedoSwap}"
-            Command="{Binding RedoCommand}"
-            IsEnabled="{Binding CanRedo}">
-            <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowRedo}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Seating_Redo}" />
-            </StackPanel>
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
+            Classes="sf-btn sf-icon"
+            Command="{Binding CreateEmptySeatingCommand}"
+            IsEnabled="{Binding CanCreateEmpty}"
+            ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.TableAdd}" />
           </Button>
         </StackPanel>
       </DockPanel>
     </Border>
 
+    <!--  ═══ 交换提示栏 ═══  -->
+    <Border
+      Classes="sf-statusbar"
+      DockPanel.Dock="Bottom"
+      IsVisible="{Binding IsSwapMode}">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock
+          Grid.Column="0"
+          VerticalAlignment="Center"
+          Classes="sf-sm sf-accent"
+          Text="{Binding SwapHintText}" />
+        <Button
+          Grid.Column="1"
+          AutomationProperties.Name="{x:Static lang:Resources.Seating_CancelSwap}"
+          Classes="sf-btn sf-sm"
+          Command="{Binding CancelSwapCommand}">
+          <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Cancel}" />
+        </Button>
+      </Grid>
+    </Border>
+
     <!--  ═══ 状态栏 ═══  -->
     <Border
-      Classes="statusBarBottom"
+      Classes="sf-statusbar"
       DockPanel.Dock="Bottom"
       IsVisible="{Binding HasGenerated}">
       <Grid ColumnDefinitions="*,Auto">
         <TextBlock
           Grid.Column="0"
           VerticalAlignment="Center"
-          Classes="caption"
-          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          Classes="sf-xs sf-dim"
           Text="{Binding StatusMessage}" />
         <StackPanel
           Grid.Column="1"
+          VerticalAlignment="Center"
           Orientation="Horizontal"
           Spacing="16">
-          <TextBlock Classes="caption">
+          <TextBlock Classes="sf-xs sf-num">
             <Run Text="{x:Static lang:Resources.Seating_Seats}" />
             <Run Text="{Binding AssignedSeats}" />
             <Run Text="/" />
             <Run Text="{Binding TotalSeats}" />
           </TextBlock>
-          <TextBlock Classes="caption">
+          <TextBlock Classes="sf-xs sf-num">
             <Run Text="{x:Static lang:Resources.Seating_Unassigned}" />
             <Run Text="{Binding UnassignedStudentCount}" />
             <Run Text="{x:Static lang:Resources.Seating_People}" />
@@ -181,570 +301,475 @@
       </Grid>
     </Border>
 
-    <!--  交换提示栏  -->
-    <Border
-      Classes="statusBarBottom"
-      DockPanel.Dock="Bottom"
-      IsVisible="{Binding IsSwapMode}">
-      <Grid ColumnDefinitions="*,Auto">
-        <TextBlock
-          VerticalAlignment="Center"
-          Classes="caption"
-          Foreground="{DynamicResource SystemAccentColor}"
-          Text="{Binding SwapHintText}" />
-        <Button
-          Grid.Column="1"
-          Padding="8,2"
-          AutomationProperties.Name="{x:Static lang:Resources.Seating_CancelSwap}"
-          Command="{Binding CancelSwapCommand}"
-          FontSize="12">
-          <TextBlock Text="{x:Static lang:Resources.Common_Cancel}" />
-        </Button>
-      </Grid>
-    </Border>
-
     <!--  ═══ 三栏内容区 ═══  -->
-    <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="240" />
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="*" />
-      </Grid.ColumnDefinitions>
-
-      <!--  ─── 左侧面板 ───  -->
+    <Grid ColumnDefinitions="Auto,*,Auto">
+      <!--  ─── 左：数据选择（桌面内联 / 紧凑抽屉） ───  -->
       <Border
-        Grid.Column="0"
-        Margin="0,0,8,0"
-        Background="{DynamicResource SidebarBackgroundBrush}"
-        ClipToBounds="True"
-        CornerRadius="6">
-        <Grid Margin="8" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto">
-          <!--  会场选择  -->
-          <TextBlock
-            Grid.Row="0"
-            Margin="3,0,0,8"
-            Classes="sectionTitle"
-            Text="{x:Static lang:Resources.Seating_Venue}" />
-          <ListBox
-            x:Name="VenueListBox"
-            Grid.Row="1"
-            MaxHeight="180"
-            AutomationProperties.Name="{x:Static lang:Resources.Venue_List}"
-            Background="{DynamicResource SidebarBackgroundBrush}"
-            BorderThickness="0"
-            ItemsSource="{Binding VenueItems}"
-            SelectedItem="{Binding SelectedVenue, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="vm:VenueItem">
-                <TextBlock
-                  Margin="4,6"
-                  Classes="bodySmall"
-                  Text="{Binding Name}" />
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-
-          <Separator Grid.Row="2" Margin="4,10" />
-
-          <!--  数据集选择  -->
-          <TextBlock
-            Grid.Row="3"
-            Margin="3,0,0,8"
-            Classes="sectionTitle"
-            Text="{x:Static lang:Resources.Seating_MemberData}" />
-          <ListBox
-            x:Name="DatasetListBox"
-            Grid.Row="4"
-            MaxHeight="180"
-            AutomationProperties.Name="{x:Static lang:Resources.Seating_MemberDatasetList}"
-            Background="{DynamicResource SidebarBackgroundBrush}"
-            BorderThickness="0"
-            ItemsSource="{Binding DatasetItems}"
-            SelectedItem="{Binding SelectedDataset, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="core:StudentDatasetInfo">
-                <TextBlock
-                  Margin="4,6"
-                  Classes="bodySmall"
-                  Text="{Binding Name}" />
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-
-          <!--  填充 spacer  -->
-          <Panel Grid.Row="5" />
-
-          <!--  生成 + 创建空白会场按钮  -->
-          <DockPanel Grid.Row="6" Margin="0,8">
+        x:Name="PickerPanel"
+        Grid.Column="{Binding PickerPanelColumn}"
+        Width="{Binding PickerPanelWidth}"
+        HorizontalAlignment="{Binding PanelHorizontalAlignment}"
+        ZIndex="{Binding PanelZIndex}"
+        Background="{DynamicResource SfSurface2Brush}"
+        BorderBrush="{DynamicResource SfBorderBrush}"
+        BorderThickness="{Binding PickerPanelBorderThickness}"
+        IsVisible="{Binding PickerVisible}">
+        <DockPanel>
+          <DockPanel Margin="16,12,12,4" DockPanel.Dock="Top">
             <Button
-              Width="36"
-              Height="36"
-              HorizontalContentAlignment="Center"
-              VerticalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
-              Command="{Binding CreateEmptySeatingCommand}"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              AutomationProperties.Name="{x:Static lang:Resources.Common_Refresh}"
+              Classes="sf-btn sf-icon sf-ghost"
+              Command="{Binding ReloadDataCommand}"
               DockPanel.Dock="Right"
-              IsEnabled="{Binding CanCreateEmpty}"
-              ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
-              <fic:FluentIcon FontSize="18" Icon="{x:Static ficEnum:Icon.TableAdd}" />
+              ToolTip.Tip="{x:Static lang:Resources.Common_Refresh}">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
             </Button>
-            <Button
-              x:Name="GenerateButton"
-              Height="36"
-              Margin="0,0,4,0"
-              HorizontalAlignment="Stretch"
-              HorizontalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Seating_Title}"
-              Classes="accent"
-              Command="{Binding GenerateSeatingCommand}"
-              IsEnabled="{Binding CanGenerate}">
-              <StackPanel
-                VerticalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Seating_Generate}" />
-              </StackPanel>
-            </Button>
+            <TextBlock
+              VerticalAlignment="Center"
+              Classes="sf-h3"
+              Text="{x:Static lang:Resources.Seating_PickerTitle}" />
           </DockPanel>
-        </Grid>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="12,0,12,12" Spacing="6">
+              <TextBlock Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Seating_Venue}" />
+              <ListBox
+                x:Name="VenueListBox"
+                AutomationProperties.Name="{x:Static lang:Resources.Venue_List}"
+                Classes="sf-select"
+                ItemsSource="{Binding VenueItems}"
+                SelectedItem="{Binding SelectedVenue, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:VenueItem">
+                    <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <TextBlock
+                Margin="0,8,0,0"
+                Classes="sf-xs sf-faint"
+                Text="{x:Static lang:Resources.Seating_MemberData}" />
+              <ListBox
+                x:Name="DatasetListBox"
+                AutomationProperties.Name="{x:Static lang:Resources.Seating_MemberDatasetList}"
+                Classes="sf-select"
+                ItemsSource="{Binding DatasetItems}"
+                SelectedItem="{Binding SelectedDataset, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="core:StudentDatasetInfo">
+                    <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </StackPanel>
+          </ScrollViewer>
+        </DockPanel>
       </Border>
 
-      <!--  GridSplitter  -->
-      <GridSplitter
+      <!--  ─── 中：座位画布 ───  -->
+      <Border
         Grid.Column="1"
-        Width="4"
-        HorizontalAlignment="Stretch"
-        Background="Transparent" />
-
-      <!--  ─── 中央 Canvas + 右侧面板 ───  -->
-      <Grid Grid.Column="2">
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
-        <!--  ═══ 座位图 Canvas ═══  -->
-        <Border
-          Grid.Column="0"
-          Padding="0"
-          Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-          ClipToBounds="True"
-          CornerRadius="6">
-          <Panel>
-
-            <!--  空状态  -->
-            <Border
-              Padding="40"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Stretch"
-              IsVisible="{Binding HasGenerated, Converter={x:Static conv:BoolConverters.Negate}}">
+        Background="{DynamicResource SfCanvasBgBrush}"
+        ClipToBounds="True">
+        <Panel>
+          <!--  空态：欢迎卡（承接原 Home 的欢迎/快捷链接/RELEASE）  -->
+          <Border
+            Padding="24"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            IsVisible="{Binding !HasGenerated}">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
               <StackPanel
+                MaxWidth="560"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Spacing="8">
-                <fic:FluentIcon
-                  HorizontalAlignment="Center"
-                  FontSize="48"
-                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                  Icon="{x:Static ficEnum:Icon.Grid}" />
-                <TextBlock
-                  HorizontalAlignment="Center"
-                  Classes="sectionTitle"
-                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                  Text="{x:Static lang:Resources.Seating_NotGenerated}" />
-                <TextBlock
-                  HorizontalAlignment="Center"
-                  Classes="caption"
-                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                  Text="{x:Static lang:Resources.Seating_NotGeneratedHint}"
-                  TextWrapping="Wrap" />
-              </StackPanel>
-            </Border>
+                Spacing="16">
+                <StackPanel HorizontalAlignment="Center" Spacing="4">
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    Classes="sf-h2"
+                    Text="{Binding Welcome.GreetingLine}" />
+                  <TextBlock
+                    HorizontalAlignment="Center"
+                    Classes="sf-xs sf-faint"
+                    Text="{Binding Welcome.VersionLabel}" />
+                </StackPanel>
 
-            <!--  座位渲染区（自绘 SeatingCanvas：单控件渲染 + 几何命中 + 内置缩放/平移/拖拽）  -->
-            <controls:SeatingCanvas
-              x:Name="SeatCanvas"
-              IsVisible="{Binding HasGenerated}"
-              Snapshot="{Binding CanvasSnapshot}"
-              Zoom="{Binding ZoomLevel, Mode=TwoWay}"
-              DragDrop.AllowDrop="True"
-              DragDrop.DragLeave="SeatCanvas_DragLeave"
-              DragDrop.DragOver="SeatCanvas_DragOver"
-              DragDrop.Drop="SeatCanvas_Drop"
-              SeatActivated="SeatCanvas_SeatActivated"
-              SeatClicked="SeatCanvas_SeatClicked"
-              SeatDropped="SeatCanvas_SeatDropped" />
-
-            <!--  垃圾桶：拖入或点击移除学生  -->
-            <Border
-              Name="TrashZone"
-              Width="44"
-              Height="44"
-              Margin="0,0,12,36"
-              HorizontalAlignment="Right"
-              VerticalAlignment="Bottom"
-              AutomationProperties.Name="{x:Static lang:Resources.Seating_TrashHint}"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-              BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              BorderThickness="2"
-              CornerRadius="22"
-              Cursor="Hand"
-              DragDrop.AllowDrop="True"
-              DragDrop.DragLeave="Trash_DragLeave"
-              DragDrop.DragOver="Trash_DragOver"
-              DragDrop.Drop="Trash_Drop"
-              IsVisible="{Binding HasGenerated}"
-              PointerPressed="Trash_PointerPressed"
-              ToolTip.Tip="{x:Static lang:Resources.Seating_TrashHint}"
-              ZIndex="10">
-              <fic:FluentIcon
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                FontSize="22"
-                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                Icon="{x:Static ficEnum:Icon.Delete}" />
-            </Border>
-            <TextBlock
-              Margin="0,0,12,8"
-              HorizontalAlignment="Right"
-              VerticalAlignment="Bottom"
-              Classes="small"
-              IsVisible="{Binding HasGenerated}"
-              Opacity="0.4"
-              Text="{x:Static lang:Resources.Seating_CanvasHint}" />
-          </Panel>
-        </Border>
-
-        <!--  ═══ 右侧面板 ═══  -->
-        <Border
-          Grid.Column="1"
-          Width="240"
-          Margin="8,0,0,0"
-          Padding="8"
-          Background="{DynamicResource SidebarBackgroundBrush}"
-          CornerRadius="6"
-          IsVisible="{Binding HasGenerated}">
-          <ScrollViewer>
-            <StackPanel Spacing="8">
-              <!--  ── 策略列表 (可折叠) ──  -->
-              <StackPanel>
-                <Button
-                  Padding="0"
-                  HorizontalContentAlignment="Stretch"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Command="{Binding ToggleStrategiesCommand}"
-                  Cursor="Hand">
-                  <DockPanel>
+                <Border Classes="sf-card">
+                  <StackPanel Spacing="12">
+                    <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Seating_NotGenerated}" />
                     <TextBlock
-                      Classes="sectionTitle"
-                      DockPanel.Dock="Left"
-                      Text="{x:Static lang:Resources.Seating_CurrentStrategy}" />
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      DockPanel.Dock="Right"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronUp}"
-                      IsVisible="{Binding IsStrategiesExpanded}" />
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      DockPanel.Dock="Right"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronDown}"
-                      IsVisible="{Binding IsStrategiesExpanded, Converter={x:Static conv:BoolConverters.Negate}}" />
-                  </DockPanel>
-                </Button>
-                <ItemsControl
-                  MaxHeight="200"
-                  IsVisible="{Binding IsStrategiesExpanded}"
-                  ItemsSource="{Binding ActiveStrategies}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="core:StrategyDisplayInfo">
-                      <StackPanel>
-                        <!--  父策略项：有子项时左侧竖线  -->
-                        <DockPanel Margin="4,3">
-                          <Border
-                            Width="4"
-                            Margin="0,2,4,2"
-                            VerticalAlignment="Stretch"
-                            Background="{DynamicResource SystemAccentColor}"
-                            CornerRadius="2"
-                            DockPanel.Dock="Left"
-                            IsVisible="{Binding HasDependentChildren}" />
-                          <Border
-                            Margin="0,0,8,0"
-                            Padding="4,1"
-                            VerticalAlignment="Center"
-                            Background="{DynamicResource SystemAccentColor}"
-                            CornerRadius="3">
-                            <TextBlock
-                              Classes="micro"
-                              Foreground="White"
-                              Text="{Binding Priority}" />
-                          </Border>
-                          <StackPanel>
-                            <TextBlock Classes="bodySmall" Text="{Binding DisplayName}" />
-                            <TextBlock
-                              Classes="small"
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                              Text="{Binding Category}" />
-                          </StackPanel>
-                        </DockPanel>
-                        <!--  依赖策略子项：平级，左侧竖线区分  -->
-                        <ItemsControl ItemsSource="{Binding DependentChildren}">
+                      Classes="sf-sm sf-dim"
+                      Text="{x:Static lang:Resources.Seating_NotGeneratedHint}"
+                      TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button
+                        AutomationProperties.Name="{x:Static lang:Resources.Home_QuickStart}"
+                        Classes="sf-btn"
+                        Command="{Binding Welcome.OpenUrlCommand}"
+                        CommandParameter="{Binding Welcome.QuickStartUrl}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Rocket}" />
+                          <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Home_QuickStart}" />
+                        </StackPanel>
+                      </Button>
+                      <Button
+                        AutomationProperties.Name="{x:Static lang:Resources.Home_Docs}"
+                        Classes="sf-btn"
+                        Command="{Binding Welcome.OpenUrlCommand}"
+                        CommandParameter="{Binding Welcome.DocsUrl}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.BookOpen}" />
+                          <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Home_Docs}" />
+                        </StackPanel>
+                      </Button>
+                      <Button
+                        AutomationProperties.Name="{x:Static lang:Resources.Home_FAQ}"
+                        Classes="sf-btn"
+                        Command="{Binding Welcome.OpenUrlCommand}"
+                        CommandParameter="{Binding Welcome.FaqUrl}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChatHelp}" />
+                          <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Home_FAQ}" />
+                        </StackPanel>
+                      </Button>
+                    </StackPanel>
+
+                    <Expander
+                      Header="{x:Static lang:Resources.Seating_ReleaseNotes}"
+                      IsVisible="{Binding Welcome.HasReleaseNotes}">
+                      <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Welcome.ReleaseBlocks}">
                           <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="core:StrategyDisplayInfo">
-                              <DockPanel Margin="4,1">
-                                <Border
-                                  Width="4"
-                                  Margin="0,2,4,2"
-                                  VerticalAlignment="Stretch"
-                                  Background="{DynamicResource SystemAccentColor}"
-                                  CornerRadius="2"
-                                  DockPanel.Dock="Left" />
-                                <Border
-                                  Margin="0,0,8,0"
-                                  Padding="4,1"
-                                  VerticalAlignment="Center"
-                                  Background="{DynamicResource SystemAccentColor}"
-                                  CornerRadius="3">
+                            <DataTemplate x:DataType="services:MdBlock">
+                              <Panel>
+                                <TextBlock
+                                  Margin="0,8,0,2"
+                                  FontSize="16"
+                                  FontWeight="SemiBold"
+                                  IsVisible="{Binding IsTitle}"
+                                  Text="{Binding Text}"
+                                  TextWrapping="Wrap" />
+                                <TextBlock
+                                  Margin="0,6,0,2"
+                                  Classes="sf-h3"
+                                  IsVisible="{Binding IsHeading}"
+                                  Text="{Binding Text}"
+                                  TextWrapping="Wrap" />
+                                <TextBlock
+                                  Margin="0,4,0,2"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  IsVisible="{Binding IsSubHeading}"
+                                  Text="{Binding Text}"
+                                  TextWrapping="Wrap" />
+                                <Grid
+                                  Margin="12,1,0,1"
+                                  ColumnDefinitions="Auto,*"
+                                  IsVisible="{Binding IsListItem}">
+                                  <TextBlock Classes="sf-sm sf-dim" Text="·" />
                                   <TextBlock
-                                    Classes="micro"
-                                    Foreground="White"
-                                    Text="{Binding Priority}" />
-                                </Border>
-                                <StackPanel>
-                                  <TextBlock Classes="bodySmall" Text="{Binding DisplayName}" />
-                                  <TextBlock
-                                    Classes="small"
-                                    Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                    Text="{Binding Category}" />
-                                </StackPanel>
-                              </DockPanel>
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    Classes="sf-sm sf-dim"
+                                    Text="{Binding Text}"
+                                    TextWrapping="Wrap" />
+                                </Grid>
+                                <TextBlock
+                                  Margin="0,3,0,3"
+                                  Classes="sf-sm sf-dim"
+                                  IsVisible="{Binding IsParagraph}"
+                                  Text="{Binding Text}"
+                                  TextWrapping="Wrap" />
+                                <Border Height="6" IsVisible="{Binding IsEmpty}" />
+                              </Panel>
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                      </StackPanel>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-
-              <Separator />
-
-              <!--  ── 未分配学生 (可折叠) ──  -->
-              <StackPanel>
-                <Button
-                  Padding="0"
-                  HorizontalContentAlignment="Stretch"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Command="{Binding ToggleUnassignedCommand}"
-                  Cursor="Hand">
-                  <DockPanel>
-                    <TextBlock Classes="bodyStrong" DockPanel.Dock="Left">
-                      <Run Text="{x:Static lang:Resources.Seating_UnassignedMembers}" />
-                      <!--  Run 不是 StyledElement，Typography 样式类（TextBlock.* 选择器）无法匹配，只能用内联 FontSize  -->
-                      <Run
-                        FontSize="12"
-                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                        Text="{Binding UnassignedStudentCount, StringFormat=' ({0})'}" />
-                    </TextBlock>
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      DockPanel.Dock="Right"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronUp}"
-                      IsVisible="{Binding IsUnassignedExpanded}" />
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      DockPanel.Dock="Right"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronDown}"
-                      IsVisible="{Binding IsUnassignedExpanded, Converter={x:Static conv:BoolConverters.Negate}}" />
-                  </DockPanel>
-                </Button>
-                <ListBox
-                  AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}"
-                  Background="{DynamicResource SidebarBackgroundBrush}"
-                  BorderThickness="0"
-                  IsVisible="{Binding IsUnassignedExpanded}"
-                  ItemsSource="{Binding UnassignedStudents}"
-                  SelectedItem="{Binding SelectedUnassignedStudent, Mode=TwoWay}">
-                  <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="core:Student">
-                      <Border
-                        Padding="4"
-                        Background="Transparent"
-                        PointerPressed="UnassignedStudent_PointerPressed">
-                        <TextBlock Classes="bodySmall" Text="{Binding Name}" />
-                      </Border>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
-              </StackPanel>
-
-              <Separator IsVisible="{Binding HasHistory}" />
-
-              <!--  ── 修改记录 (可折叠) ──  -->
-              <StackPanel IsVisible="{Binding HasHistory}">
-                <DockPanel Margin="0,0,0,4">
-                  <Button
-                    Padding="0"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Command="{Binding ToggleHistoryCommand}"
-                    Cursor="Hand"
-                    DockPanel.Dock="Left">
-                    <TextBlock Classes="sectionTitle" Text="{x:Static lang:Resources.Seating_History}" />
-                  </Button>
-                  <StackPanel
-                    DockPanel.Dock="Right"
-                    Orientation="Horizontal"
-                    Spacing="4">
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronUp}"
-                      IsVisible="{Binding IsHistoryExpanded}" />
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronDown}"
-                      IsVisible="{Binding IsHistoryExpanded, Converter={x:Static conv:BoolConverters.Negate}}" />
-                    <Button
-                      Padding="8,4"
-                      HorizontalContentAlignment="Center"
-                      Command="{Binding RestoreToSelectedCommand}"
-                      IsEnabled="{Binding HasSelectedHistory}">
-                      <StackPanel Orientation="Horizontal" Spacing="4">
-                        <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
-                        <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Seating_Restore}" />
-                      </StackPanel>
-                    </Button>
+                      </ScrollViewer>
+                    </Expander>
                   </StackPanel>
-                </DockPanel>
-                <ListBox
-                  MaxHeight="220"
-                  Background="{DynamicResource SidebarBackgroundBrush}"
-                  BorderThickness="0"
-                  IsVisible="{Binding IsHistoryExpanded}"
-                  ItemsSource="{Binding HistoryEntries}"
-                  SelectedItem="{Binding SelectedHistory, Mode=TwoWay}">
-                  <ListBox.Styles>
-                    <Style Selector="ListBoxItem">
-                      <Setter Property="Padding" Value="6,3" />
-                    </Style>
-                    <Style Selector="ListBoxItem:selected /template/ Border#PART_BackgroundBorder">
-                      <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2}" />
-                      <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-                      <Setter Property="BorderThickness" Value="1" />
-                      <Setter Property="CornerRadius" Value="4" />
-                    </Style>
-                  </ListBox.Styles>
-                  <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:HistoryEntry">
-                      <StackPanel Margin="0,2">
-                        <TextBlock
-                          Classes="bodySmall"
-                          FontWeight="{Binding IsCurrent, Converter={x:Static conv:BoolConverters.TrueToBold}}"
-                          Text="{Binding Description}" />
-                        <TextBlock
-                          Classes="micro"
-                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                          Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}" />
-                      </StackPanel>
-                    </DataTemplate>
-                  </ListBox.ItemTemplate>
-                </ListBox>
+                </Border>
+
+                <StackPanel
+                  HorizontalAlignment="Center"
+                  Orientation="Horizontal"
+                  Spacing="8">
+                  <Button
+                    Classes="sf-btn sf-primary"
+                    Command="{Binding GenerateSeatingCommand}"
+                    IsEnabled="{Binding CanGenerate}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+                      <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_Generate}" />
+                    </StackPanel>
+                  </Button>
+                  <Button
+                    Classes="sf-btn"
+                    Command="{Binding CreateEmptySeatingCommand}"
+                    IsEnabled="{Binding CanCreateEmpty}">
+                    <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_CreateEmpty}" />
+                  </Button>
+                </StackPanel>
               </StackPanel>
+            </ScrollViewer>
+          </Border>
 
-              <Separator IsVisible="{Binding HasMessages}" />
+          <!--  座位渲染区（自绘 SeatingCanvas：单控件渲染 + 几何命中 + 内置缩放/平移/拖拽）  -->
+          <controls:SeatingCanvas
+            x:Name="SeatCanvas"
+            IsVisible="{Binding HasGenerated}"
+            Snapshot="{Binding CanvasSnapshot}"
+            Zoom="{Binding ZoomLevel, Mode=TwoWay}"
+            DragDrop.AllowDrop="True"
+            DragDrop.DragLeave="SeatCanvas_DragLeave"
+            DragDrop.DragOver="SeatCanvas_DragOver"
+            DragDrop.Drop="SeatCanvas_Drop"
+            SeatActivated="SeatCanvas_SeatActivated"
+            SeatClicked="SeatCanvas_SeatClicked"
+            SeatDropped="SeatCanvas_SeatDropped" />
 
-              <!--  ── 策略消息 (可折叠) ──  -->
-              <StackPanel IsVisible="{Binding HasMessages}">
-                <Button
-                  Padding="0"
-                  HorizontalContentAlignment="Stretch"
-                  Background="Transparent"
-                  BorderThickness="0"
-                  Command="{Binding ToggleMessagesCommand}"
-                  Cursor="Hand">
-                  <DockPanel>
-                    <TextBlock
-                      Classes="sectionTitle"
-                      DockPanel.Dock="Left"
-                      Text="{x:Static lang:Resources.Seating_StrategyMessages}" />
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      DockPanel.Dock="Right"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronUp}"
-                      IsVisible="{Binding IsMessagesExpanded}" />
-                    <fic:FluentIcon
-                      VerticalAlignment="Center"
-                      DockPanel.Dock="Right"
-                      FontSize="14"
-                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                      Icon="{x:Static ficEnum:Icon.ChevronDown}"
-                      IsVisible="{Binding IsMessagesExpanded, Converter={x:Static conv:BoolConverters.Negate}}" />
-                  </DockPanel>
-                </Button>
-                <ScrollViewer MaxHeight="300" IsVisible="{Binding IsMessagesExpanded}">
-                  <ItemsControl ItemsSource="{Binding MessageGroups}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:StrategyMessageGroup">
-                        <StackPanel Margin="0,4">
-                          <!--  分组标题：错误 (n) / 警告 (n)  -->
-                          <TextBlock
-                            Margin="4,2,0,4"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                            Text="{Binding Title}" />
-                          <ItemsControl ItemsSource="{Binding Messages}">
-                            <ItemsControl.ItemTemplate>
-                              <DataTemplate x:DataType="vm:StrategyMessageItem">
+          <!--  垃圾桶：拖入或点击移除学生  -->
+          <Border
+            Name="TrashZone"
+            Width="44"
+            Height="44"
+            Margin="0,0,12,36"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            AutomationProperties.Name="{x:Static lang:Resources.Seating_TrashHint}"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+            BorderThickness="2"
+            CornerRadius="22"
+            Cursor="Hand"
+            DragDrop.AllowDrop="True"
+            DragDrop.DragLeave="Trash_DragLeave"
+            DragDrop.DragOver="Trash_DragOver"
+            DragDrop.Drop="Trash_Drop"
+            IsVisible="{Binding HasGenerated}"
+            PointerPressed="Trash_PointerPressed"
+            ToolTip.Tip="{x:Static lang:Resources.Seating_TrashHint}"
+            ZIndex="10">
+            <fic:FluentIcon
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              FontSize="22"
+              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+              Icon="{x:Static ficEnum:Icon.Delete}" />
+          </Border>
+          <TextBlock
+            Margin="0,0,12,8"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Classes="sf-xs sf-faint"
+            IsVisible="{Binding HasGenerated}"
+            Opacity="0.6"
+            Text="{x:Static lang:Resources.Seating_CanvasHint}" />
+        </Panel>
+      </Border>
+
+      <!--  ─── 右：检查器（页签化 / 紧凑抽屉） ───  -->
+      <Border
+        x:Name="InspectorPanel"
+        Grid.Column="{Binding InspectorPanelColumn}"
+        Width="320"
+        HorizontalAlignment="{Binding PanelHorizontalAlignment}"
+        ZIndex="{Binding PanelZIndex}"
+        Background="{DynamicResource SfSurfaceBrush}"
+        BorderBrush="{DynamicResource SfBorderBrush}"
+        BorderThickness="1,0,0,0"
+        IsVisible="{Binding InspectorVisible}">
+        <TabControl Classes="sf-tabs">
+          <!--  ── 策略状态 ──  -->
+          <TabItem>
+            <TabItem.Header>
+              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_TabStrategies}" />
+            </TabItem.Header>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+              <ItemsControl Margin="12" ItemsSource="{Binding ActiveStrategies}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="core:StrategyDisplayInfo">
+                    <StackPanel Spacing="2">
+                      <!--  父策略项  -->
+                      <Border Classes="sf-row-item">
+                        <DockPanel>
+                          <Border
+                            Margin="0,0,8,0"
+                            Classes="sf-prio"
+                            DockPanel.Dock="Left">
+                            <TextBlock
+                              HorizontalAlignment="Center"
+                              Classes="sf-xs sf-num"
+                              FontWeight="Bold"
+                              Foreground="{DynamicResource SfAccentStrongBrush}"
+                              Text="{Binding Priority}" />
+                          </Border>
+                          <StackPanel>
+                            <TextBlock Classes="sf-sm" Text="{Binding DisplayName}" />
+                            <TextBlock Classes="sf-xs sf-faint" Text="{Binding Category}" />
+                          </StackPanel>
+                        </DockPanel>
+                      </Border>
+                      <!--  依赖策略子项（缩进）  -->
+                      <ItemsControl Margin="12,0,0,0" ItemsSource="{Binding DependentChildren}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="core:StrategyDisplayInfo">
+                            <Border Classes="sf-row-item" Margin="0,1">
+                              <DockPanel>
                                 <Border
-                                  Margin="4,1"
-                                  Padding="6,4"
-                                  Background="{DynamicResource SystemControlBackgroundSubtleBrush}"
-                                  CornerRadius="4">
-                                  <StackPanel Spacing="2">
-                                    <TextBlock
-                                      FontSize="10"
-                                      FontWeight="SemiBold"
-                                      Foreground="{DynamicResource SystemAccentColor}"
-                                      Text="{Binding StrategyName}" />
-                                    <TextBlock
-                                      Classes="small"
-                                      Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                      Text="{Binding Message}"
-                                      TextWrapping="Wrap" />
-                                  </StackPanel>
+                                  Margin="0,0,8,0"
+                                  Classes="sf-prio"
+                                  DockPanel.Dock="Left">
+                                  <TextBlock
+                                    HorizontalAlignment="Center"
+                                    Classes="sf-xs sf-num"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource SfAccentStrongBrush}"
+                                    Text="{Binding Priority}" />
                                 </Border>
-                              </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                          </ItemsControl>
-                        </StackPanel>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </ScrollViewer>
-              </StackPanel>
-            </StackPanel>
-          </ScrollViewer>
-        </Border>
+                                <StackPanel>
+                                  <TextBlock Classes="sf-sm" Text="{Binding DisplayName}" />
+                                  <TextBlock Classes="sf-xs sf-faint" Text="{Binding Category}" />
+                                </StackPanel>
+                              </DockPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </TabItem>
 
-      </Grid>
+          <!--  ── 未分配 ──  -->
+          <TabItem>
+            <TabItem.Header>
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_TabUnassigned}" />
+                <TextBlock
+                  Classes="sf-sm sf-num sf-faint"
+                  Text="{Binding UnassignedStudentCount, StringFormat='({0})'}" />
+              </StackPanel>
+            </TabItem.Header>
+            <ListBox
+              AutomationProperties.Name="{x:Static lang:Resources.Seating_UnassignedMembers}"
+              Classes="sf-select"
+              ItemsSource="{Binding UnassignedStudents}"
+              SelectedItem="{Binding SelectedUnassignedStudent, Mode=TwoWay}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="core:Student">
+                  <Border
+                    Padding="4"
+                    Background="Transparent"
+                    PointerPressed="UnassignedStudent_PointerPressed">
+                    <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </TabItem>
+
+          <!--  ── 修改记录 ──  -->
+          <TabItem>
+            <TabItem.Header>
+              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_TabHistory}" />
+            </TabItem.Header>
+            <Grid RowDefinitions="Auto,*">
+              <Button
+                Grid.Row="0"
+                Margin="12,10,12,6"
+                Classes="sf-btn sf-block"
+                Command="{Binding RestoreToSelectedCommand}"
+                IsEnabled="{Binding HasSelectedHistory}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
+                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_Restore}" />
+                </StackPanel>
+              </Button>
+              <ListBox
+                Grid.Row="1"
+                Classes="sf-select"
+                ItemsSource="{Binding HistoryEntries}"
+                SelectedItem="{Binding SelectedHistory, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:HistoryEntry">
+                    <StackPanel Margin="0,2">
+                      <TextBlock
+                        Classes="sf-sm"
+                        FontWeight="{Binding IsCurrent, Converter={x:Static conv:BoolConverters.TrueToBold}}"
+                        Text="{Binding Description}" />
+                      <TextBlock
+                        Classes="sf-xs sf-faint"
+                        Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </TabItem>
+
+          <!--  ── 消息 ──  -->
+          <TabItem>
+            <TabItem.Header>
+              <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_TabMessages}" />
+                <TextBlock
+                  Classes="sf-sm sf-num sf-faint"
+                  Text="{Binding MessageGroups.Count, StringFormat='({0})'}" />
+              </StackPanel>
+            </TabItem.Header>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+              <ItemsControl Margin="12" ItemsSource="{Binding MessageGroups}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:StrategyMessageGroup">
+                    <StackPanel Margin="0,4" Spacing="4">
+                      <TextBlock
+                        Classes="sf-xs"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource SfTextDimBrush}"
+                        Text="{Binding Title}" />
+                      <ItemsControl ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:StrategyMessageItem">
+                            <Border Classes="sf-banner sf-warn" Margin="0,1">
+                              <StackPanel Spacing="2">
+                                <TextBlock
+                                  Classes="sf-xs"
+                                  FontWeight="SemiBold"
+                                  Foreground="{DynamicResource SfWarnBrush}"
+                                  Text="{Binding StrategyName}" />
+                                <TextBlock
+                                  Classes="sf-sm"
+                                  Text="{Binding Message}"
+                                  TextWrapping="Wrap" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </TabItem>
+        </TabControl>
+      </Border>
+
+      <!--  紧凑模式抽屉遮罩：点击关闭  -->
+      <Border
+        x:Name="DrawerMask"
+        Grid.ColumnSpan="3"
+        ZIndex="25"
+        AutomationProperties.Name="{x:Static lang:Resources.Shell_CloseOverlay}"
+        Background="{DynamicResource SfModalMaskBrush}"
+        IsVisible="{Binding DrawerMaskVisible}"
+        PointerPressed="DrawerMask_PointerPressed" />
     </Grid>
   </DockPanel>
 </UserControl>

@@ -6,7 +6,7 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 
 public enum PageKey
 {
-    Home,
+    // M3：取消独立 Home，默认入口改为排座工作台（SeatingArrangement）
     MemberManagement,
     VenueConfiguration,
     StrategyConfiguration,

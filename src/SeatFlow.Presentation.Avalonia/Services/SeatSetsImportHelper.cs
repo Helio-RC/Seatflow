@@ -15,7 +15,7 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>
 /// .seatsets 文件导入的共享逻辑。供 App.HandleSeatSetsFileOpenAsync、
-/// SettingsViewModel 和 HomeViewModel 重用，避免三方重复代码。
+/// SettingsViewModel 和 SeatingArrangementViewModel 重用，避免三方重复代码。
 /// 流程：校验 → 探测分类 → 分类选择弹窗 → 导入 → 显示结果 → 刷新应用状态。
 /// </summary>
 internal static class SeatSetsImportHelper

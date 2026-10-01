@@ -1,7 +1,6 @@
 {
   "version": "1.0",
   "pages": {
-    "Home": true,
     "MemberManagement": true,
     "VenueConfiguration": true,
     "StrategyConfiguration": true,

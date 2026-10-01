@@ -51,6 +51,8 @@ internal sealed class Program
         // 横切服务（M0）：对话框门（单例）/ 页面繁忙状态（每页一份）
         services.AddSingleton<IDialogGate, DialogGate>();
         services.AddTransient<IBusyScope, BusyScope>();
+        // M3：外壳紧凑断点共享状态（桌面/浏览器一致）
+        services.AddSingleton<IShellLayoutService, ShellLayoutService>();
         services.AddSingleton<IFileService, WebFileService>();
         services.AddSingleton<IDialogService, WebDialogService>();
         services.AddSingleton<IUrlOpener, WebUrlOpener>();
@@ -64,11 +66,11 @@ internal sealed class Program
         services.AddSingleton<IOnboardingService, OnboardingService>();
         services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
         services.AddSingleton<MainShellViewModel>();
-        services.AddSingleton<HomeViewModel>();
         services.AddSingleton<MemberManagementViewModel>();
         services.AddSingleton<VenueConfigurationViewModel>();
         services.AddSingleton<StrategyConfigurationViewModel>();
         services.AddSingleton<SeatingArrangementViewModel>();
+        services.AddTransient<WelcomeCardViewModel>();
         services.AddTransient<SnapshotHistoryViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<AboutViewModel>();

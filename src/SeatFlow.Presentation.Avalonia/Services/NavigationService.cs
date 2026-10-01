@@ -20,7 +20,8 @@ public class NavigationService : INavigationService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        NavigateTo(PageKey.Home);
+        // M3：默认入口=排座工作台（原 Home 页已移除）
+        NavigateTo(PageKey.SeatingArrangement);
     }
 
     public void NavigateTo(PageKey page)
@@ -48,7 +49,6 @@ public class NavigationService : INavigationService
         CurrentPage = page;
         CurrentViewModel = page switch
         {
-            PageKey.Home => _serviceProvider.GetRequiredService<HomeViewModel>(),
             PageKey.MemberManagement => _serviceProvider.GetRequiredService<MemberManagementViewModel>(),
             PageKey.VenueConfiguration => _serviceProvider.GetRequiredService<VenueConfigurationViewModel>(),
             PageKey.StrategyConfiguration => _serviceProvider.GetRequiredService<StrategyConfigurationViewModel>(),
