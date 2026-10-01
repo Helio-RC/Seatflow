@@ -401,3 +401,6 @@ src/plugin-examples/_build/
 
 # Git worktrees
 .worktrees/
+
+# UI 重构过程资产（截图 / trace）：不入库，仅本地验证使用
+docs/ui-refactor/assets/
