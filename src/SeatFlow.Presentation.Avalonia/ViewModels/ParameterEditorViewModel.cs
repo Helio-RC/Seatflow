@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
@@ -11,6 +12,9 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// </summary>
 public partial class ParameterEditorViewModel : ViewModelBase
 {
+    /// <summary>叶级编辑器：不使用对话框，默认注入空对象；父级可传入真实服务。</summary>
+    public ParameterEditorViewModel(IDialogService? dialog = null) : base(dialog ?? NullDialogService.Instance) { }
+
     [ObservableProperty]
     public partial ObservableCollection<EditableParameter> Parameters { get; set; } = [];
 

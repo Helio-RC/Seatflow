@@ -1,5 +1,4 @@
 using System;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -10,14 +9,15 @@ using SeatFlow.Presentation.Avalonia.ViewModels;
 namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
 /// <summary>
-/// 全局键盘快捷键处理行为。
-/// 在 <see cref="App.axaml.cs"/> 中通过 <c>KeyboardShortcutHandler.Attach(mainWindow)</c> 注册到 MainWindow。
-/// 快捷键开关通过 <see cref="ShortcutConfig"/> 控制，由设置页面写入。
+/// 全局键盘快捷键处理服务（DI 单例）。
+/// 在 <see cref="App.axaml.cs"/> 中通过 <c>handler.Attach(window)</c> 注册到 MainWindow。
+/// 快捷键开关通过实例属性 <see cref="Config"/> 控制，由设置页面写入。
+/// M0 起：由静态可变字段改为 DI 单例实例状态。
 /// </summary>
-internal static class KeyboardShortcutHandler
+public sealed class KeyboardShortcutHandler
 {
     /// <summary>快捷键开关配置，默认为全部启用。由 <see cref="SettingsViewModel"/> 加载/保存时更新。</summary>
-    internal static KeyboardShortcutConfig ShortcutConfig { get; set; } = new();
+    public KeyboardShortcutConfig Config { get; set; } = new();
 
     /// <summary>保存命令的候选属性名（CommunityToolkit.Mvvm 从 [RelayCommand] 方法生成）。</summary>
     private static readonly string[] SaveCommandNames =
@@ -31,17 +31,17 @@ internal static class KeyboardShortcutHandler
     ];
 
     /// <summary>向指定窗口注册全局 KeyDown 处理（Tunnel 路由）。</summary>
-    public static void Attach(Window window)
+    public void Attach(Window window)
     {
         window.AddHandler(InputElement.KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
-    private static void OnKeyDown(object? sender, KeyEventArgs e)
+    private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (sender is not Window window) return;
         if (window.DataContext is not MainShellViewModel shell) return;
 
-        var cfg = ShortcutConfig;
+        var cfg = Config;
         var currentVm = shell.CurrentViewModel;
         var modifiers = e.KeyModifiers;
         var isCtrl = modifiers.HasFlag(KeyModifiers.Control);

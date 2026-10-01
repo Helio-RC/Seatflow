@@ -8,6 +8,7 @@ using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Strategies;
 using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -129,7 +130,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     /// </summary>
     public Task InitializationTask { get; }
 
-    public StrategyConfigurationViewModel(IApplicationFacade facade, ILogger<StrategyConfigurationViewModel>? logger = null)
+    public StrategyConfigurationViewModel(IApplicationFacade facade, IDialogService dialog, ILogger<StrategyConfigurationViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _logger = logger ?? NullLogger<StrategyConfigurationViewModel>.Instance;
@@ -340,7 +341,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             // 加载策略参数编辑器（manifest parameters[] 驱动）
             if (detail.ParameterDefinitions is { Count: > 0 })
             {
-                var pe = new ParameterEditorViewModel();
+                var pe = new ParameterEditorViewModel(Dialog);
                 pe.LoadParameters(detail.ParameterDefinitions, detail.Parameters);
                 pe.Parameters.CollectionChanged += (_, _) => MarkDetailChanged();
                 foreach (var p in pe.Parameters)
@@ -369,7 +370,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
 
                 foreach (var cb in detail.CodeBlocks)
                 {
-                    var ce = new ConfigBlockEditorViewModel(_facade);
+                    var ce = new ConfigBlockEditorViewModel(_facade, Dialog);
                     ce.Initialize(cb, detail.Id, datasetItems, venueItems);
                     ce.PropertyChanged += (_, e) =>
                     {

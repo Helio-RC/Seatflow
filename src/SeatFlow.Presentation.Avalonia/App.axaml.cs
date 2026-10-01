@@ -170,14 +170,11 @@ namespace SeatFlow.Presentation.Avalonia
                 _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(mainWindow);
                 _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(mainWindow);
 
-                ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
-                ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
-
                 // 启动检查
                 _ = RunStartupChecksAsync(desktop);
 
                 // 启动看门狗，防止 UI 卡死无法退出
-                WatchdogService.SetDialogService(_serviceProvider.GetRequiredService<IDialogService>());
+                // 启动看门狗，防止 UI 卡死无法退出（对话框服务由 DI 注入）
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
                 watchdog.Start();
                 var pingTimer = new global::Avalonia.Threading.DispatcherTimer(
@@ -190,10 +187,10 @@ namespace SeatFlow.Presentation.Avalonia
                 Behaviors.ChineseInputNormalizer.Attach(mainWindow);
 
                 // 全局键盘快捷键（Ctrl+Z/Y 撤销/重做、Ctrl+S 保存、Delete 删除、Esc 取消）
-                Behaviors.KeyboardShortcutHandler.Attach(mainWindow);
+                _serviceProvider.GetRequiredService<Behaviors.KeyboardShortcutHandler>().Attach(mainWindow);
 
                 // 全局文件拖放导入（覆盖层与命名控件位于 MainView 的 NameScope）
-                Behaviors.FileDropHandler.Attach(mainWindow.ShellView);
+                _serviceProvider.GetRequiredService<Behaviors.FileDropHandler>().Attach(mainWindow.ShellView);
 
                 // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
                 desktop.ShutdownRequested += (_, _) =>
@@ -249,9 +246,6 @@ namespace SeatFlow.Presentation.Avalonia
                     _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(topLevel);
                     _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(topLevel);
                 }
-
-                ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
-                ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
 
                 // 浏览器无独立窗口：全角输入转换等附加行为在浏览器模式不需要
                 _ = SafeInitializeAsync();

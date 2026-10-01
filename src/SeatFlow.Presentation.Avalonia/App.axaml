@@ -11,21 +11,21 @@
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-          <!--  Sidebar & Preview  -->
-          <Color x:Key="SidebarBackgroundColor">#E6E6E6</Color>
-          <Color x:Key="PreviewSeatBorderColor">#80000000</Color>
-          <Color x:Key="PreviewPodiumFillColor">#4080D0E0</Color>
-          <Color x:Key="PreviewDoorFillColor">#800072C6</Color>
+          <!--  Sidebar & Preview（方向 B 值）  -->
+          <Color x:Key="SidebarBackgroundColor">#FFFFFF</Color>
+          <Color x:Key="PreviewSeatBorderColor">#FFC9D4E0</Color>
+          <Color x:Key="PreviewPodiumFillColor">#FFF1F4F8</Color>
+          <Color x:Key="PreviewDoorFillColor">#803B5BDB</Color>
 
           <!--  Semantic Colors  -->
-          <Color x:Key="ColorSuccess">#16A34A</Color>
-          <Color x:Key="ColorWarning">#F59E0B</Color>
-          <Color x:Key="ColorError">#DC2626</Color>
-          <Color x:Key="ColorInfo">#2563EB</Color>
+          <Color x:Key="ColorSuccess">#0E9F6E</Color>
+          <Color x:Key="ColorWarning">#B45309</Color>
+          <Color x:Key="ColorError">#D92D20</Color>
+          <Color x:Key="ColorInfo">#3B5BDB</Color>
 
           <!--  Semantic Background Colors (low-opacity tints)  -->
-          <Color x:Key="ErrorBgColor">#20DC2626</Color>
-          <Color x:Key="WarningBgColor">#20F59E0B</Color>
+          <Color x:Key="ErrorBgColor">#20D92D20</Color>
+          <Color x:Key="WarningBgColor">#20B45309</Color>
 
           <!--  Surface Colors  -->
           <Color x:Key="SurfaceCardColor">#FFFFFF</Color>
@@ -38,32 +38,32 @@
           <Color x:Key="OverlayMaskColor">#80000000</Color>
 
           <!--  Preview Background  -->
-          <Color x:Key="PreviewBackgroundColor">#F5F5F5</Color>
+          <Color x:Key="PreviewBackgroundColor">#F5F7FA</Color>
 
           <!--  Shadow  -->
           <Color x:Key="ShadowLargeColor">#40000000</Color>
           <Color x:Key="ShadowSmallColor">#20000000</Color>
 
-          <!--  BoxShadows (Light)  -->
+          <!--  BoxShadows (Light) —— 方向 B：默认零装饰阴影，仅浮层保留  -->
           <BoxShadows x:Key="CardShadowNone">0 0 0 0 Transparent</BoxShadows>
-          <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #30000000, 0 2 8 0 #18000000</BoxShadows>
-          <BoxShadows x:Key="CardShadowSmall">0 2 8 0 #18000000</BoxShadows>
+          <BoxShadows x:Key="CardShadowLarge">0 8 24 0 #2416202B</BoxShadows>
+          <BoxShadows x:Key="CardShadowSmall">0 1 4 0 #14000000</BoxShadows>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-          <!--  Sidebar & Preview  -->
-          <Color x:Key="SidebarBackgroundColor">#1A1A1A</Color>
-          <Color x:Key="PreviewSeatBorderColor">#80FFFFFF</Color>
-          <Color x:Key="PreviewPodiumFillColor">#4060A0FF</Color>
-          <Color x:Key="PreviewDoorFillColor">#809080F0</Color>
+          <!--  Sidebar & Preview（方向 B 暗色变体）  -->
+          <Color x:Key="SidebarBackgroundColor">#0E1526</Color>
+          <Color x:Key="PreviewSeatBorderColor">#FF2E463A</Color>
+          <Color x:Key="PreviewPodiumFillColor">#FF1E2C25</Color>
+          <Color x:Key="PreviewDoorFillColor">#807C93FF</Color>
 
           <!--  Semantic Colors (slightly brightened for dark mode contrast)  -->
-          <Color x:Key="ColorSuccess">#22C55E</Color>
+          <Color x:Key="ColorSuccess">#34D399</Color>
           <Color x:Key="ColorWarning">#FBBF24</Color>
-          <Color x:Key="ColorError">#EF4444</Color>
-          <Color x:Key="ColorInfo">#60A5FA</Color>
+          <Color x:Key="ColorError">#F87171</Color>
+          <Color x:Key="ColorInfo">#7C93FF</Color>
 
           <!--  Semantic Background Colors (low-opacity tints)  -->
-          <Color x:Key="ErrorBgColor">#20EF4444</Color>
+          <Color x:Key="ErrorBgColor">#20F87171</Color>
           <Color x:Key="WarningBgColor">#20FBBF24</Color>
 
           <!--  Surface Colors  -->
@@ -77,7 +77,7 @@
           <Color x:Key="OverlayMaskColor">#80000000</Color>
 
           <!--  Preview Background  -->
-          <Color x:Key="PreviewBackgroundColor">#1C1C1C</Color>
+          <Color x:Key="PreviewBackgroundColor">#101D18</Color>
 
           <!--  Shadow (lighter in dark mode)  -->
           <Color x:Key="ShadowLargeColor">#60000000</Color>
@@ -120,6 +120,10 @@
       <SolidColorBrush x:Key="PreviewBackgroundBrush" Color="{DynamicResource PreviewBackgroundColor}" />
 
       <ResourceDictionary.MergedDictionaries>
+        <!--  方向 B 令牌层（阶段 3 设计 / 06 计划 M0）  -->
+        <ResourceInclude Source="/Resources/Tokens/Colors.axaml" />
+        <ResourceInclude Source="/Resources/Tokens/Spacing.axaml" />
+        <ResourceInclude Source="/Resources/Tokens/Typography.axaml" />
         <ResourceInclude Source="/Styles/Guide.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
@@ -134,6 +138,8 @@
     <StyleInclude Source="/Styles/Spacing.axaml" />
     <StyleInclude Source="/Styles/Colors.axaml" />
     <StyleInclude Source="/Styles/Controls.axaml" />
+    <!--  方向 B 组件样式（sf-* 类）  -->
+    <StyleInclude Source="/Styles/Components.axaml" />
     <Style Selector="Window">
       <!--
         fonts:Inter#Inter 走嵌入字体集合（WASM 无系统字体时仍可用）；

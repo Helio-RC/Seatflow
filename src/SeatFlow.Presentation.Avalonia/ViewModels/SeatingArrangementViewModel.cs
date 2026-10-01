@@ -166,7 +166,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     /// </summary>
     public Task InitializationTask { get; private set; } = Task.CompletedTask;
 
-    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, INavigationService navigation, IArrangementCounterService counterService, ILogger<SeatingArrangementViewModel>? logger = null)
+    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, INavigationService navigation, IArrangementCounterService counterService, IDialogService dialog, ILogger<SeatingArrangementViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _fileService = fileService;

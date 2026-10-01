@@ -1,0 +1,417 @@
+<!--
+  方向 B 组件样式（来源：html-sample/src/app.css 的类）。
+  约定：新页面使用 sf-* 类；颜色一律走令牌（DynamicResource），尺寸走间距令牌（StaticResource）。
+-->
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:tokens="using:SeatFlow.Presentation.Avalonia.Tokens">
+
+  <!--  ═══════════════ 文本 ═══════════════  -->
+
+  <Style Selector="TextBlock.sf-h1">
+    <Setter Property="FontSize" Value="{StaticResource SfFontXl}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-h2">
+    <Setter Property="FontSize" Value="{StaticResource SfFontLg}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-h3">
+    <Setter Property="FontSize" Value="{StaticResource SfFontMd}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-text">
+    <Setter Property="FontSize" Value="{StaticResource SfFontMd}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-sm">
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-xs">
+    <Setter Property="FontSize" Value="{StaticResource SfFontXs}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-dim">
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-faint">
+    <Setter Property="Foreground" Value="{DynamicResource SfTextFaintBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-hint">
+    <Setter Property="FontSize" Value="{StaticResource SfFontXs}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextFaintBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-accent">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentBrush}" />
+  </Style>
+  <Style Selector="TextBlock.sf-danger">
+    <Setter Property="Foreground" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
+  <!--  数字等宽对齐（人数/座位数/优先级）  -->
+  <Style Selector="TextBlock.sf-num">
+    <Setter Property="FontFeatures" Value="tnum" />
+  </Style>
+
+  <!--  ═══════════════ 容器 ═══════════════  -->
+
+  <Style Selector="Border.sf-card">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusLg}" />
+    <Setter Property="Padding" Value="{StaticResource SfCardPadding}" />
+  </Style>
+
+  <Style Selector="Border.sf-panel">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusLg}" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+
+  <Style Selector="Border.sf-inset">
+    <Setter Property="Background" Value="{DynamicResource SfSurface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+  </Style>
+
+  <Style Selector="Border.sf-toolbar">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="{StaticResource SfCommandBarPadding}" />
+    <Setter Property="MinHeight" Value="48" />
+  </Style>
+
+  <Style Selector="Border.sf-statusbar">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Height" Value="{StaticResource SfStatusHeight}" />
+  </Style>
+
+  <Style Selector="Border.sf-divider">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource SfBorderBrush}" />
+  </Style>
+  <Style Selector="Border.sf-sep-v">
+    <Setter Property="Width" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource SfBorderBrush}" />
+  </Style>
+
+  <!--  ═══════════════ 按钮 ═══════════════  -->
+
+  <Style Selector="Button.sf-btn">
+    <Setter Property="Height" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Transitions">
+      <Setter.Value>
+        <Transitions>
+          <BrushTransition Property="Background" Duration="{x:Static tokens:MotionTokens.Quick}" />
+          <BrushTransition Property="BorderBrush" Duration="{x:Static tokens:MotionTokens.Quick}" />
+        </Transitions>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style Selector="Button.sf-btn:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn:pressed">
+    <Setter Property="Background" Value="{DynamicResource SfSurface2Brush}" />
+  </Style>
+  <Style Selector="Button.sf-btn:disabled">
+    <Setter Property="Opacity" Value="0.5" />
+    <Setter Property="Cursor" Value="Arrow" />
+  </Style>
+
+  <Style Selector="Button.sf-btn.sf-primary">
+    <Setter Property="Background" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentFgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-primary:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfAccentHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentHoverBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-primary:pressed">
+    <Setter Property="Background" Value="{DynamicResource SfAccentStrongBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentStrongBrush}" />
+  </Style>
+
+  <Style Selector="Button.sf-btn.sf-ghost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-ghost:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+  </Style>
+
+  <Style Selector="Button.sf-btn.sf-danger">
+    <Setter Property="BorderBrush" Value="{DynamicResource SfDangerBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-danger:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfDangerSoftBrush}" />
+  </Style>
+
+  <Style Selector="Button.sf-btn.sf-sm">
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontXs}" />
+  </Style>
+
+  <Style Selector="Button.sf-btn.sf-icon">
+    <Setter Property="Width" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+
+  <Style Selector="Button.sf-btn.sf-block">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
+  <!--  ═══════════════ 输入 ═══════════════  -->
+
+  <Style Selector="TextBox.sf-input">
+    <Setter Property="Height" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="MinHeight" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+  </Style>
+  <Style Selector="TextBox.sf-input:focus">
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+  </Style>
+
+  <Style Selector="ComboBox.sf-input">
+    <Setter Property="MinHeight" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+  </Style>
+
+  <Style Selector="NumericUpDown.sf-input">
+    <Setter Property="MinHeight" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+  </Style>
+
+  <Style Selector="CheckBox.sf-check">
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+
+  <!--  ═══════════════ 页签 ═══════════════  -->
+
+  <Style Selector="TabControl.sf-tabs">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="TabControl.sf-tabs > TabItem">
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="MinHeight" Value="34" />
+  </Style>
+  <Style Selector="TabControl.sf-tabs > TabItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentStrongBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <!--  ═══════════════ 提示条 / 徽标 ═══════════════  -->
+
+  <Style Selector="Border.sf-banner">
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Padding" Value="8,8" />
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+  </Style>
+  <Style Selector="Border.sf-banner.sf-warn">
+    <Setter Property="Background" Value="{DynamicResource SfWarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfWarnBrush}" />
+  </Style>
+  <Style Selector="Border.sf-banner.sf-info">
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+  </Style>
+  <Style Selector="Border.sf-banner.sf-danger">
+    <Setter Property="Background" Value="{DynamicResource SfDangerSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
+  <Style Selector="Border.sf-banner.sf-ok">
+    <Setter Property="Background" Value="{DynamicResource SfOkSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfOkBrush}" />
+  </Style>
+
+  <Style Selector="Border.sf-chip">
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusPill}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="7,1" />
+  </Style>
+  <Style Selector="Border.sf-chip.sf-accent">
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.sf-chip.sf-ok">
+    <Setter Property="Background" Value="{DynamicResource SfOkSoftBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.sf-chip.sf-warn">
+    <Setter Property="Background" Value="{DynamicResource SfWarnSoftBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+  </Style>
+
+  <!--  优先级徽标  -->
+  <Style Selector="Border.sf-prio">
+    <Setter Property="MinWidth" Value="30" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusXs}" />
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="Padding" Value="0,2" />
+  </Style>
+
+  <!--  ═══════════════ 导航 ═══════════════  -->
+
+  <Style Selector="Button.sf-nav">
+    <Setter Property="Height" Value="{StaticResource SfRowHeight}" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontMd}" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Transitions">
+      <Setter.Value>
+        <Transitions>
+          <BrushTransition Property="Background" Duration="{x:Static tokens:MotionTokens.Quick}" />
+        </Transitions>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style Selector="Button.sf-nav:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="Button.sf-nav.sf-active">
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentStrongBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="TextBlock.sf-nav-group">
+    <Setter Property="FontSize" Value="{StaticResource SfFontXs}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextFaintBrush}" />
+    <Setter Property="Padding" Value="8,12,8,4" />
+  </Style>
+
+  <!--  ═══════════════ 列表行 / 选择行 ═══════════════  -->
+
+  <Style Selector="Button.sf-select-row">
+    <Setter Property="Height" Value="{StaticResource SfRowHeight}" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.sf-select-row:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+  </Style>
+  <Style Selector="Button.sf-select-row.sf-selected">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+
+  <Style Selector="Border.sf-row-item">
+    <Setter Property="Background" Value="{DynamicResource SfSurface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Padding" Value="8,12" />
+  </Style>
+
+  <Style Selector="Border.sf-list-item">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Padding" Value="8,12" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Border.sf-list-item:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+  </Style>
+  <Style Selector="Border.sf-list-item.sf-selected">
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+  </Style>
+
+  <!--  ═══════════════ 圆点 ═══════════════  -->
+
+  <Style Selector="Border.sf-dot">
+    <Setter Property="Width" Value="7" />
+    <Setter Property="Height" Value="7" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusPill}" />
+    <Setter Property="Background" Value="{DynamicResource SfBorderStrongBrush}" />
+  </Style>
+  <Style Selector="Border.sf-dot.sf-accent">
+    <Setter Property="Background" Value="{DynamicResource SfAccentBrush}" />
+  </Style>
+  <Style Selector="Border.sf-dot.sf-ok">
+    <Setter Property="Background" Value="{DynamicResource SfOkBrush}" />
+  </Style>
+  <Style Selector="Border.sf-dot.sf-warn">
+    <Setter Property="Background" Value="{DynamicResource SfWarnBrush}" />
+  </Style>
+  <Style Selector="Border.sf-dot.sf-danger">
+    <Setter Property="Background" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
+
+  <!--  ═══════════════ 弹层 ═══════════════  -->
+
+  <Style Selector="Border.sf-modal-mask">
+    <Setter Property="Background" Value="{DynamicResource SfModalMaskBrush}" />
+  </Style>
+  <Style Selector="Border.sf-modal">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusLg}" />
+    <Setter Property="BoxShadow" Value="{DynamicResource SfShadowPop}" />
+    <Setter Property="Padding" Value="{StaticResource SfCardPadding}" />
+    <Setter Property="MinWidth" Value="420" />
+    <Setter Property="MaxWidth" Value="560" />
+  </Style>
+
+</Styles>

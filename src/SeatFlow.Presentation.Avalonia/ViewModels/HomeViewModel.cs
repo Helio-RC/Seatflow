@@ -38,7 +38,7 @@ public partial class HomeViewModel : ViewModelBase, IFileDropHandler
 
     public List<MdBlock> ReleaseBlocks { get; } = [];
 
-    public HomeViewModel(IServiceProvider? serviceProvider = null)
+    public HomeViewModel(IDialogService dialog, IServiceProvider? serviceProvider = null) : base(dialog)
     {
         _serviceProvider = serviceProvider;
 

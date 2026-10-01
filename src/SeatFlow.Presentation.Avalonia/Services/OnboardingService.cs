@@ -48,15 +48,15 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private bool _isWindowObscured;
 
     /// <summary>MemberManagement 演示数据是否已实际注入（用于 ClearPageData 判断是否需要清理）。</summary>
-    private static bool _memberManagementDemoInjected;
+    private bool _memberManagementDemoInjected;
 
     /// <summary>演示数据集的固定 ID，用于注入和清理时识别。</summary>
     private const string DemoDatasetId = "guide-demo-ds";
 
     /// <summary>MemberManagement 用户状态快照（引导前保存，引导后恢复）。null 表示首次使用无需恢复。</summary>
-    private static List<Student>? _savedMemberStudents;
-    private static List<StudentDatasetInfo>? _savedMemberDatasets;
-    private static bool _savedMemberIsEmpty;
+    private List<Student>? _savedMemberStudents;
+    private List<StudentDatasetInfo>? _savedMemberDatasets;
+    private bool _savedMemberIsEmpty;
 
     public bool IsActive { get; private set; }
 
@@ -393,7 +393,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         });
     }
 
-    private static void SeedMemberManagementData(MemberManagementViewModel? vm)
+    private void SeedMemberManagementData(MemberManagementViewModel? vm)
     {
         if (vm is null) return;
 
@@ -519,7 +519,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     }
 
     /// <summary>清除注入到所有页面 ViewModel 的示例数据。</summary>
-    private static void ClearPageData()
+    private void ClearPageData()
     {
         if (global::Avalonia.Application.Current is not App app) return;
         var sp = app.ServiceProvider;
@@ -794,21 +794,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private void OnStepOpening(object? sender, GuideStepEventArgs e)
     {
         HandleStepOpening(e.Index, e.Step);
-    }
-
-    /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
-    private static async Task AnimateCardBounceAsync(Guide guide, int delayMs)
-    {
-        // 查找模板中的卡片 Border
-        var card = FindTemplateChild<Border>(guide, "PART_CardRoot");
-        if (card?.RenderTransform is ScaleTransform scale)
-        {
-            scale.ScaleX = 0.96;
-            scale.ScaleY = 0.96;
-            await Task.Delay(delayMs);
-            scale.ScaleX = 1.0;
-            scale.ScaleY = 1.0;
-        }
     }
 
     /// <summary>从控件模板中按名称查找子元素。</summary>

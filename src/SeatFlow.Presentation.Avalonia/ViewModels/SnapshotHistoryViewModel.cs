@@ -119,7 +119,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     /// </summary>
     public Task InitializationTask { get; }
 
-    public SnapshotHistoryViewModel(IApplicationFacade facade, INavigationService navigation, ILogger<SnapshotHistoryViewModel>? logger = null)
+    public SnapshotHistoryViewModel(IApplicationFacade facade, INavigationService navigation, IDialogService dialog, ILogger<SnapshotHistoryViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _navigation = navigation;

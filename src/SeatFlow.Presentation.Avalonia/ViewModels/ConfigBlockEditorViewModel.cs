@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -14,7 +15,7 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// <summary>
 /// 配置块编辑器 ViewModel。管理单个 codeBlock 的数据集选择、配置行编辑和保存。
 /// </summary>
-public partial class ConfigBlockEditorViewModel(IApplicationFacade facade) : ViewModelBase
+public partial class ConfigBlockEditorViewModel(IApplicationFacade facade, IDialogService dialog) : ViewModelBase(dialog)
 {
     private readonly IApplicationFacade _facade = facade;
     private CancellationTokenSource? _loadCts;
@@ -104,7 +105,7 @@ public partial class ConfigBlockEditorViewModel(IApplicationFacade facade) : Vie
     [RelayCommand]
     private void AddRow()
     {
-        var row = new ConfigBlockRowViewModel(CodeBlock, SeatsPerDesk)
+        var row = new ConfigBlockRowViewModel(CodeBlock, SeatsPerDesk, Dialog)
         {
             Index = Rows.Count + 1
         };
@@ -424,14 +425,14 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     /// <summary>待定学生选择（索引→学生ID），在 LoadStudents 完成后自动应用。</summary>
     private Dictionary<int, string?>? _pendingSelections;
 
-    public ConfigBlockRowViewModel(StrategyCodeBlock? codeBlock, int seatsPerDesk = 1)
+    public ConfigBlockRowViewModel(StrategyCodeBlock? codeBlock, int seatsPerDesk = 1, IDialogService? dialog = null)
     {
         CodeBlock = codeBlock;
         SeatsPerDesk = seatsPerDesk;
-        SeatPicker = new SeatPositionPickerViewModel();
+        SeatPicker = new SeatPositionPickerViewModel(dialog);
         for (int i = 0; i < seatsPerDesk; i++)
         {
-            var sp = new StudentPickerViewModel();
+            var sp = new StudentPickerViewModel(dialog);
             sp.PropertyChanged += OnStudentPickerPropertyChanged;
             StudentPickers.Add(sp);
         }

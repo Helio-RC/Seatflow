@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using SeatFlow.Presentation.Avalonia.Services;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -7,6 +8,8 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// </summary>
 public partial class SeatPositionPickerViewModel : ViewModelBase
 {
+    /// <summary>叶级选择器：不使用对话框，默认注入空对象；父级可传入真实服务。</summary>
+    public SeatPositionPickerViewModel(IDialogService? dialog = null) : base(dialog ?? NullDialogService.Instance) { }
     /// <summary>布局类型：Grid / Polar / Freeform。</summary>
     [ObservableProperty]
     public partial string LayoutType { get; set; } = "Grid";

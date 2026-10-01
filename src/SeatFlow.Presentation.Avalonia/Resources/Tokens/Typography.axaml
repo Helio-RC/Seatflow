@@ -1,0 +1,13 @@
+<!--
+  方向 B 字阶令牌（来源：html-sample tokens.css 的 fs 系列）。
+  数字统一使用 tabular 数字（FontFeatures="tnum"）由组件样式 .sf-num 提供。
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <x:Double x:Key="SfFontXs">11</x:Double>
+  <x:Double x:Key="SfFontSm">12.5</x:Double>
+  <x:Double x:Key="SfFontMd">13.5</x:Double>
+  <x:Double x:Key="SfFontLg">16</x:Double>
+  <x:Double x:Key="SfFontXl">20</x:Double>
+
+</ResourceDictionary>

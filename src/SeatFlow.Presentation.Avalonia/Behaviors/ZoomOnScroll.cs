@@ -2,6 +2,8 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Microsoft.Extensions.DependencyInjection;
+using AvaloniaApp = Avalonia.Application;
 
 namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
@@ -31,8 +33,10 @@ public static class ZoomOnScroll
     {
         if (sender is not ScrollViewer sv) return;
 
-        // 仅在 ZoomWithCtrl 启用且按住 Ctrl 时缩放，否则让 ScrollViewer 正常滚动
-        if (!KeyboardShortcutHandler.ShortcutConfig.ZoomWithCtrlEnabled
+        // 仅在 ZoomWithCtrl 启用且按住 Ctrl 时缩放，否则让 ScrollViewer 正常滚动。
+        // 过渡期实现：从 DI 单例读取配置（本行为将在 M5 并入自绘画布后退役）。
+        var shortcutHandler = (AvaloniaApp.Current as App)?.ServiceProvider.GetService<KeyboardShortcutHandler>();
+        if (shortcutHandler?.Config.ZoomWithCtrlEnabled != true
             || !e.KeyModifiers.HasFlag(KeyModifiers.Control))
             return;
 

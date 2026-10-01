@@ -71,7 +71,7 @@ public partial class FreeformManagementViewModel : ViewModelBase, IFileDropHandl
 
     public string ElementCountDisplay => string.Format(Resources.Freeform_ElementCountFmt, Points.Count);
 
-    public FreeformManagementViewModel(IApplicationFacade facade, IFileService fileService, ILogger<FreeformManagementViewModel>? logger = null)
+    public FreeformManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog, ILogger<FreeformManagementViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _fileService = fileService;

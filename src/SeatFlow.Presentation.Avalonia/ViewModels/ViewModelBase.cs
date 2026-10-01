@@ -8,27 +8,30 @@ using Microsoft.Extensions.Logging;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
+/// <summary>
+/// 页面 ViewModel 基类。
+/// M0 起：对话框与日志通过构造函数注入（取消原静态可变状态 ViewModelBase.Dialog / _logger）。
+/// </summary>
 public abstract class ViewModelBase : ObservableObject
 {
-    private static ILogger? _logger;
+    private readonly IDialogService _dialog;
 
-    /// <summary>全局对话框服务，由 App 启动时注入。</summary>
-    internal static IDialogService Dialog { get; private set; } = default!;
-
-    /// <summary>由 DI 在应用启动时调用一次。</summary>
-    public static void InitializeDialogService(IDialogService dialog)
+    /// <param name="dialog">对话框服务（DI 单例；无对话框场景可传 <see cref="NullDialogService.Instance"/>）。</param>
+    /// <param name="logger">该页面的日志记录器（可选）。</param>
+    protected ViewModelBase(IDialogService dialog, ILogger? logger = null)
     {
-        Dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
+        _dialog = dialog ?? throw new ArgumentNullException(nameof(dialog));
+        Logger = logger;
     }
 
-    /// <summary>由 DI 在应用启动时调用一次，为所有 ViewModel 提供日志记录。</summary>
-    public static void InitializeLogger(ILogger<ViewModelBase> logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    /// <summary>该页面的对话框服务（由 DI 注入）。</summary>
+    protected IDialogService Dialog => _dialog;
+
+    /// <summary>该页面的日志记录器（可选）。</summary>
+    protected ILogger? Logger { get; }
 
     /// <summary>在 try-catch 中执行操作，出错时弹窗并记录日志。</summary>
-    protected static async Task<bool> SafeExecuteAsync(Func<Task> action, string? errorTitle = null)
+    protected async Task<bool> SafeExecuteAsync(Func<Task> action, string? errorTitle = null)
     {
         errorTitle ??= Resources.Common_OperationFailed;
         try
@@ -38,7 +41,7 @@ public abstract class ViewModelBase : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
+            Logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
             await Dialog.ShowErrorAsync(errorTitle, ex.Message);
             return false;
         }
@@ -50,7 +53,7 @@ public abstract class ViewModelBase : ObservableObject
     /// <param name="action">接受 CancellationToken 的异步操作，超时后 token 会被取消</param>
     /// <param name="timeout">超时阈值，应小于 UI 看门狗的 45 秒</param>
     /// <param name="errorTitle">错误弹窗标题</param>
-    protected static async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string? errorTitle = null)
+    protected async Task<bool> SafeExecuteAsync(Func<CancellationToken, Task> action, TimeSpan timeout, string? errorTitle = null)
     {
         errorTitle ??= Resources.Common_OperationFailed;
         using var cts = new CancellationTokenSource(timeout);
@@ -61,14 +64,14 @@ public abstract class ViewModelBase : ObservableObject
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            _logger?.LogWarning("操作超时：{Title}（{Seconds} 秒）", errorTitle, timeout.TotalSeconds);
+            Logger?.LogWarning("操作超时：{Title}（{Seconds} 秒）", errorTitle, timeout.TotalSeconds);
             await Dialog.ShowErrorAsync(Resources.Common_OperationTimeout,
                 string.Format(Resources.Common_TimeoutFormat, errorTitle, timeout.TotalSeconds));
             return false;
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
+            Logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
             await Dialog.ShowErrorAsync(errorTitle, ex.Message);
             return false;
         }

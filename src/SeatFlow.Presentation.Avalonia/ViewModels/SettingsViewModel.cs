@@ -32,6 +32,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     private readonly IUpdateService _updateService;
     private readonly IUrlOpener _urlOpener;
     private readonly IServiceProvider _serviceProvider;
+    private readonly Behaviors.KeyboardShortcutHandler _shortcutHandler;
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
@@ -160,7 +161,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     [ObservableProperty]
     public partial bool HasPendingUpdate { get; set; }
 
-    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOnboardingService onboarding, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, ILogger<SettingsViewModel>? logger = null)
+    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOnboardingService onboarding, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, Behaviors.KeyboardShortcutHandler shortcutHandler, ILogger<SettingsViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _dialog = dialog;
@@ -170,6 +171,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         _updateService = updateService;
         _urlOpener = urlOpener;
         _serviceProvider = serviceProvider;
+        _shortcutHandler = shortcutHandler;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
         _ = LoadAsync(CancellationToken.None);
     }
@@ -281,10 +283,10 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         };
     }
 
-    /// <summary>将 ViewModel 中的快捷键开关同步到静态行为配置。</summary>
+    /// <summary>将 ViewModel 中的快捷键开关同步到 DI 单例的快捷键配置。</summary>
     private void SyncShortcutConfig()
     {
-        Behaviors.KeyboardShortcutHandler.ShortcutConfig = new KeyboardShortcutConfig
+        _shortcutHandler.Config = new KeyboardShortcutConfig
         {
             UndoEnabled = UndoShortcutEnabled,
             RedoEnabled = RedoShortcutEnabled,

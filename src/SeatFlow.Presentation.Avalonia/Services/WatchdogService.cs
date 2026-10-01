@@ -13,17 +13,16 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 
 /// <summary>
 /// UI 线程看门狗：定期检查 UI 线程心跳，若超过阈值无响应则记录诊断信息并强制退出。
+/// M0：对话框服务由构造注入（取消静态可变字段），由 DI 单例提供。
 /// </summary>
-public sealed class WatchdogService(int timeoutSeconds = 45, ILogger<WatchdogService>? logger = null) : IDisposable
+public sealed class WatchdogService(ILogger<WatchdogService>? logger = null, IDialogService? dialog = null, int timeoutSeconds = 45) : IDisposable
 {
     private readonly int _timeoutSeconds = timeoutSeconds;
     private readonly CancellationTokenSource _cts = new();
     private long _heartbeatTicks = DateTime.UtcNow.Ticks;
     private Task? _watchTask;
     private readonly ILogger<WatchdogService> _logger = logger ?? NullLogger<WatchdogService>.Instance;
-    private static IDialogService? _dialog;
-
-    public static void SetDialogService(IDialogService dialog) => _dialog = dialog;
+    private readonly IDialogService? _dialog = dialog;
 
     /// <summary>启动看门狗（后台线程）。</summary>
     public void Start()
@@ -59,7 +58,7 @@ public sealed class WatchdogService(int timeoutSeconds = 45, ILogger<WatchdogSer
         }
     }
 
-    private static async Task DumpAndExit(int timeoutSeconds = 45)
+    private async Task DumpAndExit(int timeoutSeconds = 45)
     {
         var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
         var logPath = Path.Combine(AppEnvironment.ExeDirectory, $"err_{timestamp}.log");

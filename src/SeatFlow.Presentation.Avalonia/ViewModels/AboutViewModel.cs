@@ -36,7 +36,7 @@ public partial class AboutViewModel : ViewModelBase
 
     private readonly IUrlOpener? _urlOpener;
 
-    public AboutViewModel(IUrlOpener? urlOpener = null)
+    public AboutViewModel(IDialogService dialog, IUrlOpener? urlOpener = null) : base(dialog)
     {
         var data = LoadAboutData();
         _urlOpener = urlOpener;

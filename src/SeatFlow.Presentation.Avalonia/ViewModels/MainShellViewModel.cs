@@ -81,7 +81,7 @@ public partial class MainShellViewModel : ViewModelBase
     /// <summary>浏览器端（WASM）：禁用换页动画（直接切换，避免淡出/淡入渲染开销与闪烁）。</summary>
     private static bool IsWebPlatform => OperatingSystem.IsBrowser();
 
-    public MainShellViewModel(INavigationService navigation, IApplicationFacade facade, IOnboardingService onboarding, ILogger<MainShellViewModel>? logger = null)
+    public MainShellViewModel(INavigationService navigation, IApplicationFacade facade, IOnboardingService onboarding, IDialogService dialog, ILogger<MainShellViewModel>? logger = null) : base(dialog, logger)
     {
         _navigation = navigation;
         _facade = facade;

@@ -13,8 +13,10 @@ using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.Telemetry;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
+using SeatFlow.Presentation.Avalonia.Behaviors;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI.Avalonia;
 using Velopack;
 
 [assembly: System.Resources.NeutralResourcesLanguage("zh-CN")]
@@ -78,6 +80,14 @@ namespace SeatFlow.Presentation.Avalonia
 
             // 注册导航服务
             services.AddSingleton<INavigationService, NavigationService>();
+
+            // 全局行为服务（M0：由静态状态改为 DI 单例）
+            services.AddSingleton<Behaviors.KeyboardShortcutHandler>();
+            services.AddSingleton<Behaviors.FileDropHandler>();
+
+            // 横切服务（M0）：对话框门（单例）/ 页面繁忙状态（每页一份）
+            services.AddSingleton<IDialogGate, DialogGate>();
+            services.AddTransient<IBusyScope, BusyScope>();
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IUrlOpener, DesktopUrlOpener>();
@@ -126,6 +136,8 @@ namespace SeatFlow.Presentation.Avalonia
         public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider, bool isFirstInstance)
             => AppBuilder.Configure(() => new App(serviceProvider, isFirstInstance))
                 .UsePlatformDetect()
+                // B 路线 MVVM：注册 ReactiveUI 调度与绑定集成（视图层仍为普通 UserControl）
+                .UseReactiveUI(_ => { })
 #if DEBUG
                 .WithDeveloperTools()
 #endif

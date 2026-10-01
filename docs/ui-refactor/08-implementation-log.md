@@ -23,13 +23,21 @@
 
 ## 2. 里程碑进度
 
-### M0 · 基座 —— ⬜ 进行中
-- [ ] 步 0：docs 提交 + 基线 tag + 基线 WASM 烟测
-- [ ] Avalonia 12.1.3 + ReactiveUI 接入
-- [ ] 方向 B 令牌 + 组件样式
-- [ ] 横切服务 + SeatingCanvas 骨架
-- [ ] 清除静态可变状态
-- [ ] 验收（build/test/WASM 截图）+ 提交
+### M0 · 基座 —— ✅ 实施完成，验收中
+- [x] 步 0：docs 提交（b7e292c）+ 基线 tag `ui-refactor-baseline` + 基线 WASM 烟测（截图 `assets/after/M0-baseline-*.png`，控制台零错误）
+- [x] Avalonia 12.1.3（Presentation/Desktop/Browser 全家族）+ ReactiveUI.Avalonia 12.1.5；双壳 `.UseReactiveUI(_ => { })`
+- [x] 方向 B 令牌：`Resources/Tokens/{Colors,Spacing,Typography}.axaml` + `Tokens/MotionTokens.cs`；`Styles/Components.axaml`（sf-* 类）；App.axaml 挂接并覆盖 Fluent SystemControl*/SystemAccentColor*
+- [x] 横切服务：`IPageLifecycle` / `IDialogGate`(+DialogGate) / `IBusyScope`(+BusyScope) / `DirtyTracker` / `NullDialogService`
+- [x] `Controls/SeatingCanvas.cs` + `SeatVisual.cs`（渲染骨架 + 快照驱动重绘；命中/拖拽/缩放留给 M1）
+- [x] 静态状态清除：ViewModelBase.Dialog→构造注入（15 个 VM + 3 个叶级 VM 改造）、KeyboardShortcutHandler→DI 单例、FileDropHandler→DI 单例、OnboardingService 4 静态字段→实例、WatchdogService._dialog→构造注入；删除 `MainWindowViewModel`（未用）与 `AnimateCardBounceAsync` 死代码
+- [x] 构建双 TFM 0 警告 0 错误；`dotnet test` 381/381
+- [x] WASM 实机验证（待补：明暗截图）
+- [ ] 提交
+
+**M0 说明**
+- ViewModelBase 仍基于 CTK `ObservableObject`（源生成属性 trim 安全）；ReactiveUI 已接入并用于组合/命令/节流；新页面优先 `ReactiveObject`/`[Reactive]`（M1 起）。
+- `ZoomOnScroll` 为过渡期服务定位读取快捷键配置（M5 并入画布后退役）。
+- App 壳层 3 个启动握手静态属性（PendingSeatSetsFilePath/AutoImportSeatSetsPath/IsFirstRunAfterInstall）属桌面 Velopack 启动链，无头环境无法回归，计划在 M3/M5 壳重写时随文件关联流程一并改造。
 
 ### M1 · 自绘画布与几何内核 —— ⬜ 未开始
 ### M2 · 会场与布局页（自由点并入）—— ⬜ 未开始

@@ -248,7 +248,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase
     /// </summary>
     public Task InitializationTask { get; }
 
-    public VenueConfigurationViewModel(IApplicationFacade facade, INavigationService navigation, ILogger<VenueConfigurationViewModel>? logger = null)
+    public VenueConfigurationViewModel(IApplicationFacade facade, INavigationService navigation, IDialogService dialog, ILogger<VenueConfigurationViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _navigation = navigation;

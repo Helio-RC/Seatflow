@@ -209,7 +209,7 @@ public partial class MemberManagementViewModel : ViewModelBase, IFileDropHandler
     public string FilePathDisplay => string.IsNullOrEmpty(FilePath) ? "" : string.Format(Resources.Member_DataSourceFmt, FilePath);
     public string StudentCountDisplay2 => string.Format(Resources.Member_PersonCountFmt, StudentCount);
 
-    public MemberManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog, IUrlOpener urlOpener, ILogger<MemberManagementViewModel>? logger = null)
+    public MemberManagementViewModel(IApplicationFacade facade, IFileService fileService, IDialogService dialog, IUrlOpener urlOpener, ILogger<MemberManagementViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _fileService = fileService;
