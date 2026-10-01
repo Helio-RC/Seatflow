@@ -113,7 +113,7 @@ def content_type_for(relative_path: str) -> str:
 
 
 def collect_files(wwwroot: Path) -> dict:
-    """递归收集上传文件集（相对路径 → 本地路径），跳过 .gz/.map。"""
+    """递归收集上传文件集（相对路径 → 本地路径），跳过 .gz/.map（含 .map.br）。"""
     if not wwwroot.is_dir():
         raise RuntimeError(f"wwwroot 目录不存在: {wwwroot}")
     files = {}
@@ -121,7 +121,8 @@ def collect_files(wwwroot: Path) -> dict:
         if not path.is_file():
             continue
         relative = path.relative_to(wwwroot).as_posix()
-        if relative.lower().endswith(SKIP_SUFFIXES):
+        lower = relative.lower()
+        if lower.endswith(SKIP_SUFFIXES) or lower.endswith(".map.br"):
             continue
         files[relative] = path
     return files
