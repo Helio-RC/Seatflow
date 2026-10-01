@@ -14,6 +14,7 @@ using SeatFlow.Core.Strategies;
 using SeatFlow.Core.Workspace;
 using SeatFlow.Infrastructure.Serialization;
 using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -86,11 +87,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     public partial double CanvasHeight { get; set; } = 600;
 
-    private double _contentCenterX, _contentCenterY;
+    /// <summary>自绘画布渲染快照（不可变；引用替换触发重绘）。</summary>
+    [ObservableProperty]
+    public partial SeatLayoutSnapshot? CanvasSnapshot { get; set; }
+
+    /// <summary>画布缩放（双向绑定到 SeatingCanvas.Zoom；缩放不再重建座位集合）。</summary>
+    [ObservableProperty]
+    public partial double ZoomLevel { get; set; } = 1.0;
+
     private double _defaultZoomLevel = 1.0;
-    public double ZoomLevel { get; set; } = 1.0;
-    public Action<double> ZoomAction => delta => ApplyZoom(delta);
-    public void ApplyZoom(double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta, 0.2, 3.0); BuildSeatDisplayItems(); }
+    private int _snapshotVersion;
 
     /// <summary>不改变数据，仅重新绘制预览区域。</summary>
     public void RefreshPreview() => BuildSeatDisplayItems();
@@ -451,13 +457,23 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             maxY0 = Math.Max(maxY0, oy + oh);
         }
 
-        // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
-        _contentCenterX = (minX0 + maxX0) / 2;
-        _contentCenterY = (minY0 + maxY0) / 2;
+        // 空布局保护（无可用座位时清空画面）
+        if (rawPositions.Count == 0)
+        {
+            SeatItems = [];
+            OverlayItems = [];
+            CanvasSnapshot = null;
+            return;
+        }
 
-        // 第二遍：以中心缩放，座位尺寸固定
+        // 第二遍：坐标归一化到板面左上（含内边距）；缩放/平移由 SeatingCanvas 承担
+        const double localMargin = 40;
         double seatWidth = baseW;
         double seatHeight = baseH;
+        double spanX = maxX0 - minX0;
+        double spanY = maxY0 - minY0;
+        CanvasWidth = Math.Max(160, spanX + (localMargin * 2));
+        CanvasHeight = Math.Max(160, spanY + (localMargin * 2));
 
         var items = new List<SeatDisplayItem>();
         int seatCounter = 0;
@@ -468,8 +484,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             bool isOccupied = occupantId != null;
             bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
-            double sx = _contentCenterX + ((cx - _contentCenterX) * ZoomLevel);
-            double sy = _contentCenterY + ((cy - _contentCenterY) * ZoomLevel);
+            double sx = cx - minX0 + localMargin;
+            double sy = cy - minY0 + localMargin;
 
             seatCounter++;
             items.Add(new SeatDisplayItem
@@ -485,29 +501,22 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 StudentId = occupantId,
                 IsOccupied = isOccupied,
                 IsFixed = seat.IsFixed,
+                IsSelectedForSwap = _swapSourceSeat?.SeatId == seat.Id,
                 OccupancyStatus = isOccupied
                     ? (seat.IsFixed ? SeatOccupancyStatus.Fixed : SeatOccupancyStatus.Occupied)
                     : SeatOccupancyStatus.Empty
             });
         }
-
-        // Canvas 大小 + 居中偏移
-        double margin = 120;
-        CanvasWidth = Math.Max(900, ((maxX0 - minX0) * ZoomLevel) + (margin * 2));
-        CanvasHeight = Math.Max(700, ((maxY0 - minY0) * ZoomLevel) + (margin * 2));
-        double offsetX = (CanvasWidth / 2) - _contentCenterX;
-        double offsetY = (CanvasHeight / 2) - _contentCenterY;
-        foreach (var item in items) { item.X += offsetX; item.Y += offsetY; }
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
 
-        // 障碍物叠加层（大小按座宽比例动态计算）
+        // 障碍物叠加层（坐标同样归一化；Grid 讲台水平居中于座位范围）
         var overlays = new List<SeatDisplayItem>();
+        var boardOverlays = new List<BoardOverlay>();
         double podiumW = baseW * 2.5;
         double podiumH = baseH * 1.6;
         double doorW = baseW * 1.2;
         double doorH = baseH * 0.9;
 
-        // Grid 讲台 X 坐标：水平居中于座位范围
         double seatMinX = double.MaxValue, seatMaxX = 0;
         foreach (var seat in _currentLayout.Seats)
         {
@@ -530,8 +539,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (metadata is GridLayoutMetadata && obs.Type == "Podium" && seatMinX < seatMaxX)
                 obsX = ((seatMinX + seatMaxX) / 2) - (w / 2);
 
-            double ox = _contentCenterX + ((obsX - _contentCenterX) * ZoomLevel) + offsetX;
-            double oy = _contentCenterY + ((obsY - _contentCenterY) * ZoomLevel) + offsetY;
+            double ox = obsX - minX0 + localMargin;
+            double oy = obsY - minY0 + localMargin;
+
             overlays.Add(new SeatDisplayItem
             {
                 X = ox,
@@ -543,8 +553,43 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4),
                 OccupancyStatus = SeatOccupancyStatus.Empty
             });
+            boardOverlays.Add(new BoardOverlay(
+                ox, oy, w, h,
+                obs.Type ?? Resources.Seating_Obstacle,
+                IsRound: obs.Type == "Podium",
+                IsDoor: string.Equals(obs.Type, "Door", StringComparison.OrdinalIgnoreCase)));
         }
         OverlayItems = new ObservableCollection<SeatDisplayItem>(overlays);
+
+        CanvasSnapshot = new SeatLayoutSnapshot(
+            items.Select(ToSeatVisual).ToList(),
+            CanvasWidth, CanvasHeight, ++_snapshotVersion, boardOverlays);
+    }
+
+    /// <summary>由显示项生成不可变座位视觉（缩放/平移由画布矩阵处理）。</summary>
+    private SeatVisual ToSeatVisual(SeatDisplayItem item) => new(
+        item.SeatId, item.X, item.Y, item.Width, item.Height,
+        IsOccupied: item.IsOccupied,
+        IsFixed: item.IsFixed,
+        IsDisabled: false,
+        Label: item.IsOccupied ? item.StudentName : null,
+        SeatLabel: item.SeatLabel,
+        StudentId: item.StudentId,
+        IsSwapSource: item.IsSelectedForSwap || (_swapSourceSeat?.SeatId == item.SeatId),
+        IsDropTarget: item.IsDragHover,
+        IsDataStale: item.IsDataStale);
+
+    /// <summary>轻量刷新画布快照（不重算几何；用于交换选中态等 UI 状态变化）。</summary>
+    public void UpdateCanvasSnapshot()
+    {
+        var overlays = OverlayItems.Select(o => new BoardOverlay(
+            o.X, o.Y, o.Width, o.Height, o.SeatLabel,
+            IsRound: Math.Abs(o.CornerRadius.TopLeft - (o.Height / 2)) < 0.01,
+            IsDoor: string.Equals(o.SeatLabel, "Door", StringComparison.OrdinalIgnoreCase))).ToList();
+
+        CanvasSnapshot = new SeatLayoutSnapshot(
+            SeatItems.Select(ToSeatVisual).ToList(),
+            CanvasWidth, CanvasHeight, ++_snapshotVersion, overlays);
     }
 
     private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
@@ -622,6 +667,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 : SeatOccupancyStatus.Empty;
             item.IsSelectedForSwap = false;
         }
+
+        UpdateCanvasSnapshot();
     }
 
     private async Task UpdateRightPanelAsync()
@@ -762,6 +809,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             _swapSourceSeat = clickedSeat;
             clickedSeat.IsSelectedForSwap = true;
+            UpdateCanvasSnapshot();
             IsSwapMode = true;
             SwapHintText = string.Format(Resources.Seating_SelectTargetFmt, clickedSeat.StudentName ?? clickedSeat.SeatLabel);
             return;
@@ -798,6 +846,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private void CancelSwap()
     {
         _swapSourceSeat?.IsSelectedForSwap = false;
+        UpdateCanvasSnapshot();
         _swapSourceSeat = null;
         IsSwapMode = false;
         SwapHintText = string.Empty;

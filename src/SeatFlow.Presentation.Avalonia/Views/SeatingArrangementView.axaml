@@ -3,6 +3,7 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
+  xmlns:controls="using:SeatFlow.Presentation.Avalonia.Controls"
   xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
   xmlns:core="using:SeatFlow.Core.Models"
   xmlns:fic="using:FluentIcons.Avalonia"
@@ -361,90 +362,20 @@
               </StackPanel>
             </Border>
 
-            <!--  座位渲染区  -->
-            <ScrollViewer
-              x:Name="PreviewScrollViewer"
-              behaviors:CanvasZoomPan.Enabled="True"
-              behaviors:ZoomOnScroll.Enabled="True"
-              behaviors:ZoomOnScroll.OnZoom="{Binding ZoomAction}"
-              Background="{DynamicResource PreviewBackgroundBrush}"
-              HorizontalScrollBarVisibility="Auto"
+            <!--  座位渲染区（自绘 SeatingCanvas：单控件渲染 + 几何命中 + 内置缩放/平移/拖拽）  -->
+            <controls:SeatingCanvas
+              x:Name="SeatCanvas"
               IsVisible="{Binding HasGenerated}"
-              VerticalScrollBarVisibility="Auto">
-              <Panel>
-                <ItemsControl ItemsSource="{Binding SeatItems}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.Styles>
-                    <Style Selector="ContentPresenter">
-                      <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
-                      <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
-                    </Style>
-                  </ItemsControl.Styles>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:SeatDisplayItem">
-                      <Border
-                        Width="{ReflectionBinding Width}"
-                        Height="{ReflectionBinding Height}"
-                        Background="{ReflectionBinding BackgroundBrush}"
-                        BorderBrush="{ReflectionBinding BorderBrush}"
-                        BorderThickness="2"
-                        CornerRadius="{ReflectionBinding CornerRadius}"
-                        Cursor="Hand"
-                        DragDrop.AllowDrop="True"
-                        DragDrop.DragLeave="Seat_DragLeave"
-                        DragDrop.DragOver="Seat_DragOver"
-                        DragDrop.Drop="Seat_Drop"
-                        PointerPressed="SeatBorder_PointerPressed"
-                        ToolTip.Tip="{ReflectionBinding TooltipText}">
-                        <TextBlock
-                          Margin="2,0"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          FontSize="11"
-                          FontWeight="SemiBold"
-                          Text="{ReflectionBinding DisplayText}"
-                          TextWrapping="NoWrap" />
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <ItemsControl ItemsSource="{Binding OverlayItems}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.Styles>
-                    <Style Selector="ItemsControl &gt; ContentPresenter">
-                      <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
-                      <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
-                    </Style>
-                  </ItemsControl.Styles>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:SeatDisplayItem">
-                      <Border
-                        Width="{ReflectionBinding Width}"
-                        Height="{ReflectionBinding Height}"
-                        Background="{ReflectionBinding BackgroundBrush}"
-                        BorderBrush="{ReflectionBinding BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="{ReflectionBinding CornerRadius}"
-                        ToolTip.Tip="{ReflectionBinding TooltipText}">
-                        <TextBlock
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          Classes="micro"
-                          Text="{ReflectionBinding DisplayText}" />
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </Panel>
-            </ScrollViewer>
+              Snapshot="{Binding CanvasSnapshot}"
+              Zoom="{Binding ZoomLevel, Mode=TwoWay}"
+              DragDrop.AllowDrop="True"
+              DragDrop.DragLeave="SeatCanvas_DragLeave"
+              DragDrop.DragOver="SeatCanvas_DragOver"
+              DragDrop.Drop="SeatCanvas_Drop"
+              SeatActivated="SeatCanvas_SeatActivated"
+              SeatClicked="SeatCanvas_SeatClicked"
+              SeatDropped="SeatCanvas_SeatDropped" />
+
             <!--  垃圾桶：拖入或点击移除学生  -->
             <Border
               Name="TrashZone"

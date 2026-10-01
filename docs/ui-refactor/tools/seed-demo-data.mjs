@@ -7,6 +7,10 @@ import { withPage, send, sleep } from './cdp.mjs';
 const SEED_DIR = process.env.SEED_DIR || '/tmp/seatflow-seed';
 const FILES = [
   { local: `${SEED_DIR}/demo-venue-01.venue.json`, storeKey: 'Venues/demo-venue-01.venue.json' },
+  { local: `${SEED_DIR}/demo-venue-polar.venue.json`, storeKey: 'Venues/demo-venue-polar.venue.json' },
+  { local: `${SEED_DIR}/demo-venue-freeform.venue.json`, storeKey: 'Venues/demo-venue-freeform.venue.json' },
+  { local: `${SEED_DIR}/demo-venue-large.venue.json`, storeKey: 'Venues/demo-venue-large.venue.json' },
+  { local: `${SEED_DIR}/demo-venue-huge.venue.json`, storeKey: 'Venues/demo-venue-huge.venue.json' },
   { local: `${SEED_DIR}/demo-roster-01.roster.json`, storeKey: 'Rosters/demo-roster-01.roster.json' },
   { local: `${SEED_DIR}/AppSettings.json`, storeKey: 'AppSettings.json' },
 ];

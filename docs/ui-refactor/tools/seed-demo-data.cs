@@ -21,58 +21,150 @@ opts.Converters.Add(new SeatJsonConverter());
 var outDir = args.Length > 0 ? args[0] : "/tmp/seatflow-seed";
 Directory.CreateDirectory(outDir);
 
-// ---------- 会场：8×8 网格，每桌 2 人，第 4 列/行后过道 ----------
-var seats = new List<Seat>();
-for (var r = 1; r <= 8; r++)
+// ---------- 会场生成辅助 ----------
+static VenueFile CreateGridVenue(string venueId, string layoutId, string name, int rows, int cols, int seatsPerDesk,
+    int intraDesk = 12, int interDesk = 40, int aisleAfterCol = 0, int aisleAfterRow = 0, int aisleWidth = 60)
 {
-    for (var c = 1; c <= 8; c++)
+    var seatList = new List<Seat>();
+    for (var r = 1; r <= rows; r++)
     {
-        seats.Add(new GridSeat
+        for (var c = 1; c <= cols; c++)
         {
-            Id = $"demo-s-{r:D2}-{c:D2}",
-            Row = r,
-            Column = c,
-            LogicalGroup = $"第{(c - 1) / 2 + 1}组"
-        });
+            seatList.Add(new GridSeat
+            {
+                Id = $"{venueId}-s-{r:D3}-{c:D3}",
+                Row = r,
+                Column = c,
+                LogicalGroup = $"第{((c - 1) / seatsPerDesk) + 1}组"
+            });
+        }
     }
+
+    return new VenueFile
+    {
+        Version = "1.1",
+        VenueId = venueId,
+        Layout = new ClassroomLayoutDefinition
+        {
+            Id = layoutId,
+            Name = name,
+            LayoutType = LayoutType.Grid,
+            Seats = seatList,
+            Obstacles = [],
+            Metadata = new GridLayoutMetadata
+            {
+                Rows = rows,
+                Columns = cols,
+                SeatsPerDesk = seatsPerDesk,
+                HorizontalSpacing = 1.0,
+                VerticalSpacing = 56,
+                IntraDeskSpacing = intraDesk,
+                InterDeskSpacing = interDesk,
+                AisleAfterColumns = aisleAfterCol > 0 ? [aisleAfterCol] : [],
+                AisleAfterRows = aisleAfterRow > 0 ? [aisleAfterRow] : [],
+                AisleWidth = aisleWidth,
+                FrontRowCount = 1,
+                HasPodium = true,
+                HasFrontDoor = false
+            }
+        }
+    };
 }
 
-var layout = new ClassroomLayoutDefinition
+static VenueFile CreatePolarVenue(string venueId, string layoutId, string name, int[] ringCounts, double radiusStep, double origin = 300)
 {
-    Id = "demo-layout-01",
-    Name = "演示教室（64座）",
-    LayoutType = LayoutType.Grid,
-    Seats = seats,
-    Obstacles = [],
-    Metadata = new GridLayoutMetadata
+    var seatList = new List<Seat>();
+    for (var ring = 1; ring <= ringCounts.Length; ring++)
     {
-        Rows = 8,
-        Columns = 8,
-        SeatsPerDesk = 2,
-        HorizontalSpacing = 1.0,
-        VerticalSpacing = 1.0,
-        IntraDeskSpacing = 12,
-        InterDeskSpacing = 40,
-        AisleAfterColumns = [4],
-        AisleAfterRows = [4],
-        AisleWidth = 60,
-        FrontRowCount = 1,
-        HasPodium = true,
-        HasFrontDoor = false
+        var count = ringCounts[ring - 1];
+        for (var i = 0; i < count; i++)
+        {
+            seatList.Add(new PolarSeat
+            {
+                Id = $"{venueId}-s-{ring:D2}-{i + 1:D2}",
+                Ring = ring,
+                Radius = ring * radiusStep,
+                AngleDegrees = 360.0 * i / count,
+                LogicalGroup = $"第{ring}环"
+            });
+        }
     }
-};
 
-var venueFile = new VenueFile
+    return new VenueFile
+    {
+        Version = "1.1",
+        VenueId = venueId,
+        Layout = new ClassroomLayoutDefinition
+        {
+            Id = layoutId,
+            Name = name,
+            LayoutType = LayoutType.Polar,
+            Seats = seatList,
+            Obstacles = [],
+            Metadata = new PolarLayoutMetadata
+            {
+                Rings = ringCounts.Length,
+                SeatsPerRing = ringCounts.Max(),
+                RadiusStep = radiusStep,
+                OriginX = origin,
+                OriginY = origin,
+                RingSeatCounts = [.. ringCounts],
+                FrontRowCount = 1,
+                HasPodium = true
+            }
+        }
+    };
+}
+
+static VenueFile CreateFreeformVenue(string venueId, string layoutId, string name, int rows, int cols)
 {
-    Version = "1.1",
-    VenueId = "demo-venue-01",
-    Layout = layout
-};
-var venueJson = JsonSerializer.Serialize(venueFile, opts);
-venueFile.ContentHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(venueJson))).ToLowerInvariant();
-var venuePath = Path.Combine(outDir, "demo-venue-01.venue.json");
-File.WriteAllText(venuePath, JsonSerializer.Serialize(venueFile, opts));
-Console.WriteLine($"venue  -> {venuePath} ({seats.Count} seats)");
+    var seatList = new List<Seat>();
+    for (var r = 0; r < rows; r++)
+    {
+        for (var c = 0; c < cols; c++)
+        {
+            seatList.Add(new FreeformSeat
+            {
+                Id = $"{venueId}-s-{r + 1:D2}-{c + 1:D2}",
+                X = 80 + (c * 96) + ((r % 2) * 24),
+                Y = 80 + (r * 72),
+                Row = r + 1,
+                Column = c + 1,
+                LogicalGroup = $"第{c + 1}列"
+            });
+        }
+    }
+
+    return new VenueFile
+    {
+        Version = "1.1",
+        VenueId = venueId,
+        Layout = new ClassroomLayoutDefinition
+        {
+            Id = layoutId,
+            Name = name,
+            LayoutType = LayoutType.Freeform,
+            Seats = seatList,
+            Obstacles = [],
+            Metadata = new LayoutMetadata()
+        }
+    };
+}
+
+static void WriteVenue(VenueFile file, string outDir, string fileName, JsonSerializerOptions opts)
+{
+    var json = JsonSerializer.Serialize(file, opts);
+    file.ContentHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))).ToLowerInvariant();
+    var path = Path.Combine(outDir, fileName);
+    File.WriteAllText(path, JsonSerializer.Serialize(file, opts));
+    Console.WriteLine($"venue  -> {path} ({file.Layout.Seats.Count} seats)");
+}
+
+WriteVenue(CreateGridVenue("demo-venue-01", "demo-layout-01", "演示教室（64座）", 8, 8, 2, 12, 40, 4, 4, 60), outDir, "demo-venue-01.venue.json", opts);
+WriteVenue(CreatePolarVenue("demo-venue-polar", "demo-layout-polar", "演示环形教室（24座）", [8, 8, 8], 60), outDir, "demo-venue-polar.venue.json", opts);
+WriteVenue(CreateFreeformVenue("demo-venue-freeform", "demo-layout-freeform", "演示自由布局（30座）", 6, 5), outDir, "demo-venue-freeform.venue.json", opts);
+WriteVenue(CreateGridVenue("demo-venue-large", "demo-layout-large", "演示大教室（300座）", 15, 20, 2, 12, 40, 10, 8, 60), outDir, "demo-venue-large.venue.json", opts);
+WriteVenue(CreateGridVenue("demo-venue-huge", "demo-layout-huge", "演示超大教室（800座）", 25, 32, 2, 10, 28, 0, 0, 0), outDir, "demo-venue-huge.venue.json", opts);
 
 // ---------- 名单：240 人（中文姓名，性别交替，身高 150–189，每 30 人一个前排需求） ----------
 string[] surnames = ["王", "李", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴", "徐", "孙", "胡", "朱", "高", "林", "何", "郭", "马", "罗"];

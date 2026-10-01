@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using SeatFlow.Presentation.Avalonia.Controls;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 
 namespace SeatFlow.Presentation.Avalonia.Views;
 
@@ -19,19 +20,17 @@ public partial class SeatingArrangementView : UserControl
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ViewModels.SeatingArrangementViewModel vm)
+        if (DataContext is SeatingArrangementViewModel vm)
             _ = vm.RefreshDataAsync();
     }
 
-    // ── 拖放数据格式 ──
+    // ── 拖放数据格式（自绘座位的内部拖拽不再走系统 DnD；此处用于「未分配学生 → 画布」） ──
 
     internal static class DragFormats
     {
         public static readonly DataFormat<string> StudentDrag = DataFormat.CreateInProcessFormat<string>("SeatFlow_Student");
         public static readonly DataFormat<string> SeatDrag = DataFormat.CreateInProcessFormat<string>("SeatFlow_Seat");
     }
-
-    // ── 拖放辅助方法 ──
 
     private static bool DragHasFormat(IDataTransfer transfer, DataFormat format)
         => transfer.Formats.Contains(format);
@@ -46,94 +45,49 @@ public partial class SeatingArrangementView : UserControl
         return null;
     }
 
-    // ── 拖拽弹出卡片 ──
+    // ── 座位点击 / 键盘激活 ──
 
-    private Popup? _dragPopup;
+    private void SeatCanvas_SeatClicked(object? sender, SeatEventArgs e)
+        => ExecuteSeatClick(e.SeatId);
 
-    private void ShowDragCard(string name, Control placementTarget)
+    private void SeatCanvas_SeatActivated(object? sender, SeatEventArgs e)
+        => ExecuteSeatClick(e.SeatId);
+
+    private void ExecuteSeatClick(string seatId)
     {
-        var accentColor = (Color)placementTarget.FindResource("SystemAccentColor")!;
-        var cardBg = (IBrush)placementTarget.FindResource("SystemControlBackgroundChromeWhiteBrush")!;
-        var cardFg = (IBrush)placementTarget.FindResource("SystemControlForegroundBaseHighBrush")!;
-        // CardShadowSmall 在 ThemeDictionaries 内，FindResource 不可达；手动构建以适配主题
-        var isDark = global::Avalonia.Application.Current!.ActualThemeVariant == global::Avalonia.Styling.ThemeVariant.Dark;
-        var cardShadow = new BoxShadows(new BoxShadow
-        {
-            OffsetX = 0,
-            OffsetY = 2,
-            Blur = 8,
-            Color = Color.FromArgb(isDark ? (byte)0x40 : (byte)0x18, 0, 0, 0)
-        });
-
-        _dragPopup = new Popup
-        {
-            PlacementTarget = placementTarget,
-            Placement = PlacementMode.Pointer,
-            IsLightDismissEnabled = false,
-            HorizontalOffset = 12,
-            VerticalOffset = 12,
-            Child = new Border
-            {
-                Background = cardBg,
-                BorderBrush = new SolidColorBrush(Color.FromArgb(0xA0, accentColor.R, accentColor.G, accentColor.B)),
-                BorderThickness = new Thickness(2),
-                CornerRadius = new CornerRadius(4),
-                Padding = new Thickness(10, 5),
-                BoxShadow = cardShadow,
-                Child = new TextBlock
-                {
-                    Text = name,
-                    Foreground = cardFg,
-                    FontSize = 13
-                }
-            }
-        };
-        _dragPopup.IsOpen = true;
-    }
-
-    private void HideDragCard()
-    {
-        if (_dragPopup == null) return;
-        _dragPopup.IsOpen = false;
-        _dragPopup = null;
-    }
-
-    // ── 座位点击/拖拽 ──
-
-    private async void SeatBorder_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Border border
-            || border.DataContext is not ViewModels.SeatDisplayItem item)
-            return;
-
-        // 仅已占用、非固定的座位可拖动
-        if (item.IsOccupied && !item.IsFixed && item.StudentId != null)
-        {
-            var data = new DataTransfer();
-            var studentItem = new DataTransferItem();
-            studentItem.Set(DragFormats.StudentDrag, item.StudentId);
-            data.Add(studentItem);
-            var seatItem = new DataTransferItem();
-            seatItem.Set(DragFormats.SeatDrag, item.SeatId);
-            data.Add(seatItem);
-
-            ShowDragCard(item.DisplayText ?? "?", border);
-
-            var result = await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
-
-            HideDragCard();
-
-            // 如果完成了有效的移动操作，不触发点击
-            if (result != DragDropEffects.None)
-                return;
-        }
-
-        // 没有发生拖放 → 当作点击处理
-        if (DataContext is ViewModels.SeatingArrangementViewModel vm)
+        if (DataContext is not SeatingArrangementViewModel vm) return;
+        var item = vm.SeatItems.FirstOrDefault(s => s.SeatId == seatId);
+        if (item is not null)
             vm.ClickSeatCommand.Execute(item);
     }
 
-    // ── 未分配列表拖动 ──
+    // ── 画布内部拖拽放下（座位↔座位 / 座位→空白；空白处判定垃圾桶） ──
+
+    private async void SeatCanvas_SeatDropped(object? sender, SeatDropEventArgs e)
+    {
+        if (DataContext is not SeatingArrangementViewModel vm) return;
+        if (string.IsNullOrEmpty(e.StudentId)) return;
+
+        if (!string.IsNullOrEmpty(e.TargetSeatId))
+        {
+            await vm.ExecuteDropAsync(e.StudentId, e.SourceSeatId, e.TargetSeatId);
+            return;
+        }
+
+        // 落在空白：若指针位于垃圾桶范围内 → 移除到回收站
+        if (IsPointerOverTrash(e.PointerPosition))
+            await vm.ExecuteRemoveToTrashAsync(e.SourceSeatId);
+    }
+
+    private bool IsPointerOverTrash(Point pointerInCanvas)
+    {
+        var pagePoint = SeatCanvas.TranslatePoint(pointerInCanvas, this);
+        var trashTopLeft = TrashZone.TranslatePoint(default, this);
+        if (pagePoint is not { } p || trashTopLeft is not { } tl) return false;
+        return new Rect(tl, TrashZone.Bounds.Size).Contains(p);
+    }
+
+    // ── 未分配列表拖动（系统 DnD → 画布命中） ──
 
     private async void UnassignedStudent_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -142,78 +96,75 @@ public partial class SeatingArrangementView : UserControl
             return;
 
         var data = new DataTransfer();
-        var studentItem2 = new DataTransferItem();
-        studentItem2.Set(DragFormats.StudentDrag, student.Id);
-        data.Add(studentItem2);
-
-        ShowDragCard(student.Name ?? "?", border);
+        var studentItem = new DataTransferItem();
+        studentItem.Set(DragFormats.StudentDrag, student.Id);
+        data.Add(studentItem);
 
         var result = await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
 
-        HideDragCard();
-
         // 如果没有发生拖放，手动设置选中项（因为 DoDragDropAsync 阻止了 ListBox 的默认选择行为）
         if (result == DragDropEffects.None
-            && DataContext is ViewModels.SeatingArrangementViewModel vm)
+            && DataContext is SeatingArrangementViewModel vm)
         {
             vm.SelectedUnassignedStudent = student;
         }
     }
 
-    // ── 座位放置目标 ──
+    // ── 画布作为外部拖放目标 ──
 
-    private void Seat_DragOver(object? sender, DragEventArgs e)
+    private void SeatCanvas_DragOver(object? sender, DragEventArgs e)
     {
-        if (sender is not Border border
-            || border.DataContext is not ViewModels.SeatDisplayItem seat)
-            return;
-
-        if (seat.IsFixed) { e.DragEffects = DragDropEffects.None; return; }
-
         var transfer = e.DataTransfer;
         bool hasStudent = DragHasFormat(transfer, DragFormats.StudentDrag);
-        bool hasSeat = DragHasFormat(transfer, DragFormats.SeatDrag);
+        var seat = SeatCanvas.HitTestSeat(e.GetPosition(SeatCanvas));
 
-        if (seat.IsOccupied && !hasSeat)
-        { e.DragEffects = DragDropEffects.None; return; }
-
-        if (hasSeat)
+        if (!hasStudent || seat is null || seat.IsDisabled)
         {
-            var srcSeatId = DragGetString(transfer, DragFormats.SeatDrag);
-            if (srcSeatId == seat.SeatId)
-            { e.DragEffects = DragDropEffects.None; return; }
+            SeatCanvas.SetDropTarget(null);
+            e.DragEffects = DragDropEffects.None;
+            return;
         }
 
-        seat.IsDragHover = true;
+        bool hasSeat = DragHasFormat(transfer, DragFormats.SeatDrag);
+        if (seat.IsFixed || (seat.IsOccupied && !hasSeat))
+        {
+            SeatCanvas.SetDropTarget(null);
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        if (hasSeat && DragGetString(transfer, DragFormats.SeatDrag) == seat.Id)
+        {
+            SeatCanvas.SetDropTarget(null);
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        SeatCanvas.SetDropTarget(seat.Id);
         e.DragEffects = DragDropEffects.Move;
         e.Handled = true;
     }
 
-    private async void Seat_Drop(object? sender, DragEventArgs e)
+    private void SeatCanvas_DragLeave(object? sender, DragEventArgs e)
+        => SeatCanvas.SetDropTarget(null);
+
+    private async void SeatCanvas_Drop(object? sender, DragEventArgs e)
     {
-        if (sender is not Border border
-            || border.DataContext is not ViewModels.SeatDisplayItem seat
-            || DataContext is not ViewModels.SeatingArrangementViewModel vm)
-            return;
+        SeatCanvas.SetDropTarget(null);
 
-        seat.IsDragHover = false;
+        if (DataContext is not SeatingArrangementViewModel vm) return;
 
-        var transfer = e.DataTransfer;
-        var studentId = DragGetString(transfer, DragFormats.StudentDrag);
-        var sourceSeatId = DragGetString(transfer, DragFormats.SeatDrag);
+        var seat = SeatCanvas.HitTestSeat(e.GetPosition(SeatCanvas));
+        if (seat is null || seat.IsDisabled || seat.IsFixed) return;
+
+        var studentId = DragGetString(e.DataTransfer, DragFormats.StudentDrag);
         if (string.IsNullOrEmpty(studentId)) return;
 
-        await vm.ExecuteDropAsync(studentId, sourceSeatId, seat.SeatId);
+        // 座位内部拖拽不经过系统 DnD；这里只可能出现未分配学生
+        await vm.ExecuteDropAsync(studentId, null, seat.Id);
     }
 
-    private void Seat_DragLeave(object? sender, DragEventArgs e)
-    {
-        if (sender is Border border
-            && border.DataContext is ViewModels.SeatDisplayItem seat)
-            seat.IsDragHover = false;
-    }
-
-    // ── 垃圾桶 ──
+    // ── 垃圾桶（系统 DnD：未分配学生拖入无效；保留视觉反馈，点击移除选中座位） ──
 
     private IBrush? _trashOriginalBg;
 
@@ -245,7 +196,7 @@ public partial class SeatingArrangementView : UserControl
         var seatId = DragGetString(e.DataTransfer, DragFormats.SeatDrag);
         if (string.IsNullOrEmpty(seatId)) return;
 
-        if (DataContext is ViewModels.SeatingArrangementViewModel vm)
+        if (DataContext is SeatingArrangementViewModel vm)
             await vm.ExecuteRemoveToTrashAsync(seatId);
     }
 
@@ -256,7 +207,7 @@ public partial class SeatingArrangementView : UserControl
 
     private async void Trash_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (DataContext is ViewModels.SeatingArrangementViewModel vm)
+        if (DataContext is SeatingArrangementViewModel vm)
             await vm.RemoveToTrashCommand.ExecuteAsync(null);
     }
 }
