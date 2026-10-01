@@ -1,0 +1,26 @@
+<UserControl
+  x:Class="ReactiveUiWasm.MainView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="using:ReactiveUiWasm"
+  x:DataType="local:MainViewModel">
+  <Border
+    Width="560"
+    Padding="24"
+    HorizontalAlignment="Center"
+    VerticalAlignment="Center"
+    Background="White"
+    BorderBrush="#D9E0E7"
+    BorderThickness="1"
+    CornerRadius="8">
+    <StackPanel Spacing="12">
+      <TextBlock FontSize="18" FontWeight="SemiBold" Text="{Binding Headline}" />
+      <TextBlock FontSize="14" Text="{Binding Pipeline}" />
+      <TextBlock FontSize="12" Foreground="#46586B" Text="{Binding Throttled}" />
+      <Button
+        HorizontalAlignment="Left"
+        Command="{Binding IncrementCommand}"
+        Content="+1 （点击验证）" />
+    </StackPanel>
+  </Border>
+</UserControl>

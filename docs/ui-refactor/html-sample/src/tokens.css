@@ -1,0 +1,43 @@
+/* 方向 B「方格纸」设计令牌 + 暗色变体 */
+:root {
+  --font: "Inter", "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", sans-serif;
+  --fs-xs: 11px; --fs-sm: 12.5px; --fs-md: 13.5px; --fs-lg: 16px; --fs-xl: 20px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
+  --r-xs: 3px; --r-sm: 5px; --r-lg: 8px;
+  --bg: #F2F4F6; --rail-bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F6F8FA;
+  --border: #D9E0E7; --border-strong: #C3CDD8; --hover: #EEF2F6;
+  --text: #16202B; --text-dim: #46586B; --text-faint: #7B8A9C;
+  --accent: #3B5BDB; --accent-hover: #3450C4; --accent-fg: #FFFFFF;
+  --accent-soft: #E8ECFC; --accent-strong: #2F49B8;
+  --ok: #0E9F6E; --ok-soft: #E3F5EE; --warn: #B45309; --warn-soft: #FBF0DC;
+  --danger: #D92D20; --danger-soft: #FDECEA;
+  --canvas-bg:
+    repeating-linear-gradient(0deg, #E3E9F0 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, #E3E9F0 0 1px, transparent 1px 24px),
+    #F5F7FA;
+  --board-bg: #FFFFFF; --board-border: #CBD5E1;
+  --podium-bg: #F1F4F8;
+  --seat-bg: #FFFFFF; --seat-border: #C9D4E0;
+  --seat-occupied: #E4E9FB; --seat-occupied-border: #8FA3E8; --seat-occupied-fg: #2C3E9E;
+  --fixed: #3B5BDB;
+  --rail-w: 172px; --status-h: 28px; --row-h: 32px; --ctl-h: 30px;
+  --shadow-pop: 0 8px 24px rgba(22, 32, 43, .14);
+}
+[data-theme="dark"] {
+  --bg: #0B1020; --rail-bg: #0E1526; --surface: #121A2E; --surface-2: #0F1729;
+  --border: #22304A; --border-strong: #2E3F5E; --hover: #1A2740;
+  --text: #E7ECF5; --text-dim: #9AA8C0; --text-faint: #6C7A94;
+  --accent: #7C93FF; --accent-hover: #93A5FF; --accent-fg: #0B1020;
+  --accent-soft: rgba(124,147,255,.16); --accent-strong: #A5B4FF;
+  --ok: #34D399; --ok-soft: rgba(52,211,153,.14); --warn: #FBBF24; --warn-soft: rgba(251,191,36,.14);
+  --danger: #F87171; --danger-soft: rgba(248,113,113,.14);
+  --canvas-bg:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 24px),
+    #101D18;
+  --board-bg: #13221B; --board-border: #24382E; --podium-bg: rgba(255,255,255,.06);
+  --seat-bg: #1A2C24; --seat-border: #2E463A;
+  --seat-occupied: #274A3B; --seat-occupied-border: #4E8C6F; --seat-occupied-fg: #D9F2E6;
+  --fixed: #F0B429;
+  --shadow-pop: 0 8px 24px rgba(0,0,0,.5);
+}

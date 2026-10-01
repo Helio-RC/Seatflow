@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SeatFlow 设计方向 A · 排座工作台</title>
+<link rel="stylesheet" href="mock.css">
+<link id="theme" rel="stylesheet" href="theme-a.css">
+</head>
+<body>
+<div class="app">
+  <!-- 左导航：工作流 / 资料 / 规则 / 记录 -->
+  <aside class="rail">
+    <div class="brand"><span class="brand-mark">S</span><span class="brand-name">SeatFlow</span></div>
+    <nav class="nav">
+      <div class="nav-group">工作流</div>
+      <a class="nav-item active"><i>▦</i><span>排座工作台</span></a>
+      <div class="nav-group">资料</div>
+      <a class="nav-item"><i>☰</i><span>人员名单</span></a>
+      <a class="nav-item"><i>▤</i><span>会场与布局</span></a>
+      <div class="nav-group">规则</div>
+      <a class="nav-item"><i>⎔</i><span>策略配置</span></a>
+      <div class="nav-group">记录</div>
+      <a class="nav-item"><i>◷</i><span>历史快照</span></a>
+    </nav>
+    <div class="rail-bottom">
+      <a class="nav-item"><i>⚙</i><span>设置</span></a>
+      <a class="nav-item"><i>ⓘ</i><span>关于</span></a>
+    </div>
+  </aside>
+
+  <!-- 数据选择列 -->
+  <section class="picker">
+    <header class="picker-head"><h2>排座工作台</h2></header>
+    <div class="field">
+      <label>会场</label>
+      <div class="select-row selected"><span class="dot"></span><span>演示教室</span><span class="chip">64 座</span></div>
+      <div class="select-row"><span class="dot"></span><span>阶梯教室 A</span><span class="chip">120 座</span></div>
+    </div>
+    <div class="field">
+      <label>名单</label>
+      <div class="select-row selected"><span class="dot"></span><span>演示名单</span><span class="chip">240 人</span></div>
+    </div>
+    <div class="picker-foot">
+      <button class="btn btn-primary btn-block">生成座位安排</button>
+      <div class="hint">按当前策略生成 · 上次用时 3.2s</div>
+    </div>
+  </section>
+
+  <!-- 中央工作区 -->
+  <main class="stage">
+    <header class="commandbar">
+      <div class="crumbs"><strong>排座工作台</strong><span class="sep">/</span><span>演示教室 · 演示名单</span></div>
+      <div class="actions">
+        <button class="btn">撤销</button>
+        <button class="btn">重做</button>
+        <span class="divider"></span>
+        <button class="btn">保存快照</button>
+        <button class="btn btn-primary">导出 ▾</button>
+      </div>
+    </header>
+    <div class="canvas-wrap">
+      <div class="canvas-toolbar">缩放 100% · 拖动座位或学生可调换位置</div>
+      <div class="board">
+        <div class="podium">讲 台</div>
+        <div class="seat-grid" id="grid"></div>
+        <div class="legend">
+          <span class="l-occ"><i></i>已分配</span>
+          <span class="l-fix"><i></i>固定座位</span>
+          <span class="l-sel"><i></i>选中</span>
+          <span><i></i>空座</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 右检查器：页签化，替代当前堆叠小面板 -->
+  <aside class="inspector">
+    <div class="tabs">
+      <span class="tab active">策略状态</span>
+      <span class="tab">未分配 <b>176</b></span>
+      <span class="tab">修改记录</span>
+      <span class="tab">消息 <b>2</b></span>
+    </div>
+    <div class="panel-body">
+      <div class="strategy-row"><span class="prio">100</span><span><span class="name">固定座位</span><br><span class="type">锁定 4 个座位</span></span><span class="status ok">已执行</span></div>
+      <div class="strategy-row"><span class="prio">50</span><span><span class="name">前排轮换</span><br><span class="type">8 人 · 已打乱</span></span><span class="status ok">已执行</span></div>
+      <div class="strategy-row"><span class="prio">1</span><span><span class="name">随机填充</span><br><span class="type">60 人 · 重掷 3 次</span></span><span class="status ok">已执行</span></div>
+      <div class="strategy-row"><span class="prio">40</span><span><span class="name">同桌不重复</span><br><span class="type">依赖策略</span></span><span class="status warn">2 条消息</span></div>
+      <div class="message">第 6 排的两位同学曾在上次排座同桌，已强制安排并记录。</div>
+      <p class="panel-note">生成完成后，策略消息与未分配人员在此集中查看；点击座位可联动高亮对应学生。</p>
+    </div>
+  </aside>
+
+  <footer class="statusbar">64 / 64 已分配 · 生成用时 1.8s · 固定 4 座<span class="right">未分配 176 · 策略 4/7 启用</span></footer>
+</div>
+
+<script>
+  const grid = document.getElementById('grid');
+  const occupied = new Set(['1-1','1-2','1-3','1-4','2-2','2-5','3-1','3-7','4-4','5-6','6-2','6-8','7-3','7-5','8-1','8-6']);
+  const fixed = new Set(['1-1','1-2','1-3','1-4']);
+  const selected = '5-6';
+  let html = '';
+  for (let r = 1; r <= 8; r++) {
+    for (let c = 1; c <= 8; c++) {
+      if (c === 5) html += '<span class="spacer"></span>';
+      const k = r + '-' + c;
+      const cls = ['seat'];
+      if (occupied.has(k)) cls.push('occupied');
+      if (fixed.has(k)) cls.push('fixed');
+      if (k === selected) cls.push('selected');
+      html += `<div class="${cls.join(' ')}" title="第${r}排 第${c}列">${fixed.has(k) ? '固' : ''}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+  const params = new URLSearchParams(location.search);
+  if (params.get('d')) document.getElementById('theme').href = 'theme-' + params.get('d') + '.css';
+</script>
+</body>
+</html>

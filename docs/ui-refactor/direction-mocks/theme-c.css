@@ -1,0 +1,25 @@
+/* 方向 C ·「夜校工作台」— 深墨底 + 黑板画布 + 琥珀强调；高密度、边框优先、无阴影 */
+:root {
+  --font: "Inter", "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", sans-serif;
+  --fs-xs: 11px; --fs-sm: 12px; --fs-md: 13px; --fs-lg: 15px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 22px;
+  --r-xs: 3px; --r-sm: 5px; --r-lg: 8px;
+  --bg: #0B1020; --rail-bg: #0E1526; --surface: #121A2E; --surface-2: #0F1729;
+  --border: #22304A; --border-strong: #2E3F5E; --hover: #1A2740;
+  --text: #E7ECF5; --text-dim: #9AA8C0; --text-faint: #6C7A94;
+  --accent: #F0B429; --accent-hover: #D9A11F; --accent-fg: #1A1404;
+  --accent-soft: rgba(240,180,41,.14); --accent-strong: #F5C24D;
+  --ok: #34D399; --ok-soft: rgba(52,211,153,.14); --warn: #FBBF24; --warn-soft: rgba(251,191,36,.14);
+  --canvas-bg:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 24px),
+    #101D18;
+  --board-bg: #13221B; --board-border: #24382E;
+  --board-shadow: none; --podium-bg: rgba(255,255,255,.06);
+  --seat: 36px; --seat-gap: 6px; --seat-r: 5px; --aisle: 22px;
+  --seat-bg: #1A2C24; --seat-border: #2E463A;
+  --seat-occupied: #274A3B; --seat-occupied-border: #4E8C6F; --seat-occupied-fg: #D9F2E6;
+  --fixed: #F0B429; --sel-shadow: 0 0 0 1px rgba(240,180,41,.35);
+  --rail-w: 164px; --picker-w: 232px; --inspector-w: 312px; --status-h: 26px; --row-h: 30px; --ctl-h: 28px;
+  font-variant-numeric: tabular-nums;
+}

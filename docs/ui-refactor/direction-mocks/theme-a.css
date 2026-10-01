@@ -1,0 +1,20 @@
+/* 方向 A ·「精炼 Fluent」— 保留熟悉语言，做减法与纪律：中性冷灰、单一蓝强调、发丝边框、几乎无阴影 */
+:root {
+  --font: "Inter", "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", sans-serif;
+  --fs-xs: 11px; --fs-sm: 12.5px; --fs-md: 13.5px; --fs-lg: 16px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px;
+  --r-xs: 4px; --r-sm: 6px; --r-lg: 10px;
+  --bg: #F6F7F9; --rail-bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F7F8FA;
+  --border: #E4E7EC; --border-strong: #D0D5DD; --hover: #F2F4F7;
+  --text: #1B1F27; --text-dim: #475467; --text-faint: #8A94A6;
+  --accent: #2563EB; --accent-hover: #1D4ED8; --accent-fg: #FFFFFF;
+  --accent-soft: #E8EFFD; --accent-strong: #1E4FCC;
+  --ok: #16A34A; --ok-soft: #E7F6EC; --warn: #B45309; --warn-soft: #FDF3E3;
+  --canvas-bg: #EEF1F5; --board-bg: #FFFFFF; --board-border: #DFE3E8;
+  --board-shadow: 0 1px 2px rgba(16,24,40,.06); --podium-bg: #F2F4F7;
+  --seat: 40px; --seat-gap: 8px; --seat-r: 8px; --aisle: 26px;
+  --seat-bg: #F7F8FA; --seat-border: #DCE0E5;
+  --seat-occupied: #DCEAFE; --seat-occupied-border: #93B8F8; --seat-occupied-fg: #17408B;
+  --fixed: #2563EB; --sel-shadow: 0 1px 3px rgba(37,99,235,.18);
+  --rail-w: 176px; --picker-w: 248px; --inspector-w: 322px; --status-h: 28px; --row-h: 32px; --ctl-h: 30px;
+}
