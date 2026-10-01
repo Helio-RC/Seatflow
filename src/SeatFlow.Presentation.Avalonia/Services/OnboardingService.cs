@@ -574,8 +574,8 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             venueVm.VenueItems.Clear();
             venueVm.SelectedVenueItem = null;
-            venueVm.PreviewSeats.Clear();
-            venueVm.PreviewOverlays.Clear();
+            // M2：预览改为 SeatingCanvas 快照，清空快照即可
+            venueVm.PreviewSnapshot = null;
             venueVm.StatusMessage = string.Empty;
         }
         if (sp.GetService(typeof(StrategyConfigurationViewModel)) is StrategyConfigurationViewModel stratVm)

@@ -607,6 +607,7 @@ public class Resources
     public static string Venue_ColumnAisles => ResourceManager.GetString("Venue_ColumnAisles", Culture)!;
     public static string Venue_ColumnRowCounts => ResourceManager.GetString("Venue_ColumnRowCounts", Culture)!;
     public static string Venue_ColumnRowCountsTooltip => ResourceManager.GetString("Venue_ColumnRowCountsTooltip", Culture)!;
+    public static string Venue_Coordinates => ResourceManager.GetString("Venue_Coordinates", Culture)!;
     public static string Venue_DefaultColumnRowCounts => ResourceManager.GetString("Venue_DefaultColumnRowCounts", Culture)!;
     public static string Venue_DeleteConfirm => ResourceManager.GetString("Venue_DeleteConfirm", Culture)!;
     public static string Venue_DeleteConfirmMsgFmt => ResourceManager.GetString("Venue_DeleteConfirmMsgFmt", Culture)!;
@@ -681,6 +682,7 @@ public class Resources
     public static string Venue_RadialAisleWidthTooltip => ResourceManager.GetString("Venue_RadialAisleWidthTooltip", Culture)!;
     public static string Venue_RadiusStep => ResourceManager.GetString("Venue_RadiusStep", Culture)!;
     public static string Venue_RadiusStepTooltip => ResourceManager.GetString("Venue_RadiusStepTooltip", Culture)!;
+    public static string Venue_Recomputing => ResourceManager.GetString("Venue_Recomputing", Culture)!;
     public static string Venue_Refresh => ResourceManager.GetString("Venue_Refresh", Culture)!;
     public static string Venue_RefreshPreview => ResourceManager.GetString("Venue_RefreshPreview", Culture)!;
     public static string Venue_RingAislePH => ResourceManager.GetString("Venue_RingAislePH", Culture)!;
@@ -706,6 +708,8 @@ public class Resources
     public static string Venue_SelectHint => ResourceManager.GetString("Venue_SelectHint", Culture)!;
     public static string Venue_StartAngle => ResourceManager.GetString("Venue_StartAngle", Culture)!;
     public static string Venue_StartAngleTooltip => ResourceManager.GetString("Venue_StartAngleTooltip", Culture)!;
+    public static string Venue_StateSaved => ResourceManager.GetString("Venue_StateSaved", Culture)!;
+    public static string Venue_StateUnsaved => ResourceManager.GetString("Venue_StateUnsaved", Culture)!;
     public static string Venue_Title => ResourceManager.GetString("Venue_Title", Culture)!;
     public static string Venue_UnsavedChanges => ResourceManager.GetString("Venue_UnsavedChanges", Culture)!;
     public static string Venue_UnsavedChangesMsg => ResourceManager.GetString("Venue_UnsavedChangesMsg", Culture)!;

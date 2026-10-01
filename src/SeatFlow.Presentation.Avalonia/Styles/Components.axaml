@@ -225,6 +225,14 @@
     <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
   </Style>
 
+  <!--  ═══════════════ 表单字段（标签 + 输入） ═══════════════  -->
+
+  <Style Selector="StackPanel.sf-field">
+    <Setter Property="Width" Value="170" />
+    <Setter Property="Spacing" Value="4" />
+    <Setter Property="Margin" Value="0,0,12,4" />
+  </Style>
+
   <!--  ═══════════════ 页签 ═══════════════  -->
 
   <Style Selector="TabControl.sf-tabs">

@@ -853,7 +853,7 @@
     <value>切换侧边栏</value>
   </data>
   <data name="Nav_VenueConfig" xml:space="preserve">
-    <value>会场配置</value>
+    <value>会场与布局</value>
   </data>
   <data name="SeatSets_AppSettings_Label" xml:space="preserve">
     <value>应用设置</value>
@@ -1832,6 +1832,9 @@
   <data name="Venue_ColumnRowCountsTooltip" xml:space="preserve">
     <value>每列各自的行数（逗号分隔）。</value>
   </data>
+  <data name="Venue_Coordinates" xml:space="preserve">
+    <value>自由点坐标</value>
+  </data>
   <data name="Venue_DefaultColumnRowCounts" xml:space="preserve">
     <value>空=使用行数</value>
   </data>
@@ -2054,6 +2057,9 @@
   <data name="Venue_RadiusStepTooltip" xml:space="preserve">
     <value>相邻环之间的半径增量（像素），8-400。</value>
   </data>
+  <data name="Venue_Recomputing" xml:space="preserve">
+    <value>重算中…</value>
+  </data>
   <data name="Venue_Refresh" xml:space="preserve">
     <value>刷新会场</value>
   </data>
@@ -2129,8 +2135,14 @@
   <data name="Venue_StartAngleTooltip" xml:space="preserve">
     <value>扫描起始角度（度）。0=右侧。</value>
   </data>
+  <data name="Venue_StateSaved" xml:space="preserve">
+    <value>已保存</value>
+  </data>
+  <data name="Venue_StateUnsaved" xml:space="preserve">
+    <value>未保存</value>
+  </data>
   <data name="Venue_Title" xml:space="preserve">
-    <value>会场配置</value>
+    <value>会场与布局</value>
   </data>
   <data name="Venue_UnsavedChanges" xml:space="preserve">
     <value>未保存的修改</value>

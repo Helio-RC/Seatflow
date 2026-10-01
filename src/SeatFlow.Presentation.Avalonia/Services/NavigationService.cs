@@ -51,7 +51,6 @@ public class NavigationService : INavigationService
             PageKey.Home => _serviceProvider.GetRequiredService<HomeViewModel>(),
             PageKey.MemberManagement => _serviceProvider.GetRequiredService<MemberManagementViewModel>(),
             PageKey.VenueConfiguration => _serviceProvider.GetRequiredService<VenueConfigurationViewModel>(),
-            PageKey.FreeformManagement => _serviceProvider.GetRequiredService<FreeformManagementViewModel>(),
             PageKey.StrategyConfiguration => _serviceProvider.GetRequiredService<StrategyConfigurationViewModel>(),
             PageKey.SeatingArrangement => _serviceProvider.GetRequiredService<SeatingArrangementViewModel>(),
             PageKey.SnapshotHistory => _serviceProvider.GetRequiredService<SnapshotHistoryViewModel>(),

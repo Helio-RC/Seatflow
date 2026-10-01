@@ -9,7 +9,6 @@ public enum PageKey
     Home,
     MemberManagement,
     VenueConfiguration,
-    FreeformManagement,
     StrategyConfiguration,
     SeatingArrangement,
     SnapshotHistory,

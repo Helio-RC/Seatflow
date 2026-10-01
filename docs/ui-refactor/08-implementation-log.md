@@ -39,6 +39,23 @@
 - `ZoomOnScroll` 为过渡期服务定位读取快捷键配置（M5 并入画布后退役）。
 - App 壳层 3 个启动握手静态属性（PendingSeatSetsFilePath/AutoImportSeatSetsPath/IsFirstRunAfterInstall）属桌面 Velopack 启动链，无头环境无法回归，计划在 M3/M5 壳重写时随文件关联流程一并改造。
 
+### M2 · 会场与布局页（自由点并入）—— ✅ 完成（已验收）
+- [x] 「自由点管理」并入单页：Grid / Polar / Freeform 三布局完整编辑（参数 + 坐标表增删改 + CSV/JSON 导入导出 + 拖放导入），独立页/导航/DI/page_navigation/引导 pageGuides 全部移除（`grep FreeformManagement src` 零残留）
+- [x] 预览改用 `SeatingCanvas`（单控件自绘）；`BuildPreviewSnapshot()` 输出 `SeatVisual`/`BoardOverlay` 快照，支持讲台/门/禁用座位
+- [x] 参数变更 **120ms 去抖**（ReactiveUI `Throttle` + `PreviewRevision` 单一入口），替代原 ~40 个 `OnXxxChanged` 直接重建
+- [x] 生命周期：实现 `IPageLifecycle`（构造器不再 fire-and-forget；View Loaded/Unloaded 桥接）；脏检查统一 `DirtyTracker`；`CanLeaveAsync` 三选保留
+- [x] 座位 ID 保留：Grid/Polar 按位置复用、Freeform 按点 ID 复用（顺带修复旧自由点页保存丢 ID 的问题）
+- [x] 兼容性：OnboardingService 依赖公开成员逐条保留（仅 `PreviewSeats/PreviewOverlays.Clear()` → `PreviewSnapshot = null` 两行同步）
+- [x] 验收证据：`assets/after/M2-venues*.png`（三布局编辑器、预览、脏状态）；trace `M2-venue-*.json.gz`
+
+**M2 性能复测（同 02 §C 口径：15 次 +1，WASM 软件渲染）**
+| 场景 | 基线（旧页） | 修复前（新页首测） | 修复后 |
+|---|---|---|---|
+| 行数 +1 ×15：INP | 315ms | 165ms | **79ms** ✅（≤100ms） |
+| 行数 +1 ×15：长任务 | 47 个 / 最长 684ms | 48 个 / 最长 564ms | **18 个 / 最长 149ms** |
+| 水平间距 +1 ×15：INP | — | — | **33ms**，长任务最长 80ms |
+- 关键修复：过道选项由「整表替换 ObservableCollection」（每次步进重建全部 CheckBox，WASM 下数百 ms）改为**去抖 + 增量同步**（仅增删差异项）；典型单次变更 ~65–80ms、INP 79ms 达标；极端增长（8→23 行）下仍有 128/149ms 两次尖峰，严格 ≤50ms 未完全达成（无头软件渲染口径，桌面推断显著更优，M6 复测）。
+
 ### M1 · 自绘画布与几何内核 —— ✅ 完成（已验收）
 - [x] `SeatingCanvas` 完整实现：渲染（座位/覆盖物/状态色/选中/悬停/失效）、指针命中、内部拖拽（座位↔座位 / 座位→垃圾桶）、Ctrl+滚轮缩放（锚点保持）、空白拖拽平移、键盘方向键虚拟焦点 + Enter 激活
 - [x] 渲染性能优化（关键）：按状态合批 `GeometryGroup`（单次 DrawGeometry）、文本 FormattedText 缓存 + **文本矢量化几何**（渐进构建，缩放/平移零重建）、视口裁剪、手势期间 LOD（停绘文本/描边，200ms 后补全）、网格几何缓存

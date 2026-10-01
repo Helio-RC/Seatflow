@@ -4,7 +4,6 @@
     "Home": true,
     "MemberManagement": true,
     "VenueConfiguration": true,
-    "FreeformManagement": true,
     "StrategyConfiguration": true,
     "SeatingArrangement": true,
     "SnapshotHistory": true,

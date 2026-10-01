@@ -257,24 +257,6 @@
                 </StackPanel>
               </Button>
               <Button
-                Height="44"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Left"
-                AutomationProperties.Name="{x:Static lang:Resources.Nav_Freeform}"
-                Command="{Binding NavigateCommand}"
-                CommandParameter="FreeformManagement">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <fic:FluentIcon
-                    Height="24"
-                    FontSize="24"
-                    Icon="{x:Static ficEnum:Icon.ArrowMove}" />
-                  <TextBlock
-                    VerticalAlignment="Center"
-                    Classes="bodyLarge"
-                    Text="{x:Static lang:Resources.Nav_Freeform}" />
-                </StackPanel>
-              </Button>
-              <Button
                 x:Name="StrategyButton"
                 Height="44"
                 HorizontalAlignment="Stretch"
@@ -400,19 +382,6 @@
                   Height="24"
                   FontSize="24"
                   Icon="{x:Static ficEnum:Icon.Building}" />
-              </Button>
-              <Button
-                Width="44"
-                Height="44"
-                Padding="0"
-                AutomationProperties.Name="{x:Static lang:Resources.Nav_Freeform}"
-                Command="{Binding NavigateCommand}"
-                CommandParameter="FreeformManagement"
-                ToolTip.Tip="{x:Static lang:Resources.Nav_Freeform}">
-                <fic:FluentIcon
-                  Height="24"
-                  FontSize="24"
-                  Icon="{x:Static ficEnum:Icon.ArrowMove}" />
               </Button>
               <Button
                 Width="44"

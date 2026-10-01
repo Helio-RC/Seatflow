@@ -24,7 +24,6 @@ public sealed class KeyboardShortcutHandler
     [
         "SaveCommand" ,             // MemberManagementViewModel (SaveAsync)
         "SaveVenueCommand" ,        // VenueConfigurationViewModel (SaveVenue)
-        "SaveLayoutCommand" ,       // FreeformManagementViewModel (SaveLayout)
         "SaveCurrentConfigCommand" ,// StrategyConfigurationViewModel (SaveCurrentConfigAsync)
         "SaveSettingsCommand" ,     // SettingsViewModel (SaveSettingsAsync)
         "SaveToSnapshotCommand"     // SeatingArrangementViewModel (SaveToSnapshotAsync)

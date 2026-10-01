@@ -1,61 +1,43 @@
-using System;
-using System.ComponentModel;
-using Avalonia;
+using System.Threading;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 
 namespace SeatFlow.Presentation.Avalonia.Views;
 
+/// <summary>
+/// 「会场与布局」页视图（M2：合并自由点管理 + 自绘预览）。
+/// 说明：当前 <c>NavigationService</c> 尚未调用 <c>IPageLifecycle</c>，
+/// 因此在 Loaded/Unloaded 桥接页面生命周期（进入时加载、离开时取消在途任务）。
+/// </summary>
 public partial class VenueConfigurationView : UserControl
 {
-    private ViewModels.VenueConfigurationViewModel? _vm;
+    private CancellationTokenSource? _lifecycleCts;
 
     public VenueConfigurationView()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
-    protected override void OnDataContextChanged(EventArgs e)
+    private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        base.OnDataContextChanged(e);
-        _vm?.PropertyChanged -= OnSidebarWidthChanged;
-        _vm = DataContext as ViewModels.VenueConfigurationViewModel;
-        if (_vm != null)
-        {
-            _vm.PropertyChanged += OnSidebarWidthChanged;
-            SyncSidebar(_vm.SidebarListWidth);
-        }
+        _lifecycleCts?.Cancel();
+        _lifecycleCts?.Dispose();
+        _lifecycleCts = new CancellationTokenSource();
+
+        if (DataContext is VenueConfigurationViewModel vm)
+            _ = vm.OnEnterAsync(_lifecycleCts.Token);
     }
 
-    private void OnSidebarWidthChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
-        if (e.PropertyName == nameof(ViewModels.VenueConfigurationViewModel.SidebarListWidth)
-            && sender is ViewModels.VenueConfigurationViewModel vm)
-        {
-            SyncSidebar(vm.SidebarListWidth);
-        }
-    }
+        _lifecycleCts?.Cancel();
+        _lifecycleCts?.Dispose();
+        _lifecycleCts = null;
 
-    private void SyncSidebar(double width)
-    {
-        var grid = this.FindControl<Grid>("SidebarGrid");
-        if (grid != null && grid.ColumnDefinitions.Count > 0)
-            grid.ColumnDefinitions[0].Width = new GridLength(width);
-    }
-
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnDetachedFromVisualTree(e);
-        _vm?.PropertyChanged -= OnSidebarWidthChanged;
-        _vm = null;
-    }
-
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-
-        if (change.Property == BoundsProperty && DataContext is ViewModels.VenueConfigurationViewModel vm)
-        {
-            vm.OnWindowWidthChanged(Bounds.Width);
-        }
+        if (DataContext is VenueConfigurationViewModel vm)
+            _ = vm.OnLeaveAsync();
     }
 }

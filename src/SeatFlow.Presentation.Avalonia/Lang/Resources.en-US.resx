@@ -853,7 +853,7 @@ This cannot be undone.</value>
     <value>Toggle sidebar</value>
   </data>
   <data name="Nav_VenueConfig" xml:space="preserve">
-    <value>Venue</value>
+    <value>Venues &amp; Layouts</value>
   </data>
   <data name="SeatSets_AppSettings_Label" xml:space="preserve">
     <value>Application Settings</value>
@@ -1823,6 +1823,9 @@ You can disable telemetry at any time on the Settings page.</value>
   <data name="Venue_ColumnRowCountsTooltip" xml:space="preserve">
     <value>Rows per column (comma separated).</value>
   </data>
+  <data name="Venue_Coordinates" xml:space="preserve">
+    <value>Freeform Coordinates</value>
+  </data>
   <data name="Venue_DefaultColumnRowCounts" xml:space="preserve">
     <value>Empty=use rows</value>
   </data>
@@ -2045,6 +2048,9 @@ You can disable telemetry at any time on the Settings page.</value>
   <data name="Venue_RadiusStepTooltip" xml:space="preserve">
     <value>Radius increment between rings (px), 8-400.</value>
   </data>
+  <data name="Venue_Recomputing" xml:space="preserve">
+    <value>Recomputing…</value>
+  </data>
   <data name="Venue_Refresh" xml:space="preserve">
     <value>Refresh venues</value>
   </data>
@@ -2120,8 +2126,14 @@ You can disable telemetry at any time on the Settings page.</value>
   <data name="Venue_StartAngleTooltip" xml:space="preserve">
     <value>Start angle (degrees). 0=right.</value>
   </data>
+  <data name="Venue_StateSaved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="Venue_StateUnsaved" xml:space="preserve">
+    <value>Unsaved</value>
+  </data>
   <data name="Venue_Title" xml:space="preserve">
-    <value>Venue Configuration</value>
+    <value>Venues &amp; Layouts</value>
   </data>
   <data name="Venue_UnsavedChanges" xml:space="preserve">
     <value>Unsaved Changes</value>

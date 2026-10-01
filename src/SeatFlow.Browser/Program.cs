@@ -67,7 +67,6 @@ internal sealed class Program
         services.AddSingleton<HomeViewModel>();
         services.AddSingleton<MemberManagementViewModel>();
         services.AddSingleton<VenueConfigurationViewModel>();
-        services.AddSingleton<FreeformManagementViewModel>();
         services.AddSingleton<StrategyConfigurationViewModel>();
         services.AddSingleton<SeatingArrangementViewModel>();
         services.AddTransient<SnapshotHistoryViewModel>();
