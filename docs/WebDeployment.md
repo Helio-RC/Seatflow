@@ -114,6 +114,7 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
 ## 多线程实测（WasmEnableThreads，2026-09-16）
 
 **结论：可构建、可启动、可渲染，但 UI 输入永久失效 → 暂不启用（保持单线程）。**
+（2026-10-02 于 Avalonia 12.1.3 复测：根因未修复，结论不变——见下方「复测」小节。）
 
 ### 根因：MT 输入队列不唤醒 dispatcher（上游 Avalonia 缺陷）
 
@@ -163,6 +164,24 @@ MT 模式下 Avalonia 的输入链路（Avalonia 12.1.2，main 分支同码，�
   `TypeInitialization_Type, SkiaSharp.SKImageInfo`，MT 下 worker 内
   `pthread_self()` 抛 `DllNotFoundException: *`。（`scripts/build/publish.sh web`
   已加前置校验与日志检测。）
+
+### 复测（2026-10-02，Avalonia 12.1.3）
+
+**结论不变：UI 输入仍永久失效，继续禁用 MT（保持 `WasmEnableThreads=false`）。**
+
+- 构建与运行：`-p:WasmEnableThreads=true` 发布成功（产物含 `dotnet.native.worker.*.mjs`，
+  pthread worker 启动）；COOP/COEP 服务器下 `crossOriginIsolated=true`，应用可启动、
+  可渲染（console 有 NavigationService 启动日志与软件 WebGL 警告，无托管异常）。
+- **输入复测（决定性）**：CDP 可信事件点击「Not Now」按钮无响应（弹窗不关闭）；
+  触发窗口 resize（dispatcher 有一次活动）后再点击仍无响应。与 2026-09 根因一致：
+  MT 输入队列（`ManualRawEventGrouperDispatchQueue`）不唤醒 dispatcher，12.1.3 未修复。
+- 另观察到该会话首次加载时主线程完全无响应（HTML 后无后续资源请求、CDP
+  `Runtime.evaluate` 超时）；浏览器重启后重载可正常启动——MT 路径存在额外不稳定性。
+- 复测产物：`/tmp/seatflow-web-mt`（不入库）；截图 `assets/after/mt-*-probe.png`（gitignored）。
+- 复测步骤：`dotnet publish src/SeatFlow.Browser -c Release -p:WasmEnableThreads=true
+  -p:WasmBuildNative=true -o /tmp/seatflow-web-mt`，用带 COOP/COEP 的静态服务器
+  （`Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`）
+  与 CDP 可信点击验证；待上游修复后再次复测。
 
 ## 已知限制
 
