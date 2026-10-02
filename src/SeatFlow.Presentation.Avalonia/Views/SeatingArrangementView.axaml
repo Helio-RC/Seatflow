@@ -444,6 +444,7 @@
                     </WrapPanel>
 
                     <Expander
+                      Classes="sf-expander"
                       Header="{x:Static lang:Resources.Seating_ReleaseNotes}"
                       IsVisible="{Binding Welcome.HasReleaseNotes}">
                       <ScrollViewer MaxHeight="220" HorizontalScrollBarVisibility="Disabled">

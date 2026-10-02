@@ -276,6 +276,32 @@
 
   <!--  ═══════════════ 提示条 / 徽标 ═══════════════  -->
 
+  <!--  紧凑展开条（欢迎卡「更新说明」等）：与 sf-btn 一致的矮行高 / 圆角，且占满容器宽度。  -->
+  <Style Selector="Expander.sf-expander">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="MinHeight" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="Padding" Value="12" />
+  </Style>
+  <Style Selector="Expander.sf-expander /template/ ToggleButton#ExpanderHeader">
+    <Setter Property="MinHeight" Value="{StaticResource SfCtlHeight}" />
+    <Setter Property="Padding" Value="12,0,0,0" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+  </Style>
+  <Style Selector="Expander.sf-expander /template/ ToggleButton#ExpanderHeader /template/ Border#ExpandCollapseChevronBorder">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="22" />
+    <Setter Property="Margin" Value="12,0,6,0" />
+  </Style>
+  <Style Selector="Expander.sf-expander /template/ Border#ExpanderContent">
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Padding" Value="12" />
+  </Style>
+
   <Style Selector="Border.sf-banner">
     <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
     <Setter Property="Padding" Value="8,8" />

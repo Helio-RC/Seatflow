@@ -115,6 +115,15 @@ public class VisualBaselineTests
         new DialogGate(),
         new ShellLayoutService());
 
+    private static SeatingArrangementViewModel CreateSeatingVm() => new(
+        Substitute.For<IApplicationFacade>(),
+        Substitute.For<IFileService>(),
+        Substitute.For<IArrangementCounterService>(),
+        new ShellLayoutService(),
+        new WelcomeCardViewModel(NullDialogService.Instance),
+        Substitute.For<IServiceProvider>(),
+        NullDialogService.Instance);
+
     private static SettingsViewModel CreateSettingsVm() => new(
         Substitute.For<IApplicationFacade>(),
         NullDialogService.Instance,
@@ -153,6 +162,20 @@ public class VisualBaselineTests
                 vm.SeedGuideData();
                 Capture("member-management", variant, new MemberManagementView { DataContext = vm });
             }
+        }
+        finally
+        {
+            AvaloniaApplication.Current!.RequestedThemeVariant = ThemeVariant.Default;
+        }
+    }
+
+    [AvaloniaFact]
+    public void 工作台空态_明暗基线()
+    {
+        try
+        {
+            foreach (var variant in Variants)
+                Capture("workbench-empty", variant, new SeatingArrangementView { DataContext = CreateSeatingVm() });
         }
         finally
         {
