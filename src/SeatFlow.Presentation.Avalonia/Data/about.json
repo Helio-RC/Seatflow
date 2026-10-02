@@ -11,14 +11,90 @@
     "license": "MIT License",
     "copyright": "© 2026 SeatFlow Contributors",
     "dependencies": [
-      { "name": "Avalonia UI", "packageId": "Avalonia", "purpose": "跨平台 UI 框架", "license": "MIT", "url": "https://github.com/AvaloniaUI/Avalonia" },
-      { "name": "CommunityToolkit.Mvvm", "purpose": "MVVM 源生成器", "license": "MIT", "url": "https://github.com/CommunityToolkit/dotnet" },
-      { "name": "FluentIcons.Avalonia", "purpose": "Fluent UI 系统图标", "license": "MIT", "url": "https://github.com/Seifzeid/FluentIcons.Avalonia" },
-      { "name": "EPPlus", "purpose": "Excel 读写", "license": "PolyForm Noncommercial", "url": "https://github.com/EPPlusSoftware/EPPlus" },
-      { "name": "CsvHelper", "purpose": "CSV 读写", "license": "Apache 2.0 / MS-PL", "url": "https://github.com/JoshClose/CsvHelper" },
-      { "name": "QuestPDF", "purpose": "PDF 生成", "license": "MIT (Community)", "url": "https://github.com/QuestPDF/QuestPDF" },
-      { "name": "NLua", "purpose": "Lua 脚本引擎", "license": "MIT", "url": "https://github.com/NLua/NLua" },
-      { "name": "Serilog", "purpose": "结构化日志", "license": "Apache 2.0", "url": "https://github.com/serilog/serilog" }
+      {
+        "name": "Avalonia UI",
+        "packageId": "Avalonia",
+        "purpose": "跨平台 UI 框架",
+        "license": "MIT",
+        "url": "https://github.com/AvaloniaUI/Avalonia"
+      },
+      {
+        "name": "ReactiveUI.Avalonia",
+        "packageId": "ReactiveUI.Avalonia",
+        "purpose": "响应式 MVVM 与绑定",
+        "license": "MIT",
+        "url": "https://github.com/reactiveui/ReactiveUI"
+      },
+      {
+        "name": "CommunityToolkit.Mvvm",
+        "packageId": "CommunityToolkit.Mvvm",
+        "purpose": "MVVM 源生成器",
+        "license": "MIT",
+        "url": "https://github.com/CommunityToolkit/dotnet"
+      },
+      {
+        "name": "FluentIcons.Avalonia",
+        "packageId": "FluentIcons.Avalonia",
+        "purpose": "Fluent UI 图标",
+        "license": "MIT",
+        "url": "https://github.com/davidxuang/FluentIcons"
+      },
+      {
+        "name": "EPPlus",
+        "packageId": "EPPlus",
+        "purpose": "Excel 读写",
+        "license": "PolyForm Noncommercial",
+        "url": "https://github.com/EPPlusSoftware/EPPlus"
+      },
+      {
+        "name": "CsvHelper",
+        "packageId": "CsvHelper",
+        "purpose": "CSV 读写",
+        "license": "Apache 2.0 / MS-PL",
+        "url": "https://github.com/JoshClose/CsvHelper"
+      },
+      {
+        "name": "QuestPDF",
+        "packageId": "QuestPDF",
+        "purpose": "PDF 生成",
+        "license": "MIT (Community)",
+        "url": "https://github.com/QuestPDF/QuestPDF"
+      },
+      {
+        "name": "Serilog",
+        "packageId": "Serilog",
+        "purpose": "结构化日志",
+        "license": "Apache 2.0",
+        "url": "https://github.com/serilog/serilog"
+      },
+      {
+        "name": "Markdig",
+        "packageId": "Markdig",
+        "purpose": "Markdown 渲染",
+        "license": "BSD-2-Clause",
+        "url": "https://github.com/xoofx/markdig"
+      },
+      {
+        "name": "CodeWF.AvaloniaControls",
+        "packageId": "CodeWF.AvaloniaControls",
+        "purpose": "引导控件",
+        "license": "MIT",
+        "url": "https://github.com/dotnet9/CodeWF.AvaloniaControls"
+      },
+      {
+        "name": "OpenTelemetry",
+        "packageId": "OpenTelemetry",
+        "purpose": "可观测性（追踪与指标）",
+        "license": "Apache 2.0",
+        "url": "https://github.com/open-telemetry/opentelemetry-dotnet"
+      },
+      {
+        "name": "SkiaSharp",
+        "packageId": "SkiaSharp",
+        "purpose": "2D 图形渲染",
+        "license": "MIT",
+        "url": "https://github.com/mono/SkiaSharp"
+      }
     ]
   },
   "en-US": {
@@ -33,14 +109,90 @@
     "license": "MIT License",
     "copyright": "© 2026 SeatFlow Contributors",
     "dependencies": [
-      { "name": "Avalonia UI", "packageId": "Avalonia", "purpose": "Cross-platform UI framework", "license": "MIT", "url": "https://github.com/AvaloniaUI/Avalonia" },
-      { "name": "CommunityToolkit.Mvvm", "purpose": "MVVM source generator", "license": "MIT", "url": "https://github.com/CommunityToolkit/dotnet" },
-      { "name": "FluentIcons.Avalonia", "purpose": "Fluent UI system icons", "license": "MIT", "url": "https://github.com/Seifzeid/FluentIcons.Avalonia" },
-      { "name": "EPPlus", "purpose": "Excel read/write", "license": "PolyForm Noncommercial", "url": "https://github.com/EPPlusSoftware/EPPlus" },
-      { "name": "CsvHelper", "purpose": "CSV read/write", "license": "Apache 2.0 / MS-PL", "url": "https://github.com/JoshClose/CsvHelper" },
-      { "name": "QuestPDF", "purpose": "PDF generation", "license": "MIT (Community)", "url": "https://github.com/QuestPDF/QuestPDF" },
-      { "name": "NLua", "purpose": "Lua scripting engine", "license": "MIT", "url": "https://github.com/NLua/NLua" },
-      { "name": "Serilog", "purpose": "Structured logging", "license": "Apache 2.0", "url": "https://github.com/serilog/serilog" }
+      {
+        "name": "Avalonia UI",
+        "packageId": "Avalonia",
+        "purpose": "Cross-platform UI framework",
+        "license": "MIT",
+        "url": "https://github.com/AvaloniaUI/Avalonia"
+      },
+      {
+        "name": "ReactiveUI.Avalonia",
+        "packageId": "ReactiveUI.Avalonia",
+        "purpose": "Reactive MVVM and bindings",
+        "license": "MIT",
+        "url": "https://github.com/reactiveui/ReactiveUI"
+      },
+      {
+        "name": "CommunityToolkit.Mvvm",
+        "packageId": "CommunityToolkit.Mvvm",
+        "purpose": "MVVM source generators",
+        "license": "MIT",
+        "url": "https://github.com/CommunityToolkit/dotnet"
+      },
+      {
+        "name": "FluentIcons.Avalonia",
+        "packageId": "FluentIcons.Avalonia",
+        "purpose": "Fluent UI icons",
+        "license": "MIT",
+        "url": "https://github.com/davidxuang/FluentIcons"
+      },
+      {
+        "name": "EPPlus",
+        "packageId": "EPPlus",
+        "purpose": "Excel read/write",
+        "license": "PolyForm Noncommercial",
+        "url": "https://github.com/EPPlusSoftware/EPPlus"
+      },
+      {
+        "name": "CsvHelper",
+        "packageId": "CsvHelper",
+        "purpose": "CSV read/write",
+        "license": "Apache 2.0 / MS-PL",
+        "url": "https://github.com/JoshClose/CsvHelper"
+      },
+      {
+        "name": "QuestPDF",
+        "packageId": "QuestPDF",
+        "purpose": "PDF generation",
+        "license": "MIT (Community)",
+        "url": "https://github.com/QuestPDF/QuestPDF"
+      },
+      {
+        "name": "Serilog",
+        "packageId": "Serilog",
+        "purpose": "Structured logging",
+        "license": "Apache 2.0",
+        "url": "https://github.com/serilog/serilog"
+      },
+      {
+        "name": "Markdig",
+        "packageId": "Markdig",
+        "purpose": "Markdown rendering",
+        "license": "BSD-2-Clause",
+        "url": "https://github.com/xoofx/markdig"
+      },
+      {
+        "name": "CodeWF.AvaloniaControls",
+        "packageId": "CodeWF.AvaloniaControls",
+        "purpose": "Onboarding controls",
+        "license": "MIT",
+        "url": "https://github.com/dotnet9/CodeWF.AvaloniaControls"
+      },
+      {
+        "name": "OpenTelemetry",
+        "packageId": "OpenTelemetry",
+        "purpose": "Observability (traces and metrics)",
+        "license": "Apache 2.0",
+        "url": "https://github.com/open-telemetry/opentelemetry-dotnet"
+      },
+      {
+        "name": "SkiaSharp",
+        "packageId": "SkiaSharp",
+        "purpose": "2D graphics rendering",
+        "license": "MIT",
+        "url": "https://github.com/mono/SkiaSharp"
+      }
     ]
   }
 }

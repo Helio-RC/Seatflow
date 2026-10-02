@@ -114,6 +114,7 @@ dotnet serve -d src/SeatFlow.Browser/bin/Release/net10.0-browser/publish/wwwroot
 ## 多线程实测（WasmEnableThreads，2026-09-16）
 
 **结论：可构建、可启动、可渲染，但 UI 输入永久失效 → 暂不启用（保持单线程）。**
+（2026-10-02 于 Avalonia 12.1.3 复测：根因未修复，结论不变——见下方「复测」小节。）
 
 ### 根因：MT 输入队列不唤醒 dispatcher（上游 Avalonia 缺陷）
 
@@ -163,6 +164,24 @@ MT 模式下 Avalonia 的输入链路（Avalonia 12.1.2，main 分支同码，�
   `TypeInitialization_Type, SkiaSharp.SKImageInfo`，MT 下 worker 内
   `pthread_self()` 抛 `DllNotFoundException: *`。（`scripts/build/publish.sh web`
   已加前置校验与日志检测。）
+
+### 复测（2026-10-02，Avalonia 12.1.3）
+
+**结论不变：UI 输入仍永久失效，继续禁用 MT（保持 `WasmEnableThreads=false`）。**
+
+- 构建与运行：`-p:WasmEnableThreads=true` 发布成功（产物含 `dotnet.native.worker.*.mjs`，
+  pthread worker 启动）；COOP/COEP 服务器下 `crossOriginIsolated=true`，应用可启动、
+  可渲染（console 有 NavigationService 启动日志与软件 WebGL 警告，无托管异常）。
+- **输入复测（决定性）**：CDP 可信事件点击「Not Now」按钮无响应（弹窗不关闭）；
+  触发窗口 resize（dispatcher 有一次活动）后再点击仍无响应。与 2026-09 根因一致：
+  MT 输入队列（`ManualRawEventGrouperDispatchQueue`）不唤醒 dispatcher，12.1.3 未修复。
+- 另观察到该会话首次加载时主线程完全无响应（HTML 后无后续资源请求、CDP
+  `Runtime.evaluate` 超时）；浏览器重启后重载可正常启动——MT 路径存在额外不稳定性。
+- 复测产物：`/tmp/seatflow-web-mt`（不入库）；截图 `assets/after/mt-*-probe.png`（gitignored）。
+- 复测步骤：`dotnet publish src/SeatFlow.Browser -c Release -p:WasmEnableThreads=true
+  -p:WasmBuildNative=true -o /tmp/seatflow-web-mt`，用带 COOP/COEP 的静态服务器
+  （`Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`）
+  与 CDP 可信点击验证；待上游修复后再次复测。
 
 ## 已知限制
 
@@ -216,6 +235,15 @@ MT 模式下 Avalonia 的输入链路（Avalonia 12.1.2，main 分支同码，�
   `ExistsAsync()`，`App` 首次启动检测/默认设置写入改走它。
 - **根因 5：无 Console 日志**：`AddSeatFlowApplication(store)` 走 `AddLogging()` 但无
   任何 Provider。修复：浏览器注册 `BrowserConsoleLoggerProvider`（转发到 DevTools Console）。
+- **根因 6（M5 修复）：WASM 运行时不加载卫星资源程序集** → 运行时语言切换
+  （`Resources.Culture = en-US`）永远回退中性资源（中文）。两个必要条件：
+  1. `SeatFlow.Browser.csproj` 设 `<UseSystemResourceKeys>false</UseSystemResourceKeys>`
+     —— WASM 发布默认 `true`，会剔除 `.resx` 卫星资源；
+  2. `wwwroot/main.js` 创建运行时加 `.withConfig({ loadAllSatelliteResources: true })`
+     —— 独立 WASM（非 Blazor）的按需解析无法定位 `_framework/{culture}/` 下的资源文件，
+     需预加载把卫星程序集注册进资源清单。
+  验证：en-US 下 `Resources.Settings_Title == "Settings"`，全 UI 英文（M5 明暗 × 中英矩阵截图）；
+  zh-CN 下恢复中文。语言在 `Program.Main` 于 Avalonia 启动前异步预加载（根因 3）。
 - **CJK 字体**：WASM 无系统字体，Inter 无 CJK 字形 → 中文显示为方块。
   修复：字体库嵌入 `Assets/Fonts/NotoSansSC-Regular.otf`（约 8MB，仅 `net10.0-browser`
   TFM 打包；SIL OFL 1.1，`Assets/Fonts/LICENSE.txt`），Browser 启动时注册

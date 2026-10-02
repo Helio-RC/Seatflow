@@ -2,6 +2,7 @@
   x:Class="SeatFlow.Presentation.Avalonia.Views.SeatPositionPickerView"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:SeatPositionPickerViewModel">
   <StackPanel Orientation="Horizontal" Spacing="4">
@@ -10,13 +11,15 @@
       IsVisible="{Binding IsGrid}"
       Orientation="Horizontal"
       Spacing="4">
-      <TextBlock VerticalAlignment="Center" Text="行" />
+      <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.SeatPosition_Row}" />
       <NumericUpDown
+        Classes="sf-input"
         Maximum="{Binding GridMaxRow}"
         Minimum="1"
         Value="{Binding Row}" />
-      <TextBlock VerticalAlignment="Center" Text="列" />
+      <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.SeatPosition_Column}" />
       <NumericUpDown
+        Classes="sf-input"
         Maximum="{Binding GridMaxColumn}"
         Minimum="1"
         Value="{Binding Column}" />
@@ -26,13 +29,15 @@
       IsVisible="{Binding IsPolar}"
       Orientation="Horizontal"
       Spacing="4">
-      <TextBlock VerticalAlignment="Center" Text="环" />
+      <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.SeatPosition_Ring}" />
       <NumericUpDown
+        Classes="sf-input"
         Maximum="{Binding PolarMaxRing}"
         Minimum="1"
         Value="{Binding Ring}" />
-      <TextBlock VerticalAlignment="Center" Text="角度" />
+      <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.SeatPosition_Angle}" />
       <NumericUpDown
+        Classes="sf-input"
         Increment="15"
         Maximum="360"
         Minimum="0"
@@ -43,14 +48,16 @@
       IsVisible="{Binding IsFreeform}"
       Orientation="Horizontal"
       Spacing="4">
-      <TextBlock VerticalAlignment="Center" Text="X" />
+      <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="X" />
       <NumericUpDown
+        Classes="sf-input"
         Increment="0.5"
         Maximum="{Binding FreeformMaxX}"
         Minimum="0"
         Value="{Binding X}" />
-      <TextBlock VerticalAlignment="Center" Text="Y" />
+      <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="Y" />
       <NumericUpDown
+        Classes="sf-input"
         Increment="0.5"
         Maximum="{Binding FreeformMaxY}"
         Minimum="0"

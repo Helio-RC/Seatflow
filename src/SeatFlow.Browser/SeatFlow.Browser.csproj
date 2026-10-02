@@ -5,9 +5,11 @@
          dotnet/runtime#109289 导致 SkiaSharp native .a 链接顺序错误 → 符号缺失 →
          TypeInitialization_Type, SkiaSharp.SKImageInfo。修复后单线程变体亦含 Skia，
          且无需 COOP/COEP 跨源隔离（部署更简单）。
-         多线程（WasmEnableThreads=true）实测结论（2026-09-16）：可构建/启动/渲染，
-         但 UI 输入永久无响应——MT 走 ManualRawEventGrouperDispatchQueue，入队不唤醒
-         dispatcher（需等待一次其它 Dispatcher 活动才会被排出）。详见 docs/WebDeployment.md。 -->
+         多线程（WasmEnableThreads=true）实测结论（2026-09-16 / 2026-10-02 于 Avalonia 12.1.3 复测）：
+         可构建/启动/渲染（crossOriginIsolated=true，pthread worker 启动），但 UI 输入永久无响应——
+         MT 走 ManualRawEventGrouperDispatchQueue，入队不唤醒 dispatcher；12.1.3 未修复，
+         resize 唤醒后重试仍无效，且首次加载存在主线程无响应的不稳定现象。
+         详见 docs/WebDeployment.md「多线程实测」。 -->
     <WasmEnableThreads>false</WasmEnableThreads>
     <!-- 裁剪默认禁用反射式 System.Text.Json（JsonSerializerIsReflectionDisabled 异常）。
          SeatFlow 的仓储/序列化大量使用反射式 JsonSerializer，且 SeatFlow.* 已全量 TrimmerRoot，
@@ -17,13 +19,18 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <ApplicationIcon>..\SeatFlow.Presentation.Avalonia\Assets\icon_with_background.ico</ApplicationIcon>
+    <!-- M5：WASM 发布默认启用 System.Resources.UseSystemResourceKeys=true，
+         该模式下运行时不会加载 en-US 卫星程序集，Resources.Culture 切换后
+         仍回退到中性资源（中文）→ 浏览器端语言切换失效。
+         关闭后卫星资源可加载，恢复中英切换能力（产物仅增加一个已存在的附属程序集）。 -->
+    <UseSystemResourceKeys>false</UseSystemResourceKeys>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.1.2" />
-    <PackageReference Include="Avalonia.Browser" Version="12.1.2" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Browser" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.3" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
   </ItemGroup>

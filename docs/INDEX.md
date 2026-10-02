@@ -12,7 +12,8 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   └── docs/CLAUDE.md         ← CLAUDE.md 的人类可读副本（同步维护）
 ├── scripts/
 │   ├── i18n.py                ← i18n 资源管理脚本
-│   ├── ToolsCollection.md                ← i18n 脚本完整文档
+│   ├── ToolsCollection.md                ← 脚本完整文档（i18n / version / ui-inspect）
+│   ├── ui-inspect/             ← UI 无头查看/交互/性能采样工具链（WASM + CDP trace）
 │   ├── clean.sh / clean.ps1   ← 清理 bin/obj
 │   └── publish.sh / publish.ps1 ← 多平台发布
 ├── ARCHITECTURE.md            ← 架构设计、分层、数据流、安全策略
@@ -21,6 +22,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── LOGGING.md              ← 日志系统设计文档（等级规范、分模块覆盖、输出格式、最佳实践）
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
+│   ├── UI_REFACTOR.md         ← UI 重构记录（M0–M6：诊断基线、IA/技术决策、性能复测、遗留）
 │   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
 │   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
 │   ├── WebDeployment.md       ← Web/WASM 部署指南（在线版托管、平台差异、JS 桥、已知限制）
@@ -35,7 +37,8 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │       ├── ADR-009-arrangement-counter.md ← 排座次数计数器客户端实现
 │       ├── ADR-010-velopack-oss-distribution.md ← Velopack 自动更新与 OSS 分发架构
 │       ├── ADR-011-keyboard-shortcuts.md ← 全局键盘快捷键系统（Behavior + Tunnel + 设置开关）
-│       └── ADR-013-remove-plugin-system.md ← 移除插件系统（2026-09）
+│       ├── ADR-013-remove-plugin-system.md ← 移除插件系统（2026-09）
+│       └── ADR-014-reactiveui-and-canvas-architecture.md ← UI 技术架构（ReactiveUI 共存 + 自绘 SeatingCanvas，部分取代 ADR-002）
 └── docs/presentation/
     ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
     ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
@@ -96,9 +99,9 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **关联文档**: ARCHITECTURE.md（引用 ADR）
 
 ### scripts/ToolsCollection.md
-- **覆盖**: i18n 管理脚本的完整参考，包括子命令、安全机制、命名规范、常见工作流
+- **覆盖**: 项目脚本完整参考（i18n / version / ui-inspect 等），包括子命令、安全机制、命名规范、常见工作流
 - **何时更新**: 脚本新增子命令、修改校验规则、修改工作流
-- **关联文档**: CLAUDE.md（i18n 节）
+- **关联文档**: CLAUDE.md（i18n 节、Scripts 节）
 
 ### docs/presentation/Design_Spec.md
 - **覆盖**: 色板、排版层级、间距系统、圆角、布局模式
@@ -111,7 +114,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **关联文档**: Design_Spec.md
 
 ### docs/presentation/DragDrop.md
-- **覆盖**: Avalonia 12 拖放 API 正确用法、`PointerPressed` + `DoDragDropAsync` 模式、数据格式创建/读写、CanvasZoomPan 冲突处理、常见坑及修复
+- **覆盖**: Avalonia 12 拖放 API 正确用法、`PointerPressed` + `DoDragDropAsync` 模式、数据格式创建/读写、画布平移/缩放与拖放冲突处理（SeatingCanvas 内置，CanvasZoomPan 已退役）、常见坑及修复
 - **何时更新**: 新增拖放交互、Avalonia 版本升级后 API 变更、发现新的拖放坑
 - **关联文档**: CLAUDE.md（Behaviors 节）、SeatingArrangementView.axaml.cs
 
@@ -119,6 +122,16 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **覆盖**: Web/WASM 浏览器版构建与部署、在线版托管（OSS 版本目录 + KV 切换 + Worker）、平台差异、JS 互操作桥、已知限制与排障
 - **何时更新**: 双壳结构、存储抽象、浏览器平台实现、在线版发布流程或部署要求变更
 - **关联文档**: ARCHITECTURE.md（6.4 双壳架构）、CLAUDE.md（Web/WASM 双壳）
+
+### docs/UI_REFACTOR.md
+- **覆盖**: UI 重构（M0–M6）的完整记录：背景与 D1–D12 决策、诊断基线与根因 RC-1–RC-5、新 IA 与方向 B 视觉、技术架构决策（链 ADR-014）、里程碑交付、性能验收与复测结果、已知遗留与工具链
+- **何时更新**: 修改页面生命周期/横切服务/外壳 IA 时；性能指标复测后追加；遗留项收敛后更新
+- **关联文档**: ADR-014、ADR-002（部分取代）、Design_Spec.md、CLAUDE.md（UI 模式节）、DragDrop.md、WebDeployment.md
+
+### scripts/ui-inspect/
+- **覆盖**: 无头环境下 Avalonia WASM 界面的查看/交互/性能采样工具链（CDP 可信输入、批量截图、trace 分析、像素定位、演示数据注入）
+- **何时更新**: 工具新增/修改、标定坐标变化、WASM 发布链路变化
+- **关联文档**: docs/UI_REFACTOR.md（性能口径）、scripts/ToolsCollection.md、CLAUDE.md（Test stack 节）
 
 ## 常见变更场景的文档联动清单
 
@@ -135,4 +148,5 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 修改快照/完整性检测逻辑 | CLAUDE.md（快照完整性检测/轮转/嵌入）、docs/CLAUDE.md、ARCHITECTURE.md（5.3 节） |
 | 修改构建/测试流程 | CLAUDE.md、CONTRIBUTING.md、README.md |
 | 修改 Web/WASM 双壳、存储抽象或浏览器平台实现 | docs/WebDeployment.md、ARCHITECTURE.md（6.4 节）、CLAUDE.md（Web/WASM 双壳）、README.md |
+| 修改页面生命周期/横切服务/外壳 IA（M0–M6 重构） | docs/UI_REFACTOR.md、ADR-014、CLAUDE.md、docs/CLAUDE.md、Design_Spec.md |
 | 推进开发阶段 | README.md（状态表）、Phases.md |

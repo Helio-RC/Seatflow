@@ -2,7 +2,7 @@
   x:Class="SeatFlow.Presentation.Avalonia.Views.VenueConfigurationView"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:behaviors="using:SeatFlow.Presentation.Avalonia.Behaviors"
+  xmlns:controls="using:SeatFlow.Presentation.Avalonia.Controls"
   xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
   xmlns:fic="using:FluentIcons.Avalonia"
   xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
@@ -10,220 +10,146 @@
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:VenueConfigurationViewModel">
 
-  <DockPanel Classes="pageMargin">
-    <!--  顶部工具栏  -->
-    <Border Classes="toolbarTop" DockPanel.Dock="Top">
+  <DockPanel>
+    <!--  ═══════════════ 顶部命令栏  ═══════════════  -->
+    <Border Classes="sf-toolbar" DockPanel.Dock="Top">
       <DockPanel>
-        <TextBlock
+        <StackPanel
           VerticalAlignment="Center"
-          Classes="pageTitle"
           DockPanel.Dock="Left"
-          Text="{x:Static lang:Resources.Venue_Title}" />
+          Orientation="Horizontal"
+          Spacing="8">
+          <TextBlock
+            VerticalAlignment="Center"
+            Classes="sf-h1"
+            Text="{x:Static lang:Resources.Venue_Title}" />
+          <TextBlock
+            VerticalAlignment="Center"
+            Classes="sf-sm sf-dim"
+            IsVisible="{Binding HasSelectedVenue}"
+            Text="{Binding LayoutName}" />
+          <StackPanel
+            VerticalAlignment="Center"
+            IsVisible="{Binding HasSelectedVenue}"
+            Orientation="Horizontal"
+            Spacing="6">
+            <Border Classes="sf-chip sf-warn" IsVisible="{Binding DirtyTracker.IsDirty}">
+              <TextBlock
+                Classes="sf-xs"
+                Foreground="{DynamicResource SfWarnBrush}"
+                Text="{x:Static lang:Resources.Venue_StateUnsaved}" />
+            </Border>
+            <Border Classes="sf-chip sf-ok" IsVisible="{Binding DirtyTracker.IsDirty, Converter={x:Static conv:BoolConverters.Negate}}">
+              <TextBlock
+                Classes="sf-xs"
+                Foreground="{DynamicResource SfOkBrush}"
+                Text="{x:Static lang:Resources.Venue_StateSaved}" />
+            </Border>
+          </StackPanel>
+        </StackPanel>
         <StackPanel
           DockPanel.Dock="Right"
+          HorizontalAlignment="Right"
           Orientation="Horizontal"
           Spacing="8">
           <Button
-            HorizontalContentAlignment="Center"
-            AutomationProperties.Name="{x:Static lang:Resources.Venue_DeleteVenue}"
+            Classes="sf-btn sf-danger"
             Command="{Binding DeleteVenueCommand}"
-            IsEnabled="{Binding HasSelectedVenue}">
+            IsEnabled="{Binding HasSelectedVenue}"
+            ToolTip.Tip="{x:Static lang:Resources.Venue_DeleteVenue}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Delete}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Delete}" />
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Delete}" />
             </StackPanel>
           </Button>
           <Button
             x:Name="SaveVenueButton"
-            HorizontalContentAlignment="Center"
-            AutomationProperties.Name="{x:Static lang:Resources.Venue_SaveVenue}"
-            Classes="accent"
+            Classes="sf-btn sf-primary"
             Command="{Binding SaveVenueCommand}"
-            IsEnabled="{Binding HasSelectedVenue}">
+            IsEnabled="{Binding CanSaveVenue}"
+            ToolTip.Tip="{x:Static lang:Resources.Venue_SaveVenue}">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Save}" />
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
+              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Save}" />
             </StackPanel>
           </Button>
         </StackPanel>
       </DockPanel>
     </Border>
 
-    <!--  底部状态栏  -->
-    <Border Classes="statusBarBottom" DockPanel.Dock="Bottom">
-      <TextBlock
-        Classes="caption"
-        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-        Text="{Binding StatusMessage}" />
+    <!--  ═══════════════ 底部状态栏  ═══════════════  -->
+    <Border Classes="sf-statusbar" DockPanel.Dock="Bottom">
+      <Grid Margin="16,0" ColumnDefinitions="*,Auto">
+        <TextBlock
+          VerticalAlignment="Center"
+          Classes="sf-xs sf-dim"
+          Text="{Binding StatusMessage}" />
+        <StackPanel
+          Grid.Column="1"
+          VerticalAlignment="Center"
+          Orientation="Horizontal"
+          Spacing="10">
+          <TextBlock
+            VerticalAlignment="Center"
+            Classes="sf-xs"
+            Foreground="{DynamicResource SfAccentStrongBrush}"
+            IsVisible="{Binding IsRecomputing}"
+            Text="{x:Static lang:Resources.Venue_Recomputing}" />
+          <TextBlock
+            VerticalAlignment="Center"
+            Classes="sf-xs sf-num sf-dim"
+            Text="{Binding PreviewSeatCountDisplay}" />
+        </StackPanel>
+      </Grid>
     </Border>
 
-    <!--  中间内容区  -->
-    <Grid x:Name="SidebarGrid">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="240" />
-        <ColumnDefinition Width="4" />
-        <ColumnDefinition Width="*" />
-      </Grid.ColumnDefinitions>
+    <!--  ═══════════════ 主体：会场列表 + 编辑器  ═══════════════  -->
+    <Grid ColumnDefinitions="240,*">
       <!--  左侧：会场列表  -->
       <Border
         Grid.Column="0"
-        Width="{Binding SidebarListWidth}"
-        Margin="0,0,8,0"
-        HorizontalAlignment="Left"
-        Background="{DynamicResource SidebarBackgroundBrush}"
-        ClipToBounds="True"
-        CornerRadius="6">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition
-              Easing="CubicEaseInOut"
-              Property="Width"
-              Duration="0:0:0.25" />
-          </Transitions>
-        </Border.Transitions>
-        <DockPanel Margin="8">
+        Margin="16,12,8,12"
+        Classes="sf-panel">
+        <DockPanel>
           <TextBlock
-            Margin="3,0,0,8"
-            Classes="bodyStrong"
+            Margin="12,10,12,8"
+            Classes="sf-h3"
             DockPanel.Dock="Top"
             Text="{x:Static lang:Resources.Venue_List}" />
-          <Border DockPanel.Dock="Bottom">
-            <Panel>
-              <!--  展开状态  -->
-              <Border>
-                <Border.Transitions>
-                  <Transitions>
-                    <DoubleTransition
-                      Easing="CubicEaseInOut"
-                      Property="Opacity"
-                      Duration="0:0:0.18" />
-                  </Transitions>
-                </Border.Transitions>
-                <StackPanel
-                  Margin="10,0,10,4"
-                  HorizontalAlignment="Left"
-                  IsHitTestVisible="{Binding IsSidebarExpanded}"
-                  Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                  Spacing="8">
-                  <Button
-                    HorizontalAlignment="Left"
-                    HorizontalContentAlignment="Left"
-                    Command="{Binding LoadVenueListCommand}"
-                    CommandParameter="MemberManagement">
-                    <StackPanel Orientation="Horizontal">
-                      <fic:FluentIcon
-                        Height="20"
-                        FontSize="20"
-                        Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        Classes="bodySmall"
-                        Text="{x:Static lang:Resources.Venue_Refresh}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    x:Name="NewVenueButton"
-                    HorizontalAlignment="Left"
-                    HorizontalContentAlignment="Left"
-                    AutomationProperties.Name="{x:Static lang:Resources.Venue_New}"
-                    Command="{Binding NewVenueCommand}"
-                    CommandParameter="VenueConfiguration">
-                    <StackPanel Orientation="Horizontal">
-                      <fic:FluentIcon
-                        Height="20"
-                        FontSize="20"
-                        Icon="{x:Static ficEnum:Icon.Add}" />
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        Classes="bodySmall"
-                        Text="{x:Static lang:Resources.Venue_New}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    HorizontalAlignment="Left"
-                    HorizontalContentAlignment="Left"
-                    Command="{Binding ToggleSidebarCommand}">
-                    <StackPanel Orientation="Horizontal">
-                      <fic:FluentIcon
-                        Height="20"
-                        FontSize="20"
-                        Icon="{x:Static ficEnum:Icon.PanelLeftContract}" />
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        Classes="bodySmall"
-                        Text="{x:Static lang:Resources.Nav_CollapseSidebar}" />
-                    </StackPanel>
-                  </Button>
-                </StackPanel>
-              </Border>
-
-              <!--  折叠状态  -->
-              <Border>
-                <Border.Transitions>
-                  <Transitions>
-                    <DoubleTransition
-                      Easing="CubicEaseInOut"
-                      Property="Opacity"
-                      Duration="0:0:0.25" />
-                  </Transitions>
-                </Border.Transitions>
-                <StackPanel
-                  Margin="10,0,10,4"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Bottom"
-                  IsHitTestVisible="{Binding IsSidebarCollapsed}"
-                  Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                  Spacing="8">
-                  <StackPanel.Transitions>
-                    <Transitions>
-                      <DoubleTransition
-                        Easing="SineEaseInOut"
-                        Property="Opacity"
-                        Duration="0:0:0.25" />
-                    </Transitions>
-                  </StackPanel.Transitions>
-                  <Button
-                    HorizontalContentAlignment="Left"
-                    Command="{Binding LoadVenueListCommand}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_Refresh}">
-                    <fic:FluentIcon
-                      Height="20"
-                      FontSize="20"
-                      Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-                  </Button>
-                  <Button
-                    HorizontalContentAlignment="Left"
-                    Command="{Binding NewVenueCommand}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_New}">
-                    <fic:FluentIcon
-                      Height="20"
-                      FontSize="20"
-                      Icon="{x:Static ficEnum:Icon.Add}" />
-                  </Button>
-                  <Button
-                    HorizontalContentAlignment="Left"
-                    Command="{Binding ToggleSidebarCommand}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_ExpandList}">
-                    <fic:FluentIcon
-                      Height="20"
-                      FontSize="20"
-                      Icon="{x:Static ficEnum:Icon.PanelLeftExpand}" />
-                  </Button>
-                </StackPanel>
-              </Border>
-            </Panel>
-          </Border>
-          <ListBox
-            Background="{DynamicResource SidebarBackgroundBrush}"
-            BorderThickness="0"
+          <StackPanel
+            Margin="12,8,12,12"
             DockPanel.Dock="Bottom"
+            Spacing="6">
+            <Button
+              x:Name="NewVenueButton"
+              Classes="sf-btn sf-primary sf-block"
+              Command="{Binding NewVenueCommand}"
+              ToolTip.Tip="{x:Static lang:Resources.Venue_New}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Add}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Venue_New}" />
+              </StackPanel>
+            </Button>
+            <Button
+              Classes="sf-btn sf-block"
+              Command="{Binding LoadVenueListCommand}"
+              ToolTip.Tip="{x:Static lang:Resources.Venue_Refresh}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Refresh}" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+          <ListBox
+            Background="Transparent"
+            BorderThickness="0"
             ItemsSource="{Binding VenueItems}"
             SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
                 <TextBlock
                   Margin="4,6"
-                  Classes="bodySmall"
+                  Classes="sf-sm"
                   Text="{Binding Name}" />
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -231,68 +157,40 @@
         </DockPanel>
       </Border>
 
-      <!--  分隔条  -->
-      <GridSplitter
-        Grid.Column="1"
-        Width="4"
-        HorizontalAlignment="Stretch"
-        Background="Transparent"
-        IsEnabled="False"
-        IsVisible="False" />
-
-      <!--  右侧  -->
-      <Grid Grid.Column="2">
-        <!--  空状态提示  -->
-        <Border
-          Padding="40"
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch"
-          CornerRadius="8"
+      <!--  右侧：编辑器 / 空态  -->
+      <Grid Grid.Column="1">
+        <!--  空状态  -->
+        <StackPanel
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Spacing="8"
           IsVisible="{Binding HasSelectedVenue, Converter={x:Static conv:BoolConverters.Negate}}">
-          <StackPanel
+          <fic:FluentIcon
             HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="8">
-            <fic:FluentIcon
-              HorizontalAlignment="Center"
-              FontSize="48"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Icon="{x:Static ficEnum:Icon.Building}" />
-            <TextBlock
-              HorizontalAlignment="Center"
-              Classes="sectionTitle"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Text="{x:Static lang:Resources.Venue_NoSelection}" />
-            <TextBlock
-              HorizontalAlignment="Center"
-              Classes="caption"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Text="{x:Static lang:Resources.Venue_SelectHint}" />
-          </StackPanel>
-        </Border>
+            FontSize="48"
+            Foreground="{DynamicResource SfTextFaintBrush}"
+            Icon="{x:Static ficEnum:Icon.Building}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="sf-h2 sf-dim"
+            Text="{x:Static lang:Resources.Venue_NoSelection}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="sf-hint"
+            Text="{x:Static lang:Resources.Venue_SelectHint}" />
+        </StackPanel>
 
-        <!--  布局编辑器  -->
+        <!--  编辑器  -->
         <ScrollViewer IsVisible="{Binding HasSelectedVenue}">
-          <DockPanel Margin="16,0">
-            <!--  名称和类型区  -->
-            <StackPanel
-              Classes="toolbarTop"
-              DockPanel.Dock="Top"
-              Spacing="12">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock
-                  VerticalAlignment="Center"
-                  Classes="bodySmall"
-                  Text="{x:Static lang:Resources.Venue_Name}" />
-                <TextBox
-                  Width="200"
-                  FontSize="14"
-                  Text="{Binding LayoutName, Mode=TwoWay}" />
-              </StackPanel>
-              <StackPanel x:Name="LayoutTypePanel" Spacing="8">
-                <TextBlock Classes="bodyStrong" Text="{x:Static lang:Resources.Venue_LayoutType}" />
+          <StackPanel Margin="8,12,16,12" Spacing="12">
+
+            <!--  布局类型  -->
+            <Border x:Name="LayoutTypePanel" Classes="sf-card">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_LayoutType}" />
                 <StackPanel Orientation="Horizontal" Spacing="16">
                   <RadioButton
+                    Classes="sf-check"
                     Command="{Binding SelectLayoutTypeCommand}"
                     CommandParameter="Grid"
                     Content="{x:Static lang:Resources.Venue_GridType}"
@@ -300,6 +198,7 @@
                     IsChecked="{Binding IsGridSelected, Mode=OneWay}"
                     IsEnabled="{Binding CanChangeLayoutType}" />
                   <RadioButton
+                    Classes="sf-check"
                     Command="{Binding SelectLayoutTypeCommand}"
                     CommandParameter="Polar"
                     Content="{x:Static lang:Resources.Venue_PolarType}"
@@ -307,6 +206,7 @@
                     IsChecked="{Binding IsPolarSelected, Mode=OneWay}"
                     IsEnabled="{Binding CanChangeLayoutType}" />
                   <RadioButton
+                    Classes="sf-check"
                     Command="{Binding SelectLayoutTypeCommand}"
                     CommandParameter="Freeform"
                     Content="{x:Static lang:Resources.Venue_FreeformType}"
@@ -314,243 +214,149 @@
                     IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
                     IsEnabled="{Binding CanChangeLayoutType}" />
                 </StackPanel>
-              </StackPanel>
-            </StackPanel>
-
-            <!--  Grid 基础参数面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsGridSelected}">
-              <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_BasicParams}" />
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto,Auto,Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_Rows}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="100"
-                    Minimum="1"
-                    PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"
-                    Value="{Binding GridRows, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_Cols}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    Maximum="100"
-                    Minimum="1"
-                    PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"
-                    Value="{Binding GridColumns, Mode=TwoWay}" />
-
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_HSpacing}" />
-                  <NumericUpDown
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Maximum="600"
-                    Minimum="4"
-                    PlaceholderText="{x:Static lang:Resources.Venue_HSpacingPH}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_HSpacingTooltip}"
-                    Value="{Binding GridHorizontalSpacing, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_VSpacing}" />
-                  <NumericUpDown
-                    Grid.Row="1"
-                    Grid.Column="3"
-                    Maximum="600"
-                    Minimum="4"
-                    PlaceholderText="{x:Static lang:Resources.Venue_VSpacingPH}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"
-                    Value="{Binding GridVerticalSpacing, Mode=TwoWay}" />
-
-                  <TextBlock
-                    Grid.Row="2"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_OriginX}" />
-                  <NumericUpDown
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    Maximum="2000"
-                    Minimum="0"
-                    PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"
-                    Value="{Binding GridOriginX, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="2"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_OriginY}" />
-                  <NumericUpDown
-                    Grid.Row="2"
-                    Grid.Column="3"
-                    Maximum="2000"
-                    Minimum="0"
-                    PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"
-                    Value="{Binding GridOriginY, Mode=TwoWay}" />
-                </Grid>
-
-                <!--  可选配置分隔条  -->
-                <Border
-                  Padding="0,4,0,0"
-                  BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                  BorderThickness="0,1,0,0">
-                  <TextBlock
-                    Classes="small"
-                    Opacity="0.5"
-                    Text="{x:Static lang:Resources.Venue_Optional}" />
-                </Border>
-
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" />
-                  <TextBox
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    FontSize="13"
-                    PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
-                    Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
-                  <TextBox
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    FontSize="13"
-                    PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
-                    Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}" />
-                </Grid>
-              </StackPanel>
-            </Border>
-
-            <!--  Grid 桌面配置面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsGridSelected}">
-              <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_DeskConfig}" />
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_DeskSize}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="6"
-                    Minimum="1"
-                    PlaceholderText="2"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSizeTooltip}"
-                    Value="{Binding GridSeatsPerDesk, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_DeskInnerSpacing}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    Maximum="200"
-                    Minimum="4"
-                    PlaceholderText="12 px"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_DeskInnerSpacingTooltip}"
-                    Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}" />
-                </Grid>
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_DeskSpacing}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="400"
-                    Minimum="4"
-                    PlaceholderText="40 px"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSpacingTooltip}"
-                    Value="{Binding GridInterDeskSpacing, Mode=TwoWay}" />
-                </Grid>
-              </StackPanel>
-            </Border>
-
-            <!--  Grid 过道配置面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsGridSelected}">
-              <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_AisleConfig}" />
                 <TextBlock
-                  Classes="caption"
-                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                  Text="{x:Static lang:Resources.Venue_ColumnAisles}" />
+                  Classes="sf-hint"
+                  IsVisible="{Binding IsFreeformSelected}"
+                  Text="{x:Static lang:Resources.Venue_FreeformHint}"
+                  TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <!--  ═══ Grid：基础参数  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsGridSelected}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_BasicParams}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Rows}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="100"
+                      Minimum="1"
+                      PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"
+                      Value="{Binding GridRows, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Cols}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="100"
+                      Minimum="1"
+                      PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"
+                      Value="{Binding GridColumns, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_HSpacing}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="600"
+                      Minimum="4"
+                      PlaceholderText="{x:Static lang:Resources.Venue_HSpacingPH}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_HSpacingTooltip}"
+                      Value="{Binding GridHorizontalSpacing, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_VSpacing}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="600"
+                      Minimum="4"
+                      PlaceholderText="{x:Static lang:Resources.Venue_VSpacingPH}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"
+                      Value="{Binding GridVerticalSpacing, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_OriginX}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="2000"
+                      Minimum="0"
+                      PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"
+                      Value="{Binding GridOriginX, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_OriginY}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="2000"
+                      Minimum="0"
+                      PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"
+                      Value="{Binding GridOriginY, Mode=TwoWay}" />
+                  </StackPanel>
+                </WrapPanel>
+
+                <Border Classes="sf-divider" />
+
+                <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Optional}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" />
+                    <TextBox
+                      Classes="sf-input"
+                      PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
+                      Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
+                    <TextBox
+                      Classes="sf-input"
+                      PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
+                      Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}" />
+                  </StackPanel>
+                </WrapPanel>
+              </StackPanel>
+            </Border>
+
+            <!--  ═══ Grid：桌面配置  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsGridSelected}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_DeskConfig}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DeskSize}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="6"
+                      Minimum="1"
+                      PlaceholderText="2"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSizeTooltip}"
+                      Value="{Binding GridSeatsPerDesk, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DeskInnerSpacing}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="200"
+                      Minimum="4"
+                      PlaceholderText="12 px"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_DeskInnerSpacingTooltip}"
+                      Value="{Binding GridIntraDeskSpacing, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DeskSpacing}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="400"
+                      Minimum="4"
+                      PlaceholderText="40 px"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSpacingTooltip}"
+                      Value="{Binding GridInterDeskSpacing, Mode=TwoWay}" />
+                  </StackPanel>
+                </WrapPanel>
+              </StackPanel>
+            </Border>
+
+            <!--  ═══ Grid：过道配置  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsGridSelected}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_AisleConfig}" />
+                <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnAisles}" />
                 <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -561,8 +367,8 @@
                     <DataTemplate x:DataType="vm:AisleOption">
                       <CheckBox
                         Margin="0,0,12,4"
+                        Classes="sf-check"
                         Content="{Binding Label}"
-                        FontSize="12"
                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
                         ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}" />
                     </DataTemplate>
@@ -570,9 +376,8 @@
                 </ItemsControl>
 
                 <TextBlock
-                  Margin="0,8,0,0"
-                  Classes="caption"
-                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                  Margin="0,4,0,0"
+                  Classes="sf-hint"
                   Text="{x:Static lang:Resources.Venue_RowAisles}" />
                 <ItemsControl ItemsSource="{Binding AisleRowOptions}">
                   <ItemsControl.ItemsPanel>
@@ -584,23 +389,18 @@
                     <DataTemplate x:DataType="vm:AisleOption">
                       <CheckBox
                         Margin="0,0,12,4"
+                        Classes="sf-check"
                         Content="{Binding Label}"
-                        FontSize="12"
                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
                         ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}" />
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <StackPanel
-                  Margin="0,8,0,0"
-                  Orientation="Horizontal"
-                  Spacing="8">
-                  <TextBlock
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_AisleWidth}" />
+                <StackPanel Classes="sf-field" Margin="0,4,0,0">
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_AisleWidth}" />
                   <NumericUpDown
+                    Classes="sf-input"
                     Maximum="300"
                     Minimum="12"
                     PlaceholderText="60 px"
@@ -610,466 +410,284 @@
               </StackPanel>
             </Border>
 
-            <!--  Grid 教室特征面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsGridSelected}">
+            <!--  ═══ Grid：教室特征  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsGridSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" />
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto,Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_FrontRows}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="10"
-                    Minimum="1"
-                    PlaceholderText="1"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_FrontRowsTooltip}"
-                    Value="{Binding GridFrontRowCount, Mode=TwoWay}" />
-
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_FrontRows}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="10"
+                      Minimum="1"
+                      PlaceholderText="1"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_FrontRowsTooltip}"
+                      Value="{Binding GridFrontRowCount, Mode=TwoWay}" />
+                  </StackPanel>
                   <CheckBox
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    Grid.ColumnSpan="2"
+                    Margin="0,18,16,8"
+                    Classes="sf-check"
                     Content="{x:Static lang:Resources.Venue_HasPodium}"
-                    FontSize="13"
                     IsChecked="{Binding GridHasPodium, Mode=TwoWay}"
                     ToolTip.Tip="{x:Static lang:Resources.Venue_HasPodiumTooltip}" />
-                </Grid>
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  IsVisible="{Binding GridHasPodium}"
-                  RowDefinitions="Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_PodiumWidth}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="400"
-                    Minimum="20"
-                    PlaceholderText="60 px"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumWidthTooltip}"
-                    Value="{Binding GridPodiumWidth, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_PodiumHeight}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    Maximum="200"
-                    Minimum="20"
-                    PlaceholderText="40 px"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumHeightTooltip}"
-                    Value="{Binding GridPodiumHeight, Mode=TwoWay}" />
-                </Grid>
+                  <StackPanel Classes="sf-field" IsVisible="{Binding GridHasPodium}">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_PodiumWidth}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="400"
+                      Minimum="20"
+                      PlaceholderText="60 px"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumWidthTooltip}"
+                      Value="{Binding GridPodiumWidth, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field" IsVisible="{Binding GridHasPodium}">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_PodiumHeight}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="200"
+                      Minimum="20"
+                      PlaceholderText="40 px"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumHeightTooltip}"
+                      Value="{Binding GridPodiumHeight, Mode=TwoWay}" />
+                  </StackPanel>
+                </WrapPanel>
               </StackPanel>
             </Border>
 
-            <!--  Polar 基础参数面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsPolarSelected}">
+            <!--  ═══ Polar：基础参数  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsPolarSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_BasicParams}" />
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto,Auto,Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_Rings}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="20"
-                    Minimum="1"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingsTooltip}"
-                    Value="{Binding PolarRings, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_SeatsPerRing}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    Maximum="120"
-                    Minimum="2"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_SeatsPerRingTooltip}"
-                    Value="{Binding PolarSeatsPerRing, Mode=TwoWay}" />
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_BasicParams}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Rings}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="20"
+                      Minimum="1"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RingsTooltip}"
+                      Value="{Binding PolarRings, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_SeatsPerRing}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="120"
+                      Minimum="2"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_SeatsPerRingTooltip}"
+                      Value="{Binding PolarSeatsPerRing, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RadiusStep}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="400"
+                      Minimum="8"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RadiusStepTooltip}"
+                      Value="{Binding PolarRadiusStep, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_StartAngle}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="360"
+                      Minimum="0"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_StartAngleTooltip}"
+                      Value="{Binding PolarStartAngle, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_EndAngle}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="360"
+                      Minimum="10"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_EndAngleTooltip}"
+                      Value="{Binding PolarEndAngle, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_OriginX}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="2000"
+                      Minimum="0"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginXTooltip}"
+                      Value="{Binding PolarOriginX, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_OriginY}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="2000"
+                      Minimum="0"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginYTooltip}"
+                      Value="{Binding PolarOriginY, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RingSeats}" />
+                    <TextBox
+                      Classes="sf-input"
+                      PlaceholderText="{x:Static lang:Resources.Venue_RingSeatsPH}"
+                      Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RingSeatsTooltip}" />
+                  </StackPanel>
+                </WrapPanel>
 
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_RadiusStep}" />
-                  <NumericUpDown
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Maximum="400"
-                    Minimum="8"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RadiusStepTooltip}"
-                    Value="{Binding PolarRadiusStep, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_StartAngle}" />
-                  <NumericUpDown
-                    Grid.Row="1"
-                    Grid.Column="3"
-                    Maximum="360"
-                    Minimum="0"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_StartAngleTooltip}"
-                    Value="{Binding PolarStartAngle, Mode=TwoWay}" />
+                <Border Classes="sf-divider" />
 
-                  <TextBlock
-                    Grid.Row="2"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_EndAngle}" />
-                  <NumericUpDown
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    Maximum="360"
-                    Minimum="10"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_EndAngleTooltip}"
-                    Value="{Binding PolarEndAngle, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="2"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_OriginX}" />
-                  <NumericUpDown
-                    Grid.Row="2"
-                    Grid.Column="3"
-                    Maximum="2000"
-                    Minimum="0"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginXTooltip}"
-                    Value="{Binding PolarOriginX, Mode=TwoWay}" />
-                </Grid>
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_OriginY}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="2000"
-                    Minimum="0"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarOriginYTooltip}"
-                    Value="{Binding PolarOriginY, Mode=TwoWay}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_RingSeats}" />
+                <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Optional}" />
+                <StackPanel Classes="sf-field">
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
                   <TextBox
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    FontSize="13"
-                    PlaceholderText="{x:Static lang:Resources.Venue_RingSeatsPH}"
-                    Text="{Binding PolarRingSeatCountsSpec, Mode=TwoWay}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingSeatsTooltip}" />
-                </Grid>
-
-                <!--  可选配置分隔条  -->
-                <Border
-                  Padding="0,4,0,0"
-                  BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                  BorderThickness="0,1,0,0">
-                  <TextBlock
-                    Classes="small"
-                    Opacity="0.5"
-                    Text="{x:Static lang:Resources.Venue_Optional}" />
-                </Border>
-
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
-                  <TextBox
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    FontSize="13"
+                    Classes="sf-input"
                     PlaceholderText="{x:Static lang:Resources.Venue_PolarDisabledPH}"
                     Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
                     ToolTip.Tip="{x:Static lang:Resources.Venue_PolarDisabledTooltip}" />
-                </Grid>
+                </StackPanel>
               </StackPanel>
             </Border>
 
-            <!--  Polar 教室特征面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsPolarSelected}">
+            <!--  ═══ Polar：教室特征  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsPolarSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" />
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto,Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_FrontRows}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Maximum="10"
-                    Minimum="1"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarFrontRowsTooltip}"
-                    Value="{Binding PolarFrontRowCount, Mode=TwoWay}" />
-
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_ClassroomFeatures}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_FrontRows}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="10"
+                      Minimum="1"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_PolarFrontRowsTooltip}"
+                      Value="{Binding PolarFrontRowCount, Mode=TwoWay}" />
+                  </StackPanel>
                   <CheckBox
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    Grid.ColumnSpan="2"
+                    Margin="0,18,16,8"
+                    Classes="sf-check"
                     Content="{x:Static lang:Resources.Venue_HasPodium}"
-                    FontSize="13"
                     IsChecked="{Binding PolarHasPodium, Mode=TwoWay}" />
-
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_PodiumRadius}" />
-                  <NumericUpDown
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    IsEnabled="{Binding PolarHasPodium}"
-                    Maximum="200"
-                    Minimum="10"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumRadiusTooltip}"
-                    Value="{Binding PolarPodiumRadius, Mode=TwoWay}" />
-                </Grid>
+                  <StackPanel Classes="sf-field" IsVisible="{Binding PolarHasPodium}">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_PodiumRadius}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="200"
+                      Minimum="10"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_PodiumRadiusTooltip}"
+                      Value="{Binding PolarPodiumRadius, Mode=TwoWay}" />
+                  </StackPanel>
+                </WrapPanel>
               </StackPanel>
             </Border>
 
-            <!--  Polar 通道配置面板  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsPolarSelected}">
+            <!--  ═══ Polar：通道配置  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsPolarSelected}">
               <StackPanel Spacing="8">
-                <TextBlock Classes="bodySmallStrong" Text="{x:Static lang:Resources.Venue_ChannelConfig}" />
-                <Grid
-                  HorizontalAlignment="Left"
-                  ColumnDefinitions="Auto,*,Auto,*"
-                  ColumnSpacing="12"
-                  RowDefinitions="Auto,Auto"
-                  RowSpacing="6">
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_RadialAisleAngles}" />
-                  <TextBox
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    FontSize="13"
-                    PlaceholderText="{x:Static lang:Resources.Venue_RadialAislePH}"
-                    Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleAnglesTooltip}" />
-                  <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_RadialAisleWidth}" />
-                  <NumericUpDown
-                    Grid.Row="0"
-                    Grid.Column="3"
-                    Maximum="30"
-                    Minimum="1"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleWidthTooltip}"
-                    Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}" />
-
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_RingAislePositions}" />
-                  <TextBox
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    FontSize="13"
-                    PlaceholderText="{x:Static lang:Resources.Venue_RingAislePH}"
-                    Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingAislePositionsTooltip}" />
-                  <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Classes="bodySmall"
-                    Text="{x:Static lang:Resources.Venue_RingAisleWidth}" />
-                  <NumericUpDown
-                    Grid.Row="1"
-                    Grid.Column="3"
-                    Maximum="200"
-                    Minimum="4"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_RingAisleWidthTooltip}"
-                    Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}" />
-                </Grid>
+                <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_ChannelConfig}" />
+                <WrapPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RadialAisleAngles}" />
+                    <TextBox
+                      Classes="sf-input"
+                      PlaceholderText="{x:Static lang:Resources.Venue_RadialAislePH}"
+                      Text="{Binding PolarAisleRadialAngles, Mode=TwoWay}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleAnglesTooltip}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RadialAisleWidth}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="30"
+                      Minimum="1"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RadialAisleWidthTooltip}"
+                      Value="{Binding PolarAisleRadialWidth, Mode=TwoWay}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RingAislePositions}" />
+                    <TextBox
+                      Classes="sf-input"
+                      PlaceholderText="{x:Static lang:Resources.Venue_RingAislePH}"
+                      Text="{Binding PolarAisleCircularRings, Mode=TwoWay}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RingAislePositionsTooltip}" />
+                  </StackPanel>
+                  <StackPanel Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RingAisleWidth}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="200"
+                      Minimum="4"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_RingAisleWidthTooltip}"
+                      Value="{Binding PolarAisleCircularWidth, Mode=TwoWay}" />
+                  </StackPanel>
+                </WrapPanel>
               </StackPanel>
             </Border>
 
-            <!--  门配置面板（Grid + Polar 共用）  -->
-            <Border
-              Margin="0,0,0,8"
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsDoorPanelVisible}">
-              <StackPanel Spacing="4">
+            <!--  ═══ 门配置（Grid + Polar 共用；Freeform 的门在坐标表中维护）  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsDoorPanelVisible}">
+              <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock
                     VerticalAlignment="Center"
-                    Classes="bodySmallStrong"
+                    Classes="sf-h3"
                     Text="{x:Static lang:Resources.Venue_DoorSection}" />
                   <Button
-                    Padding="8,2"
-                    Classes="caption"
+                    Classes="sf-btn sf-sm"
                     Command="{Binding AddDoorCommand}"
                     ToolTip.Tip="{x:Static lang:Resources.Venue_AddDoorTooltip}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Add}" />
-                      <TextBlock Classes="caption" Text="{x:Static lang:Resources.Venue_AddDoor}" />
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Add}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_AddDoor}" />
                     </StackPanel>
                   </Button>
                 </StackPanel>
-                <ItemsControl HorizontalAlignment="Stretch" ItemsSource="{Binding DoorItems}">
+                <ItemsControl ItemsSource="{Binding DoorItems}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:DoorItem">
                       <Border
-                        Padding="4,2"
-                        HorizontalAlignment="Stretch"
-                        BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
+                        Padding="0,4"
+                        BorderBrush="{DynamicResource SfBorderBrush}"
                         BorderThickness="0,0,0,1">
-                        <Grid
-                          HorizontalAlignment="Left"
-                          VerticalAlignment="Center"
-                          ColumnDefinitions="Auto,*,Auto,*"
-                          ColumnSpacing="16"
-                          RowDefinitions="Auto"
-                          RowSpacing="8">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
                           <TextBlock
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Margin="0,0,8,0"
-                            HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Classes="caption"
+                            Classes="sf-xs sf-dim"
                             Text="{Binding Label}" />
                           <StackPanel
-                            Grid.Row="0"
                             Grid.Column="1"
-                            HorizontalAlignment="Right"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
                             Orientation="Horizontal"
-                            Spacing="1">
+                            Spacing="6">
                             <TextBlock
                               VerticalAlignment="Center"
-                              Classes="caption"
+                              Classes="sf-xs sf-dim"
                               Text="X :" />
                             <NumericUpDown
-                              Classes="caption"
+                              Width="120"
+                              Classes="sf-input"
                               Maximum="2000"
                               Minimum="0"
                               ToolTip.Tip="{x:Static lang:Resources.Venue_DoorXTooltip}"
                               Value="{Binding X, Mode=TwoWay}" />
                             <TextBlock
-                              Margin="8,0,0,0"
-                              HorizontalAlignment="Right"
                               VerticalAlignment="Center"
-                              Classes="caption"
+                              Classes="sf-xs sf-dim"
                               Text="Y :" />
                             <NumericUpDown
-                              Classes="caption"
+                              Width="120"
+                              Classes="sf-input"
                               Maximum="2000"
                               Minimum="0"
                               ToolTip.Tip="{x:Static lang:Resources.Venue_DoorYTooltip}"
                               Value="{Binding Y, Mode=TwoWay}" />
                           </StackPanel>
                           <Button
-                            Grid.Row="0"
-                            Grid.Column="3"
-                            Padding="4"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
+                            Grid.Column="2"
+                            Classes="sf-btn sf-sm sf-icon"
                             Command="{Binding $parent[UserControl].DataContext.RemoveDoorCommand}"
                             CommandParameter="{Binding}"
-                            FontSize="12">
-                            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+                            ToolTip.Tip="{x:Static lang:Resources.Common_Delete}">
+                            <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Delete}" />
                           </Button>
                         </Grid>
                       </Border>
@@ -1079,148 +697,227 @@
               </StackPanel>
             </Border>
 
-            <!--  Freeform 提示  -->
-            <Border
-              Padding="12"
-              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-              Classes="toolbarTop radiusSm"
-              DockPanel.Dock="Top"
-              IsVisible="{Binding IsFreeformSelected}">
-              <StackPanel Spacing="8">
-                <TextBlock
-                  Classes="bodySmall"
-                  Text="{x:Static lang:Resources.Venue_FreeformHint}"
-                  TextWrapping="Wrap" />
-                <Button
-                  Padding="8,4"
-                  HorizontalAlignment="Left"
-                  HorizontalContentAlignment="Center"
-                  Command="{Binding NavigateToFreeformCommand}"
-                  FontSize="12">
-                  <StackPanel Orientation="Horizontal" Spacing="4">
-                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowMove}" />
-                    <TextBlock Classes="caption" Text="{x:Static lang:Resources.Venue_OpenFreeform}" />
+            <!--  ═══ Freeform：坐标表  ═══  -->
+            <Border Classes="sf-card" IsVisible="{Binding IsFreeformSelected}">
+              <DockPanel>
+                <Grid
+                  Margin="0,0,0,8"
+                  ColumnDefinitions="*,Auto"
+                  DockPanel.Dock="Top">
+                  <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_Coordinates}" />
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      Classes="sf-xs sf-num sf-dim"
+                      Text="{Binding ElementCountDisplay}" />
                   </StackPanel>
-                </Button>
-              </StackPanel>
+                  <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="6">
+                    <Button
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding ExportTemplateCommand}"
+                      ToolTip.Tip="{x:Static lang:Resources.Data_ExportTemplate}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Document}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_Template}" />
+                      </StackPanel>
+                    </Button>
+                    <Button
+                      x:Name="ImportCsvButton"
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding ImportCsvCommand}"
+                      ToolTip.Tip="{x:Static lang:Resources.Freeform_ImportCSV}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.ArrowDownload}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_ImportCSV}" />
+                      </StackPanel>
+                    </Button>
+                    <Button
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding ImportJsonCommand}"
+                      ToolTip.Tip="{x:Static lang:Resources.Freeform_ImportJSON}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.ArrowDownload}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_ImportJSON}" />
+                      </StackPanel>
+                    </Button>
+                    <Button
+                      x:Name="AddPointButton"
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding AddPointCommand}"
+                      ToolTip.Tip="{x:Static lang:Resources.Freeform_AddPoint}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Add}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_AddPoint}" />
+                      </StackPanel>
+                    </Button>
+                    <Button
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding ClearPointsCommand}"
+                      IsEnabled="{Binding HasPoints}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Delete}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_ClearData}" />
+                      </StackPanel>
+                    </Button>
+                    <Button
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding UnloadCommand}"
+                      IsEnabled="{Binding HasPoints}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.UninstallApp}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_Unload}" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock
+                  Margin="0,0,0,8"
+                  Classes="sf-hint"
+                  DockPanel.Dock="Top"
+                  IsVisible="{Binding IsFreeformEmptyState}"
+                  Text="{x:Static lang:Resources.Freeform_NoDataHint}"
+                  TextWrapping="Wrap" />
+
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                  <StackPanel MinWidth="760">
+                    <!--  表头  -->
+                    <Grid
+                      Margin="4,0,4,4"
+                      ColumnDefinitions="32,110,110,110,90,90,80,36"
+                      ColumnSpacing="8">
+                      <TextBlock Grid.Column="0" Classes="sf-xs sf-faint" Text="#" />
+                      <TextBlock Grid.Column="1" Classes="sf-xs sf-faint" Text="X" />
+                      <TextBlock Grid.Column="2" Classes="sf-xs sf-faint" Text="Y" />
+                      <TextBlock Grid.Column="3" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Freeform_Type}" />
+                      <TextBlock Grid.Column="4" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Freeform_RowLabel}" />
+                      <TextBlock Grid.Column="5" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Freeform_ColLabel}" />
+                      <TextBlock Grid.Column="6" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Freeform_GroupLabel}" />
+                      <TextBlock Grid.Column="7" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Common_Delete}" />
+                    </Grid>
+                    <Border Classes="sf-divider" />
+                    <ListBox
+                      MaxHeight="360"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      ItemsSource="{Binding Points}">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FreeformPoint">
+                          <Grid
+                            Margin="0,1"
+                            ColumnDefinitions="32,110,110,110,90,90,80,36"
+                            ColumnSpacing="8">
+                            <TextBlock
+                              Grid.Column="0"
+                              VerticalAlignment="Center"
+                              Classes="sf-xs sf-num sf-dim"
+                              Text="{Binding DisplayIndex, StringFormat={}{0}.}" />
+                            <NumericUpDown
+                              Grid.Column="1"
+                              Classes="sf-input"
+                              Maximum="5000"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_XCoord}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_XTooltip}"
+                              Value="{Binding X, Mode=TwoWay}" />
+                            <NumericUpDown
+                              Grid.Column="2"
+                              Classes="sf-input"
+                              Maximum="5000"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_YCoord}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_YTooltip}"
+                              Value="{Binding Y, Mode=TwoWay}" />
+                            <ComboBox
+                              Grid.Column="3"
+                              Classes="sf-input"
+                              SelectedIndex="{Binding ElementType, Mode=TwoWay}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_TypeTooltip}">
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Seat}" />
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Podium}" />
+                              <ComboBoxItem Content="{x:Static lang:Resources.Freeform_Door}" />
+                            </ComboBox>
+                            <NumericUpDown
+                              Grid.Column="4"
+                              Classes="sf-input"
+                              Maximum="100"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_RowPH}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_RowPH}"
+                              Value="{Binding Row, Mode=TwoWay}" />
+                            <NumericUpDown
+                              Grid.Column="5"
+                              Classes="sf-input"
+                              Maximum="100"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_ColPH}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_ColPH}"
+                              Value="{Binding Column, Mode=TwoWay}" />
+                            <NumericUpDown
+                              Grid.Column="6"
+                              Classes="sf-input"
+                              Maximum="7"
+                              Minimum="0"
+                              PlaceholderText="{x:Static lang:Resources.Freeform_GroupPH}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_GroupTooltip}"
+                              Value="{Binding GroupId, Mode=TwoWay}" />
+                            <Button
+                              Grid.Column="7"
+                              Classes="sf-btn sf-sm sf-icon"
+                              Command="{Binding $parent[UserControl].DataContext.DeletePointCommand}"
+                              CommandParameter="{Binding}"
+                              ToolTip.Tip="{x:Static lang:Resources.Freeform_DeletePoint}">
+                              <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Delete}" />
+                            </Button>
+                          </Grid>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+                  </StackPanel>
+                </ScrollViewer>
+              </DockPanel>
             </Border>
 
-            <!--  预览区域  -->
-            <StackPanel Spacing="8">
-              <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock
-                  VerticalAlignment="Center"
-                  Classes="bodyStrong"
-                  Text="{x:Static lang:Resources.Venue_Preview}" />
-                <Button
-                  Padding="8,4"
-                  HorizontalContentAlignment="Center"
-                  Command="{Binding RegeneratePreviewCommand}"
-                  FontSize="12">
-                  <StackPanel Orientation="Horizontal" Spacing="4">
-                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-                    <TextBlock Classes="caption" Text="{x:Static lang:Resources.Venue_RefreshPreview}" />
+            <!--  ═══ 预览（自绘 SeatingCanvas）  ═══  -->
+            <Border Classes="sf-card">
+              <DockPanel>
+                <Grid
+                  Margin="0,0,0,8"
+                  ColumnDefinitions="*,Auto"
+                  DockPanel.Dock="Top">
+                  <StackPanel
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_Preview}" />
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      Classes="sf-hint"
+                      Text="{x:Static lang:Resources.Venue_DragHint}" />
                   </StackPanel>
-                </Button>
-              </StackPanel>
-
-              <Border
-                MinHeight="300"
-                Padding="8"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                Classes="radiusSm">
-                <Grid>
-                  <ScrollViewer
-                    behaviors:CanvasZoomPan.Enabled="True"
-                    Background="{DynamicResource PreviewBackgroundBrush}"
-                    HorizontalScrollBarVisibility="Auto"
-                    VerticalScrollBarVisibility="Auto">
-                    <Grid>
-                      <!--  座位层  -->
-                      <ItemsControl ItemsSource="{Binding PreviewSeats}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.Styles>
-                          <Style Selector="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
-                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
-                          </Style>
-                        </ItemsControl.Styles>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:SeatPreview">
-                            <Border
-                              Width="{ReflectionBinding Width}"
-                              Height="{ReflectionBinding Height}"
-                              BorderBrush="{StaticResource PreviewSeatBorderBrush}"
-                              BorderThickness="{ReflectionBinding BorderThickness}"
-                              CornerRadius="{ReflectionBinding CornerRadius}"
-                              ToolTip.Tip="{Binding Label}">
-                              <Border.Background>
-                                <SolidColorBrush Color="{DynamicResource SystemAccentColor}" />
-                              </Border.Background>
-                            </Border>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-
-                      <!--  覆盖层: 讲台/障碍物/门  -->
-                      <ItemsControl ItemsSource="{Binding PreviewOverlays}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <Canvas Width="{Binding $parent[UserControl].DataContext.CanvasWidth, Mode=OneWay}" Height="{Binding $parent[UserControl].DataContext.CanvasHeight, Mode=OneWay}" />
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.Styles>
-                          <Style Selector="ContentPresenter">
-                            <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
-                            <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
-                          </Style>
-                        </ItemsControl.Styles>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:SeatPreview">
-                            <Panel
-                              Width="{ReflectionBinding Width}"
-                              Height="{ReflectionBinding Height}"
-                              RenderTransformOrigin="0,0"
-                              ToolTip.Tip="{Binding Label}">
-                              <Border
-                                Background="{ReflectionBinding BackgroundColor}"
-                                BorderBrush="{ReflectionBinding BorderColor}"
-                                BorderThickness="{ReflectionBinding BorderThickness}"
-                                CornerRadius="1000"
-                                Opacity="0.7" />
-                              <Path
-                                Data="{ReflectionBinding PathGeometry}"
-                                Fill="{StaticResource PreviewPodiumFillBrush}"
-                                Opacity="0.7" />
-                              <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Classes="small"
-                                Text="{Binding Label}" />
-                              <Panel.RenderTransform>
-                                <RotateTransform Angle="{ReflectionBinding Rotation}" />
-                              </Panel.RenderTransform>
-                            </Panel>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </Grid>
-                  </ScrollViewer>
                   <TextBlock
-                    Margin="0,0,12,8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Classes="small"
-                    Opacity="0.4"
-                    Text="{x:Static lang:Resources.Venue_DragHint}" />
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Classes="sf-xs sf-num sf-dim"
+                    Text="{Binding PreviewSeatCountDisplay}" />
                 </Grid>
-              </Border>
-            </StackPanel>
-          </DockPanel>
+                <Border
+                  Height="380"
+                  Padding="0"
+                  Classes="sf-inset"
+                  ClipToBounds="True">
+                  <controls:SeatingCanvas Snapshot="{Binding PreviewSnapshot}" />
+                </Border>
+              </DockPanel>
+            </Border>
+
+          </StackPanel>
         </ScrollViewer>
       </Grid>
     </Grid>

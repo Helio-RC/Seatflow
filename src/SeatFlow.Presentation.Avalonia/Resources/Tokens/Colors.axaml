@@ -1,0 +1,217 @@
+<!--
+  方向 B「方格纸」颜色令牌（阶段 3 设计 / html-sample tokens.css 移植）。
+
+  结构约定：
+  1. ThemeDictionaries 内只放 Color / SolidColorBrush 原始值（明暗两套）；
+  2. 主题字典外用 SolidColorBrush 引用 DynamicResource 颜色 —— 保证主题切换时
+     只换颜色对象、刷子实例稳定，存量 DynamicResource 引用无需重建。
+  3. 同时覆盖 Fluent 的 SystemControl* / SystemAccentColor 资源，
+     使尚未迁移的旧页面立即获得方向 B 调色（strangler 策略）。
+-->
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ResourceDictionary.ThemeDictionaries>
+    <!--  ═══════════════ 浅色（方格纸） ═══════════════  -->
+    <ResourceDictionary x:Key="Light">
+      <!--  基础面  -->
+      <Color x:Key="SfBgColor">#FFF2F4F6</Color>
+      <Color x:Key="SfRailBgColor">#FFFFFFFF</Color>
+      <Color x:Key="SfSurfaceColor">#FFFFFFFF</Color>
+      <Color x:Key="SfSurface2Color">#FFF6F8FA</Color>
+      <Color x:Key="SfHoverColor">#FFEEF2F6</Color>
+      <Color x:Key="SfBorderColor">#FFD9E0E7</Color>
+      <Color x:Key="SfBorderStrongColor">#FFC3CDD8</Color>
+
+      <!--  文本  -->
+      <Color x:Key="SfTextColor">#FF16202B</Color>
+      <Color x:Key="SfTextDimColor">#FF46586B</Color>
+      <Color x:Key="SfTextFaintColor">#FF7B8A9C</Color>
+
+      <!--  强调  -->
+      <Color x:Key="SfAccentColor">#FF3B5BDB</Color>
+      <Color x:Key="SfAccentHoverColor">#FF3450C4</Color>
+      <Color x:Key="SfAccentFgColor">#FFFFFFFF</Color>
+      <Color x:Key="SfAccentSoftColor">#FFE8ECFC</Color>
+      <Color x:Key="SfAccentStrongColor">#FF2F49B8</Color>
+
+      <!--  状态  -->
+      <Color x:Key="SfOkColor">#FF0E9F6E</Color>
+      <Color x:Key="SfOkSoftColor">#FFE3F5EE</Color>
+      <Color x:Key="SfWarnColor">#FFB45309</Color>
+      <Color x:Key="SfWarnSoftColor">#FFFBF0DC</Color>
+      <Color x:Key="SfDangerColor">#FFD92D20</Color>
+      <Color x:Key="SfDangerSoftColor">#FFFDECEA</Color>
+
+      <!--  画布 / 座位  -->
+      <Color x:Key="SfCanvasBgColor">#FFF5F7FA</Color>
+      <Color x:Key="SfCanvasGridColor">#FFE3E9F0</Color>
+      <Color x:Key="SfBoardBgColor">#FFFFFFFF</Color>
+      <Color x:Key="SfBoardBorderColor">#FFCBD5E1</Color>
+      <Color x:Key="SfPodiumBgColor">#FFF1F4F8</Color>
+      <Color x:Key="SfSeatBgColor">#FFFFFFFF</Color>
+      <Color x:Key="SfSeatBorderColor">#FFC9D4E0</Color>
+      <Color x:Key="SfSeatOccupiedColor">#FFE4E9FB</Color>
+      <Color x:Key="SfSeatOccupiedBorderColor">#FF8FA3E8</Color>
+      <Color x:Key="SfSeatOccupiedFgColor">#FF2C3E9E</Color>
+      <Color x:Key="SfFixedColor">#FF3B5BDB</Color>
+
+      <!--  遮罩 / 阴影  -->
+      <Color x:Key="SfModalMaskColor">#73101A18</Color>
+      <BoxShadows x:Key="SfShadowPop">0 8 24 0 #2416202B</BoxShadows>
+
+      <!--  ══ Fluent 覆盖：强调色族 ══  -->
+      <Color x:Key="SystemAccentColor">#FF3B5BDB</Color>
+      <Color x:Key="SystemAccentColorLight1">#FF5C77E4</Color>
+      <Color x:Key="SystemAccentColorLight2">#FF7D93EC</Color>
+      <Color x:Key="SystemAccentColorLight3">#FF9EAFF4</Color>
+      <Color x:Key="SystemAccentColorDark1">#FF2F49B8</Color>
+      <Color x:Key="SystemAccentColorDark2">#FF263C9A</Color>
+      <Color x:Key="SystemAccentColorDark3">#FF1E307C</Color>
+      <Color x:Key="SystemAccentColorLight">#FF5C77E4</Color>
+      <Color x:Key="SystemAccentColorDark">#FF2F49B8</Color>
+
+      <!--  ══ Fluent 覆盖：文本 / 线条 / 背景（旧页面即时换肤） ══  -->
+      <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FF16202B" />
+      <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#FF46586B" />
+      <SolidColorBrush x:Key="SystemControlForegroundBaseMediumHighBrush" Color="#FF2B3B4D" />
+      <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush" Color="#FF7B8A9C" />
+      <SolidColorBrush x:Key="SystemControlForegroundChromeHighBrush" Color="#FFD9E0E7" />
+      <SolidColorBrush x:Key="SystemControlForegroundChromeMediumBrush" Color="#FFC3CDD8" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeWhiteBrush" Color="#FFFFFFFF" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#FFF6F8FA" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#FFF6F8FA" />
+      <SolidColorBrush x:Key="SystemControlBackgroundListLowBrush" Color="#FFEEF2F6" />
+      <SolidColorBrush x:Key="SystemControlBackgroundListMediumBrush" Color="#FFE6EBF1" />
+      <SolidColorBrush x:Key="SystemControlBackgroundSubtleBrush" Color="#FFF2F4F6" />
+      <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#FFF2F4F6" />
+      <SolidColorBrush x:Key="SystemAltMediumLowBrush" Color="#FFEEF2F6" />
+      <SolidColorBrush x:Key="SystemControlAccentBrush" Color="#FF3B5BDB" />
+      <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FF3B5BDB" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#FFDCE3FA" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#FFC9D4F7" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#FFB6C5F4" />
+    </ResourceDictionary>
+
+    <!--  ═══════════════ 深色（夜校工作台变体） ═══════════════  -->
+    <ResourceDictionary x:Key="Dark">
+      <!--  基础面  -->
+      <Color x:Key="SfBgColor">#FF0B1020</Color>
+      <Color x:Key="SfRailBgColor">#FF0E1526</Color>
+      <Color x:Key="SfSurfaceColor">#FF121A2E</Color>
+      <Color x:Key="SfSurface2Color">#FF0F1729</Color>
+      <Color x:Key="SfHoverColor">#FF1A2740</Color>
+      <Color x:Key="SfBorderColor">#FF22304A</Color>
+      <Color x:Key="SfBorderStrongColor">#FF2E3F5E</Color>
+
+      <!--  文本  -->
+      <Color x:Key="SfTextColor">#FFE7ECF5</Color>
+      <Color x:Key="SfTextDimColor">#FF9AA8C0</Color>
+      <Color x:Key="SfTextFaintColor">#FF6C7A94</Color>
+
+      <!--  强调  -->
+      <Color x:Key="SfAccentColor">#FF7C93FF</Color>
+      <Color x:Key="SfAccentHoverColor">#FF93A5FF</Color>
+      <Color x:Key="SfAccentFgColor">#FF0B1020</Color>
+      <Color x:Key="SfAccentSoftColor">#297C93FF</Color>
+      <Color x:Key="SfAccentStrongColor">#FFA5B4FF</Color>
+
+      <!--  状态  -->
+      <Color x:Key="SfOkColor">#FF34D399</Color>
+      <Color x:Key="SfOkSoftColor">#2434D399</Color>
+      <Color x:Key="SfWarnColor">#FFFBBF24</Color>
+      <Color x:Key="SfWarnSoftColor">#24FBBF24</Color>
+      <Color x:Key="SfDangerColor">#FFF87171</Color>
+      <Color x:Key="SfDangerSoftColor">#24F87171</Color>
+
+      <!--  画布 / 座位  -->
+      <Color x:Key="SfCanvasBgColor">#FF101D18</Color>
+      <Color x:Key="SfCanvasGridColor">#0DFFFFFF</Color>
+      <Color x:Key="SfBoardBgColor">#FF13221B</Color>
+      <Color x:Key="SfBoardBorderColor">#FF24382E</Color>
+      <Color x:Key="SfPodiumBgColor">#0FFFFFFF</Color>
+      <Color x:Key="SfSeatBgColor">#FF1A2C24</Color>
+      <Color x:Key="SfSeatBorderColor">#FF2E463A</Color>
+      <Color x:Key="SfSeatOccupiedColor">#FF274A3B</Color>
+      <Color x:Key="SfSeatOccupiedBorderColor">#FF4E8C6F</Color>
+      <Color x:Key="SfSeatOccupiedFgColor">#FFD9F2E6</Color>
+      <Color x:Key="SfFixedColor">#FFF0B429</Color>
+
+      <!--  遮罩 / 阴影  -->
+      <Color x:Key="SfModalMaskColor">#A6101420</Color>
+      <BoxShadows x:Key="SfShadowPop">0 8 24 0 #80000000</BoxShadows>
+
+      <!--  ══ Fluent 覆盖：强调色族 ══  -->
+      <Color x:Key="SystemAccentColor">#FF7C93FF</Color>
+      <Color x:Key="SystemAccentColorLight1">#FF93A5FF</Color>
+      <Color x:Key="SystemAccentColorLight2">#FFAAB8FF</Color>
+      <Color x:Key="SystemAccentColorLight3">#FFC1CBFF</Color>
+      <Color x:Key="SystemAccentColorDark1">#FF5F79E6</Color>
+      <Color x:Key="SystemAccentColorDark2">#FF4862C9</Color>
+      <Color x:Key="SystemAccentColorDark3">#FF324BA8</Color>
+      <Color x:Key="SystemAccentColorLight">#FF93A5FF</Color>
+      <Color x:Key="SystemAccentColorDark">#FF5F79E6</Color>
+
+      <!--  ══ Fluent 覆盖：文本 / 线条 / 背景 ══  -->
+      <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FFE7ECF5" />
+      <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#FF9AA8C0" />
+      <SolidColorBrush x:Key="SystemControlForegroundBaseMediumHighBrush" Color="#FFC4CFE3" />
+      <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush" Color="#FF6C7A94" />
+      <SolidColorBrush x:Key="SystemControlForegroundChromeHighBrush" Color="#FF22304A" />
+      <SolidColorBrush x:Key="SystemControlForegroundChromeMediumBrush" Color="#FF2E3F5E" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeWhiteBrush" Color="#FF121A2E" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumBrush" Color="#FF0F1729" />
+      <SolidColorBrush x:Key="SystemControlBackgroundChromeMediumLowBrush" Color="#FF0F1729" />
+      <SolidColorBrush x:Key="SystemControlBackgroundListLowBrush" Color="#FF1A2740" />
+      <SolidColorBrush x:Key="SystemControlBackgroundListMediumBrush" Color="#FF22304A" />
+      <SolidColorBrush x:Key="SystemControlBackgroundSubtleBrush" Color="#FF0B1020" />
+      <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#FF0B1020" />
+      <SolidColorBrush x:Key="SystemAltMediumLowBrush" Color="#FF1A2740" />
+      <SolidColorBrush x:Key="SystemControlAccentBrush" Color="#FF7C93FF" />
+      <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FF7C93FF" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#337C93FF" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#4D7C93FF" />
+      <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#667C93FF" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <!--  ═══════════════ 方向 B 刷子（动态引用上方颜色） ═══════════════  -->
+  <SolidColorBrush x:Key="SfBgBrush" Color="{DynamicResource SfBgColor}" />
+  <SolidColorBrush x:Key="SfRailBgBrush" Color="{DynamicResource SfRailBgColor}" />
+  <SolidColorBrush x:Key="SfSurfaceBrush" Color="{DynamicResource SfSurfaceColor}" />
+  <SolidColorBrush x:Key="SfSurface2Brush" Color="{DynamicResource SfSurface2Color}" />
+  <SolidColorBrush x:Key="SfHoverBrush" Color="{DynamicResource SfHoverColor}" />
+  <SolidColorBrush x:Key="SfBorderBrush" Color="{DynamicResource SfBorderColor}" />
+  <SolidColorBrush x:Key="SfBorderStrongBrush" Color="{DynamicResource SfBorderStrongColor}" />
+
+  <SolidColorBrush x:Key="SfTextBrush" Color="{DynamicResource SfTextColor}" />
+  <SolidColorBrush x:Key="SfTextDimBrush" Color="{DynamicResource SfTextDimColor}" />
+  <SolidColorBrush x:Key="SfTextFaintBrush" Color="{DynamicResource SfTextFaintColor}" />
+
+  <SolidColorBrush x:Key="SfAccentBrush" Color="{DynamicResource SfAccentColor}" />
+  <SolidColorBrush x:Key="SfAccentHoverBrush" Color="{DynamicResource SfAccentHoverColor}" />
+  <SolidColorBrush x:Key="SfAccentFgBrush" Color="{DynamicResource SfAccentFgColor}" />
+  <SolidColorBrush x:Key="SfAccentSoftBrush" Color="{DynamicResource SfAccentSoftColor}" />
+  <SolidColorBrush x:Key="SfAccentStrongBrush" Color="{DynamicResource SfAccentStrongColor}" />
+
+  <SolidColorBrush x:Key="SfOkBrush" Color="{DynamicResource SfOkColor}" />
+  <SolidColorBrush x:Key="SfOkSoftBrush" Color="{DynamicResource SfOkSoftColor}" />
+  <SolidColorBrush x:Key="SfWarnBrush" Color="{DynamicResource SfWarnColor}" />
+  <SolidColorBrush x:Key="SfWarnSoftBrush" Color="{DynamicResource SfWarnSoftColor}" />
+  <SolidColorBrush x:Key="SfDangerBrush" Color="{DynamicResource SfDangerColor}" />
+  <SolidColorBrush x:Key="SfDangerSoftBrush" Color="{DynamicResource SfDangerSoftColor}" />
+
+  <SolidColorBrush x:Key="SfCanvasBgBrush" Color="{DynamicResource SfCanvasBgColor}" />
+  <SolidColorBrush x:Key="SfCanvasGridBrush" Color="{DynamicResource SfCanvasGridColor}" />
+  <SolidColorBrush x:Key="SfBoardBgBrush" Color="{DynamicResource SfBoardBgColor}" />
+  <SolidColorBrush x:Key="SfBoardBorderBrush" Color="{DynamicResource SfBoardBorderColor}" />
+  <SolidColorBrush x:Key="SfPodiumBgBrush" Color="{DynamicResource SfPodiumBgColor}" />
+  <SolidColorBrush x:Key="SfSeatBgBrush" Color="{DynamicResource SfSeatBgColor}" />
+  <SolidColorBrush x:Key="SfSeatBorderBrush" Color="{DynamicResource SfSeatBorderColor}" />
+  <SolidColorBrush x:Key="SfSeatOccupiedBrush" Color="{DynamicResource SfSeatOccupiedColor}" />
+  <SolidColorBrush x:Key="SfSeatOccupiedBorderBrush" Color="{DynamicResource SfSeatOccupiedBorderColor}" />
+  <SolidColorBrush x:Key="SfSeatOccupiedFgBrush" Color="{DynamicResource SfSeatOccupiedFgColor}" />
+  <SolidColorBrush x:Key="SfFixedBrush" Color="{DynamicResource SfFixedColor}" />
+
+  <SolidColorBrush x:Key="SfModalMaskBrush" Color="{DynamicResource SfModalMaskColor}" />
+  <!--  弹层阴影 SfShadowPop 定义在各主题字典内（BoxShadows 不支持内嵌动态资源）  -->
+</ResourceDictionary>

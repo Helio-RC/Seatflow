@@ -68,11 +68,9 @@ Program.cs:
 
 ```json
 {
-  "version": "3.0",
+  "version": "3.4",
   "startupPhases": [ OnboardingPhaseDefinition, ... ],
-  "pageGuides": {
-    "FreeformManagement": OnboardingPhaseDefinition,
-  }
+  "pageGuides": {}
 }
 ```
 
@@ -80,7 +78,7 @@ Program.cs:
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `page` | string? | 否 | 要导航到的页面（PageKey 枚举名称）。`null` = 留在当前页（用于 Home 欢迎阶段和结尾阶段） |
+| `page` | string? | 否 | 要导航到的页面（PageKey 枚举名称）。`null` = 留在当前页（欢迎/结尾阶段，默认入口为排座工作台） |
 | `seedData` | bool | 否 | 跨阶段导航时是否注入演示数据。默认 `false`。用于 MemberManagement Phase 2 及后续需演示数据的阶段 |
 | `steps` | array | 是 | `OnboardingStepDefinition` 数组 |
 
@@ -97,24 +95,21 @@ Program.cs:
 
 ### 当前引导内容概览
 
-**启动引导 (startupPhases)** — 8 阶段 20 步：
+**启动引导 (startupPhases)** — 9 阶段 24 步（v3.4，新 IA；默认入口=排座工作台）：
 
 | 阶段 | 页面 | seedData | 步骤数 | 目标控件 |
 |------|------|----------|--------|---------|
-| 欢迎 | Home | — | 2 | (centered), ToggleSidebarButton |
+| 欢迎 | （留在当前页，默认排座工作台） | — | 2 | (centered), ToggleSidebarButton |
 | 成员管理（导入） | MemberManagement | — | 2 | ExportTemplateButton, ImportButton |
 | 成员管理（更新） | MemberManagement | `true` | 3 | UpdateFromFileButton, StudentListBox, NewStudentRow |
 | 会场配置 | VenueConfiguration | `true` | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
 | 策略配置 | StrategyConfiguration | `true` | 4 | StrategyListBox, EditEnabledSwitch, (centered), SaveAllButton |
 | 排座生成 | SeatingArrangement | `true` | 4 | VenueListBox, DatasetListBox, GenerateButton, ExportButton |
 | 快照历史 | SnapshotHistory | `true` | 2 | VenueComboBox, SnapshotListBox |
-| 结束 | Home | — | 1 | (centered) |
+| 设置 | Settings | `false` | 3 | KeyboardShortcutsSection, UndoShortcutSwitch, SaveSettingsButton |
+| 结束 | （留在当前页） | — | 1 | (centered) |
 
-**页面引导 (pageGuides)** — 首次访问触发：
-
-| 页面 | 步骤数 | 目标控件 |
-|------|--------|---------|
-| FreeformManagement | 3 | ImportCsvButton, AddPointButton, SaveLayoutButton |
+**页面引导 (pageGuides)** — 首次访问触发（当前 v3.4 配置为空，机制保留）。
 
 ## 触发流程
 
@@ -127,7 +122,7 @@ App.axaml.cs → CheckAndStartOnboardingAsync()
   └── Dispatcher.UIThread.Post(Background) → onboarding.StartOnboarding()
        ├── 加载 JSON 配置 + 平铺步骤列表
        ├── 设置 MainShellViewModel.IsOnboardingActive = true
-       ├── 展开侧边栏，导航到 Home
+       ├── 展开侧边栏（默认入口=排座工作台）
        ├── 订阅 Guide.StepOpening 事件
        └── Dispatcher.UIThread.Post(Loaded) → Guide.Show()
 ```
@@ -255,9 +250,9 @@ OnboardingService.CompleteOnboardingAsync()
 | `VenueComboBox` | SnapshotHistoryView | ComboBox | 选择会场 |
 | `SnapshotListBox` | SnapshotHistoryView | ListBox | 快照列表 |
 | `RollbackButton` | SnapshotHistoryView | Button | 回滚快照 |
-| `ImportCsvButton` | FreeformManagementView | Button | 导入自由布局 |
-| `AddPointButton` | FreeformManagementView | Button | 添加坐标点 |
-| `SaveLayoutButton` | FreeformManagementView | Button | 保存自由布局 |
+| `KeyboardShortcutsSection` | SettingsView | 区块 | 键盘快捷键设置区 |
+| `UndoShortcutSwitch` | SettingsView | ToggleSwitch | Ctrl+Z 撤销开关 |
+| `SaveSettingsButton` | SettingsView | Button | 保存设置 |
 
 ## 文本风格指南
 
@@ -271,23 +266,21 @@ OnboardingService.CompleteOnboardingAsync()
 
 每一步的 `title` 应该提示**要执行的操作**，`description` 应该提供**简短的上下文说明**。
 
-## 示例数据注入（v3.1 新增，v3.2 修订）
+## 示例数据注入（v3.1 新增，v3.2 声明式，M5 接口化）
 
-引导启动时，`OnboardingService.SeedPageData()` 向各页面 ViewModel 注入纯内存示例数据，使条件可见的目标控件（如 `LayoutTypePanel`、`StudentListBox`）在引导期间正常显示。引导完成时 `ClearPageData()` 清除所有注入数据，不留磁盘痕迹。
+引导启动时，各页面 ViewModel 通过 `IGuideSeedTarget.SeedGuideData()` 注入纯内存示例数据，使条件可见的目标控件（如 `LayoutTypePanel`、`StudentListBox`）在引导期间正常显示。引导完成/关闭时调用各页 `ClearGuideData()` 清除注入数据（各页自行判断是否实际注入过，幂等），不留磁盘痕迹。
 
-**注入由 `OnboardingPhaseDefinition.SeedData`（JSON 声明式 bool，默认 `false`）控制**。仅在 `HandleStepOpening` 检测到阶段过渡且 `phase.SeedData == true` 时调用 `SeedPageData()`。MemberManagement 的 Phase 2（第二次进入）在注入前通过代码内 Home 往返自动离开-重入页面，无需 JSON 过渡阶段。
+**注入由 `OnboardingPhaseDefinition.SeedData`（JSON 声明式 bool，默认 `false`）控制**。`OnboardingService` 在阶段过渡时按接口等待并调用：先等待目标页 `IPageLifecycle.InitializationTask`（10s 兜底超时；该信号由 OnEnter 完成后置位、OnLeave 换新未完成实例），再调用 `SeedGuideData()`；MemberManagement 的 Phase 2（第二次进入）通过中间工作台中转阶段自动离开-重入页面，无需特殊代码。
 
-| 页面 | SeedData | 注入数据 | 延迟策略 |
-|------|----------|---------|---------|
-| MemberManagement（第二次进入） | `true` | 6 名示例学生 → `Students` ObservableCollection + 演示数据集 → `SavedDatasets` | 同步 |
-| VenueConfiguration | `true` | 执行 `NewVenueCommand` 创建演示会场 | 命名/状态消息延迟到 `Background` |
-| StrategyConfiguration | `true` | 选中 `Strategies[0]`（首个策略） | 延迟到 `Background` |
-| SeatingArrangement | `true` | 演示会场+数据集 + 4×3 座位预览 | 延迟到 `Background` |
-| SnapshotHistory | `true` | 1 个演示快照 → `Snapshots` | 同步 |
+| 页面 | SeedData | 注入数据 |
+|------|----------|---------|
+| MemberManagement（第二次进入） | `true` | 6 名示例学生 → `Students` + 演示数据集（仅在无用户数据时；已有数据则跳过覆盖） |
+| VenueConfiguration | `true` | 执行 `NewVenueCommand` 创建演示会场 |
+| StrategyConfiguration | `true` | 选中 `Strategies[0]`（首个策略） |
+| SeatingArrangement | `true` | 演示会场+数据集 + 4×3 座位；注入后调用公开 `UpdateCanvasSnapshot()` 让画布渲染 |
+| SnapshotHistory | `true` | 1 个演示快照 → `Snapshots`（Singleton 下不误清用户浏览状态） |
 
-延迟注入使用 `Dispatcher.UIThread.Post(..., DispatcherPriority.Background)`，确保在 ViewModel 构造函数中的 fire-and-forget 异步初始化完成后执行，防止被覆盖。
-
-`ClearPageData` 使用 `_memberManagementDemoInjected` 静态标志判断 MemberManagement 是否实际注入过演示数据，仅在实际注入时才执行清理，避免误清用户导入的数据。详见 [ADR-008](adr/ADR-008-onboarding-demo-data-injection.md)。
+**M5 接口化**：注入/清理实现下沉到页面自身（`IGuideSeedTarget`），`OnboardingService` 不再持有任何演示注入静态字段，也不再通过构造器 fire-and-forget 猜测加载时机。详见 [ADR-008](adr/ADR-008-onboarding-demo-data-injection.md)。
 
 ## 窗口状态同步（v3.1 新增）
 
@@ -304,9 +297,9 @@ MainWindow 订阅 `Activated` / `Deactivated` 事件，转发到 `OnboardingServ
 
 1. **完整性校验**：交叉验证 JSON 中的资源键、目标控件名、页面引用是否全部有效
 2. **构建验证**：`dotnet build` 确保编译通过
-3. **测试回归**：`dotnet test` 确保 335 个现有测试无回归
-4. **手动验证**（在桌面环境中）：
-   - 删除 `AppSettings.json` → 启动 → 验证 18 步启动引导逐一正确
-   - 进入 FreeformManagement → 验证页面引导触发 → 关闭后再进入 → 验证不重复
+3. **测试回归**：`dotnet test` 确保 428 个测试无回归（含 `IGuideSeedTarget` seed/clear 与 `InitializationTask` 契约单测）
+4. **手动验证**（在桌面 / WASM 实机）：
+   - 删除 `AppSettings.json` → 启动 → 验证 24 步启动引导逐一正确（M5 已实测 24/24）
+   - 页面引导：当前配置为空；如新增 `pageGuides` 条目，进入对应页验证触发与去重
    - 设置页 → "重新开始引导" → 验证完整重启
    - 英文语言 → 验证英文引导文本

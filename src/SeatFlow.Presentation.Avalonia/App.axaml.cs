@@ -28,23 +28,24 @@ namespace SeatFlow.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
 #pragma warning disable AVLN3001
-    public partial class App(IServiceProvider serviceProvider, bool isFirstInstance = true) : AvaloniaApplication
+    public partial class App(
+        IServiceProvider serviceProvider,
+        bool isFirstInstance = true,
+        string? pendingSeatSetsFilePath = null,
+        string? autoImportSeatSetsPath = null) : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly bool _isFirstInstance = isFirstInstance;
         private bool _needsOnboarding;
 
-        /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）。</summary>
-        internal static string? PendingSeatSetsFilePath { get; set; }
+        /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）；管道转发时会更新。</summary>
+        private string? _pendingSeatSetsFilePath = pendingSeatSetsFilePath;
 
         /// <summary>在 AppData 创建前自动扫描到的 .seatsets 文件路径（首次启动数据恢复）。</summary>
-        internal static string? AutoImportSeatSetsPath { get; set; }
+        private readonly string? _autoImportSeatSetsPath = autoImportSeatSetsPath;
 
         /// <summary>单实例命名管道名（第二个进程通过它转发 .seatsets 文件路径）。</summary>
         internal const string SeatSetsPipeName = "SeatFlow_SeatSetsPipe";
-
-        /// <summary>Velopack 安装后首次运行标志，由 Program.Main 中的 OnFirstRun 回调设置。</summary>
-        internal static bool IsFirstRunAfterInstall { get; set; }
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
@@ -62,6 +63,7 @@ namespace SeatFlow.Presentation.Avalonia
                 var settings = await facade.LoadAppSettingsAsync();
                 ApplyTheme(settings.Theme);
                 ApplyLanguage(settings.Language);
+                AccentColorApplier.Apply(settings.AccentColor);
 
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                     && desktop.MainWindow is { } window)
@@ -170,14 +172,11 @@ namespace SeatFlow.Presentation.Avalonia
                 _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(mainWindow);
                 _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(mainWindow);
 
-                ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
-                ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
-
                 // 启动检查
                 _ = RunStartupChecksAsync(desktop);
 
                 // 启动看门狗，防止 UI 卡死无法退出
-                WatchdogService.SetDialogService(_serviceProvider.GetRequiredService<IDialogService>());
+                // 启动看门狗，防止 UI 卡死无法退出（对话框服务由 DI 注入）
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
                 watchdog.Start();
                 var pingTimer = new global::Avalonia.Threading.DispatcherTimer(
@@ -190,10 +189,10 @@ namespace SeatFlow.Presentation.Avalonia
                 Behaviors.ChineseInputNormalizer.Attach(mainWindow);
 
                 // 全局键盘快捷键（Ctrl+Z/Y 撤销/重做、Ctrl+S 保存、Delete 删除、Esc 取消）
-                Behaviors.KeyboardShortcutHandler.Attach(mainWindow);
+                _serviceProvider.GetRequiredService<Behaviors.KeyboardShortcutHandler>().Attach(mainWindow);
 
                 // 全局文件拖放导入（覆盖层与命名控件位于 MainView 的 NameScope）
-                Behaviors.FileDropHandler.Attach(mainWindow.ShellView);
+                _serviceProvider.GetRequiredService<Behaviors.FileDropHandler>().Attach(mainWindow.ShellView);
 
                 // 退出看门狗：关闭信号发出后 20s 内未退出则强制终止
                 desktop.ShutdownRequested += (_, _) =>
@@ -250,9 +249,6 @@ namespace SeatFlow.Presentation.Avalonia
                     _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(topLevel);
                 }
 
-                ViewModelBase.InitializeDialogService(_serviceProvider.GetRequiredService<IDialogService>());
-                ViewModelBase.InitializeLogger(_serviceProvider.GetRequiredService<ILogger<ViewModelBase>>());
-
                 // 浏览器无独立窗口：全角输入转换等附加行为在浏览器模式不需要
                 _ = SafeInitializeAsync();
             }
@@ -288,7 +284,7 @@ namespace SeatFlow.Presentation.Avalonia
                             logger.LogInformation("[SeatSets] 管道收到文件路径: {Path}", path);
                             Dispatcher.UIThread.Post(() =>
                             {
-                                PendingSeatSetsFilePath = path;
+                                _pendingSeatSetsFilePath = path;
                                 HandlePendingSeatSetsFile();
                             }, DispatcherPriority.Background);
                         }
@@ -308,12 +304,12 @@ namespace SeatFlow.Presentation.Avalonia
         /// </summary>
         private void HandlePendingSeatSetsFile()
         {
-            var filePath = PendingSeatSetsFilePath;
+            var filePath = _pendingSeatSetsFilePath;
             if (string.IsNullOrEmpty(filePath))
                 return;
 
             // 清理静态状态，防止重复处理
-            PendingSeatSetsFilePath = null;
+            _pendingSeatSetsFilePath = null;
 
             Dispatcher.UIThread.Post(async () =>
             {
@@ -464,7 +460,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// </summary>
         private async Task CheckSeatSetsAutoImportAsync()
         {
-            var seatsetsPath = AutoImportSeatSetsPath;
+            var seatsetsPath = _autoImportSeatSetsPath;
             if (string.IsNullOrEmpty(seatsetsPath))
                 return;
 
@@ -718,6 +714,9 @@ namespace SeatFlow.Presentation.Avalonia
                     };
                 }
 
+                // 应用主题色（默认/系统）
+                AccentColorApplier.Apply(settings.AccentColor);
+
                 // 应用语言
                 try
                 {
@@ -732,8 +731,22 @@ namespace SeatFlow.Presentation.Avalonia
                 }
                 catch (CultureNotFoundException) { /* 无效语言代码，保持当前 */ }
 
-                // 导航到主页
-                navigation.NavigateTo(PageKey.Home);
+                // M3/M4：失效各页列表缓存（覆盖设置页 / 系统文件关联等全部导入入口）
+                if (serviceProvider.GetService<SeatingArrangementViewModel>() is { } seatVm)
+                {
+                    seatVm.InvalidateData();
+
+                    // 当前已停留在工作台时 NavigateTo 会被跳过（不触发重新进入/加载），需显式刷新
+                    if (navigation.CurrentPage == PageKey.SeatingArrangement)
+                        await seatVm.RefreshDataAsync();
+                }
+
+                serviceProvider.GetService<MemberManagementViewModel>()?.InvalidateData();
+                serviceProvider.GetService<StrategyConfigurationViewModel>()?.InvalidateData();
+                serviceProvider.GetService<SnapshotHistoryViewModel>()?.InvalidateData();
+
+                // 导航到默认入口（M3 起为排座工作台）
+                navigation.NavigateTo(PageKey.SeatingArrangement);
             }
             catch (Exception ex)
             {

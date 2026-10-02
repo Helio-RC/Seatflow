@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using SeatFlow.Presentation.Avalonia.Services;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -11,6 +12,9 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// </summary>
 public partial class StudentPickerViewModel : ViewModelBase
 {
+    /// <summary>叶级选择器：不使用对话框，默认注入空对象；父级可传入真实服务。</summary>
+    public StudentPickerViewModel(IDialogService? dialog = null) : base(dialog ?? NullDialogService.Instance) { }
+
     /// <summary>完整学生列表（未过滤）。</summary>
     private List<StudentPickerItem> _allStudents = [];
 

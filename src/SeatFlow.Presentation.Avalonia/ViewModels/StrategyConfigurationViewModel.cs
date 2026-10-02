@@ -8,6 +8,7 @@ using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Strategies;
 using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -15,10 +16,29 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class StrategyConfigurationViewModel : ViewModelBase
+public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecycle, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
+    private readonly IShellLayoutService _layout;
     private readonly ILogger<StrategyConfigurationViewModel> _logger;
+
+    // ── M4：生命周期 / 缓存 / 抽屉 ──
+    private bool _loaded;
+    private CancellationTokenSource? _enterCts;
+    /// <summary>本次进入页面加载完成的信号：OnEnter 完成置位；OnLeave 换新的未完成实例。</summary>
+    private TaskCompletionSource _enterCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private List<StrategyDisplayInfo> _allDisplayInfos = [];
+    private List<DatasetItem> _datasetItems = [];
+    private List<DatasetItem> _venueItems = [];
+
+    /// <summary>左侧策略列表面板状态（桌面内联 / 紧凑右抽屉）。</summary>
+    public SideDrawerState ListPanel { get; }
+
+    /// <summary>外壳布局状态（紧凑断点）。</summary>
+    public IShellLayoutService Layout => _layout;
+
+    /// <summary>紧凑模式隐藏命令栏文字。</summary>
+    public bool CompactCommandTextVisible => !_layout.IsCompact;
 
     // ═══════════════ 侧栏列表 ═══════════════
 
@@ -123,26 +143,85 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
     public string DetailDefaultPriorityDisplay => SelectedDetail != null ? string.Format(Resources.Strategy_DefaultPriorityFmt, SelectedDetail.DefaultPriority) : "";
 
     /// <summary>
-    /// 构造函数中 fire-and-forget 加载任务的完成信号。
-    /// 引导示例数据注入需等待它完成，否则随后加载会覆盖注入状态
-    /// （WASM/IndexedDB 下异步加载可能晚于引导阶段切换）。
+    /// 本次进入页面加载完成的信号：OnLeave 换新、OnEnter 完成后置位，
+    /// 引导示例数据注入需等待它完成（否则随后加载会覆盖注入状态）。
     /// </summary>
-    public Task InitializationTask { get; }
+    public Task InitializationTask => _enterCompletion.Task;
 
-    public StrategyConfigurationViewModel(IApplicationFacade facade, ILogger<StrategyConfigurationViewModel>? logger = null)
+    public StrategyConfigurationViewModel(IApplicationFacade facade, IShellLayoutService layout, IDialogService dialog, ILogger<StrategyConfigurationViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
+        _layout = layout;
         _logger = logger ?? NullLogger<StrategyConfigurationViewModel>.Instance;
         SelectedDetail = new();
-        InitializationTask = LoadAsync(CancellationToken.None);
+        ListPanel = new SideDrawerState(layout, 0, 260,
+            desktopBorder: new global::Avalonia.Thickness(0, 0, 1, 0));
+        _layout.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
+                OnPropertyChanged(nameof(CompactCommandTextVisible));
+        };
     }
+
+    // ═══════════════ IPageLifecycle（M4：构造器不再 fire-and-forget） ═══════════════
+
+    public bool IsDirty => HasChanges || ConfigBlockEditors.Any(ce => ce.IsDirty);
+
+    public async Task OnEnterAsync(CancellationToken ct)
+    {
+        _enterCts?.Cancel();
+        _enterCts?.Dispose();
+        _enterCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        ListPanel.IsOpen = false;
+
+        var completion = _enterCompletion;
+        try
+        {
+            if (!_loaded)
+                await LoadAsync(_enterCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // 离开页面取消，保持未加载状态以便下次重试
+        }
+        finally
+        {
+            completion.TrySetResult();
+        }
+    }
+
+    public Task OnLeaveAsync()
+    {
+        _enterCts?.Cancel();
+        ListPanel.IsOpen = false;
+        // 为下一次进入准备新的完成信号
+        _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>标记策略/数据集/会场缓存失效（下次进入重新加载）。供 .seatsets 导入等场景调用。</summary>
+    public void InvalidateData() => _loaded = false;
+
+    // ═══════════════ IGuideSeedTarget（M5：引导演示注入/清理下沉到页面） ═══════════════
+
+    /// <summary>
+    /// 选中第一个策略，触发 OnSelectedStrategyChanged → LoadDetailAsync → SelectedDetail 非空
+    /// → HasDetail=true → 引导目标（EditEnabledSwitch）可见。
+    /// </summary>
+    public void SeedGuideData()
+    {
+        if (Strategies.Count == 0) return;
+        SelectedStrategy = Strategies[0];
+    }
+
+    /// <summary>清空选中策略（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
+    public void ClearGuideData() => SelectedStrategy = null;
 
     // ═══════════════ 导航离开拦截 ═══════════════
 
     public override async Task<bool> CanLeaveAsync()
     {
-        var hasBlockChanges = ConfigBlockEditors.Any(ce => ce.IsDirty);
-        if (!HasChanges && !hasBlockChanges) return true;
+        if (!IsDirty) return true;
 
         var choice = await Dialog.ShowConfirmAsync(
             Resources.Strategy_UnsavedChanges,
@@ -229,6 +308,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             StatusMessage = Resources.Strategy_Loading;
 
             var displayInfos = await _facade.GetStrategiesAsync(ct);
+            _allDisplayInfos = displayInfos;
+
+            // 数据集/会场名称列表（供配置块编辑器复用，避免每次选中策略重复加载）
+            var datasets = await _facade.ListStudentDatasetsAsync(ct);
+            _datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id, Name = d.Name }).ToList();
+            var venueIds = await _facade.ListVenueIdsAsync(ct);
+            _venueItems = venueIds.Select(v => new DatasetItem { Id = v, Name = v }).ToList();
 
             // 分类：独立策略 vs 依赖策略
             var independentInfos = displayInfos
@@ -292,6 +378,12 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             }
             else
                 StatusMessage = string.Format(Resources.Strategy_LoadedFmt, Strategies.Count);
+            _loaded = true;
+        }
+        catch (OperationCanceledException)
+        {
+            // 页内取消（切换页面）不弹错误框，也不置 _loaded，下次进入重试
+            throw;
         }
         catch (Exception ex)
         {
@@ -329,9 +421,13 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
         {
             _suppressChangeTracking = true;
 
-            var displayInfos = await _facade.GetStrategiesAsync(CancellationToken.None);
-            var detail = displayInfos.FirstOrDefault(d => d.Id == item.Id);
-            if (detail is null) return;
+            // 复用进入页面时缓存的策略清单（避免每次选中策略重复加载清单）
+            var detail = _allDisplayInfos.FirstOrDefault(d => d.Id == item.Id);
+            if (detail is null)
+            {
+                _suppressChangeTracking = false;
+                return;
+            }
 
             SelectedDetail = detail;
             EditPriority = item.Priority;
@@ -340,7 +436,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             // 加载策略参数编辑器（manifest parameters[] 驱动）
             if (detail.ParameterDefinitions is { Count: > 0 })
             {
-                var pe = new ParameterEditorViewModel();
+                var pe = new ParameterEditorViewModel(Dialog);
                 pe.LoadParameters(detail.ParameterDefinitions, detail.Parameters);
                 pe.Parameters.CollectionChanged += (_, _) => MarkDetailChanged();
                 foreach (var p in pe.Parameters)
@@ -357,20 +453,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             ConfigBlockEditors.Clear();
             if (detail.CodeBlocks is { Count: > 0 })
             {
-                var datasets = await _facade.ListStudentDatasetsAsync(CancellationToken.None);
-                var datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id, Name = d.Name }).ToList();
-                var venueIds = await _facade.ListVenueIdsAsync(CancellationToken.None);
-                var venueItems = new List<DatasetItem>();
-                foreach (var vid in venueIds)
-                {
-                    var name = vid; // 简化：用 ID 作为名称
-                    venueItems.Add(new DatasetItem { Id = vid, Name = name });
-                }
-
                 foreach (var cb in detail.CodeBlocks)
                 {
-                    var ce = new ConfigBlockEditorViewModel(_facade);
-                    ce.Initialize(cb, detail.Id, datasetItems, venueItems);
+                    var ce = new ConfigBlockEditorViewModel(_facade, Dialog);
+                    ce.Initialize(cb, detail.Id, _datasetItems, _venueItems);
                     ce.PropertyChanged += (_, e) =>
                     {
                         if (e.PropertyName == nameof(ConfigBlockEditorViewModel.IsDirty))
@@ -663,6 +749,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
             };
 
             await _facade.SaveStrategyConfigAsync(SelectedDetail.Id, config, ct);
+            // 回写详情参数缓存，避免切走再切回时显示旧值并用旧值覆盖已保存配置
+            SelectedDetail.Parameters = CollectDetailParameters();
             SelectedStrategy.MarkClean();
             RefreshPriorities();
 
@@ -740,6 +828,10 @@ public partial class StrategyConfigurationViewModel : ViewModelBase
                 await _facade.SaveStrategyConfigAsync(item.Id, config, ct);
                 item.MarkClean();
             }
+
+            // 回写详情参数缓存（同上，防止陈旧值覆盖）
+            if (SelectedDetail is not null && _hasDetailChanges)
+                SelectedDetail.Parameters = CollectDetailParameters();
 
             RefreshPriorities();
 

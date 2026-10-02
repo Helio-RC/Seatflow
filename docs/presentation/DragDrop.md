@@ -141,7 +141,11 @@ private void Seat_DragOver(object? sender, DragEventArgs e)
 }
 ```
 
-## CanvasZoomPan 交互
+## 画布缩放/平移交互（M5 起内置到 SeatingCanvas）
+
+> 历史说明：M0–M4 期间平移/缩放由 `Behaviors/CanvasZoomPan` + `Behaviors/ZoomOnScroll` 附加行为实现；
+> M1 起 `SeatingCanvas` 内置矩阵变换（Ctrl+滚轮缩放、空白拖拽平移），M5 已删除这两个行为文件。
+> 下方 NaN 哨兵方案是行为时代的实现记录，保留供理解「拖放与指针事件冲突」的解决思路。
 
 拖放与画布缩放/平移共用指针事件。冲突解决：
 
@@ -172,7 +176,7 @@ if (double.IsNaN(origin.X)) return;  // 哨兵检查，防止默认 (0,0) 触发
 | 拖不动 | 按下拖动无反应 | 使用 `PointerMoved` 启动拖放 | 改用 `PointerPressed` + `DoDragDropAsync` |
 | 禁止光标 | 鼠标显示禁止符号 | 目标缺少 `AllowDrop="True"`，或 `e.Handled=true` 过早 + `DragEffects` 保持 `None` | 加 `AllowDrop`，`e.Handled` 移到验证后 |
 | 拖不到垃圾桶 | 拖到垃圾桶上无反应 | 垃圾桶缺少 `AllowDrop="True"` | 加 `AllowDrop` |
-| 拖动时画布乱移 | 座位拖动时画布同时平移 | `CanvasZoomPan` 未检测到座位拖放；`PanOrigin` 为 `(0,0)` 误触发 | NaN 哨兵 + `OnPointerMoved` 检查 |
+| 拖动时画布乱移 | 座位拖动时画布同时平移 | 平移与座位拖放未隔离（行为时代 `CanvasZoomPan` 误触发） | M5 起由 `SeatingCanvas` 内部手势状态机隔离（历史方案：NaN 哨兵 + `OnPointerMoved` 检查） |
 | `DataTransfer.Set()` 不存在 | CS1929 | 文档和实际 API 版本不一致 | 用 `DataTransferItem.Set()` + `DataTransfer.Add()` |
 | `TryGetRaw` 返回 `object?` | 类型不匹配 | 泛型重载不存在 | 用 `is string s` 模式匹配 |
 | `e.Handled` 导致子元素事件丢失 | 点击不触发点击命令 | `PointerPressed` 中设置 `e.Handled = true` 阻止事件冒泡 | 不设置 `e.Handled`，让系统处理 |

@@ -3,6 +3,7 @@ using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using CodeWF.AvaloniaControls.Controls;
 
 namespace SeatFlow.Presentation.Avalonia.Views
@@ -36,6 +37,13 @@ namespace SeatFlow.Presentation.Avalonia.Views
         /// <summary>Guide 步骤切换前，解析 Target、处理跨阶段页面导航。</summary>
         private void OnGuideStepOpening(object? sender, GuideStepEventArgs e)
             => _onboarding.HandleStepOpening(e.Index, e.Step);
+
+        /// <summary>紧凑模式抽屉遮罩点击：关闭导航抽屉。</summary>
+        private void OnNavMaskPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (DataContext is MainShellViewModel vm)
+                vm.CloseNavDrawerCommand.Execute(null);
+        }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {

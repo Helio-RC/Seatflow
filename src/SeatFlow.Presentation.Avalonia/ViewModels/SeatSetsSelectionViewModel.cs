@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Services;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -11,6 +12,9 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// </summary>
 public partial class SeatSetsSelectionViewModel : ViewModelBase
 {
+    /// <summary>选择对话框：不使用对话框服务，默认注入空对象。</summary>
+    public SeatSetsSelectionViewModel(IDialogService? dialog = null) : base(dialog ?? NullDialogService.Instance) { }
+
     [ObservableProperty]
     public partial bool IncludeAppSettings { get; set; } = true;
 

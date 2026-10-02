@@ -13,8 +13,10 @@ using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.Telemetry;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
+using SeatFlow.Presentation.Avalonia.Behaviors;
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
+using ReactiveUI.Avalonia;
 using Velopack;
 
 [assembly: System.Resources.NeutralResourcesLanguage("zh-CN")]
@@ -31,9 +33,8 @@ namespace SeatFlow.Presentation.Avalonia
         {
             // Velopack 钩子：必须在 Main() 最开头调用。
             // 正常启动时 Run() 立即返回；安装/更新/卸载钩子模式下，钩子执行完毕从 Run() 内部退出。
-            VelopackApp.Build()
-                .OnFirstRun(_ => App.IsFirstRunAfterInstall = true)
-                .Run();
+            // M5：原 OnFirstRun 仅设置从未被读取的 App.IsFirstRunAfterInstall，已删除。
+            VelopackApp.Build().Run();
 
             // 安装时 hook：复制安装程序同目录下的 .seatsets 文件到应用根目录
             if (args.Any(a => a.StartsWith("--veloapp-install")))
@@ -78,6 +79,16 @@ namespace SeatFlow.Presentation.Avalonia
 
             // 注册导航服务
             services.AddSingleton<INavigationService, NavigationService>();
+
+            // 全局行为服务（M0：由静态状态改为 DI 单例）
+            services.AddSingleton<Behaviors.KeyboardShortcutHandler>();
+            services.AddSingleton<Behaviors.FileDropHandler>();
+
+            // 横切服务（M0）：对话框门（单例）/ 页面繁忙状态（每页一份）
+            services.AddSingleton<IDialogGate, DialogGate>();
+            services.AddTransient<IBusyScope, BusyScope>();
+            // M3：外壳紧凑断点共享状态（桌面/浏览器一致）
+            services.AddSingleton<IShellLayoutService, ShellLayoutService>();
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IUrlOpener, DesktopUrlOpener>();
@@ -95,13 +106,12 @@ namespace SeatFlow.Presentation.Avalonia
             services.AddSingleton<IOnboardingService, OnboardingService>();
             services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
             services.AddSingleton<MainShellViewModel>();
-            services.AddSingleton<HomeViewModel>();
             services.AddSingleton<MemberManagementViewModel>();
             services.AddSingleton<VenueConfigurationViewModel>();
-            services.AddSingleton<FreeformManagementViewModel>();
             services.AddSingleton<StrategyConfigurationViewModel>();
             services.AddSingleton<SeatingArrangementViewModel>();
-            services.AddTransient<SnapshotHistoryViewModel>();
+            services.AddTransient<WelcomeCardViewModel>();
+            services.AddSingleton<SnapshotHistoryViewModel>();
             services.AddSingleton<SettingsViewModel>();
             services.AddSingleton<AboutViewModel>();
 
@@ -111,21 +121,25 @@ namespace SeatFlow.Presentation.Avalonia
             // 更新对话框（每次手动创建，通过 ActivatorUtilities 动态解析）
             services.AddTransient<UpdateDialogViewModel>();
 
+            // M5：引导演示数据注入契约（OnboardingService 只按接口调用各页实现；双壳共用注册）
+            services.AddGuideSeedTargets();
+
             var serviceProvider = services.BuildServiceProvider();
 
-            // 将命令行中的 .seatsets 文件路径传递给 App（用于双击打开导入）
-            App.PendingSeatSetsFilePath = seatsetsFilePath;
-
-            // 将自动发现的 .seatsets 文件路径传递给 App（用于首次启动数据恢复）
-            App.AutoImportSeatSetsPath = autoImportPath;
-
-            BuildAvaloniaApp(serviceProvider, isFirstInstance)
+            // M5：命令行 .seatsets 路径与自动发现路径改为 App 构造参数（原静态握手字段已删除）
+            BuildAvaloniaApp(serviceProvider, isFirstInstance, seatsetsFilePath, autoImportPath)
                 .StartWithClassicDesktopLifetime(args);
         }
 
-        public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider, bool isFirstInstance)
-            => AppBuilder.Configure(() => new App(serviceProvider, isFirstInstance))
+        public static AppBuilder BuildAvaloniaApp(
+            IServiceProvider serviceProvider,
+            bool isFirstInstance,
+            string? seatsetsFilePath = null,
+            string? autoImportPath = null)
+            => AppBuilder.Configure(() => new App(serviceProvider, isFirstInstance, seatsetsFilePath, autoImportPath))
                 .UsePlatformDetect()
+                // B 路线 MVVM：注册 ReactiveUI 调度与绑定集成（视图层仍为普通 UserControl）
+                .UseReactiveUI(_ => { })
 #if DEBUG
                 .WithDeveloperTools()
 #endif

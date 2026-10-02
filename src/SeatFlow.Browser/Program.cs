@@ -8,6 +8,7 @@ using Avalonia.Browser;
 using Avalonia.Media;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ReactiveUI.Avalonia;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Application.Services;
 using SeatFlow.Core.Telemetry;
@@ -43,6 +44,15 @@ internal sealed class Program
 
         // 平台服务：浏览器端实现（IndexedDB 存储 / overlay 对话框 / 占位文件与更新服务）
         services.AddSingleton<INavigationService, NavigationService>();
+        // 全局行为服务（M0：由静态状态改为 DI 单例；SettingsViewModel 依赖快捷键配置单例）
+        services.AddSingleton<SeatFlow.Presentation.Avalonia.Behaviors.KeyboardShortcutHandler>();
+        services.AddSingleton<SeatFlow.Presentation.Avalonia.Behaviors.FileDropHandler>();
+
+        // 横切服务（M0）：对话框门（单例）/ 页面繁忙状态（每页一份）
+        services.AddSingleton<IDialogGate, DialogGate>();
+        services.AddTransient<IBusyScope, BusyScope>();
+        // M3：外壳紧凑断点共享状态（桌面/浏览器一致）
+        services.AddSingleton<IShellLayoutService, ShellLayoutService>();
         services.AddSingleton<IFileService, WebFileService>();
         services.AddSingleton<IDialogService, WebDialogService>();
         services.AddSingleton<IUrlOpener, WebUrlOpener>();
@@ -56,17 +66,19 @@ internal sealed class Program
         services.AddSingleton<IOnboardingService, OnboardingService>();
         services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
         services.AddSingleton<MainShellViewModel>();
-        services.AddSingleton<HomeViewModel>();
         services.AddSingleton<MemberManagementViewModel>();
         services.AddSingleton<VenueConfigurationViewModel>();
-        services.AddSingleton<FreeformManagementViewModel>();
         services.AddSingleton<StrategyConfigurationViewModel>();
         services.AddSingleton<SeatingArrangementViewModel>();
-        services.AddTransient<SnapshotHistoryViewModel>();
+        services.AddTransient<WelcomeCardViewModel>();
+        services.AddSingleton<SnapshotHistoryViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddTransient<ConfigBlockEditorViewModel>();
         services.AddTransient<UpdateDialogViewModel>();
+
+        // M5：引导演示数据注入契约（OnboardingService 只按接口调用各页实现；双壳共用注册）
+        services.AddGuideSeedTargets();
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -92,6 +104,8 @@ internal sealed class Program
     [SupportedOSPlatform("browser")]
     private static Task StartBrowserAppAsync(IServiceProvider services)
         => BuildAvaloniaApp(services)
+            // B 路线 MVVM：注册 ReactiveUI 调度与绑定集成（视图层仍为普通 UserControl）
+            .UseReactiveUI(_ => { })
             .WithInterFont()
             .With(new FontManagerOptions
             {

@@ -14,6 +14,7 @@ using SeatFlow.Core.Strategies;
 using SeatFlow.Core.Workspace;
 using SeatFlow.Infrastructure.Serialization;
 using SeatFlow.Presentation.Avalonia.Lang;
+using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -24,11 +25,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class SeatingArrangementViewModel : ViewModelBase
+public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
     private readonly IArrangementCounterService _counterService;
+    private readonly IShellLayoutService _layout;
+    private readonly IServiceProvider _services;
     /// <summary>当前平台是否浏览器（WASM）：Web 版隐藏 PDF/图片导出。</summary>
     public bool IsWebPlatform => OperatingSystem.IsBrowser();
 
@@ -40,6 +43,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private SeatingPlan? _currentPlan;
     private SeatDisplayItem? _swapSourceSeat;
     private CancellationTokenSource? _generateCts;
+    private CancellationTokenSource? _enterCts;
 
     // ── 操作历史 ──
     private readonly ObservableCollection<HistoryEntry> _historyEntries = [];
@@ -86,11 +90,23 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     [ObservableProperty]
     public partial double CanvasHeight { get; set; } = 600;
 
-    private double _contentCenterX, _contentCenterY;
+    /// <summary>自绘画布渲染快照（不可变；引用替换触发重绘）。</summary>
+    [ObservableProperty]
+    public partial SeatLayoutSnapshot? CanvasSnapshot { get; set; }
+
+    /// <summary>画布缩放（双向绑定到 SeatingCanvas.Zoom；缩放不再重建座位集合）。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ZoomPercentDisplay))]
+    public partial double ZoomLevel { get; set; } = 1.0;
+
+    /// <summary>缩放百分比显示（控制条，如「120%」）。</summary>
+    public string ZoomPercentDisplay => $"{Math.Round(ZoomLevel * 100)}%";
+
+    /// <summary>设置中的座位图默认缩放（控制条点按百分比时重置目标）。</summary>
+    public double DefaultZoomLevel => _defaultZoomLevel;
+
     private double _defaultZoomLevel = 1.0;
-    public double ZoomLevel { get; set; } = 1.0;
-    public Action<double> ZoomAction => delta => ApplyZoom(delta);
-    public void ApplyZoom(double delta) { ZoomLevel = Math.Clamp(ZoomLevel + delta, 0.2, 3.0); BuildSeatDisplayItems(); }
+    private int _snapshotVersion;
 
     /// <summary>不改变数据，仅重新绘制预览区域。</summary>
     public void RefreshPreview() => BuildSeatDisplayItems();
@@ -124,21 +140,63 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     public bool HasSelectedUnassignedStudent => SelectedUnassignedStudent != null;
 
     [ObservableProperty]
-    public partial bool IsStrategiesExpanded { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool IsUnassignedExpanded { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool IsHistoryExpanded { get; set; } = true;
-
-    [ObservableProperty]
     public partial ObservableCollection<StrategyMessageGroup> MessageGroups { get; set; } = [];
 
-    [ObservableProperty]
-    public partial bool IsMessagesExpanded { get; set; } = true;
-
     public bool HasMessages => MessageGroups.Count > 0;
+
+    // ── M3 工作台外壳：紧凑断点 / 抽屉 / 欢迎卡 ──
+
+    /// <summary>外壳布局状态（紧凑模式下左选择栏与右检查器转为右抽屉）。</summary>
+    public IShellLayoutService Layout => _layout;
+
+    /// <summary>空态欢迎卡（承接原 Home 的欢迎语 / 快捷链接 / RELEASE 更新说明）。</summary>
+    public WelcomeCardViewModel Welcome { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PickerVisible))]
+    [NotifyPropertyChangedFor(nameof(DrawerMaskVisible))]
+    public partial bool IsPickerDrawerOpen { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(InspectorVisible))]
+    [NotifyPropertyChangedFor(nameof(DrawerMaskVisible))]
+    public partial bool IsInspectorDrawerOpen { get; set; }
+
+    /// <summary>桌面：左选择栏常驻；紧凑：仅抽屉展开时可见。</summary>
+    public bool PickerVisible => !_layout.IsCompact || IsPickerDrawerOpen;
+
+    /// <summary>左选择栏宽度（桌面内联 248；紧凑抽屉 320）。</summary>
+    public double PickerPanelWidth => _layout.IsCompact ? 320 : 248;
+
+    /// <summary>紧凑模式隐藏命令栏标题/副标题/按钮文字（避免溢出重叠）。</summary>
+    public bool CompactCommandTextVisible => !_layout.IsCompact;
+
+    /// <summary>左选择栏所在列（桌面 0；紧凑切到画布列做右侧抽屉覆盖）。</summary>
+    public int PickerPanelColumn => _layout.IsCompact ? 1 : 0;
+
+    /// <summary>右检查器所在列（桌面 2；紧凑切到画布列做右侧抽屉覆盖）。</summary>
+    public int InspectorPanelColumn => _layout.IsCompact ? 1 : 2;
+
+    /// <summary>抽屉/内联面板的水平对齐（紧凑右对齐，桌面拉伸）。</summary>
+    public global::Avalonia.Layout.HorizontalAlignment PanelHorizontalAlignment =>
+        _layout.IsCompact ? global::Avalonia.Layout.HorizontalAlignment.Right : global::Avalonia.Layout.HorizontalAlignment.Stretch;
+
+    /// <summary>面板层级（紧凑抽屉需在遮罩之上）。</summary>
+    public int PanelZIndex => _layout.IsCompact ? 30 : 0;
+
+    /// <summary>左选择栏描边（桌面右边框；紧凑抽屉左边框）。</summary>
+    public global::Avalonia.Thickness PickerPanelBorderThickness =>
+        _layout.IsCompact ? new global::Avalonia.Thickness(1, 0, 0, 0) : new global::Avalonia.Thickness(0, 0, 1, 0);
+
+    /// <summary>桌面：右检查器常驻；紧凑：仅抽屉展开时可见。</summary>
+    public bool InspectorVisible => !_layout.IsCompact || IsInspectorDrawerOpen;
+
+    /// <summary>紧凑模式下任一抽屉展开时显示遮罩。</summary>
+    public bool DrawerMaskVisible => _layout.IsCompact && (IsPickerDrawerOpen || IsInspectorDrawerOpen);
+
+    /// <summary>命令栏副标题：当前会场 · 当前名单。</summary>
+    public string WorkbenchSubtitle =>
+        $"{SelectedVenue?.Name ?? Resources.Seating_Venue} · {SelectedDataset?.Name ?? Resources.Seating_MemberData}";
 
     // ── 状态栏 ──
     [ObservableProperty]
@@ -160,46 +218,215 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     public partial string SwapHintText { get; set; } = string.Empty;
 
     /// <summary>
-    /// 最近一次数据加载（构造时初始化或导航进入时刷新）的完成信号。
-    /// 引导示例数据注入需等待它完成，否则随后加载会整体替换 VenueItems/DatasetItems、
-    /// 覆盖演示数据（WASM/IndexedDB 下异步加载可能晚于引导阶段切换）。
+    /// 本次进入页面的加载完成信号：<see cref="OnLeaveAsync"/> 时替换为新的未完成任务，
+    /// <see cref="OnEnterAsync"/> 内部的刷新结束后置位。
+    /// 引导示例数据注入（OnboardingService.SeedSeatingArrangementData）需等待它，
+    /// 否则随后加载会整体替换 VenueItems/DatasetItems、覆盖演示数据。
+    /// 初始为已完成，兼容「构造后从未进入过页面」的读取场景。
     /// </summary>
-    public Task InitializationTask { get; private set; } = Task.CompletedTask;
+    public Task InitializationTask => _enterCompletion.Task;
 
-    public SeatingArrangementViewModel(IApplicationFacade facade, IFileService fileService, INavigationService navigation, IArrangementCounterService counterService, ILogger<SeatingArrangementViewModel>? logger = null)
+    private TaskCompletionSource _enterCompletion = CreateCompletedCompletion();
+
+    private static TaskCompletionSource CreateCompletedCompletion()
+    {
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        tcs.SetResult();
+        return tcs;
+    }
+
+    public SeatingArrangementViewModel(
+        IApplicationFacade facade,
+        IFileService fileService,
+        IArrangementCounterService counterService,
+        IShellLayoutService layout,
+        WelcomeCardViewModel welcome,
+        IServiceProvider services,
+        IDialogService dialog,
+        ILogger<SeatingArrangementViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _fileService = fileService;
-        _navigation = navigation;
         _counterService = counterService;
+        _layout = layout;
+        Welcome = welcome;
+        _services = services;
         _logger = logger ?? NullLogger<SeatingArrangementViewModel>.Instance;
-        navigation.CurrentViewModelChanged += OnNavigationChanged;
-        InitializationTask = LoadInitialDataAsync();
+        // 紧凑断点变化：抽屉互斥/可见性联动
+        _layout.PropertyChanged += OnLayoutChanged;
     }
 
-    private readonly INavigationService _navigation;
-
-    private void OnNavigationChanged()
+    private void OnLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (_navigation.CurrentViewModel == this)
+        if (e.PropertyName != nameof(IShellLayoutService.IsCompact)) return;
+        if (!_layout.IsCompact)
         {
-            // 推迟到 UI 布局完成后执行（确保 OnLoaded 已触发、SeatItems 绑定已建立），
-            // 并将该刷新登记为可等待的初始化任务，避免引导演示数据被后续加载覆盖
-            InitializationTask = Dispatcher.UIThread
-                .InvokeAsync(RefreshDataAsync, DispatcherPriority.Background);
+            IsPickerDrawerOpen = false;
+            IsInspectorDrawerOpen = false;
         }
+        OnPropertyChanged(nameof(PickerVisible));
+        OnPropertyChanged(nameof(PickerPanelWidth));
+        OnPropertyChanged(nameof(InspectorVisible));
+        OnPropertyChanged(nameof(DrawerMaskVisible));
+        OnPropertyChanged(nameof(CompactCommandTextVisible));
+        OnPropertyChanged(nameof(PickerPanelColumn));
+        OnPropertyChanged(nameof(InspectorPanelColumn));
+        OnPropertyChanged(nameof(PanelHorizontalAlignment));
+        OnPropertyChanged(nameof(PanelZIndex));
+        OnPropertyChanged(nameof(PickerPanelBorderThickness));
+    }
+
+    // ═══════════════════════════════════════════════
+    // IPageLifecycle（M3：构造器不再 fire-and-forget 加载）
+    // ═══════════════════════════════════════════════
+
+    /// <summary>是否存在未保存更改（供 <see cref="IPageLifecycle"/> 与导航拦截使用）。</summary>
+    public bool IsDirty => HasUnsavedChanges;
+
+    public async Task OnEnterAsync(CancellationToken ct)
+    {
+        _enterCts?.Cancel();
+        _enterCts?.Dispose();
+        _enterCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
+        // 切换页面自动收起抽屉
+        IsPickerDrawerOpen = false;
+        IsInspectorDrawerOpen = false;
+
+        var token = _enterCts.Token;
+        var completion = _enterCompletion;
+        try
+        {
+            await RefreshDataAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+            // 离开页面取消，保持已有状态
+        }
+        finally
+        {
+            completion.TrySetResult();
+        }
+    }
+
+    public Task OnLeaveAsync()
+    {
+        _enterCts?.Cancel();
+        _generateCts?.Cancel();
+        IsPickerDrawerOpen = false;
+        IsInspectorDrawerOpen = false;
+        // 为下一次进入准备新的完成信号，保证引导读到的是「下一次加载」而非旧任务
+        _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        return Task.CompletedTask;
+    }
+
+    // ═══════════════════════════════════════════════
+    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
+    // ═══════════════════════════════════════════════
+
+    /// <summary>注入 3×4 演示座位与演示名单（纯内存，不落盘）。</summary>
+    public void SeedGuideData()
+    {
+        // 已等待 OnEnterAsync 内的 RefreshDataAsync 完成，注入不会被后续加载覆盖
+        VenueItems.Clear();
+        VenueItems.Add(new("demo-v", "演示教室"));
+        DatasetItems.Clear();
+        DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
+        SelectedVenue = VenueItems.FirstOrDefault();
+        SelectedDataset = DatasetItems.FirstOrDefault();
+
+        var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
+        var seats = new ObservableCollection<SeatDisplayItem>();
+        for (int r = 0; r < 4; r++)
+            for (int c = 0; c < 3; c++)
+            {
+                var idx = (r * 3) + c;
+                seats.Add(new SeatDisplayItem
+                {
+                    SeatId = $"R{r}C{c}",
+                    SeatLabel = $"R{r}C{c}",
+                    X = 200 + (c * 80),
+                    Y = 200 + (r * 60),
+                    Width = 50,
+                    Height = 30,
+                    IsOccupied = idx < 6,
+                    StudentName = idx < 6 ? names[idx] : null,
+                    OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
+                });
+            }
+
+        SeatItems = seats;
+        OverlayItems = new ObservableCollection<SeatDisplayItem>();
+        TotalSeats = 12;
+        AssignedSeats = 6;
+        HasGenerated = true;
+        IsGenerating = false;
+        StatusMessage = "已分配 6/12 个座位（演示数据）";
+        // 让演示座位真正渲染到自绘画布（SeatItems 变化不会自动重建快照）
+        UpdateCanvasSnapshot();
+    }
+
+    /// <summary>清空演示工作区（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
+    public void ClearGuideData()
+    {
+        HasGenerated = false;
+        SeatItems.Clear();
+        OverlayItems.Clear();
+        TotalSeats = 0;
+        AssignedSeats = 0;
+        VenueItems.Clear();
+        DatasetItems.Clear();
+        SelectedVenue = null;
+        SelectedDataset = null;
+        // 列表已清空 → 下次进入重新加载（页面缓存策略失效化）
+        InvalidateData();
+    }
+
+    // ── 抽屉命令 ──
+
+    [RelayCommand]
+    private void TogglePickerDrawer()
+    {
+        IsPickerDrawerOpen = !IsPickerDrawerOpen;
+        if (IsPickerDrawerOpen) IsInspectorDrawerOpen = false;
+    }
+
+    [RelayCommand]
+    private void ToggleInspectorDrawer()
+    {
+        IsInspectorDrawerOpen = !IsInspectorDrawerOpen;
+        if (IsInspectorDrawerOpen) IsPickerDrawerOpen = false;
+    }
+
+    [RelayCommand]
+    private void CloseDrawers()
+    {
+        IsPickerDrawerOpen = false;
+        IsInspectorDrawerOpen = false;
+    }
+
+    // ═══════════════════════════════════════════════
+    // IFileDropHandler：.seatsets 数据包导入（原 Home 页职责，M3 迁移到默认入口页）
+    // ═══════════════════════════════════════════════
+
+    IReadOnlyList<string> IFileDropHandler.AcceptedFileExtensions { get; } = [".seatsets"];
+
+    async Task<bool> IFileDropHandler.HandleFileDropAsync(IReadOnlyList<string> filePaths, CancellationToken ct)
+    {
+        if (filePaths.Count == 0) return false;
+        var ok = await SeatSetsImportHelper.ImportAsync(filePaths[0], _services, Dialog, _logger, ct);
+        if (ok)
+        {
+            InvalidateData();
+            await RefreshDataAsync(ct);
+        }
+        return ok;
     }
 
     /// <summary>用于抑制 <see cref="OnSelectedVenueChanged"/> 覆盖已恢复的布局。</summary>
     private bool _isRestoringWorkspace;
 
     // ── 初始化 ──
-
-    private async Task LoadInitialDataAsync()
-    {
-        await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync(), LoadDefaultZoomAsync());
-        StatusMessage = Resources.Seating_ReadyHint;
-    }
 
     private async Task LoadDefaultZoomAsync()
     {
@@ -215,9 +442,29 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         }
     }
 
-    public async Task RefreshDataAsync()
+    /// <summary>会场/名单列表是否已加载（页面缓存策略：进入不重复加载，显式刷新）。</summary>
+    private bool _dataLoaded;
+
+    /// <summary>标记列表数据失效（下次进入或刷新时重新加载）。</summary>
+    public void InvalidateData() => _dataLoaded = false;
+
+    /// <summary>显式刷新会场/名单列表（页面缓存策略的手动入口）。</summary>
+    [RelayCommand]
+    private async Task ReloadDataAsync()
     {
-        await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync());
+        _dataLoaded = false;
+        await RefreshDataAsync();
+    }
+
+    public async Task RefreshDataAsync(CancellationToken ct = default)
+    {
+        if (!_dataLoaded)
+        {
+            await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync(), LoadDefaultZoomAsync());
+            ct.ThrowIfCancellationRequested();
+            _dataLoaded = true;
+            StatusMessage = Resources.Seating_ReadyHint;
+        }
         await TryRestoreWorkspaceAsync();
     }
 
@@ -227,13 +474,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         await SafeExecuteAsync(async () =>
         {
             var ids = (await _facade.ListVenueIdsAsync()).ToList();
-            var items = new List<VenueItem>();
-            foreach (var id in ids)
-            {
-                var layout = await _facade.LoadVenueAsync(id);
-                items.Add(new VenueItem(id, layout?.Name ?? id));
-            }
-            VenueItems = new ObservableCollection<VenueItem>(items);
+            // M6 启动优化：首屏只列 ID（名称以 ID 占位），避免启动时反序列化全部会场布局
+            // （大教室可达数百座位）；选中 / 恢复工作区时再加载布局并回填真实名称。
+            VenueItems = new ObservableCollection<VenueItem>(ids.Select(id => new VenueItem(id, id)));
         });
     }
 
@@ -259,9 +502,26 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         if (_currentLayout != null)
         {
             _isRestoringWorkspace = true;
-            SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Id)
-                         ?? VenueItems.FirstOrDefault();
-            _isRestoringWorkspace = false;
+            try
+            {
+                var restored = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Id)
+                             ?? VenueItems.FirstOrDefault();
+                // M6：首屏列表以 ID 占位，恢复工作区时回填真实名称
+                if (restored is not null && restored.Name == restored.Id && !string.IsNullOrEmpty(_currentLayout.Name))
+                {
+                    var index = VenueItems.IndexOf(restored);
+                    if (index >= 0)
+                    {
+                        restored = restored with { Name = _currentLayout.Name };
+                        VenueItems[index] = restored;
+                    }
+                }
+                SelectedVenue = restored;
+            }
+            finally
+            {
+                _isRestoringWorkspace = false;
+            }
 
             HasGenerated = true;
         }
@@ -278,17 +538,54 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     // ── 会场选择 ──
     partial void OnSelectedVenueChanged(VenueItem? value)
     {
+        OnPropertyChanged(nameof(WorkbenchSubtitle));
         if (value == null || _isRestoringWorkspace) return;
+        var venueId = value.Id;
         _ = SafeExecuteAsync(async () =>
         {
-            _currentLayout = await _facade.LoadVenueAsync(value.Id);
+            var layout = await _facade.LoadVenueAsync(venueId);
+            // 竞态防护：加载期间用户可能已切换到其他会场，后完成者不得覆盖当前布局
+            if (SelectedVenue?.Id != venueId) return;
+
+            _currentLayout = layout;
             if (_currentLayout != null)
             {
                 ObstacleProcessor.ApplyObstacles(_currentLayout);
+                ApplyVenueDisplayName(value, _currentLayout.Name);
                 StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt, _currentLayout.Name, _currentLayout.Seats.Count);
             }
         });
     }
+
+    /// <summary>
+    /// M6 启动优化：会场列表首屏以 ID 占位显示，布局加载完成后回填真实名称。
+    /// 集合项替换可能触发 ListBox 选择变化（清空或重映射）；先进入恢复门再替换，
+    /// 之后按 Id 恢复选中，保证不发生二次加载（<see cref="_isRestoringWorkspace"/>）。
+    /// </summary>
+    private void ApplyVenueDisplayName(VenueItem item, string? name)
+    {
+        if (string.IsNullOrEmpty(name) || item.Name != item.Id || name == item.Id) return;
+
+        var index = VenueItems.IndexOf(item);
+        if (index < 0) return;
+
+        var updated = item with { Name = name };
+        _isRestoringWorkspace = true;
+        try
+        {
+            VenueItems[index] = updated;
+            // 只要用户没有切走就恢复选中（替换可能已把它清空/保留旧实例）
+            if (SelectedVenue is null || SelectedVenue.Id == updated.Id)
+                SelectedVenue = updated;
+        }
+        finally
+        {
+            _isRestoringWorkspace = false;
+        }
+    }
+
+    partial void OnSelectedDatasetChanged(StudentDatasetInfo? value)
+        => OnPropertyChanged(nameof(WorkbenchSubtitle));
 
     // ── 生成座位 ──
 
@@ -305,7 +602,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         HasGenerated = false;
         StatusMessage = Resources.Seating_Generating;
 
-        await SafeExecuteAsync(async () =>
+        await SafeCancelableAsync(async () =>
         {
             // 1. 加载学生
             var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
@@ -380,7 +677,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         HasGenerated = false;
         StatusMessage = Resources.Seating_CreateEmptyHint;
 
-        await SafeExecuteAsync(async () =>
+        await SafeCancelableAsync(async () =>
         {
             // 加载学生
             var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
@@ -451,13 +748,23 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             maxY0 = Math.Max(maxY0, oy + oh);
         }
 
-        // 始终以当前原始坐标中心为参考中心（首次或重置后都正确）
-        _contentCenterX = (minX0 + maxX0) / 2;
-        _contentCenterY = (minY0 + maxY0) / 2;
+        // 空布局保护（无可用座位时清空画面）
+        if (rawPositions.Count == 0)
+        {
+            SeatItems = [];
+            OverlayItems = [];
+            CanvasSnapshot = null;
+            return;
+        }
 
-        // 第二遍：以中心缩放，座位尺寸固定
+        // 第二遍：坐标归一化到板面左上（含内边距）；缩放/平移由 SeatingCanvas 承担
+        const double localMargin = 40;
         double seatWidth = baseW;
         double seatHeight = baseH;
+        double spanX = maxX0 - minX0;
+        double spanY = maxY0 - minY0;
+        CanvasWidth = Math.Max(160, spanX + (localMargin * 2));
+        CanvasHeight = Math.Max(160, spanY + (localMargin * 2));
 
         var items = new List<SeatDisplayItem>();
         int seatCounter = 0;
@@ -468,8 +775,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             bool isOccupied = occupantId != null;
             bool isFrontRow = IsFrontRowSeat(seat, metadata);
 
-            double sx = _contentCenterX + ((cx - _contentCenterX) * ZoomLevel);
-            double sy = _contentCenterY + ((cy - _contentCenterY) * ZoomLevel);
+            double sx = cx - minX0 + localMargin;
+            double sy = cy - minY0 + localMargin;
 
             seatCounter++;
             items.Add(new SeatDisplayItem
@@ -485,29 +792,22 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 StudentId = occupantId,
                 IsOccupied = isOccupied,
                 IsFixed = seat.IsFixed,
+                IsSelectedForSwap = _swapSourceSeat?.SeatId == seat.Id,
                 OccupancyStatus = isOccupied
                     ? (seat.IsFixed ? SeatOccupancyStatus.Fixed : SeatOccupancyStatus.Occupied)
                     : SeatOccupancyStatus.Empty
             });
         }
-
-        // Canvas 大小 + 居中偏移
-        double margin = 120;
-        CanvasWidth = Math.Max(900, ((maxX0 - minX0) * ZoomLevel) + (margin * 2));
-        CanvasHeight = Math.Max(700, ((maxY0 - minY0) * ZoomLevel) + (margin * 2));
-        double offsetX = (CanvasWidth / 2) - _contentCenterX;
-        double offsetY = (CanvasHeight / 2) - _contentCenterY;
-        foreach (var item in items) { item.X += offsetX; item.Y += offsetY; }
         SeatItems = new ObservableCollection<SeatDisplayItem>(items);
 
-        // 障碍物叠加层（大小按座宽比例动态计算）
+        // 障碍物叠加层（坐标同样归一化；Grid 讲台水平居中于座位范围）
         var overlays = new List<SeatDisplayItem>();
+        var boardOverlays = new List<BoardOverlay>();
         double podiumW = baseW * 2.5;
         double podiumH = baseH * 1.6;
         double doorW = baseW * 1.2;
         double doorH = baseH * 0.9;
 
-        // Grid 讲台 X 坐标：水平居中于座位范围
         double seatMinX = double.MaxValue, seatMaxX = 0;
         foreach (var seat in _currentLayout.Seats)
         {
@@ -530,8 +830,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase
             if (metadata is GridLayoutMetadata && obs.Type == "Podium" && seatMinX < seatMaxX)
                 obsX = ((seatMinX + seatMaxX) / 2) - (w / 2);
 
-            double ox = _contentCenterX + ((obsX - _contentCenterX) * ZoomLevel) + offsetX;
-            double oy = _contentCenterY + ((obsY - _contentCenterY) * ZoomLevel) + offsetY;
+            double ox = obsX - minX0 + localMargin;
+            double oy = obsY - minY0 + localMargin;
+
             overlays.Add(new SeatDisplayItem
             {
                 X = ox,
@@ -543,8 +844,43 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 CornerRadius = obs.Type == "Podium" ? new(w / 2) : new(4),
                 OccupancyStatus = SeatOccupancyStatus.Empty
             });
+            boardOverlays.Add(new BoardOverlay(
+                ox, oy, w, h,
+                obs.Type ?? Resources.Seating_Obstacle,
+                IsRound: obs.Type == "Podium",
+                IsDoor: string.Equals(obs.Type, "Door", StringComparison.OrdinalIgnoreCase)));
         }
         OverlayItems = new ObservableCollection<SeatDisplayItem>(overlays);
+
+        CanvasSnapshot = new SeatLayoutSnapshot(
+            items.Select(ToSeatVisual).ToList(),
+            CanvasWidth, CanvasHeight, ++_snapshotVersion, boardOverlays);
+    }
+
+    /// <summary>由显示项生成不可变座位视觉（缩放/平移由画布矩阵处理）。</summary>
+    private SeatVisual ToSeatVisual(SeatDisplayItem item) => new(
+        item.SeatId, item.X, item.Y, item.Width, item.Height,
+        IsOccupied: item.IsOccupied,
+        IsFixed: item.IsFixed,
+        IsDisabled: false,
+        Label: item.IsOccupied ? item.StudentName : null,
+        SeatLabel: item.SeatLabel,
+        StudentId: item.StudentId,
+        IsSwapSource: item.IsSelectedForSwap || (_swapSourceSeat?.SeatId == item.SeatId),
+        IsDropTarget: item.IsDragHover,
+        IsDataStale: item.IsDataStale);
+
+    /// <summary>轻量刷新画布快照（不重算几何；用于交换选中态等 UI 状态变化）。</summary>
+    public void UpdateCanvasSnapshot()
+    {
+        var overlays = OverlayItems.Select(o => new BoardOverlay(
+            o.X, o.Y, o.Width, o.Height, o.SeatLabel,
+            IsRound: Math.Abs(o.CornerRadius.TopLeft - (o.Height / 2)) < 0.01,
+            IsDoor: string.Equals(o.SeatLabel, "Door", StringComparison.OrdinalIgnoreCase))).ToList();
+
+        CanvasSnapshot = new SeatLayoutSnapshot(
+            SeatItems.Select(ToSeatVisual).ToList(),
+            CanvasWidth, CanvasHeight, ++_snapshotVersion, overlays);
     }
 
     private static (double width, double height) GetSeatDimensions(LayoutMetadata metadata)
@@ -622,6 +958,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase
                 : SeatOccupancyStatus.Empty;
             item.IsSelectedForSwap = false;
         }
+
+        UpdateCanvasSnapshot();
     }
 
     private async Task UpdateRightPanelAsync()
@@ -762,6 +1100,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
 
             _swapSourceSeat = clickedSeat;
             clickedSeat.IsSelectedForSwap = true;
+            UpdateCanvasSnapshot();
             IsSwapMode = true;
             SwapHintText = string.Format(Resources.Seating_SelectTargetFmt, clickedSeat.StudentName ?? clickedSeat.SeatLabel);
             return;
@@ -798,6 +1137,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
     private void CancelSwap()
     {
         _swapSourceSeat?.IsSelectedForSwap = false;
+        UpdateCanvasSnapshot();
         _swapSourceSeat = null;
         IsSwapMode = false;
         SwapHintText = string.Empty;
@@ -999,6 +1339,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanRedo));
         OnPropertyChanged(nameof(HasUnsavedChanges));
         OnPropertyChanged(nameof(HasHistory));
+        OnPropertyChanged(nameof(IsDirty));
         // 更新各条目的 IsCurrent 标记
         for (int i = 0; i < _historyEntries.Count; i++)
             _historyEntries[i].IsCurrent = i == _currentHistoryIndex;
@@ -1053,20 +1394,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase
         _ = _counterService.ReportAndResetAsync();
         return true;
     }
-
-    // ── 折叠切换 ──
-
-    [RelayCommand]
-    private void ToggleStrategies() => IsStrategiesExpanded = !IsStrategiesExpanded;
-
-    [RelayCommand]
-    private void ToggleUnassigned() => IsUnassignedExpanded = !IsUnassignedExpanded;
-
-    [RelayCommand]
-    private void ToggleHistory() => IsHistoryExpanded = !IsHistoryExpanded;
-
-    [RelayCommand]
-    private void ToggleMessages() => IsMessagesExpanded = !IsMessagesExpanded;
 
     // ── 导出 ──
 

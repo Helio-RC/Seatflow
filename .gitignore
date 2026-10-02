@@ -384,7 +384,7 @@ dev-debug.log
 /.claude
 
 # i18n backup files
-SeatFlow.Presentation.Avalonia/Lang/.backup/
+**/Lang/.backup/
 .version-backups
 
 # Release config (contains OSS credentials + GitHub token)
@@ -401,3 +401,6 @@ src/plugin-examples/_build/
 
 # Git worktrees
 .worktrees/
+
+# UI 无头采样输出（Headless 视觉基线 / WASM 截图）：不入库，仅本地验证使用
+scripts/ui-inspect/baselines/

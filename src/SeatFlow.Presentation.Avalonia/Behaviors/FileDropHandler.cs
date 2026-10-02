@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,21 +10,29 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using FluentIcons.Common;
-using Microsoft.Extensions.DependencyInjection;
 using AvaloniaApp = Avalonia.Application;
 
 namespace SeatFlow.Presentation.Avalonia.Behaviors;
 
 /// <summary>
-/// 全局文件拖放导入行为。注册在 <see cref="Views.MainView"/> 上，拦截 OS 文件拖放事件，
+/// 全局文件拖放导入服务（DI 单例）。注册在 <see cref="Views.MainView"/> 上，拦截 OS 文件拖放事件，
 /// 根据当前页面的 ViewModel 是否实现 <see cref="IFileDropHandler"/> 来路由处理。
 /// 拖入文件时显示遮罩覆盖层（支持/不支持两种状态）。
+/// M0 起：由静态 <c>_host</c> + 服务定位改为 DI 单例（注入导航与对话框服务）。
 /// </summary>
-internal static class FileDropHandler
+public sealed class FileDropHandler
 {
-    private static Control? _host;
+    private readonly INavigationService _navigation;
+    private readonly IDialogService _dialog;
+    private Control? _host;
 
-    public static void Attach(Control host)
+    public FileDropHandler(INavigationService navigation, IDialogService dialog)
+    {
+        _navigation = navigation;
+        _dialog = dialog;
+    }
+
+    public void Attach(Control host)
     {
         _host = host;
         DragDrop.AddDragOverHandler(host, OnDragOver);
@@ -34,20 +41,7 @@ internal static class FileDropHandler
         DragDrop.AddDragLeaveHandler(host, OnDragLeave);
     }
 
-    private static ViewModelBase? ResolveCurrentViewModel()
-    {
-        if (AvaloniaApp.Current is not App app)
-            return null;
-        var nav = app.ServiceProvider.GetRequiredService<INavigationService>();
-        return nav.CurrentViewModel;
-    }
-
-    private static IDialogService? GetDialogService()
-    {
-        if (AvaloniaApp.Current is App app)
-            return app.ServiceProvider.GetService<IDialogService>();
-        return null;
-    }
+    private ViewModelBase? ResolveCurrentViewModel() => _navigation.CurrentViewModel;
 
     private static string[]? GetDroppedFilePaths(DragEventArgs e)
     {
@@ -62,7 +56,7 @@ internal static class FileDropHandler
     }
 
     /// <summary>判断当前拖入的文件是否被当前页面接受。</summary>
-    private static bool IsAcceptedByCurrentPage(DragEventArgs e)
+    private bool IsAcceptedByCurrentPage(DragEventArgs e)
     {
         var vm = ResolveCurrentViewModel();
         if (vm is not IFileDropHandler handler)
@@ -80,7 +74,7 @@ internal static class FileDropHandler
     }
 
     /// <summary>显示遮罩覆盖层并根据页面对文件的接受情况设置图标、文字和边框颜色。</summary>
-    private static void SetOverlayState(bool accepted)
+    private void SetOverlayState(bool accepted)
     {
         if (_host is null) return;
 
@@ -111,7 +105,7 @@ internal static class FileDropHandler
         overlay.IsVisible = true;
     }
 
-    private static void HideOverlay()
+    private void HideOverlay()
     {
         if (_host is null) return;
         var overlay = _host.FindControl<Border>("FileDropOverlay");
@@ -119,7 +113,7 @@ internal static class FileDropHandler
             overlay.IsVisible = false;
     }
 
-    private static void OnDragEnter(object? sender, DragEventArgs e)
+    private void OnDragEnter(object? sender, DragEventArgs e)
     {
         if (!e.DataTransfer.Formats.Contains(DataFormat.File))
             return;
@@ -127,12 +121,12 @@ internal static class FileDropHandler
         SetOverlayState(IsAcceptedByCurrentPage(e));
     }
 
-    private static void OnDragLeave(object? sender, DragEventArgs e)
+    private void OnDragLeave(object? sender, DragEventArgs e)
     {
         HideOverlay();
     }
 
-    private static void OnDragOver(object? sender, DragEventArgs e)
+    private void OnDragOver(object? sender, DragEventArgs e)
     {
         var vm = ResolveCurrentViewModel();
         if (vm is not IFileDropHandler handler)
@@ -164,7 +158,7 @@ internal static class FileDropHandler
         }
     }
 
-    private static async void OnDrop(object? sender, DragEventArgs e)
+    private async void OnDrop(object? sender, DragEventArgs e)
     {
         HideOverlay();
 
@@ -178,9 +172,7 @@ internal static class FileDropHandler
 
             if (filePaths.Length > 1)
             {
-                var dialog = GetDialogService();
-                if (dialog is null) return;
-                var confirmed = await dialog.ShowConfirmAsync(
+                var confirmed = await _dialog.ShowConfirmAsync(
                     Resources.DragDrop_MultipleFilesTitle,
                     string.Format(Resources.DragDrop_MultipleFilesMsg, filePaths.Length));
                 if (!confirmed) return;
@@ -193,15 +185,11 @@ internal static class FileDropHandler
             {
                 if (ext is null || !handler.AcceptedFileExtensions.Contains(ext))
                 {
-                    var dialog = GetDialogService();
-                    if (dialog is not null)
-                    {
-                        await dialog.ShowWarningAsync(
-                            Resources.DragDrop_InvalidFileType,
-                            string.Format(Resources.DragDrop_InvalidFileTypeFmt,
-                                Path.GetFileName(filePath),
-                                string.Join(", ", handler.AcceptedFileExtensions)));
-                    }
+                    await _dialog.ShowWarningAsync(
+                        Resources.DragDrop_InvalidFileType,
+                        string.Format(Resources.DragDrop_InvalidFileTypeFmt,
+                            Path.GetFileName(filePath),
+                            string.Join(", ", handler.AcceptedFileExtensions)));
                     return;
                 }
 
@@ -209,21 +197,16 @@ internal static class FileDropHandler
             }
             else
             {
-                var dialog = GetDialogService();
-                if (dialog is not null)
-                {
-                    await dialog.ShowInfoAsync(
-                        Resources.DragDrop_UnsupportedPage,
-                        Resources.DragDrop_UnsupportedPageMsg);
-                }
+                await _dialog.ShowInfoAsync(
+                    Resources.DragDrop_UnsupportedPage,
+                    Resources.DragDrop_UnsupportedPageMsg);
             }
         }
         catch (Exception ex)
         {
             try
             {
-                var dialog = GetDialogService();
-                dialog?.ShowErrorAsync(Resources.Common_OperationFailed, ex.Message);
+                await _dialog.ShowErrorAsync(Resources.Common_OperationFailed, ex.Message);
             }
             catch { /* 弹窗不可用时静默处理 */ }
         }

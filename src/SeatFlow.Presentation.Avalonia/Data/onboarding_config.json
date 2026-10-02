@@ -190,28 +190,5 @@
       ]
     }
   ],
-  "pageGuides": {
-    "FreeformManagement": {
-      "page": "FreeformManagement",
-      "steps": [
-        {
-          "titleKey": "Guide_Freeform_Import_Title",
-          "descKey": "Guide_Freeform_Import_Desc",
-          "target": "ImportCsvButton",
-          "placement": "Bottom"
-        },
-        {
-          "titleKey": "Guide_Freeform_AddPoint_Title",
-          "descKey": "Guide_Freeform_AddPoint_Desc",
-          "target": "AddPointButton",
-          "placement": "Bottom"
-        },
-        {
-          "titleKey": "Guide_Freeform_Save_Title",
-          "descKey": "Guide_Freeform_Save_Desc",
-          "target": "SaveLayoutButton"
-        }
-      ]
-    }
-  }
+  "pageGuides": {}
 }

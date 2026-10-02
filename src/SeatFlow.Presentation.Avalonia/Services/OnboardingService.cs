@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
-using SeatFlow.Core.Enums;
-using SeatFlow.Core.Models;
 using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.ViewModels;
@@ -15,10 +12,10 @@ using SeatFlow.Presentation.Avalonia.Views;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Presenters;
-using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CodeWF.AvaloniaControls.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace SeatFlow.Presentation.Avalonia.Services;
@@ -46,17 +43,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private bool _isCompleting;
     /// <summary>窗口失焦/最小化时设为 true，静默关闭 Popup 防孤儿窗口。</summary>
     private bool _isWindowObscured;
-
-    /// <summary>MemberManagement 演示数据是否已实际注入（用于 ClearPageData 判断是否需要清理）。</summary>
-    private static bool _memberManagementDemoInjected;
-
-    /// <summary>演示数据集的固定 ID，用于注入和清理时识别。</summary>
-    private const string DemoDatasetId = "guide-demo-ds";
-
-    /// <summary>MemberManagement 用户状态快照（引导前保存，引导后恢复）。null 表示首次使用无需恢复。</summary>
-    private static List<Student>? _savedMemberStudents;
-    private static List<StudentDatasetInfo>? _savedMemberDatasets;
-    private static bool _savedMemberIsEmpty;
 
     public bool IsActive { get; private set; }
 
@@ -100,10 +86,10 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         _logger.LogInformation("[Onboarding] MainView={NotNull}", mainView is not null);
         if (mainView?.DataContext is MainShellViewModel vm)
         {
-            _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到 Home");
+            _logger.LogInformation("[Onboarding] 设置 IsOnboardingActive=true，导航到排座工作台（默认入口）");
             vm.IsOnboardingActive = true;
             vm.EnsureSidebarExpanded();
-            vm.OnboardingNavigateTo(PageKey.Home);
+            vm.OnboardingNavigateTo(PageKey.SeatingArrangement);
         }
         else
         {
@@ -120,7 +106,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             _logger.LogError("[Onboarding] OnboardingGuide 控件为 null！无法显示引导");
 
         // 使用 Background 优先级（而非 Loaded），因为 Loaded 依赖布局 pass，
-        // 但如果当前页面已是 Home，NavigateTo 会跳过导航，不触发布局 pass，
+        // 但如果当前页面已是目标页，NavigateTo 会跳过导航，不触发布局 pass，
         // 导致 Loaded 回调永远不执行。Guide 控件自带 TargetResolveDelay 重试。
         Dispatcher.UIThread.Post(() =>
         {
@@ -221,8 +207,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
         // 1. 先处理跨阶段页面导航（在解析 Target 之前），
         //    确保目标控件所在的新页面 View 已创建，NameScope 可用。
-        //    OnboardingNavigateTo 同步设置 CurrentViewModel 触发 ViewLocator，
-        //    RunTransitionAsync 因 IsOnboardingActive=true 提前返回，无闪烁。
+        //    OnboardingNavigateTo 同步设置 CurrentViewModel 触发 ViewLocator（M3 起切页即同步，无动画）。
         bool isPhaseTransition = false;
         PageKey targetPage = default;
         var phaseIndex = GetPhaseIndex(stepIndex);
@@ -258,17 +243,18 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             if (phase.SeedData)
             {
                 // MemberManagement 第二次进入：先代码内离开-重入，强制页面重建后再注入
+                // M3：Home 已移除，中间页改用排座工作台（默认入口）
                 if (targetPage == PageKey.MemberManagement)
                 {
                     var mainView = GetMainView();
                     if (mainView?.DataContext is MainShellViewModel shell)
                     {
-                        shell.OnboardingNavigateTo(PageKey.Home);
+                        shell.OnboardingNavigateTo(PageKey.SeatingArrangement);
                         shell.OnboardingNavigateTo(PageKey.MemberManagement);
                     }
                 }
 
-                SeedPageData(targetPage);
+                SeedPageData();
             }
         }
 
@@ -333,272 +319,59 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     // ──────────────────────── 示例数据注入（纯内存，不落盘） ────────────────────────
 
     /// <summary>根据页面注入示例数据，确保引导期间条件可见的目标控件正常显示。</summary>
-    private void SeedPageData(PageKey page)
+    private void SeedPageData()
     {
         var mainView = GetMainView();
         if (mainView?.DataContext is not MainShellViewModel shell)
             return;
 
-        _ = SeedPageDataAsync(page, shell.CurrentViewModel);
+        _ = SeedPageDataAsync(shell.CurrentViewModel);
     }
 
     /// <summary>
     /// 等待页面异步初始化完成后再注入示例数据。
-    /// 页面 VM 的 fire-and-forget 初始化（如 LoadVenueList）在 WASM/IndexedDB 下
+    /// 页面 VM 的生命周期加载（<c>OnEnterAsync</c>，经 Loaded 桥接触发）在 WASM/IndexedDB 下
     /// 可能晚于引导阶段切换完成，且会整体替换集合 → 同步注入会被后续加载覆盖。
+    /// M5：初始化等待统一走 <see cref="IPageLifecycle.InitializationTask"/>，
+    /// 注入/清理通过 <see cref="IGuideSeedTarget"/> 由页面自行实现。
     /// </summary>
-    private async Task SeedPageDataAsync(PageKey page, ViewModelBase? pageVm)
+    private async Task SeedPageDataAsync(ViewModelBase? pageVm)
     {
-        try
+        if (pageVm is IPageLifecycle lifecycle)
         {
-            var initTask = pageVm switch
+            try
             {
-                VenueConfigurationViewModel v => v.InitializationTask,
-                StrategyConfigurationViewModel s => s.InitializationTask,
-                SeatingArrangementViewModel a => a.InitializationTask,
-                SnapshotHistoryViewModel h => h.InitializationTask,
-                _ => null
-            };
-            if (initTask is not null)
-                await initTask.ConfigureAwait(true);
+                // 兜底超时：页面因故未完成初始化时不阻塞引导流程
+                await lifecycle.InitializationTask.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(true);
+            }
+            catch
+            {
+                // 页面初始化失败/超时/取消时仍尝试注入（不阻塞引导流程）
+            }
         }
-        catch
-        {
-            // 页面初始化失败时仍尝试注入（不阻塞引导流程）
-        }
+
+        if (pageVm is not IGuideSeedTarget target)
+            return;
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            switch (page)
-            {
-                case PageKey.MemberManagement:
-                    SeedMemberManagementData(pageVm as MemberManagementViewModel);
-                    break;
-                case PageKey.VenueConfiguration:
-                    SeedVenueConfigurationData(pageVm as VenueConfigurationViewModel);
-                    break;
-                case PageKey.StrategyConfiguration:
-                    SeedStrategyConfigurationData(pageVm as StrategyConfigurationViewModel);
-                    break;
-                case PageKey.SeatingArrangement:
-                    SeedSeatingArrangementData(pageVm as SeatingArrangementViewModel);
-                    break;
-                case PageKey.SnapshotHistory:
-                    SeedSnapshotHistoryData(pageVm as SnapshotHistoryViewModel);
-                    break;
-            }
+            target.SeedGuideData();
 
             // 注入后重新应用当前步骤：目标控件可能刚变为可见/填充，需要重新解析与定位弹窗
             _guide?.Refresh();
         });
     }
 
-    private static void SeedMemberManagementData(MemberManagementViewModel? vm)
-    {
-        if (vm is null) return;
-
-        // 保存用户原有状态，引导结束后恢复（始终执行，即使跳过注入）
-        _savedMemberStudents = [.. vm.Students];
-        _savedMemberDatasets = [.. vm.SavedDatasets];
-        _savedMemberIsEmpty = vm.IsEmpty;
-
-        // 若用户已在 Phase 1 导入数据，不覆盖
-        if (vm.Students.Count > 0) return;
-
-        vm.Students = new ObservableCollection<Student>
-        {
-            new() { Name = "Alice", Height = 165, Gender = Gender.Female },
-            new() { Name = "Bob", Height = 175, Gender = Gender.Male, NeedsFrontRow = true },
-            new() { Name = "Charlie", Height = 180, Gender = Gender.Male },
-            new() { Name = "Diana", Height = 160, Gender = Gender.Female },
-            new() { Name = "Eve", Height = 170, Gender = Gender.Female },
-            new() { Name = "Frank", Height = 178, Gender = Gender.Male },
-        };
-        vm.StudentCount = vm.Students.Count;
-        vm.IsEmpty = false;
-        vm.IsLoading = false;
-        vm.StatusMessage = string.Format(Resources.Member_LoadedFmt, vm.Students.Count);
-
-        // 追加演示数据集到现有列表（而非替换），避免覆盖用户真实数据集
-        var demoDataset = new StudentDatasetInfo
-        {
-            Id = DemoDatasetId,
-            Name = "演示班级",
-            StudentCount = 6,
-            CreatedAt = DateTime.Now
-        };
-        // 仅在演示数据集不存在时才追加，防止重复
-        if (!vm.SavedDatasets.Any(d => d.Id == DemoDatasetId))
-            vm.SavedDatasets.Add(demoDataset);
-        vm.CurrentDatasetId = DemoDatasetId;
-        vm.CurrentDatasetName = "演示班级";
-        vm.SetGuideDataset(demoDataset); // 安全选中，不触发磁盘加载
-
-        _memberManagementDemoInjected = true;
-    }
-
-    private static void SeedVenueConfigurationData(VenueConfigurationViewModel? vm)
-    {
-        if (vm is null) return;
-        // 已等待 LoadVenueList 完成，此处创建的会场不会被异步加载覆盖
-        vm.NewVenueCommand.Execute(null);
-        vm.LayoutName = "演示教室";
-        vm.StatusMessage = "已创建演示会场（演示数据）";
-    }
-
-    private static void SeedStrategyConfigurationData(StrategyConfigurationViewModel? vm)
-    {
-        if (vm is null) return;
-        // 已等待 LoadAsync 完成：选中第一个策略，触发 OnSelectedStrategyChanged
-        // → LoadDetailAsync → SelectedDetail 非空 → HasDetail=true → EditEnabledSwitch 可见。
-        if (vm.Strategies.Count == 0) return;
-        vm.SelectedStrategy = vm.Strategies[0];
-    }
-
-    private static void SeedSeatingArrangementData(SeatingArrangementViewModel? vm)
-    {
-        if (vm is null) return;
-        // 已等待 LoadInitialDataAsync/RefreshDataAsync 完成，注入不会被后续加载覆盖
-        vm.VenueItems.Clear();
-        vm.VenueItems.Add(new("demo-v", "演示教室"));
-        vm.DatasetItems.Clear();
-        vm.DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
-        vm.SelectedVenue = vm.VenueItems.FirstOrDefault();
-        vm.SelectedDataset = vm.DatasetItems.FirstOrDefault();
-
-        var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
-        var seats = new ObservableCollection<SeatDisplayItem>();
-        for (int r = 0; r < 4; r++)
-            for (int c = 0; c < 3; c++)
-            {
-                var idx = (r * 3) + c;
-                seats.Add(new SeatDisplayItem
-                {
-                    SeatId = $"R{r}C{c}",
-                    SeatLabel = $"R{r}C{c}",
-                    X = 200 + (c * 80),
-                    Y = 200 + (r * 60),
-                    Width = 50,
-                    Height = 30,
-                    IsOccupied = idx < 6,
-                    StudentName = idx < 6 ? names[idx] : null,
-                    OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
-                });
-            }
-
-        vm.SeatItems = seats;
-        vm.OverlayItems = new ObservableCollection<SeatDisplayItem>();
-        vm.TotalSeats = 12;
-        vm.AssignedSeats = 6;
-        vm.HasGenerated = true;
-        vm.IsGenerating = false;
-        vm.StatusMessage = "已分配 6/12 个座位（演示数据）";
-    }
-
-    private static void SeedSnapshotHistoryData(SnapshotHistoryViewModel? vm)
-    {
-        if (vm is null) return;
-        vm.Venues = new ObservableCollection<VenueItem>
-        {
-            new("demo-v", "演示教室")
-        };
-
-        vm.Snapshots = new ObservableCollection<SeatingSnapshot>
-        {
-            new()
-            {
-                Id = "demo-snap-1",
-                CreatedAt = DateTime.Now.AddDays(-1),
-                Description = "演示快照 - 第 3 周",
-                LayoutId = "demo-v",
-                SeatAssignments = new Dictionary<string, string> { ["R0C0"] = "student-alice" }
-            }
-        };
-        vm.IsLoading = false;
-        vm.StatusMessage = "找到 1 个快照（演示数据）";
-    }
-
-    /// <summary>清除注入到所有页面 ViewModel 的示例数据。</summary>
-    private static void ClearPageData()
+    /// <summary>
+    /// 清除注入到各页面 ViewModel 的演示数据（M5：各页自行实现恢复语义，
+    /// 仅清理实际注入过的页面，避免触碰用户当前状态）。
+    /// </summary>
+    private void ClearPageData()
     {
         if (global::Avalonia.Application.Current is not App app) return;
-        var sp = app.ServiceProvider;
 
-        if (sp.GetService(typeof(MemberManagementViewModel)) is MemberManagementViewModel memberVm)
-        {
-            // 仅在实际注入过演示数据时才清理；若 Phase 2 因用户已有数据而跳过注入，不触碰 VM 状态
-            if (_memberManagementDemoInjected)
-            {
-                // ✅ 使用 _suppressDatasetLoad 阻断 SelectedDataset 变化时的副作用，
-                //    防止 SavedDatasets 替换触发 OnSelectedDatasetChanged → ClearDataInternalAsync 弹窗。
-                memberVm.SetSuppressDatasetLoad(true);
-                try
-                {
-                    if (_savedMemberStudents is not null)
-                    {
-                        // 引导前有用户数据 → 恢复到原始状态（显式过滤残留的演示数据集）
-                        memberVm.Students = new ObservableCollection<Student>(_savedMemberStudents);
-                        memberVm.StudentCount = _savedMemberStudents.Count;
-                        memberVm.IsEmpty = _savedMemberIsEmpty;
-                        memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
-                            (_savedMemberDatasets ?? []).Where(d => d.Id != DemoDatasetId));
-                    }
-                    else
-                    {
-                        // 首次使用（引导前无数据）→ 清空演示数据（显式过滤残留的演示数据集）
-                        memberVm.Students.Clear();
-                        memberVm.StudentCount = 0;
-                        memberVm.IsEmpty = true;
-                        memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
-                            memberVm.SavedDatasets.Where(d => d.Id != DemoDatasetId));
-                    }
-                    memberVm.SelectedDataset = null;
-                    memberVm.CurrentDatasetId = null;
-                    memberVm.CurrentDatasetName = null;
-                    memberVm.FilePath = string.Empty;
-                    memberVm.ResetDirtyState(); // 重置 _originalStudentsJson，防止后续 IsDirty 误判
-                }
-                finally
-                {
-                    memberVm.SetSuppressDatasetLoad(false);
-                }
-
-                _memberManagementDemoInjected = false;
-            }
-
-            // 清除快照
-            _savedMemberStudents = null;
-            _savedMemberDatasets = null;
-        }
-        if (sp.GetService(typeof(VenueConfigurationViewModel)) is VenueConfigurationViewModel venueVm)
-        {
-            venueVm.VenueItems.Clear();
-            venueVm.SelectedVenueItem = null;
-            venueVm.PreviewSeats.Clear();
-            venueVm.PreviewOverlays.Clear();
-            venueVm.StatusMessage = string.Empty;
-        }
-        if (sp.GetService(typeof(StrategyConfigurationViewModel)) is StrategyConfigurationViewModel stratVm)
-        {
-            stratVm.SelectedStrategy = null;
-        }
-        if (sp.GetService(typeof(SeatingArrangementViewModel)) is SeatingArrangementViewModel seatVm)
-        {
-            seatVm.HasGenerated = false;
-            seatVm.SeatItems.Clear();
-            seatVm.OverlayItems.Clear();
-            seatVm.TotalSeats = 0;
-            seatVm.AssignedSeats = 0;
-            seatVm.VenueItems.Clear();
-            seatVm.DatasetItems.Clear();
-            seatVm.SelectedVenue = null;
-            seatVm.SelectedDataset = null;
-        }
-        if (sp.GetService(typeof(SnapshotHistoryViewModel)) is SnapshotHistoryViewModel snapVm)
-        {
-            snapVm.Snapshots.Clear();
-            snapVm.Venues.Clear();
-        }
+        foreach (var target in app.ServiceProvider.GetServices<IGuideSeedTarget>())
+            target.ClearGuideData();
     }
 
     private OnboardingConfig LoadConfig()
@@ -778,7 +551,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             var mainView = GetMainView();
             if (mainView?.DataContext is MainShellViewModel vm)
             {
-                var navigateTo = ParsePageKey(_config?.CompleteAction) ?? PageKey.Home;
+                var navigateTo = ParsePageKey(_config?.CompleteAction) ?? PageKey.SeatingArrangement;
                 await vm.CompleteOnboardingAsync(navigateTo);
             }
         }
@@ -794,21 +567,6 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private void OnStepOpening(object? sender, GuideStepEventArgs e)
     {
         HandleStepOpening(e.Index, e.Step);
-    }
-
-    /// <summary>卡片缩放弹出动画：0.96 → 1.0。</summary>
-    private static async Task AnimateCardBounceAsync(Guide guide, int delayMs)
-    {
-        // 查找模板中的卡片 Border
-        var card = FindTemplateChild<Border>(guide, "PART_CardRoot");
-        if (card?.RenderTransform is ScaleTransform scale)
-        {
-            scale.ScaleX = 0.96;
-            scale.ScaleY = 0.96;
-            await Task.Delay(delayMs);
-            scale.ScaleX = 1.0;
-            scale.ScaleY = 1.0;
-        }
     }
 
     /// <summary>从控件模板中按名称查找子元素。</summary>
