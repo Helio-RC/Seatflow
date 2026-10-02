@@ -984,7 +984,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         var previewMeta = CloneGridMetadata(meta);
         previewMeta.IntraDeskSpacing = meta.IntraDeskSpacing * 0.8;
 
-        const double seatW = 20, seatH = 14;
+        var (seatW, seatH) = PreviewSeatSize.ForGrid(previewMeta);
 
         foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
         {

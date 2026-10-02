@@ -498,7 +498,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
     {
         return metadata switch
         {
-            GridLayoutMetadata g => (Math.Clamp(g.HorizontalSpacing * 0.8, 44, 72), Math.Clamp(g.VerticalSpacing * 0.55, 24, 44)),
+            // Grid：按真实坐标步进计算，避免同桌座位重叠（详见 PreviewSeatSize）
+            GridLayoutMetadata g => Services.PreviewSeatSize.ForGrid(g),
             PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.75, 28, 48), Math.Clamp(p.RadiusStep * 0.75, 28, 48)),
             _ => (42, 26)
         };
