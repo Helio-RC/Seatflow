@@ -299,6 +299,7 @@ Besides `scripts/i18n.py` (documented above), the following scripts exist — al
 | `scripts/build/clean.sh` / `scripts/build/clean.ps1` | Recursive bin/obj cleanup |
 | `scripts/update_version_info.py` | MSBuild helper — reads version.json + git → generates VersionInfo.g.cs at build time |
 | `scripts/release/release.py` | Release orchestrator — build → package → OSS upload → GitHub Release |
+| `scripts/ui-inspect/` | 无头 UI 查看/交互/性能采样工具链（WASM + CDP trace，详见其 README） |
 
 Unit tests are in `scripts/tests/`.
 
@@ -629,9 +630,9 @@ python3 -m pytest tests/ -v                  # 全部脚本测试
 - `CHANGELOG.md` — Version changelog (Keep a Changelog format)
 - `docs/ONBOARDING_GUIDE.md` — Onboarding guide system design (JSON-driven, startup + page guides)
 - `docs/StrategyDataResilience.md` — Strategy data persistence & fault tolerance analysis
-- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-013). Key ones: ADR-002 (MVVM + IMessenger planned for cross-ViewModel communication), ADR-006 (strategy pipeline fill-in-order), ADR-013 (remove plugin system — 移除插件系统)
+- `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-014). Key ones: ADR-002 (MVVM，部分被 ADR-014 取代), ADR-006 (strategy pipeline fill-in-order), ADR-013 (remove plugin system — 移除插件系统), ADR-014 (UI 架构：ReactiveUI 共存 + 自绘 SeatingCanvas)
 - `docs/presentation/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
 - `docs/presentation/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, 画布平移/缩放与拖放冲突（SeatingCanvas 内置，CanvasZoomPan 已退役）
 - `docs/presentation/Fluent_Icons.md` — All FluentUI icon names in use
-- `docs/ui-refactor/` — UI 重构全套文档（00 章程–09 交接；`08-implementation-log.md` 为 M0–M6 实施日志与性能证据索引）
+- `docs/UI_REFACTOR.md` — UI 重构记录（M0–M6：诊断基线、IA/技术决策、性能复测、已知遗留）
 - `scripts/ToolsCollection.md` — Full reference for `i18n.py` and `version.py` scripts

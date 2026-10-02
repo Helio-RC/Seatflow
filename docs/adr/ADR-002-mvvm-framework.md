@@ -1,7 +1,8 @@
 # ADR-002: 选择 CommunityToolkit.Mvvm 作为 MVVM 框架
 
 ## 状态
-已接受
+已接受（部分被 ADR-014 取代：M0 起引入 ReactiveUI.Avalonia 与 CTK 双范式共存，
+本 ADR「拒绝 ReactiveUI」的结论不再成立；CTK 源生成器仍用于 `ViewModelBase` 与存量 VM）
 
 ## 日期
 2025-12（项目启动时）
