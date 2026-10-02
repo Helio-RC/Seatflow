@@ -102,4 +102,40 @@ public partial class StudentRowViewModel : ObservableObject
             OnPropertyChanged(nameof(NeedsFrontRow));
         }
     }
+
+    // ── 编辑态快照（Esc 取消时回滚，M5） ──
+
+    private (string Name, float? Height, Gender? Gender, bool NeedsFrontRow)? _editSnapshot;
+
+    /// <summary>进入编辑态时记录当前值，供 <see cref="CancelEdit"/> 回滚。</summary>
+    public void SnapshotForEdit()
+        => _editSnapshot = (Student.Name, Student.Height, Student.Gender, Student.NeedsFrontRow);
+
+    /// <summary>提交编辑：丢弃快照。</summary>
+    public void ClearEditSnapshot() => _editSnapshot = null;
+
+    /// <summary>取消编辑：回滚到进入编辑态前的值并退出编辑态。</summary>
+    public void CancelEdit()
+    {
+        if (_editSnapshot is { } s)
+        {
+            Student.Name = s.Name;
+            Student.Height = s.Height;
+            Student.Gender = s.Gender;
+            Student.NeedsFrontRow = s.NeedsFrontRow;
+            _editSnapshot = null;
+
+            // 代理属性直接写回 Student，无自动通知 → 显式刷新编辑控件与显示态
+            OnPropertyChanged(nameof(NameText));
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(Height));
+            OnPropertyChanged(nameof(HeightDisplay));
+            OnPropertyChanged(nameof(GenderIndex));
+            OnPropertyChanged(nameof(GenderDisplay));
+            OnPropertyChanged(nameof(IsFrontRow));
+            OnPropertyChanged(nameof(NeedsFrontRow));
+        }
+
+        IsEditing = false;
+    }
 }

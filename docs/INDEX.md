@@ -111,7 +111,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **关联文档**: Design_Spec.md
 
 ### docs/presentation/DragDrop.md
-- **覆盖**: Avalonia 12 拖放 API 正确用法、`PointerPressed` + `DoDragDropAsync` 模式、数据格式创建/读写、CanvasZoomPan 冲突处理、常见坑及修复
+- **覆盖**: Avalonia 12 拖放 API 正确用法、`PointerPressed` + `DoDragDropAsync` 模式、数据格式创建/读写、画布平移/缩放与拖放冲突处理（SeatingCanvas 内置，CanvasZoomPan 已退役）、常见坑及修复
 - **何时更新**: 新增拖放交互、Avalonia 版本升级后 API 变更、发现新的拖放坑
 - **关联文档**: CLAUDE.md（Behaviors 节）、SeatingArrangementView.axaml.cs
 

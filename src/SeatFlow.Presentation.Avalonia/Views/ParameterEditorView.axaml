@@ -12,17 +12,20 @@
             Width="160"
             Margin="0,0,12,0"
             VerticalAlignment="Center"
+            Classes="sf-text"
             DockPanel.Dock="Left"
             Text="{Binding LocalizedLabel}"
             TextWrapping="Wrap" />
           <NumericUpDown
             HorizontalAlignment="Stretch"
+            Classes="sf-input"
             IsVisible="{Binding IsNumberInput}"
             Maximum="{Binding Definition.MaxValue}"
             Minimum="{Binding Definition.MinValue}"
             Value="{Binding NumberValue}" />
           <TextBox
             HorizontalAlignment="Stretch"
+            Classes="sf-input"
             IsVisible="{Binding IsTextInput}"
             Text="{Binding TextValue}" />
           <ToggleSwitch

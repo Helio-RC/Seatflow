@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecycle
+public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecycle, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
     private readonly IShellLayoutService _layout;
@@ -201,6 +201,21 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
 
     /// <summary>标记策略/数据集/会场缓存失效（下次进入重新加载）。供 .seatsets 导入等场景调用。</summary>
     public void InvalidateData() => _loaded = false;
+
+    // ═══════════════ IGuideSeedTarget（M5：引导演示注入/清理下沉到页面） ═══════════════
+
+    /// <summary>
+    /// 选中第一个策略，触发 OnSelectedStrategyChanged → LoadDetailAsync → SelectedDetail 非空
+    /// → HasDetail=true → 引导目标（EditEnabledSwitch）可见。
+    /// </summary>
+    public void SeedGuideData()
+    {
+        if (Strategies.Count == 0) return;
+        SelectedStrategy = Strategies[0];
+    }
+
+    /// <summary>清空选中策略（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
+    public void ClearGuideData() => SelectedStrategy = null;
 
     // ═══════════════ 导航离开拦截 ═══════════════
 

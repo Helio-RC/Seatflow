@@ -187,8 +187,7 @@ Called by `NavigationService` before navigating away. Override to prompt user ab
 - `DialogWindow` — general-purpose modal content host with title bar and close button
 
 ### Behaviors (`src/SeatFlow.Presentation.Avalonia/Behaviors/`)
-- `CanvasZoomPan` — Pan and zoom for Canvas-based previews. **拖放座位时通过 NaN 哨兵机制跳过平移**（详见 `docs/DragDrop.md`）
-- `ZoomOnScroll` — Ctrl+Scroll to zoom
+- （M5 已退役：`CanvasZoomPan` / `ZoomOnScroll` — 画布平移/缩放现由 `SeatingCanvas` 内置矩阵变换承担，拖拽与平移经内部手势状态机隔离）
 - `ChineseInputNormalizer` — Converts full-width numbers/symbols to half-width on text input
 - `FileDropHandler` — Global OS file drag-drop import. Intercepts `DragDrop.DragOverEvent`/`DropEvent` with `RoutingStrategies.Tunnel` on MainWindow. Routes to page ViewModels that implement `IFileDropHandler` (in `Services/`).
 
@@ -621,6 +620,6 @@ python3 -m pytest tests/ -v                  # 全部脚本测试
 - `docs/StrategyDataResilience.md` — Strategy data persistence & fault tolerance analysis
 - `docs/adr/` — Architecture Decision Records (ADR-001 ~ ADR-013). Key ones: ADR-002 (MVVM + IMessenger planned for cross-ViewModel communication), ADR-006 (strategy pipeline fill-in-order), ADR-013 (remove plugin system — 移除插件系统)
 - `docs/presentation/Design_Spec.md` — FluentUI design spec (colors, typography, spacing, icons)
-- `docs/presentation/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, CanvasZoomPan interaction
+- `docs/presentation/DragDrop.md` — Avalonia 12 drag-drop patterns, pitfalls, 画布平移/缩放与拖放冲突（SeatingCanvas 内置，CanvasZoomPan 已退役）
 - `docs/presentation/Fluent_Icons.md` — All FluentUI icon names in use
 - `scripts/ToolsCollection.md` — Full reference for `i18n.py` and `version.py` scripts

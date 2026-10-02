@@ -17,6 +17,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
     <ApplicationIcon>..\SeatFlow.Presentation.Avalonia\Assets\icon_with_background.ico</ApplicationIcon>
+    <!-- M5：WASM 发布默认启用 System.Resources.UseSystemResourceKeys=true，
+         该模式下运行时不会加载 en-US 卫星程序集，Resources.Culture 切换后
+         仍回退到中性资源（中文）→ 浏览器端语言切换失效。
+         关闭后卫星资源可加载，恢复中英切换能力（产物仅增加一个已存在的附属程序集）。 -->
+    <UseSystemResourceKeys>false</UseSystemResourceKeys>
   </PropertyGroup>
 
   <ItemGroup>

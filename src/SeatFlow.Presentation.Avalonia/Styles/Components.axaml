@@ -369,6 +369,17 @@
     <Setter Property="Padding" Value="8,12" />
   </Style>
 
+  <!--  设置行：标签 + 控件，底部分隔线（最后一行叠加 sf-last 去掉分隔线）  -->
+  <Style Selector="Border.sf-setting-row">
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="0,10" />
+  </Style>
+  <Style Selector="Border.sf-setting-row.sf-last">
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0,10,0,0" />
+  </Style>
+
   <Style Selector="Border.sf-list-item">
     <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />

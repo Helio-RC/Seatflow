@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
+public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
     private readonly INavigationService _navigation;
@@ -28,6 +28,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
     // ── M4：生命周期 / 缓存 / 抽屉 ──
     private bool _venuesLoaded;
     private CancellationTokenSource? _enterCts;
+    /// <summary>M5 引导演示数据是否已实际注入（Singleton 下避免误清用户浏览状态）。</summary>
+    private bool _guideDemoInjected;
     /// <summary>本次进入页面加载完成的信号：OnEnter 完成置位；OnLeave 换新的未完成实例。</summary>
     private TaskCompletionSource _enterCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -162,9 +164,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
             // 页面状态（选中会场/快照）跨导航保留；仅首次进入加载会场列表
             if (!_venuesLoaded)
             {
-                // 仅在真正加载成功后标记，取消时下次进入重试
-                await LoadVenuesAsync(_enterCts.Token);
-                _venuesLoaded = true;
+                // 仅在真正加载成功后标记；失败/取消时下次进入自动重试
+                _venuesLoaded = await LoadVenuesCoreAsync(_enterCts.Token);
             }
         }
         catch (OperationCanceledException)
@@ -186,8 +187,51 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
         return Task.CompletedTask;
     }
 
+    // ═══════════════ IGuideSeedTarget（M5：引导演示注入/清理下沉到页面） ═══════════════
+
+    /// <summary>注入演示会场与一条演示快照（纯内存，不落盘）。</summary>
+    public void SeedGuideData()
+    {
+        _guideDemoInjected = true;
+        Venues = new ObservableCollection<VenueItem>
+        {
+            new("demo-v", "演示教室")
+        };
+
+        Snapshots = new ObservableCollection<SeatingSnapshot>
+        {
+            new()
+            {
+                Id = "demo-snap-1",
+                CreatedAt = DateTime.Now.AddDays(-1),
+                Description = "演示快照 - 第 3 周",
+                LayoutId = "demo-v",
+                SeatAssignments = new Dictionary<string, string> { ["R0C0"] = "student-alice" }
+            }
+        };
+        IsLoading = false;
+        StatusMessage = "找到 1 个快照（演示数据）";
+    }
+
+    /// <summary>仅在确实注入过演示数据时清空列表，避免清掉用户当前浏览状态。</summary>
+    public void ClearGuideData()
+    {
+        if (!_guideDemoInjected) return;
+
+        Snapshots.Clear();
+        Venues.Clear();
+        // 列表已清空 → 下次进入重新加载（页面缓存策略失效化）
+        InvalidateData();
+        _guideDemoInjected = false;
+    }
+
     [RelayCommand]
     private async Task LoadVenuesAsync(CancellationToken ct = default)
+        // 手动刷新同样回写成功标志：刷新失败后下次进入可自动重试（取消异常向上抛，不赋值）
+        => _venuesLoaded = await LoadVenuesCoreAsync(ct);
+
+    /// <returns>加载成功返回 true；取消向上抛出；其他失败返回 false 以便下次进入自动重试。</returns>
+    private async Task<bool> LoadVenuesCoreAsync(CancellationToken ct)
     {
         var previousVenueId = SelectedVenue?.Id;
 
@@ -234,6 +278,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
             // 重新选中之前的会场
             if (previousVenueId != null)
                 SelectedVenue = items.FirstOrDefault(v => v.Id == previousVenueId);
+
+            return true;
         }
         catch (OperationCanceledException)
         {
@@ -243,6 +289,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
         {
             _logger?.LogWarning(ex, "加载会场列表失败");
             await Dialog.ShowErrorAsync(Resources.Data_LoadFailed, ex.Message);
+            // 返回 false：OnEnterAsync 不置 _venuesLoaded，下次进入自动重试（手动刷新按钮保留）
+            return false;
         }
     }
 

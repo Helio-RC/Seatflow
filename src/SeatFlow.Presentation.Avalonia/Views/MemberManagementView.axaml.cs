@@ -55,15 +55,27 @@ public partial class MemberManagementView : UserControl
         }
     }
 
-    /// <summary>行内编辑输入框按 Enter 提交（退出编辑态）。</summary>
+    /// <summary>
+    /// 行内编辑键盘（M5）：
+    /// Enter 提交并退出编辑态；Esc 回滚到进入编辑态前的值并退出（行内任意编辑控件均生效）。
+    /// Tab 依赖 Avalonia 默认焦点遍历（姓名 → 身高 → 性别 → 前排 → 操作按钮）。
+    /// </summary>
     private void OnRowEditKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter) return;
-        if (sender is Control { DataContext: StudentRowViewModel row }
-            && DataContext is MemberManagementViewModel vm)
+        if (sender is not Control { DataContext: StudentRowViewModel row }
+            || DataContext is not MemberManagementViewModel vm)
+            return;
+
+        switch (e.Key)
         {
-            vm.EndEditCommand.Execute(row);
-            e.Handled = true;
+            case Key.Enter:
+                vm.EndEditCommand.Execute(row);
+                e.Handled = true;
+                break;
+            case Key.Escape:
+                vm.CancelEditCommand.Execute(row);
+                e.Handled = true;
+                break;
         }
     }
 

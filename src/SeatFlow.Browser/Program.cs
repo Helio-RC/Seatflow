@@ -77,6 +77,9 @@ internal sealed class Program
         services.AddTransient<ConfigBlockEditorViewModel>();
         services.AddTransient<UpdateDialogViewModel>();
 
+        // M5：引导演示数据注入契约（OnboardingService 只按接口调用各页实现；双壳共用注册）
+        services.AddGuideSeedTargets();
+
         var serviceProvider = services.BuildServiceProvider();
 
         // 浏览器端禁止同步阻塞等待（App.Initialize 内的同步读取会抛

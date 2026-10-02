@@ -21,6 +21,7 @@
         Background="Transparent"
         BorderBrush="{DynamicResource SfBorderBrush}"
         BorderThickness="0,0,0,1"
+        KeyDown="OnRowEditKeyDown"
         PointerPressed="OnStudentRowPointerPressed">
         <Grid Margin="6,0" ColumnDefinitions="2*,*,*,Auto,Auto">
           <!--  姓名  -->

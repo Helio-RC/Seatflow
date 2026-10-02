@@ -6,13 +6,12 @@
   xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:ConfigBlockEditorViewModel">
-  <Border Margin="0,4" Padding="12">
+  <Border Margin="0,4" Padding="12" Classes="sf-inset">
     <StackPanel Spacing="8">
-      <TextBlock Classes="sectionTitle" Text="{Binding LocalizedTitle}" />
+      <TextBlock Classes="sf-h3" Text="{Binding LocalizedTitle}" />
       <TextBlock
-        Classes="caption"
+        Classes="sf-hint"
         IsVisible="{Binding HasDescription}"
-        Opacity="0.7"
         Text="{Binding LocalizedDescription}" />
 
       <StackPanel Orientation="Horizontal" Spacing="8">
@@ -20,10 +19,11 @@
           IsVisible="{Binding ShowStudentPicker}"
           Orientation="Horizontal"
           Spacing="4">
-          <TextBlock VerticalAlignment="Center" Text="{x:Static lang:Resources.ConfigBlock_Dataset}" />
+          <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.ConfigBlock_Dataset}" />
           <ComboBox
             MinWidth="160"
             HorizontalAlignment="Stretch"
+            Classes="sf-input"
             ItemsSource="{Binding AvailableDatasets}"
             SelectedItem="{Binding SelectedDataset}" />
         </StackPanel>
@@ -31,10 +31,11 @@
           IsVisible="{Binding ShowVenuePicker}"
           Orientation="Horizontal"
           Spacing="4">
-          <TextBlock VerticalAlignment="Center" Text="{x:Static lang:Resources.ConfigBlock_Venue}" />
+          <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.ConfigBlock_Venue}" />
           <ComboBox
             MinWidth="160"
             HorizontalAlignment="Stretch"
+            Classes="sf-input"
             ItemsSource="{Binding AvailableVenues}"
             SelectedItem="{Binding SelectedVenue}" />
         </StackPanel>
@@ -47,6 +48,7 @@
               <TextBlock
                 Width="24"
                 VerticalAlignment="Center"
+                Classes="sf-sm sf-dim sf-num"
                 DockPanel.Dock="Left"
                 Text="{Binding Index}" />
               <StackPanel
@@ -75,14 +77,15 @@
               <ComboBox
                 MinWidth="100"
                 Margin="4,0"
+                Classes="sf-input"
                 DockPanel.Dock="Left"
                 IsVisible="{Binding ShowGenderPicker}"
                 ItemsSource="{x:Static vm:ConfigBlockRowViewModel.GenderOptions}"
                 SelectedItem="{Binding GenderValue}" />
               <Button
-                Width="28"
                 Margin="4,0,0,0"
                 VerticalAlignment="Center"
+                Classes="sf-btn sf-icon sf-sm"
                 Command="{Binding $parent[UserControl].DataContext.RemoveRowCommand}"
                 CommandParameter="{Binding}"
                 Content="-"
@@ -94,11 +97,12 @@
 
       <StackPanel Orientation="Horizontal" Spacing="8">
         <Button
-          Width="32"
+          Classes="sf-btn sf-icon sf-sm"
           Command="{Binding AddRowCommand}"
           Content="+" />
         <Button
           AutomationProperties.Name="{x:Static lang:Resources.Common_Save}"
+          Classes="sf-btn sf-sm sf-primary"
           Command="{Binding SaveConfigCommand}"
           Content="{x:Static lang:Resources.Common_Save}"
           IsEnabled="{Binding IsDirty}" />

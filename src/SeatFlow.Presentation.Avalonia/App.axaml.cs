@@ -28,23 +28,24 @@ namespace SeatFlow.Presentation.Avalonia
 {
     // AVLN3001: DI requires parameterized constructor, no public parameterless ctor
 #pragma warning disable AVLN3001
-    public partial class App(IServiceProvider serviceProvider, bool isFirstInstance = true) : AvaloniaApplication
+    public partial class App(
+        IServiceProvider serviceProvider,
+        bool isFirstInstance = true,
+        string? pendingSeatSetsFilePath = null,
+        string? autoImportSeatSetsPath = null) : AvaloniaApplication
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly bool _isFirstInstance = isFirstInstance;
         private bool _needsOnboarding;
 
-        /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）。</summary>
-        internal static string? PendingSeatSetsFilePath { get; set; }
+        /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）；管道转发时会更新。</summary>
+        private string? _pendingSeatSetsFilePath = pendingSeatSetsFilePath;
 
         /// <summary>在 AppData 创建前自动扫描到的 .seatsets 文件路径（首次启动数据恢复）。</summary>
-        internal static string? AutoImportSeatSetsPath { get; set; }
+        private readonly string? _autoImportSeatSetsPath = autoImportSeatSetsPath;
 
         /// <summary>单实例命名管道名（第二个进程通过它转发 .seatsets 文件路径）。</summary>
         internal const string SeatSetsPipeName = "SeatFlow_SeatSetsPipe";
-
-        /// <summary>Velopack 安装后首次运行标志，由 Program.Main 中的 OnFirstRun 回调设置。</summary>
-        internal static bool IsFirstRunAfterInstall { get; set; }
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 
@@ -282,7 +283,7 @@ namespace SeatFlow.Presentation.Avalonia
                             logger.LogInformation("[SeatSets] 管道收到文件路径: {Path}", path);
                             Dispatcher.UIThread.Post(() =>
                             {
-                                PendingSeatSetsFilePath = path;
+                                _pendingSeatSetsFilePath = path;
                                 HandlePendingSeatSetsFile();
                             }, DispatcherPriority.Background);
                         }
@@ -302,12 +303,12 @@ namespace SeatFlow.Presentation.Avalonia
         /// </summary>
         private void HandlePendingSeatSetsFile()
         {
-            var filePath = PendingSeatSetsFilePath;
+            var filePath = _pendingSeatSetsFilePath;
             if (string.IsNullOrEmpty(filePath))
                 return;
 
             // 清理静态状态，防止重复处理
-            PendingSeatSetsFilePath = null;
+            _pendingSeatSetsFilePath = null;
 
             Dispatcher.UIThread.Post(async () =>
             {
@@ -458,7 +459,7 @@ namespace SeatFlow.Presentation.Avalonia
         /// </summary>
         private async Task CheckSeatSetsAutoImportAsync()
         {
-            var seatsetsPath = AutoImportSeatSetsPath;
+            var seatsetsPath = _autoImportSeatSetsPath;
             if (string.IsNullOrEmpty(seatsetsPath))
                 return;
 

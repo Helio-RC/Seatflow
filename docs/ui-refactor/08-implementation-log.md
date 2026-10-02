@@ -162,14 +162,45 @@
 - [x] M4 生成/创建空白工作区同样克隆座位（修复生成后离开再进入时画布残缺的同类根因）
 - [x] M5 DirtyTracker：无基线时保留显式 `MarkDirty` 结果；行增删显式置脏
 - [x] Minor：删除死键 `Member_EditHint`；`OnboardingService` 注释同步 DirtyTracker / 生命周期表述；快照演示注入标志（Singleton 下不误清用户浏览状态）；策略 `LoadDetailAsync` 早退恢复 `_suppressChangeTracking`；快照完整性回退链补充前提注释；后台 `RefreshDatasetsQuietAsync` 吞取消避免未观测 OCE
-- 遗留 Minor（转 M6）：快照非取消失败后不自动重试（保留手动刷新按钮）；`SwitchToDatasetAsync` 门忙时回退语义；Name 列表行编辑未做全键盘回归
+- 遗留 Minor（**M5 已全部收口**）：快照非取消失败自动重试（`LoadVenuesCoreAsync` 成功标志）；`SwitchToDatasetAsync` 门忙显式回退语义；名单行编辑 Enter/Esc/Tab 全键盘回归
 
 **M4 偏差与说明**
 - 名单行编辑未做全键盘（Tab 流）专项回归；输入法/IME 行为沿用既有 `ChineseInputNormalizer`。
 - 策略页配置块编辑器（`ConfigBlockEditorView` 等子组件）沿用旧样式未令牌化（功能与 i18n 修复范围内保留），M5/M6 视觉收口。
 - 自适应虚拟化阈值为 300：更大名单（500+）仍走虚拟化，滚动单次可能 >100ms（WASM 软件渲染口径），列入 M6 复测。
 
-### M5 · 设置/关于/引导/清理 —— ⬜ 未开始
+### M5 · 设置/关于/引导/清理 —— ✅ 完成（验收中）
+
+**范围交付**
+- [x] 设置页（`SettingsView/ViewModel`）：命令栏（保存/重置）+ 分组卡片两列网格（`UniformGrid Columns=CardColumns`，紧凑单列；列数走 VM 显式属性，无动态类绑定）；全量 `sf-*` 令牌化（含新增 `sf-setting-row` 行样式），移除 `settingsCard/settingRowInner/SystemControl*` 旧引用；保留全部能力与 Web 差异；`_dialogLock+Task.Delay(150)` → `IDialogGate`；`LoadAsync` 迁入 `IPageLifecycle`（失败不置位、下次进入重试），构造器不再 fire-and-forget。
+- [x] 关于页（`AboutView`）：Hero/链接/许可证横幅/系统信息/依赖/页脚全部令牌化；英文长文案换行修复（横幅改 Grid 约束）；数据源与命令不变。
+- [x] 引导收敛：
+  - `IPageLifecycle` 新增 `InitializationTask`（5 个页面原有公开实现接口化）；新增 `IGuideSeedTarget`（`SeedGuideData`/`ClearGuideData`），Member/Venue/Strategy/Seating/Snapshot 的演示注入/清理下沉到页面自身，`OnboardingService` 只按接口等待/调用（双壳共用 `AddGuideSeedTargets()` 注册 5 个 `IGuideSeedTarget`）；
+  - 移除 `OnboardingService` 全部演示注入静态/集中状态（原静态 `_snapshotDemoInjected` 等），`_config` 等保持实例级；Seed/Clear 行为对照 M3/M4 API 逐条等价（唯一增强：排座演示注入后调用公开 `UpdateCanvasSnapshot()`，修复引导画布空白）；
+  - 21 个引导 `target` 在新 IA 视图全部存在（grep 各 1 处），Settings 重绘保留 `KeyboardShortcutsSection`/`UndoShortcutSwitch`/`SaveSettingsButton`；「重开引导」入口实测回归通过。
+- [x] 死代码与壳层收尾（grep 证据）：
+  - 删除僵尸行为 `Behaviors/CanvasZoomPan.cs`、`Behaviors/ZoomOnScroll.cs`（全仓 0 引用）；`AnimateCardBounceAsync`/`MainWindowViewModel` 已于 M0 移除；视图层无遗留冗余 Transitions（动效清单核验）；
+  - 死键清理：脚本化审计 821 键 → 删除 107 个无引用键（`Home_Installation/Hint/Subtitle`、`Nav_Home/Nav_Freeform`、`Freeform_*`、旧 `Guide_Phase*/Guide_Freeform_*`、`Common_Browse/Clear/...` 等），保留仍在用的 `Home_*` 欢迎卡键；`i18n.py check` 0 错误；
+  - `App` 静态握手清零：删除仅写未读的 `IsFirstRunAfterInstall`（Velopack `OnFirstRun` 一并移除），`PendingSeatSetsFilePath`/`AutoImportSeatSetsPath` 改为 App 构造参数实例字段（Desktop Program 传入，管道服务器操作实例字段）；全仓 Presentation 无 static 可变状态；
+  - 策略子视图（ConfigBlockEditor/ParameterEditor/StudentPicker/SeatPositionPicker）全量 `sf-*` 令牌化。
+- [x] **WASM 运行时语言切换修复（新发现，M0–M4 存量缺陷）**：浏览器端 `Resources.Culture=en-US` 时仍回退中文。根因：WASM 发布默认 `System.Resources.UseSystemResourceKeys=true`（跳过卫星程序集）+ 独立 WASM 未预加载卫星资源。修复：`SeatFlow.Browser.csproj` 设 `<UseSystemResourceKeys>false</UseSystemResourceKeys>`；`wwwroot/main.js` 增加 `.withConfig({ loadAllSatelliteResources: true })`。验证：en-US 下 `Resources.Settings_Title="Settings"`，全 UI 英文（矩阵截图）。
+- [x] M4 遗留 Minor 收口：
+  - 快照：`LoadVenuesCoreAsync` 返回成功标志，非取消失败不置 `_venuesLoaded`（下次进入自动重试；手动刷新保留）；
+  - 名单数据集切换：门忙显式分支 + `RevertDatasetSelection`（区分门忙/用户取消；回退项不在当前列表时清空选中，不再触发加载副作用）；
+  - 名单行编辑键盘：`StudentRowViewModel` 编辑快照 + `CancelEdit`；Esc 取消并回滚、Enter 提交、Tab 流转（行 Border 级 KeyDown）。
+
+**验收证据（本地，assets 已 gitignore 不入库）**
+- 引导（最终构建）：24/24 步全程完成、无控制台错误、每步目标可见（`/tmp/m5-guide/step-01..25*.png`；排座 seed 画布已渲染演示座位）；重开引导入口 `/tmp/m5-member/rg4-guide-started.png`。
+- 设置/关于矩阵：明/暗 × 中/英 8 张（`/tmp/m5-ui/{light,dark}-{zh,en}-{settings,about}.png`），英文设置/关于版式无溢出。
+- 矮视口 780×493：工作台 + 导航抽屉 + 名单/策略/快照抽屉 + 设置单列（`/tmp/m5-compact/1..7*.png`），I-01 无回归。
+- 名单行键盘：Enter/Esc（回滚 + 脏徽标复位）/Tab（`/tmp/m5-member/{3-typed,4-escaped,5-tab,6-enter,e1-committed}.png`）。
+- 门禁：`dotnet build` 双 TFM 0 警告；`dotnet test` 381/381；实际 `ReflectionBinding`=0；`i18n.py check` 0 错误。
+
+**M5 偏差与遗留（转 M6）**
+- **启动长任务停止时刻 ≤3s 未达成**：确定性会话（种子 AppSettings、无引导/弹窗）连续 3 次自采 trace：>200ms 长任务最后结束于 **5.34–5.41s**（02 基线 ~6.3s，改善 ~15%）；MCP trace（同会话）最后长任务起于 ~5.5s。构成：单次 ~1.49s 托管 `FunctionCall`（首屏页面树挂载/渲染）+ ~1.18s `avalonia.js onResize`（RC-4 残留）。原始 trace（gitignore）：`docs/ui-refactor/assets/after/traces/M5-startup-trace.json.gz`。M6 复测并评估首屏挂载/懒加载收敛。
+- 快照自动重试与门忙回退为代码级验证（无法在 WASM 注入 IO 故障/门占用竞态）。
+- 策略配置块编辑器仅令牌化，未做结构重构（原范围）。
+
 ### M6 · 测试/性能/文档 —— ⬜ 未开始
 
 ## 3. 验证证据索引
@@ -181,6 +212,8 @@
 | M1 | 三布局画布/交换/垃圾桶/缩放 + 300 座 trace | `assets/after/M1-*.png`、`assets/after/traces/M1-spike-300*.json.gz` |
 | M2 | 三布局编辑器/预览/脏状态 + 会场页 trace | `assets/after/M2-venues*.png`、`assets/after/traces/M2-venue-*.json.gz` |
 | M3 | 三栏工作台/紧凑抽屉 + 切页 trace | `assets/after/M3-*.png`、`assets/after/traces/M3-switch-trace.json.gz` |
+| M4 | 名单/策略/快照 + 行编辑/回滚 | `assets/after/M4-*.png`、`assets/after/traces/M4-*.json.gz` |
+| M5 | 24 步引导/设置关于矩阵/矮视口/名单键盘（本地 /tmp，assets 不入库） | `/tmp/m5-guide/*.png`、`/tmp/m5-ui/*.png`、`/tmp/m5-compact/*.png`、`/tmp/m5-member/*.png`、`assets/after/traces/M5-startup-trace.json.gz` |
 
 ## 4. 偏差与决策记录
 

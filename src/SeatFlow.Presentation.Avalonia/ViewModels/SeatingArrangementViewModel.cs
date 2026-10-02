@@ -25,7 +25,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler
+public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
@@ -311,6 +311,68 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         // 为下一次进入准备新的完成信号，保证引导读到的是「下一次加载」而非旧任务
         _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         return Task.CompletedTask;
+    }
+
+    // ═══════════════════════════════════════════════
+    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
+    // ═══════════════════════════════════════════════
+
+    /// <summary>注入 3×4 演示座位与演示名单（纯内存，不落盘）。</summary>
+    public void SeedGuideData()
+    {
+        // 已等待 OnEnterAsync 内的 RefreshDataAsync 完成，注入不会被后续加载覆盖
+        VenueItems.Clear();
+        VenueItems.Add(new("demo-v", "演示教室"));
+        DatasetItems.Clear();
+        DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
+        SelectedVenue = VenueItems.FirstOrDefault();
+        SelectedDataset = DatasetItems.FirstOrDefault();
+
+        var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
+        var seats = new ObservableCollection<SeatDisplayItem>();
+        for (int r = 0; r < 4; r++)
+            for (int c = 0; c < 3; c++)
+            {
+                var idx = (r * 3) + c;
+                seats.Add(new SeatDisplayItem
+                {
+                    SeatId = $"R{r}C{c}",
+                    SeatLabel = $"R{r}C{c}",
+                    X = 200 + (c * 80),
+                    Y = 200 + (r * 60),
+                    Width = 50,
+                    Height = 30,
+                    IsOccupied = idx < 6,
+                    StudentName = idx < 6 ? names[idx] : null,
+                    OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
+                });
+            }
+
+        SeatItems = seats;
+        OverlayItems = new ObservableCollection<SeatDisplayItem>();
+        TotalSeats = 12;
+        AssignedSeats = 6;
+        HasGenerated = true;
+        IsGenerating = false;
+        StatusMessage = "已分配 6/12 个座位（演示数据）";
+        // 让演示座位真正渲染到自绘画布（SeatItems 变化不会自动重建快照）
+        UpdateCanvasSnapshot();
+    }
+
+    /// <summary>清空演示工作区（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
+    public void ClearGuideData()
+    {
+        HasGenerated = false;
+        SeatItems.Clear();
+        OverlayItems.Clear();
+        TotalSeats = 0;
+        AssignedSeats = 0;
+        VenueItems.Clear();
+        DatasetItems.Clear();
+        SelectedVenue = null;
+        SelectedDataset = null;
+        // 列表已清空 → 下次进入重新加载（页面缓存策略失效化）
+        InvalidateData();
     }
 
     // ── 抽屉命令 ──

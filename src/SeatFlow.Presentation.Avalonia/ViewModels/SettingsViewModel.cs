@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,7 @@ using AvaloniaApplication = Avalonia.Application;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
+public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageLifecycle
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
@@ -33,6 +34,8 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     private readonly IUrlOpener _urlOpener;
     private readonly IServiceProvider _serviceProvider;
     private readonly Behaviors.KeyboardShortcutHandler _shortcutHandler;
+    private readonly IDialogGate _dialogGate;
+    private readonly IShellLayoutService _layout;
     private readonly ILogger<SettingsViewModel> _logger;
 
     [ObservableProperty]
@@ -75,8 +78,13 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     public List<string> ZoomOptions { get; } = [Resources.Zoom_75, Resources.Zoom_100, Resources.Zoom_125, Resources.Zoom_150];
 
     private double _defaultZoomLevel = 1.0;
-    private int _dialogLock;
     private string _originalLanguage = string.Empty;
+
+    // ── M5 生命周期（构造器不再 fire-and-forget） ──
+    private bool _loaded;
+    private CancellationTokenSource? _enterCts;
+    /// <summary>本次进入页面加载完成的信号：OnEnter 完成置位；OnLeave 换新的未完成实例。</summary>
+    private TaskCompletionSource _enterCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     [ObservableProperty]
     public partial string StatusMessage { get; set; } = string.Empty;
@@ -161,7 +169,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     [ObservableProperty]
     public partial bool HasPendingUpdate { get; set; }
 
-    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOnboardingService onboarding, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, Behaviors.KeyboardShortcutHandler shortcutHandler, ILogger<SettingsViewModel>? logger = null) : base(dialog, logger)
+    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOnboardingService onboarding, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, Behaviors.KeyboardShortcutHandler shortcutHandler, IDialogGate dialogGate, IShellLayoutService layout, ILogger<SettingsViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _dialog = dialog;
@@ -172,14 +180,67 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
         _urlOpener = urlOpener;
         _serviceProvider = serviceProvider;
         _shortcutHandler = shortcutHandler;
+        _dialogGate = dialogGate;
+        _layout = layout;
         _logger = logger ?? NullLogger<SettingsViewModel>.Instance;
-        _ = LoadAsync(CancellationToken.None);
+        _layout.PropertyChanged += OnLayoutPropertyChanged;
     }
 
     /// <summary>当前运行平台是否为浏览器（WASM）。更新/存储卡片在网页版隐藏。</summary>
     public bool IsWebPlatform => OperatingSystem.IsBrowser();
 
-    private async Task LoadAsync(CancellationToken ct)
+    /// <summary>设置卡片网格列数（桌面两列、紧凑单列，来源：外壳断点）。</summary>
+    public int CardColumns => _layout.IsCompact ? 1 : 2;
+
+    private void OnLayoutPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
+            OnPropertyChanged(nameof(CardColumns));
+    }
+
+    // ═══════════════ IPageLifecycle（M5：构造器不再 fire-and-forget） ═══════════════
+
+    /// <summary>设置页为「保存才生效」的编辑页，改动可显式放弃，不参与导航拦截。</summary>
+    public bool IsDirty => false;
+
+    /// <summary>本次进入页面初始化（设置加载）的完成信号。</summary>
+    public Task InitializationTask => _enterCompletion.Task;
+
+    public async Task OnEnterAsync(CancellationToken ct)
+    {
+        _enterCts?.Cancel();
+        _enterCts?.Dispose();
+        _enterCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
+        var completion = _enterCompletion;
+        try
+        {
+            // 首次进入加载；失败/取消不置位，下次进入自动重试
+            if (!_loaded)
+                _loaded = await LoadAsync(_enterCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // 离开页面取消，保持未加载状态以便下次重试
+        }
+        finally
+        {
+            completion.TrySetResult();
+        }
+    }
+
+    public Task OnLeaveAsync()
+    {
+        _enterCts?.Cancel();
+        _enterCts?.Dispose();
+        _enterCts = null;
+        // 为下一次进入准备新的完成信号
+        _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        return Task.CompletedTask;
+    }
+
+    /// <returns>加载成功返回 true；取消向上抛出；其他失败返回 false 以便下次重试。</returns>
+    private async Task<bool> LoadAsync(CancellationToken ct)
     {
         try
         {
@@ -229,11 +290,17 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
             // 检查是否有已下载但未应用的更新
             RefreshPendingUpdateState();
 
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "加载设置失败");
             StatusMessage = Resources.Settings_LoadFailed;
+            return false;
         }
     }
 
@@ -392,8 +459,8 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
     [RelayCommand]
     private async Task BrowseDataDirectoryAsync(CancellationToken ct)
     {
-        if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
-        try
+        // 统一对话框门（替代原 _dialogLock + Task.Delay(150)）：门被占用时直接返回
+        await _dialogGate.RunAsync(async () =>
         {
             try
             {
@@ -417,8 +484,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler
             {
                 await _dialog.ShowErrorAsync(Resources.Settings_FolderFailed, ex.Message);
             }
-        }
-        finally { await Task.Delay(150, CancellationToken.None); Interlocked.Exchange(ref _dialogLock, 0); }
+        });
     }
 
     [RelayCommand]

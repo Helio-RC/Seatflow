@@ -33,7 +33,7 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// - 脏检查统一走 <see cref="Services.DirtyTracker"/>；
 /// - 预览由编辑参数构建 <see cref="SeatLayoutSnapshot"/>，交给 M1 自绘 <see cref="SeatingCanvas"/> 渲染（不再用 ItemsControl+Canvas）。
 /// </summary>
-public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler
+public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
@@ -367,6 +367,29 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         _selectVenueCts?.Cancel();
         _refreshCts?.Cancel();
         return Task.CompletedTask;
+    }
+
+    // ═══════════════════════════════════════════════
+    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
+    // ═══════════════════════════════════════════════
+
+    /// <summary>新建一个演示会场（不落盘），供引导展示布局编辑区。</summary>
+    public void SeedGuideData()
+    {
+        // 已等待首次加载完成，此处创建的会场不会被异步加载覆盖
+        NewVenueCommand.Execute(null);
+        LayoutName = "演示教室";
+        StatusMessage = "已创建演示会场（演示数据）";
+    }
+
+    /// <summary>清空演示会场状态（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
+    public void ClearGuideData()
+    {
+        VenueItems.Clear();
+        SelectedVenueItem = null;
+        // M2：预览改为 SeatingCanvas 快照，清空快照即可
+        PreviewSnapshot = null;
+        StatusMessage = string.Empty;
     }
 
     // ═══════════════════════════════════════════════

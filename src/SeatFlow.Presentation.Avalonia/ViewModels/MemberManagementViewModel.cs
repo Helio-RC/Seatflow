@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Enums;
 using SeatFlow.Core.Models;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
@@ -27,7 +28,7 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// - 生命周期 <see cref="IPageLifecycle"/>（构造器不再 fire-and-forget），保留 InitializationTask 供引导等待；
 /// - 紧凑模式：数据集列表转为右侧抽屉（<see cref="SideDrawerState"/>）。
 /// </summary>
-public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler
+public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
@@ -119,6 +120,15 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     private StudentDatasetInfo? _previousDataset;
     private bool _suppressDatasetLoad;
     private bool _datasetsLoaded;
+
+    // ── M5 引导演示数据（下沉自 OnboardingService） ──
+    /// <summary>演示数据集的固定 ID，用于注入和清理时识别。</summary>
+    private const string GuideDemoDatasetId = "guide-demo-ds";
+    private bool _guideDemoInjected;
+    /// <summary>引导注入前的用户状态（null 表示首次使用无需恢复）。</summary>
+    private List<Student>? _guideSavedStudents;
+    private List<StudentDatasetInfo>? _guideSavedDatasets;
+    private bool _guideSavedIsEmpty;
     private CancellationTokenSource? _enterCts;
     /// <summary>本次进入页面加载完成的信号：OnEnter 完成置位；OnLeave 换新的未完成实例。</summary>
     private TaskCompletionSource _enterCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -170,6 +180,13 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
 
     private async Task SwitchToDatasetAsync(StudentDatasetInfo target)
     {
+        // 门被其他模态占用：不排队、不弹窗，直接回退选中（保持当前已加载的数据集）
+        if (_dialogGate.IsBusy)
+        {
+            RevertDatasetSelection();
+            return;
+        }
+
         var executed = await _dialogGate.RunAsync(async () =>
         {
             if (IsDirty)
@@ -199,11 +216,24 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
             return true;
         });
 
-        // 门被占用或用户取消：回退选中项
+        // 用户取消（或门在检查后被占用）：回退选中项
         if (executed != true)
+            RevertDatasetSelection();
+    }
+
+    /// <summary>回退数据集选中项到上一次成功加载的数据集（不触发加载副作用）。</summary>
+    private void RevertDatasetSelection()
+    {
+        _suppressDatasetLoad = true;
+        try
         {
-            _suppressDatasetLoad = true;
-            SelectedDataset = _previousDataset;
+            // _previousDataset 可能已被删除/列表已刷新（引用不在当前列表中）→ 回退为清空选中
+            SelectedDataset = _previousDataset is not null && SavedDatasets.Contains(_previousDataset)
+                ? _previousDataset
+                : null;
+        }
+        finally
+        {
             _suppressDatasetLoad = false;
         }
     }
@@ -216,31 +246,102 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     /// <summary>编辑区有数据时显示"从文件更新"按钮。</summary>
     public bool IsUpdateMode => HasData;
 
-    /// <summary>仅供引导系统使用：设置演示数据集但不触发磁盘加载。</summary>
-    public void SetGuideDataset(StudentDatasetInfo dataset)
-    {
-        _suppressDatasetLoad = true;
-        SelectedDataset = dataset;
-        _suppressDatasetLoad = false;
-    }
-
-    /// <summary>仅供引导系统使用：设置 _suppressDatasetLoad 阻止 SelectedDataset 变化时的副作用。</summary>
-    internal void SetSuppressDatasetLoad(bool value) => _suppressDatasetLoad = value;
-
-    /// <summary>仅供引导系统使用：重置脏状态追踪，防止 ClearPageData 后的误判。</summary>
-    internal void ResetDirtyState() => _dirty.Reset();
-
     /// <summary>标记数据集列表失效（下次进入或显式刷新时重新加载）。供 .seatsets 导入等场景调用。</summary>
     public void InvalidateData() => _datasetsLoaded = false;
 
-    /// <summary>仅供引导系统使用：获取底层学生列表（不含编辑态包装）。</summary>
-    public List<Student> GetStudents() => Students.Select(r => r.Student).ToList();
+    // ═══════════════════════════════════════════════
+    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
+    // ═══════════════════════════════════════════════
 
-    /// <summary>仅供引导系统使用：整体替换学生列表（重建行包装与脏检查关联）。</summary>
-    public void SetStudents(IEnumerable<Student> students)
+    /// <summary>获取底层学生列表（不含编辑态包装）。</summary>
+    private List<Student> GetStudents() => Students.Select(r => r.Student).ToList();
+
+    /// <summary>注入演示班级：保存用户原状态；用户已有数据时不覆盖，仅补演示数据集。</summary>
+    public void SeedGuideData()
     {
-        ReplaceStudents(students);
+        // 保存用户原有状态，引导结束后恢复（始终执行，即使跳过注入）
+        _guideSavedStudents = [.. GetStudents()];
+        _guideSavedDatasets = [.. SavedDatasets];
+        _guideSavedIsEmpty = IsEmpty;
+
+        // 若用户已在 Phase 1 导入数据，不覆盖
+        if (GetStudents().Count > 0) return;
+
+        ReplaceStudents(
+        [
+            new() { Name = "Alice", Height = 165, Gender = Gender.Female },
+            new() { Name = "Bob", Height = 175, Gender = Gender.Male, NeedsFrontRow = true },
+            new() { Name = "Charlie", Height = 180, Gender = Gender.Male },
+            new() { Name = "Diana", Height = 160, Gender = Gender.Female },
+            new() { Name = "Eve", Height = 170, Gender = Gender.Female },
+            new() { Name = "Frank", Height = 178, Gender = Gender.Male },
+        ]);
         RefreshDirty();
+        IsLoading = false;
+        StatusMessage = string.Format(Resources.Member_LoadedFmt, StudentCount);
+
+        // 追加演示数据集到现有列表（而非替换），避免覆盖用户真实数据集
+        var demoDataset = new StudentDatasetInfo
+        {
+            Id = GuideDemoDatasetId,
+            Name = "演示班级",
+            StudentCount = 6,
+            CreatedAt = DateTime.Now
+        };
+        // 仅在演示数据集不存在时才追加，防止重复
+        if (!SavedDatasets.Any(d => d.Id == GuideDemoDatasetId))
+            SavedDatasets.Add(demoDataset);
+        CurrentDatasetId = GuideDemoDatasetId;
+        CurrentDatasetName = "演示班级";
+
+        // 安全选中演示数据集，不触发磁盘加载
+        _suppressDatasetLoad = true;
+        SelectedDataset = demoDataset;
+        _suppressDatasetLoad = false;
+
+        _guideDemoInjected = true;
+    }
+
+    /// <summary>清理演示数据：仅在实际注入过时恢复注入前状态，避免触碰用户当前编辑内容。</summary>
+    public void ClearGuideData()
+    {
+        if (_guideDemoInjected)
+        {
+            // 使用 _suppressDatasetLoad 阻断 SelectedDataset 变化时的副作用，
+            // 防止 SavedDatasets 替换触发 OnSelectedDatasetChanged → ClearDataInternalAsync 弹窗。
+            _suppressDatasetLoad = true;
+            try
+            {
+                if (_guideSavedStudents is not null)
+                {
+                    // 引导前有用户数据 → 恢复到原始状态（显式过滤残留的演示数据集）
+                    ReplaceStudents(_guideSavedStudents);
+                    IsEmpty = _guideSavedIsEmpty;
+                    SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
+                        (_guideSavedDatasets ?? []).Where(d => d.Id != GuideDemoDatasetId));
+                }
+                else
+                {
+                    // 首次使用（引导前无数据）→ 清空演示数据（显式过滤残留的演示数据集）
+                    ReplaceStudents([]);
+                    SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
+                        SavedDatasets.Where(d => d.Id != GuideDemoDatasetId));
+                }
+                SelectedDataset = null;
+                CurrentDatasetId = null;
+                CurrentDatasetName = null;
+                FilePath = string.Empty;
+                _dirty.Reset(); // 重置 DirtyTracker 基线，防止后续 IsDirty 误判
+            }
+            finally
+            {
+                _suppressDatasetLoad = false;
+            }
+        }
+
+        _guideDemoInjected = false;
+        _guideSavedStudents = null;
+        _guideSavedDatasets = null;
     }
 
     /// <summary>用底层学生集合替换行集合（订阅行变更以驱动脏检查）。</summary>
@@ -815,14 +916,35 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     {
         if (row is null) return;
         foreach (var item in Students)
-            item.IsEditing = ReferenceEquals(item, row);
+        {
+            if (ReferenceEquals(item, row))
+            {
+                // 记录进入编辑态前的值，供 Esc 取消回滚
+                row.SnapshotForEdit();
+                item.IsEditing = true;
+            }
+            else
+            {
+                item.IsEditing = false;
+            }
+        }
     }
 
     [RelayCommand]
     private void EndEdit(StudentRowViewModel? row)
     {
         if (row is null) return;
+        row.ClearEditSnapshot();
         row.IsEditing = false;
+        RefreshDirty();
+    }
+
+    /// <summary>取消行内编辑：回滚到进入编辑态前的值并退出编辑态（Esc）。</summary>
+    [RelayCommand]
+    private void CancelEdit(StudentRowViewModel? row)
+    {
+        if (row is null) return;
+        row.CancelEdit();
         RefreshDirty();
     }
 
