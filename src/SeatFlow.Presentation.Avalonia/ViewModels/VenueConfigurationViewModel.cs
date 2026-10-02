@@ -117,7 +117,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     public partial double GridIntraDeskSpacing { get; set; } = 12;
 
     [ObservableProperty]
-    public partial double GridInterDeskSpacing { get; set; } = 40;
+    public partial double GridInterDeskSpacing { get; set; } = 32;
 
     // ── Grid 过道配置 ──
     [ObservableProperty]
@@ -1442,7 +1442,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         GridOriginY = g.OriginY > 0 ? g.OriginY : 200;
         GridSeatsPerDesk = g.SeatsPerDesk > 0 ? g.SeatsPerDesk : 2;
         GridIntraDeskSpacing = g.IntraDeskSpacing > 0 ? g.IntraDeskSpacing : 12;
-        GridInterDeskSpacing = g.InterDeskSpacing > 0 ? g.InterDeskSpacing : 40;
+        GridInterDeskSpacing = g.InterDeskSpacing > 0 ? g.InterDeskSpacing : 32;
         GridAisleAfterColumns = string.Join(",", g.AisleAfterColumns ?? []);
         GridAisleAfterRows = string.Join(",", g.AisleAfterRows ?? []);
         GridAisleWidth = g.AisleWidth > 0 ? g.AisleWidth : 60;
@@ -1518,7 +1518,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         GridHorizontalSpacing = 64; GridVerticalSpacing = 56;
         GridOriginX = 200; GridOriginY = 200;
         GridSeatsPerDesk = 2;
-        GridIntraDeskSpacing = 40; GridInterDeskSpacing = 64;
+        GridIntraDeskSpacing = 40; GridInterDeskSpacing = 32;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
         GridAisleWidth = 60;
         GridFrontRowCount = 1;

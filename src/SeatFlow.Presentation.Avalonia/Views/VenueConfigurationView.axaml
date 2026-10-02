@@ -344,7 +344,7 @@
                       Classes="sf-input"
                       Maximum="400"
                       Minimum="4"
-                      PlaceholderText="40 px"
+                      PlaceholderText="32 px"
                       ToolTip.Tip="{x:Static lang:Resources.Venue_DeskSpacingTooltip}"
                       Value="{Binding GridInterDeskSpacing, Mode=TwoWay}" />
                   </StackPanel>
@@ -397,7 +397,10 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <StackPanel Classes="sf-field" Margin="0,4,0,0">
+                <StackPanel
+                  Classes="sf-field"
+                  Margin="0,4,0,0"
+                  HorizontalAlignment="Left">
                   <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_AisleWidth}" />
                   <NumericUpDown
                     Classes="sf-input"

@@ -37,7 +37,7 @@ namespace SeatFlow.Core.DomainServices
                 throw new ArgumentException("Grid seat requires GridLayoutMetadata.");
 
             double intra = gridMeta.IntraDeskSpacing > 0 ? gridMeta.IntraDeskSpacing : 12.0;
-            double inter = gridMeta.InterDeskSpacing > 0 ? gridMeta.InterDeskSpacing : 40.0;
+            double inter = gridMeta.InterDeskSpacing > 0 ? gridMeta.InterDeskSpacing : 32.0;
             double aisle = gridMeta.AisleWidth > 0 ? gridMeta.AisleWidth : 60.0;
             var aisleAfterCols = new HashSet<int>(gridMeta.AisleAfterColumns ?? []);
             var aisleAfterRows = new HashSet<int>(gridMeta.AisleAfterRows ?? []);

@@ -39,8 +39,8 @@ namespace SeatFlow.Core.Models
         /// <summary>同桌内相邻座位间距（像素），默认 12。</summary>
         public double IntraDeskSpacing { get; set; } = 12.0;
 
-        /// <summary>相邻桌边界间距（像素），默认 40。</summary>
-        public double InterDeskSpacing { get; set; } = 40.0;
+        /// <summary>相邻桌边界间距（像素），默认 32。</summary>
+        public double InterDeskSpacing { get; set; } = 32.0;
 
         /// <summary>哪些列索引后是过道（列从 1 开始计数）。如 {3,6} 表示第 3 列和第 6 列后有过道。</summary>
         public List<int> AisleAfterColumns { get; set; } = [];

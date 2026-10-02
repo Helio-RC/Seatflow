@@ -8,7 +8,7 @@ namespace SeatFlow.Presentation.Avalonia.Services;
 /// <para>
 /// 背景：<see cref="SeatFlow.Core.DomainServices.SeatGeometryHelper"/> 的横向步进是
 /// 桌内 <see cref="GridLayoutMetadata.IntraDeskSpacing"/>（默认 12）与桌间
-/// <see cref="GridLayoutMetadata.InterDeskSpacing"/>（默认 40），而
+/// <see cref="GridLayoutMetadata.InterDeskSpacing"/>（默认 32），而
 /// <see cref="GridLayoutMetadata.HorizontalSpacing"/> 并不参与坐标累加。
 /// 若直接按原始坐标绘制，座位尺寸只能取步进的一小部分（如 10px），
 /// 小于文字所需宽度，放大后也只能看到省略号。
@@ -34,7 +34,7 @@ public static class PreviewSeatSize
     public static GridPreviewMetrics ForGrid(GridLayoutMetadata metadata)
     {
         var intra = metadata.IntraDeskSpacing > 0 ? metadata.IntraDeskSpacing : 12.0;
-        var inter = metadata.InterDeskSpacing > 0 ? metadata.InterDeskSpacing : 40.0;
+        var inter = metadata.InterDeskSpacing > 0 ? metadata.InterDeskSpacing : 32.0;
         var seatsPerDesk = metadata.SeatsPerDesk > 0 ? metadata.SeatsPerDesk : 1;
         var stepX = seatsPerDesk > 1 ? Math.Min(intra, inter) : inter;
         var stepY = metadata.VerticalSpacing > 0 ? metadata.VerticalSpacing : 36.0;
