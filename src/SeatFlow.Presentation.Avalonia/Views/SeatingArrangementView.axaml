@@ -390,7 +390,9 @@
                   <TextBlock
                     HorizontalAlignment="Center"
                     Classes="sf-h2"
-                    Text="{Binding Welcome.GreetingLine}" />
+                    Text="{Binding Welcome.GreetingLine}"
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
                   <TextBlock
                     HorizontalAlignment="Center"
                     Classes="sf-xs sf-faint"
@@ -404,7 +406,11 @@
                       Classes="sf-sm sf-dim"
                       Text="{x:Static lang:Resources.Seating_NotGeneratedHint}"
                       TextWrapping="Wrap" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                    <WrapPanel
+                      HorizontalAlignment="Center"
+                      ItemSpacing="8"
+                      LineSpacing="8"
+                      Orientation="Horizontal">
                       <Button
                         AutomationProperties.Name="{x:Static lang:Resources.Home_QuickStart}"
                         Classes="sf-btn"
@@ -435,7 +441,7 @@
                           <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Home_FAQ}" />
                         </StackPanel>
                       </Button>
-                    </StackPanel>
+                    </WrapPanel>
 
                     <Expander
                       Header="{x:Static lang:Resources.Seating_ReleaseNotes}"
@@ -493,10 +499,11 @@
                   </StackPanel>
                 </Border>
 
-                <StackPanel
+                <WrapPanel
                   HorizontalAlignment="Center"
-                  Orientation="Horizontal"
-                  Spacing="8">
+                  ItemSpacing="8"
+                  LineSpacing="8"
+                  Orientation="Horizontal">
                   <Button
                     Classes="sf-btn sf-primary"
                     Command="{Binding GenerateSeatingCommand}"
@@ -512,7 +519,7 @@
                     IsEnabled="{Binding CanCreateEmpty}">
                     <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_CreateEmpty}" />
                   </Button>
-                </StackPanel>
+                </WrapPanel>
               </StackPanel>
             </ScrollViewer>
           </Border>
