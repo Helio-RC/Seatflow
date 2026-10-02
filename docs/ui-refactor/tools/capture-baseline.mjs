@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// 抓取 9 个页面的基线截图（默认 zh-CN / 浅色主题 / 1200x800 视口）。
+// 抓取 7 个页面的基线截图（新 IA：1200x800 / zh-CN / 浅色主题）。
+// 明暗 × 中英完整矩阵见 08-implementation-log.md 的 M6 小节（emulate prefers-color-scheme + 语言注入）。
 //
 // 前置条件：
 //   1. WASM 站点已在本机 8090 端口服务（见 tools/README.md）
@@ -14,20 +15,18 @@ import { fileURLToPath } from 'node:url';
 import { withPage, click, sleep, screenshot, evaluate, send } from './cdp.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const OUT = resolve(process.argv[2] ?? resolve(here, '../assets/before'));
+const OUT = resolve(process.argv[2] ?? resolve(here, '../assets/after'));
 const APP_URL = process.env.APP_URL || 'http://localhost:8090/';
 
-// 1200x800 视口下左栏导航项的文字中心 y（由 png_analyze.py 标定）
+// 1200x800 视口下左栏导航项的文字中心 y（新 IA 分组侧栏，M6 重新标定）
 const PAGES = [
-  ['01-home', 117],
-  ['02-member-management', 169],
-  ['03-venue-configuration', 221],
-  ['04-freeform-management', 273],
-  ['05-strategy-configuration', 325],
-  ['06-seating-arrangement', 377],
-  ['07-snapshot-history', 429],
-  ['08-settings', 715],
-  ['09-about', 767],
+  ['01-seating-workbench', 142],
+  ['02-member-management', 211],
+  ['03-venue-configuration', 247],
+  ['04-strategy-configuration', 317],
+  ['05-snapshot-history', 381],
+  ['06-settings', 740],
+  ['07-about', 775],
 ];
 
 mkdirSync(OUT, { recursive: true });

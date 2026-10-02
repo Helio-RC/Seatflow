@@ -11,4 +11,5 @@
   <Project Path="tests/SeatFlow.Application.Tests/SeatFlow.Application.Tests.csproj" />
   <Project Path="tests/SeatFlow.Core.Tests/SeatFlow.Core.Tests.csproj" />
   <Project Path="tests/SeatFlow.Infrastructure.Tests/SeatFlow.Infrastructure.Tests.csproj" />
+  <Project Path="tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj" />
 </Solution>

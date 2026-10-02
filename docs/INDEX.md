@@ -21,6 +21,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── LOGGING.md              ← 日志系统设计文档（等级规范、分模块覆盖、输出格式、最佳实践）
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
 │   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
+│   ├── ui-refactor/           ← UI 重构全套文档（00 章程 – 09 交接；08 为 M0–M6 实施日志与性能证据）
 │   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
 │   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
 │   ├── WebDeployment.md       ← Web/WASM 部署指南（在线版托管、平台差异、JS 桥、已知限制）
@@ -120,6 +121,11 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **何时更新**: 双壳结构、存储抽象、浏览器平台实现、在线版发布流程或部署要求变更
 - **关联文档**: ARCHITECTURE.md（6.4 双壳架构）、CLAUDE.md（Web/WASM 双壳）
 
+### docs/ui-refactor/
+- **覆盖**: UI 重构（M0–M6）的章程/盘点/性能诊断/设计/技术选型/实施计划/实施日志。`08-implementation-log.md` 是续跑基准与性能证据索引（M1–M6 指标、偏差、截图与 trace 存放）
+- **何时更新**: 每个里程碑完成后更新对应小节；性能指标复测追加证据；偏差与决策记入日志
+- **关联文档**: CLAUDE.md（UI 模式节）、docs/CLAUDE.md、Design_Spec.md、DragDrop.md、WebDeployment.md
+
 ## 常见变更场景的文档联动清单
 
 | 变更场景 | 需更新的文档 |
@@ -135,4 +141,5 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 修改快照/完整性检测逻辑 | CLAUDE.md（快照完整性检测/轮转/嵌入）、docs/CLAUDE.md、ARCHITECTURE.md（5.3 节） |
 | 修改构建/测试流程 | CLAUDE.md、CONTRIBUTING.md、README.md |
 | 修改 Web/WASM 双壳、存储抽象或浏览器平台实现 | docs/WebDeployment.md、ARCHITECTURE.md（6.4 节）、CLAUDE.md（Web/WASM 双壳）、README.md |
+| 修改页面生命周期/横切服务/外壳 IA（M0–M6 重构） | docs/ui-refactor/08-implementation-log.md、CLAUDE.md、docs/CLAUDE.md、Design_Spec.md |
 | 推进开发阶段 | README.md（状态表）、Phases.md |

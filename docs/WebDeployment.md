@@ -216,6 +216,15 @@ MT 模式下 Avalonia 的输入链路（Avalonia 12.1.2，main 分支同码，�
   `ExistsAsync()`，`App` 首次启动检测/默认设置写入改走它。
 - **根因 5：无 Console 日志**：`AddSeatFlowApplication(store)` 走 `AddLogging()` 但无
   任何 Provider。修复：浏览器注册 `BrowserConsoleLoggerProvider`（转发到 DevTools Console）。
+- **根因 6（M5 修复）：WASM 运行时不加载卫星资源程序集** → 运行时语言切换
+  （`Resources.Culture = en-US`）永远回退中性资源（中文）。两个必要条件：
+  1. `SeatFlow.Browser.csproj` 设 `<UseSystemResourceKeys>false</UseSystemResourceKeys>`
+     —— WASM 发布默认 `true`，会剔除 `.resx` 卫星资源；
+  2. `wwwroot/main.js` 创建运行时加 `.withConfig({ loadAllSatelliteResources: true })`
+     —— 独立 WASM（非 Blazor）的按需解析无法定位 `_framework/{culture}/` 下的资源文件，
+     需预加载把卫星程序集注册进资源清单。
+  验证：en-US 下 `Resources.Settings_Title == "Settings"`，全 UI 英文（M5 明暗 × 中英矩阵截图）；
+  zh-CN 下恢复中文。语言在 `Program.Main` 于 Avalonia 启动前异步预加载（根因 3）。
 - **CJK 字体**：WASM 无系统字体，Inter 无 CJK 字形 → 中文显示为方块。
   修复：字体库嵌入 `Assets/Fonts/NotoSansSC-Regular.otf`（约 8MB，仅 `net10.0-browser`
   TFM 打包；SIL OFL 1.1，`Assets/Fonts/LICENSE.txt`），Browser 启动时注册

@@ -128,7 +128,7 @@
 - **数据控件**：不使用 `DataGrid`（现设计为表单式可编辑行 + ListBox 虚拟化；DataGrid 模板重、编辑体验不同）；不引入 `TreeDataGrid`（无树形数据需求）。
 - **图标**：保留 `FluentIcons.Avalonia` 2.1.341。
 - **引导**：保留 `CodeWF.AvaloniaControls`（阶段 3 已决定引导随新 IA 重写目标；是否替换控件在阶段 6 评估，不作为强制项）。
-- **`Svg.Controls.Skia.Avalonia`**：仅用于品牌/静态图；如无使用点可移除（阶段 6 核查）。
+- **`Svg.Controls.Skia.Avalonia`**：仅用于品牌/静态图；如无使用点可移除（阶段 6 核查）。**M6 结论：全仓零使用，已移除**（同时消除其传递的旧版 Linux native 与托管 SkiaSharp 4.152.0 的版本错配，见 08 日志 M6 评审修复）。
 
 ## 7. 状态、生命周期、命令、消息、DI
 

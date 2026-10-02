@@ -201,7 +201,54 @@
 - 快照自动重试与门忙回退为代码级验证（无法在 WASM 注入 IO 故障/门占用竞态）。
 - 策略配置块编辑器仅令牌化，未做结构重构（原范围）。
 
-### M6 · 测试/性能/文档 —— ⬜ 未开始
+### M6 · 测试/性能/文档 —— ✅ 完成（终验）
+
+**范围交付**
+- [x] **Headless UI 测试项目** `tests/SeatFlow.Presentation.Tests`（加入 `SeatFlow.slnx`）：
+  - 包组合：`Avalonia.Headless.XUnit 12.1.3` + `Avalonia.Headless` + `Avalonia.Skia 12.1.3`（真实 Skia 绘制）+ `SkiaSharp.NativeAssets.Linux 4.152.0`（对齐托管 4.152.0，否则 Linux 上 SkiaSharp 版本检查崩溃）+ FluentAssertions/NSubstitute。
+  - **关键基础设施决策**：`Avalonia.Headless.XUnit 12.1.3` 按 `xunit.v3 3.2.2` 编译，与其余项目的 `xunit.v3 4.0.0` 存在 `MissingMethodException`（`TestIntrospectionHelper.GetTestCaseDetails` 签名变更）→ 本测试项目单独锁定 `xunit.v3 3.2.2`；测试 App 直接复用生产 `App`（`AppBuilder.Configure(() => new App(di))`，仅注入 `IApplicationFacade` 替身），完整加载 App.axaml 主题/令牌/样式，避免测试与生产资源漂移。
+  - **VM/服务单测（36 例）**：`IPageLifecycle` 状态机（Member/Snapshot：OnEnter 置位、OnLeave 换新未完成、取消/失败不置位且下次重试、成功不重复加载）、`DirtyTracker`、`DialogGate`（并发/异常释放）、`IGuideSeedTarget`（Member 首次 vs 已有数据两分支、Snapshot 注入标志与幂等清理、Seating 演示后 `CanvasSnapshot` 已生成）、Settings `CardColumns` 紧凑断点、Snapshot 手动刷新失败后重试标志、`StudentRowViewModel` Esc 回滚/提交后不再回滚、Seating 命令状态（CanGenerate/CanCreateEmpty/CanUndo/CanRedo）与状态四态边界、**会场列表懒加载回归（ID 占位/选中回填/恢复回填，3 例）**。
+  - **Headless 组件与视觉测试（13 例）**：`SeatingCanvas` 几何命中/未命中、空快照安全、方向键虚拟焦点、跳过禁用座位、Enter 激活、空座位列表无副作用（7 例）；Skia 视觉基线捕获 4 例；基建冒烟 2 例。
+  - 全量测试：**430/430 通过**（381 旧 + 49 新）。
+- [x] **视觉回归基线**：`VisualBaselineTests`（Headless + Skia）输出 4 个关键视图 × 明/暗 8 张 PNG 至 `docs/ui-refactor/assets/after/baselines/`（**基线图片不入库**，assets 已 gitignore）；断言渲染帧非空与布局尺寸，不做入库像素比对。复现：`dotnet test tests/SeatFlow.Presentation.Tests --filter VisualBaselineTests`（可选 `SEATFLOW_BASELINE_DIR` 指定输出目录）。
+  - 无头容器无 CJK 字体，基线文字为占位方块（布局/配色仍可审阅）；中英完整矩阵走 WASM 实机截图。
+- [x] **性能复测 M1–M6**（口径：02 §6，WASM Release + `WasmBuildNative=true`，1200×800，软件 WebGL；trace 存 `assets/after/traces/M6-*.json.gz`）
+- [x] **绑定诊断**：源码 `ReflectionBinding` 实际使用 **0**（仅 2 处注释）；WASM 实机启动 + 7 页导航 Console 无任何绑定警告（仅 WebGL 软件渲染环境警告与计数器 API 的 CORS 环境错误）。
+- [x] **文档同步**：`docs/INDEX.md`（新增 ui-refactor 索引与联动行）、根 `CLAUDE.md` + `docs/CLAUDE.md`（测试项目 4 个、ReactiveUI/Avalonia 12.1.3、7 页 IA、`IPageLifecycle`/`DirtyTracker`/`DialogGate`/`IShellLayoutService`/`IGuideSeedTarget`/`SeatingCanvas`、App 构造参数化、onboarding v3.4/24 步、WASM 语言修复、设置分组卡片）、`Design_Spec.md`（重写为方向 B 令牌 + 动效政策）、`WebDeployment.md`（根因 6：卫星资源与运行时语言切换）、`ONBOARDING_GUIDE.md`（v3.4/24 步 + M5 接口化注入）、`tools/capture-baseline.mjs`（7 页新 IA）。
+- [x] **M4 遗留 Minor 复测/收口**：名单行编辑键盘（Esc/Enter 单测）；快照失败重试（单测）。
+- [x] **启动排障（新发现问题并修复）**：工作台首屏原会为取会场名称完整反序列化全部会场布局（演示数据含 800 座大教室）→ 改为首屏只列 ID、选中/恢复时加载布局并回填名称（`ApplyVenueDisplayName`，含集合替换导致 ListBox 清空选中的恢复逻辑）。实机回归：选择会场 → 名单 → 生成 64/64 正常。
+
+**M6 性能复测（同 02 §6 口径；WASM 软件渲染）**
+
+| # | 指标 | 目标 | 本轮实测 | 判定 |
+|---|---|---|---|---|
+| M1 | 会场参数单次变更 | ≤50ms / INP≤100ms | **INP 18ms**，长任务 1 个 69.5ms（trace 起始） | ✅ |
+| M2 | 切页 INP（WASM） | ≤100ms | **INP 569ms**（27 个 >100ms 长任务，最长 747ms） | ❌ 遗留 |
+| M2b | 桌面换页端到端 | ≤250ms | 无头环境不可测（桌面壳未构建） | 未测 |
+| M3 | 64 座画布首帧 | ≤300ms | 生成交互 **INP 42ms**；生成流程（240 名单加载 + 策略 + 画布）总长任务 1.59s 分段完成 | ✅（交互口径） |
+| M3b | 拖拽/缩放无 >100ms | ≤100ms | 交互期长任务 53–93ms（INP 15ms）；trace 起始 120ms 为上轮残留 | ✅（近似） |
+| M4 | 启动停止 >200ms | ≤3s | **6.57s**（优化前 7.45s，M5 6.0s 波动区间）；会场加载优化已消除 ~0.9s | ❌ 遗留 |
+| M5 | 240 行滚动 | ≤1 个 <100ms | **1 个 167ms**（trace 起始帧），滚动期间无 >50ms 长任务 | 近似 ✅ |
+| M6 | 10 次往返堆增长 | ≤10% | 首轮 +20.0%（页面首访缓存/GC 扩容），**第二轮 0.00%**（322.6MB 稳定）；JS 堆 +3.1% | ✅（稳态） |
+
+- M2 未达标归因（同 M3/M4 结论）：页面首次构造 + 挂载的 XAML 激活成本（ViewLocator 已缓存，重复切换 271–340ms）；`EventDispatch` 累计 2932ms 为 Avalonia 输入路由/样式应用。
+- M4 未达标归因（M6 打点定位）：WelcomeCard Markdown 渲染 ~0.2s、MainView 构造+挂载 ~0.48s、SeatingView 构造到 Loaded ~0.99s、启动 I/O（首次启动检测/设置恢复，WASM IndexedDB）~1.2s；会场全量反序列化已优化移除。启动 6.57s 为本环境（软件 WebGL + 单线程 WASM）实测，桌面推断显著更优。
+- M6 堆口径说明：`.NET WASM` 线性内存 `getDotnetRuntime(0).Module.HEAP8.buffer.byteLength` + JS 堆 `performance.memory.usedJSHeapSize`，`HeapProfiler.collectGarbage` 后对比；首轮增长为页面/视图缓存的一次性常驻，稳态 10 次往返零增长，无泄漏。
+- 遗留未测：**500+ 行虚拟化滚动**（演示数据仅 240 行；M4 结论：>300 行虚拟化在 WASM 单次滚动 300–400ms，保留为已知设计约束）、**桌面换页端到端**（无桌面环境）。
+
+**M6 验收证据（本地，assets 已 gitignore 不入库）**
+- DoD 截图矩阵（WASM 实机，`assets/after/m6-matrix/`，17 张）：明/暗 × 中/英 × 桌面 1200×800 / 移动 780×493；含工作台/设置/关于/三布局编辑（Grid/Polar/Freeform）。
+- trace：`assets/after/traces/M6-startup-trace.json.gz`、`M6-startup-optimized.json.gz`、`M6-pageswitch-trace.json.gz`、`M6-venue-param.json.gz`、`M6-generate-64-retry.json.gz`、`M6-canvas-interact.json.gz`、`M6-member-scroll.json.gz`。
+- 视觉基线（Headless）：`assets/after/baselines/*.png`（4 视图 × 明暗）。
+- 门禁：`dotnet build` 双 TFM 0 警告；`dotnet test` 430/430；`ReflectionBinding`=0；`i18n.py check` 0 错误；Presentation 无 static 可变字段（仅静态构造器）。
+
+**M6 评审修复（OpenCode 独立评审后）**
+- [x] **[Major] 生产桌面 Skia 本地资产版本错配（预存量）**：托管 `SkiaSharp 4.152.0`（Infrastructure 显式引用）与依赖链解析的 `NativeAssets.Linux 4.148.0`（来自已无用途的 `Svg.Controls.Skia.Avalonia`）不匹配，Linux 桌面启动会触发 `SkiaSharpVersion.CheckNativeLibraryCompatible` 异常。修复：**移除死依赖 `Svg.Controls.Skia.Avalonia`**（全仓零使用，05 §6 已列为阶段 6 核查项）+ `SeatFlow.Desktop` 显式引用 `SkiaSharp.NativeAssets.Linux 4.152.0`。验证：Desktop/测试产物 `libSkiaSharp.so` hash 与 4.152.0 包内一致（e26d9c48…，原为 4.148 的 7c98d57…）。附带收益：桌面发布移除 Svg 家族 6 个程序集。
+- [x] **[Major] 会场懒加载零测试覆盖**：补 `SeatingVenueLoadingTests` 3 例（首屏仅 ID 占位不加载布局、选中回填名称且选中不被清空仅加载一次、恢复工作区回填不触发额外加载）。
+- [x] **[Minor] 会场切换竞态**：`OnSelectedVenueChanged` 捕获 `venueId`，加载完成后校验 `SelectedVenue?.Id` 再写 `_currentLayout`（后完成者不覆盖用户当前选择）。
+- [x] **[Minor] 标志门健壮性**：`TryRestoreWorkspaceAsync` 与 `ApplyVenueDisplayName` 的 `_isRestoringWorkspace` 均改为 try/finally；回填改为「先进入恢复门 → 替换集合项 → 按 Id 恢复选中」，同时覆盖 ListBox「清空选择」与「重映射选择」两种行为，杜绝二次加载。
+- [x] **[Minor] 测试与文档质量**：删除自证式虚拟化阈值断言；视觉基线补文件长度 >0 断言；`SmokeTests` 兼容性注释修正为 3.2.2；`CLAUDE.md` `InitializationTask` 措辞澄清（进入流程无论成败均置位，数据加载成功标志才决定重试）；本节测试分类数字修正。
+- 未采纳（记录为后续建议）：会场 ID 首屏占位对多会场用户的辨识度问题（建议后续新增 `ListVenueSummariesAsync` 轻量摘要接口，仅用 `JsonDocument` 读名称，不反序列化 seats）；`tests/SeatFlow.Presentation.Tests` 锁定 `xunit.v3 3.2.2` 的 CI 版本断言。
 
 ## 3. 验证证据索引
 
@@ -214,9 +261,11 @@
 | M3 | 三栏工作台/紧凑抽屉 + 切页 trace | `assets/after/M3-*.png`、`assets/after/traces/M3-switch-trace.json.gz` |
 | M4 | 名单/策略/快照 + 行编辑/回滚 | `assets/after/M4-*.png`、`assets/after/traces/M4-*.json.gz` |
 | M5 | 24 步引导/设置关于矩阵/矮视口/名单键盘（本地 /tmp，assets 不入库） | `/tmp/m5-guide/*.png`、`/tmp/m5-ui/*.png`、`/tmp/m5-compact/*.png`、`/tmp/m5-member/*.png`、`assets/after/traces/M5-startup-trace.json.gz` |
+| M6 | Headless 测试（430 例）/视觉基线/明暗中英矩阵/性能 trace | `assets/after/baselines/`、`assets/after/m6-matrix/`、`assets/after/traces/M6-*.json.gz`、`tests/SeatFlow.Presentation.Tests/` |
 
 ## 4. 偏差与决策记录
 
 | # | 事项 | 决定/说明 |
 |---|---|---|
 | L-01 | 07 交接稿与用户实时指示冲突 | 按用户实时指示：全量 M0–M6、每里程碑提交 |
+| L-02 | 阶段 6 核查发现 `Svg.Controls.Skia.Avalonia` 全仓零使用（死依赖）且其传递的 Linux native 旧版导致桌面 Skia 版本错配 | M6 移除该死依赖并在 Desktop 显式对齐 `NativeAssets.Linux 4.152.0`（详见 M6 评审修复小节） |

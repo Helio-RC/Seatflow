@@ -467,13 +467,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         await SafeExecuteAsync(async () =>
         {
             var ids = (await _facade.ListVenueIdsAsync()).ToList();
-            var items = new List<VenueItem>();
-            foreach (var id in ids)
-            {
-                var layout = await _facade.LoadVenueAsync(id);
-                items.Add(new VenueItem(id, layout?.Name ?? id));
-            }
-            VenueItems = new ObservableCollection<VenueItem>(items);
+            // M6 启动优化：首屏只列 ID（名称以 ID 占位），避免启动时反序列化全部会场布局
+            // （大教室可达数百座位）；选中 / 恢复工作区时再加载布局并回填真实名称。
+            VenueItems = new ObservableCollection<VenueItem>(ids.Select(id => new VenueItem(id, id)));
         });
     }
 
@@ -499,9 +495,26 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         if (_currentLayout != null)
         {
             _isRestoringWorkspace = true;
-            SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Id)
-                         ?? VenueItems.FirstOrDefault();
-            _isRestoringWorkspace = false;
+            try
+            {
+                var restored = VenueItems.FirstOrDefault(v => v.Id == _currentLayout.Id)
+                             ?? VenueItems.FirstOrDefault();
+                // M6：首屏列表以 ID 占位，恢复工作区时回填真实名称
+                if (restored is not null && restored.Name == restored.Id && !string.IsNullOrEmpty(_currentLayout.Name))
+                {
+                    var index = VenueItems.IndexOf(restored);
+                    if (index >= 0)
+                    {
+                        restored = restored with { Name = _currentLayout.Name };
+                        VenueItems[index] = restored;
+                    }
+                }
+                SelectedVenue = restored;
+            }
+            finally
+            {
+                _isRestoringWorkspace = false;
+            }
 
             HasGenerated = true;
         }
@@ -520,15 +533,48 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     {
         OnPropertyChanged(nameof(WorkbenchSubtitle));
         if (value == null || _isRestoringWorkspace) return;
+        var venueId = value.Id;
         _ = SafeExecuteAsync(async () =>
         {
-            _currentLayout = await _facade.LoadVenueAsync(value.Id);
+            var layout = await _facade.LoadVenueAsync(venueId);
+            // 竞态防护：加载期间用户可能已切换到其他会场，后完成者不得覆盖当前布局
+            if (SelectedVenue?.Id != venueId) return;
+
+            _currentLayout = layout;
             if (_currentLayout != null)
             {
                 ObstacleProcessor.ApplyObstacles(_currentLayout);
+                ApplyVenueDisplayName(value, _currentLayout.Name);
                 StatusMessage = string.Format(Resources.Seating_VenueLoadedFmt, _currentLayout.Name, _currentLayout.Seats.Count);
             }
         });
+    }
+
+    /// <summary>
+    /// M6 启动优化：会场列表首屏以 ID 占位显示，布局加载完成后回填真实名称。
+    /// 集合项替换可能触发 ListBox 选择变化（清空或重映射）；先进入恢复门再替换，
+    /// 之后按 Id 恢复选中，保证不发生二次加载（<see cref="_isRestoringWorkspace"/>）。
+    /// </summary>
+    private void ApplyVenueDisplayName(VenueItem item, string? name)
+    {
+        if (string.IsNullOrEmpty(name) || item.Name != item.Id || name == item.Id) return;
+
+        var index = VenueItems.IndexOf(item);
+        if (index < 0) return;
+
+        var updated = item with { Name = name };
+        _isRestoringWorkspace = true;
+        try
+        {
+            VenueItems[index] = updated;
+            // 只要用户没有切走就恢复选中（替换可能已把它清空/保留旧实例）
+            if (SelectedVenue is null || SelectedVenue.Id == updated.Id)
+                SelectedVenue = updated;
+        }
+        finally
+        {
+            _isRestoringWorkspace = false;
+        }
     }
 
     partial void OnSelectedDatasetChanged(StudentDatasetInfo? value)
