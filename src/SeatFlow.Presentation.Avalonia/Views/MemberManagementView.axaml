@@ -123,25 +123,6 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
-    <Style Selector="ListBox.sf-select">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Padding" Value="0" />
-    </Style>
-    <Style Selector="ListBox.sf-select ListBoxItem">
-      <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
-      <Setter Property="Padding" Value="8,6" />
-      <Setter Property="Margin" Value="0,1" />
-      <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
-    </Style>
-    <Style Selector="ListBox.sf-select ListBoxItem:pointerover /template/ Border#PART_BackgroundBorder">
-      <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
-    </Style>
-    <Style Selector="ListBox.sf-select ListBoxItem:selected /template/ Border#PART_BackgroundBorder">
-      <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-    </Style>
     <!--  名单行：固定行高，容器零内边距  -->
     <Style Selector="ListBox.sf-table ListBoxItem">
       <Setter Property="Padding" Value="0" />

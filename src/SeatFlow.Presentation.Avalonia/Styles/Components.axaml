@@ -153,6 +153,33 @@
     <Setter Property="Background" Value="{DynamicResource SfAccentStrongBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource SfAccentStrongBrush}" />
   </Style>
+  <!--  模板级背景/边框覆盖（用户实测反馈）：Fluent 按钮模板在 pointerover/pressed 直接设置
+        模板内 ContentPresenter 的背景（默认灰），会压过 Button.Background 上的主题色/令牌色，
+        导致主题色按钮悬停「变灰像被禁用」。按状态显式覆盖模板内背景与边框。  -->
+  <Style Selector="Button.sf-btn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfSurface2Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfAccentHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentHoverBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfAccentStrongBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentStrongBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfDangerSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfDangerSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
   <!--  模板级前景覆盖（用户实测反馈）：Fluent 按钮模板直接给模板内 ContentPresenter 设置
         Foreground（各状态），会压过 Button.Foreground 的 TemplateBinding，浅色下主题色按钮
         文字/图标显示为深色。这里显式覆盖模板内前景，保证主题色底上始终为强调前景色。  -->
@@ -208,6 +235,34 @@
   <Style Selector="Button.sf-btn.sf-block">
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+
+  <!--  ═══════════════ 选择列表（ListBox.sf-select） ═══════════════  -->
+  <!--  Avalonia 12 Fluent 的 ListBoxItem 模板在状态样式中直接设置模板内
+        ContentPresenter#PART_ContentPresenter 的背景，必须命中该模板部件才能覆盖默认
+        强调色底；模板的 Border 部件名为 PART_ContentPresenter（不是 PART_BackgroundBorder）。  -->
+  <Style Selector="ListBox.sf-select">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.sf-select ListBoxItem">
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="Margin" Value="0,1" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+  </Style>
+  <Style Selector="ListBox.sf-select ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+  </Style>
+  <Style Selector="ListBox.sf-select ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfListSelectedBrush}" />
+  </Style>
+  <Style Selector="ListBox.sf-select ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfListSelectedBrush}" />
+  </Style>
+  <Style Selector="ListBox.sf-select ListBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfListSelectedBrush}" />
   </Style>
 
   <!--  ═══════════════ 输入 ═══════════════  -->

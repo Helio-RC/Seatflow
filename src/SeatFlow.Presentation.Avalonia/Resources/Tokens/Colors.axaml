@@ -33,6 +33,8 @@
       <Color x:Key="SfAccentFgColor">#FFFFFFFF</Color>
       <Color x:Key="SfAccentSoftColor">#FFE8ECFC</Color>
       <Color x:Key="SfAccentStrongColor">#FF2F49B8</Color>
+      <!--  选择列表选中底（ListBox.sf-select）  -->
+      <Color x:Key="SfListSelectedColor">#FF90A8C0</Color>
 
       <!--  状态  -->
       <Color x:Key="SfOkColor">#FF0E9F6E</Color>
@@ -114,6 +116,8 @@
       <Color x:Key="SfAccentFgColor">#FF0B1020</Color>
       <Color x:Key="SfAccentSoftColor">#297C93FF</Color>
       <Color x:Key="SfAccentStrongColor">#FFA5B4FF</Color>
+      <!--  选择列表选中底（ListBox.sf-select）  -->
+      <Color x:Key="SfListSelectedColor">#FF3E5872</Color>
 
       <!--  状态  -->
       <Color x:Key="SfOkColor">#FF34D399</Color>
@@ -192,6 +196,7 @@
   <SolidColorBrush x:Key="SfAccentFgBrush" Color="{DynamicResource SfAccentFgColor}" />
   <SolidColorBrush x:Key="SfAccentSoftBrush" Color="{DynamicResource SfAccentSoftColor}" />
   <SolidColorBrush x:Key="SfAccentStrongBrush" Color="{DynamicResource SfAccentStrongColor}" />
+  <SolidColorBrush x:Key="SfListSelectedBrush" Color="{DynamicResource SfListSelectedColor}" />
 
   <SolidColorBrush x:Key="SfOkBrush" Color="{DynamicResource SfOkColor}" />
   <SolidColorBrush x:Key="SfOkSoftBrush" Color="{DynamicResource SfOkSoftColor}" />
