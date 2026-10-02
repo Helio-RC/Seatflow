@@ -531,6 +531,7 @@
             IsVisible="{Binding HasGenerated}"
             Snapshot="{Binding CanvasSnapshot}"
             Zoom="{Binding ZoomLevel, Mode=TwoWay}"
+            AutoFit="False"
             DragDrop.AllowDrop="True"
             DragDrop.DragLeave="SeatCanvas_DragLeave"
             DragDrop.DragOver="SeatCanvas_DragOver"

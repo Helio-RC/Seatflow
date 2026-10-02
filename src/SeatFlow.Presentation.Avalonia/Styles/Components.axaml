@@ -350,6 +350,14 @@
     <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
     <Setter Property="Padding" Value="0,2" />
   </Style>
+  <!--  徽标内文字双向居中（用户实测：策略优先级数字偏上）  -->
+  <Style Selector="Border.sf-prio TextBlock">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.sf-chip TextBlock">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
 
   <!--  ═══════════════ 导航 ═══════════════  -->
 

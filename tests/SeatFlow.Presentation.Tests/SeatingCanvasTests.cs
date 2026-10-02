@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Threading;
 using FluentAssertions;
 using SeatFlow.Presentation.Avalonia.Controls;
 
@@ -138,5 +139,40 @@ public class SeatingCanvasTests
         window.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null);
 
         canvas.SelectedSeatId.Should().BeNull();
+    }
+
+    [AvaloniaFact]
+    public void 关闭自动适配_快照更新后保持显式缩放()
+    {
+        // 工作台场景：AutoFit=false，由设置「座位图默认缩放」驱动
+        var canvas = new SeatingCanvas { AutoFit = false, Zoom = 0.75 };
+        var window = new Window { Width = 800, Height = 600, Content = canvas };
+        window.Show();
+        window.UpdateLayout();
+
+        canvas.Snapshot = new SeatLayoutSnapshot([new SeatVisual("s1", 0, 0, 50, 30)], 3000, 2000);
+        window.UpdateLayout();
+        window.CaptureRenderedFrame();
+
+        canvas.Zoom.Should().BeApproximately(0.75, 0.001, "AutoFit=false 时不应被适配为其他缩放");
+    }
+
+    [AvaloniaFact]
+    public async Task 开启自动适配_大板面适配视口()
+    {
+        // 预览场景：AutoFit 默认 true，大板面自动缩小以全览
+        var canvas = new SeatingCanvas();
+        var window = new Window { Width = 800, Height = 600, Content = canvas };
+        window.Show();
+        window.UpdateLayout();
+
+        canvas.Snapshot = new SeatLayoutSnapshot([new SeatVisual("s1", 0, 0, 50, 30)], 3000, 2000);
+        window.UpdateLayout();
+        window.CaptureRenderedFrame();
+
+        // 适配通过 Dispatcher.Background 调度执行
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+
+        canvas.Zoom.Should().BeLessThan(1.0, "大板面应自动缩小适配视口");
     }
 }

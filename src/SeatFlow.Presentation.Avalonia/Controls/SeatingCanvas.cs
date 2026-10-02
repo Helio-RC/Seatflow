@@ -69,6 +69,13 @@ public sealed class SeatingCanvas : Control
     public static readonly StyledProperty<Vector> PanOffsetProperty =
         AvaloniaProperty.Register<SeatingCanvas, Vector>(nameof(PanOffset), default, defaultBindingMode: BindingMode.TwoWay);
 
+    /// <summary>
+    /// 板面尺寸变化时是否自动适配视口（默认开启，供预览场景全览）。
+    /// 工作台画布关闭该行为，由设置的「座位图默认缩放」驱动 <see cref="Zoom"/>。
+    /// </summary>
+    public static readonly StyledProperty<bool> AutoFitProperty =
+        AvaloniaProperty.Register<SeatingCanvas, bool>(nameof(AutoFit), true);
+
     static SeatingCanvas()
     {
         AffectsRender<SeatingCanvas>(SnapshotProperty, SelectedSeatIdProperty, ZoomProperty, PanOffsetProperty);
@@ -116,6 +123,13 @@ public sealed class SeatingCanvas : Control
     {
         get => GetValue(PanOffsetProperty);
         set => SetValue(PanOffsetProperty, value);
+    }
+
+    /// <summary>板面尺寸变化时是否自动适配视口（预览场景开启；工作台关闭以使用默认缩放）。</summary>
+    public bool AutoFit
+    {
+        get => GetValue(AutoFitProperty);
+        set => SetValue(AutoFitProperty, value);
     }
 
     /// <summary>
@@ -220,6 +234,12 @@ public sealed class SeatingCanvas : Control
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
+        if (change.Property == AutoFitProperty && !AutoFit)
+        {
+            // 关闭自动适配时清除待执行标记，避免后续渲染帧仍执行 fit
+            _autoFitPending = false;
+        }
+
         if (change.Property == SnapshotProperty)
         {
             var oldSnapshot = change.GetOldValue<SeatLayoutSnapshot?>();
@@ -247,8 +267,7 @@ public sealed class SeatingCanvas : Control
                 || Math.Abs(oldSnapshot.BoardHeight - newSnapshot.BoardHeight) > 0.5)
             {
                 _autoFitPending = true;
-            }
-        }
+            }        }
     }
 
     public override void Render(DrawingContext context)
@@ -264,8 +283,9 @@ public sealed class SeatingCanvas : Control
         if (snapshot is null || snapshot.Seats.Count == 0)
             return;
 
-        // 首次或板面尺寸变化：适应视口（不能在渲染过程中改属性 → 调度到渲染后执行）
-        if (_autoFitPending && bounds.Width > 1 && bounds.Height > 1)
+        // 首次或板面尺寸变化：适应视口（不能在渲染过程中改属性 → 调度到渲染后执行）；
+        // AutoFit=false（工作台）时由外部默认缩放驱动，不做适配。
+        if (AutoFit && _autoFitPending && bounds.Width > 1 && bounds.Height > 1)
         {
             if (!_autoFitScheduled)
             {
