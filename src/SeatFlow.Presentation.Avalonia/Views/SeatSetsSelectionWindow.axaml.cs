@@ -5,8 +5,8 @@ using SeatFlow.Presentation.Avalonia.ViewModels;
 namespace SeatFlow.Presentation.Avalonia.Views;
 
 /// <summary>
-/// .seatsets 数据包导出/导入的数据类别选择对话框。
-/// 用户通过复选框选择要导出/导入的数据类别。
+/// .seatsets 数据包导出/导入的数据类别选择对话框（桌面窗口）。
+/// 内容与浏览器端 overlay 共用 <see cref="SeatSetsSelectionContent"/>。
 /// </summary>
 internal partial class SeatSetsSelectionWindow : Window
 {
@@ -17,10 +17,7 @@ internal partial class SeatSetsSelectionWindow : Window
         InitializeComponent();
         _viewModel = new SeatSetsSelectionViewModel();
         DataContext = _viewModel;
-
-        ConfirmButton.Click += OnConfirm;
-        CancelButton.Click += OnCancel;
-        ToggleAllButton.Click += (_, _) => _viewModel.ToggleAllCommand.Execute(null);
+        SelectionContent.Completed += confirmed => Close(confirmed);
     }
 
     /// <summary>是否为导出模式（false 表示导入模式）。</summary>
@@ -48,10 +45,4 @@ internal partial class SeatSetsSelectionWindow : Window
         base.OnLoaded(e);
         Title = _viewModel.Title;
     }
-
-    private void OnConfirm(object? sender, RoutedEventArgs e)
-        => Close(_viewModel.IsAnySelected);
-
-    private void OnCancel(object? sender, RoutedEventArgs e)
-        => Close(false);
 }

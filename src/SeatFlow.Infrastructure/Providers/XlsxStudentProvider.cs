@@ -7,7 +7,7 @@ namespace SeatFlow.Infrastructure.Providers
 {
     /// <summary>
     /// XLSX 格式的学生数据提供器，使用 EPPlus 库从 Excel 文件读取学生列表。
-    /// 支持标准模板（第 1 行列名、第 2 行注释）与任意布局的模糊字段匹配。
+    /// 支持标准模板（第 1 行列名；第 2 行可选注释/单位行，仅当确实像说明行时才跳过）与任意布局的模糊字段匹配。
     /// </summary>
     public class XlsxStudentProvider : IStudentProvider
     {
@@ -168,8 +168,9 @@ namespace SeatFlow.Infrastructure.Providers
             if (columnMap.Count == 0)
                 return list;
 
-            // 从 row 2 开始读取（跳过 row 1 注释行）
-            for (int r = 2; r < totalRows; r++)
+            // row 1 为注释行时从 row 2 开始，否则 row 1 就是数据首行
+            int dataStartRow = FuzzyColumnMatcher.IsNotesRow(cells, 1, totalCols) ? 2 : 1;
+            for (int r = dataStartRow; r < totalRows; r++)
             {
                 ct.ThrowIfCancellationRequested();
                 var student = new Student();

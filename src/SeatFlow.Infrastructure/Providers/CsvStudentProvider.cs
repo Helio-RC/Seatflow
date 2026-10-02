@@ -9,7 +9,7 @@ namespace SeatFlow.Infrastructure.Providers;
 
 /// <summary>
 /// CSV 格式的学生数据提供器，使用 CsvHelper 解析以正确处理引号字段和嵌入换行。
-/// 支持标准模板（第 1 行列名、第 2 行注释）与任意布局的模糊字段匹配。
+/// 支持标准模板（第 1 行列名；第 2 行可选注释/单位行，仅当确实像说明行时才跳过）与任意布局的模糊字段匹配。
 /// 数据源可为文件系统路径或存储相对路径（WASM：上传暂存于 <c>Uploads/*</c>）。
 /// </summary>
 public class CsvStudentProvider : IStudentProvider
@@ -148,7 +148,8 @@ public class CsvStudentProvider : IStudentProvider
     }
 
     /// <summary>
-    /// 标准模板快速路径：row 0 = 表头，row 1 = 注释行（跳过），row 2+ = 数据。
+    /// 标准模板快速路径：row 0 = 表头，数据从 row 1 开始；
+    /// 仅当 row 1 确为注释/单位行（如 必填/cm/男/女/是/否）时跳过。
     /// </summary>
     private static List<Student> ParseStandardTemplate(
         string?[,] cells, int totalRows, int totalCols, CancellationToken ct = default)
@@ -171,8 +172,9 @@ public class CsvStudentProvider : IStudentProvider
         if (columnMap.Count == 0)
             return list;
 
-        // 从 row 2 开始读取（跳过 row 1 注释行）
-        for (int r = 2; r < totalRows; r++)
+        // row 1 为注释行时从 row 2 开始，否则 row 1 就是数据首行
+        int dataStartRow = FuzzyColumnMatcher.IsNotesRow(cells, 1, totalCols) ? 2 : 1;
+        for (int r = dataStartRow; r < totalRows; r++)
         {
             ct.ThrowIfCancellationRequested();
             var student = new Student();

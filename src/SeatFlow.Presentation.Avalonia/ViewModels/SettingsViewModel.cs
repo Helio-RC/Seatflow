@@ -524,21 +524,11 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
         string? exportPath = null;
         try
         {
-            // 1. 显示选择对话框（导出模式）
-            var selectionWindow = new Views.SeatSetsSelectionWindow
-            {
-                IsExport = true
-            };
+            // 1. 显示选择对话框（导出模式；桌面 = 窗口，浏览器 = overlay）
+            var selection = await _dialog.ShowSeatSetsSelectionAsync(isExport: true, available: null, ct);
+            if (selection is null) return;
 
-            if (AvaloniaApplication.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-                return;
-
-            var confirmed = await selectionWindow.ShowDialog<bool>(desktop.MainWindow!);
-            if (!confirmed) return;
-
-            var selection = selectionWindow.ViewModel.ToSelection();
-
-            // 2. 文件保存对话框
+            // 2. 文件保存（桌面 = 文件对话框；浏览器 = 临时文件 + 浏览器下载）
             var defaultFileName = string.Format(Resources.SeatSets_DefaultFileName)
                 + $"_{DateTime.Now:yyyyMMdd_HHmm}";
             var seatSetsFilter = new FilePickerFileType("SeatFlow Data Package")
@@ -546,17 +536,32 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
                 Patterns = ["*.seatsets"]
             };
 
-            var file = await _fileService.SaveFileAsync(
-                Resources.SeatSets_ExportTitle,
-                [seatSetsFilter],
-                defaultFileName);
+            int count;
+            if (OperatingSystem.IsBrowser())
+            {
+                exportPath = Path.Combine(Path.GetTempPath(), $"seatflow-export-{Guid.NewGuid():N}.seatsets");
+                StatusMessage = Resources.SeatSets_Processing;
+                count = await _facade.ExportSeatSetsAsync(exportPath, selection, ct);
+                if (count > 0)
+                {
+                    var bytes = await File.ReadAllBytesAsync(exportPath, ct);
+                    await _fileService.SaveFileBytesAsync(
+                        $"{defaultFileName}.seatsets", bytes, [seatSetsFilter]);
+                }
+            }
+            else
+            {
+                var file = await _fileService.SaveFileAsync(
+                    Resources.SeatSets_ExportTitle,
+                    [seatSetsFilter],
+                    defaultFileName);
 
-            if (file is null) return;
+                if (file is null) return;
 
-            // 3. 执行导出
-            StatusMessage = Resources.SeatSets_Processing;
-            exportPath = file.Path.LocalPath;
-            var count = await _facade.ExportSeatSetsAsync(exportPath, selection, ct);
+                StatusMessage = Resources.SeatSets_Processing;
+                exportPath = file.Path.LocalPath;
+                count = await _facade.ExportSeatSetsAsync(exportPath, selection, ct);
+            }
 
             // 4. 显示结果
             if (count > 0)

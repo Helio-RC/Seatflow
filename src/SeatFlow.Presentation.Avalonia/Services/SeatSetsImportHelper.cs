@@ -3,13 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
-using SeatFlow.Core.Models.SeatSets;
 using SeatFlow.Presentation.Avalonia.Lang;
-using SeatFlow.Presentation.Avalonia.Views;
-using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using AvaloniaApplication = Avalonia.Application;
 
 namespace SeatFlow.Presentation.Avalonia.Services;
 
@@ -57,28 +53,10 @@ internal static class SeatSetsImportHelper
             // 2. 探测可用分类
             var categories = await facade.ProbeSeatSetsCategoriesAsync(filePath, ct);
 
-            // 3. 分类选择对话框
-            var selectionWindow = new SeatSetsSelectionWindow { IsExport = false };
-            selectionWindow.SetAvailableCategories(
-                categories.IncludeAppSettings,
-                categories.IncludeVenues,
-                categories.IncludeRosters,
-                categories.IncludeSnapshots,
-                categories.IncludeStrategyConfig);
-
-            if (AvaloniaApplication.Current?.ApplicationLifetime
-                    is IClassicDesktopStyleApplicationLifetime desktop
-                && desktop.MainWindow is { } mainWindow)
-            {
-                var confirmed = await selectionWindow.ShowDialog<bool>(mainWindow);
-                if (!confirmed) return false;
-            }
-            else
-            {
-                return false;
-            }
-
-            var selection = selectionWindow.ViewModel.ToSelection();
+            // 3. 分类选择对话框（桌面 = 独立窗口；浏览器 = overlay）
+            var selection = await dialog.ShowSeatSetsSelectionAsync(
+                isExport: false, available: categories, ct);
+            if (selection is null) return false;
 
             // 4. 执行导入
             var result = await facade.ImportSeatSetsAsync(filePath, selection,

@@ -1,4 +1,6 @@
+using System.Threading;
 using System.Threading.Tasks;
+using SeatFlow.Core.Models.SeatSets;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Views;
 using Avalonia.Controls;
@@ -96,5 +98,26 @@ public class DialogService : IDialogService
         };
 
         await dialog.ShowDialog<bool>(window);
+    }
+
+    public async Task<SeatSetsExportSelection?> ShowSeatSetsSelectionAsync(
+        bool isExport, SeatSetsExportSelection? available = null, CancellationToken ct = default)
+    {
+        if (_topLevel is not Window window)
+        {
+            System.Diagnostics.Debug.WriteLine("DialogService: ShowSeatSetsSelectionAsync called before SetTopLevel");
+            return null;
+        }
+
+        var dialog = new SeatSetsSelectionWindow { IsExport = isExport };
+        if (!isExport && available is not null)
+        {
+            dialog.SetAvailableCategories(
+                available.IncludeAppSettings, available.IncludeVenues, available.IncludeRosters,
+                available.IncludeSnapshots, available.IncludeStrategyConfig);
+        }
+
+        var confirmed = await dialog.ShowDialog<bool>(window);
+        return confirmed ? dialog.ViewModel.ToSelection() : null;
     }
 }

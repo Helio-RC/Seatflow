@@ -1,0 +1,53 @@
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.SeatSetsSelectionContent"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:SeatSetsSelectionViewModel">
+
+  <DockPanel>
+    <!--  底部按钮  -->
+    <StackPanel
+      Margin="0,20,0,0"
+      HorizontalAlignment="Right"
+      DockPanel.Dock="Bottom"
+      Orientation="Horizontal"
+      Spacing="8">
+      <Button
+        x:Name="CancelButton"
+        Classes="ActionCancel"
+        Content="{x:Static lang:Resources.Common_Cancel}" />
+      <Button
+        x:Name="ConfirmButton"
+        Classes="ActionButton"
+        Content="{x:Static lang:Resources.Common_OK}"
+        IsDefault="True" />
+    </StackPanel>
+
+    <StackPanel Spacing="12">
+      <TextBlock
+        Classes="body"
+        FontWeight="SemiBold"
+        Text="{Binding Title}"
+        TextWrapping="Wrap" />
+
+      <Button
+        x:Name="ToggleAllButton"
+        Padding="0"
+        HorizontalContentAlignment="Left"
+        Classes="linkButton"
+        Content="{Binding ToggleAllText}" />
+
+      <Border Padding="16,12" Classes="Card">
+        <StackPanel Spacing="8">
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_AppSettings_Label}" IsChecked="{Binding IncludeAppSettings, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_Venues_Label}" IsChecked="{Binding IncludeVenues, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_Rosters_Label}" IsChecked="{Binding IncludeRosters, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_Snapshots_Label}" IsChecked="{Binding IncludeSnapshots, Mode=TwoWay}" />
+          <CheckBox Content="{x:Static lang:Resources.SeatSets_StrategyConfig_Label}" IsChecked="{Binding IncludeStrategyConfig, Mode=TwoWay}" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </DockPanel>
+</UserControl>

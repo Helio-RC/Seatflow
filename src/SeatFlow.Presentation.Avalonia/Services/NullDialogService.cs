@@ -1,5 +1,7 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using SeatFlow.Core.Models.SeatSets;
 
 namespace SeatFlow.Presentation.Avalonia.Services;
 
@@ -30,4 +32,8 @@ public sealed class NullDialogService : IDialogService
     public Task<int?> ShowMultiOptionAsync(string title, string message,
         string primaryText, string secondaryText, string? cancelText = null)
         => Task.FromResult<int?>(null);
+
+    public Task<SeatSetsExportSelection?> ShowSeatSetsSelectionAsync(
+        bool isExport, SeatSetsExportSelection? available = null, CancellationToken ct = default)
+        => Task.FromResult<SeatSetsExportSelection?>(null);
 }

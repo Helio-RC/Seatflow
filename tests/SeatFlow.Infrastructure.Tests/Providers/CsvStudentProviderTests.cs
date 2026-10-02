@@ -232,4 +232,49 @@ public class CsvStudentProviderTests
             if (File.Exists(path)) File.Delete(path);
         }
     }
+
+    [Fact]
+    public async Task LoadAsync_HeaderAndDataWithoutNotes_ShouldKeepFirstStudent()
+    {
+        var csvContent =
+            "姓名,性别,身高,需要前排\n" +
+            "测试甲,男,170,是\n" +
+            "测试乙,女,165,否\n" +
+            "测试丙,男,168,否";
+        var path = CreateTempCsv(csvContent);
+        try
+        {
+            var provider = new CsvStudentProvider();
+            var students = await provider.LoadAsync(path, CancellationToken.None);
+            students.Should().HaveCount(3, "没有说明行时第 2 行就是数据，不得吞掉第一条");
+            students[0].Name.Should().Be("测试甲");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task LoadAsync_TemplateNotesRow_ShouldBeSkipped()
+    {
+        var csvContent =
+            "姓名,性别,身高,需要前排\n" +
+            "必填,男/女,厘米（如170.5）,是/否（或填1 / 0）\n" +
+            "测试甲,男,170,是\n" +
+            "测试乙,女,165,否";
+        var path = CreateTempCsv(csvContent);
+        try
+        {
+            var provider = new CsvStudentProvider();
+            var students = await provider.LoadAsync(path, CancellationToken.None);
+            students.Should().HaveCount(2, "说明行不应当作学生导入");
+            students.Should().NotContain(s => s.Name == "必填");
+            students[0].Name.Should().Be("测试甲");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
 }

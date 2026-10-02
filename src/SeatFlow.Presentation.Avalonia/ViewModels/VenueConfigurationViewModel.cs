@@ -685,12 +685,35 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     {
         await _dialogGate.RunAsync(async () =>
         {
+            const string templateCsv =
+                "X,Y,Type,GroupId,Row,Column\n" +
+                "100,100,Seat,1,1,1\n" +
+                "200,100,Seat,1,1,2\n" +
+                "300,100,Seat,2,2,1\n" +
+                "100,200,Seat,2,2,2\n" +
+                "200,200,Seat,3,3,1\n" +
+                "300,200,Seat,3,3,2\n" +
+                "200,50,Podium,,,\n" +
+                "400,150,Door,,,\n";
+            FilePickerFileType[] types = [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }];
+
+            if (OperatingSystem.IsBrowser())
+            {
+                // WASM：模板文本 → 字节 → 浏览器下载
+                await _fileService.SaveFileBytesAsync(
+                    Resources.Freeform_CSVTemplate,
+                    System.Text.Encoding.UTF8.GetBytes(templateCsv),
+                    types);
+                StatusMessage = Resources.Data_TemplateSaved;
+                return;
+            }
+
             IStorageFile? tmplFile;
             try
             {
                 tmplFile = await _fileService.SaveFileAsync(
                     Resources.Freeform_SaveTemplate,
-                    [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }],
+                    types,
                     Resources.Freeform_CSVTemplate);
             }
             catch (Exception ex)
@@ -704,16 +727,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             await SafeExecuteAsync(async () =>
             {
                 await using var stream = await file.OpenWriteAsync();
-                using var writer = new StreamWriter(stream);
-                await writer.WriteLineAsync("X,Y,Type,GroupId,Row,Column");
-                await writer.WriteLineAsync("100,100,Seat,1,1,1");
-                await writer.WriteLineAsync("200,100,Seat,1,1,2");
-                await writer.WriteLineAsync("300,100,Seat,2,2,1");
-                await writer.WriteLineAsync("100,200,Seat,2,2,2");
-                await writer.WriteLineAsync("200,200,Seat,3,3,1");
-                await writer.WriteLineAsync("300,200,Seat,3,3,2");
-                await writer.WriteLineAsync("200,50,Podium,,,");
-                await writer.WriteLineAsync("400,150,Door,,,");
+                await using var writer = new StreamWriter(stream);
+                await writer.WriteAsync(templateCsv);
                 StatusMessage = Resources.Data_TemplateSaved;
             }, Resources.Data_TemplateSaveFailed);
         });

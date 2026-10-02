@@ -1,9 +1,12 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using SeatFlow.Core.Models.SeatSets;
+using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
 
 namespace SeatFlow.Presentation.Avalonia.Services.Web;
@@ -98,6 +101,46 @@ public sealed class WebDialogService : IDialogService
 
     private async Task ShowAsync(string title, string message, DialogKind kind)
         => await ShowCoreAsync(title, message, kind);
+
+    public async Task<SeatSetsExportSelection?> ShowSeatSetsSelectionAsync(
+        bool isExport, SeatSetsExportSelection? available = null, CancellationToken ct = default)
+    {
+        var host = await ResolveHostAsync();
+        if (host is null) return null;
+
+        var tcs = new TaskCompletionSource<SeatSetsExportSelection?>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var viewModel = new SeatSetsSelectionViewModel { IsExport = isExport };
+        if (!isExport && available is not null)
+        {
+            viewModel.SetAvailableCategories(
+                available.IncludeAppSettings, available.IncludeVenues, available.IncludeRosters,
+                available.IncludeSnapshots, available.IncludeStrategyConfig);
+        }
+
+        var content = new SeatSetsSelectionContent { DataContext = viewModel };
+        content.Completed += confirmed =>
+            tcs.TrySetResult(confirmed ? viewModel.ToSelection() : null);
+
+        // 与会话内其他 overlay 一致：令牌化浮层卡片承载内容
+        var panel = new Border { Child = content };
+        panel.Classes.Add("sf-modal");
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            host.DialogOverlayContent.Content = panel;
+            host.DialogOverlayHost.IsVisible = true;
+        });
+
+        var result = await tcs.Task;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            host.DialogOverlayHost.IsVisible = false;
+            host.DialogOverlayContent.Content = null;
+        });
+        return result;
+    }
 
     private Task<MainView?> ResolveHostAsync()
     {

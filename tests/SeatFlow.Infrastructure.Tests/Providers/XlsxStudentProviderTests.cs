@@ -343,4 +343,27 @@ public class XlsxStudentProviderTests
             if (File.Exists(path)) File.Delete(path);
         }
     }
+
+    [Fact]
+    public async Task LoadAsync_HeaderAndDataWithoutNotes_ShouldKeepFirstStudent()
+    {
+        var data = new string[,]
+        {
+            { "姓名", "身高", "性别" },
+            { "测试甲", "170", "男" },
+            { "测试乙", "165", "女" },
+        };
+        var path = CreateTempXlsx(data);
+        try
+        {
+            var provider = new XlsxStudentProvider();
+            var students = await provider.LoadAsync(path, CancellationToken.None);
+            students.Should().HaveCount(2, "没有说明行时第 2 行就是数据，不得吞掉第一条");
+            students[0].Name.Should().Be("测试甲");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
 }

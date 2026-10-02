@@ -20,20 +20,35 @@ export function sfPickFile(accept) {
     const input = document.createElement("input");
     input.type = "file";
     if (accept) input.accept = accept;
-    input.onchange = async () => {
-      const file = input.files && input.files[0];
-      if (!file) { resolve(null); return; }
-      const buf = await file.arrayBuffer();
-      resolve(JSON.stringify({ name: file.name, b64: bytesToBase64(new Uint8Array(buf)) }));
+    let settled = false;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      input.remove();
+      resolve(value);
     };
-    // Safari 兼容：追加后立刻移除
+    input.onchange = async () => {
+      try {
+        const file = input.files && input.files[0];
+        if (!file) { finish(null); return; }
+        const buf = await file.arrayBuffer();
+        finish(JSON.stringify({ name: file.name, b64: bytesToBase64(new Uint8Array(buf)) }));
+      } catch (err) {
+        // 读取失败时不要悬挂 Promise（否则调用方永久等待）
+        console.error('sfPickFile: 读取所选文件失败', err);
+        finish(null);
+      }
+    };
+    // 现代浏览器支持 cancel 事件（用户直接关闭选择框）：避免 Promise 悬挂并清理节点
+    input.addEventListener("cancel", () => finish(null));
+    // 注意：input 必须保留在 DOM 中直到选择/取消（立即 remove 会导致部分浏览器不弹选择框）
     document.body.appendChild(input);
     input.click();
-    input.remove();
   });
 }
 
-export function sfDownloadFile(fileName, base64Content) {
+// 注意：JSImport 声明为 Task，JS 函数必须返回 Promise（async），否则互操作层会 NRE。
+export async function sfDownloadFile(fileName, base64Content) {
   const bytes = base64ToBytes(base64Content);
   const blob = new Blob([bytes], { type: "application/octet-stream" });
   const url = URL.createObjectURL(blob);

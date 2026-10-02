@@ -88,6 +88,70 @@ internal static partial class FuzzyColumnMatcher
         };
     }
 
+    /// <summary>
+    /// 判断表头后的第一行是否为「说明/单位/取值范围」注释行（标准模板固定第 2 行）。
+    /// 仅当该行的所有非空单元格都是注释性标记（必填 / cm / 男/女 / 是/否、重复表头等）时判定为注释行；
+    /// 否则视为数据首行，避免「表头 + 数据」的普通文件吞掉第一条数据。
+    /// </summary>
+    internal static bool IsNotesRow(string?[,] cells, int row, int totalCols)
+    {
+        int totalRows = cells.GetLength(0);
+        if (row < 0 || row >= totalRows)
+            return false;
+
+        bool hasAny = false;
+        int scanned = Math.Min(totalCols, cells.GetLength(1));
+        for (int c = 0; c < scanned; c++)
+        {
+            var raw = cells[row, c];
+            if (string.IsNullOrWhiteSpace(raw))
+                continue;
+
+            hasAny = true;
+            if (!IsNotesToken(raw.Trim()))
+                return false;
+        }
+
+        return hasAny;
+    }
+
+    private static readonly HashSet<string> NotesTokens = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "必填", "选填", "必选", "可选", "必填项", "选填项", "说明", "备注", "示例", "单位", "要求", "或填", "选一",
+        "cm", "厘米", "mm", "毫米", "m", "米", "kg", "千克", "克", "斤", "岁", "号",
+        "necessary", "required", "optional", "example",
+    };
+
+    /// <summary>
+    /// 单个单元格是否为注释性标记：固定词、重复表头字段名、斜杠枚举（男/女、是/否），
+    /// 或括号说明（含示例数字，如「厘米（如170.5）」「CM(e.g 170.5)」）。
+    /// </summary>
+    private static bool IsNotesToken(string value)
+    {
+        if (NotesTokens.Contains(value))
+            return true;
+
+        // 重复表头行（如第二行再次出现「姓名/Name」）→ 视为注释行
+        if (StudentDataMapping.ResolveProperty(value) != null)
+            return true;
+
+        // 常见枚举/范围写法：男/女、是/否、true/false、1/2
+        if (value.Contains('/') || value.Contains('、'))
+            return true;
+
+        // 括号说明（必须带示例数字或「如/例/e.g」），避免把「张三(大)」这类姓名误判为注释
+        if (value.Contains('(') || value.Contains('（'))
+        {
+            if (value.Any(char.IsDigit)
+                || value.Contains('如')
+                || value.Contains("例")
+                || value.Contains("e.g", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
     // ═══════════════════════════════════════════════
     //  Phase 1: 字段检测
     // ═══════════════════════════════════════════════

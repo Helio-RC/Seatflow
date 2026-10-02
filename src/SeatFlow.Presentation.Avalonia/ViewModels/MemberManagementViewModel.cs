@@ -825,15 +825,40 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
 
             try
             {
+                IsLoading = true;
+                ErrorMessage = string.Empty;
+                StatusMessage = Resources.Member_Exporting;
+
+                if (OperatingSystem.IsBrowser())
+                {
+                    // WASM：导出到内存文件系统临时文件 → 读取字节 → 浏览器下载
+                    var ext = format switch
+                    {
+                        ExportFormat.Excel => ".xlsx",
+                        ExportFormat.Json => ".json",
+                        _ => ".csv"
+                    };
+                    var tempPath = Path.Combine(Path.GetTempPath(), $"seatflow-members-{Guid.NewGuid():N}{ext}");
+                    try
+                    {
+                        await _facade.ExportStudentsAsync(tempPath, GetStudents(), format, ct);
+                        var bytes = await File.ReadAllBytesAsync(tempPath, ct);
+                        var downloadName = $"seatflow_members_{DateTime.Now:yyyyMMdd_HHmm}{ext}";
+                        await _fileService.SaveFileBytesAsync(downloadName, bytes, types);
+                        StatusMessage = Resources.Member_ExportDone;
+                    }
+                    finally
+                    {
+                        try { File.Delete(tempPath); } catch { /* 临时文件清理失败可忽略 */ }
+                    }
+                    return;
+                }
+
                 IStorageFile? exportFile;
                 try { exportFile = await _fileService.SaveFileAsync(Resources.Data_Export, types); }
                 catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常: 导出CSV"); return; }
                 if (exportFile is null) return;
                 var file = exportFile;
-
-                IsLoading = true;
-                ErrorMessage = string.Empty;
-                StatusMessage = Resources.Member_Exporting;
 
                 await _facade.ExportStudentsAsync(file.Path.LocalPath, GetStudents(), format, ct);
 
