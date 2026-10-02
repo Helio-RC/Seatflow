@@ -63,6 +63,7 @@ namespace SeatFlow.Presentation.Avalonia
                 var settings = await facade.LoadAppSettingsAsync();
                 ApplyTheme(settings.Theme);
                 ApplyLanguage(settings.Language);
+                AccentColorApplier.Apply(settings.AccentColor);
 
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
                     && desktop.MainWindow is { } window)
@@ -712,6 +713,9 @@ namespace SeatFlow.Presentation.Avalonia
                         _ => ThemeVariant.Default
                     };
                 }
+
+                // 应用主题色（默认/系统）
+                AccentColorApplier.Apply(settings.AccentColor);
 
                 // 应用语言
                 try

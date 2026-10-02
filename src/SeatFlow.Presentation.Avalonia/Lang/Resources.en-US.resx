@@ -1014,6 +1014,15 @@ This cannot be undone.</value>
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
     <value>Venue &quot;{0}&quot; selected, {1} seats</value>
   </data>
+  <data name="Settings_AccentColor" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="Settings_AccentDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Settings_AccentSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
   <data name="Settings_Appearance" xml:space="preserve">
     <value>Appearance</value>
   </data>

@@ -17,7 +17,6 @@
       { "name": "EPPlus", "purpose": "Excel 读写", "license": "PolyForm Noncommercial", "url": "https://github.com/EPPlusSoftware/EPPlus" },
       { "name": "CsvHelper", "purpose": "CSV 读写", "license": "Apache 2.0 / MS-PL", "url": "https://github.com/JoshClose/CsvHelper" },
       { "name": "QuestPDF", "purpose": "PDF 生成", "license": "MIT (Community)", "url": "https://github.com/QuestPDF/QuestPDF" },
-      { "name": "NLua", "purpose": "Lua 脚本引擎", "license": "MIT", "url": "https://github.com/NLua/NLua" },
       { "name": "Serilog", "purpose": "结构化日志", "license": "Apache 2.0", "url": "https://github.com/serilog/serilog" }
     ]
   },
@@ -39,7 +38,6 @@
       { "name": "EPPlus", "purpose": "Excel read/write", "license": "PolyForm Noncommercial", "url": "https://github.com/EPPlusSoftware/EPPlus" },
       { "name": "CsvHelper", "purpose": "CSV read/write", "license": "Apache 2.0 / MS-PL", "url": "https://github.com/JoshClose/CsvHelper" },
       { "name": "QuestPDF", "purpose": "PDF generation", "license": "MIT (Community)", "url": "https://github.com/QuestPDF/QuestPDF" },
-      { "name": "NLua", "purpose": "Lua scripting engine", "license": "MIT", "url": "https://github.com/NLua/NLua" },
       { "name": "Serilog", "purpose": "Structured logging", "license": "Apache 2.0", "url": "https://github.com/serilog/serilog" }
     ]
   }

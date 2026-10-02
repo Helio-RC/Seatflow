@@ -57,4 +57,13 @@ public class SettingsViewModelTests
 
         changes.Should().Contain(nameof(SettingsViewModel.CardColumns));
     }
+
+    [Fact]
+    public void 主题色选项_默认与跟随系统两项_默认索引为0()
+    {
+        var vm = CreateViewModel(new ShellLayoutService());
+
+        vm.AccentColorOptions.Should().HaveCount(2);
+        vm.AccentColorIndex.Should().Be(0, "默认使用内置主题色 #83B6DE");
+    }
 }

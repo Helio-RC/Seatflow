@@ -110,6 +110,23 @@
                     VerticalAlignment="Center"
                     Classes="sf-text"
                     DockPanel.Dock="Left"
+                    Text="{x:Static lang:Resources.Settings_AccentColor}" />
+                  <ComboBox
+                    MinWidth="150"
+                    HorizontalAlignment="Right"
+                    AutomationProperties.Name="{x:Static lang:Resources.Settings_AccentColor}"
+                    Classes="sf-input"
+                    ItemsSource="{Binding AccentColorOptions}"
+                    SelectedIndex="{Binding AccentColorIndex, Mode=TwoWay}" />
+                </DockPanel>
+              </Border>
+
+              <Border Classes="sf-setting-row">
+                <DockPanel>
+                  <TextBlock
+                    VerticalAlignment="Center"
+                    Classes="sf-text"
+                    DockPanel.Dock="Left"
                     Text="{x:Static lang:Resources.Settings_DefaultZoom}" />
                   <ComboBox
                     MinWidth="150"

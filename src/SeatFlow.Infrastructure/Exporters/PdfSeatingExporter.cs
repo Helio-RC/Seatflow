@@ -27,6 +27,15 @@ public class PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null) : IS
     static PdfSeatingExporter()
     {
         QuestPDF.Settings.License = LicenseType.Community;
+
+        // QuestPDF 2026.9.0+：缺失字形检查始终执行，且系统字体不再默认参与回退。
+        // 注册嵌入的 Noto Sans SC 作为 CJK 回退字体，保证中文座位表在任意环境可导出；
+        // 系统字体作为额外回退（桌面环境字体更完整）。
+        using var fontStream = typeof(PdfSeatingExporter).Assembly
+            .GetManifestResourceStream("SeatFlow.Infrastructure.Assets.NotoSansSC-Regular.otf");
+        if (fontStream is not null)
+            QuestPDF.Drawing.FontManager.RegisterFontFromStream(fontStream);
+        QuestPDF.Settings.UseSystemFonts = true;
     }
 
     public Task ExportAsync(SeatingPlan plan, string path, CancellationToken cancellationToken = default)
@@ -48,7 +57,7 @@ public class PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null) : IS
                     page.Size(PageSizes.A4.Landscape());
                     page.Margin(2, Unit.Centimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(12));
+                    page.DefaultTextStyle(x => x.FontFamily("Lato", "Noto Sans SC").FontSize(12));
 
                     page.Header()
                         .Text(options.Anonymize ? "座位安排表 (匿名)" : "座位安排表")
@@ -114,7 +123,7 @@ public class PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null) : IS
                     page.MarginHorizontal(PageMargin, Unit.Millimetre);
                     page.MarginVertical(PageMargin, Unit.Millimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(8));
+                    page.DefaultTextStyle(x => x.FontFamily("Lato", "Noto Sans SC").FontSize(8));
 
                     page.Header()
                         .Text(model.LayoutName)

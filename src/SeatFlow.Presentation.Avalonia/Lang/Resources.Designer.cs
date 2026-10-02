@@ -343,6 +343,9 @@ public class Resources
     public static string Seating_Venue => ResourceManager.GetString("Seating_Venue", Culture)!;
     public static string Seating_VenueDatasetDesc => ResourceManager.GetString("Seating_VenueDatasetDesc", Culture)!;
     public static string Seating_VenueLoadedFmt => ResourceManager.GetString("Seating_VenueLoadedFmt", Culture)!;
+    public static string Settings_AccentColor => ResourceManager.GetString("Settings_AccentColor", Culture)!;
+    public static string Settings_AccentDefault => ResourceManager.GetString("Settings_AccentDefault", Culture)!;
+    public static string Settings_AccentSystem => ResourceManager.GetString("Settings_AccentSystem", Culture)!;
     public static string Settings_Appearance => ResourceManager.GetString("Settings_Appearance", Culture)!;
     public static string Settings_AutoUpdate => ResourceManager.GetString("Settings_AutoUpdate", Culture)!;
     public static string Settings_AutoUpdateHint => ResourceManager.GetString("Settings_AutoUpdateHint", Culture)!;

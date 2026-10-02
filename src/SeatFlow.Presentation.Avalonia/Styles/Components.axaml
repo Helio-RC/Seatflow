@@ -3,6 +3,7 @@
   约定：新页面使用 sf-* 类；颜色一律走令牌（DynamicResource），尺寸走间距令牌（StaticResource）。
 -->
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fic="using:FluentIcons.Avalonia"
         xmlns:tokens="using:SeatFlow.Presentation.Avalonia.Tokens">
 
   <!--  ═══════════════ 文本 ═══════════════  -->
@@ -157,6 +158,20 @@
         文字/图标显示为深色。这里显式覆盖模板内前景，保证主题色底上始终为强调前景色。  -->
   <Style Selector="Button.sf-btn.sf-primary /template/ ContentPresenter#PART_ContentPresenter">
     <Setter Property="Foreground" Value="{DynamicResource SfAccentFgBrush}" />
+  </Style>
+  <!--  按钮内文字/图标跟随按钮前景：文本类（.sf-sm/.sf-text 等）显式设置了 SfTextBrush，
+        会压过模板前景，导致主题色按钮内的文字仍为黑色（用户实测：文字与图标均深色）。  -->
+  <Style Selector="Button.sf-btn.sf-primary TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentFgBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-primary fic|FluentIcon">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentFgBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-danger TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SfDangerBrush}" />
+  </Style>
+  <Style Selector="Button.sf-btn.sf-danger fic|FluentIcon">
+    <Setter Property="Foreground" Value="{DynamicResource SfDangerBrush}" />
   </Style>
 
   <Style Selector="Button.sf-btn.sf-ghost">

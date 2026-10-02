@@ -16,6 +16,9 @@ namespace SeatFlow.Core.Models
         /// <summary>主题模式。</summary>
         public ThemeMode Theme { get; set; } = ThemeMode.System;
 
+        /// <summary>主题色模式（默认使用内置主题色，系统跟随操作系统强调色）。</summary>
+        public AccentColorMode AccentColor { get; set; } = AccentColorMode.Default;
+
         /// <summary>界面语言，为空时跟随系统。</summary>
         public string Language { get; set; } = string.Empty;
 
@@ -166,6 +169,18 @@ namespace SeatFlow.Core.Models
         Light,
         /// <summary>深色主题。</summary>
         Dark
+    }
+
+    /// <summary>
+    /// 主题色模式枚举（默认 = 内置主题色；系统 = 跟随操作系统强调色）。
+    /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum AccentColorMode
+    {
+        /// <summary>内置默认主题色（#83B6DE）。</summary>
+        Default,
+        /// <summary>跟随操作系统强调色（不可用时回退默认）。</summary>
+        System
     }
 
     /// <summary>

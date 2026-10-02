@@ -7,6 +7,8 @@ using Avalonia.Layout;
 using Avalonia.Platform;
 using Avalonia.Styling;
 using FluentAssertions;
+using FluentIcons.Avalonia;
+using FluentIcons.Common;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace SeatFlow.Presentation.Tests;
@@ -57,7 +59,23 @@ public class AccentButtonForegroundTests
             var button = new Button
             {
                 Classes = { "sf-btn", "sf-primary" },
-                Content = "保存设置",
+                // 与生产按钮一致的结构：图标 + `.sf-sm` 文本（该文本类显式设置 SfTextBrush，
+                // 曾导致主题色按钮文字仍然为黑色）
+                Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 6,
+                    Children =
+                    {
+                        new FluentIcon { Icon = Icon.Save, FontSize = 14 },
+                        new TextBlock
+                        {
+                            Classes = { "sf-sm" },
+                            Text = "保存设置",
+                            VerticalAlignment = VerticalAlignment.Center,
+                        },
+                    },
+                },
                 Width = 120,
                 Height = 32,
                 HorizontalAlignment = HorizontalAlignment.Center,

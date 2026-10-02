@@ -45,6 +45,11 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
     public partial int ThemeIndex { get; set; }
     public List<string> ThemeOptions { get; } = [Resources.Theme_System, Resources.Theme_Light, Resources.Theme_Dark];
 
+    /// <summary>主题色模式索引（0=默认 #83B6DE，1=跟随系统强调色）。</summary>
+    [ObservableProperty]
+    public partial int AccentColorIndex { get; set; }
+    public List<string> AccentColorOptions { get; } = [Resources.Settings_AccentDefault, Resources.Settings_AccentSystem];
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedLanguage))]
     public partial string Language { get; set; } = string.Empty;
@@ -248,6 +253,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
 
             Theme = settings.Theme;
             ThemeIndex = Theme switch { ThemeMode.Light => 1, ThemeMode.Dark => 2, _ => 0 };
+            AccentColorIndex = settings.AccentColor == AccentColorMode.System ? 1 : 0;
 
             Language = settings.Language;
             _originalLanguage = settings.Language;
@@ -331,6 +337,12 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
         }
     }
 
+    /// <summary>主题色选择即时生效（与主题模式一致，保存时再持久化）。</summary>
+    partial void OnAccentColorIndexChanged(int value)
+    {
+        AccentColorApplier.Apply(value == 1 ? AccentColorMode.System : AccentColorMode.Default);
+    }
+
     partial void OnZoomIndexChanged(int value)
     {
         var zoom = value switch { 0 => 0.75, 1 => 1.0, 2 => 1.25, 3 => 1.5, _ => 1.0 };
@@ -376,6 +388,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
 
             // 直接在现有对象上修改，保留所有其他字段（CompletedPageGuides、Logging、Telemetry 等）
             settings.Theme = Theme;
+            settings.AccentColor = AccentColorIndex == 1 ? AccentColorMode.System : AccentColorMode.Default;
             settings.Language = Language;
             settings.DataDirectory = DataDirectory;
             settings.ConfirmBeforeClear = ConfirmBeforeClear;
@@ -441,6 +454,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
         if (!confirmed) return;
 
         ThemeIndex = 0;
+        AccentColorIndex = 0;
         Language = "";
         DataDirectory = string.Empty;
         ConfirmBeforeClear = true;

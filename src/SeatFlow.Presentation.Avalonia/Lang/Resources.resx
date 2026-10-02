@@ -1016,6 +1016,15 @@
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
     <value>已选择会场「{0}」，共 {1} 个座位</value>
   </data>
+  <data name="Settings_AccentColor" xml:space="preserve">
+    <value>主题色</value>
+  </data>
+  <data name="Settings_AccentDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="Settings_AccentSystem" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
   <data name="Settings_Appearance" xml:space="preserve">
     <value>外观</value>
   </data>
