@@ -591,15 +591,15 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
             Patterns = ["*.seatsets"]
         };
 
-        var file = await _fileService.OpenFileAsync(
+        var filePath = await _fileService.OpenFilePathAsync(
             Resources.SeatSets_ImportTitle,
             [seatSetsFilter]);
 
-        if (file is null) return;
+        if (filePath is null) return;
 
         StatusMessage = Resources.SeatSets_Processing;
         await SeatSetsImportHelper.ImportAsync(
-            file.Path.LocalPath, _serviceProvider, _dialog, _logger, ct);
+            filePath, _serviceProvider, _dialog, _logger, ct);
         StatusMessage = "";
     }
 

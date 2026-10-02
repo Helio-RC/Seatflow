@@ -724,10 +724,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     {
         await _dialogGate.RunAsync(async () =>
         {
-            IStorageFile? csvFile;
+            string? csvPath;
             try
             {
-                csvFile = await _fileService.OpenFileAsync(
+                csvPath = await _fileService.OpenFilePathAsync(
                     Resources.Freeform_ImportCSV,
                     [new(Resources.Data_CSVFile) { Patterns = ["*.csv"] }]);
             }
@@ -736,9 +736,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
                 _logger.LogDebug(ex, "文件对话框取消或异常: 导入CSV");
                 return;
             }
-            if (csvFile == null) return;
+            if (csvPath == null) return;
 
-            await ImportCsvCoreAsync(csvFile.Path.LocalPath, csvFile.Name);
+            await ImportCsvCoreAsync(csvPath, Path.GetFileName(csvPath));
         });
     }
 
@@ -790,10 +790,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     {
         await _dialogGate.RunAsync(async () =>
         {
-            IStorageFile? jsonFile;
+            string? jsonPath;
             try
             {
-                jsonFile = await _fileService.OpenFileAsync(
+                jsonPath = await _fileService.OpenFilePathAsync(
                     Resources.Freeform_ImportJSON,
                     [new(Resources.Data_JSONFile) { Patterns = ["*.json"] }]);
             }
@@ -802,9 +802,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
                 _logger.LogDebug(ex, "文件对话框取消或异常: 导入JSON");
                 return;
             }
-            if (jsonFile == null) return;
+            if (jsonPath == null) return;
 
-            await ImportJsonCoreAsync(jsonFile.Path.LocalPath);
+            await ImportJsonCoreAsync(jsonPath);
         });
     }
 

@@ -12,8 +12,11 @@ public interface IFileService
 {
     void SetTopLevel(TopLevel topLevel);
 
-    /// <summary>桌面专用：打开文件（返回 StorageProvider 句柄）。浏览器端返回 null。</summary>
-    Task<IStorageFile?> OpenFileAsync(string title, IReadOnlyList<FilePickerFileType> types);
+    /// <summary>
+    /// 打开文件并返回本地可读路径（跨平台：桌面 = StorageProvider 选择的真实路径；
+    /// 浏览器 = 选择后落内存文件系统临时文件）。用户取消时返回 <c>null</c>。
+    /// </summary>
+    Task<string?> OpenFilePathAsync(string title, IReadOnlyList<FilePickerFileType> types);
 
     /// <summary>桌面专用：保存文件（返回 StorageProvider 句柄）。浏览器端返回 null。</summary>
     Task<IStorageFile?> SaveFileAsync(string title, IReadOnlyList<FilePickerFileType> types, string? suggestedFileName = null);

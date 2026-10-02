@@ -16,7 +16,13 @@ public class FileService : IFileService
 
     public void SetTopLevel(TopLevel topLevel) => _topLevel = topLevel;
 
-    public async Task<IStorageFile?> OpenFileAsync(string title, IReadOnlyList<FilePickerFileType> types)
+    public async Task<string?> OpenFilePathAsync(string title, IReadOnlyList<FilePickerFileType> types)
+    {
+        var file = await PickFileAsync(title, types);
+        return file?.Path.LocalPath;
+    }
+
+    private async Task<IStorageFile?> PickFileAsync(string title, IReadOnlyList<FilePickerFileType> types)
     {
         if (_topLevel is null) return null;
         if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return null;
@@ -62,7 +68,7 @@ public class FileService : IFileService
     /// <inheritdoc />
     public async Task<PickedFile?> OpenFileBytesAsync(string title, IReadOnlyList<FilePickerFileType> types)
     {
-        var file = await OpenFileAsync(title, types);
+        var file = await PickFileAsync(title, types);
         if (file is null) return null;
         await using var stream = await file.OpenReadAsync();
         using var ms = new MemoryStream();

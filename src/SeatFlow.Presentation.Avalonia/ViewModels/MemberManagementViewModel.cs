@@ -584,12 +584,12 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     {
         await _dialogGate.RunAsync(async () =>
         {
-            IStorageFile? importFile;
-            try { importFile = await _fileService.OpenFileAsync(Resources.Member_ImportData, StudentFileTypes); }
+            string? importPath;
+            try { importPath = await _fileService.OpenFilePathAsync(Resources.Member_ImportData, StudentFileTypes); }
             catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常: 导入"); return; }
-            if (importFile is null) return;
+            if (importPath is null) return;
 
-            await ImportFromPathAsync(importFile.Path.LocalPath, ct);
+            await ImportFromPathAsync(importPath, ct);
         });
     }
 
@@ -733,13 +733,12 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
 
             try
             {
-                IStorageFile? importFile;
-                try { importFile = await _fileService.OpenFileAsync(Resources.Member_UpdateFromFile, StudentFileTypes); }
+                string? importPath;
+                try { importPath = await _fileService.OpenFilePathAsync(Resources.Member_UpdateFromFile, StudentFileTypes); }
                 catch (Exception ex) { _logger.LogDebug(ex, "文件对话框取消或异常: 打开文件"); return; }
-                if (importFile is null) return;
-                var file = importFile;
+                if (importPath is null) return;
 
-                FilePath = file.Path.LocalPath;
+                FilePath = importPath;
                 IsLoading = true;
                 ErrorMessage = string.Empty;
                 StatusMessage = "正在更新...";

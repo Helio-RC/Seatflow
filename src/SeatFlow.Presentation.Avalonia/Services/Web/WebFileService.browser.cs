@@ -1,6 +1,7 @@
 #if BROWSER
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
@@ -29,8 +30,25 @@ public partial class WebFileService : IFileService
 
     public void SetTopLevel (TopLevel topLevel) { }
 
-    public Task<IStorageFile?> OpenFileAsync (string title , IReadOnlyList<FilePickerFileType> types)
-        => Task.FromResult<IStorageFile?>(null);
+    /// <summary>
+    /// 浏览器端打开文件：选择后把字节写入内存文件系统（Emscripten MEMFS）临时目录并返回其路径，
+    /// 使现有按路径读取的导入管线（CSV/XLSX/JSON 等）在 Web 端等价可用；
+    /// 保留原文件名以驱动扩展名 Provider 选择。
+    /// </summary>
+    public async Task<string?> OpenFilePathAsync (string title , IReadOnlyList<FilePickerFileType> types)
+    {
+        var picked = await OpenFileBytesAsync(title , types);
+        if (picked is null) return null;
+
+        var dir = Path.Combine(Path.GetTempPath() , "seatflow-uploads" , Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        var fileName = Path.GetFileName(picked.FileName);
+        if (string.IsNullOrWhiteSpace(fileName))
+            fileName = "upload.bin";
+        var path = Path.Combine(dir , fileName);
+        await File.WriteAllBytesAsync(path , picked.Content);
+        return path;
+    }
 
     public Task<IStorageFile?> SaveFileAsync (string title , IReadOnlyList<FilePickerFileType> types , string? suggestedFileName = null)
         => Task.FromResult<IStorageFile?>(null);
