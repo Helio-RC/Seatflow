@@ -2,6 +2,39 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [2.1.0] — 2026-10-02
+
+### Added
+- **UI 彻底重构（M0–M6，ADR-014）**：方向 B「方格纸」令牌体系（`Resources/Tokens/`，颜色/间距/圆角/字阶全令牌化，明暗双主题）、自绘 `SeatingCanvas`（Grid/Polar/Freeform 统一几何命中、拖拽交换、Ctrl+滚轮缩放/空白平移、方向键虚拟焦点）、新信息架构（7 页：Home 移除、自由点管理并入会场与布局、排座工作台三栏 + 右栏页签、侧栏分组、≤900px 左右抽屉）
+- 页面生命周期与横切服务：`IPageLifecycle`（`OnEnterAsync`/`OnLeaveAsync`/`InitializationTask`）、`DirtyTracker`、`IDialogGate`、`IBusyScope`、`IShellLayoutService`、`IGuideSeedTarget`；`ViewLocator` 按 VM 弱引用缓存视图
+- 引入 ReactiveUI.Avalonia 12.1.5 与 CommunityToolkit.Mvvm 双范式共存（ADR-014；Avalonia 升级至 12.1.3）；全量编译绑定（`ReflectionBinding` 实际使用 0）
+- 主题色可调（默认 `#83B6DE` / 跟随系统）；画布右下角缩放控制条；座位姓名自动换行（最多两行）；快照预览按坐标等比放大到可读尺寸
+- 新增 Headless UI 测试项目 `tests/SeatFlow.Presentation.Tests`（Avalonia.Headless.XUnit + Avalonia.Skia 真实绘制 + 视觉基线/像素回归）；无头 UI 采样工具链迁至 `scripts/ui-inspect/`
+- 新增 `docs/UI_REFACTOR.md`（重构记录）与 `docs/adr/ADR-014`；`AGENTS.md` 取代 CLAUDE.md 成为 AI 指南唯一来源
+
+### Changed
+- 会场与布局：Grid/Polar/Freeform 并入单页；参数变更 120ms 去抖 + 增量更新（INP 315ms → 18ms）；保存时按位置复用座位 ID
+- 名单页行「显示/编辑」轻量切换 + 按规模自适应虚拟化；策略页缓存复用；快照页 Transient → Singleton + 显式刷新 + 自绘画布预览
+- 设置页改分组卡片两列网格（紧凑单列）；关于页核心依赖清单更新；欢迎卡改紧凑展开条
+- 引导系统接口化：演示数据注入下沉到页面（`IGuideSeedTarget`），移除静态状态，步骤语义与覆盖不变
+- 页面切换去除 200ms 淡出 + 100ms 间隔，改为即时切换
+- 默认桌间距统一为 32；过道宽度项左对齐；侧栏品牌区「SeatFlow」水平垂直居中
+- 移除死依赖 `Svg.Controls.Skia.Avalonia`（顺带修复 Linux 桌面 Skia native 版本错配），桌面显式对齐 `SkiaSharp.NativeAssets.Linux 4.153.1`
+
+### Fixed
+- WASM 运行时语言切换（此前 en-US 永远回退中文）：`UseSystemResourceKeys=false` + `main.js` 预加载卫星资源
+- 主题色按钮悬停文字变黑/背景变灰：Fluent 按钮模板级前景与背景覆盖（含像素回归测试）
+- 选择列表选中底色失效：模板部件选择器修正（`Border#PART_BackgroundBorder` → `ContentPresenter#PART_ContentPresenter`），统一为 `SfListSelectedColor`（浅 `#90A8C0` / 深 `#3E5872`）
+- 快照列表恒为空（存储键与会场 ID 不一致）、回滚后画布空白（工作区座位深拷贝）、生成后离开再进入画布残缺
+- 快照预览座位重叠/不可读；拖拽座位时其余姓名消失（手势期 LOD 仅大布局启用）；设置页卡片等高空白（UniformGrid → WrapPanel）
+- 会场首屏懒加载：仅列 ID，选中/恢复时加载布局并回填名称（消除启动期全量反序列化）
+- 在线版发布链路：上传跳过 `.map.br`、完整性校验容忍旧指纹对象、Worker 密钥轮换 API 与冒烟容错
+
+### Removed
+- `Behaviors/CanvasZoomPan`、`Behaviors/ZoomOnScroll`（矩阵变换并入 `SeatingCanvas`）
+- `HomeView/HomeViewModel`、`FreeformManagementView/FreeformManagementViewModel`、`MainWindowViewModel` 及 107 个无引用 i18n 键
+- 静态可变状态：`ViewModelBase.Dialog`、`KeyboardShortcutHandler.ShortcutConfig`、`FileDropHandler._host`、引导静态缓存（全部改为构造注入/DI）
+
 ## [2.0.0] — 2026-09-19
 
 ### Added

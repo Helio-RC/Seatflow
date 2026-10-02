@@ -1,28 +1,41 @@
-# SeatFlow v2.0.0 发布说明
+# SeatFlow v2.1.0 发布说明
 
-SeatFlow 2.0.0 正式发布：新增 **Web/WASM 浏览器支持（双壳架构）** 与 **在线版（online.seatflow.work）**，并包含此前已完成的**插件系统移除**与工程结构精简。
+SeatFlow 2.1.0 带来一次全面的界面焕新：操作更集中、画面更清爽、交互更跟手，同时修复了多个长期存在的界面问题。已有的会场、名单、快照和策略配置全部兼容，直接升级即可。
 
-## 新增
+## 亮点
 
-- **Web/WASM 浏览器支持（双壳架构）**：`SeatFlow.Presentation.Avalonia` 转为共享类库（`net10.0;net10.0-browser`），启动逻辑拆分为 `SeatFlow.Desktop`（桌面 EXE）与 `SeatFlow.Browser`（WASM 静态站）
-- **在线版（免安装）**：浏览器直接访问 [online.seatflow.work](https://online.seatflow.work) 即可使用；静态资源托管于 OSS 版本化目录、经 Cloudflare Worker 代理回源，支持 Brotli 预压缩与原子版本切换
-- **浏览器端存储**：`ILocalDataStore` 抽象——桌面走文件系统，Web 走 IndexedDB；CSV/XLSX/JSON 导入导出与 `.seatsets` 打包在 Web 端等价可用
-- **Web 端适配**：模态对话框 overlay 化、CJK 字体嵌入（Noto Sans SC）、DevTools Console 日志、语言预加载；PDF/图片导出、自动更新等桌面专属能力在 Web 端隐藏
-- 适配 .NET 10 / Avalonia 12
+- **全新「排座工作台」**：打开应用直接进入工作台——左侧选择会场与名单、中间排座位、右侧查看策略/未分配/记录/消息，主要流程一屏完成。原「首页」与「自由点管理」的功能已自然融入新流程，一个都不少
+- **全新「方格纸」界面**：更克制、更专注的视觉风格，浅色与深色主题同等打磨；间距、字号、配色的整体优化让长时间使用更轻松
+- **排座画布大幅升级**：拖拽换座、拖动空白平移、Ctrl+滚轮缩放更流畅；新增右下角缩放按钮；数百人的大教室也保持顺滑；座位姓名自动换行，不用再猜省略号
+- **主题色随心换**：设置页可选择喜欢的主题色，或跟随系统
+- **会场编辑更跟手**：调整桌数、间距、过道等参数时，预览即时更新，不再一卡一顿
+- **切页更干脆**：去掉多余动画，点击立即响应
+- **名单编辑更顺手**：名单行默认简洁显示，点击即可编辑
+- **快照预览更清楚**：历史快照的座位预览放大到可读尺寸，姓名清晰完整
+- **小屏更友好**：窗口变窄时自动切换为抽屉式导航与面板，矮窗口下底部按钮不再被遮挡
 
-## 移除
+## 在线版
 
-- **移除插件系统（ADR-013）**：删除 `SeatFlow.Contracts`、`SeatFlow.Plugins.Sdk`、`SeatFlow.Plugin.TestFixture` 与 `src/plugin-examples/`，移除 `NLua`、`Microsoft.CodeAnalysis.CSharp.Scripting` 依赖
-- 删除插件运行时、Lua/C# 脚本策略、能力系统、插件管理页与相关文档
+- [online.seatflow.work](https://online.seatflow.work) 随正式版自动更新
+- 修复了浏览器端切换中英文后界面仍显示中文的问题，现在可即时切换
 
-## 迁移说明
+## 修复
 
-- 1.x 升级至 2.0.0：无需手动迁移，所有数据（会场/名单/快照/策略配置）兼容
-- 如果曾安装过插件（`.ap-plugin`），插件将不再被加载，安装根目录下的 `Plugins/` 目录可手动删除
+- 修复主题色按钮鼠标悬停时文字发黑、背景发灰（看起来像被禁用）的问题
+- 修复左侧列表选中项颜色异常的问题
+- 修复部分情况下快照列表为空、回滚后画布空白的问题
+- 修复拖拽座位时其他座位姓名消失、设置页卡片出现大片空白的问题
+- 新会场默认桌间距调整为 32，桌面排列更紧凑（已保存的会场不受影响）
+
+## 升级说明
+
+- 覆盖安装即可（Windows Setup / Linux AppImage / macOS 安装包）
+- 所有已有数据（会场、名单、快照、策略配置）自动兼容，无需手动迁移
+- 使用在线版时刷新页面即可获得新版本
 
 ## 平台资产
 
 - Windows x64：Setup 安装程序
 - Linux x64：AppImage
 - macOS：Intel 与 Apple Silicon 安装包
-- 在线版：<https://online.seatflow.work>（随正式版发布自动更新）
+- 在线版：<https://online.seatflow.work>
