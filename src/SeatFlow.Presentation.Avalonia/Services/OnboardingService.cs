@@ -50,6 +50,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     /// <summary>MemberManagement 演示数据是否已实际注入（用于 ClearPageData 判断是否需要清理）。</summary>
     private bool _memberManagementDemoInjected;
 
+    /// <summary>SnapshotHistory 演示数据是否已实际注入（Singleton 下避免误清用户浏览状态）。</summary>
+    private static bool _snapshotDemoInjected;
+
     /// <summary>演示数据集的固定 ID，用于注入和清理时识别。</summary>
     private const string DemoDatasetId = "guide-demo-ds";
 
@@ -344,7 +347,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
 
     /// <summary>
     /// 等待页面异步初始化完成后再注入示例数据。
-    /// 页面 VM 的 fire-and-forget 初始化（如 LoadVenueList）在 WASM/IndexedDB 下
+    /// 页面 VM 的生命周期加载（<c>OnEnterAsync</c>，经 Loaded 桥接触发）在 WASM/IndexedDB 下
     /// 可能晚于引导阶段切换完成，且会整体替换集合 → 同步注入会被后续加载覆盖。
     /// </summary>
     private async Task SeedPageDataAsync(PageKey page, ViewModelBase? pageVm)
@@ -353,6 +356,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         {
             var initTask = pageVm switch
             {
+                MemberManagementViewModel m => m.InitializationTask,
                 VenueConfigurationViewModel v => v.InitializationTask,
                 StrategyConfigurationViewModel s => s.InitializationTask,
                 SeatingArrangementViewModel a => a.InitializationTask,
@@ -401,14 +405,14 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         if (vm is null) return;
 
         // 保存用户原有状态，引导结束后恢复（始终执行，即使跳过注入）
-        _savedMemberStudents = [.. vm.Students];
+        _savedMemberStudents = [.. vm.GetStudents()];
         _savedMemberDatasets = [.. vm.SavedDatasets];
         _savedMemberIsEmpty = vm.IsEmpty;
 
         // 若用户已在 Phase 1 导入数据，不覆盖
-        if (vm.Students.Count > 0) return;
+        if (vm.GetStudents().Count > 0) return;
 
-        vm.Students = new ObservableCollection<Student>
+        vm.SetStudents(new List<Student>
         {
             new() { Name = "Alice", Height = 165, Gender = Gender.Female },
             new() { Name = "Bob", Height = 175, Gender = Gender.Male, NeedsFrontRow = true },
@@ -416,11 +420,9 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             new() { Name = "Diana", Height = 160, Gender = Gender.Female },
             new() { Name = "Eve", Height = 170, Gender = Gender.Female },
             new() { Name = "Frank", Height = 178, Gender = Gender.Male },
-        };
-        vm.StudentCount = vm.Students.Count;
-        vm.IsEmpty = false;
+        });
         vm.IsLoading = false;
-        vm.StatusMessage = string.Format(Resources.Member_LoadedFmt, vm.Students.Count);
+        vm.StatusMessage = string.Format(Resources.Member_LoadedFmt, vm.StudentCount);
 
         // 追加演示数据集到现有列表（而非替换），避免覆盖用户真实数据集
         var demoDataset = new StudentDatasetInfo
@@ -501,6 +503,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
     private static void SeedSnapshotHistoryData(SnapshotHistoryViewModel? vm)
     {
         if (vm is null) return;
+        _snapshotDemoInjected = true;
         vm.Venues = new ObservableCollection<VenueItem>
         {
             new("demo-v", "演示教室")
@@ -540,8 +543,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                     if (_savedMemberStudents is not null)
                     {
                         // 引导前有用户数据 → 恢复到原始状态（显式过滤残留的演示数据集）
-                        memberVm.Students = new ObservableCollection<Student>(_savedMemberStudents);
-                        memberVm.StudentCount = _savedMemberStudents.Count;
+                        memberVm.SetStudents(_savedMemberStudents);
                         memberVm.IsEmpty = _savedMemberIsEmpty;
                         memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
                             (_savedMemberDatasets ?? []).Where(d => d.Id != DemoDatasetId));
@@ -549,9 +551,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                     else
                     {
                         // 首次使用（引导前无数据）→ 清空演示数据（显式过滤残留的演示数据集）
-                        memberVm.Students.Clear();
-                        memberVm.StudentCount = 0;
-                        memberVm.IsEmpty = true;
+                        memberVm.SetStudents([]);
                         memberVm.SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
                             memberVm.SavedDatasets.Where(d => d.Id != DemoDatasetId));
                     }
@@ -559,7 +559,7 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
                     memberVm.CurrentDatasetId = null;
                     memberVm.CurrentDatasetName = null;
                     memberVm.FilePath = string.Empty;
-                    memberVm.ResetDirtyState(); // 重置 _originalStudentsJson，防止后续 IsDirty 误判
+                    memberVm.ResetDirtyState(); // 重置 DirtyTracker 基线，防止后续 IsDirty 误判
                 }
                 finally
                 {
@@ -601,8 +601,15 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
         }
         if (sp.GetService(typeof(SnapshotHistoryViewModel)) is SnapshotHistoryViewModel snapVm)
         {
-            snapVm.Snapshots.Clear();
-            snapVm.Venues.Clear();
+            // 仅在实际注入过演示数据时清理，避免清空用户当前浏览的快照状态（M4 评审）
+            if (_snapshotDemoInjected)
+            {
+                snapVm.Snapshots.Clear();
+                snapVm.Venues.Clear();
+                // 列表已清空 → 下次进入重新加载（页面缓存策略失效化）
+                snapVm.InvalidateData();
+                _snapshotDemoInjected = false;
+            }
         }
     }
 

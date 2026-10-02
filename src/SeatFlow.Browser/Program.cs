@@ -71,7 +71,7 @@ internal sealed class Program
         services.AddSingleton<StrategyConfigurationViewModel>();
         services.AddSingleton<SeatingArrangementViewModel>();
         services.AddTransient<WelcomeCardViewModel>();
-        services.AddTransient<SnapshotHistoryViewModel>();
+        services.AddSingleton<SnapshotHistoryViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddTransient<ConfigBlockEditorViewModel>();

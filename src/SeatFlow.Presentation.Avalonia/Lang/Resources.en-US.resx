@@ -308,6 +308,9 @@
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>Confirm delete</value>
   </data>
+  <data name="Member_DatasetShort" xml:space="preserve">
+    <value>Datasets</value>
+  </data>
   <data name="Member_DeleteConfirmMsg" xml:space="preserve">
     <value>Delete dataset &quot;{0}&quot;?
 This cannot be undone.</value>
@@ -535,6 +538,12 @@ This cannot be undone.</value>
   </data>
   <data name="Member_MemberDataFile" xml:space="preserve">
     <value>Member Data Files</value>
+  </data>
+  <data name="Member_StatusDirty" xml:space="preserve">
+    <value>Unsaved</value>
+  </data>
+  <data name="Member_StatusSaved" xml:space="preserve">
+    <value>Saved</value>
   </data>
   <data name="Member_TemplateMissing" xml:space="preserve">
     <value>Template missing</value>
@@ -866,6 +875,18 @@ This cannot be undone.</value>
   </data>
   <data name="Nav_VenueConfig" xml:space="preserve">
     <value>Venues &amp; Layouts</value>
+  </data>
+  <data name="SeatPosition_Angle" xml:space="preserve">
+    <value>Angle</value>
+  </data>
+  <data name="SeatPosition_Column" xml:space="preserve">
+    <value>Column</value>
+  </data>
+  <data name="SeatPosition_Ring" xml:space="preserve">
+    <value>Ring</value>
+  </data>
+  <data name="SeatPosition_Row" xml:space="preserve">
+    <value>Row</value>
   </data>
   <data name="SeatSets_AppSettings_Label" xml:space="preserve">
     <value>Application Settings</value>
@@ -1499,6 +1520,9 @@ This cannot be undone.</value>
   <data name="Snapshot_List" xml:space="preserve">
     <value>Snapshot list</value>
   </data>
+  <data name="Snapshot_ListShort" xml:space="preserve">
+    <value>Snapshots</value>
+  </data>
   <data name="Snapshot_ManualSnapshotFmt" xml:space="preserve">
     <value>Manual snapshot - {0}</value>
   </data>
@@ -1641,6 +1665,9 @@ Current seating will be overwritten.</value>
   <data name="Strategy_ConfigInvalidHint" xml:space="preserve">
     <value>⚠ Venue or roster changes may invalidate current strategy settings. Please review before execution.</value>
   </data>
+  <data name="Strategy_ListShort" xml:space="preserve">
+    <value>Strategies</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>Failed to load strategies</value>
   </data>
@@ -1759,6 +1786,9 @@ Current seating will be overwritten.</value>
   </data>
   <data name="Strategy_UnsavedChangesMsg" xml:space="preserve">
     <value>Unsaved strategy changes. Save before leaving?</value>
+  </data>
+  <data name="StudentPicker_Placeholder" xml:space="preserve">
+    <value>Select student</value>
   </data>
   <data name="Telemetry_ConsentEnable" xml:space="preserve">
     <value>Enable</value>

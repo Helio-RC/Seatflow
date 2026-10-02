@@ -160,11 +160,11 @@ static void WriteVenue(VenueFile file, string outDir, string fileName, JsonSeria
     Console.WriteLine($"venue  -> {path} ({file.Layout.Seats.Count} seats)");
 }
 
-WriteVenue(CreateGridVenue("demo-venue-01", "demo-layout-01", "演示教室（64座）", 8, 8, 2, 12, 40, 4, 4, 60), outDir, "demo-venue-01.venue.json", opts);
-WriteVenue(CreatePolarVenue("demo-venue-polar", "demo-layout-polar", "演示环形教室（24座）", [8, 8, 8], 60), outDir, "demo-venue-polar.venue.json", opts);
-WriteVenue(CreateFreeformVenue("demo-venue-freeform", "demo-layout-freeform", "演示自由布局（30座）", 6, 5), outDir, "demo-venue-freeform.venue.json", opts);
-WriteVenue(CreateGridVenue("demo-venue-large", "demo-layout-large", "演示大教室（300座）", 15, 20, 2, 12, 40, 10, 8, 60), outDir, "demo-venue-large.venue.json", opts);
-WriteVenue(CreateGridVenue("demo-venue-huge", "demo-layout-huge", "演示超大教室（800座）", 25, 32, 2, 10, 28, 0, 0, 0), outDir, "demo-venue-huge.venue.json", opts);
+WriteVenue(CreateGridVenue("demo-venue-01", "demo-venue-01", "演示教室（64座）", 8, 8, 2, 12, 40, 4, 4, 60), outDir, "demo-venue-01.venue.json", opts);
+WriteVenue(CreatePolarVenue("demo-venue-polar", "demo-venue-polar", "演示环形教室（24座）", [8, 8, 8], 60), outDir, "demo-venue-polar.venue.json", opts);
+WriteVenue(CreateFreeformVenue("demo-venue-freeform", "demo-venue-freeform", "演示自由布局（30座）", 6, 5), outDir, "demo-venue-freeform.venue.json", opts);
+WriteVenue(CreateGridVenue("demo-venue-large", "demo-venue-large", "演示大教室（300座）", 15, 20, 2, 12, 40, 10, 8, 60), outDir, "demo-venue-large.venue.json", opts);
+WriteVenue(CreateGridVenue("demo-venue-huge", "demo-venue-huge", "演示超大教室（800座）", 25, 32, 2, 10, 28, 0, 0, 0), outDir, "demo-venue-huge.venue.json", opts);
 
 // ---------- 名单：240 人（中文姓名，性别交替，身高 150–189，每 30 人一个前排需求） ----------
 string[] surnames = ["王", "李", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴", "徐", "孙", "胡", "朱", "高", "林", "何", "郭", "马", "罗"];

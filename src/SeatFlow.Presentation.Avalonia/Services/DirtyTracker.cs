@@ -30,11 +30,13 @@ public sealed class DirtyTracker : ReactiveObject
         IsDirty = false;
     }
 
-    /// <summary>传入当前状态快照，重新计算脏状态。</summary>
+    /// <summary>传入当前状态快照，重新计算脏状态。未建立基线时保留显式 <see cref="MarkDirty"/> 结果。</summary>
     public void Update(string currentSnapshot)
     {
-        IsDirty = _cleanSnapshot is not null
-            && !string.Equals(_cleanSnapshot, currentSnapshot, StringComparison.Ordinal);
+        if (_cleanSnapshot is null)
+            return;
+
+        IsDirty = !string.Equals(_cleanSnapshot, currentSnapshot, StringComparison.Ordinal);
     }
 
     /// <summary>强制标记为脏（例如新增了无法序列化的编辑）。</summary>

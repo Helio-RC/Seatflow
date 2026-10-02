@@ -3,740 +3,528 @@
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:conv="using:SeatFlow.Presentation.Avalonia.Converters"
-  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:fic="using:FluentIcons.Avalonia"
   xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
   xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:models="using:SeatFlow.Core.Models"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
-  x:DataType="vm:MemberManagementViewModel"
-  mc:Ignorable="d">
-
-  <Design.DataContext>
-    <vm:MemberManagementViewModel />
-  </Design.DataContext>
+  x:DataType="vm:MemberManagementViewModel">
 
   <UserControl.Resources>
     <conv:GenderIndexConverter x:Key="GenderConverter" />
     <conv:HeightConverter x:Key="HeightConverter" />
-  </UserControl.Resources>
 
-  <DockPanel Classes="pageMargin">
-    <!--  顶部工具栏  -->
-    <Border Classes="toolbarTop" DockPanel.Dock="Top">
-      <DockPanel>
-        <TextBlock
-          VerticalAlignment="Center"
-          Classes="pageTitle"
-          DockPanel.Dock="Left"
-          Text="{x:Static lang:Resources.Member_Title}" />
-
-        <!--  === 右侧操作按钮 ===  -->
-
-        <!--  右侧操作按钮组  -->
-        <Panel
-          Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
-          ClipToBounds="True"
-          DockPanel.Dock="Right">
-          <Panel.Transitions>
-            <Transitions>
-              <DoubleTransition
-                Easing="CubicEaseInOut"
-                Property="Width"
-                Duration="0:0:0.2" />
-            </Transitions>
-          </Panel.Transitions>
-
-          <!--  展开模式  -->
-          <StackPanel
-            IsHitTestVisible="{Binding HasExpanded}"
-            Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-            Orientation="Horizontal"
-            Spacing="8">
-            <StackPanel.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
-              </Transitions>
-            </StackPanel.Transitions>
-            <Button
-              x:Name="ExportTemplateButton"
-              HorizontalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}"
-              Command="{Binding ExportTemplateCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Document}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_GetTemplate}" />
-              </StackPanel>
-            </Button>
-            <Button
-              x:Name="ImportButton"
-              HorizontalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Member_ImportData}"
-              Command="{Binding ImportCommand}"
-              IsEnabled="{Binding IsNotLoading}"
-              IsVisible="{Binding IsImportMode}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.PeopleTeamAdd}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_ImportFromFile}" />
-              </StackPanel>
-            </Button>
-            <Button
-              x:Name="UpdateFromFileButton"
-              HorizontalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Member_UpdateFromFile}"
-              Command="{Binding UpdateFromFileCommand}"
-              IsEnabled="{Binding IsNotLoading}"
-              IsVisible="{Binding IsUpdateMode}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_UpdateFromFile}" />
-              </StackPanel>
-            </Button>
-            <Button
-              x:Name="SaveButton"
-              HorizontalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Member_SaveDataset}"
-              Command="{Binding SaveCommand}"
-              IsEnabled="{Binding HasData}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Save}" />
-              </StackPanel>
-            </Button>
-            <Button
-              HorizontalContentAlignment="Center"
-              Command="{Binding RenameSaveCommand}"
-              IsEnabled="{Binding HasData}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Save}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_SaveAs}" />
-              </StackPanel>
-            </Button>
-            <Button
-              HorizontalContentAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Data_UnloadData}"
-              Command="{Binding ClearDataCommand}"
-              IsEnabled="{Binding HasData}">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Dismiss}" />
-                <TextBlock Classes="body" Text="{x:Static lang:Resources.Data_UnloadData}" />
-              </StackPanel>
-            </Button>
-          </StackPanel>
-
-          <!--  紧凑模式  -->
-          <Button
-            Padding="8,4"
-            HorizontalAlignment="Right"
-            HorizontalContentAlignment="Center"
-            FontSize="14"
-            IsHitTestVisible="{Binding IsCompact}"
-            Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}">
-            <Button.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
-              </Transitions>
-            </Button.Transitions>
-            <StackPanel Orientation="Horizontal" Spacing="4">
-              <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.MoreHorizontal}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_Operations}" />
-            </StackPanel>
-            <Button.Flyout>
-              <Flyout>
-                <StackPanel
-                  Width="130"
-                  HorizontalAlignment="Center"
-                  Spacing="2">
-                  <StackPanel.Transitions>
-                    <Transitions>
-                      <DoubleTransition
-                        Easing="CubicEaseOut"
-                        Property="Opacity"
-                        Duration="0:0:0.1" />
-                    </Transitions>
-                  </StackPanel.Transitions>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding ExportTemplateCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Document}" />
-                      <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_GetTemplate}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding ImportCommand}"
-                    IsEnabled="{Binding IsNotLoading}"
-                    IsVisible="{Binding IsImportMode}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.PeopleTeamAdd}" />
-                      <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_ImportFromFile}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding UpdateFromFileCommand}"
-                    IsEnabled="{Binding IsNotLoading}"
-                    IsVisible="{Binding IsUpdateMode}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-                      <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_UpdateFromFile}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding SaveCommand}"
-                    IsEnabled="{Binding HasData}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
-                      <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_Save}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding RenameSaveCommand}"
-                    IsEnabled="{Binding HasData}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
-                      <TextBlock Classes="body" Text="{x:Static lang:Resources.Common_SaveAs}" />
-                    </StackPanel>
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding ClearDataCommand}"
-                    IsEnabled="{Binding HasData}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Dismiss}" />
-                      <TextBlock Classes="body" Text="{x:Static lang:Resources.Data_UnloadData}" />
-                    </StackPanel>
-                  </Button>
-                </StackPanel>
-              </Flyout>
-            </Button.Flyout>
-          </Button>
-        </Panel>
-
-        <!--  === 导出按钮组 ===  -->
-        <Panel
-          Width="{Binding IsCompact, Converter={x:Static conv:BoolConverters.CompactPanelWidth}}"
-          Margin="16,0,0,0"
-          HorizontalAlignment="Left"
-          VerticalAlignment="Center"
-          ClipToBounds="True">
-          <Panel.Transitions>
-            <Transitions>
-              <DoubleTransition
-                Easing="CubicEaseInOut"
-                Property="Width"
-                Duration="0:0:0.2" />
-            </Transitions>
-          </Panel.Transitions>
-
-          <!--  展开模式  -->
-          <StackPanel
-            IsHitTestVisible="{Binding HasExpanded}"
-            Opacity="{Binding HasExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-            Orientation="Horizontal"
-            Spacing="4">
-            <StackPanel.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
-              </Transitions>
-            </StackPanel.Transitions>
+    <!--  名单行模板（双列表共用；显示态仅 TextBlock，编辑态才渲染输入控件与操作按钮）  -->
+    <DataTemplate x:Key="StudentRowTemplate" x:DataType="vm:StudentRowViewModel">
+      <Border
+        Height="36"
+        Background="Transparent"
+        BorderBrush="{DynamicResource SfBorderBrush}"
+        BorderThickness="0,0,0,1"
+        PointerPressed="OnStudentRowPointerPressed">
+        <Grid Margin="6,0" ColumnDefinitions="2*,*,*,Auto,Auto">
+          <!--  姓名  -->
+          <Panel Grid.Column="0">
             <TextBlock
               VerticalAlignment="Center"
-              Classes="caption"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Text="{x:Static lang:Resources.Member_ExportLabel}" />
+              Classes="sf-sm"
+              IsVisible="{Binding !IsEditing}"
+              Text="{Binding Name}"
+              TextTrimming="CharacterEllipsis" />
+            <TextBox
+              VerticalAlignment="Center"
+              Classes="sf-input"
+              Height="28"
+              IsVisible="{Binding IsEditing}"
+              KeyDown="OnRowEditKeyDown"
+              Text="{Binding NameText, Mode=TwoWay}" />
+          </Panel>
+          <!--  身高  -->
+          <Panel Grid.Column="1">
+            <TextBlock
+              VerticalAlignment="Center"
+              Classes="sf-sm sf-num"
+              IsVisible="{Binding !IsEditing}"
+              Text="{Binding HeightDisplay}" />
+            <TextBox
+              VerticalAlignment="Center"
+              Classes="sf-input"
+              Height="28"
+              IsVisible="{Binding IsEditing}"
+              KeyDown="OnRowEditKeyDown"
+              Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}" />
+          </Panel>
+          <!--  性别  -->
+          <Panel Grid.Column="2">
+            <TextBlock
+              VerticalAlignment="Center"
+              Classes="sf-sm"
+              IsVisible="{Binding !IsEditing}"
+              Text="{Binding GenderDisplay}" />
+            <ComboBox
+              VerticalAlignment="Center"
+              Classes="sf-input"
+              Height="28"
+              IsVisible="{Binding IsEditing}"
+              SelectedIndex="{Binding GenderIndex, Mode=TwoWay}">
+              <ComboBoxItem Content="" />
+              <ComboBoxItem Content="{x:Static lang:Resources.Gender_Male}" />
+              <ComboBoxItem Content="{x:Static lang:Resources.Gender_Female}" />
+              <ComboBoxItem Content="{x:Static lang:Resources.Gender_Other}" />
+            </ComboBox>
+          </Panel>
+          <!--  前排  -->
+          <Panel Grid.Column="3" Width="64">
+            <fic:FluentIcon
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              FontSize="14"
+              Foreground="{DynamicResource SfAccentBrush}"
+              Icon="{x:Static ficEnum:Icon.CheckmarkCircle}"
+              IsVisible="{Binding NeedsFrontRow}" />
+            <CheckBox
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              IsChecked="{Binding IsFrontRow, Mode=TwoWay}"
+              IsVisible="{Binding IsEditing}" />
+          </Panel>
+          <!--  操作（仅编辑态渲染，显示态该列为空）  -->
+          <StackPanel
+            Grid.Column="4"
+            Width="60"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="2"
+            IsVisible="{Binding IsEditing}">
             <Button
-              Padding="8,4"
-              Command="{Binding ExportCsvCommand}"
-              FontSize="12"
-              IsEnabled="{Binding HasData}">
-              CSV
+              AutomationProperties.Name="{x:Static lang:Resources.Common_Save}"
+              Classes="sf-btn sf-icon sf-ghost"
+              Command="{Binding $parent[UserControl].DataContext.EndEditCommand}"
+              CommandParameter="{Binding}"
+              ToolTip.Tip="{x:Static lang:Resources.Common_Save}">
+              <fic:FluentIcon
+                FontSize="14"
+                Foreground="{DynamicResource SfAccentBrush}"
+                Icon="{x:Static ficEnum:Icon.CheckmarkCircle}" />
             </Button>
             <Button
-              Padding="8,4"
-              Command="{Binding ExportExcelCommand}"
-              FontSize="12"
-              IsEnabled="{Binding HasData}">
-              Excel
+              AutomationProperties.Name="{x:Static lang:Resources.Common_Delete}"
+              Classes="sf-btn sf-icon sf-ghost"
+              Command="{Binding $parent[UserControl].DataContext.DeleteStudentCommand}"
+              CommandParameter="{Binding}"
+              ToolTip.Tip="{x:Static lang:Resources.Common_Delete}">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="ListBox.sf-select">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.sf-select ListBoxItem">
+      <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+      <Setter Property="Padding" Value="8,6" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="FontSize" Value="{StaticResource SfFontSm}" />
+    </Style>
+    <Style Selector="ListBox.sf-select ListBoxItem:pointerover /template/ Border#PART_BackgroundBorder">
+      <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+    </Style>
+    <Style Selector="ListBox.sf-select ListBoxItem:selected /template/ Border#PART_BackgroundBorder">
+      <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <!--  名单行：固定行高，容器零内边距  -->
+    <Style Selector="ListBox.sf-table ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <!--  ═══ 命令栏 ═══  -->
+    <Border DockPanel.Dock="Top" Classes="sf-toolbar">
+      <DockPanel>
+        <StackPanel
+          VerticalAlignment="Center"
+          DockPanel.Dock="Left"
+          Orientation="Horizontal"
+          Spacing="8">
+          <TextBlock Classes="sf-h1" Text="{x:Static lang:Resources.Member_Title}" />
+          <TextBlock
+            VerticalAlignment="Bottom"
+            Classes="sf-sm sf-faint"
+            Text="{Binding HeaderSubtitle}" />
+          <Border Classes="sf-chip" IsVisible="{Binding HasData}">
+            <Panel>
+              <TextBlock
+                Classes="sf-xs"
+                Foreground="{DynamicResource SfWarnBrush}"
+                IsVisible="{Binding Dirty.IsDirty}"
+                Text="{x:Static lang:Resources.Member_StatusDirty}" />
+              <TextBlock
+                Classes="sf-xs"
+                Foreground="{DynamicResource SfOkBrush}"
+                IsVisible="{Binding !Dirty.IsDirty}"
+                Text="{x:Static lang:Resources.Member_StatusSaved}" />
+            </Panel>
+          </Border>
+        </StackPanel>
+
+        <StackPanel
+          HorizontalAlignment="Right"
+          VerticalAlignment="Center"
+          DockPanel.Dock="Right"
+          Orientation="Horizontal"
+          Spacing="6">
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Member_DatasetShort}"
+            Classes="sf-btn sf-sm"
+            Command="{Binding DatasetsPanel.ToggleCommand}"
+            IsVisible="{Binding Layout.IsCompact}">
+            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Member_DatasetShort}" />
+          </Button>
+          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsCompact}" />
+
+          <Button AutomationProperties.Name="{x:Static lang:Resources.Data_Export}" Classes="sf-btn" IsEnabled="{Binding HasData}">
+            <Button.Flyout>
+              <MenuFlyout>
+                <MenuItem Command="{Binding ExportCsvCommand}" Header="{x:Static lang:Resources.Member_ExportCSV}" />
+                <MenuItem Command="{Binding ExportExcelCommand}" Header="{x:Static lang:Resources.Member_ExportExcel}" />
+                <MenuItem Command="{Binding ExportJsonCommand}" Header="{x:Static lang:Resources.Member_ExportJSON}" />
+              </MenuFlyout>
+            </Button.Flyout>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUpload}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Data_Export}" />
+              <fic:FluentIcon FontSize="10" Icon="{x:Static ficEnum:Icon.ChevronDown}" />
+            </StackPanel>
+          </Button>
+
+          <Button
+            x:Name="ExportTemplateButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}"
+            Classes="sf-btn"
+            Command="{Binding ExportTemplateCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Document}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Member_GetTemplate}" />
+            </StackPanel>
+          </Button>
+          <Button
+            x:Name="ImportButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Member_ImportData}"
+            Classes="sf-btn sf-primary"
+            Command="{Binding ImportCommand}"
+            IsEnabled="{Binding IsNotLoading}"
+            IsVisible="{Binding IsImportMode}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.PeopleTeamAdd}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Member_ImportFromFile}" />
+            </StackPanel>
+          </Button>
+          <Button
+            x:Name="UpdateFromFileButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Member_UpdateFromFile}"
+            Classes="sf-btn sf-primary"
+            Command="{Binding UpdateFromFileCommand}"
+            IsEnabled="{Binding IsNotLoading}"
+            IsVisible="{Binding IsUpdateMode}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Member_UpdateFromFile}" />
+            </StackPanel>
+          </Button>
+          <Button
+            x:Name="SaveButton"
+            AutomationProperties.Name="{x:Static lang:Resources.Member_SaveDataset}"
+            Classes="sf-btn"
+            Command="{Binding SaveCommand}"
+            IsEnabled="{Binding HasData}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CompactCommandTextVisible}"
+                Text="{x:Static lang:Resources.Common_Save}" />
+            </StackPanel>
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Common_SaveAs}"
+            Classes="sf-btn sf-icon"
+            Command="{Binding RenameSaveCommand}"
+            IsEnabled="{Binding HasData}"
+            ToolTip.Tip="{x:Static lang:Resources.Common_SaveAs}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.SaveCopy}" />
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Data_UnloadData}"
+            Classes="sf-btn sf-icon"
+            Command="{Binding ClearDataCommand}"
+            IsEnabled="{Binding HasData}"
+            ToolTip.Tip="{x:Static lang:Resources.Data_UnloadData}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Dismiss}" />
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!--  ═══ 状态栏 ═══  -->
+    <Border DockPanel.Dock="Bottom" Classes="sf-statusbar">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock
+          Grid.Column="0"
+          VerticalAlignment="Center"
+          Classes="sf-xs sf-dim"
+          Text="{Binding StatusMessage}" />
+        <TextBlock
+          Grid.Column="1"
+          VerticalAlignment="Center"
+          Classes="sf-xs sf-faint"
+          IsVisible="{Binding HasData}"
+          Text="{Binding FilePathDisplay}"
+          TextTrimming="CharacterEllipsis" />
+      </Grid>
+    </Border>
+
+    <!--  ═══ 内容区（数据集面板 / 表格 / 紧凑遮罩） ═══  -->
+    <Grid ColumnDefinitions="Auto,*,Auto">
+      <!--  数据集列表面板（桌面内联 / 紧凑右抽屉）  -->
+      <Border
+        x:Name="DatasetsPanelBorder"
+        Grid.Column="{Binding DatasetsPanel.Column}"
+        Width="{Binding DatasetsPanel.Width}"
+        HorizontalAlignment="{Binding DatasetsPanel.Alignment}"
+        ZIndex="{Binding DatasetsPanel.ZIndex}"
+        Background="{DynamicResource SfSurface2Brush}"
+        BorderBrush="{DynamicResource SfBorderBrush}"
+        BorderThickness="{Binding DatasetsPanel.BorderThickness}"
+        IsVisible="{Binding DatasetsPanel.Visible}">
+        <DockPanel>
+          <DockPanel Margin="12,12,12,4" DockPanel.Dock="Top">
+            <Button
+              HorizontalAlignment="Right"
+              VerticalAlignment="Center"
+              AutomationProperties.Name="{x:Static lang:Resources.Common_Refresh}"
+              Classes="sf-btn sf-icon sf-ghost"
+              Command="{Binding RefreshDatasetsCommand}"
+              DockPanel.Dock="Right"
+              ToolTip.Tip="{x:Static lang:Resources.Common_Refresh}">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+            </Button>
+            <TextBlock
+              VerticalAlignment="Center"
+              Classes="sf-h3"
+              Text="{x:Static lang:Resources.Member_SavedDatasets}" />
+          </DockPanel>
+
+          <StackPanel Margin="12,0,12,12" DockPanel.Dock="Bottom" Spacing="6">
+            <Border Classes="sf-divider" />
+            <Button
+              AutomationProperties.Name="{x:Static lang:Resources.Common_Delete}"
+              Classes="sf-btn sf-block"
+              Command="{Binding DeleteSelectedDatasetCommand}"
+              IsEnabled="{Binding HasSelectedDataset}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Delete}" />
+              </StackPanel>
             </Button>
             <Button
-              Padding="8,4"
-              Command="{Binding ExportJsonCommand}"
-              FontSize="12"
-              IsEnabled="{Binding HasData}">
-              JSON
+              AutomationProperties.Name="{x:Static lang:Resources.Common_Rename}"
+              Classes="sf-btn sf-block"
+              Command="{Binding RenameSelectedDatasetCommand}"
+              IsEnabled="{Binding HasSelectedDataset}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Edit}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Rename}" />
+              </StackPanel>
             </Button>
           </StackPanel>
 
-          <!--  紧凑模式  -->
-          <Button
-            Padding="8,4"
-            FontSize="14"
-            IsHitTestVisible="{Binding IsCompact}"
-            Opacity="{Binding IsCompact, Converter={x:Static conv:BoolConverters.TrueToVisible}}">
-            <Button.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Opacity" Duration="0:0:0.1" />
-              </Transitions>
-            </Button.Transitions>
-            <StackPanel Orientation="Horizontal" Spacing="4">
-              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUpload}" />
-              <TextBlock Classes="body" Text="{x:Static lang:Resources.Data_Export}" />
-            </StackPanel>
-            <Button.Flyout>
-              <Flyout>
-                <StackPanel
-                  Width="100"
-                  HorizontalAlignment="Center"
-                  Spacing="2">
-                  <StackPanel.Transitions>
-                    <Transitions>
-                      <DoubleTransition
-                        Easing="CubicEaseOut"
-                        Property="Opacity"
-                        Duration="0:0:0.1" />
-                    </Transitions>
-                  </StackPanel.Transitions>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding ExportCsvCommand}"
-                    IsEnabled="{Binding HasData}">
-                    <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_ExportCSV}" />
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding ExportExcelCommand}"
-                    IsEnabled="{Binding HasData}">
-                    <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_ExportExcel}" />
-                  </Button>
-                  <Button
-                    Padding="12,8"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Left"
-                    x:CompileBindings="False"
-                    Command="{Binding ExportJsonCommand}"
-                    IsEnabled="{Binding HasData}">
-                    <TextBlock Classes="body" Text="{x:Static lang:Resources.Member_ExportJSON}" />
-                  </Button>
-                </StackPanel>
-              </Flyout>
-            </Button.Flyout>
-          </Button>
-        </Panel>
-      </DockPanel>
-    </Border>
-
-    <!--  底部状态栏  -->
-    <Border Classes="statusBarBottom" DockPanel.Dock="Bottom">
-      <DockPanel>
-        <TextBlock
-          Classes="caption"
-          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-          Text="{Binding StatusMessage}" />
-      </DockPanel>
-    </Border>
-
-    <!--  文件路径  -->
-    <Border
-      Padding="0,4,0,8"
-      DockPanel.Dock="Bottom"
-      IsVisible="{Binding HasData}">
-      <TextBlock
-        Classes="small"
-        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-        Text="{Binding FilePathDisplay}" />
-    </Border>
-
-    <!--  中间内容区  -->
-    <Grid x:Name="SidebarGrid">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="240" />
-        <ColumnDefinition Width="4" />
-        <ColumnDefinition Width="*" />
-      </Grid.ColumnDefinitions>
-      <!--  左侧：已保存数据集  -->
-      <Border
-        Grid.Column="0"
-        Width="{Binding SidebarListWidth}"
-        Margin="0,0,8,0"
-        HorizontalAlignment="Left"
-        Background="{DynamicResource SidebarBackgroundBrush}"
-        ClipToBounds="True"
-        CornerRadius="6">
-        <Border.Transitions>
-          <Transitions>
-            <DoubleTransition
-              Easing="CubicEaseInOut"
-              Property="Width"
-              Duration="0:0:0.25" />
-          </Transitions>
-        </Border.Transitions>
-        <DockPanel Margin="8">
-          <TextBlock
-            Margin="0,0,0,8"
-            Classes="bodyStrong"
-            DockPanel.Dock="Top"
-            Text="{x:Static lang:Resources.Member_SavedDatasets}" />
-
-          <Border DockPanel.Dock="Bottom">
-            <Panel>
-              <!--  展开状态  -->
-              <StackPanel
-                Margin="10,0,10,4"
-                HorizontalAlignment="Left"
-                IsHitTestVisible="{Binding IsSidebarExpanded}"
-                Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.TrueToVisible}}"
-                Spacing="8">
-                <StackPanel.Transitions>
-                  <Transitions>
-                    <DoubleTransition
-                      Easing="CubicEaseInOut"
-                      Property="Opacity"
-                      Duration="0:0:0.18" />
-                  </Transitions>
-                </StackPanel.Transitions>
-
-                <Button
-                  HorizontalContentAlignment="Stretch"
-                  Command="{Binding DeleteSelectedDatasetCommand}"
-                  IsEnabled="{Binding HasSelectedDataset}">
-                  <StackPanel
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="6">
-                    <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.Delete}" />
-                    <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Delete}" />
-                  </StackPanel>
-                </Button>
-                <Button
-                  HorizontalContentAlignment="Stretch"
-                  Command="{Binding RenameSelectedDatasetCommand}"
-                  IsEnabled="{Binding HasSelectedDataset}">
-                  <StackPanel
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="6">
-                    <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.Edit}" />
-                    <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Common_Rename}" />
-                  </StackPanel>
-                </Button>
-
-                <Button HorizontalContentAlignment="Stretch" Command="{Binding ToggleSidebarCommand}">
-                  <StackPanel
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="6">
-                    <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.PanelLeftContract}" />
-                    <TextBlock Classes="bodySmall" Text="{x:Static lang:Resources.Nav_CollapseSidebar}" />
-                  </StackPanel>
-                </Button>
-              </StackPanel>
-
-              <!--  折叠状态  -->
-              <StackPanel
-                Margin="10,0,10,4"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                IsHitTestVisible="{Binding IsSidebarCollapsed}"
-                Opacity="{Binding IsSidebarExpanded, Converter={x:Static conv:BoolConverters.FalseToVisible}}"
-                Spacing="8">
-                <StackPanel.Transitions>
-                  <Transitions>
-                    <DoubleTransition
-                      Easing="CubicEaseInOut"
-                      Property="Opacity"
-                      Duration="0:0:0.15" />
-                  </Transitions>
-                </StackPanel.Transitions>
-
-                <Button
-                  HorizontalContentAlignment="Stretch"
-                  Command="{Binding DeleteSelectedDatasetCommand}"
-                  IsEnabled="{Binding HasSelectedDataset}"
-                  ToolTip.Tip="{x:Static lang:Resources.Common_Delete}">
-                  <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.Delete}" />
-                </Button>
-                <Button
-                  HorizontalContentAlignment="Stretch"
-                  Command="{Binding RenameSelectedDatasetCommand}"
-                  IsEnabled="{Binding HasSelectedDataset}"
-                  ToolTip.Tip="{x:Static lang:Resources.Common_Rename}">
-                  <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.Edit}" />
-                </Button>
-
-                <Button
-                  HorizontalContentAlignment="Stretch"
-                  Command="{Binding ToggleSidebarCommand}"
-                  ToolTip.Tip="{x:Static lang:Resources.Nav_ExpandSidebar}">
-                  <fic:FluentIcon FontSize="20" Icon="{x:Static ficEnum:Icon.PanelLeftContract}" />
-                </Button>
-              </StackPanel>
-            </Panel>
-          </Border>
-
           <ListBox
-            Background="{DynamicResource SidebarBackgroundBrush}"
-            BorderThickness="0"
+            Classes="sf-select"
             ItemsSource="{Binding SavedDatasets}"
             SelectedItem="{Binding SelectedDataset, Mode=TwoWay}"
             SelectionMode="Toggle">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="models:StudentDatasetInfo">
-                <Border Padding="8,6" CornerRadius="4">
-                  <StackPanel Spacing="2">
-                    <TextBlock
-                      Classes="bodySmall"
-                      FontWeight="SemiBold"
-                      Text="{Binding Name}"
-                      TextTrimming="CharacterEllipsis" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock
-                        Classes="small"
-                        Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                        Text="{Binding StudentCount}" />
-                      <TextBlock Classes="small" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
-                        <TextBlock.Text>
-                          <Binding Path="CreatedAt" StringFormat="{}{0:yyyy-MM-dd}" />
-                        </TextBlock.Text>
-                      </TextBlock>
-                    </StackPanel>
+                <StackPanel Spacing="2">
+                  <TextBlock
+                    Classes="sf-sm"
+                    FontWeight="SemiBold"
+                    Text="{Binding Name}"
+                    TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Classes="sf-xs sf-faint" Text="{Binding StudentCount}" />
+                    <TextBlock Classes="sf-xs sf-faint" Text="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd}'}" />
                   </StackPanel>
-                </Border>
+                </StackPanel>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
         </DockPanel>
       </Border>
 
-      <!--  分隔条  -->
-      <GridSplitter
-        Grid.Column="1"
-        Width="4"
-        HorizontalAlignment="Stretch"
-        Background="Transparent" />
-
-      <!--  右侧：数据表格  -->
-      <Grid Grid.Column="2">
-        <!--  空状态提示  -->
-        <Border
-          Padding="40"
+      <!--  表格区  -->
+      <Grid Grid.Column="1" Margin="16,12,16,12">
+        <!--  空状态  -->
+        <StackPanel
           HorizontalAlignment="Center"
           VerticalAlignment="Center"
-          Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-          CornerRadius="8"
+          Spacing="8"
           IsVisible="{Binding IsEmpty}">
-          <StackPanel HorizontalAlignment="Center" Spacing="8">
-            <fic:FluentIcon
-              HorizontalAlignment="Center"
-              FontSize="48"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Icon="{x:Static ficEnum:Icon.DataUsage}" />
-            <TextBlock
-              HorizontalAlignment="Center"
-              Classes="sectionTitle"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Text="{x:Static lang:Resources.Common_NoData}" />
-            <TextBlock
-              HorizontalAlignment="Center"
-              Classes="caption"
-              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-              Text="{x:Static lang:Resources.Member_EmptyHint}" />
-          </StackPanel>
+          <fic:FluentIcon
+            HorizontalAlignment="Center"
+            FontSize="48"
+            Foreground="{DynamicResource SfTextFaintBrush}"
+            Icon="{x:Static ficEnum:Icon.DataUsage}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="sf-h3"
+            Text="{x:Static lang:Resources.Common_NoData}" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            Classes="sf-sm sf-faint"
+            Text="{x:Static lang:Resources.Member_EmptyHint}"
+            TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!--  表格  -->
+        <Border Classes="sf-panel" IsVisible="{Binding HasData}">
+          <Grid RowDefinitions="Auto,*,Auto">
+            <!--  表头  -->
+            <Border
+              Grid.Row="0"
+              Padding="12,8"
+              Background="{DynamicResource SfSurface2Brush}"
+              BorderBrush="{DynamicResource SfBorderBrush}"
+              BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="2*,*,*,Auto,Auto">
+                <TextBlock Grid.Column="0" Classes="sf-xs" FontWeight="SemiBold" Text="{x:Static lang:Resources.Member_Name}" />
+                <TextBlock Grid.Column="1" Classes="sf-xs" FontWeight="SemiBold" Text="{x:Static lang:Resources.Member_Height}" />
+                <TextBlock Grid.Column="2" Classes="sf-xs" FontWeight="SemiBold" Text="{x:Static lang:Resources.Member_Gender}" />
+                <TextBlock Grid.Column="3" Width="64" Classes="sf-xs" FontWeight="SemiBold" Text="{x:Static lang:Resources.Member_FrontRow}" />
+                <TextBlock Grid.Column="4" Width="60" Classes="sf-xs" Text="" />
+              </Grid>
+            </Border>
+
+            <!--  ≤300 行：非虚拟化（WASM 实测滚动零长任务；全部行一次性实例化）  -->
+            <ListBox
+              x:Name="StudentListBox"
+              Grid.Row="1"
+              AutomationProperties.Name="{x:Static lang:Resources.Member_Title}"
+              Classes="sf-table"
+              IsVisible="{Binding UseStaticRoster}"
+              ItemTemplate="{StaticResource StudentRowTemplate}"
+              ItemsSource="{Binding Students}"
+              ScrollViewer.VerticalScrollBarVisibility="Auto">
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel />
+                </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+            </ListBox>
+
+            <!--  >300 行：虚拟化（控制内存/首帧；滚动按需实例化）  -->
+            <ListBox
+              Grid.Row="1"
+              AutomationProperties.Name="{x:Static lang:Resources.Member_Title}"
+              Classes="sf-table"
+              IsVisible="{Binding UseVirtualization}"
+              ItemTemplate="{StaticResource StudentRowTemplate}"
+              ItemsSource="{Binding Students}"
+              ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+            <!--  底部新增行  -->
+            <Border
+              x:Name="NewStudentRow"
+              Grid.Row="2"
+              Padding="6,3"
+              Background="{DynamicResource SfSurface2Brush}"
+              BorderBrush="{DynamicResource SfBorderBrush}"
+              BorderThickness="0,1,0,0">
+              <Grid ColumnDefinitions="2*,*,*,Auto,Auto">
+                <TextBox
+                  Name="NewStudentNameBox"
+                  Grid.Column="0"
+                  Margin="0,0,6,0"
+                  VerticalAlignment="Center"
+                  Classes="sf-input"
+                  Height="28"
+                  KeyDown="OnNewStudentNameKeyDown"
+                  PlaceholderText="{x:Static lang:Resources.Member_NewRowHint}"
+                  Text="{Binding NewStudent.Name, Mode=TwoWay}" />
+                <TextBox
+                  Grid.Column="1"
+                  Margin="0,0,6,0"
+                  VerticalAlignment="Center"
+                  Classes="sf-input"
+                  Height="28"
+                  PlaceholderText="{x:Static lang:Resources.Member_HeightPH}"
+                  Text="{Binding NewStudent.Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}" />
+                <ComboBox
+                  Grid.Column="2"
+                  Margin="0,0,6,0"
+                  VerticalAlignment="Center"
+                  Classes="sf-input"
+                  Height="28"
+                  SelectedIndex="{Binding NewStudent.Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}">
+                  <ComboBoxItem Content="" />
+                  <ComboBoxItem Content="{x:Static lang:Resources.Gender_Male}" />
+                  <ComboBoxItem Content="{x:Static lang:Resources.Gender_Female}" />
+                  <ComboBoxItem Content="{x:Static lang:Resources.Gender_Other}" />
+                </ComboBox>
+                <CheckBox
+                  Grid.Column="3"
+                  Width="64"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  IsChecked="{Binding NewStudent.NeedsFrontRow, Mode=TwoWay}" />
+                <Button
+                  Grid.Column="4"
+                  Width="60"
+                  HorizontalContentAlignment="Center"
+                  AutomationProperties.Name="{x:Static lang:Resources.Member_AddRow}"
+                  Classes="sf-btn sf-sm"
+                  Command="{Binding AddNewStudentCommand}"
+                  ToolTip.Tip="{x:Static lang:Resources.Member_AddRow}">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Add}" />
+                </Button>
+              </Grid>
+            </Border>
+          </Grid>
         </Border>
 
-        <!--  数据表格  -->
-        <DockPanel IsVisible="{Binding HasData}">
-          <Border
-            Padding="12,8"
-            Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-            CornerRadius="4,4,0,0"
-            DockPanel.Dock="Top">
-            <Grid ColumnDefinitions="2*,*,*,Auto,Auto">
-              <TextBlock
-                Grid.Column="0"
-                Classes="bodyStrong"
-                Text="{x:Static lang:Resources.Member_Name}" />
-              <TextBlock
-                Grid.Column="1"
-                Classes="bodyStrong"
-                Text="{x:Static lang:Resources.Member_Height}" />
-              <TextBlock
-                Grid.Column="2"
-                Classes="bodyStrong"
-                Text="{x:Static lang:Resources.Member_Gender}" />
-              <TextBlock
-                Grid.Column="3"
-                Classes="bodyStrong"
-                Text="{x:Static lang:Resources.Member_FrontRow}" />
-            </Grid>
-          </Border>
-
-          <!--  底部新增行（必须放在 ScrollViewer 之前，否则 DockPanel LastChildFill 冲突）  -->
-          <Border
-            x:Name="NewStudentRow"
-            Padding="6,3"
-            Background="{DynamicResource SystemAltMediumLowBrush}"
-            BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
-            BorderThickness="0,0,0,1"
-            DockPanel.Dock="Bottom">
-            <Grid ColumnDefinitions="2*,*,*,Auto,Auto">
-              <TextBox
-                Name="NewStudentNameBox"
-                Grid.Column="0"
-                Padding="4,2"
-                VerticalAlignment="Center"
-                Background="Transparent"
-                BorderThickness="0"
-                FontSize="14"
-                KeyDown="OnNewStudentNameKeyDown"
-                PlaceholderText="{x:Static lang:Resources.Member_NewRowHint}"
-                Text="{Binding NewStudent.Name, Mode=TwoWay}" />
-              <TextBox
-                Grid.Column="1"
-                Padding="4,2"
-                VerticalAlignment="Center"
-                Background="Transparent"
-                BorderThickness="0"
-                FontSize="14"
-                PlaceholderText="{x:Static lang:Resources.Member_HeightPH}"
-                Text="{Binding NewStudent.Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}" />
-              <ComboBox
-                Grid.Column="2"
-                Padding="0,2"
-                VerticalAlignment="Center"
-                Background="Transparent"
-                BorderThickness="0"
-                FontSize="14"
-                SelectedIndex="{Binding NewStudent.Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}">
-                <ComboBoxItem Content="" />
-                <ComboBoxItem Content="{x:Static lang:Resources.Gender_Male}" />
-                <ComboBoxItem Content="{x:Static lang:Resources.Gender_Female}" />
-                <ComboBoxItem Content="{x:Static lang:Resources.Gender_Other}" />
-              </ComboBox>
-              <CheckBox
-                Grid.Column="3"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                FontSize="14"
-                IsChecked="{Binding NewStudent.NeedsFrontRow, Mode=TwoWay}" />
-              <Button
-                Grid.Column="4"
-                Padding="4"
-                Background="Transparent"
-                Command="{Binding AddNewStudentCommand}"
-                ToolTip.Tip="{x:Static lang:Resources.Member_AddRow}">
-                <fic:FluentIcon
-                  FontSize="14"
-                  Foreground="{DynamicResource SystemAccentColor}"
-                  Icon="{x:Static ficEnum:Icon.Add}" />
-              </Button>
-            </Grid>
-          </Border>
-
-          <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <ListBox x:Name="StudentListBox" ItemsSource="{Binding Students}">
-              <ListBox.ItemTemplate>
-                <DataTemplate x:DataType="models:Student">
-                  <Border
-                    Padding="6,3"
-                    BorderBrush="{DynamicResource SystemControlForegroundChromeHighBrush}"
-                    BorderThickness="0,0,0,1">
-                    <Grid ColumnDefinitions="2*,*,*,Auto,Auto">
-                      <TextBox
-                        Grid.Column="0"
-                        Padding="4,2"
-                        VerticalAlignment="Center"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        FontSize="14"
-                        PlaceholderText="{x:Static lang:Resources.Member_NamePlaceholder}"
-                        Text="{Binding Name, Mode=TwoWay}"
-                        ToolTip.Tip="{x:Static lang:Resources.Member_NameTooltip}" />
-                      <TextBox
-                        Grid.Column="1"
-                        Padding="4,2"
-                        VerticalAlignment="Center"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        FontSize="14"
-                        PlaceholderText="{x:Static lang:Resources.Member_HeightPH}"
-                        Text="{Binding Height, Mode=TwoWay, Converter={StaticResource HeightConverter}}"
-                        ToolTip.Tip="{x:Static lang:Resources.Member_HeightTooltip}" />
-                      <ComboBox
-                        Grid.Column="2"
-                        Padding="0,2"
-                        VerticalAlignment="Center"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        FontSize="14"
-                        SelectedIndex="{Binding Gender, Mode=TwoWay, Converter={StaticResource GenderConverter}}"
-                        ToolTip.Tip="{x:Static lang:Resources.Member_GenderTooltip}">
-                        <ComboBoxItem Content="" />
-                        <ComboBoxItem Content="{x:Static lang:Resources.Gender_Male}" />
-                        <ComboBoxItem Content="{x:Static lang:Resources.Gender_Female}" />
-                        <ComboBoxItem Content="{x:Static lang:Resources.Gender_Other}" />
-                      </ComboBox>
-                      <CheckBox
-                        Grid.Column="3"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontSize="14"
-                        IsChecked="{Binding NeedsFrontRow, Mode=TwoWay}"
-                        ToolTip.Tip="{x:Static lang:Resources.Member_FrontRowTooltip}" />
-                      <Button
-                        Grid.Column="4"
-                        Padding="4"
-                        Background="Transparent"
-                        Command="{Binding $parent[UserControl].DataContext.DeleteStudentCommand}"
-                        CommandParameter="{Binding}"
-                        ToolTip.Tip="{x:Static lang:Resources.Member_DeleteRowTooltip}">
-                        <fic:FluentIcon
-                          FontSize="14"
-                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                          Icon="{x:Static ficEnum:Icon.Delete}" />
-                      </Button>
-                    </Grid>
-                  </Border>
-                </DataTemplate>
-              </ListBox.ItemTemplate>
-            </ListBox>
-          </ScrollViewer>
-        </DockPanel>
-
-        <!--  加载中遮罩  -->
+        <!--  加载遮罩  -->
         <Border
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch"
-          Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-          IsVisible="{Binding IsLoading}">
+          Background="{DynamicResource SfSurfaceBrush}"
+          IsVisible="{Binding IsLoading}"
+          Opacity="0.85">
           <StackPanel
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -744,11 +532,20 @@
             <ProgressBar Width="200" IsIndeterminate="True" />
             <TextBlock
               HorizontalAlignment="Center"
-              Classes="body"
+              Classes="sf-sm"
               Text="{x:Static lang:Resources.Common_Processing}" />
           </StackPanel>
         </Border>
       </Grid>
+
+      <!--  紧凑模式抽屉遮罩  -->
+      <Border
+        Grid.ColumnSpan="3"
+        ZIndex="25"
+        AutomationProperties.Name="{x:Static lang:Resources.Shell_CloseOverlay}"
+        Background="{DynamicResource SfModalMaskBrush}"
+        IsVisible="{Binding DatasetsPanel.MaskVisible}"
+        PointerPressed="OnDrawerMaskPressed" />
     </Grid>
   </DockPanel>
 </UserControl>

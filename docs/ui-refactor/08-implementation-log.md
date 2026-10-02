@@ -123,7 +123,52 @@
 - `Classes.sf-active` 动态类绑定保留：WASM 实机截图可见导航激活高亮生效（`sf-compact` 一类的失败实例已全部改为 VM 属性绑定，无回退）。
 - 评审遗留 Minors 记录待 M5/M6：Home_* 死键清理、`SnapshotHistoryView` 两条 ReflectionBinding（M4）、紧凑抽屉宽度 `min()` 视口自适应。
 
-### M4 · 名单/策略/快照 —— ⬜ 未开始
+### M4 · 名单/策略/快照 —— ✅ 完成（验收中）
+
+**范围交付**
+- [x] 名单（`MemberManagementViewModel/View`）：
+  - 行「显示/编辑」轻量切换（新增 `StudentRowViewModel` 包装，Core `Student` 不引入 UI 状态；编辑态才渲染输入控件与操作按钮）；
+  - 虚拟化策略按实测自适应：≤300 行用非虚拟化 `StackPanel`（WASM 下滚动零实例化成本），>300 行保留虚拟化；
+  - 脏检查统一 `DirtyTracker`（替代手写 JSON 快照）；导出/导入/更新/模板/拖放全部接入 `IDialogGate`（移除 `_dialogLock + Task.Delay(150)`）；
+  - `IPageLifecycle`（构造器不再 fire-and-forget；`InitializationTask` 改 TCS）；紧凑模式数据集列表转右抽屉；
+  - 引导兼容：新增 `GetStudents/SetStudents/InvalidateData` 公开 API，`OnboardingService` 最小同步。
+- [x] 策略（`StrategyConfigurationViewModel/View`）：令牌化重绘（命令栏/卡片/列表）；`IPageLifecycle` + 列表/数据集/会场缓存复用（选中策略不再重复拉清单）；紧凑策略列表抽屉；`StudentPickerView/SeatPositionPickerView` 硬编码中文全部改 `.resx`。
+- [x] 快照（`SnapshotHistoryViewModel/View`）：**Transient → Singleton** + `IPageLifecycle` + 显式刷新；预览改用自绘 `SeatingCanvas` + `SeatLayoutSnapshot`（**清除最后两条 `ReflectionBinding`，全仓现为 0**）；完整性警告/回滚/批量删除/配额保留；紧凑快照列表抽屉。
+- [x] 横切：新增可复用 `SideDrawerState`（桌面内联↔紧凑右抽屉 + 遮罩）；`.seatsets` 导入后失效名单/策略/快照缓存（`App.RefreshAfterImportAsync`）；双壳 DI 同步（Snapshot 改 Singleton）。
+
+**M4 实机发现并修复的缺陷**
+- [x] **快照列表恒为空**：快照以 `layout.Id` 为存储键，快照页却以会场文件 ID 查询。修复：快照页按 `layout.Id` 建立下拉项（与 `VenueConfiguration` 保存语义一致）；`seed-demo-data` 的演示会场 ID 同步对齐并在注入时清理旧 `Assignments/` 键。
+- [x] **回滚后画布空白**：`ApplicationFacade.RollbackToSnapshotAsync` 让 `_currentWorkspace` 与 `_currentLayout` 共享 `Seat` 实例，`ApplySnapshotAssignments` 将已分配座位 `IsAvailable=false`（工作区占用槽位语义）污染布局物理可用性 → 画布过滤后为空。修复：工作区改用座位深拷贝（`CloneSeatsForWorkspace`）。
+- [x] `SeatingCanvas` 的 `Snapshot` 属性变化未 `InvalidateVisual`（M3 视图缓存下，回滚/再生成等已可见场景不会重绘）。修复：属性变更分支显式重绘。
+
+**M4 性能复测（WASM + 软件渲染，1200×800；口径同 02 §6-M5）**
+| 场景 | 结果 |
+|---|---|
+| 240 行名单 ×10 滚轮（非虚拟化 ≤300 行） | **3 个长任务，最长 93.9ms**（滚动相关 51–54ms）；基线 E 为 1×149ms（页面加载）✅ |
+| 240 行名单 ×10 滚轮（首版虚拟化实现） | 12 个长任务 / 每次滚动 340–440ms ❌（WASM 按需实例化成本高于一次性实例化，故采用自适应策略） |
+| 快照页 | Singleton + 视图缓存：重复进入不再重建 VM/View |
+
+**验收证据**
+- 截图：`assets/after/M4-member-list.png`、`M4-member-edit.png`、`M4-strategy.png`、`M4-strategy-detail.png`、`M4-snapshot-list.png`、`M4-snapshot-preview.png`、`M4-snapshot-rollback.png`、`M4-compact-member[-drawer].png`、`M4-compact-strategy[-drawer].png`、`M4-compact-snapshot[-drawer].png`
+- trace：`assets/after/traces/M4-member-scroll.json.gz`（非虚拟化）、`M4-member-idle.json.gz`（空闲对照）
+- 实机交互：加载 240 人名单 → 行内编辑（改前排→提交，脏标「未保存」）→ 保存；策略选中/启停/保存全部（脏标与冲突逻辑保留）；快照创建 → 列表/预览（画布）→ 回滚（工作区恢复 64/64 且画布正常）→ 回滚后再生成；三页紧凑抽屉与遮罩。
+
+**M4 评审修复（OpenCode 独立评审后）**
+- [x] B1 策略页：`LoadAsync` 重新抛出 `OperationCanceledException`（不再弹「加载失败」错误框），`_loaded` 仅在成功路径置位（取消后下次进入可重试）
+- [x] B2 引导 seed 竞态：Strategy/Snapshot/Member 的 `InitializationTask` 初始改为**未完成** TCS（OnEnter 完成置位、OnLeave 换新），`OnboardingService.SeedPageDataAsync` 等待名单加入 `MemberManagementViewModel`；10s `WaitAsync` 兜底保留
+- [x] M1 策略详情参数陈旧：保存单个/全部后回写 `SelectedDetail.Parameters`，避免切回显示旧值并覆盖已存配置
+- [x] M2 名单数据集列表：`RefreshDatasetsAsync` 返回成功标志，取消/失败时保留未加载状态（可重试）
+- [x] M3 快照 `OnEnter` 可取消：`LoadVenuesAsync(CancellationToken)` 全链路透传并在取消时重抛
+- [x] M4 生成/创建空白工作区同样克隆座位（修复生成后离开再进入时画布残缺的同类根因）
+- [x] M5 DirtyTracker：无基线时保留显式 `MarkDirty` 结果；行增删显式置脏
+- [x] Minor：删除死键 `Member_EditHint`；`OnboardingService` 注释同步 DirtyTracker / 生命周期表述；快照演示注入标志（Singleton 下不误清用户浏览状态）；策略 `LoadDetailAsync` 早退恢复 `_suppressChangeTracking`；快照完整性回退链补充前提注释；后台 `RefreshDatasetsQuietAsync` 吞取消避免未观测 OCE
+- 遗留 Minor（转 M6）：快照非取消失败后不自动重试（保留手动刷新按钮）；`SwitchToDatasetAsync` 门忙时回退语义；Name 列表行编辑未做全键盘回归
+
+**M4 偏差与说明**
+- 名单行编辑未做全键盘（Tab 流）专项回归；输入法/IME 行为沿用既有 `ChineseInputNormalizer`。
+- 策略页配置块编辑器（`ConfigBlockEditorView` 等子组件）沿用旧样式未令牌化（功能与 i18n 修复范围内保留），M5/M6 视觉收口。
+- 自适应虚拟化阈值为 300：更大名单（500+）仍走虚拟化，滚动单次可能 >100ms（WASM 软件渲染口径），列入 M6 复测。
+
 ### M5 · 设置/关于/引导/清理 —— ⬜ 未开始
 ### M6 · 测试/性能/文档 —— ⬜ 未开始
 

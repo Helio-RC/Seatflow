@@ -2,6 +2,7 @@
   x:Class="SeatFlow.Presentation.Avalonia.Views.SeatPositionPickerView"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:SeatPositionPickerViewModel">
   <StackPanel Orientation="Horizontal" Spacing="4">
@@ -10,12 +11,12 @@
       IsVisible="{Binding IsGrid}"
       Orientation="Horizontal"
       Spacing="4">
-      <TextBlock VerticalAlignment="Center" Text="行" />
+      <TextBlock VerticalAlignment="Center" Text="{x:Static lang:Resources.SeatPosition_Row}" />
       <NumericUpDown
         Maximum="{Binding GridMaxRow}"
         Minimum="1"
         Value="{Binding Row}" />
-      <TextBlock VerticalAlignment="Center" Text="列" />
+      <TextBlock VerticalAlignment="Center" Text="{x:Static lang:Resources.SeatPosition_Column}" />
       <NumericUpDown
         Maximum="{Binding GridMaxColumn}"
         Minimum="1"
@@ -26,12 +27,12 @@
       IsVisible="{Binding IsPolar}"
       Orientation="Horizontal"
       Spacing="4">
-      <TextBlock VerticalAlignment="Center" Text="环" />
+      <TextBlock VerticalAlignment="Center" Text="{x:Static lang:Resources.SeatPosition_Ring}" />
       <NumericUpDown
         Maximum="{Binding PolarMaxRing}"
         Minimum="1"
         Value="{Binding Ring}" />
-      <TextBlock VerticalAlignment="Center" Text="角度" />
+      <TextBlock VerticalAlignment="Center" Text="{x:Static lang:Resources.SeatPosition_Angle}" />
       <NumericUpDown
         Increment="15"
         Maximum="360"

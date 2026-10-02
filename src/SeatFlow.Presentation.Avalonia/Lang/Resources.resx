@@ -308,6 +308,9 @@
   <data name="Data_DeleteConfirm" xml:space="preserve">
     <value>确认删除</value>
   </data>
+  <data name="Member_DatasetShort" xml:space="preserve">
+    <value>数据集</value>
+  </data>
   <data name="Member_DeleteConfirmMsg" xml:space="preserve">
     <value>确定要删除数据集「{0}」吗？
 此操作不可撤销。</value>
@@ -535,6 +538,12 @@
   </data>
   <data name="Member_MemberDataFile" xml:space="preserve">
     <value>数据文件</value>
+  </data>
+  <data name="Member_StatusDirty" xml:space="preserve">
+    <value>未保存</value>
+  </data>
+  <data name="Member_StatusSaved" xml:space="preserve">
+    <value>已保存</value>
   </data>
   <data name="Member_TemplateMissing" xml:space="preserve">
     <value>模板缺失</value>
@@ -866,6 +875,18 @@
   </data>
   <data name="Nav_VenueConfig" xml:space="preserve">
     <value>会场与布局</value>
+  </data>
+  <data name="SeatPosition_Angle" xml:space="preserve">
+    <value>角度</value>
+  </data>
+  <data name="SeatPosition_Column" xml:space="preserve">
+    <value>列</value>
+  </data>
+  <data name="SeatPosition_Ring" xml:space="preserve">
+    <value>环</value>
+  </data>
+  <data name="SeatPosition_Row" xml:space="preserve">
+    <value>行</value>
   </data>
   <data name="SeatSets_AppSettings_Label" xml:space="preserve">
     <value>应用设置</value>
@@ -1501,6 +1522,9 @@
   <data name="Snapshot_List" xml:space="preserve">
     <value>快照列表</value>
   </data>
+  <data name="Snapshot_ListShort" xml:space="preserve">
+    <value>快照</value>
+  </data>
   <data name="Snapshot_ManualSnapshotFmt" xml:space="preserve">
     <value>手动快照 - {0}</value>
   </data>
@@ -1645,6 +1669,9 @@
   <data name="Strategy_ConfigInvalidHint" xml:space="preserve">
     <value>⚠ 会场或人员变动后，当前的策略配置可能失效，请在执行前检查和更新。</value>
   </data>
+  <data name="Strategy_ListShort" xml:space="preserve">
+    <value>策略</value>
+  </data>
   <data name="Strategy_LoadFailed" xml:space="preserve">
     <value>加载策略列表失败</value>
   </data>
@@ -1768,6 +1795,9 @@
 
 选择「确认」保存并离开
 选择「取消」放弃更改并离开</value>
+  </data>
+  <data name="StudentPicker_Placeholder" xml:space="preserve">
+    <value>选择学生</value>
   </data>
   <data name="Telemetry_ConsentEnable" xml:space="preserve">
     <value>开启</value>

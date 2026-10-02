@@ -222,6 +222,10 @@ public sealed class SeatingCanvas : Control
             var oldSnapshot = change.GetOldValue<SeatLayoutSnapshot?>();
             var newSnapshot = change.GetNewValue<SeatLayoutSnapshot?>();
 
+            // 视图缓存（M3）下控件可能已处于可见状态：快照替换必须显式重绘，
+            // 否则回滚/再次生成后的画布不会更新（M4 实机定位）。
+            InvalidateVisual();
+
             if (newSnapshot is null)
             {
                 ResetLabelGeometry();

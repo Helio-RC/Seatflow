@@ -188,8 +188,8 @@ namespace SeatFlow.Application.Services
                 seats = BuildSeatsFromRequest(request);
             }
 
-            // 3. 创建工作区
-            var workspace = new SeatingWorkspace(students, seats,
+            // 3. 创建工作区（座位克隆：工作区以 IsAvailable 表示占用，避免污染 _currentLayout 的物理可用性）
+            var workspace = new SeatingWorkspace(students, CloneSeatsForWorkspace(seats),
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
@@ -499,8 +499,8 @@ namespace SeatFlow.Application.Services
                 seats = [];
             }
 
-            // 4. 创建工作区（不执行策略管道）
-            var workspace = new SeatingWorkspace(students, seats,
+            // 4. 创建工作区（不执行策略管道；同样克隆座位避免污染布局对象）
+            var workspace = new SeatingWorkspace(students, CloneSeatsForWorkspace(seats),
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
 
@@ -638,10 +638,37 @@ namespace SeatFlow.Application.Services
                 .ToList();
             var students = await BuildStudentsForSnapshotAsync(studentIds, cancellationToken);
 
-            _currentWorkspace = new SeatingWorkspace(students, seats);
+            // 工作区以 IsAvailable 作为“占用槽位”标记（TryAssignSeat/ApplySnapshotAssignments 会置 false/true），
+            // 若与 _currentLayout 共享 Seat 实例会污染其“物理可用性”（回滚后画布过滤为空，M4 实机定位）。
+            // 因此工作区使用座位克隆，_currentLayout 保持原始可用性语义。
+            _currentWorkspace = new SeatingWorkspace(students, CloneSeatsForWorkspace(seats));
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
             logger.LogInformation("快照回滚完成：{SnapshotId}，{StudentCount} 学生，{SeatCount} 座位",
                 snapshotId, students.Count, seats.Count);
+        }
+
+        /// <summary>座位克隆序列化选项（与快照/会场反序列化保持一致：camelCase + Seat 多态转换器）。</summary>
+        private static readonly JsonSerializerOptions SeatCloneOptions = CreateSeatCloneOptions();
+
+        private static JsonSerializerOptions CreateSeatCloneOptions()
+        {
+            var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+            options.Converters.Add(new SeatFlow.Infrastructure.Serialization.SeatJsonConverter());
+            return options;
+        }
+
+        /// <summary>深拷贝座位集合（供工作区独占修改 IsAvailable，不污染布局对象）。</summary>
+        private static List<Seat> CloneSeatsForWorkspace(List<Seat> seats)
+        {
+            var result = new List<Seat>(seats.Count);
+            foreach (var seat in seats)
+            {
+                var json = JsonSerializer.Serialize(seat, typeof(Seat), SeatCloneOptions);
+                var clone = JsonSerializer.Deserialize<Seat>(json, SeatCloneOptions)
+                    ?? throw new InvalidOperationException($"座位克隆失败：{seat.Id}");
+                result.Add(clone);
+            }
+            return result;
         }
 
         /// <summary>

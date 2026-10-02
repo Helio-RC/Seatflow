@@ -2,12 +2,13 @@
   x:Class="SeatFlow.Presentation.Avalonia.Views.StudentPickerView"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:StudentPickerViewModel">
   <ComboBox
     HorizontalAlignment="Stretch"
     DisplayMemberBinding="{Binding Display}"
     ItemsSource="{Binding Students}"
-    PlaceholderText="选择学生"
+    PlaceholderText="{x:Static lang:Resources.StudentPicker_Placeholder}"
     SelectedItem="{Binding SelectedStudent}" />
 </UserControl>

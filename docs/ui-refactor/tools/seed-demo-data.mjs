@@ -32,6 +32,17 @@ const expression = `(async () => {
     open.onerror = () => rej(open.error);
   });
   const bytes = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  // 清理旧快照（演示数据重建时避免遗留孤儿 Assignments 键）
+  await new Promise((res, rej) => {
+    const t = db.transaction('files', 'readwrite');
+    const st = t.objectStore('files');
+    const rq = st.getAllKeys();
+    rq.onsuccess = () => {
+      for (const k of rq.result) if (String(k).startsWith('Assignments/')) st.delete(k);
+    };
+    t.oncomplete = () => res();
+    t.onerror = () => rej(t.error);
+  });
   for (const it of items) {
     await new Promise((res, rej) => {
       const t = db.transaction('files', 'readwrite');

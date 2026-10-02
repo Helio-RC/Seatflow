@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.DomainServices;
 using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
-using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -16,12 +17,28 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class SnapshotHistoryViewModel : ViewModelBase
+public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
 {
     private readonly IApplicationFacade _facade;
     private readonly INavigationService _navigation;
+    private readonly IShellLayoutService _layout;
     private readonly ILogger<SnapshotHistoryViewModel> _logger;
     private int _maxSnapshotsPerVenue = 30;
+
+    // ── M4：生命周期 / 缓存 / 抽屉 ──
+    private bool _venuesLoaded;
+    private CancellationTokenSource? _enterCts;
+    /// <summary>本次进入页面加载完成的信号：OnEnter 完成置位；OnLeave 换新的未完成实例。</summary>
+    private TaskCompletionSource _enterCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    /// <summary>左侧快照列表面板状态（桌面内联 / 紧凑右抽屉）。</summary>
+    public SideDrawerState ListPanel { get; }
+
+    /// <summary>外壳布局状态（紧凑断点）。</summary>
+    public IShellLayoutService Layout => _layout;
+
+    /// <summary>紧凑模式隐藏命令栏文字。</summary>
+    public bool CompactCommandTextVisible => !_layout.IsCompact;
 
     public string Title { get; } = Resources.Snapshot_Title;
 
@@ -64,22 +81,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsAllSelected { get; set; }
 
-    // ── 预览 ──
+    // ── 预览（M4：改用自绘 SeatingCanvas 渲染快照，移除 ItemsControl + ReflectionBinding） ──
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPreview))]
-    public partial ObservableCollection<SeatDisplayItem> PreviewSeats { get; set; } = [];
+    public partial SeatLayoutSnapshot? PreviewSnapshot { get; set; }
 
-    [ObservableProperty]
-    public partial ObservableCollection<SeatDisplayItem> PreviewOverlays { get; set; } = [];
-
-    public bool HasPreview => PreviewSeats.Count > 0;
-
-    [ObservableProperty]
-    public partial double PreviewCanvasWidth { get; set; }
-
-    [ObservableProperty]
-    public partial double PreviewCanvasHeight { get; set; }
+    public bool HasPreview => PreviewSnapshot is not null;
 
     // ── 完整性状态 ──
 
@@ -113,29 +121,79 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
     public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt, Snapshots.Count, _maxSnapshotsPerVenue);
 
     /// <summary>
-    /// 构造函数中 fire-and-forget 加载任务的完成信号。
-    /// 引导示例数据注入需等待它完成，否则随后加载会整体替换 Venues/Snapshots、
-    /// 覆盖演示数据（WASM/IndexedDB 下异步加载可能晚于引导阶段切换）。
+    /// 本次进入页面加载完成的信号：OnLeave 换新、OnEnter 完成后置位，
+    /// 引导示例数据注入需等待它完成。
     /// </summary>
-    public Task InitializationTask { get; }
+    public Task InitializationTask => _enterCompletion.Task;
 
-    public SnapshotHistoryViewModel(IApplicationFacade facade, INavigationService navigation, IDialogService dialog, ILogger<SnapshotHistoryViewModel>? logger = null) : base(dialog, logger)
+    public SnapshotHistoryViewModel(IApplicationFacade facade, INavigationService navigation, IShellLayoutService layout, IDialogService dialog, ILogger<SnapshotHistoryViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _navigation = navigation;
+        _layout = layout;
         _logger = logger ?? NullLogger<SnapshotHistoryViewModel>.Instance;
-        InitializationTask = LoadVenuesAsync();
+        ListPanel = new SideDrawerState(layout, 0, 280,
+            desktopBorder: new global::Avalonia.Thickness(0, 0, 1, 0));
+        _layout.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
+                OnPropertyChanged(nameof(CompactCommandTextVisible));
+        };
+    }
+
+    // ═══════════════ IPageLifecycle（M4：Transient → Singleton + 显式刷新） ═══════════════
+
+    /// <summary>快照页为只读页面，不存在未保存更改。</summary>
+    public bool IsDirty => false;
+
+    /// <summary>标记列表数据失效（下次进入或刷新时重新加载会场）。供引导清理/导入等场景调用。</summary>
+    public void InvalidateData() => _venuesLoaded = false;
+
+    public async Task OnEnterAsync(CancellationToken ct)
+    {
+        _enterCts?.Cancel();
+        _enterCts?.Dispose();
+        _enterCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        ListPanel.IsOpen = false;
+
+        var completion = _enterCompletion;
+        try
+        {
+            // 页面状态（选中会场/快照）跨导航保留；仅首次进入加载会场列表
+            if (!_venuesLoaded)
+            {
+                // 仅在真正加载成功后标记，取消时下次进入重试
+                await LoadVenuesAsync(_enterCts.Token);
+                _venuesLoaded = true;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 离开页面取消，保持未加载状态以便下次重试
+        }
+        finally
+        {
+            completion.TrySetResult();
+        }
+    }
+
+    public Task OnLeaveAsync()
+    {
+        _enterCts?.Cancel();
+        ListPanel.IsOpen = false;
+        // 为下一次进入准备新的完成信号
+        _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
-    private async Task LoadVenuesAsync()
+    private async Task LoadVenuesAsync(CancellationToken ct = default)
     {
         var previousVenueId = SelectedVenue?.Id;
 
         // 清空所有已加载数据
         Snapshots = [];
-        PreviewSeats = [];
-        PreviewOverlays = [];
+        PreviewSnapshot = null;
         IsVenueDeleted = false;
         IsVenueChanged = false;
         IsDataChanged = false;
@@ -143,32 +201,49 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         SelectedSnapshot = null;
         SelectedVenue = null;
 
-        // 加载快照配额设置
+        // 加载快照配额设置（取消时向上抛出，保留未加载状态以便下次重试）
         try
         {
-            var settings = await _facade.LoadAppSettingsAsync();
+            var settings = await _facade.LoadAppSettingsAsync(ct);
             _maxSnapshotsPerVenue = settings.MaxSnapshotsPerVenue;
             OnPropertyChanged(nameof(SnapshotQuotaDisplay));
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex) { _logger?.LogWarning(ex, "加载快照限制设置失败，使用默认值"); }
 
-        await SafeExecuteAsync(async () =>
+        try
         {
-            var ids = (await _facade.ListVenueIdsAsync()).ToList();
+            var ids = (await _facade.ListVenueIdsAsync(ct)).ToList();
             var items = new ObservableCollection<VenueItem>();
             foreach (var id in ids)
             {
-                var layout = await _facade.LoadVenueAsync(id);
+                ct.ThrowIfCancellationRequested();
+                var layout = await _facade.LoadVenueAsync(id, ct);
                 if (layout != null)
-                    items.Add(new VenueItem(id, layout.Name));
+                {
+                    // 快照以 layout.Id 为键存储（而非会场文件 ID，两者可能不同）→ 用 layout.Id 查询
+                    // 前提：UI（VenueConfiguration）保存时会令 layout.Id == 会场文件 ID；老数据若不一致则会误报“会场已删除”
+                    items.Add(new VenueItem(layout.Id, layout.Name));
+                }
             }
+
+            ct.ThrowIfCancellationRequested();
             Venues = items;
             StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, items.Count);
 
             // 重新选中之前的会场
             if (previousVenueId != null)
                 SelectedVenue = items.FirstOrDefault(v => v.Id == previousVenueId);
-        });
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "加载会场列表失败");
+            await Dialog.ShowErrorAsync(Resources.Data_LoadFailed, ex.Message);
+        }
     }
 
 
@@ -205,18 +280,16 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
         if (value != null)
             _ = BuildPreviewAsync(value);
         else
-        {
-            PreviewSeats = [];
-            PreviewOverlays = [];
-            PreviewCanvasWidth = 0;
-            PreviewCanvasHeight = 0;
-        }
+            PreviewSnapshot = null;
     }
+
+    private int _previewVersion;
 
     private async Task BuildPreviewAsync(SeatingSnapshot snapshot)
     {
-        var seats = new ObservableCollection<SeatDisplayItem>();
-        var overlays = new ObservableCollection<SeatDisplayItem>();
+        var seats = new List<SeatVisual>();
+        var overlays = new List<BoardOverlay>();
+        PreviewSnapshot = null;
 
         IsVenueDeleted = false;
         IsVenueChanged = false;
@@ -240,8 +313,6 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
             {
                 IsVenueDeleted = true;
                 VenueWarningText = Resources.Snapshot_VenueDeletedPreview;
-                PreviewSeats = seats;
-                PreviewOverlays = overlays;
                 return;
             }
 
@@ -342,51 +413,37 @@ public partial class SnapshotHistoryViewModel : ViewModelBase
                 bool isDataStale = occupied && (missingIds.Contains(sid!)
                     || (sname != null && allCurrentStudents.FirstOrDefault(s => s.Id == sid)?.Name is string curName
                         && curName != sname));
-                seats.Add(new SeatDisplayItem
-                {
-                    X = (cx + offsetX) * scale,
-                    Y = (cy + offsetY) * scale,
-                    Width = baseW * scale,
-                    Height = baseH * scale,
-                    SeatId = seat.Id,
-                    SeatLabel = BuildSeatLabel(seat),
-                    IsOccupied = occupied,
-                    StudentId = occupied ? sid : null,
-                    StudentName = occupied ? (sname ?? sid) : null,
-                    OccupancyStatus = occupied ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty,
-                    IsDataStale = isDataStale,
-                    CornerRadius = new CornerRadius(2)
-                });
+                seats.Add(new SeatVisual(
+                    seat.Id,
+                    (cx + offsetX) * scale,
+                    (cy + offsetY) * scale,
+                    baseW * scale,
+                    baseH * scale,
+                    IsOccupied: occupied,
+                    Label: occupied ? (sname ?? sid) : null,
+                    SeatLabel: BuildSeatLabel(seat),
+                    StudentId: occupied ? sid : null,
+                    IsDataStale: isDataStale));
             }
 
-            // 障碍物
+            // 障碍物（画布作为覆盖层单独渲染）
             foreach (var obs in layout.Obstacles)
             {
-                overlays.Add(new SeatDisplayItem
-                {
-                    X = (obs.X + offsetX) * scale,
-                    Y = (obs.Y + offsetY) * scale,
-                    Width = (obs.Width > 0 ? obs.Width : 40) * scale,
-                    Height = (obs.Height > 0 ? obs.Height : 30) * scale,
-                    SeatLabel = obs.Type,
-                    IsOccupied = true,
-                    OccupancyStatus = SeatOccupancyStatus.Fixed
-                });
+                overlays.Add(new BoardOverlay(
+                    (obs.X + offsetX) * scale,
+                    (obs.Y + offsetY) * scale,
+                    (obs.Width > 0 ? obs.Width : 40) * scale,
+                    (obs.Height > 0 ? obs.Height : 30) * scale,
+                    obs.Type));
             }
 
-            PreviewCanvasWidth = canvasW * scale;
-            PreviewCanvasHeight = canvasH * scale;
+            PreviewSnapshot = new SeatLayoutSnapshot(
+                seats, canvasW * scale, canvasH * scale, ++_previewVersion, overlays);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "快照预览构建失败");
         }
-
-        // 障碍物追加到座位末尾，渲染在上层
-        foreach (var o in overlays)
-            seats.Add(o);
-        PreviewSeats = seats;
-        PreviewOverlays = overlays;
     }
 
     private static (double W, double H) ComputeSeatSize(LayoutMetadata metadata)

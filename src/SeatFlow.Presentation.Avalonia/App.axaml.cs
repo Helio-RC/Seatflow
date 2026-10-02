@@ -726,7 +726,7 @@ namespace SeatFlow.Presentation.Avalonia
                 }
                 catch (CultureNotFoundException) { /* 无效语言代码，保持当前 */ }
 
-                // M3：失效排座工作台的会场/名单列表缓存（覆盖设置页 / 系统文件关联等全部导入入口）
+                // M3/M4：失效各页列表缓存（覆盖设置页 / 系统文件关联等全部导入入口）
                 if (serviceProvider.GetService<SeatingArrangementViewModel>() is { } seatVm)
                 {
                     seatVm.InvalidateData();
@@ -735,6 +735,10 @@ namespace SeatFlow.Presentation.Avalonia
                     if (navigation.CurrentPage == PageKey.SeatingArrangement)
                         await seatVm.RefreshDataAsync();
                 }
+
+                serviceProvider.GetService<MemberManagementViewModel>()?.InvalidateData();
+                serviceProvider.GetService<StrategyConfigurationViewModel>()?.InvalidateData();
+                serviceProvider.GetService<SnapshotHistoryViewModel>()?.InvalidateData();
 
                 // 导航到默认入口（M3 起为排座工作台）
                 navigation.NavigateTo(PageKey.SeatingArrangement);

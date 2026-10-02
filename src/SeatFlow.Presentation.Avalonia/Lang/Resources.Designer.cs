@@ -109,6 +109,7 @@ public class Resources
     public static string Member_DataSourceFmt => ResourceManager.GetString("Member_DataSourceFmt", Culture)!;
     public static string Member_DatasetNotFound => ResourceManager.GetString("Member_DatasetNotFound", Culture)!;
     public static string Data_DeleteConfirm => ResourceManager.GetString("Data_DeleteConfirm", Culture)!;
+    public static string Member_DatasetShort => ResourceManager.GetString("Member_DatasetShort", Culture)!;
     public static string Member_DeleteConfirmMsg => ResourceManager.GetString("Member_DeleteConfirmMsg", Culture)!;
     public static string Member_DeleteFailed => ResourceManager.GetString("Member_DeleteFailed", Culture)!;
     public static string Member_Deleted => ResourceManager.GetString("Member_Deleted", Culture)!;
@@ -184,6 +185,8 @@ public class Resources
     public static string Member_SavedFmt => ResourceManager.GetString("Member_SavedFmt", Culture)!;
     public static string Member_MemberCountFmt => ResourceManager.GetString("Member_MemberCountFmt", Culture)!;
     public static string Member_MemberDataFile => ResourceManager.GetString("Member_MemberDataFile", Culture)!;
+    public static string Member_StatusDirty => ResourceManager.GetString("Member_StatusDirty", Culture)!;
+    public static string Member_StatusSaved => ResourceManager.GetString("Member_StatusSaved", Culture)!;
     public static string Member_TemplateMissing => ResourceManager.GetString("Member_TemplateMissing", Culture)!;
     public static string Member_TemplateMissingMsg => ResourceManager.GetString("Member_TemplateMissingMsg", Culture)!;
     public static string Member_TemplateSaveError => ResourceManager.GetString("Member_TemplateSaveError", Culture)!;
@@ -294,6 +297,10 @@ public class Resources
     public static string Nav_StrategyConfig => ResourceManager.GetString("Nav_StrategyConfig", Culture)!;
     public static string Nav_ToggleSidebar => ResourceManager.GetString("Nav_ToggleSidebar", Culture)!;
     public static string Nav_VenueConfig => ResourceManager.GetString("Nav_VenueConfig", Culture)!;
+    public static string SeatPosition_Angle => ResourceManager.GetString("SeatPosition_Angle", Culture)!;
+    public static string SeatPosition_Column => ResourceManager.GetString("SeatPosition_Column", Culture)!;
+    public static string SeatPosition_Ring => ResourceManager.GetString("SeatPosition_Ring", Culture)!;
+    public static string SeatPosition_Row => ResourceManager.GetString("SeatPosition_Row", Culture)!;
     public static string SeatSets_AppSettings_Label => ResourceManager.GetString("SeatSets_AppSettings_Label", Culture)!;
     public static string SeatSets_ConfirmExport => ResourceManager.GetString("SeatSets_ConfirmExport", Culture)!;
     public static string SeatSets_ConfirmImport => ResourceManager.GetString("SeatSets_ConfirmImport", Culture)!;
@@ -504,6 +511,7 @@ public class Resources
     public static string Snapshot_Id => ResourceManager.GetString("Snapshot_Id", Culture)!;
     public static string Snapshot_LinkedVenue => ResourceManager.GetString("Snapshot_LinkedVenue", Culture)!;
     public static string Snapshot_List => ResourceManager.GetString("Snapshot_List", Culture)!;
+    public static string Snapshot_ListShort => ResourceManager.GetString("Snapshot_ListShort", Culture)!;
     public static string Snapshot_ManualSnapshotFmt => ResourceManager.GetString("Snapshot_ManualSnapshotFmt", Culture)!;
     public static string Snapshot_NoSelection => ResourceManager.GetString("Snapshot_NoSelection", Culture)!;
     public static string Snapshot_NoSnapshotsFmt => ResourceManager.GetString("Snapshot_NoSnapshotsFmt", Culture)!;
@@ -550,6 +558,7 @@ public class Resources
     public static string Strategy_LegendPriority => ResourceManager.GetString("Strategy_LegendPriority", Culture)!;
     public static string Strategy_LegendBar => ResourceManager.GetString("Strategy_LegendBar", Culture)!;
     public static string Strategy_ConfigInvalidHint => ResourceManager.GetString("Strategy_ConfigInvalidHint", Culture)!;
+    public static string Strategy_ListShort => ResourceManager.GetString("Strategy_ListShort", Culture)!;
     public static string Strategy_LoadFailed => ResourceManager.GetString("Strategy_LoadFailed", Culture)!;
     public static string Strategy_LoadedFixedFmt => ResourceManager.GetString("Strategy_LoadedFixedFmt", Culture)!;
     public static string Strategy_LoadedFmt => ResourceManager.GetString("Strategy_LoadedFmt", Culture)!;
@@ -589,6 +598,7 @@ public class Resources
     public static string Strategy_Title => ResourceManager.GetString("Strategy_Title", Culture)!;
     public static string Strategy_UnsavedChanges => ResourceManager.GetString("Strategy_UnsavedChanges", Culture)!;
     public static string Strategy_UnsavedChangesMsg => ResourceManager.GetString("Strategy_UnsavedChangesMsg", Culture)!;
+    public static string StudentPicker_Placeholder => ResourceManager.GetString("StudentPicker_Placeholder", Culture)!;
     public static string Telemetry_ConsentEnable => ResourceManager.GetString("Telemetry_ConsentEnable", Culture)!;
     public static string Telemetry_ConsentLater => ResourceManager.GetString("Telemetry_ConsentLater", Culture)!;
     public static string Telemetry_ConsentMessage => ResourceManager.GetString("Telemetry_ConsentMessage", Culture)!;
