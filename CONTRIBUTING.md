@@ -224,4 +224,4 @@ fieldType 在 codeBlock 中额外支持 `StudentPicker`、`SeatPosition`。
 
 ## AI 辅助开发
 
-本项目使用 Claude Code 辅助开发。项目级 AI 配置位于 [CLAUDE.md](CLAUDE.md)。AI 开发者应优先阅读此文件和 `docs/adr/` 中的架构决策记录，以理解既有设计的上下文和权衡。
+本项目使用 Claude Code 辅助开发。项目级 AI 配置位于 [AGENTS.md](AGENTS.md)（根 `CLAUDE.md` 为指向它的指针）。AI 开发者应优先阅读此文件和 `docs/adr/` 中的架构决策记录，以理解既有设计的上下文和权衡。
