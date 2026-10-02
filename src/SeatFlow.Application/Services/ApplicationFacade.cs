@@ -102,6 +102,25 @@ namespace SeatFlow.Application.Services
             => _venueRepo.ListVenueIdsAsync(cancellationToken);
 
         /// <inheritdoc />
+        public Task<IReadOnlyList<VenueSummary>> ListVenueSummariesAsync(CancellationToken cancellationToken = default)
+            => _venueRepo.ListVenueSummariesAsync(cancellationToken);
+
+        /// <inheritdoc />
+        public async Task RenameVenueAsync(string venueId, string newName, CancellationToken cancellationToken = default)
+        {
+            var layout = await _venueRepo.LoadAsync(venueId, cancellationToken)
+                ?? throw new InvalidOperationException($"会场不存在: {venueId}");
+            layout.Name = newName;
+            await _venueRepo.SaveAsync(venueId, layout, cancellationToken);
+
+            // 若该会场正是当前工作区布局，同步名称，避免后续读取到旧名称
+            if (_currentLayout?.Id == venueId)
+                _currentLayout.Name = newName;
+
+            logger.LogInformation("会场已重命名：{VenueId} → {Name}", venueId, newName);
+        }
+
+        /// <inheritdoc />
         public Task DeleteVenueAsync(string venueId, CancellationToken cancellationToken = default)
             => _venueRepo.DeleteAsync(venueId, cancellationToken);
 

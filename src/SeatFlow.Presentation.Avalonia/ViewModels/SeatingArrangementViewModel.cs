@@ -465,6 +465,11 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
             _dataLoaded = true;
             StatusMessage = Resources.Seating_ReadyHint;
         }
+        else
+        {
+            // 重新进入页面时轻量刷新会场名称（会场可在「会场与布局」页被重命名/增删）
+            await RefreshVenueSummariesAsync(ct);
+        }
         await TryRestoreWorkspaceAsync();
     }
 
@@ -473,11 +478,58 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     {
         await SafeExecuteAsync(async () =>
         {
-            var ids = (await _facade.ListVenueIdsAsync()).ToList();
-            // M6 启动优化：首屏只列 ID（名称以 ID 占位），避免启动时反序列化全部会场布局
-            // （大教室可达数百座位）；选中 / 恢复工作区时再加载布局并回填真实名称。
-            VenueItems = new ObservableCollection<VenueItem>(ids.Select(id => new VenueItem(id, id)));
+            var summaries = await _facade.ListVenueSummariesAsync();
+            VenueItems = new ObservableCollection<VenueItem>(
+                summaries.Select(s => new VenueItem(s.Id, s.Name)));
         });
+    }
+
+    /// <summary>
+    /// 轻量刷新会场列表（摘要读取，不反序列化布局）：按 Id 保留选中项，
+    /// 名称变化时原位替换，增删会场时同步集合。
+    /// </summary>
+    private async Task RefreshVenueSummariesAsync(CancellationToken ct)
+    {
+        var summaries = await _facade.ListVenueSummariesAsync(ct);
+        ct.ThrowIfCancellationRequested();
+
+        var selectedId = SelectedVenue?.Id;
+        _isRestoringWorkspace = true;
+        try
+        {
+            var byId = summaries.ToDictionary(s => s.Id);
+            for (var i = VenueItems.Count - 1; i >= 0; i--)
+            {
+                if (!byId.ContainsKey(VenueItems[i].Id))
+                    VenueItems.RemoveAt(i);
+            }
+
+            foreach (var summary in summaries)
+            {
+                var index = -1;
+                for (var i = 0; i < VenueItems.Count; i++)
+                {
+                    if (VenueItems[i].Id == summary.Id) { index = i; break; }
+                }
+
+                if (index >= 0)
+                {
+                    if (VenueItems[index].Name != summary.Name)
+                        VenueItems[index] = new VenueItem(summary.Id, summary.Name);
+                }
+                else
+                {
+                    VenueItems.Add(new VenueItem(summary.Id, summary.Name));
+                }
+            }
+
+            if (!string.IsNullOrEmpty(selectedId))
+                SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == selectedId) ?? SelectedVenue;
+        }
+        finally
+        {
+            _isRestoringWorkspace = false;
+        }
     }
 
     [RelayCommand]
@@ -714,10 +766,17 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         var metadata = _currentLayout.Metadata;
         var studentMap = _workspace.Students.ToDictionary(s => s.Id, s => s.Name);
         var assignments = _currentPlan.Assignments;
-        var (baseW, baseH) = GetSeatDimensions(metadata);
 
-        // 网格布局扩距系数（增大间距防重叠）
-        double spread = metadata is GridLayoutMetadata ? 1.8 : 1.0;
+        // Grid 与会场预览共用同一视觉几何（0.8 同桌压缩 + 可读尺寸坐标放大），保证两处一致
+        var gridGeometry = metadata is GridLayoutMetadata gm ? GridVisualGeometryBuilder.Build(gm) : null;
+        var gridSeatsByPosition = gridGeometry?.Seats
+            .Where(s => !s.IsDisabled)
+            .ToDictionary(s => (s.Row, s.Column));
+        var (baseW, baseH) = gridGeometry is { } g
+            ? (g.SeatWidth, g.SeatHeight)
+            : GetSeatDimensions(metadata);
+        double factorX = gridGeometry?.FactorX ?? 1.0;
+        double factorY = gridGeometry?.FactorY ?? 1.0;
 
         // 第一遍：收集原始坐标范围
         double minX0 = double.MaxValue, minY0 = double.MaxValue;
@@ -726,9 +785,20 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         foreach (var seat in _currentLayout.Seats)
         {
             if (!seat.IsAvailable) continue;
-            var (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
-            cx *= spread; cy *= spread;
-            if (seat is PolarSeat) { cx -= baseW / 2; cy -= baseH / 2; }
+            double cx, cy;
+            if (gridSeatsByPosition is not null
+                && seat is GridSeat gridSeat
+                && gridSeatsByPosition.TryGetValue((gridSeat.Row, gridSeat.Column), out var visual))
+            {
+                (cx, cy) = (visual.X, visual.Y);
+            }
+            else
+            {
+                (cx, cy) = SeatGeometryHelper.GetPosition(seat, metadata);
+                cx *= factorX;
+                cy *= factorY;
+                if (seat is PolarSeat) { cx -= baseW / 2; cy -= baseH / 2; }
+            }
             rawPositions.Add((cx, cy, seat));
             minX0 = Math.Min(minX0, cx);
             minY0 = Math.Min(minY0, cy);
@@ -738,10 +808,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         // 将障碍物也纳入包围盒
         foreach (var obs in _currentLayout.Obstacles)
         {
-            double ow = (obs.Width > 0 ? obs.Width : 60) * spread;
-            double oh = (obs.Height > 0 ? obs.Height : 40) * spread;
-            double ox = obs.X * spread;
-            double oy = obs.Y * spread;
+            double ow = (obs.Width > 0 ? obs.Width : 60) * factorX;
+            double oh = (obs.Height > 0 ? obs.Height : 40) * factorY;
+            double ox = obs.X * factorX;
+            double oy = obs.Y * factorY;
             minX0 = Math.Min(minX0, ox);
             minY0 = Math.Min(minY0, oy);
             maxX0 = Math.Max(maxX0, ox + ow);
@@ -812,21 +882,32 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         foreach (var seat in _currentLayout.Seats)
         {
             if (!seat.IsAvailable) continue;
-            var (cx, _) = SeatGeometryHelper.GetPosition(seat, metadata);
-            cx *= spread;
+            double cx;
+            if (gridSeatsByPosition is not null
+                && seat is GridSeat gridSeat
+                && gridSeatsByPosition.TryGetValue((gridSeat.Row, gridSeat.Column), out var visual))
+                cx = visual.X;
+            else
+                cx = SeatGeometryHelper.GetPosition(seat, metadata).X;
             seatMinX = Math.Min(seatMinX, cx);
             seatMaxX = Math.Max(seatMaxX, cx + baseW);
         }
 
         foreach (var obs in _currentLayout.Obstacles)
         {
+            bool isDoor = string.Equals(obs.Type, "Door", StringComparison.OrdinalIgnoreCase);
             double w = obs.Width > 0 ? obs.Width : (obs.Type == "Podium" ? podiumW : doorW);
             double h = obs.Height > 0 ? obs.Height : (obs.Type == "Podium" ? podiumH : doorH);
-            w *= spread; h *= spread;
+            // 与会场预览一致：门为固定尺寸，其余按该布局的视觉放大系数缩放
+            if (gridGeometry is null || !isDoor)
+            {
+                w *= factorX;
+                h *= factorY;
+            }
 
-            double obsX = obs.X * spread;
-            double obsY = obs.Y * spread;
-            // Grid 讲台强制居中（seatMin/Max 已含 spread）
+            double obsX = obs.X * factorX;
+            double obsY = obs.Y * factorY;
+            // Grid 讲台强制居中（seatMin/Max 已按同一系数放大）
             if (metadata is GridLayoutMetadata && obs.Type == "Podium" && seatMinX < seatMaxX)
                 obsX = ((seatMinX + seatMaxX) / 2) - (w / 2);
 

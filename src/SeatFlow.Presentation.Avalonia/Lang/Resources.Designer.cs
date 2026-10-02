@@ -640,6 +640,10 @@ public class Resources
     public static string Venue_RadiusStepTooltip => ResourceManager.GetString("Venue_RadiusStepTooltip", Culture)!;
     public static string Venue_Recomputing => ResourceManager.GetString("Venue_Recomputing", Culture)!;
     public static string Venue_Refresh => ResourceManager.GetString("Venue_Refresh", Culture)!;
+    public static string Venue_RenameFailed => ResourceManager.GetString("Venue_RenameFailed", Culture)!;
+    public static string Venue_RenamePrompt => ResourceManager.GetString("Venue_RenamePrompt", Culture)!;
+    public static string Venue_RenameTitle => ResourceManager.GetString("Venue_RenameTitle", Culture)!;
+    public static string Venue_RenamedFmt => ResourceManager.GetString("Venue_RenamedFmt", Culture)!;
     public static string Venue_RingAislePH => ResourceManager.GetString("Venue_RingAislePH", Culture)!;
     public static string Venue_RingAislePositions => ResourceManager.GetString("Venue_RingAislePositions", Culture)!;
     public static string Venue_RingAislePositionsTooltip => ResourceManager.GetString("Venue_RingAislePositionsTooltip", Culture)!;

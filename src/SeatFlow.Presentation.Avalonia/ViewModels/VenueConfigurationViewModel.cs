@@ -414,16 +414,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     {
         try
         {
-            var ids = (await _facade.ListVenueIdsAsync()).ToList();
-            var items = new List<VenueItem>();
-            foreach (var id in ids)
-            {
-                ct.ThrowIfCancellationRequested();
-                var layout = await _facade.LoadVenueAsync(id);
-                items.Add(new VenueItem(id, layout?.Name ?? id));
-            }
-
+            var summaries = await _facade.ListVenueSummariesAsync(ct);
             ct.ThrowIfCancellationRequested();
+            var items = summaries.Select(s => new VenueItem(s.Id, s.Name)).ToList();
 
             var selectedId = SelectedVenueItem?.Id;
             _suppressAutoLoad = true;
@@ -475,6 +468,36 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
         RecomputePreviewNow();
         StatusMessage = Resources.Venue_New;
+    }
+
+    [RelayCommand]
+    private async Task RenameVenue()
+    {
+        if (SelectedVenueItem == null) return;
+        var item = SelectedVenueItem;
+
+        var (confirmed, input) = await Dialog.ShowInputAsync(
+            Resources.Venue_RenameTitle,
+            string.Format(Resources.Venue_RenamePrompt, item.Name),
+            item.Name);
+        if (!confirmed) return;
+
+        var newName = input?.Trim();
+        if (string.IsNullOrWhiteSpace(newName) || newName == item.Name) return;
+
+        await SafeExecuteAsync(async () =>
+        {
+            var wasDirty = DirtyTracker.IsDirty;
+            await _facade.RenameVenueAsync(item.Id, newName);
+
+            // 重命名立即持久化：同步编辑器名称；若重命名前没有其他未保存修改，清除脏状态
+            LayoutName = newName;
+            if (!wasDirty)
+                DirtyTracker.MarkClean(BuildDirtySnapshot());
+
+            await RefreshVenueListAsync(CancellationToken.None);
+            StatusMessage = string.Format(Resources.Venue_RenamedFmt, newName);
+        }, Resources.Venue_RenameFailed);
     }
 
     [RelayCommand]
@@ -978,40 +1001,25 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     private void BuildGridPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
     {
         var meta = BuildGridMetadata();
-        var layout = GridLayoutBuilder.BuildGrid(meta);
+        // 与排座工作台共用同一视觉几何（0.8 同桌压缩 + 可读尺寸坐标放大），保证两处一致
+        var geometry = GridVisualGeometryBuilder.Build(meta);
 
-        // 预览沿用旧的 0.8 同桌间距压缩（视觉上更紧凑，几何仅用于预览）
-        var previewMeta = CloneGridMetadata(meta);
-        previewMeta.IntraDeskSpacing = meta.IntraDeskSpacing * 0.8;
-
-        // 可读座位尺寸 + 坐标放大（步进小于座位时按比例放大，保证不重叠且标签可读）
-        var metrics = PreviewSeatSize.ForGrid(previewMeta);
-        var seatW = metrics.W;
-        var seatH = metrics.H;
-
-        foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
+        foreach (var s in geometry.Seats)
         {
-            var (rawX, rawY) = SeatGeometryHelper.GetPosition(s, previewMeta);
-            double x = rawX * metrics.FactorX;
-            double y = rawY * metrics.FactorY;
+            if (s.IsDisabled)
+            {
+                seats.Add(new SeatVisual(
+                    s.SeatId, s.X, s.Y, s.Width, s.Height,
+                    IsDisabled: true,
+                    SeatLabel: string.Format(Resources.Venue_GridDisabledFmt, s.Row, s.Column)));
+                continue;
+            }
+
             int deskNum = ((s.Column - 1) / Math.Max(1, meta.SeatsPerDesk)) + 1;
             seats.Add(new SeatVisual(
-                s.Id, x, y, seatW, seatH,
+                s.SeatId, s.X, s.Y, s.Width, s.Height,
                 IsOccupied: true,
                 SeatLabel: string.Format(Resources.Venue_GridLabelFmt, s.Row, s.Column, deskNum)));
-        }
-
-        // 禁用座位标记（虚线）
-        foreach (var empty in meta.EmptyPositions ?? [])
-        {
-            var virtualSeat = new GridSeat { Row = empty.Row, Column = empty.Column };
-            var (rawEx, rawEy) = SeatGeometryHelper.GetPosition(virtualSeat, previewMeta);
-            double ex = rawEx * metrics.FactorX;
-            double ey = rawEy * metrics.FactorY;
-            seats.Add(new SeatVisual(
-                $"disabled-r{empty.Row}c{empty.Column}", ex, ey, seatW, seatH,
-                IsDisabled: true,
-                SeatLabel: string.Format(Resources.Venue_GridDisabledFmt, empty.Row, empty.Column)));
         }
 
         // 讲台（水平居中于网格）
@@ -1019,17 +1027,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         {
             double gridLeft = seats.Min(s => s.X);
             double gridRight = seats.Max(s => s.X + s.Width);
-            double podiumW = meta.PodiumWidth * metrics.FactorX;
+            double podiumW = meta.PodiumWidth * geometry.FactorX;
             double podiumX = ((gridLeft + gridRight) / 2) - (podiumW / 2);
-            double podiumH = meta.PodiumHeight * metrics.FactorY;
-            double podiumY = (meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing) * metrics.FactorY;
+            double podiumH = meta.PodiumHeight * geometry.FactorY;
+            double podiumY = (meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing) * geometry.FactorY;
             overlays.Add(new BoardOverlay(
                 podiumX, podiumY, podiumW, podiumH, Resources.Freeform_Podium));
         }
 
         foreach (var door in DoorItems)
             overlays.Add(new BoardOverlay(
-                door.X * metrics.FactorX, door.Y * metrics.FactorY, 36, 24, door.Label, IsDoor: true));
+                door.X * geometry.FactorX, door.Y * geometry.FactorY, 36, 24, door.Label, IsDoor: true));
     }
 
     private void BuildPolarPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
@@ -1287,32 +1295,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             EmptyPositions = FilterGridEmptyPositions(
                 ParseGridEmptyPositions(GridEmptyPositionsSpec), GridColumns, GridRows,
                 ParseIntList(GridColumnRowCountsSpec))
-        };
-    }
-
-    private static GridLayoutMetadata CloneGridMetadata(GridLayoutMetadata meta)
-    {
-        return new GridLayoutMetadata
-        {
-            Rows = meta.Rows,
-            Columns = meta.Columns,
-            OriginX = meta.OriginX,
-            OriginY = meta.OriginY,
-            SeatsPerDesk = meta.SeatsPerDesk,
-            IntraDeskSpacing = meta.IntraDeskSpacing,
-            InterDeskSpacing = meta.InterDeskSpacing,
-            HorizontalSpacing = meta.HorizontalSpacing,
-            VerticalSpacing = meta.VerticalSpacing,
-            AisleAfterColumns = meta.AisleAfterColumns,
-            AisleAfterRows = meta.AisleAfterRows,
-            AisleWidth = meta.AisleWidth,
-            ColumnRowCounts = meta.ColumnRowCounts,
-            FrontRowCount = meta.FrontRowCount,
-            HasPodium = meta.HasPodium,
-            PodiumWidth = meta.PodiumWidth,
-            PodiumHeight = meta.PodiumHeight,
-            HasFrontDoor = meta.HasFrontDoor,
-            EmptyPositions = meta.EmptyPositions,
         };
     }
 

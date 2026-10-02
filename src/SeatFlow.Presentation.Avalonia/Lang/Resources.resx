@@ -1931,6 +1931,18 @@
   <data name="Venue_Refresh" xml:space="preserve">
     <value>刷新会场</value>
   </data>
+  <data name="Venue_RenameFailed" xml:space="preserve">
+    <value>重命名失败</value>
+  </data>
+  <data name="Venue_RenamePrompt" xml:space="preserve">
+    <value>请输入「{0}」的新名称：</value>
+  </data>
+  <data name="Venue_RenameTitle" xml:space="preserve">
+    <value>重命名会场</value>
+  </data>
+  <data name="Venue_RenamedFmt" xml:space="preserve">
+    <value>会场「{0}」已重命名</value>
+  </data>
   <data name="Venue_RingAislePH" xml:space="preserve">
     <value>如 1,3</value>
   </data>

@@ -23,6 +23,9 @@ namespace SeatFlow.Core.Providers
         /// <summary>获取所有会场的 ID 列表。</summary>
         Task<IEnumerable<string>> ListVenueIdsAsync(CancellationToken cancellationToken = default);
 
+        /// <summary>获取所有会场的摘要列表（ID + 名称，轻量读取，不反序列化座位）。</summary>
+        Task<IReadOnlyList<VenueSummary>> ListVenueSummariesAsync(CancellationToken cancellationToken = default);
+
         /// <summary>删除指定会场。</summary>
         Task DeleteAsync(string venueId, CancellationToken cancellationToken = default);
         /// <summary>获取会场文件的 ContentHash（轻量读取，不反序列化全量布局）。</summary>

@@ -53,6 +53,16 @@
           Orientation="Horizontal"
           Spacing="8">
           <Button
+            Classes="sf-btn"
+            Command="{Binding RenameVenueCommand}"
+            IsEnabled="{Binding HasSelectedVenue}"
+            ToolTip.Tip="{x:Static lang:Resources.Common_Rename}">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Edit}" />
+              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Rename}" />
+            </StackPanel>
+          </Button>
+          <Button
             Classes="sf-btn sf-danger"
             Command="{Binding DeleteVenueCommand}"
             IsEnabled="{Binding HasSelectedVenue}"

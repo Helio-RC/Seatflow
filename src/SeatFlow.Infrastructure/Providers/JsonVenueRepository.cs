@@ -140,6 +140,55 @@ namespace SeatFlow.Infrastructure.Providers
             return ids;
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyList<VenueSummary>> ListVenueSummariesAsync(CancellationToken cancellationToken = default)
+        {
+            var files = await _store.ListAsync(_venuesDir, "*.venue.json", cancellationToken);
+            var summaries = new List<VenueSummary>(files.Count);
+
+            foreach (var file in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = file[(file.LastIndexOf('/') + 1)..];
+                var id = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(name));
+                summaries.Add(new VenueSummary(id, await ReadDisplayNameAsync(file, id, cancellationToken)));
+            }
+
+            _logger.LogDebug("列出 {Count} 个会场摘要", summaries.Count);
+            return summaries;
+        }
+
+        /// <summary>
+        /// 轻量读取会场显示名称（仅解析 JSON，不反序列化座位）；失败或缺失时回退为 ID。
+        /// </summary>
+        private async Task<string> ReadDisplayNameAsync(string relativePath, string fallbackId, CancellationToken ct)
+        {
+            try
+            {
+                var json = await _store.ReadTextAsync(relativePath, ct);
+                if (json is null)
+                    return fallbackId;
+
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("layout", out var layout)
+                    && layout.TryGetProperty("name", out var layoutName)
+                    && !string.IsNullOrWhiteSpace(layoutName.GetString()))
+                {
+                    return layoutName.GetString()!;
+                }
+                if (doc.RootElement.TryGetProperty("name", out var name)
+                    && !string.IsNullOrWhiteSpace(name.GetString()))
+                {
+                    return name.GetString()!;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "读取会场名称失败，回退为 ID：{VenueId}", fallbackId);
+            }
+            return fallbackId;
+        }
+
         /// <summary>
         /// 获取指定会场的存储相对路径。
         /// </summary>

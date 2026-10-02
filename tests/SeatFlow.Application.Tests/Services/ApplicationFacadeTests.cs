@@ -75,6 +75,22 @@ public class ApplicationFacadeTests
     }
 
     [Fact]
+    public async Task RenameVenueAsync_ShouldLoadSetNameAndSave()
+    {
+        var facade = CreateFacade(out var sp, out var snapRepo, out var exporter,
+            out var appRepo, out var venueRepo, out var dr, out var mp, out var scr, out var dcr, out var sss, out var log);
+        var layout = new ClassroomLayoutDefinition { Id = "v1", Name = "旧名" };
+        venueRepo.LoadAsync("v1", Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<ClassroomLayoutDefinition?>(layout));
+
+        await facade.RenameVenueAsync("v1", "新名", CancellationToken.None);
+
+        layout.Name.Should().Be("新名");
+        await venueRepo.Received(1).SaveAsync("v1", layout, Arg.Any<CancellationToken>());
+        _ = sp; _ = snapRepo; _ = exporter; _ = appRepo; _ = dr; _ = mp; _ = scr; _ = dcr; _ = sss; _ = log;
+    }
+
+    [Fact]
     public async Task ExportSeatingPlanAsync_TeacherView_ShouldReverseRowsAndColumns()
     {
         var facade = CreateFacade(out var sp, out var snapRepo, out var exporter,

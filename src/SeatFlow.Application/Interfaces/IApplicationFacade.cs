@@ -79,6 +79,12 @@ namespace SeatFlow.Application.Interfaces
         /// <summary>获取所有会场 ID 列表。</summary>
         Task<IEnumerable<string>> ListVenueIdsAsync(CancellationToken cancellationToken = default);
 
+        /// <summary>获取所有会场摘要（ID + 名称，轻量读取，不反序列化座位）。</summary>
+        Task<IReadOnlyList<VenueSummary>> ListVenueSummariesAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>重命名指定会场（仅更新显示名称，保留 ID 与布局）。</summary>
+        Task RenameVenueAsync(string venueId, string newName, CancellationToken cancellationToken = default);
+
         /// <summary>删除指定会场。</summary>
         Task DeleteVenueAsync(string venueId, CancellationToken cancellationToken = default);
 
