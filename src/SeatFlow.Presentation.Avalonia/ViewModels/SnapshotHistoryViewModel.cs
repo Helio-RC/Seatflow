@@ -432,15 +432,24 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
 
             var (baseW, baseH) = ComputeSeatSize(metadata);
 
-            // 第一遍：收集原始坐标
+            // Grid：坐标按预览因子放大，使步进与可读座位尺寸匹配（避免重叠且姓名可读）
+            double factorX = 1, factorY = 1;
+            if (metadata is GridLayoutMetadata gridMeta)
+            {
+                var metrics = Services.PreviewSeatSize.ForGrid(gridMeta);
+                factorX = metrics.FactorX;
+                factorY = metrics.FactorY;
+            }
+
+            // 第一遍：收集原始坐标（按预览因子缩放）
             double minX = double.MaxValue, minY = double.MaxValue, maxX = 0, maxY = 0;
             var raw = new List<(double cx, double cy, Seat seat)>();
             foreach (var seat in layout.Seats)
             {
                 if (!seat.IsAvailable) continue;
                 var pos = SeatGeometryHelper.GetPosition(seat, metadata);
-                raw.Add((pos.X, pos.Y, seat));
-                var (cx, cy) = pos;
+                var (cx, cy) = (pos.X * factorX, pos.Y * factorY);
+                raw.Add((cx, cy, seat));
                 minX = Math.Min(minX, cx);
                 minY = Math.Min(minY, cy);
                 maxX = Math.Max(maxX, cx + baseW);
@@ -451,7 +460,6 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
             double canvasH = Math.Max(maxY - minY + 40, 150);
             double offsetX = 20 - minX;
             double offsetY = 20 - minY;
-            double scale = 0.55; // 缩略图缩放
 
             foreach (var (cx, cy, seat) in raw)
             {
@@ -463,10 +471,10 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
                         && curName != sname));
                 seats.Add(new SeatVisual(
                     seat.Id,
-                    (cx + offsetX) * scale,
-                    (cy + offsetY) * scale,
-                    baseW * scale,
-                    baseH * scale,
+                    cx + offsetX,
+                    cy + offsetY,
+                    baseW,
+                    baseH,
                     IsOccupied: occupied,
                     Label: occupied ? (sname ?? sid) : null,
                     SeatLabel: BuildSeatLabel(seat),
@@ -478,15 +486,15 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
             foreach (var obs in layout.Obstacles)
             {
                 overlays.Add(new BoardOverlay(
-                    (obs.X + offsetX) * scale,
-                    (obs.Y + offsetY) * scale,
-                    (obs.Width > 0 ? obs.Width : 40) * scale,
-                    (obs.Height > 0 ? obs.Height : 30) * scale,
+                    (obs.X * factorX) + offsetX,
+                    (obs.Y * factorY) + offsetY,
+                    (obs.Width > 0 ? obs.Width : 40) * factorX,
+                    (obs.Height > 0 ? obs.Height : 30) * factorY,
                     obs.Type));
             }
 
             PreviewSnapshot = new SeatLayoutSnapshot(
-                seats, canvasW * scale, canvasH * scale, ++_previewVersion, overlays);
+                seats, canvasW, canvasH, ++_previewVersion, overlays);
         }
         catch (Exception ex)
         {
@@ -498,8 +506,8 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
     {
         return metadata switch
         {
-            // Grid：按真实坐标步进计算，避免同桌座位重叠（详见 PreviewSeatSize）
-            GridLayoutMetadata g => Services.PreviewSeatSize.ForGrid(g),
+            // Grid：使用可读尺寸（坐标间距在构建时同步放大，见 PreviewSeatSize）
+            GridLayoutMetadata => (Services.PreviewSeatSize.SeatWidth, Services.PreviewSeatSize.SeatHeight),
             PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.75, 28, 48), Math.Clamp(p.RadiusStep * 0.75, 28, 48)),
             _ => (42, 26)
         };

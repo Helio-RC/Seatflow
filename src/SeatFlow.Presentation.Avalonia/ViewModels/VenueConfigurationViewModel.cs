@@ -984,11 +984,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         var previewMeta = CloneGridMetadata(meta);
         previewMeta.IntraDeskSpacing = meta.IntraDeskSpacing * 0.8;
 
-        var (seatW, seatH) = PreviewSeatSize.ForGrid(previewMeta);
+        // 可读座位尺寸 + 坐标放大（步进小于座位时按比例放大，保证不重叠且标签可读）
+        var metrics = PreviewSeatSize.ForGrid(previewMeta);
+        var seatW = metrics.W;
+        var seatH = metrics.H;
 
         foreach (GridSeat s in layout.Seats.Cast<GridSeat>())
         {
-            var (x, y) = SeatGeometryHelper.GetPosition(s, previewMeta);
+            var (rawX, rawY) = SeatGeometryHelper.GetPosition(s, previewMeta);
+            double x = rawX * metrics.FactorX;
+            double y = rawY * metrics.FactorY;
             int deskNum = ((s.Column - 1) / Math.Max(1, meta.SeatsPerDesk)) + 1;
             seats.Add(new SeatVisual(
                 s.Id, x, y, seatW, seatH,
@@ -1000,7 +1005,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         foreach (var empty in meta.EmptyPositions ?? [])
         {
             var virtualSeat = new GridSeat { Row = empty.Row, Column = empty.Column };
-            var (ex, ey) = SeatGeometryHelper.GetPosition(virtualSeat, previewMeta);
+            var (rawEx, rawEy) = SeatGeometryHelper.GetPosition(virtualSeat, previewMeta);
+            double ex = rawEx * metrics.FactorX;
+            double ey = rawEy * metrics.FactorY;
             seats.Add(new SeatVisual(
                 $"disabled-r{empty.Row}c{empty.Column}", ex, ey, seatW, seatH,
                 IsDisabled: true,
@@ -1012,15 +1019,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         {
             double gridLeft = seats.Min(s => s.X);
             double gridRight = seats.Max(s => s.X + s.Width);
-            double podiumW = meta.PodiumWidth;
+            double podiumW = meta.PodiumWidth * metrics.FactorX;
             double podiumX = ((gridLeft + gridRight) / 2) - (podiumW / 2);
-            double podiumY = meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing;
+            double podiumH = meta.PodiumHeight * metrics.FactorY;
+            double podiumY = (meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing) * metrics.FactorY;
             overlays.Add(new BoardOverlay(
-                podiumX, podiumY, podiumW, meta.PodiumHeight, Resources.Freeform_Podium));
+                podiumX, podiumY, podiumW, podiumH, Resources.Freeform_Podium));
         }
 
         foreach (var door in DoorItems)
-            overlays.Add(new BoardOverlay(door.X, door.Y, 36, 24, door.Label, IsDoor: true));
+            overlays.Add(new BoardOverlay(
+                door.X * metrics.FactorX, door.Y * metrics.FactorY, 36, 24, door.Label, IsDoor: true));
     }
 
     private void BuildPolarPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
