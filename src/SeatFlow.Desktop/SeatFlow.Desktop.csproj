@@ -21,7 +21,7 @@
     <PackageReference Include="Serilog" Version="4.4.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Velopack" Version="1.2.161" />
-    <!-- M6 修复：Infrastructure 直接引用 SkiaSharp 4.152.0（托管），Linux 本地资产需显式对齐
+    <!-- M6 修复：Infrastructure 直接引用 SkiaSharp 4.153.1（托管），Linux 本地资产需显式对齐
          （Windows/macOS 由 SkiaSharp 包自带；缺省时依赖链会解析到旧版 Linux native，
          SkiaSharpVersion.CheckNativeLibraryCompatible 将抛异常导致 Linux 桌面启动失败）。 -->
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.153.1" />

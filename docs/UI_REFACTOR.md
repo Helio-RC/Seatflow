@@ -66,7 +66,7 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 | 页面生命周期 | `IPageLifecycle`（`OnEnterAsync(ct)`/`OnLeaveAsync`/`IsDirty`/`InitializationTask`）；构造器禁止 fire-and-forget；离开取消在途任务 |
 | 横切服务 | `DirtyTracker`（统一 JSON 快照脏检查）、`IDialogGate`（Interlocked 对话框门）、`IBusyScope`、`IShellLayoutService`、`IGuideSeedTarget`（引导演示注入接口化）；清零全部静态可变状态 |
 | 绑定与集合 | 全量编译绑定（`ReflectionBinding` 实际使用 0）；列表 `ObservableCollection` 增量；画布快照整体替换重绘 |
-| 测试 | 新增 `tests/SeatFlow.Presentation.Tests`（Avalonia.Headless.XUnit 12.1.3 + Avalonia.Skia 真实绘制 + 视觉基线）；该项目锁定 xunit.v3 3.2.2（Headless 包编译基线），其余项目 4.0.0 |
+| 测试 | 新增 `tests/SeatFlow.Presentation.Tests`（Avalonia.Headless.XUnit 12.1.3 + Avalonia.Skia 真实绘制 + 视觉基线）；该项目锁定 xunit.v3 3.2.2（Headless 包编译基线），其余项目 4.0.1 |
 | 兼容性 | 无文件格式变化，无需迁移器；用户数据/设置/引导进度向后兼容 |
 
 **Spike 实测**：ReactiveUI 变体 `_framework` 体积 +1.24MB（+4.4%）、启动长任务 +216ms（+10%，
@@ -83,7 +83,7 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 | M3 工作台与新外壳 | 三栏工作台 + 右栏页签；Home 移除、默认入口=排座工作台；侧栏分组/矮视口修复；≤900px 双抽屉；切页即时化；`ViewLocator` 视图弱引用缓存；`.seatsets` 拖放职责迁入工作台 |
 | M4 名单/策略/快照 | 名单行「显示/编辑」轻量切换 + 自适应虚拟化；策略页缓存与令牌化；快照 Transient→Singleton + 自绘预览；修复快照列表恒空、回滚后画布空白、`Snapshot` 变更不重绘 |
 | M5 设置/关于/引导/清理 | 设置分组卡片 + 全量令牌化；关于页令牌化；引导接口化（`IGuideSeedTarget`，5 页自实现，无静态状态）；WASM 运行时语言切换修复（卫星资源）；死键/死代码清理 |
-| M6 测试/性能/文档 | Headless UI 测试项目（65 例，全量 446 通过）；视觉基线（明/暗 × 4 视图）；M1–M6 性能复测；绑定诊断 0 警告；文档同步（AGENTS.md/INDEX/Design_Spec/WebDeployment/ONBOARDING_GUIDE） |
+| M6 测试/性能/文档 | Headless UI 测试项目（65 例，全量 448 通过）；视觉基线（明/暗 × 4 视图）；M1–M6 性能复测；绑定诊断 0 警告；文档同步（AGENTS.md/INDEX/Design_Spec/WebDeployment/ONBOARDING_GUIDE） |
 
 终验后的收尾提交还包括：主题色可调（默认 `#83B6DE`/跟随系统）与主按钮悬停前景修复、
 画布右下角缩放控制条、座位姓名两行换行、快照预览座位尺寸按坐标等比放大、关于页依赖清单更新。
@@ -119,7 +119,7 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 
 ## 8. 验证与工具链
 
-- **测试**：`dotnet test` 全量 **446 通过 / 0 失败**（Core/Application/Infrastructure + Headless UI）。
+- **测试**：`dotnet test` 全量 **448 通过 / 0 失败**（Core/Application/Infrastructure + Headless UI）。
   Headless 项目用 `Avalonia.Skia` 真实绘制，视觉基线与像素回归见
   `tests/SeatFlow.Presentation.Tests/VisualBaselineTests.cs`（基线 PNG 不入库）。
 - **无头 WASM 工具链**：`scripts/ui-inspect/`（见其 README）——
