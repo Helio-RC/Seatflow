@@ -1,8 +1,8 @@
-#:project ../../../src/SeatFlow.Core/SeatFlow.Core.csproj
-#:project ../../../src/SeatFlow.Infrastructure/SeatFlow.Infrastructure.csproj
+#:project ../../src/SeatFlow.Core/SeatFlow.Core.csproj
+#:project ../../src/SeatFlow.Infrastructure/SeatFlow.Infrastructure.csproj
 #:property JsonSerializerIsReflectionEnabledByDefault=true
 
-// 生成阶段 2 性能采样所需的演示数据（与仓储写入格式完全一致）。
+// 生成无头性能采样所需的演示数据（与仓储写入格式完全一致）。
 // 运行：dotnet run seed-demo-data.cs
 using System.Security.Cryptography;
 using System.Text;

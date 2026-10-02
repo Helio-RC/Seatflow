@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 抓取 7 个页面的基线截图（新 IA：1200x800 / zh-CN / 浅色主题）。
-// 明暗 × 中英完整矩阵见 08-implementation-log.md 的 M6 小节（emulate prefers-color-scheme + 语言注入）。
+// 明暗 × 中英完整矩阵见 docs/UI_REFACTOR.md 的性能与验证小节（emulate prefers-color-scheme + 语言注入）。
 //
 // 前置条件：
 //   1. WASM 站点已在本机 8090 端口服务（见 tools/README.md）
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { withPage, click, sleep, screenshot, evaluate, send } from './cdp.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const OUT = resolve(process.argv[2] ?? resolve(here, '../assets/after'));
+const OUT = resolve(process.argv[2] ?? resolve(here, 'baselines'));
 const APP_URL = process.env.APP_URL || 'http://localhost:8090/';
 
 // 1200x800 视口下左栏导航项的文字中心 y（新 IA 分组侧栏，M6 重新标定）

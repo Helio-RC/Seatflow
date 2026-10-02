@@ -19,11 +19,11 @@ namespace SeatFlow.Presentation.Tests;
 /// <summary>
 /// 视觉回归基线捕获（M6）：Headless + Skia 真实绘制，输出关键页明 / 暗 PNG。
 /// <para>
-/// 基线图片不入库（<c>docs/ui-refactor/assets/</c> 已 gitignore），本测试只负责生成与
+/// 基线图片不入库（<c>scripts/ui-inspect/baselines/</c> 已 gitignore），本测试只负责生成与
 /// 可渲染性断言（帧非空、文件可写）。人工对比与复现方式见
-/// <c>docs/ui-refactor/08-implementation-log.md</c> 的 M6 小节。
+/// <c>docs/UI_REFACTOR.md</c> 的验证与工具链小节。
 /// 输出目录优先取环境变量 <c>SEATFLOW_BASELINE_DIR</c>，否则为仓库内
-/// <c>docs/ui-refactor/assets/after/baselines/</c>。
+/// <c>scripts/ui-inspect/baselines/</c>。
 /// </para>
 /// </summary>
 public class VisualBaselineTests
@@ -43,7 +43,7 @@ public class VisualBaselineTests
         while (current is not null && !File.Exists(Path.Combine(current.FullName, "SeatFlow.slnx")))
             current = current.Parent;
 
-        var dir = Path.Combine(current?.FullName ?? Path.GetTempPath(), "docs", "ui-refactor", "assets", "after", "baselines");
+        var dir = Path.Combine(current?.FullName ?? Path.GetTempPath(), "scripts", "ui-inspect", "baselines");
         Directory.CreateDirectory(dir);
         return dir;
     }

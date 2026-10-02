@@ -1,6 +1,6 @@
 # 工具集 (Tools Collection)
 
-SeatFlow 项目的 Python 脚本工具集。
+SeatFlow 项目的脚本工具集（Python / Node / C# 文件式脚本）。
 
 ## 前置条件
 
@@ -351,3 +351,23 @@ python3 version.py sync --force
 
 与 i18n 脚本一致：自动备份到 `.version-backups/`、`--dry-run` 预览、`--force` 跳过确认。
 ```
+
+---
+
+# ui-inspect — UI 无头查看与采样
+
+无头环境下对 Avalonia WASM 界面进行查看、交互与性能采样的工具链，
+源自 UI 重构 M0–M6 的验证链路；完整命令与坐标标定见 `scripts/ui-inspect/README.md`，
+性能口径、基线与复测结论见 `docs/UI_REFACTOR.md`。
+
+| 脚本 | 用途 |
+|------|------|
+| `cdp.mjs` | CDP 可信输入（list/nav/click/key/eval/shot/size）——Avalonia WASM 渲染在单 canvas 上，MCP uid 点击不可用 |
+| `capture-baseline.mjs` | 批量抓取 7 页截图（默认输出 `scripts/ui-inspect/baselines/`，已 gitignore） |
+| `analyze-trace.mjs` | Chrome trace 分析（长任务 / INP / 场景聚合） |
+| `png_analyze.py` | 纯标准库 PNG 像素分析，定位 canvas 内控件坐标 |
+| `seq.mjs` | 交互序列回放（click/wait/key 脚本） |
+| `seed-demo-data.cs` / `seed-demo-data.mjs` | 生成并注入演示数据（64 座会场 + 240 人名单 + Polar/Freeform/大教室） |
+
+前置条件：WASM 站点在本机 8090 端口服务、内网 Chromium（chrome-devtools MCP，
+`--browserUrl=http://localhost:3000`）、Node 24。
