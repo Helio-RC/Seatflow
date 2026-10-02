@@ -54,6 +54,9 @@ public sealed class SeatingCanvas : Control
     /// <summary>座位标签最小可读屏幕宽度（低于则跳过绘制，保护大班级性能）。</summary>
     private const double LabelMinScreenWidth = 18;
 
+    /// <summary>手势期 LOD 触发的座位数阈值：不超过该规模时拖拽/缩放仍完整绘制座位姓名。</summary>
+    private const int GestureLodSeatThreshold = 150;
+
     public static readonly StyledProperty<SeatLayoutSnapshot?> SnapshotProperty =
         AvaloniaProperty.Register<SeatingCanvas, SeatLayoutSnapshot?>(nameof(Snapshot));
 
@@ -397,8 +400,10 @@ public sealed class SeatingCanvas : Control
 
         }
 
-        // 手势期间降级：仅填充（不描边）；文本一律延后到手势结束
-        var lod = _gestureActive;
+        // 手势期间降级：仅填充（不描边）；大布局文本延后到手势结束。
+        // 常规教室规模（≤ GestureLodSeatThreshold 座）保持完整文本渲染——用户实测反馈：
+        // 拖拽时其余座位姓名消失影响定位（WASM 软件渲染下文本最贵，仅大布局承担 LOD）。
+        var lod = _gestureActive && snapshot.Seats.Count > GestureLodSeatThreshold;
         if (normal is not null) context.DrawGeometry(palette.SeatBg, lod ? null : palette.SeatPen, normal);
         if (occupied is not null) context.DrawGeometry(palette.SeatOccupiedBg, lod ? null : palette.SeatOccupiedPen, occupied);
         if (disabled is not null) context.DrawGeometry(palette.SeatDisabledBg, lod ? null : palette.SeatDisabledPen, disabled);

@@ -68,10 +68,13 @@
         MaxWidth="1100"
         Margin="{StaticResource SfPagePadding}"
         HorizontalAlignment="Stretch">
-        <UniformGrid
-          ColumnSpacing="{StaticResource SfSpace4}"
-          Columns="{Binding CardColumns}"
-          RowSpacing="{StaticResource SfSpace4}">
+        <!--  M6 后修复：WrapPanel 行高独立（原 UniformGrid 全网格等高导致短卡片出现大片空白）；
+              卡片宽度由 code-behind 按可用宽度/列数动态计算（桌面两列 / ≤900px 单列）。  -->
+        <WrapPanel
+          x:Name="SettingsCards"
+          ItemSpacing="{StaticResource SfSpace4}"
+          LineSpacing="{StaticResource SfSpace4}"
+          Orientation="Horizontal">
 
           <!--  ─── 外观 ───  -->
           <Border Classes="sf-card">
@@ -626,7 +629,7 @@
               </Border>
             </StackPanel>
           </Border>
-        </UniformGrid>
+        </WrapPanel>
       </StackPanel>
     </ScrollViewer>
   </DockPanel>
