@@ -75,6 +75,27 @@ public partial class SeatingArrangementView : UserControl
         return null;
     }
 
+    // ── 缩放控制条（作用与滚轮缩放一致，以视口中心为锚点） ──
+
+    private void ZoomOut_Click(object? sender, RoutedEventArgs e)
+        => ApplyZoomStep(1 / 1.1);
+
+    private void ZoomIn_Click(object? sender, RoutedEventArgs e)
+        => ApplyZoomStep(1.1);
+
+    private void ApplyZoomStep(double factor)
+    {
+        var center = new Point(SeatCanvas.Bounds.Width / 2, SeatCanvas.Bounds.Height / 2);
+        SeatCanvas.ZoomAt(factor, center);
+    }
+
+    /// <summary>点击百分比：重置为设置中的默认缩放（关联「座位图默认缩放」）。</summary>
+    private void ResetZoom_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SeatingArrangementViewModel vm)
+            SeatCanvas.Zoom = vm.DefaultZoomLevel;
+    }
+
     // ── 座位点击 / 键盘激活 ──
 
     private void SeatCanvas_SeatClicked(object? sender, SeatEventArgs e)

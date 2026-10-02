@@ -184,6 +184,24 @@ public class VisualBaselineTests
     }
 
     [AvaloniaFact]
+    public void 工作台生成态_明暗基线()
+    {
+        try
+        {
+            foreach (var variant in Variants)
+            {
+                var vm = CreateSeatingVm();
+                vm.SeedGuideData();
+                Capture("workbench-generated", variant, new SeatingArrangementView { DataContext = vm });
+            }
+        }
+        finally
+        {
+            AvaloniaApplication.Current!.RequestedThemeVariant = ThemeVariant.Default;
+        }
+    }
+
+    [AvaloniaFact]
     public void 设置页_明暗基线()
     {
         try

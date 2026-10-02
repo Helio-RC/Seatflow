@@ -843,6 +843,9 @@ This cannot be undone.</value>
   <data name="Seating_ReleaseNotes" xml:space="preserve">
     <value>Release notes</value>
   </data>
+  <data name="Seating_ResetZoom" xml:space="preserve">
+    <value>Reset to default zoom</value>
+  </data>
   <data name="Seating_StudentView" xml:space="preserve">
     <value>Student View</value>
   </data>
@@ -1013,6 +1016,12 @@ This cannot be undone.</value>
   </data>
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
     <value>Venue &quot;{0}&quot; selected, {1} seats</value>
+  </data>
+  <data name="Seating_ZoomIn" xml:space="preserve">
+    <value>Zoom in</value>
+  </data>
+  <data name="Seating_ZoomOut" xml:space="preserve">
+    <value>Zoom out</value>
   </data>
   <data name="Settings_AccentColor" xml:space="preserve">
     <value>Accent color</value>

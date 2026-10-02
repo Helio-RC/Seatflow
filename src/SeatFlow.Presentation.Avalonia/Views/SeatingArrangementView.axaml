@@ -539,6 +539,40 @@
             SeatClicked="SeatCanvas_SeatClicked"
             SeatDropped="SeatCanvas_SeatDropped" />
 
+          <!--  缩放控制条（作用同滚轮缩放；点击百分比重置为设置中的默认缩放）  -->
+          <Border
+            Margin="0,0,68,42"
+            Padding="3,1"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Classes="sf-card"
+            IsVisible="{Binding HasGenerated}"
+            ZIndex="9">
+            <StackPanel Orientation="Horizontal" Spacing="2">
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Seating_ZoomOut}"
+                Classes="sf-btn sf-ghost sf-icon"
+                Click="ZoomOut_Click"
+                ToolTip.Tip="{x:Static lang:Resources.Seating_ZoomOut}">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ZoomOut}" />
+              </Button>
+              <Button
+                MinWidth="52"
+                AutomationProperties.Name="{x:Static lang:Resources.Seating_ResetZoom}"
+                Classes="sf-btn sf-ghost sf-sm"
+                Click="ResetZoom_Click"
+                Content="{Binding ZoomPercentDisplay}"
+                ToolTip.Tip="{x:Static lang:Resources.Seating_ResetZoom}" />
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Seating_ZoomIn}"
+                Classes="sf-btn sf-ghost sf-icon"
+                Click="ZoomIn_Click"
+                ToolTip.Tip="{x:Static lang:Resources.Seating_ZoomIn}">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ZoomIn}" />
+              </Button>
+            </StackPanel>
+          </Border>
+
           <!--  垃圾桶：拖入或点击移除学生  -->
           <Border
             Name="TrashZone"

@@ -286,6 +286,7 @@ public class Resources
     public static string Seating_PickerShort => ResourceManager.GetString("Seating_PickerShort", Culture)!;
     public static string Seating_PickerTitle => ResourceManager.GetString("Seating_PickerTitle", Culture)!;
     public static string Seating_ReleaseNotes => ResourceManager.GetString("Seating_ReleaseNotes", Culture)!;
+    public static string Seating_ResetZoom => ResourceManager.GetString("Seating_ResetZoom", Culture)!;
     public static string Seating_StudentView => ResourceManager.GetString("Seating_StudentView", Culture)!;
     public static string Seating_TabHistory => ResourceManager.GetString("Seating_TabHistory", Culture)!;
     public static string Seating_TabMessages => ResourceManager.GetString("Seating_TabMessages", Culture)!;
@@ -343,6 +344,8 @@ public class Resources
     public static string Seating_Venue => ResourceManager.GetString("Seating_Venue", Culture)!;
     public static string Seating_VenueDatasetDesc => ResourceManager.GetString("Seating_VenueDatasetDesc", Culture)!;
     public static string Seating_VenueLoadedFmt => ResourceManager.GetString("Seating_VenueLoadedFmt", Culture)!;
+    public static string Seating_ZoomIn => ResourceManager.GetString("Seating_ZoomIn", Culture)!;
+    public static string Seating_ZoomOut => ResourceManager.GetString("Seating_ZoomOut", Culture)!;
     public static string Settings_AccentColor => ResourceManager.GetString("Settings_AccentColor", Culture)!;
     public static string Settings_AccentDefault => ResourceManager.GetString("Settings_AccentDefault", Culture)!;
     public static string Settings_AccentSystem => ResourceManager.GetString("Settings_AccentSystem", Culture)!;

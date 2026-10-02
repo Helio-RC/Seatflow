@@ -843,6 +843,9 @@
   <data name="Seating_ReleaseNotes" xml:space="preserve">
     <value>更新说明</value>
   </data>
+  <data name="Seating_ResetZoom" xml:space="preserve">
+    <value>重置为默认缩放</value>
+  </data>
   <data name="Seating_StudentView" xml:space="preserve">
     <value>学生视角</value>
     <comment>导出子菜单标题：学生视角导出格式</comment>
@@ -1015,6 +1018,12 @@
   </data>
   <data name="Seating_VenueLoadedFmt" xml:space="preserve">
     <value>已选择会场「{0}」，共 {1} 个座位</value>
+  </data>
+  <data name="Seating_ZoomIn" xml:space="preserve">
+    <value>放大</value>
+  </data>
+  <data name="Seating_ZoomOut" xml:space="preserve">
+    <value>缩小</value>
   </data>
   <data name="Settings_AccentColor" xml:space="preserve">
     <value>主题色</value>

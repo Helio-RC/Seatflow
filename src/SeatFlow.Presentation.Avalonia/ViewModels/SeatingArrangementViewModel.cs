@@ -96,7 +96,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     /// <summary>画布缩放（双向绑定到 SeatingCanvas.Zoom；缩放不再重建座位集合）。</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ZoomPercentDisplay))]
     public partial double ZoomLevel { get; set; } = 1.0;
+
+    /// <summary>缩放百分比显示（控制条，如「120%」）。</summary>
+    public string ZoomPercentDisplay => $"{Math.Round(ZoomLevel * 100)}%";
+
+    /// <summary>设置中的座位图默认缩放（控制条点按百分比时重置目标）。</summary>
+    public double DefaultZoomLevel => _defaultZoomLevel;
 
     private double _defaultZoomLevel = 1.0;
     private int _snapshotVersion;
