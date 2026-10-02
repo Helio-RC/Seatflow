@@ -201,6 +201,32 @@ public class VisualBaselineTests
         }
     }
 
+    private static SeatingCanvas CreateLongLabelCanvas()
+    {
+        var seats = new List<SeatVisual>
+        {
+            new("s1", 0, 0, 50, 30, IsOccupied: true, Label: "不需要前排9"),
+            new("s2", 70, 0, 50, 30, IsOccupied: true, Label: "需要前排7"),
+            new("s3", 140, 0, 50, 30, IsOccupied: true, Label: "张三"),
+            new("s4", 210, 0, 50, 30, IsOccupied: true, Label: "Alexander"),
+        };
+        return new SeatingCanvas { Snapshot = new SeatLayoutSnapshot(seats, 280, 60) };
+    }
+
+    [AvaloniaFact]
+    public void 座位长名换行_明暗基线()
+    {
+        try
+        {
+            foreach (var variant in Variants)
+                Capture("seat-long-label", variant, CreateLongLabelCanvas());
+        }
+        finally
+        {
+            AvaloniaApplication.Current!.RequestedThemeVariant = ThemeVariant.Default;
+        }
+    }
+
     [AvaloniaFact]
     public void 设置页_明暗基线()
     {

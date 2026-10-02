@@ -457,10 +457,10 @@ public sealed class SeatingCanvas : Control
             if (!seat.IsOccupied || string.IsNullOrEmpty(seat.Label) || seat.Width * zoom < LabelMinScreenWidth)
                 continue;
 
-            var text = ResolveText(seat.Label, 10, palette.SeatLabelFg, TextSlot.Seat);
-            // MaxTextHeight 必须 > 0；标签很短，给足约束即可
-            text.MaxTextWidth = 1000;
-            text.MaxTextHeight = 1000;
+            // 座位姓名基础自动换行（最多两行，超出省略）：宽度约束到座位内，高度约束到约两行
+            var maxWidth = Math.Max(8, seat.Width - 6);
+            var maxHeight = Math.Max(8, Math.Min(seat.Height - 4, 26));
+            var text = ResolveText(seat.Label, 10, palette.SeatLabelFg, TextSlot.Seat, maxWidth, maxHeight);
             var origin = new Point(
                 seat.X + ((seat.Width - text.Width) / 2),
                 seat.Y + ((seat.Height - text.Height) / 2));
@@ -495,8 +495,8 @@ public sealed class SeatingCanvas : Control
 
         if (!string.IsNullOrEmpty(seat.Label))
         {
-            var text = ResolveText(seat.Label, 10, palette.SeatLabelFg, TextSlot.Seat);
-            text.MaxTextWidth = Math.Max(0, seat.Width - 4);
+            var text = ResolveText(seat.Label, 10, palette.SeatLabelFg, TextSlot.Seat,
+                Math.Max(8, seat.Width - 6), Math.Max(8, Math.Min(seat.Height - 4, 26)));
             context.DrawText(text, new Point(
                 rect.X + ((rect.Width - text.Width) / 2),
                 rect.Y + ((rect.Height - text.Height) / 2)));
@@ -855,18 +855,32 @@ public sealed class SeatingCanvas : Control
     }
 
     private static readonly Typeface SeatTypeface = new(FontFamily.Default);
-    private readonly Dictionary<(string Text, double Size, int Slot), FormattedText> _textCache = new();
+    private readonly Dictionary<(string Text, double Size, int Slot, int MaxWidth, int MaxHeight), FormattedText> _textCache = new();
 
     private static FormattedText CreateText(string text, double size, IBrush brush)
         => new(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, SeatTypeface, size, brush);
 
-    private FormattedText ResolveText(string text, double size, IBrush brush, TextSlot slot)
+    private FormattedText ResolveText(string text, double size, IBrush brush, TextSlot slot,
+        double? maxTextWidth = null, double? maxTextHeight = null)
     {
         if (_textCache.Count > 3000) _textCache.Clear();
-        var key = (text, size, (int)slot);
+        var key = (text, size, (int)slot, (int)Math.Round(maxTextWidth ?? 0), (int)Math.Round(maxTextHeight ?? 0));
         if (!_textCache.TryGetValue(key, out var formatted))
         {
             formatted = CreateText(text, size, brush);
+            if (maxTextWidth is { } width)
+            {
+                // 基础自动换行（最多两行）：宽度约束到容器，超出省略；高度上限由调用方给出
+                formatted.Trimming = TextTrimming.CharacterEllipsis;
+                formatted.MaxTextWidth = width;
+                formatted.MaxLineCount = 2;
+            }
+            else
+            {
+                formatted.MaxTextWidth = 1000;
+            }
+
+            formatted.MaxTextHeight = maxTextHeight ?? 1000;
             _textCache[key] = formatted;
         }
         return formatted;
