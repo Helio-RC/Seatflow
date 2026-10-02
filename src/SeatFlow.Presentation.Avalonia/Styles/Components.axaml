@@ -152,6 +152,12 @@
     <Setter Property="Background" Value="{DynamicResource SfAccentStrongBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource SfAccentStrongBrush}" />
   </Style>
+  <!--  模板级前景覆盖（用户实测反馈）：Fluent 按钮模板直接给模板内 ContentPresenter 设置
+        Foreground（各状态），会压过 Button.Foreground 的 TemplateBinding，浅色下主题色按钮
+        文字/图标显示为深色。这里显式覆盖模板内前景，保证主题色底上始终为强调前景色。  -->
+  <Style Selector="Button.sf-btn.sf-primary /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentFgBrush}" />
+  </Style>
 
   <Style Selector="Button.sf-btn.sf-ghost">
     <Setter Property="Background" Value="Transparent" />
@@ -167,6 +173,10 @@
   </Style>
   <Style Selector="Button.sf-btn.sf-danger:pointerover">
     <Setter Property="Background" Value="{DynamicResource SfDangerSoftBrush}" />
+  </Style>
+  <!--  同类模板级覆盖：危险色文字按钮在悬停/按下时保持语义前景色。  -->
+  <Style Selector="Button.sf-btn.sf-danger /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Foreground" Value="{DynamicResource SfDangerBrush}" />
   </Style>
 
   <Style Selector="Button.sf-btn.sf-sm">

@@ -250,6 +250,12 @@
 - [x] **[Minor] 测试与文档质量**：删除自证式虚拟化阈值断言；视觉基线补文件长度 >0 断言；`SmokeTests` 兼容性注释修正为 3.2.2；`CLAUDE.md` `InitializationTask` 措辞澄清（进入流程无论成败均置位，数据加载成功标志才决定重试）；本节测试分类数字修正。
 - 未采纳（记录为后续建议）：会场 ID 首屏占位对多会场用户的辨识度问题（建议后续新增 `ListVenueSummariesAsync` 轻量摘要接口，仅用 `JsonDocument` 读名称，不反序列化 seats）；`tests/SeatFlow.Presentation.Tests` 锁定 `xunit.v3 3.2.2` 的 CI 版本断言。
 
+**用户实测反馈修复（Windows 桌面包）**
+- [x] **主题色主按钮悬停时文字变黑**（用户截图实测）：Fluent 按钮模板直接用模板内样式设置 `ContentPresenter.Foreground`，压过 `Button.Foreground` 的 TemplateBinding，浅色主题下 `sf-primary` 悬停态文字/图标呈深色，对比度不足。修复：对 `sf-primary`/`sf-danger` 增加模板级前景覆盖（`Button.sf-btn.sf-* /template/ ContentPresenter#PART_ContentPresenter`）；新增 Headless 像素回归测试 `AccentButtonForegroundTests`（A/B 验证：修复前悬停深色像素 44 → 修复后 <20，静止与悬停均为强调前景色）。
+- [x] **拖拽座位时其余座位姓名消失**：手势期 LOD 原为「一律停绘文本」；改为仅座位数 >150 的大布局启用，常规教室（如 64 座）拖拽全程保留姓名。
+- [x] **设置页卡片大片空白**：`UniformGrid`（全网格强制等高）改为 `WrapPanel`（行高独立），卡片宽度按可用宽度/列数动态计算（桌面两列、≤900px 单列）。
+- 提交：`fb2b069`（LOD + 设置布局）+ 主题色按钮模板级前景修复（随本小节提交）。
+
 ## 3. 验证证据索引
 
 | 里程碑 | 证据 | 路径 |
