@@ -9,7 +9,7 @@
 |--------|------|------|
 | `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行。稳定版：restore 历史缓存 → OSS 同步 → vpk 打包（delta）、预发布：拉最新 full；暂存 artifacts |
 | `publish.yml` | workflow_run（release.yml 成功且 push 触发，自动）/ workflow_dispatch（手动） | **仅发布**：下载 artifacts → 版本校验 → OSS 上传（仅自动）→ GitHub Release（自动 latest / 手动永远 pre-release） |
-| `publish-web.yml` | workflow_run（publish.yml 成功且为 push 自动链路） | **在线版发布（仅正式版）**：WASM 构建 → OSS `online_worktable/<version>/` 上传 + 完整性校验 → KV `current` 切换 → 冒烟 → 清理旧版本 |
+| `publish-web.yml` | workflow_run（publish.yml 成功且为 push 自动链路） | **在线版发布（仅正式版）**：WASM 构建 → OSS `online_worktable/<version>/` 上传 + 完整性校验 → KV `current` 切换 → 清理旧版本 |
 | `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（无缓存，直接 restore） |
 | `actionlint.yml` | push/pull_request（`.github/workflows/**` 变更） | 校验工作流 YAML（钉版 actionlint 1.7.7 + SHA256） |
 | `worker-secret-sync.yml` | 每周一 03:00 UTC / 手动 | 将 OSS 密钥同步到 Cloudflare Worker（secrets-bulk） |
@@ -54,7 +54,10 @@
 1. 构建 `src/SeatFlow.Browser`（必须 `wasm-tools`，否则原生库不链接、部署白屏）
 2. 上传 `online_worktable/<version>/`（原文件 + `.br`，跳过 `.gz`/`.map`）并做 key/大小全量校验
 3. 校验通过后写 KV `current=<version>`（原子切换）；预发布与手动 publish 不进入本流程
-4. 冒烟断言 `X-Online-Version`（容忍 KV 传播约 5 分钟），随后清理旧版本（保留最近 5 个，current 永不删除）
+4. 清理旧版本（保留最近 5 个，current 永不删除）。
+   **不做线上冒烟**：唯一的版本信号是 Worker 响应头 `X-Online-Version`，而 Cloudflare Bot
+   管理会对 GitHub Runner 的请求返回 403（2026-10-03 run `37106347120` 全程 403），冒烟无法
+   自证且会空转 10 分钟；部署正确性改由上传完整性校验（key/大小全量比对）与 KV 写入成功保证
 
 回滚（KV 秒级切换，需 CF 凭证）：
 
