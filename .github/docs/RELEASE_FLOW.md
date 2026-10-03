@@ -66,7 +66,7 @@ python3 scripts/ci/upload_web_oss.py --version <旧版本号> --switch-only
 
 稳定版构建在 `vpk pack` 前通过 `scripts/ci/sync_velopack_history.py` 以 OSS 为唯一真源
 同步打包历史到 `publish/history`：保留全部历史 delta + 最新 2 个 full，并做双向对账
-（下载缺失/大小不符者；删除 OSS 上不存在的本地 nupkg）。`vpk pack --outputDir publish/history`
+（下载缺失/大小不符者；删除本地不在保留集的 nupkg——含 OSS 上不存在的未发布版本与超出窗口的旧 full）。`vpk pack --outputDir publish/history`
 据此生成 `SeatFlow-{version}-{rid}-delta.nupkg`，并让 `releases.{rid}.json` 携带完整
 delta 链（客户端按版本顺序串联，超过 10 跳或 delta 总大小超过 full 时退回全量下载）。
 
