@@ -1,0 +1,34 @@
+{
+    "id": "HeightPriority",
+    "name": "HeightPriority",
+    "displayName": "身高优先",
+    "version": "1.0.0",
+    "manifestVersion": "1.0",
+    "description": "按身高从矮到高优先填充前排座位（网格最小行 / 环形最内圈 / 自由点最小行）。未填写身高的学生不参与本策略，由后续策略兜底。适合按身高排座的场景。",
+    "author": "SeatFlow Team",
+    "category": "assignment",
+    "defaultPriority": 60,
+    "defaultEnabled": false,
+    "visible": true,
+    "parameters": [
+        {
+            "name": "FrontRowCount",
+            "fieldType": "NumberInput",
+            "label": { "zh-CN": "前排行数", "en-US": "Front Row Count" },
+            "defaultValue": 1,
+            "minValue": 1,
+            "maxValue": 10
+        }
+    ],
+    "codeBlocks": [],
+    "messages": {
+        "HeightPriority_NoSeats": {
+            "zh-CN": "未识别到前排座位，身高优先策略已跳过",
+            "en-US": "No front-row seats identified, height priority skipped"
+        },
+        "HeightPriority_NoHeightData": {
+            "zh-CN": "没有填写身高的未分配学生，身高优先策略已跳过",
+            "en-US": "No unassigned students with height data, height priority skipped"
+        }
+    }
+}

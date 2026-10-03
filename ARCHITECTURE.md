@@ -256,10 +256,13 @@ public class StrategyExecutionPipeline
 | 策略 | Priority | 类型 | 职责 |
 |------|----------|------|------|
 | FixedSeatStrategy | 100 | 独立 | 最先执行，锁定固定座位（IsFixed=true），后续策略的 GetEmptySeats() 自动排除 |
+| HeightPriorityStrategy | 60 | 独立 | 身高从矮到高优先填充前排（网格最小行/环形最内圈/自由点最小行）；未填身高的学生不参与，由后续策略兜底 |
 | FrontRowRotationStrategy | 50 | 独立 | 在非固定空座中识别前排，按需求分数选出学生后 Fisher-Yates 洗牌，随机分布在各列 |
 | DeskMateStrategy | 50 (context) | 依赖 | 在 RandomFill 中协调同桌组分配，同行+邻列+同 SeatsPerDesk 分组为同桌；可腾挪 RandomFill 已分配学生但不移动前序策略安置者 |
 | GenderRestrictedSeatStrategy | 45 (context) | 依赖 | 在 RandomFill 中检查座位性别限制；不匹配时优先重定向到匹配性别的受限空座（减少无效重掷），无可用时请求重掷，耗尽则强制分配 |
+| GenderDeskMateStrategy | 44 (context) | 依赖 | 在 RandomFill 中检查同桌两人的性别组合；默认男女搭配，可切换同性同桌；性别未填写不判定；不符时重掷，耗尽则强制分配 |
 | NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 中检查历史同桌重复，从快照提取过去的同桌对；重复时请求重掷，耗尽则强制分配 |
+| SnakeOrderStrategy | 10 | 独立 | 按名单（工作区学生顺序）确定性填充空座：网格逐行蛇形、环形逐环交替方向，可关闭蛇形；适合考场式排座 |
 | RandomFillStrategy | 1 | 独立+Host | 兜底填充剩余空座，约束学生（DeskMate 组）优先分配；托管依赖策略执行 |
 | DefragStrategy | 0 | 独立 | 后置碎片整理——将后排无约束学生前移填空隙（跨列允许），跳过固定座位和 DeskMate 组学生，记录有效性警告 |
 
@@ -469,7 +472,7 @@ Web 端存储异常 提示浏览器存储（IndexedDB）不可用或容量不足
 阶段 内容 产出
 Phase 1 领域建模、基础架构搭建 核心实体、DI 配置、网格布局
 Phase 2 数据加载与导出 Xlsx/Csv 读取、Excel 导出
-Phase 3 内置策略实现 7 策略（FixedSeat, FrontRowRotation, DeskMate, RandomFill, GenderRestrictedSeat, NoRepeatDeskMate, Defrag）
+Phase 3 内置策略实现 10 策略（FixedSeat, HeightPriority, FrontRowRotation, SnakeOrder, RandomFill, Defrag + 依赖 DeskMate, GenderRestrictedSeat, GenderDeskMate, NoRepeatDeskMate）
 Phase 4 插件系统（已取消） 2.0.0 移除插件机制，改为内置策略 + issue 提议
 Phase 5 脚本支持（已取消） 随插件系统一并移除（ADR-013）
 Phase 6 高级布局 + 拖放 圆形/扇形/自由点、拖拽换座、CanvasZoomPan

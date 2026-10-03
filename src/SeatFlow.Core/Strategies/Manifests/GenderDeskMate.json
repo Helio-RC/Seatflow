@@ -1,0 +1,29 @@
+{
+    "id": "GenderDeskMate",
+    "name": "GenderDeskMate",
+    "displayName": "同桌性别搭配",
+    "version": "1.0.0",
+    "manifestVersion": "1.0",
+    "description": "作为依赖策略在随机填充上下文中执行：检查同桌（同行+邻列+同每桌座位数）两人的性别组合。默认要求男女搭配，可切换为同性同桌；性别未填写的学生不参与判定。不满足时请求重掷，耗尽后强制分配并警告。",
+    "author": "SeatFlow Team",
+    "category": "grouping",
+    "defaultPriority": 44,
+    "defaultEnabled": false,
+    "visible": true,
+    "isIndependent": false,
+    "parameters": [
+        {
+            "name": "PreferMixed",
+            "fieldType": "ToggleSwitch",
+            "label": { "zh-CN": "男女搭配（关闭则为同性同桌）", "en-US": "Mixed gender pairing (off = same gender)" },
+            "defaultValue": true
+        }
+    ],
+    "codeBlocks": [],
+    "messages": {
+        "GenderDeskMate_Forced": {
+            "zh-CN": "重掷次数已达上限，学生 {0} 未能与同桌 {1} 达成性别搭配",
+            "en-US": "Reroll limit reached; student {0} could not be paired by gender with desk-mate {1}"
+        }
+    }
+}

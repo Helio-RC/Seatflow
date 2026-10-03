@@ -278,6 +278,10 @@ namespace SeatFlow.Application.Services
                 var noRepeat = _serviceProvider.GetServices<IDependentSeatingStrategy>()
                     .OfType<NoRepeatDeskMateStrategy>().FirstOrDefault();
                 noRepeat?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
+
+                var genderDeskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<GenderDeskMateStrategy>().FirstOrDefault();
+                genderDeskMate?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
             }
             else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
             {
@@ -1254,6 +1258,14 @@ namespace SeatFlow.Application.Services
                     ["NeedsFrontRowBonus"] = fr.Config.NeedsFrontRowBonus,
                     ["FrontRowCount"] = fr.Config.FrontRowCount
                 },
+                HeightPriorityStrategy hp => new Dictionary<string, object?>
+                {
+                    ["FrontRowCount"] = hp.Config.FrontRowCount
+                },
+                SnakeOrderStrategy so => new Dictionary<string, object?>
+                {
+                    ["Serpentine"] = so.Config.Serpentine
+                },
                 DefragStrategy => [],
                 _ => []
             };
@@ -1266,6 +1278,10 @@ namespace SeatFlow.Application.Services
                 NoRepeatDeskMateStrategy nd => new Dictionary<string, object?>
                 {
                     ["HistoryWindowSize"] = nd.Config.HistoryWindowSize
+                },
+                GenderDeskMateStrategy gd => new Dictionary<string, object?>
+                {
+                    ["PreferMixed"] = gd.Config.PreferMixed
                 },
                 GenderRestrictedSeatStrategy => [],
                 _ => []
@@ -1283,6 +1299,13 @@ namespace SeatFlow.Application.Services
                     fr.Config.NeedsFrontRowBonus = GetParamInt(parameters, "NeedsFrontRowBonus");
                     fr.Config.FrontRowCount = GetParamInt(parameters, "FrontRowCount");
                     break;
+                case HeightPriorityStrategy hp:
+                    hp.Config.FrontRowCount = Math.Max(1, GetParamInt(parameters, "FrontRowCount"));
+                    break;
+                case SnakeOrderStrategy so:
+                    if (parameters.ContainsKey("Serpentine"))
+                        so.Config.Serpentine = GetParamBool(parameters, "Serpentine");
+                    break;
                 case DefragStrategy:
                     break; // 零参数策略
             }
@@ -1296,6 +1319,10 @@ namespace SeatFlow.Application.Services
             {
                 case NoRepeatDeskMateStrategy nd:
                     nd.Config.HistoryWindowSize = GetParamInt(parameters, "HistoryWindowSize");
+                    break;
+                case GenderDeskMateStrategy gd:
+                    if (parameters.ContainsKey("PreferMixed"))
+                        gd.Config.PreferMixed = GetParamBool(parameters, "PreferMixed");
                     break;
                 case GenderRestrictedSeatStrategy:
                     // 无策略级参数

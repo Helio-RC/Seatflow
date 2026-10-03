@@ -46,7 +46,7 @@ SeatFlow/
 │   ├── Providers/                       # 接口：IStudentProvider, IVenueRepository 等
 │   ├── DomainServices/                  # ObstacleProcessor, SeatGeometryHelper 等
 │   ├── Storage/                         # ILocalDataStore 存储抽象
-│   ├── Strategies/                      # ISeatingStrategy / IDependentSeatingStrategy + 7 条内置策略
+│   ├── Strategies/                      # ISeatingStrategy / IDependentSeatingStrategy + 10 条内置策略
 │   │   └── Manifests/                   # 声明式配置 JSON
 │   └── Utilities/                       # AttributeBag, CircularHistory
 │

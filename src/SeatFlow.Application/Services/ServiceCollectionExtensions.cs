@@ -169,6 +169,10 @@ namespace SeatFlow.Application.Services
                 new Random(), sp.GetRequiredService<ILogger<RandomFillStrategy>>()));
             services.AddSingleton<ISeatingStrategy>(sp => new FrontRowRotationStrategy(
                 new FrontRowRotationStrategy.FrontRowRotationConfiguration(), sp.GetRequiredService<ILogger<FrontRowRotationStrategy>>()));
+            services.AddSingleton<ISeatingStrategy>(sp => new HeightPriorityStrategy(
+                new HeightPriorityStrategy.HeightPriorityConfiguration(), sp.GetRequiredService<ILogger<HeightPriorityStrategy>>()));
+            services.AddSingleton<ISeatingStrategy>(sp => new SnakeOrderStrategy(
+                new SnakeOrderStrategy.SnakeOrderConfiguration(), sp.GetRequiredService<ILogger<SnakeOrderStrategy>>()));
 
             // 注册 Defrag 策略（Priority=0，在 RandomFill 之后最后执行）
             services.AddSingleton<ISeatingStrategy>(sp => new DefragStrategy(
@@ -179,6 +183,8 @@ namespace SeatFlow.Application.Services
                 new DeskMateConfiguration(), sp.GetRequiredService<ILogger<DeskMateStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new GenderRestrictedSeatStrategy(
                 new GenderRestrictedSeatConfiguration(), sp.GetRequiredService<ILogger<GenderRestrictedSeatStrategy>>()));
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new GenderDeskMateStrategy(
+                new GenderDeskMateStrategy.GenderDeskMateConfiguration(), sp.GetRequiredService<ILogger<GenderDeskMateStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new NoRepeatDeskMateStrategy(
                 new NoRepeatDeskMateConfiguration(), sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
 

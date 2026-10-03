@@ -1,0 +1,28 @@
+{
+    "id": "SnakeOrder",
+    "name": "SnakeOrder",
+    "displayName": "蛇形顺序",
+    "version": "1.0.0",
+    "manifestVersion": "1.0",
+    "description": "按名单顺序确定性填充空座：网格逐行蛇形（奇数行反向）、环形逐环交替方向；关闭蛇形则逐行同向。适合考场式排座等需要可预测顺序的场景。",
+    "author": "SeatFlow Team",
+    "category": "assignment",
+    "defaultPriority": 10,
+    "defaultEnabled": false,
+    "visible": true,
+    "parameters": [
+        {
+            "name": "Serpentine",
+            "fieldType": "ToggleSwitch",
+            "label": { "zh-CN": "蛇形走向（关闭则逐行同向）", "en-US": "Serpentine order (off = same direction per row)" },
+            "defaultValue": true
+        }
+    ],
+    "codeBlocks": [],
+    "messages": {
+        "SnakeOrder_Assigned": {
+            "zh-CN": "蛇形顺序已安排 {0} 名学生",
+            "en-US": "Snake order assigned {0} students"
+        }
+    }
+}

@@ -39,7 +39,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
   双范式共存：视图层保持普通 `UserControl`；新 VM 可用 `ReactiveObject`/`[Reactive]`/`ReactiveCommand`/`WhenAnyValue`，
   存量 VM 仍以 CTK 源生成器为主。决策见 `docs/adr/ADR-014`。解决方案文件为 `SeatFlow.slnx`（XML 格式）。
 - **分层（自底向上）**：
-  - **Core** — 领域实体、策略接口与 7 个内置实现、领域服务、`SeatingWorkspace`、数据提供者接口。
+  - **Core** — 领域实体、策略接口与 10 个内置实现、领域服务、`SeatingWorkspace`、数据提供者接口。
   - **Infrastructure** — CSV/XLSX/JSON 读写（EPPlus 8）、导出器（Excel/CSV/PDF/图片）、三种布局构建器、仓储、迁移系统。
   - **Application** — `IApplicationFacade`（UI 唯一入口）、`StrategyExecutionPipeline`、撤销/重做命令、DI 注册。
   - **Presentation.Avalonia** — 共享 UI 类库（`net10.0;net10.0-browser`）。
@@ -68,14 +68,17 @@ fill-in-order 模型：独立策略按 Priority 降序执行（先到先得，�
 | 顺序 | 策略 | Priority | 类型 | 作用 |
 |---|---|---|---|---|
 | 1 | `FixedSeatStrategy` | 100 | 独立 | 锁定固定座位（`IsFixed=true`），后续 `GetEmptySeats()` 自动排除 |
-| 2 | `FrontRowRotationStrategy` | 50 | 独立 | 填充前排座位，Fisher-Yates 随机分布 |
+| 2 | `HeightPriorityStrategy` | 60 | 独立 | 身高从矮到高优先填前排；未填身高者不参与，默认禁用 |
+| 3 | `FrontRowRotationStrategy` | 50 | 独立 | 填充前排座位，Fisher-Yates 随机分布 |
 | — | `DeskMateStrategy` | 50（上下文） | 依赖 | 同桌组协调入座（同行+邻列+同 SeatsPerDesk）；可驱逐 RandomFill 已分配学生，不动先前策略/固定座位；不足时部分入座并警告 |
 | — | `GenderRestrictedSeatStrategy` | 45（上下文） | 依赖 | 性别限制座位；不符则重定向到匹配空座，无可用则重掷，耗尽后带警告强制 |
+| — | `GenderDeskMateStrategy` | 44（上下文） | 依赖 | 同桌性别搭配：默认男女搭配（可切同性同桌）；性别未知不判定；不符重掷，耗尽带警告强制 |
 | — | `NoRepeatDeskMateStrategy` | 40（上下文） | 依赖 | 检查相邻已占用座位的历史同桌重复；重复则重掷，耗尽后带警告强制 |
-| 3 | `RandomFillStrategy` | 1 | 独立+宿主 | 填剩余座位并宿主依赖策略；约束学生（同桌组）优先以减少重掷 |
-| 4 | `DefragStrategy` | 0 | 独立 | “扫地僧”：从后排搬无约束学生补前排空缺（可跨列），默认禁用；警告可能使先前策略结果失效 |
+| 4 | `SnakeOrderStrategy` | 10 | 独立 | 按名单顺序确定性填充（网格逐行蛇形/环形交替方向），默认禁用 |
+| 5 | `RandomFillStrategy` | 1 | 独立+宿主 | 填剩余座位并宿主依赖策略；约束学生（同桌组）优先以减少重掷 |
+| 6 | `DefragStrategy` | 0 | 独立 | “扫地僧”：从后排搬无约束学生补前排空缺（可跨列），默认禁用；警告可能使先前策略结果失效 |
 
-**声明式策略配置**：只改 `src/SeatFlow.Core/Strategies/Manifests/*.json`，不动 C#。
+**声明式策略配置**：只改 `src/SeatFlow.Core/Strategies/Manifests/*.json`，不动 C#（新增参数或新策略仍需 C# 实现并在 `ApplicationFacade` 接线）。
 顶层字段：`visible`（是否参与管线与 UI）、`isIndependent`（false=依赖策略）、`manifestVersion`、
 `parameters[]`（`NumberInput`/`TextInput`/`ToggleSwitch`/`Dropdown` + `label` 内联 i18n + `defaultValue`/最小最大）、
 `codeBlocks[]`（`dataType`: Student/Venue/Both；`displayMode`: Table/ValuePair；`showSeatPosition`、
