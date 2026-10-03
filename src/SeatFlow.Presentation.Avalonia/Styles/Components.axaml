@@ -237,6 +237,44 @@
     <Setter Property="HorizontalContentAlignment" Value="Center" />
   </Style>
 
+  <!--  ═══════════════ 可切换芯片（ToggleButton.sf-chip） ═══════════════  -->
+  <!--  同按钮的模板级覆盖：Fluent 模板在 :pointerover/:checked 直接设置模板内
+        ContentPresenter#PART_ContentPresenter 的背景/边框/前景，必须命中该部件才能生效。  -->
+  <Style Selector="ToggleButton.sf-chip">
+    <Setter Property="Height" Value="26" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FontSize" Value="{StaticResource SfFontXs}" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusPill}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ToggleButton.sf-chip /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.sf-chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderStrongBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.sf-chip:checked /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.sf-chip:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.sf-chip:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+
   <!--  ═══════════════ 选择列表（ListBox.sf-select） ═══════════════  -->
   <!--  Avalonia 12 Fluent 的 ListBoxItem 模板在状态样式中直接设置模板内
         ContentPresenter#PART_ContentPresenter 的背景，必须命中该模板部件才能覆盖默认

@@ -319,11 +319,12 @@
                         <StackPanel Margin="0,0,10,4" Spacing="2">
                           <TextBlock Classes="sf-xs sf-dim" Text="{Binding Label}" />
                           <NumericUpDown
-                            Width="92"
+                            Width="72"
                             Classes="sf-input"
                             Maximum="100"
                             Minimum="1"
                             PlaceholderText="—"
+                            ShowButtonSpinner="False"
                             ToolTip.Tip="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
                             Value="{Binding Rows, Mode=TwoWay}" />
                         </StackPanel>
@@ -331,6 +332,8 @@
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
                 </StackPanel>
+
+                <Border Classes="sf-divider" />
 
                 <StackPanel
                   Margin="0,4,0,0"
@@ -366,6 +369,11 @@
                       <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsClear}" />
                     </StackPanel>
                   </Button>
+                  <TextBlock
+                    VerticalAlignment="Center"
+                    Classes="sf-xs sf-dim"
+                    IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
+                    Text="{x:Static lang:Resources.Venue_DisabledSeatsPickHint}" />
                 </StackPanel>
               </StackPanel>
             </Border>
@@ -413,46 +421,51 @@
             <Border Classes="sf-card" IsVisible="{Binding IsGridSelected}">
               <StackPanel Spacing="8">
                 <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_AisleConfig}" />
-                <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnAisles}" />
-                <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <WrapPanel />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:AisleOption">
-                      <CheckBox
-                        Margin="0,0,12,4"
-                        Classes="sf-check"
-                        Content="{Binding Label}"
-                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                        ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_AisleHint}" />
 
-                <TextBlock
-                  Margin="0,4,0,0"
-                  Classes="sf-hint"
-                  Text="{x:Static lang:Resources.Venue_RowAisles}" />
-                <ItemsControl ItemsSource="{Binding AisleRowOptions}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <WrapPanel />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:AisleOption">
-                      <CheckBox
-                        Margin="0,0,12,4"
-                        Classes="sf-check"
-                        Content="{Binding Label}"
-                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                        ToolTip.Tip="{x:Static lang:Resources.Venue_AisleCheckTooltip}" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnAisles}" />
+                  <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:AisleOption">
+                        <ToggleButton
+                          Margin="0,0,6,4"
+                          Classes="sf-chip"
+                          Content="{Binding Label}"
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          ToolTip.Tip="{Binding ToolTip}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <Border Classes="sf-divider" />
+
+                <StackPanel Spacing="4">
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RowAisles}" />
+                  <ItemsControl ItemsSource="{Binding AisleRowOptions}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:AisleOption">
+                        <ToggleButton
+                          Margin="0,0,6,4"
+                          Classes="sf-chip"
+                          Content="{Binding Label}"
+                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          ToolTip.Tip="{Binding ToolTip}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
 
                 <StackPanel
                   Classes="sf-field"
@@ -627,6 +640,11 @@
                       <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsClear}" />
                     </StackPanel>
                   </Button>
+                  <TextBlock
+                    VerticalAlignment="Center"
+                    Classes="sf-xs sf-dim"
+                    IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
+                    Text="{x:Static lang:Resources.Venue_DisabledSeatsPickHint}" />
                 </StackPanel>
               </StackPanel>
             </Border>

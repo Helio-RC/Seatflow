@@ -1685,11 +1685,11 @@
   <data name="Venue_AddDoorTooltip" xml:space="preserve">
     <value>添加一扇门到预览中</value>
   </data>
-  <data name="Venue_AisleCheckTooltip" xml:space="preserve">
-    <value>勾选在此处插入过道</value>
-  </data>
   <data name="Venue_AisleConfig" xml:space="preserve">
     <value>过道配置</value>
+  </data>
+  <data name="Venue_AisleHint" xml:space="preserve">
+    <value>点击芯片在对应位置插入过道，再次点击取消。</value>
   </data>
   <data name="Venue_AisleWidth" xml:space="preserve">
     <value>过道宽度</value>
@@ -1707,7 +1707,10 @@
     <value>教室特征</value>
   </data>
   <data name="Venue_ColAisleFmt" xml:space="preserve">
-    <value>{0}-{1} 列 ↔ {2}-{3} 列</value>
+    <value>第 {0} 列后</value>
+  </data>
+  <data name="Venue_ColAisleTooltipFmt" xml:space="preserve">
+    <value>在第 {0} 列与第 {1} 列之间插入过道</value>
   </data>
   <data name="Venue_Cols" xml:space="preserve">
     <value>列数</value>
@@ -1719,7 +1722,7 @@
     <value>座位列数（单排座位总数），1-100。如每排 8 个座位则填 8。</value>
   </data>
   <data name="Venue_ColumnAisles" xml:space="preserve">
-    <value>列过道（点击选择相邻桌列之间插入过道）：</value>
+    <value>列过道</value>
   </data>
   <data name="Venue_ColumnRowCounts" xml:space="preserve">
     <value>每列行数</value>
@@ -1773,7 +1776,7 @@
     <value>相邻桌之间的间距（像素），4-400。</value>
   </data>
   <data name="Venue_DisabledSeats" xml:space="preserve">
-    <value>禁用座位</value>
+    <value>添加禁用座位</value>
   </data>
   <data name="Venue_DisabledSeatsClear" xml:space="preserve">
     <value>清除全部禁用座位</value>
@@ -1783,6 +1786,9 @@
   </data>
   <data name="Venue_DisabledSeatsPH" xml:space="preserve">
     <value>如 1,3;2,5;3,1</value>
+  </data>
+  <data name="Venue_DisabledSeatsPickHint" xml:space="preserve">
+    <value>点击后在下方预览中点选座位</value>
   </data>
   <data name="Venue_DisabledSeatsPickTooltip" xml:space="preserve">
     <value>进入预览选择模式：点击座位切换禁用状态</value>
@@ -2013,10 +2019,13 @@
     <value>极坐标环数，1-20。</value>
   </data>
   <data name="Venue_RowAisleFmt" xml:space="preserve">
-    <value>第 {0} 排 ↔ 第 {1} 排</value>
+    <value>第 {0} 排后</value>
+  </data>
+  <data name="Venue_RowAisleTooltipFmt" xml:space="preserve">
+    <value>在第 {0} 排与第 {1} 排之间插入过道</value>
   </data>
   <data name="Venue_RowAisles" xml:space="preserve">
-    <value>行过道（点击选择相邻排之间插入过道）：</value>
+    <value>行过道</value>
   </data>
   <data name="Venue_Rows" xml:space="preserve">
     <value>行数</value>

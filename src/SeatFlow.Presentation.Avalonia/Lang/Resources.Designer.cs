@@ -558,14 +558,15 @@ public class Resources
     public static string Update_UpdateNow => ResourceManager.GetString("Update_UpdateNow", Culture)!;
     public static string Venue_AddDoor => ResourceManager.GetString("Venue_AddDoor", Culture)!;
     public static string Venue_AddDoorTooltip => ResourceManager.GetString("Venue_AddDoorTooltip", Culture)!;
-    public static string Venue_AisleCheckTooltip => ResourceManager.GetString("Venue_AisleCheckTooltip", Culture)!;
     public static string Venue_AisleConfig => ResourceManager.GetString("Venue_AisleConfig", Culture)!;
+    public static string Venue_AisleHint => ResourceManager.GetString("Venue_AisleHint", Culture)!;
     public static string Venue_AisleWidth => ResourceManager.GetString("Venue_AisleWidth", Culture)!;
     public static string Venue_AisleWidthTooltip => ResourceManager.GetString("Venue_AisleWidthTooltip", Culture)!;
     public static string Venue_BasicParams => ResourceManager.GetString("Venue_BasicParams", Culture)!;
     public static string Venue_ChannelConfig => ResourceManager.GetString("Venue_ChannelConfig", Culture)!;
     public static string Venue_ClassroomFeatures => ResourceManager.GetString("Venue_ClassroomFeatures", Culture)!;
     public static string Venue_ColAisleFmt => ResourceManager.GetString("Venue_ColAisleFmt", Culture)!;
+    public static string Venue_ColAisleTooltipFmt => ResourceManager.GetString("Venue_ColAisleTooltipFmt", Culture)!;
     public static string Venue_Cols => ResourceManager.GetString("Venue_Cols", Culture)!;
     public static string Venue_ColsPH => ResourceManager.GetString("Venue_ColsPH", Culture)!;
     public static string Venue_ColsTooltip => ResourceManager.GetString("Venue_ColsTooltip", Culture)!;
@@ -591,6 +592,7 @@ public class Resources
     public static string Venue_DisabledSeatsClear => ResourceManager.GetString("Venue_DisabledSeatsClear", Culture)!;
     public static string Venue_DisabledSeatsClearTooltip => ResourceManager.GetString("Venue_DisabledSeatsClearTooltip", Culture)!;
     public static string Venue_DisabledSeatsPH => ResourceManager.GetString("Venue_DisabledSeatsPH", Culture)!;
+    public static string Venue_DisabledSeatsPickHint => ResourceManager.GetString("Venue_DisabledSeatsPickHint", Culture)!;
     public static string Venue_DisabledSeatsPickTooltip => ResourceManager.GetString("Venue_DisabledSeatsPickTooltip", Culture)!;
     public static string Venue_DisabledSeatsPickingHint => ResourceManager.GetString("Venue_DisabledSeatsPickingHint", Culture)!;
     public static string Venue_DisabledSeatsSavePick => ResourceManager.GetString("Venue_DisabledSeatsSavePick", Culture)!;
@@ -668,6 +670,7 @@ public class Resources
     public static string Venue_Rings => ResourceManager.GetString("Venue_Rings", Culture)!;
     public static string Venue_RingsTooltip => ResourceManager.GetString("Venue_RingsTooltip", Culture)!;
     public static string Venue_RowAisleFmt => ResourceManager.GetString("Venue_RowAisleFmt", Culture)!;
+    public static string Venue_RowAisleTooltipFmt => ResourceManager.GetString("Venue_RowAisleTooltipFmt", Culture)!;
     public static string Venue_RowAisles => ResourceManager.GetString("Venue_RowAisles", Culture)!;
     public static string Venue_Rows => ResourceManager.GetString("Venue_Rows", Culture)!;
     public static string Venue_RowsPH => ResourceManager.GetString("Venue_RowsPH", Culture)!;

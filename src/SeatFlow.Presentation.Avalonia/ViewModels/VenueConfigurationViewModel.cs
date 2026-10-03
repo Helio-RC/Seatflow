@@ -1538,24 +1538,28 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         var prevRows = new HashSet<int>(ParseIntList(GridAisleAfterRows));
         int spd = GridSeatsPerDesk > 0 ? GridSeatsPerDesk : 1;
 
-        // 列过道选项：以桌列为单位
+        // 列过道选项：以桌列为单位，标签取「第 N 列后」，tooltip 保留完整区间语义
         int deskCols = GridColumns / spd;
-        var colTargets = new List<(string Label, int SeatColumn)>();
+        var colTargets = new List<(string Label, int SeatColumn, string ToolTip)>();
         for (int d = 1; d < deskCols; d++)
         {
             int seatCol = d * spd; // 过道在该座位列索引之后
-            int leftStart = ((d - 1) * spd) + 1;
-            int leftEnd = d * spd;
-            int rightStart = (d * spd) + 1;
-            int rightEnd = Math.Min((d + 1) * spd, GridColumns);
-            colTargets.Add((string.Format(Resources.Venue_ColAisleFmt, leftStart, leftEnd, rightStart, rightEnd), seatCol));
+            colTargets.Add((
+                string.Format(Resources.Venue_ColAisleFmt, seatCol),
+                seatCol,
+                string.Format(Resources.Venue_ColAisleTooltipFmt, seatCol, seatCol + 1)));
         }
         SyncAisleOptions(AisleColumnOptions, colTargets, prevCols, SyncAisleColumnsFromOptions);
 
         // 行过道选项
-        var rowTargets = new List<(string Label, int SeatColumn)>();
+        var rowTargets = new List<(string Label, int SeatColumn, string ToolTip)>();
         for (int r = 1; r < GridRows; r++)
-            rowTargets.Add((string.Format(Resources.Venue_RowAisleFmt, r, r + 1), r));
+        {
+            rowTargets.Add((
+                string.Format(Resources.Venue_RowAisleFmt, r),
+                r,
+                string.Format(Resources.Venue_RowAisleTooltipFmt, r, r + 1)));
+        }
         SyncAisleOptions(AisleRowOptions, rowTargets, prevRows, SyncAisleRowsFromOptions);
     }
 
@@ -1620,38 +1624,49 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     /// </summary>
     private static void SyncAisleOptions(
         ObservableCollection<AisleOption> current,
-        List<(string Label, int SeatColumn)> targets,
+        List<(string Label, int SeatColumn, string ToolTip)> targets,
         HashSet<int> previousSelection,
         Action onSelectionChanged)
     {
+        bool structureChanged = false;
+
         while (current.Count > targets.Count)
+        {
             current.RemoveAt(current.Count - 1);
+            structureChanged = true;
+        }
 
         for (int i = 0; i < current.Count; i++)
         {
-            var (label, seatColumn) = targets[i];
+            var (label, seatColumn, toolTip) = targets[i];
             var option = current[i];
 
             if (option.SeatColumn != seatColumn)
             {
                 // 结构变化（如改变每桌人数）：保留原勾选状态迁移到新列位
-                var replacement = new AisleOption(label, seatColumn, option.IsSelected);
+                var replacement = new AisleOption(label, seatColumn, toolTip, option.IsSelected);
                 replacement.PropertyChanged += (_, _) => onSelectionChanged();
                 current[i] = replacement;
+                structureChanged = true;
             }
-            else if (option.Label != label)
+            else
             {
-                option.Label = label;
+                if (option.Label != label) option.Label = label;
+                if (option.ToolTip != toolTip) option.ToolTip = toolTip;
             }
         }
 
         for (int i = current.Count; i < targets.Count; i++)
         {
-            var (label, seatColumn) = targets[i];
-            var option = new AisleOption(label, seatColumn, previousSelection.Contains(seatColumn));
+            var (label, seatColumn, toolTip) = targets[i];
+            var option = new AisleOption(label, seatColumn, toolTip, previousSelection.Contains(seatColumn));
             option.PropertyChanged += (_, _) => onSelectionChanged();
             current.Add(option);
         }
+
+        // 结构变化后必须把迁移/移除后的勾选状态回写 spec，否则会保留已失效的过道位置
+        if (structureChanged)
+            onSelectionChanged();
     }
 
     /// <summary>过道勾选状态变化时同步回字符串。</summary>
@@ -2100,10 +2115,11 @@ public partial class DoorItem : ObservableObject
     }
 }
 
-public partial class AisleOption(string label, int seatColumn, bool selected = false) : ObservableObject
+public partial class AisleOption(string label, int seatColumn, string toolTip, bool selected = false) : ObservableObject
 {
     public string Label { get; set; } = label;
     public int SeatColumn { get; set; } = seatColumn;
+    public string ToolTip { get; set; } = toolTip;
 
     [ObservableProperty]
     public partial bool IsSelected { get; set; } = selected;
