@@ -106,7 +106,7 @@ jobs:
   # ──────────────────────────────────────────────
   build:
     needs: preflight
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -152,14 +152,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y squashfs-tools zstd
@@ -169,7 +161,32 @@ jobs:
         run: brew install zstd
 
       - name: Install vpk
-        run: dotnet tool install -g vpk && echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+        run: dotnet tool install -g vpk --version 1.2.161 && echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Restore Velopack history cache
+        if: needs.preflight.outputs.is_pre != 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: publish/history
+          key: vpk-history-${{ matrix.rid }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vpk-history-${{ matrix.rid }}-
+
+      - name: Install oss2
+        if: needs.preflight.outputs.is_pre != 'true'
+        run: pip install oss2 packaging
+
+      - name: Sync Velopack history from OSS
+        if: needs.preflight.outputs.is_pre != 'true'
+        env:
+          OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+          OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
+          OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
+          OSS_BUCKET: ${{ vars.OSS_BUCKET }}
+        run: |
+          python3 scripts/ci/sync_velopack_history.py \
+            --channel ${{ matrix.rid }} \
+            --output-dir publish/history
 
       - name: dotnet publish
         run: |
@@ -180,6 +197,7 @@ jobs:
             -o publish/tmp
 
       - name: Fetch previous release (delta base)
+        if: needs.preflight.outputs.is_pre == 'true'
         shell: bash
         env:
           VPK_CHANNEL: ${{ matrix.rid }}
@@ -216,7 +234,7 @@ jobs:
             --mainExe ${{ matrix.main-exe }} \
             --runtime ${{ matrix.rid }} \
             --channel ${{ matrix.rid }} \
-            --outputDir publish/out \
+            --outputDir "$VPK_OUTPUT_DIR" \
             --packTitle "SeatFlow" \
             --packAuthors "Helio-RC" \
             --icon ${{ matrix.icon }} \
@@ -227,17 +245,30 @@ jobs:
           VPK_KEY_ID: ${{ secrets.VPK_KEY_ID }}
           VPK_KEY_FILE: ${{ secrets.VPK_KEY_FILE }}
           VPK_KEY_PASSWORD: ${{ secrets.VPK_KEY_PASSWORD }}
+          VPK_OUTPUT_DIR: ${{ needs.preflight.outputs.is_pre == 'true' && 'publish/out' || 'publish/history' }}
+
+      - name: Stage release artifacts
+        shell: bash
+        env:
+          VPK_OUTPUT_DIR: ${{ needs.preflight.outputs.is_pre == 'true' && 'publish/out' || 'publish/history' }}
+        run: |
+          bash scripts/ci/stage_velopack_artifacts.sh \
+            "$VPK_OUTPUT_DIR" publish/dist \
+            "${{ needs.preflight.outputs.version }}" \
+            "${{ matrix.rid }}" \
+            "${{ needs.preflight.outputs.is_pre }}"
+
+      - name: Save Velopack history cache
+        if: needs.preflight.outputs.is_pre != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: publish/history
+          key: vpk-history-${{ matrix.rid }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: release-${{ matrix.rid }}
-          path: |
-            publish/out/*.exe
-            publish/out/*.AppImage
-            publish/out/*.pkg
-            publish/out/*.dmg
-            publish/out/*.nupkg
-            publish/out/releases.*.json
-            publish/out/RELEASES-*
+          path: publish/dist/*
           if-no-files-found: error
