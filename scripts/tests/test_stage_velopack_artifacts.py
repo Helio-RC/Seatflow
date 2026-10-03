@@ -30,6 +30,7 @@ class TestStageVelopackArtifacts(unittest.TestCase):
         (self.src / "releases.win-x64.json").write_text("{}", encoding="utf-8")
         (self.src / "RELEASES-win-x64").write_text("legacy", encoding="utf-8")
         (self.src / "assets.win-x64.json").write_text("{}", encoding="utf-8")
+        (self.src / "SeatFlow-win-x64-Portable.zip").write_bytes(b"portable")
 
     def run_script(self, is_pre: str = "false") -> subprocess.CompletedProcess:
         return subprocess.run(
@@ -54,6 +55,7 @@ class TestStageVelopackArtifacts(unittest.TestCase):
         )
         self.assertFalse((self.src / "SeatFlow-win-x64-Setup.exe").exists())
         self.assertFalse((self.src / "assets.win-x64.json").exists())
+        self.assertFalse((self.src / "SeatFlow-win-x64-Portable.zip").exists())
         self.assertTrue((self.src / "SeatFlow-2.0.0-win-x64-full.nupkg").exists())
 
     def test_pre_release_keeps_src_installers(self):
@@ -62,6 +64,7 @@ class TestStageVelopackArtifacts(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.src / "SeatFlow-win-x64-Setup.exe").exists())
         self.assertTrue((self.src / "assets.win-x64.json").exists())
+        self.assertTrue((self.src / "SeatFlow-win-x64-Portable.zip").exists())
         self.assertTrue((self.dist / "SeatFlow-2.1.0-win-x64-delta.nupkg").exists())
 
     def test_missing_channel_files_fails(self):

@@ -45,10 +45,14 @@ for f in "${feeds[@]}"; do
   copied=$((copied + 1))
 done
 
-# 稳定版：历史目录只保留 nupkg 与 channel 文件，缩小缓存体积
+# 稳定版：历史目录只保留 nupkg 与 channel 文件（安装包、Portable.zip、assets.*.json 等全部清理）
 if [ "$IS_PRE" != "true" ]; then
-  for f in "$SRC"/*.exe "$SRC"/*.AppImage "$SRC"/*.pkg "$SRC"/*.dmg "$SRC"/assets.*.json; do
-    rm -f "$f"
+  for f in "$SRC"/*; do
+    [ -f "$f" ] || continue
+    case "$(basename "$f")" in
+      *.nupkg|releases.*.json|RELEASES-*) ;;
+      *) rm -f "$f" ;;
+    esac
   done
 fi
 
