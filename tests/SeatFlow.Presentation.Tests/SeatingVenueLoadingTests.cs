@@ -128,4 +128,27 @@ public class SeatingVenueLoadingTests
         vm.SelectedVenue!.Id.Should().Be(VenueId);
         await facade.Received(1).LoadVenueAsync(VenueId, Arg.Any<CancellationToken>());
     }
+
+    [AvaloniaFact]
+    public async Task 会场列表_按名称自然排序()
+    {
+        var facade = Substitute.For<IApplicationFacade>();
+        facade.ListVenueSummariesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<VenueSummary>>(
+            [
+                new VenueSummary("v10", "教室10"),
+                new VenueSummary("v2", "教室2"),
+            ]));
+        facade.ListStudentDatasetsAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<StudentDatasetInfo>>([]));
+        facade.LoadAppSettingsAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AppSettings()));
+        facade.GetStrategiesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new List<StrategyDisplayInfo>()));
+
+        var vm = CreateVm(facade);
+        await vm.RefreshDataAsync();
+
+        vm.VenueItems.Select(v => v.Name).Should().Equal("教室2", "教室10");
+    }
 }

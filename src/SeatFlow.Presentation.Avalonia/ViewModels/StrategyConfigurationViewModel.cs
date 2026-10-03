@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Strategies;
+using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -179,6 +180,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
         {
             if (!_loaded)
                 await LoadAsync(_enterCts.Token);
+            else
+                await RefreshPickerListsAsync(_enterCts.Token);
         }
         catch (OperationCanceledException)
         {
@@ -201,6 +204,97 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
 
     /// <summary>标记策略/数据集/会场缓存失效（下次进入重新加载）。供 .seatsets 导入等场景调用。</summary>
     public void InvalidateData() => _loaded = false;
+
+    /// <summary>
+    /// 缓存命中时刷新数据集/会场选择器列表（重命名/增删后回到本页也能显示最新名称）；
+    /// 仅在内容有变化时替换集合并按 Id 恢复原选择，避免无谓的配置重载。
+    /// </summary>
+    private async Task RefreshPickerListsAsync(CancellationToken ct)
+    {
+        try
+        {
+            var datasets = await _facade.ListStudentDatasetsAsync(ct);
+            ct.ThrowIfCancellationRequested();
+            var datasetItems = BuildDatasetItems(datasets);
+
+            var venues = await _facade.ListVenueSummariesAsync(ct);
+            ct.ThrowIfCancellationRequested();
+            var venueItems = BuildVenueItems(venues);
+
+            _datasetItems = datasetItems;
+            _venueItems = venueItems;
+
+            foreach (var editor in ConfigBlockEditors)
+                RefreshEditorPickers(editor, datasetItems, venueItems);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "刷新数据集/会场列表失败");
+        }
+    }
+
+    private static void RefreshEditorPickers(
+        ConfigBlockEditorViewModel editor,
+        List<DatasetItem> datasets,
+        List<DatasetItem> venues)
+    {
+        if (PickerItemsDiffer(editor.AvailableDatasets, datasets))
+        {
+            var selectedId = editor.SelectedDataset?.Id;
+            editor.AvailableDatasets = new ObservableCollection<DatasetItem>(CloneItems(datasets));
+            editor.SelectedDataset = selectedId is null
+                ? null
+                : editor.AvailableDatasets.FirstOrDefault(i => i.Id == selectedId);
+        }
+
+        if (PickerItemsDiffer(editor.AvailableVenues, venues))
+        {
+            var selectedId = editor.SelectedVenue?.Id;
+            editor.AvailableVenues = new ObservableCollection<DatasetItem>(CloneItems(venues));
+            editor.SelectedVenue = selectedId is null
+                ? null
+                : editor.AvailableVenues.FirstOrDefault(i => i.Id == selectedId);
+        }
+    }
+
+    private static List<DatasetItem> CloneItems(List<DatasetItem> items)
+        => [.. items.Select(i => new DatasetItem { Id = i.Id, Name = i.Name })];
+
+    /// <summary>数据集选择项：按名称自然排序（数字按大小），同名回退 Id 保证稳定。</summary>
+    private static List<DatasetItem> BuildDatasetItems(IEnumerable<StudentDatasetInfo> datasets)
+        => [.. datasets
+            .OrderBy(d => d.Name, NaturalStringComparer.Instance)
+            .ThenBy(d => d.Id, StringComparer.Ordinal)
+            .Select(d => new DatasetItem { Id = d.Id, Name = d.Name })];
+
+    /// <summary>会场选择项：按名称自然排序，同名回退 Id 保证稳定。</summary>
+    private static List<DatasetItem> BuildVenueItems(IEnumerable<VenueSummary> venues)
+        => [.. venues
+            .OrderBy(v => v.Name, NaturalStringComparer.Instance)
+            .ThenBy(v => v.Id, StringComparer.Ordinal)
+            .Select(v => new DatasetItem { Id = v.Id, Name = v.Name })];
+
+    /// <summary>比较 Id→Name 映射，判断选择器列表是否有可见变化。</summary>
+    private static bool PickerItemsDiffer(IReadOnlyCollection<DatasetItem> current, List<DatasetItem> fresh)
+    {
+        if (current.Count != fresh.Count) return true;
+
+        var names = new Dictionary<string, string>(current.Count);
+        foreach (var item in current)
+            names[item.Id] = item.Name;
+
+        foreach (var item in fresh)
+        {
+            if (!names.TryGetValue(item.Id, out var name) || name != item.Name)
+                return true;
+        }
+
+        return false;
+    }
 
     // ═══════════════ IGuideSeedTarget（M5：引导演示注入/清理下沉到页面） ═══════════════
 
@@ -310,11 +404,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
             var displayInfos = await _facade.GetStrategiesAsync(ct);
             _allDisplayInfos = displayInfos;
 
-            // 数据集/会场名称列表（供配置块编辑器复用，避免每次选中策略重复加载）
+            // 数据集/会场名称列表（供配置块编辑器复用，避免每次选中策略重复加载；按名称自然排序）
             var datasets = await _facade.ListStudentDatasetsAsync(ct);
-            _datasetItems = datasets.Select(d => new DatasetItem { Id = d.Id, Name = d.Name }).ToList();
-            var venueIds = await _facade.ListVenueIdsAsync(ct);
-            _venueItems = venueIds.Select(v => new DatasetItem { Id = v, Name = v }).ToList();
+            _datasetItems = BuildDatasetItems(datasets);
+            var venues = await _facade.ListVenueSummariesAsync(ct);
+            _venueItems = BuildVenueItems(venues);
 
             // 分类：独立策略 vs 依赖策略
             var independentInfos = displayInfos

@@ -8,6 +8,7 @@ using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.DomainServices;
 using SeatFlow.Core.Models;
 using SeatFlow.Presentation.Avalonia.Controls;
+using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -272,12 +273,15 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
             }
 
             ct.ThrowIfCancellationRequested();
-            Venues = items;
+            Venues = new ObservableCollection<VenueItem>(
+                items
+                    .OrderBy(v => v.Name, NaturalStringComparer.Instance)
+                    .ThenBy(v => v.Id, StringComparer.Ordinal));
             StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, items.Count);
 
             // 重新选中之前的会场
             if (previousVenueId != null)
-                SelectedVenue = items.FirstOrDefault(v => v.Id == previousVenueId);
+                SelectedVenue = Venues.FirstOrDefault(v => v.Id == previousVenueId);
 
             return true;
         }

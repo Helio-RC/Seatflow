@@ -15,6 +15,7 @@ using SeatFlow.Core.Workspace;
 using SeatFlow.Infrastructure.Serialization;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Controls;
+using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -480,7 +481,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         {
             var summaries = await _facade.ListVenueSummariesAsync();
             VenueItems = new ObservableCollection<VenueItem>(
-                summaries.Select(s => new VenueItem(s.Id, s.Name)));
+                summaries
+                    .OrderBy(s => s.Name, NaturalStringComparer.Instance)
+                    .ThenBy(s => s.Id, StringComparer.Ordinal)
+                    .Select(s => new VenueItem(s.Id, s.Name)));
         });
     }
 
@@ -490,7 +494,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// </summary>
     private async Task RefreshVenueSummariesAsync(CancellationToken ct)
     {
-        var summaries = await _facade.ListVenueSummariesAsync(ct);
+        var summaries = (await _facade.ListVenueSummariesAsync(ct))
+            .OrderBy(s => s.Name, NaturalStringComparer.Instance)
+            .ThenBy(s => s.Id, StringComparer.Ordinal)
+            .ToList();
         ct.ThrowIfCancellationRequested();
 
         var selectedId = SelectedVenue?.Id;
@@ -521,6 +528,20 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
                 {
                     VenueItems.Add(new VenueItem(summary.Id, summary.Name));
                 }
+            }
+
+            // 名称自然排序：把现有项移动到有序位置（新增项已按 summaries 顺序追加）
+            for (var target = 0; target < summaries.Count; target++)
+            {
+                var targetId = summaries[target].Id;
+                var current = -1;
+                for (var i = target; i < VenueItems.Count; i++)
+                {
+                    if (VenueItems[i].Id == targetId) { current = i; break; }
+                }
+
+                if (current > target)
+                    VenueItems.Move(current, target);
             }
 
             if (!string.IsNullOrEmpty(selectedId))

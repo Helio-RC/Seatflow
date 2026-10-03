@@ -475,7 +475,10 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
         try
         {
             var datasets = await _facade.ListStudentDatasetsAsync(ct);
-            SavedDatasets = new ObservableCollection<StudentDatasetInfo>(datasets);
+            SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
+                datasets
+                    .OrderBy(d => d.Name, NaturalStringComparer.Instance)
+                    .ThenBy(d => d.Id, StringComparer.Ordinal));
             return true;
         }
         catch (OperationCanceledException)

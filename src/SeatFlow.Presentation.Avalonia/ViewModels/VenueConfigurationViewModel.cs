@@ -13,6 +13,7 @@ using SeatFlow.Core.DomainServices;
 using SeatFlow.Core.Models;
 using SeatFlow.Infrastructure.Layouts;
 using SeatFlow.Presentation.Avalonia.Controls;
+using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform.Storage;
@@ -447,7 +448,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         {
             var summaries = await _facade.ListVenueSummariesAsync(ct);
             ct.ThrowIfCancellationRequested();
-            var items = summaries.Select(s => new VenueItem(s.Id, s.Name)).ToList();
+            var items = summaries
+                .OrderBy(s => s.Name, NaturalStringComparer.Instance)
+                .ThenBy(s => s.Id, StringComparer.Ordinal)
+                .Select(s => new VenueItem(s.Id, s.Name))
+                .ToList();
 
             var selectedId = SelectedVenueItem?.Id;
             _suppressAutoLoad = true;
