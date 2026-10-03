@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Enums;
 using SeatFlow.Core.Models;
+using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
 using Avalonia.Platform;
@@ -344,13 +345,29 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
         _guideSavedDatasets = null;
     }
 
+    /// <summary>
+    /// 人员表格显示排序：姓名自然序（汉字按拼音、数字按大小），同名回退 Id 保证稳定。
+    /// 落盘顺序仍由仓储按 Id 规范化为哈希用，二者互不影响。
+    /// </summary>
+    internal static IEnumerable<Student> SortStudents(IEnumerable<Student> students)
+        => students
+            .OrderBy(s => s.Name, NaturalStringComparer.Instance)
+            .ThenBy(s => s.Id, StringComparer.Ordinal);
+
+    /// <summary>人员显示排序键：姓名自然序 + Id 兜底。</summary>
+    internal static int CompareStudents(Student a, Student b)
+    {
+        int byName = NaturalStringComparer.Instance.Compare(a.Name, b.Name);
+        return byName != 0 ? byName : string.CompareOrdinal(a.Id, b.Id);
+    }
+
     /// <summary>用底层学生集合替换行集合（订阅行变更以驱动脏检查）。</summary>
     private void ReplaceStudents(IEnumerable<Student> students)
     {
         foreach (var row in Students)
             row.PropertyChanged -= OnRowPropertyChanged;
 
-        var rows = students.Select(s => new StudentRowViewModel(s)).ToList();
+        var rows = SortStudents(students).Select(s => new StudentRowViewModel(s)).ToList();
         foreach (var row in rows)
             row.PropertyChanged += OnRowPropertyChanged;
 
@@ -358,6 +375,24 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
         StudentCount = rows.Count;
         IsEmpty = rows.Count == 0;
         UseVirtualization = rows.Count > 300;
+    }
+
+    /// <summary>把行移动到与显示排序一致的位置（重命名后保持列表有序）。</summary>
+    private void MoveToSortedPosition(StudentRowViewModel row)
+    {
+        int oldIndex = Students.IndexOf(row);
+        if (oldIndex < 0) return;
+
+        int insertIndex = 0;
+        for (int i = 0; i < Students.Count; i++)
+        {
+            if (i == oldIndex) continue;
+            if (CompareStudents(row.Student, Students[i].Student) < 0) break;
+            insertIndex++;
+        }
+
+        if (insertIndex != oldIndex)
+            Students.Move(oldIndex, insertIndex);
     }
 
     private void OnRowPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -493,6 +528,13 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     private const string DefaultTemplateSuffix = "en_us";
     private const string DefaultTemplateDisplayName = "MemberImportTemplate.xlsx";
 
+    /// <summary>
+    /// 内置模板资源 URI。资源以 AvaloniaResource 编译在本程序集（Presentation.Avalonia），
+    /// 不能使用宿主的程序集名（桌面为 SeatFlow），否则 AssetLoader 解析失败。
+    /// </summary>
+    internal static Uri BuildTemplateUri(string suffix)
+        => new($"avares://{typeof(MemberManagementViewModel).Assembly.GetName().Name}/Assets/Files/Sample_{suffix}.xlsx");
+
     [RelayCommand]
     private async Task ExportTemplateAsync(CancellationToken ct)
     {
@@ -504,13 +546,13 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
             try
             {
                 var (suffix, displayName) = await ResolveTemplateLocaleAsync(ct);
-                var uri = new Uri($"avares://SeatFlow/Assets/Files/Sample_{suffix}.xlsx");
+                var uri = BuildTemplateUri(suffix);
 
                 if (!AssetLoader.Exists(uri))
                 {
                     suffix = DefaultTemplateSuffix;
                     displayName = DefaultTemplateDisplayName;
-                    uri = new Uri($"avares://SeatFlow/Assets/Files/Sample_{suffix}.xlsx");
+                    uri = BuildTemplateUri(suffix);
                 }
 
                 if (!AssetLoader.Exists(uri))
@@ -960,6 +1002,7 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
         if (row is null) return;
         row.ClearEditSnapshot();
         row.IsEditing = false;
+        MoveToSortedPosition(row);
         RefreshDirty();
     }
 
@@ -1001,7 +1044,14 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
             NeedsFrontRow = NewStudent.NeedsFrontRow
         });
         row.PropertyChanged += OnRowPropertyChanged;
-        Students.Add(row);
+
+        // 按显示排序插入，保持列表始终有序（与加载时一致）
+        int insertIndex = 0;
+        while (insertIndex < Students.Count &&
+               CompareStudents(Students[insertIndex].Student, row.Student) <= 0)
+            insertIndex++;
+        Students.Insert(insertIndex, row);
+
         _dirty.MarkDirty();
         RefreshDirty();
 

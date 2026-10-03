@@ -15,6 +15,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="SeatFlow" />
     <InternalsVisibleTo Include="SeatFlow.Browser" />
+    <InternalsVisibleTo Include="SeatFlow.Presentation.Tests" />
   </ItemGroup>
 
   <ItemGroup>
