@@ -401,7 +401,7 @@ bash scripts/ci/stage_velopack_artifacts.sh <src-dir> <dist-dir> <version> <chan
 
 - 复制：安装包（`*.exe / *.AppImage / *.pkg / *.dmg`）、本次 full/delta nupkg、`releases.*.json`、`RELEASES-*`
 - 排除：`assets.*.json`（vpk 内部文件）
-- 稳定版（`is-pre != true`）：从 src 清理安装包与 `assets.*.json`，保持缓存精简
+- 稳定版（`is-pre != true`）：从 src 删除除 `*.nupkg` / `releases.*.json` / `RELEASES-*` 外的全部文件（安装包、Portable.zip、`assets.*.json`），保持缓存精简
 
 ## fetch_previous.sh — 预发布 delta 基础
 

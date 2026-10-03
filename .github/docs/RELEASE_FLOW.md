@@ -11,6 +11,7 @@
 | `publish.yml` | workflow_run（release.yml 成功且 push 触发，自动）/ workflow_dispatch（手动） | **仅发布**：下载 artifacts → 版本校验 → OSS 上传（仅自动）→ GitHub Release（自动 latest / 手动永远 pre-release） |
 | `publish-web.yml` | workflow_run（publish.yml 成功且为 push 自动链路） | **在线版发布（仅正式版）**：WASM 构建 → OSS `online_worktable/<version>/` 上传 + 完整性校验 → KV `current` 切换 → 冒烟 → 清理旧版本 |
 | `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（无缓存，直接 restore） |
+| `actionlint.yml` | push/pull_request（`.github/workflows/**` 变更） | 校验工作流 YAML（钉版 actionlint 1.7.7 + SHA256） |
 | `worker-secret-sync.yml` | 每周一 03:00 UTC / 手动 | 将 OSS 密钥同步到 Cloudflare Worker（secrets-bulk） |
 
 > 构建与发布完全解耦：构建失败不会产生任何 Release；发布可独立重跑（手动指定
@@ -141,7 +142,7 @@ if [ -n "$VPK_KEY_PASSWORD" ]; then ARGS+=(--keyPassword "$VPK_KEY_PASSWORD"); f
 - `release.yml`（稳定版 build job）缓存 `publish/history`（Velopack 打包历史）：
   key `vpk-history-{rid}-{run_id}-{run_attempt}`，restore-keys 前缀 `vpk-history-{rid}-`；
   每次运行保存新 key（滚动）；保存失败（超限等）不阻塞发布，由 OSS 同步兜底
-- 历史目录只保留 nupkg 与 channel 文件；安装包与 `assets.*.json` 在暂存后即被清理
+- 历史目录只保留 nupkg 与 channel 文件；安装包、Portable.zip、`assets.*.json` 在暂存后即被清理
 
 ## 八、脚本约定（scripts/ci/）
 
