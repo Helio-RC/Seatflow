@@ -143,7 +143,9 @@ python3 scripts/i18n.py export -o t.csv | import t.csv --dry-run|--force
 完整参考 `scripts/ToolsCollection.md`。`scripts/version.py` 管理 15+ 处版本一致性
 （`show`/`check`/`bump-app`/`bump-file`/`bump-strategy`/`bump-onboarding`/`sync`；`bump-file` 自动同步 Model 类）。
 `scripts/build/publish.*` 多平台发布，`scripts/build/clean.*` 清理，`scripts/release/release.py` 发布编排
-（读根目录 `RELEASE.md` 作为 Release body）；`scripts/ui-inspect/` 无头 UI 查看/交互/性能采样工具链。
+（读根目录 `RELEASE.md` 作为 Release body）；`scripts/ci/` 发布流水线辅助（`fetch_previous.sh` 预发布
+delta 基础、`sync_velopack_history.py` 稳定版从 OSS 同步打包历史、`stage_velopack_artifacts.sh` 暂存
+本次产物），详见 `.github/docs/RELEASE_FLOW.md`；`scripts/ui-inspect/` 无头 UI 查看/交互/性能采样工具链。
 脚本测试：`cd scripts && python3 -m pytest tests/ -v`。
 App 版本唯一来源是根目录 `version.json`（`commitId`/`buildDate` 由构建脚本生成，勿手改）。
 

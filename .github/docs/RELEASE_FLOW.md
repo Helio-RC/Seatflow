@@ -7,10 +7,10 @@
 
 | 工作流 | 触发 | 职责 |
 |--------|------|------|
-| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行 vpk 打包（delta、可选签名）→ 上传 artifacts |
+| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行。稳定版：restore 历史缓存 → OSS 同步 → vpk 打包（delta）、预发布：拉最新 full；暂存 artifacts |
 | `publish.yml` | workflow_run（release.yml 成功且 push 触发，自动）/ workflow_dispatch（手动） | **仅发布**：下载 artifacts → 版本校验 → OSS 上传（仅自动）→ GitHub Release（自动 latest / 手动永远 pre-release） |
 | `publish-web.yml` | workflow_run（publish.yml 成功且为 push 自动链路） | **在线版发布（仅正式版）**：WASM 构建 → OSS `online_worktable/<version>/` 上传 + 完整性校验 → KV `current` 切换 → 冒烟 → 清理旧版本 |
-| `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（NuGet 缓存） |
+| `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（无缓存，直接 restore） |
 | `worker-secret-sync.yml` | 每周一 03:00 UTC / 手动 | 将 OSS 密钥同步到 Cloudflare Worker（secrets-bulk） |
 
 > 构建与发布完全解耦：构建失败不会产生任何 Release；发布可独立重跑（手动指定
@@ -64,13 +64,21 @@ python3 scripts/ci/upload_web_oss.py --version <旧版本号> --switch-only
 
 ## 四、增量更新包（delta）
 
-`vpk pack` 前，构建 job 会调用 `scripts/ci/fetch_previous.sh`
-（封装 `vpk download http`）从更新源拉取上一版本产物：
+稳定版构建在 `vpk pack` 前通过 `scripts/ci/sync_velopack_history.py` 以 OSS 为唯一真源
+同步打包历史到 `publish/history`：保留全部历史 delta + 最新 2 个 full，并做双向对账
+（下载缺失/大小不符者；删除 OSS 上不存在的本地 nupkg）。`vpk pack --outputDir publish/history`
+据此生成 `SeatFlow-{version}-{rid}-delta.nupkg`，并让 `releases.{rid}.json` 携带完整
+delta 链（客户端按版本顺序串联，超过 10 跳或 delta 总大小超过 full 时退回全量下载）。
 
-- 成功 → vpk 自动生成 `SeatFlow-{version}-{rid}-delta.nupkg`，客户端增量更新链保持
-- 失败（首次发布 / 更新源不可达）→ 容错跳过，仅生成 full 包（日志含 warn）
+`publish/history` 通过 `actions/cache` 跨运行缓存（仅加速）；缓存失效时自动从 OSS
+全量回填。同步失败硬失败（不发版）；缓存保存失败不影响发布（`continue-on-error`）。
 
-delta 包随 `*.nupkg` glob 一并上传 OSS `updates/`。
+预发布（workflow_dispatch）不参与同步与缓存，仍由 `scripts/ci/fetch_previous.sh`
+（封装 `vpk download http`）拉取最新 full 作为 delta 基础，失败容错跳过。
+
+> 历史注意：2026-09 之前 Worker 对 nupkg 直链返回 403，`fetch_previous` 一直静默失败，
+> 因此 OSS 上 1.4.x / 2.0.0 没有任何 delta；链路自 2.1.0 起积累（不回填历史缺口，
+> 缺口仅在同步日志中列出）。
 
 ## 五、密钥轮换（Worker）
 
@@ -84,7 +92,7 @@ delta 包随 `*.nupkg` glob 一并上传 OSS `updates/`。
 
 | 名称 | 类型 | 用途 |
 |------|------|------|
-| `UPDATE_FEED_URL` | var | 更新源 base URL（`https://download.seatflow.work/updates/`），delta 基础下载 |
+| `UPDATE_FEED_URL` | var | 预发布 delta 基础（`vpk download http` 更新源）；稳定版已由 OSS 同步取代 |
 | `OSS_KEY_ID` / `OSS_KEY_SECRET` | secret | OSS 访问密钥（上传 + Worker 同步源） |
 | `OSS_ENDPOINT` / `OSS_BUCKET` | var | OSS 地址（桌面分发与在线版共用；Worker 回源桶为 `seatflow-download`） |
 | `CF_ACCOUNT_ID` / `CF_API_TOKEN` | secret | Cloudflare API 访问（Token 需含 `Workers Scripts: Edit` + `Workers KV Storage: Edit`） |
@@ -92,8 +100,9 @@ delta 包随 `*.nupkg` glob 一并上传 OSS `updates/`。
 | `CF_API_BASE` | var（可选） | Cloudflare API 基址（默认 `https://api.cloudflare.com`；填完整 `/client/v4` 基址亦可） |
 | `VPK_KEY_ID` / `VPK_KEY_FILE` / `VPK_KEY_PASSWORD` | secret（可选） | 代码签名（`--keyId`/`--keyFile`/`--keyPassword`），**任一为空即跳过签名环节**；Windows 用 pfx 证书，macOS 用 p12 |
 
-仓库 **Environment** 需创建 `OSS`（release job 引用）。`release.yml` push 触发时
-OSS 上传步骤需要 `OSS_*` 凭证；手动触发自动跳过该步骤，凭证缺失不影响。
+`release.yml` 的 build job 使用**仓库级** `OSS_KEY_ID/OSS_KEY_SECRET`（secrets）与
+`OSS_ENDPOINT/OSS_BUCKET`（vars）做历史同步（不引用 Environment）；`publish.yml`
+仍在 Environment `OSS` 中执行上传（该环境 branch policy 仅允许 `main`）。预发布不访问 OSS。
 
 > 在线版 KV 命名空间 id 内置在 `upload_web_oss.py`（`online_worktable`），
 > 如需覆盖可设置环境变量 `CF_KV_NAMESPACE_ID`，无需新增仓库变量。
@@ -128,9 +137,11 @@ if [ -n "$VPK_KEY_PASSWORD" ]; then ARGS+=(--keyPassword "$VPK_KEY_PASSWORD"); f
 
 ## 七、缓存策略
 
-- `unit-tests.yml` 与 `release.yml`（build job）均启用 `actions/cache`
-- 缓存路径：`~/.nuget/packages`；key：`{os}-nuget-{**/*.csproj hash}`，
-  restore-keys 回退 `{os}-nuget-`
+- `unit-tests.yml` 不再使用 NuGet 缓存（避免 2.5 GB 级条目反复堆积挤占仓库缓存配额）
+- `release.yml`（稳定版 build job）缓存 `publish/history`（Velopack 打包历史）：
+  key `vpk-history-{rid}-{run_id}-{run_attempt}`，restore-keys 前缀 `vpk-history-{rid}-`；
+  每次运行保存新 key（滚动）；保存失败（超限等）不阻塞发布，由 OSS 同步兜底
+- 历史目录只保留 nupkg 与 channel 文件；安装包与 `assets.*.json` 在暂存后即被清理
 
 ## 八、脚本约定（scripts/ci/）
 
@@ -139,7 +150,9 @@ if [ -n "$VPK_KEY_PASSWORD" ]; then ARGS+=(--keyPassword "$VPK_KEY_PASSWORD"); f
 | `upload_oss.py` | 上传产物至 OSS（凭据全部来自环境变量，无硬编码 URL/密钥） |
 | `upload_web_oss.py` | 在线版上传/完整性校验/KV 切换/旧版本清理（凭据全部来自环境变量） |
 | `rotate_worker_secrets.py` | Cloudflare secrets-bulk 同步（多 Worker；CF API 基址可通过 `CF_API_BASE` 覆盖） |
-| `fetch_previous.sh` | 封装 `vpk download http` 拉取上版本（delta 基础，容错） |
+| `fetch_previous.sh` | 封装 `vpk download http` 拉取上版本（仅预发布 delta 基础，容错） |
+| `sync_velopack_history.py` | 以 OSS 为真源同步 Velopack 打包历史（全部 delta + 最新 2 full，双向对账，缺口报告） |
+| `stage_velopack_artifacts.sh` | 暂存本次发布产物到 `publish/dist`；稳定版从历史目录清理安装包 |
 
 所有 URL / 账号 / 渠道标识均通过 `vars` / `secrets` 注入，脚本与工作流内无硬编码。
 客户端应用内 `UpdateService.UpdateApiBase` 为运行时常量，如需统一参数化请另行处理。

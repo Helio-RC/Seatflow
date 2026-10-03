@@ -371,3 +371,44 @@ python3 version.py sync --force
 
 前置条件：WASM 站点在本机 8090 端口服务、内网 Chromium（chrome-devtools MCP，
 `--browserUrl=http://localhost:3000`）、Node 24。
+
+---
+
+# ci — 发布流水线辅助脚本
+
+CI / 发布流水线使用的脚本（凭据全部来自环境变量，无硬编码密钥）。
+
+## sync_velopack_history.py — 同步 Velopack 打包历史
+
+以 OSS `updates/` 为唯一真源，将历史 nupkg 同步到本地打包目录：
+
+```bash
+OSS_KEY_ID=... OSS_KEY_SECRET=... OSS_ENDPOINT=... OSS_BUCKET=... \
+python3 scripts/ci/sync_velopack_history.py \
+  --channel win-x64 --output-dir publish/history [--full-keep 2] [--dry-run]
+```
+
+- 保留集 = 全部 `-delta.nupkg` + 版本最高的 2 个 `-full.nupkg`
+- 双向对账：下载缺失/大小不符（校验 size + MD5/ETag）；删除本地不在保留集的 `*.nupkg`
+- 缺口报告：存在 full 但没有指向它的 delta 时列出（仅警告，不重建）
+- 失败非零退出（发布硬失败）；`--dry-run` 只打印计划
+
+## stage_velopack_artifacts.sh — 暂存发布产物
+
+```bash
+bash scripts/ci/stage_velopack_artifacts.sh <src-dir> <dist-dir> <version> <channel> <is-pre>
+```
+
+- 复制：安装包（`*.exe / *.AppImage / *.pkg / *.dmg`）、本次 full/delta nupkg、`releases.*.json`、`RELEASES-*`
+- 排除：`assets.*.json`（vpk 内部文件）
+- 稳定版（`is-pre != true`）：从 src 清理安装包与 `assets.*.json`，保持缓存精简
+
+## fetch_previous.sh — 预发布 delta 基础
+
+封装 `vpk download http` 拉取最新 full（仅预发布使用；稳定版由 sync 脚本接管）。
+
+| 环境变量 | 说明 |
+|---|---|
+| `VPK_CHANNEL` | 渠道名（= matrix.rid） |
+| `UPDATE_FEED_URL` | 更新源 base URL |
+| `OUTPUT_DIR` | 输出目录（默认 `publish/out`） |

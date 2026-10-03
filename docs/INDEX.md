@@ -10,9 +10,10 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 ├── CONTRIBUTING.md            ← 开发环境、编码约定、添加功能流程
 ├── AGENTS.md                  ← AI 编码代理指南（唯一来源；含文件版本/迁移/JSON 约定）
 ├── CLAUDE.md                  ← 指向 AGENTS.md 的指针（Claude Code 兼容）
+├── .github/docs/RELEASE_FLOW.md ← CI/发布流水线说明（release/publish/web、delta 链、缓存、Secrets）
 ├── scripts/
 │   ├── i18n.py                ← i18n 资源管理脚本
-│   ├── ToolsCollection.md                ← 脚本完整文档（i18n / version / ui-inspect）
+│   ├── ToolsCollection.md                ← 脚本完整文档（i18n / version / ui-inspect / ci）
 │   ├── ui-inspect/             ← UI 无头查看/交互/性能采样工具链（WASM + CDP trace）
 │   ├── clean.sh / clean.ps1   ← 清理 bin/obj
 │   └── publish.sh / publish.ps1 ← 多平台发布
@@ -95,6 +96,11 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **何时更新**: 推翻或重大修改既有决策时
 - **关联文档**: ARCHITECTURE.md（引用 ADR）
 
+### .github/docs/RELEASE_FLOW.md
+- **覆盖**: GitHub Actions 发布流水线（release / publish / publish-web / worker-secret-sync）、delta 链与缓存策略、所需 Secrets/Vars、scripts/ci 脚本
+- **何时更新**: 工作流结构、触发条件、发布步骤、delta/缓存策略、secrets/vars 变更
+- **关联文档**: AGENTS.md（脚本工具）、scripts/ToolsCollection.md、docs/adr/ADR-010
+
 ### scripts/ToolsCollection.md
 - **覆盖**: 项目脚本完整参考（i18n / version / ui-inspect 等），包括子命令、安全机制、命名规范、常见工作流
 - **何时更新**: 脚本新增子命令、修改校验规则、修改工作流
@@ -147,3 +153,4 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 修改 Web/WASM 双壳、存储抽象或浏览器平台实现 | docs/WebDeployment.md、ARCHITECTURE.md（6.4 节）、AGENTS.md（Web/WASM 双壳）、README.md |
 | 修改页面生命周期/横切服务/外壳 IA（M0–M6 重构） | docs/UI_REFACTOR.md、ADR-014、AGENTS.md、Design_Spec.md |
 | 推进开发阶段 | README.md（状态表）、Phases.md |
+| 修改 CI/发布流水线（workflows / scripts/ci） | .github/docs/RELEASE_FLOW.md、scripts/ToolsCollection.md、AGENTS.md（脚本工具）、CHANGELOG.md |

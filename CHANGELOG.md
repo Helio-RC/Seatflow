@@ -23,6 +23,7 @@
 - **座位安排导出全面重设计**：统一页眉信息（「座位表 + 短时间」标题、会场/名单/视角/完整生成时间、By SeatFlow 版本小字）与导出文案（随 UI 语言注入 `ExportOptions`）
 - XLSX/CSV 采用正式打印风：标题/信息行合并、自适应列宽与行高、细线框、低饱和浅色块、讲台居中合并、门用虚线边列；XLSX 关闭网格线、冻结表头、横向适应一页宽并重复打印标题行
 - PNG/PDF 采用应用预览风：圆角座位卡、讲台居中宽块、过道留白、门虚线圆角牌、图例化配色；PDF 改为内容自适应页面并居中排版，不再出现大片空白；PNG 限制长边 ≤ 2000px 并回退嵌入 Noto Sans SC，保证无中文字体环境也能正确渲染
+- **发布流水线增量更新修复**：稳定版构建以 OSS 为唯一真源同步 Velopack 打包历史（`sync_velopack_history.py`，全部 delta + 最新 2 个 full，双向对账）并跨运行缓存 `publish/history`，`releases.{rid}.json` 携带完整 delta 链；修复此前 `fetch_previous` 因 Worker 403 静默失败导致从未生成 delta 的问题；CI vpk 钉 1.2.161；移除 NuGet 缓存
 
 ### Fixed
 - WASM 运行时语言切换（此前 en-US 永远回退中文）：`UseSystemResourceKeys=false` + `main.js` 预加载卫星资源
