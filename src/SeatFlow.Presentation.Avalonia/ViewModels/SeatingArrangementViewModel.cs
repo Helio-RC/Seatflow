@@ -1515,6 +1515,45 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     private async Task ExportTeacherImageAsync() => await ExportAsync(ExportFormat.Png,
         [new FilePickerFileType(Resources.Seating_PNGFile) { Patterns = ["*.png"] }], Resources.Seating_PNGDefault, LayoutPerspective.TeacherView);
 
+    private ExportOptions BuildExportOptions(ExportFormat format, LayoutPerspective perspective)
+    {
+        var now = DateTime.Now;
+        var viewLabel = perspective == LayoutPerspective.TeacherView
+            ? Resources.Seating_TeacherView
+            : Resources.Seating_StudentView;
+
+        var infoParts = new List<string>();
+        var labelSeparator = Resources.Seating_ExportLabelSeparator;
+        var venueName = SelectedVenue?.Name ?? _currentLayout?.Name;
+        if (!string.IsNullOrWhiteSpace(venueName))
+            infoParts.Add($"{Resources.Seating_Venue}{labelSeparator}{venueName}");
+        if (!string.IsNullOrWhiteSpace(SelectedDataset?.Name))
+            infoParts.Add($"{Resources.Seating_MemberData}{labelSeparator}{SelectedDataset.Name}");
+        infoParts.Add($"{Resources.Seating_ExportPerspective}{labelSeparator}{viewLabel}");
+        infoParts.Add($"{Resources.Seating_ExportGeneratedAt}{labelSeparator}{now:yyyy-MM-dd HH:mm:ss}");
+
+        return new ExportOptions
+        {
+            Format = format,
+            IncludeMetadata = true,
+            Perspective = perspective,
+            HeaderTitle = $"{Resources.Seating_ExportChartTitle}  {now:yyyy-MM-dd HH:mm}",
+            HeaderSubtitle = string.Join(Resources.Seating_ExportInfoSeparator, infoParts),
+            FooterNote = $"By SeatFlow v{VersionInfo.Version}",
+            Texts = new ExportTexts
+            {
+                SeatingChart = Resources.Seating_ExportChartTitle,
+                Unassigned = Resources.Seating_TabUnassigned,
+                Podium = Resources.Freeform_Podium,
+                Door = Resources.Freeform_Door,
+                DoorNumberFormat = Resources.Freeform_DoorFmt,
+                LabelSeparator = labelSeparator,
+                InfoSeparator = Resources.Seating_ExportInfoSeparator,
+                DoorSeparator = Resources.Seating_ExportDoorSeparator,
+            }
+        };
+    }
+
     private async Task ExportAsync(ExportFormat format, IReadOnlyList<FilePickerFileType> types, string suggestedName, LayoutPerspective perspective = LayoutPerspective.StudentView)
     {
         if (Interlocked.CompareExchange(ref _dialogLock, 1, 0) != 0) return;
@@ -1542,7 +1581,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
                 // WASM：导出 → 字节 → 浏览器下载（无文件系统）
                 var webOk = await SafeExecuteAsync(async (ct) =>
                 {
-                    var options = new ExportOptions { Format = format, IncludeMetadata = true, Perspective = perspective };
+                    var options = BuildExportOptions(format, perspective);
                     var bytes = await _facade.ExportSeatingPlanBytesAsync(_workspace, _currentLayout, options, ct);
                     await _fileService.SaveFileBytesAsync(fullSuggestedName, bytes, types);
                     StatusMessage = string.Format(Resources.Seating_ExportedFmt, fullSuggestedName);
@@ -1558,7 +1597,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
             var filePath = file.Path.LocalPath;
             var ok = await SafeExecuteAsync(async (ct) =>
             {
-                var options = new ExportOptions { Format = format, IncludeMetadata = true, Perspective = perspective };
+                var options = BuildExportOptions(format, perspective);
                 await _facade.ExportSeatingPlanAsync(_workspace, _currentLayout, filePath, options, ct);
                 StatusMessage = string.Format(Resources.Seating_ExportedFmt, file.Name);
             }, ExportTimeout, Resources.Seating_ExportTitle);

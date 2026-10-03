@@ -385,14 +385,8 @@ namespace SeatFlow.Application.Services
                 {
                     var assignments = workspace.BuildSeatingPlan().Assignments;
                     var studentNames = workspace.Students.ToDictionary(s => s.Id, s => s.Name);
-                    var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames);
-                    // 教师视角：行前后反转（讲台移至底部）+ 列左右镜像（教师左侧对应学生右侧）
-                    if (options.Perspective == LayoutPerspective.TeacherView)
-                    {
-                        model.Rows.Reverse();
-                        foreach (var row in model.Rows)
-                            row.Cells.Reverse();
-                    }
+                    var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames, options.Texts);
+                    model.ApplyPerspective(options.Perspective);
                     await exporter.ExportLayoutAsync(model, path, options, cancellationToken);
                 }
                 else
@@ -439,13 +433,8 @@ namespace SeatFlow.Application.Services
             {
                 var assignments = workspace.BuildSeatingPlan().Assignments;
                 var studentNames = workspace.Students.ToDictionary(s => s.Id, s => s.Name);
-                var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames);
-                if (options.Perspective == LayoutPerspective.TeacherView)
-                {
-                    model.Rows.Reverse();
-                    foreach (var row in model.Rows)
-                        row.Cells.Reverse();
-                }
+                var model = LayoutSeatingExportModel.FromLayout(layout, assignments, studentNames, options.Texts);
+                model.ApplyPerspective(options.Perspective);
                 return await exporter.ExportLayoutBytesAsync(model, options, cancellationToken);
             }
             var plan = workspace.BuildSeatingPlan();

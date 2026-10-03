@@ -53,7 +53,7 @@ namespace SeatFlow.Infrastructure.Exporters
         {
             cancellationToken.ThrowIfCancellationRequested();
             _logger.LogInformation("CSV 布局导出开始: {Path}", path);
-            var bytes = await BuildLayoutCsvBytesAsync(model, cancellationToken);
+            var bytes = await BuildLayoutCsvBytesAsync(model, options, cancellationToken);
             await System.IO.File.WriteAllBytesAsync(path, bytes, cancellationToken);
             _logger.LogInformation("CSV 布局导出完成: {Path}", path);
         }
@@ -61,17 +61,36 @@ namespace SeatFlow.Infrastructure.Exporters
         /// <inheritdoc />
         public async Task<byte[]> ExportLayoutBytesAsync(LayoutSeatingExportModel model, ExportOptions options, CancellationToken cancellationToken = default)
         {
-            return await BuildLayoutCsvBytesAsync(model, cancellationToken);
+            return await BuildLayoutCsvBytesAsync(model, options, cancellationToken);
         }
 
-        private static async Task<byte[]> BuildLayoutCsvBytesAsync(LayoutSeatingExportModel model, CancellationToken ct)
+        private static async Task<byte[]> BuildLayoutCsvBytesAsync(LayoutSeatingExportModel model, ExportOptions options, CancellationToken ct)
         {
             using var ms = new MemoryStream();
             await using (var writer = new StreamWriter(ms, new System.Text.UTF8Encoding(true), leaveOpen: true))
             {
-                await writer.WriteLineAsync($"# {model.LayoutName}");
+                // 页眉注释行：标题 + 会场/名单/视角/时间 + 页脚
+                await writer.WriteLineAsync($"# {options.HeaderTitle ?? options.Texts.SeatingChart}");
+                var subtitle = options.HeaderSubtitle ?? model.LayoutName;
+                if (!string.IsNullOrWhiteSpace(subtitle))
+                    await writer.WriteLineAsync($"# {subtitle}");
+                if (!string.IsNullOrWhiteSpace(options.FooterNote))
+                    await writer.WriteLineAsync($"# {options.FooterNote}");
+
+                bool hasLeft = model.HasLeftMargin;
+                bool hasRight = model.HasRightMargin;
+                int rowIndex = 0;
                 foreach (var row in model.Rows)
-                    await writer.WriteLineAsync(string.Join(",", row.Cells.Select(c => EscapeCsv(c.Text))));
+                {
+                    if (++rowIndex % 30 == 0)
+                        ct.ThrowIfCancellationRequested();
+
+                    var fields = new List<string>();
+                    if (hasLeft) fields.Add(row.LeftMarginText ?? "");
+                    fields.AddRange(row.Cells.Select(c => c.Text));
+                    if (hasRight) fields.Add(row.RightMarginText ?? "");
+                    await writer.WriteLineAsync(string.Join(",", fields.Select(EscapeCsv)));
+                }
                 await writer.FlushAsync(ct);
             }
             return ms.ToArray();

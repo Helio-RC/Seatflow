@@ -819,8 +819,26 @@
   <data name="Seating_Export" xml:space="preserve">
     <value>导出</value>
   </data>
+  <data name="Seating_ExportChartTitle" xml:space="preserve">
+    <value>座位表</value>
+  </data>
+  <data name="Seating_ExportDoorSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="Seating_ExportGeneratedAt" xml:space="preserve">
+    <value>生成时间</value>
+  </data>
+  <data name="Seating_ExportInfoSeparator" xml:space="preserve">
+    <value>  ｜  </value>
+  </data>
+  <data name="Seating_ExportLabelSeparator" xml:space="preserve">
+    <value>：</value>
+  </data>
   <data name="Seating_ExportPNG" xml:space="preserve">
     <value>预览图片 (.png)</value>
+  </data>
+  <data name="Seating_ExportPerspective" xml:space="preserve">
+    <value>视角</value>
   </data>
   <data name="Seating_ExportTimeout" xml:space="preserve">
     <value>导出超时，已取消</value>

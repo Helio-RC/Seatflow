@@ -278,7 +278,13 @@ public class Resources
     public static string Seating_DiscardAndLeave => ResourceManager.GetString("Seating_DiscardAndLeave", Culture)!;
     public static string Seating_EmptySeatFmt => ResourceManager.GetString("Seating_EmptySeatFmt", Culture)!;
     public static string Seating_Export => ResourceManager.GetString("Seating_Export", Culture)!;
+    public static string Seating_ExportChartTitle => ResourceManager.GetString("Seating_ExportChartTitle", Culture)!;
+    public static string Seating_ExportDoorSeparator => ResourceManager.GetString("Seating_ExportDoorSeparator", Culture)!;
+    public static string Seating_ExportGeneratedAt => ResourceManager.GetString("Seating_ExportGeneratedAt", Culture)!;
+    public static string Seating_ExportInfoSeparator => ResourceManager.GetString("Seating_ExportInfoSeparator", Culture)!;
+    public static string Seating_ExportLabelSeparator => ResourceManager.GetString("Seating_ExportLabelSeparator", Culture)!;
     public static string Seating_ExportPNG => ResourceManager.GetString("Seating_ExportPNG", Culture)!;
+    public static string Seating_ExportPerspective => ResourceManager.GetString("Seating_ExportPerspective", Culture)!;
     public static string Seating_ExportTimeout => ResourceManager.GetString("Seating_ExportTimeout", Culture)!;
     public static string Seating_ExportTitle => ResourceManager.GetString("Seating_ExportTitle", Culture)!;
     public static string Seating_ExportedFmt => ResourceManager.GetString("Seating_ExportedFmt", Culture)!;

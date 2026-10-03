@@ -128,6 +128,36 @@ public class ApplicationFacadeTests
     }
 
     [Fact]
+    public async Task ExportSeatingPlanAsync_ShouldUseTextsFromOptions()
+    {
+        var facade = CreateFacade(out _, out _, out var exporter,
+            out _, out _, out _, out _, out _, out _, out _, out _);
+        var seats = new List<Seat> { new GridSeat { Row = 1, Column = 1, Id = "s1" } };
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "文案布局",
+            LayoutType = LayoutType.Grid,
+            Metadata = new GridLayoutMetadata { Rows = 1, Columns = 1, HasPodium = false },
+            Seats = seats
+        };
+        var ws = new SeatingWorkspace(new List<Student>(), seats);
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Excel,
+            Texts = new ExportTexts { Unassigned = "Empty" }
+        };
+        exporter.Format.Returns(ExportFormat.Excel);
+
+        await facade.ExportSeatingPlanAsync(ws, layout, "test.xlsx", options, CancellationToken.None);
+
+        await exporter.Received(1).ExportLayoutAsync(
+            Arg.Is<LayoutSeatingExportModel>(m => m!.Rows[0].Cells[0].Text == "Empty"),
+            "test.xlsx",
+            Arg.Any<ExportOptions>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ExecuteCommandAsync_ShouldDelegateToHistory()
     {
         var facade = CreateFacade(out _, out _, out _,

@@ -72,9 +72,7 @@ public class CsvSeatingExporterTests
             ]
         };
         // 模拟 ApplicationFacade 中 TeacherView 时的行列反转
-        model.Rows.Reverse();
-        foreach (var row in model.Rows)
-            row.Cells.Reverse();
+        model.ApplyPerspective(LayoutPerspective.TeacherView);
 
         var exporter = new CsvSeatingExporter();
         var path = Path.GetTempFileName() + ".csv";
@@ -108,6 +106,54 @@ public class CsvSeatingExporterTests
             var zhangSanIndex = content.IndexOf("张三", StringComparison.Ordinal);
             wangWuIndex.Should().BeLessThan(liSiIndex);
             liSiIndex.Should().BeLessThan(zhangSanIndex);
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task ExportLayoutAsync_WithDoors_ShouldEmitHeaderAndMarginColumn()
+    {
+        var model = new LayoutSeatingExportModel
+        {
+            LayoutName = "有门会场",
+            LayoutType = LayoutType.Grid,
+            Rows =
+            [
+                new ExportRow
+                {
+                    Cells = [new ExportCell { IsSeat = true, Text = "张三" }],
+                    LeftMarginText = "门 #1"
+                },
+                new ExportRow
+                {
+                    Cells = [new ExportCell { IsSeat = true, IsUnassigned = true, Text = "未分配" }]
+                }
+            ]
+        };
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Csv,
+            HeaderTitle = "座位表  2026-10-03 00:36",
+            HeaderSubtitle = "会场：A ｜ 名单：B",
+            FooterNote = "By SeatFlow v2.1.0"
+        };
+
+        var exporter = new CsvSeatingExporter();
+        var path = Path.GetTempFileName() + ".csv";
+
+        try
+        {
+            await exporter.ExportLayoutAsync(model, path, options, CancellationToken.None);
+            var lines = await File.ReadAllLinesAsync(path, TestContext.Current.CancellationToken);
+
+            lines[0].Should().Be("# 座位表  2026-10-03 00:36");
+            lines[1].Should().Be("# 会场：A ｜ 名单：B");
+            lines[2].Should().Be("# By SeatFlow v2.1.0");
+            lines[3].Should().Be("门 #1,张三");
+            lines[4].Should().Be(",未分配");
         }
         finally
         {

@@ -16,6 +16,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageReference Include="xunit.v3" Version="4.0.1" />
+    <!-- PNG 导出器测试需要 Skia 原生资产（Linux） -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.153.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,13 +12,15 @@ namespace SeatFlow.Infrastructure.Exporters;
 
 public class PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null) : ISeatingPlanExporter
 {
-    private const float DefaultCellWidth = 22f;
-    private const float CompactCellWidth = 11f;
-    private const float HeaderRowHeight = 16f;
-    private const float DataRowHeight = 10f;
-    private const float AisleRowHeight = 6f;
     private const float PageMargin = 10f;
-    private const float FooterHeight = 10f;
+
+    // 预览海报风尺寸（mm）
+    private const float SeatColWidth = 16f;
+    private const float SeatRowHeight = 9f;
+    private const float AisleColWidth = 5f;
+    private const float AisleRowHeight = 5f;
+    private const float MarginColWidth = 9f;
+    private const float PodiumRowHeight = 12f;
 
     private readonly ILogger<PdfSeatingExporter> _logger = logger ?? NullLogger<PdfSeatingExporter>.Instance;
 
@@ -103,15 +105,45 @@ public class PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null) : IS
         cancellationToken.ThrowIfCancellationRequested();
         _logger.LogInformation("PDF 座位布局导出开始：{Path}（{RowCount} 行）", path, model.Rows.Count);
 
-        int maxCols = model.Rows.Count > 0 ? model.Rows.Max(r => r.Cells.Count) : 1;
-        int rowCount = model.Rows.Count;
+        var texts = options.Texts;
+        int dataCols = model.Rows.Count > 0 ? Math.Max(1, model.Rows.Max(r => r.Cells.Count)) : 1;
 
-        // 根据内容动态计算页面尺寸，不再硬限列数
-        float rowH = Math.Max(DataRowHeight, rowCount > 50 ? 7f : 10f);
-        float contentWidth = (maxCols * CompactCellWidth) + (PageMargin * 2);
-        float contentHeight = (rowCount * rowH) + (PageMargin * 2) + FooterHeight + HeaderRowHeight;
-        float pageWidth = Math.Clamp(contentWidth, 297f, 841f);  // A4 landscape ~ A0 portrait
-        float pageHeight = Math.Clamp(contentHeight, 210f, 1189f); // A4 landscape ~ A0
+        var colSeatCount = new int[dataCols];
+        var colAisleCount = new int[dataCols];
+        foreach (var row in model.Rows)
+            for (int i = 0; i < row.Cells.Count && i < dataCols; i++)
+            {
+                if (row.Cells[i].IsSeat) colSeatCount[i]++;
+                else if (row.Cells[i].IsAisle) colAisleCount[i]++;
+            }
+
+        var colWidths = new float[dataCols];
+        for (int i = 0; i < dataCols; i++)
+            colWidths[i] = colAisleCount[i] > 0 && colSeatCount[i] == 0 ? AisleColWidth : SeatColWidth;
+
+        var rowHeights = new float[model.Rows.Count];
+        for (int i = 0; i < model.Rows.Count; i++)
+        {
+            var row = model.Rows[i];
+            bool isAisleRow = row.Cells.Count > 0 && row.Cells.All(c => c.IsAisle);
+            rowHeights[i] = isAisleRow ? AisleRowHeight
+                : row.Cells.Any(c => c.IsPodium) ? PodiumRowHeight
+                : SeatRowHeight;
+        }
+
+        float leftMargin = model.HasLeftMargin ? MarginColWidth : 0f;
+        float rightMargin = model.HasRightMargin ? MarginColWidth : 0f;
+        float tableWidth = leftMargin + colWidths.Sum() + rightMargin;
+        float tableHeight = rowHeights.Sum();
+
+        var subtitle = options.HeaderSubtitle ?? model.LayoutName;
+        float headerHeight = string.IsNullOrWhiteSpace(subtitle) ? 12f : 19f;
+        float footerHeight = string.IsNullOrWhiteSpace(options.FooterNote) ? 2f : 8f;
+
+        // 内容自适应页面：宽度必须容纳全部固定列，不设上限（超宽布局不再触发布局异常）；
+        // 最小宽度需容纳页眉文案，避免长标题/副标题在窄页上换行溢出为多页。
+        float pageWidth = Math.Max(tableWidth + (PageMargin * 2), 120f);
+        float pageHeight = Math.Max(headerHeight + tableHeight + footerHeight + (PageMargin * 2) + 6f, 60f);
 
         await Task.Run(() =>
         {
@@ -120,61 +152,114 @@ public class PdfSeatingExporter(ILogger<PdfSeatingExporter>? logger = null) : IS
                 container.Page(page =>
                 {
                     page.Size(pageWidth, pageHeight, Unit.Millimetre);
-                    page.MarginHorizontal(PageMargin, Unit.Millimetre);
-                    page.MarginVertical(PageMargin, Unit.Millimetre);
+                    page.Margin(PageMargin, Unit.Millimetre);
                     page.PageColor(Colors.White);
-                    page.DefaultTextStyle(x => x.FontFamily("Lato", "Noto Sans SC").FontSize(8));
+                    page.DefaultTextStyle(x => x.FontFamily("Lato", "Noto Sans SC").FontSize(7).FontColor("#2A354A"));
 
-                    page.Header()
-                        .Text(model.LayoutName)
-                        .SemiBold().FontSize(16).AlignCenter();
+                    page.Content().Column(col =>
+                    {
+                        col.Item().AlignCenter()
+                            .Text(options.HeaderTitle ?? texts.SeatingChart)
+                            .FontSize(14).SemiBold().FontColor("#1F2A44");
 
-                    page.Content()
-                        .Table(table =>
+                        if (!string.IsNullOrWhiteSpace(subtitle))
+                            col.Item().PaddingTop(2).AlignCenter()
+                                .Text(subtitle).FontSize(7).FontColor("#6B7280");
+
+                        col.Item().PaddingTop(5).PaddingBottom(4)
+                            .BorderBottom(0.5f).BorderColor("#E3E6EB");
+
+                        col.Item().AlignCenter().Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                for (int i = 0; i < maxCols; i++)
-                                    columns.ConstantColumn(CompactCellWidth, Unit.Millimetre);
+                                if (model.HasLeftMargin)
+                                    columns.ConstantColumn(leftMargin, Unit.Millimetre);
+                                for (int i = 0; i < colWidths.Length; i++)
+                                    columns.ConstantColumn(colWidths[i], Unit.Millimetre);
+                                if (model.HasRightMargin)
+                                    columns.ConstantColumn(rightMargin, Unit.Millimetre);
                             });
 
-                            int rowIndex = 0;
-                            foreach (var row in model.Rows)
+                            for (int rowIndex = 0; rowIndex < model.Rows.Count; rowIndex++)
                             {
-                                if (++rowIndex % 30 == 0)
+                                if ((rowIndex + 1) % 30 == 0)
                                     cancellationToken.ThrowIfCancellationRequested();
 
-                                bool isFullAisleRow = row.Cells.Count > 0 && row.Cells.All(c => c.IsAisle);
-                                int colCount = 0;
-                                foreach (var cell in row.Cells)
+                                var row = model.Rows[rowIndex];
+                                float rowH = rowHeights[rowIndex];
+
+                                // 左侧门标注
+                                if (model.HasLeftMargin)
                                 {
-                                    var cellElement = table.Cell()
-                                        .Border(1).BorderColor(Colors.Grey.Lighten2)
-                                        .Background(cell.IsUnassigned ? Colors.Grey.Darken2 :
-                                                     cell.IsPodium ? Colors.Blue.Lighten4 :
-                                                     cell.IsAisle || isFullAisleRow ? Colors.Grey.Lighten3 :
-                                                     cell.IsSeat ? Colors.Green.Lighten5 :
-                                                     Colors.White)
-                                        .Padding(2)
-                                        .MinHeight(isFullAisleRow ? AisleRowHeight : rowH, Unit.Millimetre)
-                                        .AlignMiddle()
-                                        .AlignCenter();
-                                    cellElement.Text(cell.Text);
-                                    colCount++;
+                                    if (!string.IsNullOrEmpty(row.LeftMarginText))
+                                        table.Cell().Padding(1).Height(rowH, Unit.Millimetre)
+                                            .Background(Colors.White).Border(0.8f).BorderColor("#90A8C0")
+                                            .CornerRadius(1.5f).AlignMiddle().AlignCenter()
+                                            .Text(row.LeftMarginText).FontSize(7).FontColor("#4A6B8A");
+                                    else
+                                        table.Cell().Height(rowH, Unit.Millimetre);
                                 }
-                                // 补齐不足列
-                                for (int i = colCount; i < maxCols; i++)
-                                    table.Cell().Border(1).BorderColor(Colors.Grey.Lighten2).Padding(1).Text("");
+
+                                int podiumIndex = row.Cells.FindIndex(c => c.IsPodium);
+                                int podiumSpan = 0;
+                                int podiumStart = -1;
+                                if (podiumIndex >= 0)
+                                {
+                                    podiumSpan = Math.Min(3, row.Cells.Count);
+                                    podiumStart = Math.Clamp(podiumIndex - (podiumSpan - 1) / 2, 0,
+                                        Math.Max(0, row.Cells.Count - podiumSpan));
+                                }
+
+                                for (int c = 0; c < row.Cells.Count; c++)
+                                {
+                                    if (c == podiumStart)
+                                    {
+                                        table.Cell().ColumnSpan((uint)podiumSpan).Padding(1)
+                                            .Height(rowH, Unit.Millimetre)
+                                            .Background("#E3F2FD").Border(0.8f).BorderColor("#90CAF9")
+                                            .CornerRadius(2).AlignMiddle().AlignCenter()
+                                            .Text(row.Cells[podiumIndex].Text).FontSize(8).SemiBold().FontColor("#1565C0");
+                                        c += podiumSpan - 1;
+                                        continue;
+                                    }
+
+                                    var cell = row.Cells[c];
+                                    if (cell.IsSeat)
+                                    {
+                                        var bg = cell.IsUnassigned ? "#F2F2F2" : "#F4F7FE";
+                                        var bd = cell.IsUnassigned ? "#CCCCCC" : "#AAB4E0";
+                                        var fg = cell.IsUnassigned ? "#8A8A8A" : "#2A354A";
+                                        table.Cell().Padding(1).Height(rowH, Unit.Millimetre)
+                                            .Background(bg).Border(0.6f).BorderColor(bd)
+                                            .CornerRadius(1.5f).AlignMiddle().AlignCenter()
+                                            .Text(cell.Text).FontSize(7).FontColor(fg);
+                                    }
+                                    else
+                                    {
+                                        // 过道 / 空位：留白
+                                        table.Cell().Height(rowH, Unit.Millimetre);
+                                    }
+                                }
+
+                                // 右侧门标注
+                                if (model.HasRightMargin)
+                                {
+                                    if (!string.IsNullOrEmpty(row.RightMarginText))
+                                        table.Cell().Padding(1).Height(rowH, Unit.Millimetre)
+                                            .Background(Colors.White).Border(0.8f).BorderColor("#90A8C0")
+                                            .CornerRadius(1.5f).AlignMiddle().AlignCenter()
+                                            .Text(row.RightMarginText).FontSize(7).FontColor("#4A6B8A");
+                                    else
+                                        table.Cell().Height(rowH, Unit.Millimetre);
+                                }
                             }
                         });
 
-                    page.Footer()
-                        .AlignCenter()
-                        .Text(x =>
-                        {
-                            x.Span("生成时间: ");
-                            x.Span(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
-                        });
+                        if (!string.IsNullOrWhiteSpace(options.FooterNote))
+                            col.Item().PaddingTop(3).AlignRight()
+                                .Text(options.FooterNote).FontSize(6).FontColor("#6B7280");
+                    });
                 });
             }).GeneratePdf(path);
             _logger.LogInformation("PDF 座位布局导出完成: {Path}", path);

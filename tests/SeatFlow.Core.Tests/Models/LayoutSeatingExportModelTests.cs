@@ -137,7 +137,7 @@ public class LayoutSeatingExportModelTests
 
         model.Rows.Should().HaveCount(2); // seat + podium
         model.Rows[0].Cells[0].IsSeat.Should().BeTrue();
-        model.Rows[1].Cells[0].Text.Should().Contain("Podium");
+        model.Rows[1].Cells[0].Text.Should().Contain("讲台");
     }
 
     [Fact]
@@ -174,9 +174,7 @@ public class LayoutSeatingExportModelTests
 
         var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
         // 教师视角：行前后反转 + 列左右镜像
-        model.Rows.Reverse();
-        foreach (var row in model.Rows)
-            row.Cells.Reverse();
+        model.ApplyPerspective(LayoutPerspective.TeacherView);
 
         // 行反转：讲台在最后一行
         model.Rows[^1].Cells.Any(c => c.IsPodium).Should().BeTrue();
@@ -208,11 +206,159 @@ public class LayoutSeatingExportModelTests
 
         var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
         // 教师视角：行前后反转 + 列左右镜像
-        model.Rows.Reverse();
-        foreach (var row in model.Rows)
-            row.Cells.Reverse();
+        model.ApplyPerspective(LayoutPerspective.TeacherView);
 
         // 教师视角：讲台在最后一行（Polar 讲台居中有填充，不做列级断言）
         model.Rows[^1].Cells.Any(c => c.IsPodium).Should().BeTrue();
+    }
+
+    [Fact]
+    public void FromLayout_Grid_WithDoor_ShouldPlaceLeftMarginAtNearestRow()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "有门网格",
+            LayoutType = LayoutType.Grid,
+            Metadata = new GridLayoutMetadata
+            {
+                Rows = 3,
+                Columns = 2,
+                HasPodium = false,
+                OriginX = 200,
+                OriginY = 100,
+                VerticalSpacing = 40
+            }
+        };
+        for (int r = 1; r <= 3; r++)
+            for (int c = 1; c <= 2; c++)
+                layout.Seats.Add(new GridSeat { Row = r, Column = c });
+
+        // 门位于网格左侧、第 2 行高度（中心 Y = 142，最近行中心 160）
+        layout.Obstacles.Add(new Obstacle { X = 100, Y = 130, Width = 36, Height = 24, Type = "Door" });
+
+        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+
+        model.HasLeftMargin.Should().BeTrue();
+        model.HasRightMargin.Should().BeFalse();
+        model.Rows[0].LeftMarginText.Should().BeNull();
+        model.Rows[1].LeftMarginText.Should().Be("门");
+        model.Rows[2].LeftMarginText.Should().BeNull();
+    }
+
+    [Fact]
+    public void FromLayout_Grid_WithTwoDoors_ShouldNumberAndSplitSides()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "双门网格",
+            LayoutType = LayoutType.Grid,
+            Metadata = new GridLayoutMetadata
+            {
+                Rows = 3,
+                Columns = 2,
+                HasPodium = false,
+                OriginX = 200,
+                OriginY = 100,
+                VerticalSpacing = 40
+            }
+        };
+        for (int r = 1; r <= 3; r++)
+            for (int c = 1; c <= 2; c++)
+                layout.Seats.Add(new GridSeat { Row = r, Column = c });
+
+        // 门 1：左侧第一行；门 2：右侧第三行
+        layout.Obstacles.Add(new Obstacle { X = 100, Y = 110, Width = 36, Height = 24, Type = "Door" });
+        layout.Obstacles.Add(new Obstacle { X = 260, Y = 265, Width = 36, Height = 24, Type = "Door" });
+
+        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+
+        model.HasLeftMargin.Should().BeTrue();
+        model.HasRightMargin.Should().BeTrue();
+        model.Rows[0].LeftMarginText.Should().Be("门 #1");
+        model.Rows[2].RightMarginText.Should().Be("门 #2");
+    }
+
+    [Fact]
+    public void ApplyPerspective_TeacherView_ShouldMoveDoorToOppositeSide()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "门视角",
+            LayoutType = LayoutType.Grid,
+            Metadata = new GridLayoutMetadata
+            {
+                Rows = 2,
+                Columns = 2,
+                HasPodium = false,
+                OriginX = 200,
+                OriginY = 100,
+                VerticalSpacing = 40
+            }
+        };
+        for (int r = 1; r <= 2; r++)
+            for (int c = 1; c <= 2; c++)
+                layout.Seats.Add(new GridSeat { Row = r, Column = c });
+
+        layout.Obstacles.Add(new Obstacle { X = 100, Y = 102, Width = 36, Height = 24, Type = "Door" });
+
+        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+        model.Rows[0].LeftMarginText.Should().Be("门");
+
+        model.ApplyPerspective(LayoutPerspective.TeacherView);
+
+        // 行反转后，原第 1 行变为最后一行；门由左换到右
+        model.Rows[^1].RightMarginText.Should().Be("门");
+        model.Rows.Should().OnlyContain(r => r.LeftMarginText == null);
+    }
+
+    [Fact]
+    public void FromLayout_Polar_WithDoors_ShouldPlaceMarginByRadius()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "极坐标门",
+            LayoutType = LayoutType.Polar,
+            Metadata = new PolarLayoutMetadata
+            {
+                RingSeatCounts = [8, 12],
+                HasPodium = false,
+                OriginX = 300,
+                OriginY = 200
+            }
+        };
+        for (int s = 0; s < 8; s++)
+            layout.Seats.Add(new PolarSeat { Ring = 1, Radius = 100, AngleDegrees = s * 45.0 });
+        for (int s = 0; s < 12; s++)
+            layout.Seats.Add(new PolarSeat { Ring = 2, Radius = 200, AngleDegrees = s * 30.0 });
+
+        // 门 1：右侧、半径接近内环；门 2：右侧、半径接近外环
+        layout.Obstacles.Add(new Obstacle { X = 402, Y = 188, Width = 36, Height = 24, Type = "Door" });
+        layout.Obstacles.Add(new Obstacle { X = 482, Y = 188, Width = 36, Height = 24, Type = "Door" });
+
+        var model = LayoutSeatingExportModel.FromLayout(layout, [], []);
+
+        model.Rows.Should().HaveCount(2); // 无讲台：内环 + 外环
+        model.Rows[0].RightMarginText.Should().Be("门 #1");
+        model.Rows[1].RightMarginText.Should().Be("门 #2");
+        model.HasLeftMargin.Should().BeFalse();
+    }
+
+    [Fact]
+    public void FromLayout_WithCustomTexts_ShouldUseProvidedLabels()
+    {
+        var layout = new ClassroomLayoutDefinition
+        {
+            Name = "文案",
+            LayoutType = LayoutType.Grid,
+            Metadata = new GridLayoutMetadata { Rows = 1, Columns = 2, HasPodium = true }
+        };
+        layout.Seats.Add(new GridSeat { Row = 1, Column = 1 });
+        layout.Seats.Add(new GridSeat { Row = 1, Column = 2 });
+
+        var texts = new ExportTexts { SeatingChart = "Chart", Unassigned = "Empty", Podium = "Stage" };
+        var model = LayoutSeatingExportModel.FromLayout(layout, [], [], texts);
+
+        model.Rows[0].Cells.Any(c => c.Text == "Stage").Should().BeTrue();
+        model.Rows[1].Cells.Should().OnlyContain(c => c.Text == "Empty");
     }
 }
