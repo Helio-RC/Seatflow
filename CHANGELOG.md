@@ -2,6 +2,21 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [2.2.0] — 2026-10-03
+
+### Added
+- **4 条新内置策略（总数 11 条）**：`HeightPriorityStrategy`（60，独立，矮个优先前排）、`SnakeOrderStrategy`（10，独立，确定性填充）、`GenderDeskMateStrategy`（44，依赖，默认男女搭配可切同性同桌）、`NoDeskMateStrategy`（42，依赖，搭配组内任意两人不互为同桌）
+- 蛇形顺序策略参数：排序规则（名单顺序/姓名自然序/身高/性别）+ 升降序 + 起始方向，可关闭蛇形走向
+- 声明式 `Dropdown` 参数控件落地（`dropdownValues` + `dropdownLabels` 内联 i18n，持久化稳定标识；`GetParamString`/枚举解析）
+- 学生选择器多选能力：codeBlock `studentPickerMultiSelect`（一行一个搭配组，成员存 `Values["members"]`；组内自动去重、跨组并集、删除学生自动清理）
+- 日志启动自述 `StartupBanner`：每次启动首条日志记录版本/标签/提交/构建日期/.NET/OS/架构/数据目录/启动时刻（桌面写文件、浏览器写 Console）
+- 快照详情新增「人员数据集」字段，会场/数据集以「名称（id）」显示（旧快照优雅回退）
+
+### Changed
+- `RosterFile` 落盘保留导入顺序（`StudentsHash` 仍按 Id 排序计算，顺序无关），支撑「名单顺序」排座
+- `NaturalStringComparer` 从 Presentation 下移至 Core，供策略层复用
+- 在线版发布流水线移除冒烟测试（Cloudflare 反爬对 GitHub Runner 返回 403，无法自证且空转超时），部署验证改依赖上传完整性校验与 KV 写入结果；回滚提示保留
+
 ## [2.1.0] — 2026-10-02
 
 ### Added
