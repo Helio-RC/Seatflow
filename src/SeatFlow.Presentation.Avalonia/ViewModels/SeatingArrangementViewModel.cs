@@ -1091,7 +1091,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         {
             var assignedIds = new HashSet<string>(_currentPlan.Assignments.Values.Where(v => v != null)!);
             UnassignedStudents = new ObservableCollection<Student>(
-                _workspace.Students.Where(s => !assignedIds.Contains(s.Id)));
+                Helpers.StudentSorter.Sort(_workspace.Students.Where(s => !assignedIds.Contains(s.Id))));
             OnPropertyChanged(nameof(UnassignedStudentCount));
         }
 

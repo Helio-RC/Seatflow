@@ -350,9 +350,7 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     /// 落盘顺序仍由仓储按 Id 规范化为哈希用，二者互不影响。
     /// </summary>
     internal static IEnumerable<Student> SortStudents(IEnumerable<Student> students)
-        => students
-            .OrderBy(s => s.Name, NaturalStringComparer.Instance)
-            .ThenBy(s => s.Id, StringComparer.Ordinal);
+        => StudentSorter.Sort(students);
 
     /// <summary>人员显示排序键：姓名自然序 + Id 兜底。</summary>
     internal static int CompareStudents(Student a, Student b)
