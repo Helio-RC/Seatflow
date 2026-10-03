@@ -5,11 +5,13 @@
 """
 
 import hashlib
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest import mock
 
 from packaging.version import Version
 
@@ -25,6 +27,7 @@ from sync_velopack_history import (  # noqa: E402
     run_sync,
     select_keep_set,
 )
+import sync_velopack_history  # noqa: E402
 
 
 class FakeObjectResult:
@@ -226,6 +229,33 @@ class TestReconcile(unittest.TestCase):
             self.assertFalse((out / bad.name).exists())
             self.assertEqual(list(out.glob("*.incomplete")), [])
 
+    def test_redownloads_when_local_size_differs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            local = out / "SeatFlow-2.0.0-win-x64-full.nupkg"
+            local.write_bytes(b"short")
+            payload = b"remote-content"
+            asset = make_asset(local.name, "2.0.0", "full", data=payload)
+            bucket = FakeBucket({asset.key: payload})
+
+            downloaded, _, _, _ = reconcile(bucket, {asset.name: asset}, out, dry_run=False)
+
+            self.assertEqual(downloaded, 1)
+            self.assertEqual(local.read_bytes(), payload)
+
+    def test_non_hex_etag_skips_md5_verification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            payload = b"payload"
+            asset = make_asset("SeatFlow-2.0.0-win-x64-full.nupkg", "2.0.0", "full",
+                               data=payload, etag="multipart-etag")
+            bucket = FakeBucket({asset.key: payload})
+
+            downloaded, _, _, _ = reconcile(bucket, {asset.name: asset}, out, dry_run=False)
+
+            self.assertEqual(downloaded, 1)
+            self.assertTrue((out / asset.name).exists())
+
 
 class TestRunSync(unittest.TestCase):
     def test_applies_keep_set_and_returns_zero(self):
@@ -250,6 +280,53 @@ class TestRunSync(unittest.TestCase):
                 sorted(p.name for p in out.glob("*.nupkg")),
                 ["SeatFlow-1.0.0-win-x64-full.nupkg", "SeatFlow-2.0.0-win-x64-delta.nupkg"],
             )
+
+
+class TestMain(unittest.TestCase):
+    @staticmethod
+    def _fake_oss2(bucket, entries_factory):
+        return SimpleNamespace(
+            Auth=lambda *args: object(),
+            Bucket=lambda *args: bucket,
+            ObjectIteratorV2=lambda *args, **kwargs: entries_factory(),
+        )
+
+    def test_returns_1_without_oss2(self):
+        with mock.patch.object(sync_velopack_history, "oss2", None):
+            self.assertEqual(
+                sync_velopack_history.main(["--channel", "win-x64", "--output-dir", "/tmp/x"]), 1)
+
+    def test_returns_1_when_env_missing(self):
+        fake = self._fake_oss2(FakeBucket({}), lambda: [])
+        with mock.patch.object(sync_velopack_history, "oss2", fake), \
+                mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(
+                sync_velopack_history.main(["--channel", "win-x64", "--output-dir", "/tmp/x"]), 1)
+
+    def test_returns_1_on_sync_error(self):
+        def boom():
+            raise RuntimeError("boom")
+
+        fake = self._fake_oss2(FakeBucket({}), boom)
+        env = {"OSS_KEY_ID": "k", "OSS_KEY_SECRET": "s", "OSS_ENDPOINT": "e", "OSS_BUCKET": "b"}
+        with mock.patch.object(sync_velopack_history, "oss2", fake), \
+                mock.patch.dict(os.environ, env, clear=True):
+            self.assertEqual(
+                sync_velopack_history.main(["--channel", "win-x64", "--output-dir", "/tmp/x"]), 1)
+
+    def test_returns_0_on_success(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = b"full"
+            entries = [remote_entry("SeatFlow-1.0.0-win-x64-full.nupkg", payload)]
+            bucket = FakeBucket({"updates/SeatFlow-1.0.0-win-x64-full.nupkg": payload})
+            fake = self._fake_oss2(bucket, lambda: list(entries))
+            env = {"OSS_KEY_ID": "k", "OSS_KEY_SECRET": "s", "OSS_ENDPOINT": "e", "OSS_BUCKET": "b"}
+            with mock.patch.object(sync_velopack_history, "oss2", fake), \
+                    mock.patch.dict(os.environ, env, clear=True):
+                code = sync_velopack_history.main(
+                    ["--channel", "win-x64", "--output-dir", tmp])
+            self.assertEqual(code, 0)
+            self.assertTrue((Path(tmp) / "SeatFlow-1.0.0-win-x64-full.nupkg").exists())
 
 
 if __name__ == "__main__":
