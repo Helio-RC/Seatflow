@@ -13,6 +13,7 @@ using SeatFlow.Core.DomainServices;
 using SeatFlow.Core.Models;
 using SeatFlow.Infrastructure.Layouts;
 using SeatFlow.Presentation.Avalonia.Controls;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;

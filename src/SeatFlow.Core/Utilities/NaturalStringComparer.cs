@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace SeatFlow.Presentation.Avalonia.Helpers;
+namespace SeatFlow.Core.Utilities;
 
 /// <summary>
 /// 人员姓名自然排序比较器：

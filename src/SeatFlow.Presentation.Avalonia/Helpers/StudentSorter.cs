@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SeatFlow.Core.Utilities;
 
 namespace SeatFlow.Presentation.Avalonia.Helpers;
 

@@ -2,9 +2,9 @@
     "id": "SnakeOrder",
     "name": "SnakeOrder",
     "displayName": "蛇形顺序",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "manifestVersion": "1.0",
-    "description": "按名单顺序确定性填充空座：网格逐行蛇形（奇数行反向）、环形逐环交替方向；关闭蛇形则逐行同向。适合考场式排座等需要可预测顺序的场景。",
+    "description": "按选定规则排序学生（默认名单顺序）并确定性填充空座：网格逐行蛇形（相邻行反向）、环形逐环交替方向；可关闭蛇形并设置起始方向。适合考场式排座等需要可预测顺序的场景。",
     "author": "SeatFlow Team",
     "category": "assignment",
     "defaultPriority": 10,
@@ -12,10 +12,40 @@
     "visible": true,
     "parameters": [
         {
+            "name": "SortBy",
+            "fieldType": "Dropdown",
+            "label": { "zh-CN": "排序规则", "en-US": "Sort rule" },
+            "defaultValue": "Input",
+            "dropdownValues": ["Input", "Name", "Height", "Gender"],
+            "dropdownLabels": {
+                "Input": { "zh-CN": "名单顺序", "en-US": "Roster order" },
+                "Name": { "zh-CN": "姓名（自然序）", "en-US": "Name (natural order)" },
+                "Height": { "zh-CN": "身高", "en-US": "Height" },
+                "Gender": { "zh-CN": "性别", "en-US": "Gender" }
+            }
+        },
+        {
+            "name": "SortDescending",
+            "fieldType": "ToggleSwitch",
+            "label": { "zh-CN": "排序降序（姓名 Z→A / 身高 高→矮）", "en-US": "Descending sort (Z→A / tall→short)" },
+            "defaultValue": false
+        },
+        {
             "name": "Serpentine",
             "fieldType": "ToggleSwitch",
             "label": { "zh-CN": "蛇形走向（关闭则逐行同向）", "en-US": "Serpentine order (off = same direction per row)" },
             "defaultValue": true
+        },
+        {
+            "name": "Direction",
+            "fieldType": "Dropdown",
+            "label": { "zh-CN": "起始方向", "en-US": "Start direction" },
+            "defaultValue": "Forward",
+            "dropdownValues": ["Forward", "Reverse"],
+            "dropdownLabels": {
+                "Forward": { "zh-CN": "正向（左→右）", "en-US": "Forward (left→right)" },
+                "Reverse": { "zh-CN": "反向（右→左）", "en-US": "Reverse (right→left)" }
+            }
         }
     ],
     "codeBlocks": [],

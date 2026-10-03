@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -80,6 +81,7 @@ public partial class EditableParameter(StrategyParameterDefinition definition, o
     partial void OnValueChanged(object? value)
     {
         IsDirty = !Equals(value, _originalValue);
+        OnPropertyChanged(nameof(SelectedOption));
     }
 
     // Convenience casts for XAML bindings
@@ -120,4 +122,27 @@ public partial class EditableParameter(StrategyParameterDefinition definition, o
     public bool IsTextInput => Definition.FieldType == StrategyFieldType.TextInput;
     public bool IsToggleSwitch => Definition.FieldType == StrategyFieldType.ToggleSwitch;
     public bool IsDropdown => Definition.FieldType == StrategyFieldType.Dropdown;
+
+    // ── Dropdown 支持 ──
+
+    /// <summary>下拉选项：Value 为持久化稳定标识，Label 按当前界面语言解析。</summary>
+    public List<DropdownOption> DropdownOptions { get; } = [.. (definition.DropdownValues ?? []).Select(v =>
+        new DropdownOption(v, definition.DropdownLabels.TryGetValue(v, out var labels)
+            ? Helpers.LocalizeHelper.Resolve(labels)
+            : v))];
+
+    /// <summary>当前选中的下拉选项（双向绑定用，写入 Value 的稳定标识）。</summary>
+    public DropdownOption? SelectedOption
+    {
+        get => DropdownOptions.FirstOrDefault(o => string.Equals(o.Value, TextValue, StringComparison.Ordinal));
+        set { if (value is not null) Value = value.Value; }
+    }
+}
+
+/// <summary>下拉选项：Value 为持久化的稳定标识，Label 为本地化显示文本。</summary>
+public sealed class DropdownOption(string value, string label)
+{
+    public string Value { get; } = value;
+
+    public string Label { get; } = label;
 }

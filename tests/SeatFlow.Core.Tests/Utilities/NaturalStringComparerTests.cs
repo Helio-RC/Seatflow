@@ -1,7 +1,4 @@
-using FluentAssertions;
-using SeatFlow.Presentation.Avalonia.Helpers;
-
-namespace SeatFlow.Presentation.Tests;
+namespace SeatFlow.Core.Tests.Utilities;
 
 /// <summary>
 /// 姓名自然排序比较器：数字按数值、文本按中文区域（汉字拼音、忽略大小写）。

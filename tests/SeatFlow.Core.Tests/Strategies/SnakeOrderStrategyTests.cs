@@ -1,3 +1,5 @@
+using SeatFlow.Core.Enums;
+
 namespace SeatFlow.Core.Tests.Strategies;
 
 public class SnakeOrderStrategyTests
@@ -106,5 +108,132 @@ public class SnakeOrderStrategyTests
     {
         var strategy = new SnakeOrderStrategy();
         strategy.ValidateConfiguration().IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_SortByName_UsesNaturalOrder()
+    {
+        var students = new[]
+        {
+            new Student { Id = "a", Name = "张三" },
+            new Student { Id = "b", Name = "李四" },
+            new Student { Id = "c", Name = "王五" }
+        };
+        var seats = StrategyTestHelpers.CreateGridSeats((1, 1), (1, 2), (1, 3));
+        var ws = new SeatingWorkspace(students, [.. seats.Cast<Seat>()]);
+
+        var config = new SnakeOrderStrategy.SnakeOrderConfiguration { SortBy = SnakeSortBy.Name };
+        var strategy = new SnakeOrderStrategy(config);
+        await strategy.ExecuteAsync(ws, CancellationToken.None);
+
+        SeatAt(seats, 1, 1).OccupantId.Should().Be("b"); // 李四
+        SeatAt(seats, 1, 2).OccupantId.Should().Be("c"); // 王五
+        SeatAt(seats, 1, 3).OccupantId.Should().Be("a"); // 张三
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_SortByHeight_AscendingMissingLast()
+    {
+        var students = new[]
+        {
+            new Student { Id = "tall", Name = "tall", Height = 170 },
+            new Student { Id = "none", Name = "none" },
+            new Student { Id = "short", Name = "short", Height = 150 }
+        };
+        var seats = StrategyTestHelpers.CreateGridSeats((1, 1), (1, 2), (1, 3));
+        var ws = new SeatingWorkspace(students, [.. seats.Cast<Seat>()]);
+
+        var config = new SnakeOrderStrategy.SnakeOrderConfiguration { SortBy = SnakeSortBy.Height };
+        var strategy = new SnakeOrderStrategy(config);
+        await strategy.ExecuteAsync(ws, CancellationToken.None);
+
+        SeatAt(seats, 1, 1).OccupantId.Should().Be("short");
+        SeatAt(seats, 1, 2).OccupantId.Should().Be("tall");
+        SeatAt(seats, 1, 3).OccupantId.Should().Be("none");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_SortByHeight_DescendingMissingStillLast()
+    {
+        var students = new[]
+        {
+            new Student { Id = "tall", Name = "tall", Height = 170 },
+            new Student { Id = "none", Name = "none" },
+            new Student { Id = "short", Name = "short", Height = 150 }
+        };
+        var seats = StrategyTestHelpers.CreateGridSeats((1, 1), (1, 2), (1, 3));
+        var ws = new SeatingWorkspace(students, [.. seats.Cast<Seat>()]);
+
+        var config = new SnakeOrderStrategy.SnakeOrderConfiguration
+        {
+            SortBy = SnakeSortBy.Height,
+            SortDescending = true
+        };
+        var strategy = new SnakeOrderStrategy(config);
+        await strategy.ExecuteAsync(ws, CancellationToken.None);
+
+        SeatAt(seats, 1, 1).OccupantId.Should().Be("tall");
+        SeatAt(seats, 1, 2).OccupantId.Should().Be("short");
+        SeatAt(seats, 1, 3).OccupantId.Should().Be("none");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_SortByGender_MaleFemaleThenUnknown()
+    {
+        var students = new[]
+        {
+            new Student { Id = "f", Name = "f", Gender = Gender.Female },
+            new Student { Id = "u", Name = "u" },
+            new Student { Id = "m", Name = "m", Gender = Gender.Male }
+        };
+        var seats = StrategyTestHelpers.CreateGridSeats((1, 1), (1, 2), (1, 3));
+        var ws = new SeatingWorkspace(students, [.. seats.Cast<Seat>()]);
+
+        var config = new SnakeOrderStrategy.SnakeOrderConfiguration { SortBy = SnakeSortBy.Gender };
+        var strategy = new SnakeOrderStrategy(config);
+        await strategy.ExecuteAsync(ws, CancellationToken.None);
+
+        SeatAt(seats, 1, 1).OccupantId.Should().Be("m");
+        SeatAt(seats, 1, 2).OccupantId.Should().Be("f");
+        SeatAt(seats, 1, 3).OccupantId.Should().Be("u");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_DirectionReverse_StartsRightToLeft()
+    {
+        var students = StrategyTestHelpers.CreateStudents("s1", "s2", "s3", "s4");
+        var seats = StrategyTestHelpers.CreateGridSeats((1, 1), (1, 2), (2, 1), (2, 2));
+        var ws = new SeatingWorkspace(students, [.. seats.Cast<Seat>()]);
+
+        var config = new SnakeOrderStrategy.SnakeOrderConfiguration { StartDirection = SnakeDirection.Reverse };
+        var strategy = new SnakeOrderStrategy(config);
+        await strategy.ExecuteAsync(ws, CancellationToken.None);
+
+        // 第 1 行反向（右→左），第 2 行恢复正向（蛇形交替）
+        SeatAt(seats, 1, 2).OccupantId.Should().Be("s1");
+        SeatAt(seats, 1, 1).OccupantId.Should().Be("s2");
+        SeatAt(seats, 2, 1).OccupantId.Should().Be("s3");
+        SeatAt(seats, 2, 2).OccupantId.Should().Be("s4");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_NoSerpentineWithReverse_AllRowsRightToLeft()
+    {
+        var students = StrategyTestHelpers.CreateStudents("s1", "s2", "s3", "s4");
+        var seats = StrategyTestHelpers.CreateGridSeats((1, 1), (1, 2), (2, 1), (2, 2));
+        var ws = new SeatingWorkspace(students, [.. seats.Cast<Seat>()]);
+
+        var config = new SnakeOrderStrategy.SnakeOrderConfiguration
+        {
+            Serpentine = false,
+            StartDirection = SnakeDirection.Reverse
+        };
+        var strategy = new SnakeOrderStrategy(config);
+        await strategy.ExecuteAsync(ws, CancellationToken.None);
+
+        SeatAt(seats, 1, 2).OccupantId.Should().Be("s1");
+        SeatAt(seats, 1, 1).OccupantId.Should().Be("s2");
+        SeatAt(seats, 2, 2).OccupantId.Should().Be("s3");
+        SeatAt(seats, 2, 1).OccupantId.Should().Be("s4");
     }
 }

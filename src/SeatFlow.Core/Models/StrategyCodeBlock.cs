@@ -29,6 +29,9 @@ public sealed class StrategyParameterDefinition
 
     /// <summary>内联下拉选项值列表。</summary>
     public List<string>? DropdownValues { get; init; }
+
+    /// <summary>下拉选项的本地化标签，键为选项值，值为内联 i18n 词典（如 { "zh-CN": "姓名", "en-US": "Name" }）。</summary>
+    public Dictionary<string, Dictionary<string, string>> DropdownLabels { get; init; } = [];
 }
 
 /// <summary>

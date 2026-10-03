@@ -75,9 +75,10 @@ public class JsonStudentDatasetRepository : IStudentDatasetRepository
         if (originalFileName != null)
             roster.Metadata["originalFileName"] = originalFileName;
 
-        // 按 Id 排序后序列化学生列表，计算 StudentsHash
-        roster.Students = [.. roster.Students.OrderBy(s => s.Id)];
-        var studentsJson = JsonSerializer.Serialize(roster.Students, WriteOptions);
+        // StudentsHash 按 Id 排序计算（顺序无关，与完整性校验一致）；
+        // 落盘保留原始导入顺序，供「按名单顺序」排座使用。
+        var hashSource = roster.Students.OrderBy(s => s.Id).ToList();
+        var studentsJson = JsonSerializer.Serialize(hashSource, WriteOptions);
         roster.StudentsHash = ContentHashHelper.ComputeSha256(studentsJson);
 
         var path = GetFilePath(id);

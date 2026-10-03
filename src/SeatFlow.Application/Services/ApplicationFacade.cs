@@ -1338,7 +1338,10 @@ namespace SeatFlow.Application.Services
                 },
                 SnakeOrderStrategy so => new Dictionary<string, object?>
                 {
-                    ["Serpentine"] = so.Config.Serpentine
+                    ["SortBy"] = so.Config.SortBy.ToString(),
+                    ["SortDescending"] = so.Config.SortDescending,
+                    ["Serpentine"] = so.Config.Serpentine,
+                    ["Direction"] = so.Config.StartDirection.ToString()
                 },
                 DefragStrategy => [],
                 _ => []
@@ -1378,8 +1381,14 @@ namespace SeatFlow.Application.Services
                     hp.Config.FrontRowCount = Math.Max(1, GetParamInt(parameters, "FrontRowCount"));
                     break;
                 case SnakeOrderStrategy so:
+                    if (parameters.ContainsKey("SortBy"))
+                        so.Config.SortBy = ParseEnum(GetParamString(parameters, "SortBy"), SnakeSortBy.Input);
+                    if (parameters.ContainsKey("SortDescending"))
+                        so.Config.SortDescending = GetParamBool(parameters, "SortDescending");
                     if (parameters.ContainsKey("Serpentine"))
                         so.Config.Serpentine = GetParamBool(parameters, "Serpentine");
+                    if (parameters.ContainsKey("Direction"))
+                        so.Config.StartDirection = ParseEnum(GetParamString(parameters, "Direction"), SnakeDirection.Forward);
                     break;
                 case DefragStrategy:
                     break; // 零参数策略
@@ -1424,6 +1433,17 @@ namespace SeatFlow.Application.Services
                 return je.ValueKind == JsonValueKind.True;
             return false;
         }
+
+        private static string? GetParamString(Dictionary<string, object?> p, string key)
+        {
+            if (!p.TryGetValue(key, out var v) || v is null) return null;
+            if (v is string s) return s;
+            if (v is JsonElement je && je.ValueKind == JsonValueKind.String) return je.GetString();
+            return v.ToString();
+        }
+
+        private static T ParseEnum<T>(string? value, T fallback) where T : struct, Enum
+            => Enum.TryParse<T>(value, ignoreCase: true, out var parsed) ? parsed : fallback;
 
         /// <summary>
         /// 将持久化的 StrategyConfig（Priority、IsEnabled、Parameters）应用到策略实例。

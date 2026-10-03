@@ -75,7 +75,7 @@ fill-in-order 模型：独立策略按 Priority 降序执行（先到先得，�
 | — | `GenderDeskMateStrategy` | 44（上下文） | 依赖 | 同桌性别搭配：默认男女搭配（可切同性同桌）；性别未知不判定；不符重掷，耗尽带警告强制 |
 | — | `NoDeskMateStrategy` | 42（上下文） | 依赖 | 「不为同桌」：同一搭配组内任意两人不互为同桌；组内去重、跨组允许；不符重掷，耗尽带警告强制 |
 | — | `NoRepeatDeskMateStrategy` | 40（上下文） | 依赖 | 检查相邻已占用座位的历史同桌重复；重复则重掷，耗尽后带警告强制 |
-| 4 | `SnakeOrderStrategy` | 10 | 独立 | 按名单顺序确定性填充（网格逐行蛇形/环形交替方向），默认禁用 |
+| 4 | `SnakeOrderStrategy` | 10 | 独立 | 确定性填充：排序规则（名单顺序/姓名/身高/性别）+ 升降序 + 蛇形走向与起始方向，默认禁用 |
 | 5 | `RandomFillStrategy` | 1 | 独立+宿主 | 填剩余座位并宿主依赖策略；约束学生（同桌组）优先以减少重掷 |
 | 6 | `DefragStrategy` | 0 | 独立 | “扫地僧”：从后排搬无约束学生补前排空缺（可跨列），默认禁用；警告可能使先前策略结果失效 |
 
@@ -178,7 +178,8 @@ Windows `%APPDATA%\SeatFlow\` / Linux `~/.local/share/SeatFlow/` / macOS `~/Libr
 
 **JSON 约定**：camelCase；`ClassroomLayoutDefinition` 同时写 `layoutType`（数字）与 `layoutTypeString`（迁移器读字符串）；
 座位多态用 `SeatJsonConverter` 的 `Type` 判别字段；`VenueFile`/`RosterFile.ContentHash` 保存时计算 SHA256
-（学生数据哈希排除 `importedAt`/`originalFileName`）。Grid 座位按**行主序**生成（RandomFill 逐行填充的前提）。
+（学生数据哈希排除 `importedAt`/`originalFileName`；**Roster 落盘保留导入顺序**，`StudentsHash` 仍按 Id 排序计算以保证顺序无关）。
+Grid 座位按**行主序**生成（RandomFill 逐行填充的前提）。
 
 **快照**：创建时把完整布局嵌入 `Metadata["venueLayout"]`（预览自包含，会场被删/改不破坏旧快照）；
 `venueHash` 对比现行会场做完整性提示（会场删除=红、布局变更=黄、数据变更=黄并高亮）；回滚前按完整性弹窗恢复/导入会场。

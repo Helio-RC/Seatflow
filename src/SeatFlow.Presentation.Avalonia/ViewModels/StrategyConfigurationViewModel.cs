@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Strategies;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;

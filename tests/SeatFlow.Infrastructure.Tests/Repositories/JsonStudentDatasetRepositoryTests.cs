@@ -106,6 +106,39 @@ public class JsonStudentDatasetRepositoryTests : IDisposable
         ExtractHash(json1).Should().Be(ExtractHash(json2));
     }
 
+    [Fact]
+    public async Task SaveAsync_PreservesInputOrder_WhileHashStaysOrderIndependent()
+    {
+        var bobThenAlice = new List<Student>
+        {
+            new() { Id = "2", Name = "Bob" },
+            new() { Id = "1", Name = "Alice" }
+        };
+        var aliceThenBob = new List<Student>
+        {
+            new() { Id = "1", Name = "Alice" },
+            new() { Id = "2", Name = "Bob" }
+        };
+
+        await _repo.SaveAsync("order-a", "order-a", bobThenAlice, null, TestContext.Current.CancellationToken);
+        await _repo.SaveAsync("order-b", "order-b", aliceThenBob, null, TestContext.Current.CancellationToken);
+
+        var loadedA = await _repo.LoadAsync("order-a", TestContext.Current.CancellationToken);
+        var loadedB = await _repo.LoadAsync("order-b", TestContext.Current.CancellationToken);
+
+        // 落盘保留导入顺序
+        loadedA!.Select(s => s.Id).Should().Equal("2", "1");
+        loadedB!.Select(s => s.Id).Should().Equal("1", "2");
+
+        // 哈希按 Id 排序计算：输入顺序不同不影响一致性
+        var hashA = ExtractHash(await File.ReadAllTextAsync(
+            Path.Combine(_tempDir, "order-a.roster.json"), TestContext.Current.CancellationToken));
+        var hashB = ExtractHash(await File.ReadAllTextAsync(
+            Path.Combine(_tempDir, "order-b.roster.json"), TestContext.Current.CancellationToken));
+        hashA.Should().NotBeNullOrEmpty();
+        hashA.Should().Be(hashB);
+    }
+
     private static string? ExtractHash(string json)
     {
         using var doc = System.Text.Json.JsonDocument.Parse(json);

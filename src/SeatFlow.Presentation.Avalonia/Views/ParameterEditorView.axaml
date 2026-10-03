@@ -32,6 +32,13 @@
             HorizontalAlignment="Left"
             IsChecked="{Binding ToggleValue}"
             IsVisible="{Binding IsToggleSwitch}" />
+          <ComboBox
+            HorizontalAlignment="Stretch"
+            Classes="sf-input"
+            DisplayMemberBinding="{Binding Label}"
+            IsVisible="{Binding IsDropdown}"
+            ItemsSource="{Binding DropdownOptions}"
+            SelectedItem="{Binding SelectedOption}" />
         </DockPanel>
       </DataTemplate>
     </ItemsControl.ItemTemplate>
