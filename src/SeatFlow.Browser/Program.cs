@@ -82,6 +82,9 @@ internal sealed class Program
 
         var serviceProvider = services.BuildServiceProvider();
 
+        // 日志最开头的启动自述（浏览器 Console）；须在语言预载（会写 AppSettings 日志）之前
+        StartupBanner.Write(serviceProvider);
+
         // 浏览器端禁止同步阻塞等待（App.Initialize 内的同步读取会抛
         // PlatformNotSupportedException：Cannot wait on monitors）。
         // 因此语言必须在 Avalonia 启动前异步预加载，确保 {x:Static} 资源字符串

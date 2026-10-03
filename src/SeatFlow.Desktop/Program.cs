@@ -126,6 +126,9 @@ namespace SeatFlow.Presentation.Avalonia
 
             var serviceProvider = services.BuildServiceProvider();
 
+            // 日志最开头的启动自述（版本/构建/环境），须在任何业务日志之前写入
+            StartupBanner.Write(serviceProvider);
+
             // M5：命令行 .seatsets 路径与自动发现路径改为 App 构造参数（原静态握手字段已删除）
             BuildAvaloniaApp(serviceProvider, isFirstInstance, seatsetsFilePath, autoImportPath)
                 .StartWithClassicDesktopLifetime(args);
