@@ -1,0 +1,37 @@
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.MultiStudentPickerView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:MultiStudentPickerViewModel">
+  <Button
+    MinWidth="180"
+    HorizontalAlignment="Stretch"
+    HorizontalContentAlignment="Left"
+    Classes="sf-input">
+    <Button.Content>
+      <TextBlock Text="{Binding SummaryText}" />
+    </Button.Content>
+    <Button.Flyout>
+      <Flyout Placement="Bottom">
+        <StackPanel Width="220" Spacing="6">
+          <ScrollViewer MaxHeight="260">
+            <ItemsControl ItemsSource="{Binding Students}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SelectableStudentItem">
+                  <CheckBox Content="{Binding Display}" IsChecked="{Binding IsSelected}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+          <Button
+            HorizontalAlignment="Right"
+            Classes="sf-btn sf-sm"
+            Command="{Binding ClearCommand}"
+            Content="{x:Static lang:Resources.StudentPicker_MultiClear}" />
+        </StackPanel>
+      </Flyout>
+    </Button.Flyout>
+  </Button>
+</UserControl>

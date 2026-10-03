@@ -10,7 +10,7 @@ public class StrategyManifestProviderTests
         var provider = new StrategyManifestProvider();
         var manifests = provider.GetBuiltInManifests();
         manifests.Should().NotBeNull();
-        manifests.Should().HaveCount(10);
+        manifests.Should().HaveCount(11);
     }
 
     [Fact]
@@ -49,5 +49,6 @@ public class StrategyManifestProviderTests
         ids.Should().Contain("HeightPriority");
         ids.Should().Contain("SnakeOrder");
         ids.Should().Contain("GenderDeskMate");
+        ids.Should().Contain("NoDeskMate");
     }
 }

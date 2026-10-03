@@ -185,6 +185,8 @@ namespace SeatFlow.Application.Services
                 new GenderRestrictedSeatConfiguration(), sp.GetRequiredService<ILogger<GenderRestrictedSeatStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new GenderDeskMateStrategy(
                 new GenderDeskMateStrategy.GenderDeskMateConfiguration(), sp.GetRequiredService<ILogger<GenderDeskMateStrategy>>()));
+            services.AddSingleton<IDependentSeatingStrategy>(sp => new NoDeskMateStrategy(
+                new NoDeskMateStrategy.NoDeskMateConfiguration(), sp.GetRequiredService<ILogger<NoDeskMateStrategy>>()));
             services.AddSingleton<IDependentSeatingStrategy>(sp => new NoRepeatDeskMateStrategy(
                 new NoRepeatDeskMateConfiguration(), sp.GetRequiredService<ILogger<NoRepeatDeskMateStrategy>>()));
 

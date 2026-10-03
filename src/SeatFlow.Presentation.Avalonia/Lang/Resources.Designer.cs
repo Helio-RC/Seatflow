@@ -541,6 +541,9 @@ public class Resources
     public static string Strategy_Title => ResourceManager.GetString("Strategy_Title", Culture)!;
     public static string Strategy_UnsavedChanges => ResourceManager.GetString("Strategy_UnsavedChanges", Culture)!;
     public static string Strategy_UnsavedChangesMsg => ResourceManager.GetString("Strategy_UnsavedChangesMsg", Culture)!;
+    public static string StudentPicker_MultiClear => ResourceManager.GetString("StudentPicker_MultiClear", Culture)!;
+    public static string StudentPicker_MultiPlaceholder => ResourceManager.GetString("StudentPicker_MultiPlaceholder", Culture)!;
+    public static string StudentPicker_MultiSelectedFmt => ResourceManager.GetString("StudentPicker_MultiSelectedFmt", Culture)!;
     public static string StudentPicker_Placeholder => ResourceManager.GetString("StudentPicker_Placeholder", Culture)!;
     public static string Telemetry_ConsentEnable => ResourceManager.GetString("Telemetry_ConsentEnable", Culture)!;
     public static string Telemetry_ConsentLater => ResourceManager.GetString("Telemetry_ConsentLater", Culture)!;

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
+using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -314,6 +315,8 @@ public partial class ConfigBlockEditorViewModel(IApplicationFacade facade, IDial
         {
             sp.PropertyChanged += OnStudentPickerChanged;
         }
+        if (row.MultiPicker is not null)
+            row.MultiPicker.SelectionChanged += OnRowStudentSelectionChanged;
         // 通过回调接收行级防重复的变更通知，用于触发全局防重复
         row.OnStudentSelectionChanged += OnRowStudentSelectionChanged;
     }
@@ -327,6 +330,8 @@ public partial class ConfigBlockEditorViewModel(IApplicationFacade facade, IDial
         {
             sp.PropertyChanged -= OnStudentPickerChanged;
         }
+        if (row.MultiPicker is not null)
+            row.MultiPicker.SelectionChanged -= OnRowStudentSelectionChanged;
         row.OnStudentSelectionChanged -= OnRowStudentSelectionChanged;
     }
 
@@ -354,57 +359,41 @@ public partial class ConfigBlockEditorViewModel(IApplicationFacade facade, IDial
         _applyingGlobalDedup = true;
         try
         {
-            // 收集所有选择器的已选学生 ID
-            var allSelected = new HashSet<string>();
-            foreach (var row in Rows)
-            {
-                foreach (var sp in row.StudentPickers)
-                {
-                    if (sp.SelectedStudentId is not null)
-                        allSelected.Add(sp.SelectedStudentId);
-                }
-            }
-
             // 检测并清除跨行重复：若同一学生 ID 出现在多个选择器中，
-            // 只保留第一个（按行序、选择器序），清除其余
-            var seen = new HashSet<string>();
+            // 只保留第一个（按行序、选择器序、成员序），清除其余
+            var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var row in Rows)
             {
                 foreach (var sp in row.StudentPickers)
                 {
-                    if (sp.SelectedStudentId is not null)
+                    if (sp.SelectedStudentId is not null && !seen.Add(sp.SelectedStudentId))
                     {
-                        if (!seen.Add(sp.SelectedStudentId))
-                        {
-                            // 重复：清除该选择器的选中项
-                            sp.SelectById(null);
-                        }
+                        // 重复：清除该选择器的选中项
+                        sp.SelectById(null);
+                    }
+                }
+                if (row.MultiPicker is not null)
+                {
+                    foreach (var item in row.MultiPicker.Students)
+                    {
+                        if (item.IsSelected && !seen.Add(item.Id))
+                            item.IsSelected = false;
                     }
                 }
             }
 
-            // 重新收集（可能在清除重复后变化）
-            allSelected.Clear();
+            // 为每个选择器设置排除列表（排除其他选择器已选学生）
             foreach (var row in Rows)
             {
                 foreach (var sp in row.StudentPickers)
                 {
-                    if (sp.SelectedStudentId is not null)
-                        allSelected.Add(sp.SelectedStudentId);
-                }
-            }
-
-            // 为每个选择器设置排除列表（排除所有其他选择器的已选学生）
-            foreach (var row in Rows)
-            {
-                foreach (var sp in row.StudentPickers)
-                {
-                    var excluded = new HashSet<string>(allSelected);
+                    var excluded = new HashSet<string>(seen);
                     // 保留当前选择器自己的选中项（不下拉消失）
                     if (sp.SelectedStudentId is not null)
                         excluded.Remove(sp.SelectedStudentId);
                     sp.SetExcludedIds(excluded);
                 }
+                row.MultiPicker?.SetExcludedIds(new HashSet<string>(seen));
             }
         }
         finally
@@ -424,19 +413,37 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     private bool _applyingRowDedup;
     /// <summary>待定学生选择（索引→学生ID），在 LoadStudents 完成后自动应用。</summary>
     private Dictionary<int, string?>? _pendingSelections;
+    /// <summary>待定多选成员（Values["members"]），在 LoadStudents 完成后自动应用。</summary>
+    private List<string>? _pendingMultiSelection;
 
     public ConfigBlockRowViewModel(StrategyCodeBlock? codeBlock, int seatsPerDesk = 1, IDialogService? dialog = null)
     {
         CodeBlock = codeBlock;
         SeatsPerDesk = seatsPerDesk;
         SeatPicker = new SeatPositionPickerViewModel(dialog);
-        for (int i = 0; i < seatsPerDesk; i++)
+        if (codeBlock?.StudentPickerMultiSelect == true)
         {
-            var sp = new StudentPickerViewModel(dialog);
-            sp.PropertyChanged += OnStudentPickerPropertyChanged;
-            StudentPickers.Add(sp);
+            MultiPicker = new MultiStudentPickerViewModel(dialog);
+        }
+        else
+        {
+            for (int i = 0; i < seatsPerDesk; i++)
+            {
+                var sp = new StudentPickerViewModel(dialog);
+                sp.PropertyChanged += OnStudentPickerPropertyChanged;
+                StudentPickers.Add(sp);
+            }
         }
     }
+
+    /// <summary>多选学生选择器（仅 CodeBlock.StudentPickerMultiSelect=true 时创建）。</summary>
+    public MultiStudentPickerViewModel? MultiPicker { get; }
+
+    /// <summary>是否使用多选学生选择器（一行一个搭配组）。</summary>
+    public bool IsMultiSelect => CodeBlock?.StudentPickerMultiSelect == true;
+
+    /// <summary>是否显示单选学生选择器集合（多选模式下隐藏）。</summary>
+    public bool ShowSingleStudentPickers => ShowStudentPicker && !IsMultiSelect;
 
     /// <summary>当任何 StudentPicker 的选中学生变化时触发（用于编辑器级别的全局防重复）。</summary>
     public event Action? OnStudentSelectionChanged;
@@ -551,13 +558,19 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     public bool ShowSeatPosition => CodeBlock?.ShowSeatPosition != false
         && CodeBlock?.DataType is StrategyDataType.Venue or StrategyDataType.Both;
 
-    /// <summary>加载学生到所有 StudentPicker，加载后自动应用待定的持久化选择。</summary>
+    /// <summary>加载学生到所有选择器（单选或多选），加载后自动应用待定的持久化选择。</summary>
     public void LoadStudents(IEnumerable<SeatFlow.Core.Models.Student> students)
     {
         var list = students.ToList();
         foreach (var sp in StudentPickers)
             sp.LoadStudents(list);
+        MultiPicker?.LoadStudents(list);
         ApplyPendingSelections();
+        if (_pendingMultiSelection is not null && MultiPicker is not null)
+        {
+            MultiPicker.SetSelectedIds(_pendingMultiSelection);
+            _pendingMultiSelection = null;
+        }
     }
 
     /// <summary>
@@ -583,15 +596,24 @@ public partial class ConfigBlockRowViewModel : ObservableObject
         };
         // 延迟学生选择：将 ID 存入 _pendingSelections，等 LoadStudents 完成后自动应用
         // （避免 SelectById 在 Students 列表为空时被调用导致选中信息丢失）
-        vm._pendingSelections = new Dictionary<int, string?>();
-        if (row.StudentId is not null)
-            vm._pendingSelections[0] = row.StudentId;
-        // 额外的同桌学生（存入 CustomValues["student1"], ["student2"], ...）
-        for (int i = 1; i < vm.StudentPickers.Count; i++)
+        if (vm.MultiPicker is not null)
         {
-            var key = $"student{i}";
-            if (row.Values?.TryGetValue(key, out var sid) == true)
-                vm._pendingSelections[i] = sid?.ToString();
+            // 多选模式：成员列表存入 Values["members"]
+            if (row.Values?.TryGetValue("members", out var membersValue) == true)
+                vm._pendingMultiSelection = StrategyConfigValueHelper.ParseStudentIds(membersValue);
+        }
+        else
+        {
+            vm._pendingSelections = new Dictionary<int, string?>();
+            if (row.StudentId is not null)
+                vm._pendingSelections[0] = row.StudentId;
+            // 额外的同桌学生（存入 CustomValues["student1"], ["student2"], ...）
+            for (int i = 1; i < vm.StudentPickers.Count; i++)
+            {
+                var key = $"student{i}";
+                if (row.Values?.TryGetValue(key, out var sid) == true)
+                    vm._pendingSelections[i] = sid?.ToString();
+            }
         }
         vm.SeatPicker.Row = row.SeatRow ?? 1;
         vm.SeatPicker.Column = row.SeatColumn ?? 1;
@@ -608,10 +630,19 @@ public partial class ConfigBlockRowViewModel : ObservableObject
     public StrategyConfigRow ToConfigRow()
     {
         var values = new Dictionary<string, object?>(CustomValues);
-        // 第一个学生存到 StudentId，其余存到 values
-        var studentId = StudentPickers.Count > 0 ? StudentPickers[0].SelectedStudentId : null;
-        for (int i = 1; i < StudentPickers.Count; i++)
-            values[$"student{i}"] = StudentPickers[i].SelectedStudentId;
+        string? studentId = null;
+        if (MultiPicker is not null)
+        {
+            // 多选模式：成员列表存入 Values["members"]
+            values["members"] = MultiPicker.SelectedIds.ToList();
+        }
+        else
+        {
+            // 第一个学生存到 StudentId，其余存到 values
+            studentId = StudentPickers.Count > 0 ? StudentPickers[0].SelectedStudentId : null;
+            for (int i = 1; i < StudentPickers.Count; i++)
+                values[$"student{i}"] = StudentPickers[i].SelectedStudentId;
+        }
         return new StrategyConfigRow
         {
             Index = Index,

@@ -64,6 +64,12 @@ public sealed class StrategyCodeBlock
     /// <summary>每行学生选择器数量，默认 1。</summary>
     public int StudentPickerCount { get; init; } = 1;
 
+    /// <summary>
+    /// 学生选择器是否多选（一行一个多选选择器，选中结果以学生 ID 列表存入 Values["members"]）。
+    /// 为 true 时忽略 <see cref="StudentPickerCount"/>。
+    /// </summary>
+    public bool StudentPickerMultiSelect { get; init; }
+
     /// <summary>学生选择器数量是否从会场的 SeatsPerDesk 动态获取。DeskMate 设为 true。</summary>
     public bool SeatsPerDeskFromVenue { get; init; }
 

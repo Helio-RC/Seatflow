@@ -261,6 +261,7 @@ public class StrategyExecutionPipeline
 | DeskMateStrategy | 50 (context) | 依赖 | 在 RandomFill 中协调同桌组分配，同行+邻列+同 SeatsPerDesk 分组为同桌；可腾挪 RandomFill 已分配学生但不移动前序策略安置者 |
 | GenderRestrictedSeatStrategy | 45 (context) | 依赖 | 在 RandomFill 中检查座位性别限制；不匹配时优先重定向到匹配性别的受限空座（减少无效重掷），无可用时请求重掷，耗尽则强制分配 |
 | GenderDeskMateStrategy | 44 (context) | 依赖 | 在 RandomFill 中检查同桌两人的性别组合；默认男女搭配，可切换同性同桌；性别未填写不判定；不符时重掷，耗尽则强制分配 |
+| NoDeskMateStrategy | 42 (context) | 依赖 | 「不为同桌」：配置若干搭配组（多选选择器，成员存 Values["members"]），同组任意两人不互为同桌；组内去重、跨组并集；不符时重掷，耗尽则强制分配 |
 | NoRepeatDeskMateStrategy | 40 (context) | 依赖 | 在 RandomFill 中检查历史同桌重复，从快照提取过去的同桌对；重复时请求重掷，耗尽则强制分配 |
 | SnakeOrderStrategy | 10 | 独立 | 按名单（工作区学生顺序）确定性填充空座：网格逐行蛇形、环形逐环交替方向，可关闭蛇形；适合考场式排座 |
 | RandomFillStrategy | 1 | 独立+Host | 兜底填充剩余空座，约束学生（DeskMate 组）优先分配；托管依赖策略执行 |
@@ -281,6 +282,7 @@ codeBlocks[]          ← 按数据集/会场的配置块（Table/ValuePair 模�
   ├── dataType        ← Student | Venue | Both
   ├── displayMode     ← Table | ValuePair
   ├── showSeatPosition ← 是否显示座位定位器（默认 true，自动匹配策略设为 false）
+  ├── studentPickerMultiSelect  ← 学生选择器多选（一行一个搭配组，成员存入 Values["members"]）
   ├── preventDuplicateInRow      ← 是否禁止同行学生选择器值重复（同桌策略设为 true）
   ├── preventDuplicateAcrossRows ← 是否禁止跨行学生选择器值重复（FixedSeat 设为 true）
   ├── loadTrigger    ← 配置加载触发方式：Both=需两个选择器都选（默认），Any=任一选择即加载
@@ -472,7 +474,7 @@ Web 端存储异常 提示浏览器存储（IndexedDB）不可用或容量不足
 阶段 内容 产出
 Phase 1 领域建模、基础架构搭建 核心实体、DI 配置、网格布局
 Phase 2 数据加载与导出 Xlsx/Csv 读取、Excel 导出
-Phase 3 内置策略实现 10 策略（FixedSeat, HeightPriority, FrontRowRotation, SnakeOrder, RandomFill, Defrag + 依赖 DeskMate, GenderRestrictedSeat, GenderDeskMate, NoRepeatDeskMate）
+Phase 3 内置策略实现 11 策略（FixedSeat, HeightPriority, FrontRowRotation, SnakeOrder, RandomFill, Defrag + 依赖 DeskMate, GenderRestrictedSeat, GenderDeskMate, NoDeskMate, NoRepeatDeskMate）
 Phase 4 插件系统（已取消） 2.0.0 移除插件机制，改为内置策略 + issue 提议
 Phase 5 脚本支持（已取消） 随插件系统一并移除（ADR-013）
 Phase 6 高级布局 + 拖放 圆形/扇形/自由点、拖拽换座、CanvasZoomPan

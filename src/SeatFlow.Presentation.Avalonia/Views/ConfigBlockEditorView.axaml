@@ -54,7 +54,7 @@
               <StackPanel
                 Margin="4,0"
                 DockPanel.Dock="Left"
-                IsVisible="{Binding ShowStudentPicker}">
+                IsVisible="{Binding ShowSingleStudentPickers}">
                 <ItemsControl ItemsSource="{Binding StudentPickers}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -67,6 +67,12 @@
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
+              </StackPanel>
+              <StackPanel
+                Margin="4,0"
+                DockPanel.Dock="Left"
+                IsVisible="{Binding IsMultiSelect}">
+                <views:MultiStudentPickerView DataContext="{Binding MultiPicker}" />
               </StackPanel>
               <StackPanel
                 Margin="4,0"

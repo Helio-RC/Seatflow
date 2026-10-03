@@ -344,7 +344,7 @@ python3 version.py sync --force
 |------|------|
 | App 版本 | `src/SeatFlow.Presentation.Avalonia/Data/about.json` (zh-CN + en-US) |
 | 文件格式版本 | `file_versions.json` + 7 个 Model C# 类 + `JsonStudentWriter.cs` |
-| 策略清单版本 | 10 个 `Manifests/*.json` |
+| 策略清单版本 | 11 个 `Manifests/*.json` |
 | 引导配置版本 | `onboarding_config.json` |
 
 ## 安全机制

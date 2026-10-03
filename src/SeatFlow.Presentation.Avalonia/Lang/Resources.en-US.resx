@@ -1616,6 +1616,15 @@ Current seating will be overwritten.</value>
   <data name="Strategy_UnsavedChangesMsg" xml:space="preserve">
     <value>Unsaved strategy changes. Save before leaving?</value>
   </data>
+  <data name="StudentPicker_MultiClear" xml:space="preserve">
+    <value>Clear selection</value>
+  </data>
+  <data name="StudentPicker_MultiPlaceholder" xml:space="preserve">
+    <value>Click to select students</value>
+  </data>
+  <data name="StudentPicker_MultiSelectedFmt" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
   <data name="StudentPicker_Placeholder" xml:space="preserve">
     <value>Select student</value>
   </data>

@@ -1625,6 +1625,15 @@
 选择「确认」保存并离开
 选择「取消」放弃更改并离开</value>
   </data>
+  <data name="StudentPicker_MultiClear" xml:space="preserve">
+    <value>清空选择</value>
+  </data>
+  <data name="StudentPicker_MultiPlaceholder" xml:space="preserve">
+    <value>点击选择学生（可多选）</value>
+  </data>
+  <data name="StudentPicker_MultiSelectedFmt" xml:space="preserve">
+    <value>已选 {0} 人</value>
+  </data>
   <data name="StudentPicker_Placeholder" xml:space="preserve">
     <value>选择学生</value>
   </data>

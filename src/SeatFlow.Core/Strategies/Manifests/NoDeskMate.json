@@ -1,0 +1,33 @@
+{
+    "id": "NoDeskMate",
+    "name": "NoDeskMate",
+    "displayName": "不为同桌",
+    "version": "1.0.0",
+    "manifestVersion": "1.0",
+    "description": "配置若干搭配组：同一组内的学生任意两人不安排在同一张课桌（同桌）。组内自动去重，同一学生可出现在多个组；不满足时请求重掷，耗尽后强制分配并警告。",
+    "author": "SeatFlow Team",
+    "category": "grouping",
+    "defaultPriority": 42,
+    "defaultEnabled": false,
+    "visible": true,
+    "isIndependent": false,
+    "parameters": [],
+    "codeBlocks": [
+        {
+            "title": { "zh-CN": "不为同桌组合", "en-US": "No Desk-Mate Groups" },
+            "description": { "zh-CN": "每行一个组合：可多选学生，同组内任意两人不互为同桌。同一学生可出现在多个组合中。", "en-US": "One group per row: select multiple students; any two in the same group will not share a desk. A student may appear in multiple groups." },
+            "dataType": "Student",
+            "displayMode": "Table",
+            "showSeatPosition": false,
+            "studentPickerCount": 1,
+            "studentPickerMultiSelect": true,
+            "fields": []
+        }
+    ],
+    "messages": {
+        "NoDeskMate_Forced": {
+            "zh-CN": "重掷次数已达上限，学生 {0} 与同组伙伴 {1} 仍被安排为同桌",
+            "en-US": "Reroll limit reached; student {0} is still seated with group partner {1}"
+        }
+    }
+}

@@ -282,6 +282,10 @@ namespace SeatFlow.Application.Services
                 var genderDeskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
                     .OfType<GenderDeskMateStrategy>().FirstOrDefault();
                 genderDeskMate?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
+
+                var noDeskMate = _serviceProvider.GetServices<IDependentSeatingStrategy>()
+                    .OfType<NoDeskMateStrategy>().FirstOrDefault();
+                noDeskMate?.SetSeatsPerDesk(gridMeta.SeatsPerDesk);
             }
             else if (venueLayout?.Metadata is PolarLayoutMetadata polarMeta)
             {
@@ -954,6 +958,12 @@ namespace SeatFlow.Application.Services
                         await _datasetConfigRepo.SaveAsync(config, config.StudentsHash, config.ContentHash, ct);
                     ApplyGenderRestrictionConfig(grs, config, venueLayout);
                 }
+                else if (dep is NoDeskMateStrategy ndm)
+                {
+                    if (CleanNoDeskMateDeletedStudents(config, validStudents))
+                        await _datasetConfigRepo.SaveAsync(config, config.StudentsHash, config.ContentHash, ct);
+                    ApplyNoDeskMateConfig(ndm, config);
+                }
             }
         }
 
@@ -1032,6 +1042,24 @@ namespace SeatFlow.Application.Services
             }
 
             strategy.SetRestrictions(restrictions);
+        }
+
+        /// <summary>
+        /// 将 StrategyDatasetConfig 的 Rows 转换为 NoDeskMateConfiguration.Groups。
+        /// 每行一个搭配组：成员列表读取自 Values["members"]，组内去重，少于 2 人丢弃。
+        /// </summary>
+        private static void ApplyNoDeskMateConfig(NoDeskMateStrategy strategy, StrategyDatasetConfig config)
+        {
+            var groups = new List<List<string>>();
+            foreach (var row in config.Rows)
+            {
+                if (row.Values?.TryGetValue("members", out var membersValue) != true)
+                    continue;
+                var members = Core.Utilities.StrategyConfigValueHelper.ParseStudentIds(membersValue);
+                if (members.Count >= 2)
+                    groups.Add(members);
+            }
+            strategy.SetGroups(groups);
         }
 
         /// <summary>
@@ -1192,6 +1220,52 @@ namespace SeatFlow.Application.Services
         }
 
         /// <summary>
+        /// 清理 NoDeskMate 配置中引用已删除学生的行。
+        /// 过滤掉不在 <paramref name="validStudentIds"/> 中的成员，
+        /// 剩余小于 2 人则删除整行，否则回写仅保留有效成员（组内自动去重）。
+        /// </summary>
+        /// <returns>是否有行被移除或修改。</returns>
+        internal static bool CleanNoDeskMateDeletedStudents(
+            StrategyDatasetConfig config,
+            HashSet<string> validStudentIds)
+        {
+            if (config.Rows.Count == 0)
+                return false;
+
+            bool anyModified = false;
+            var cleanedRows = new List<StrategyConfigRow>();
+            foreach (var row in config.Rows)
+            {
+                if (row.Values?.TryGetValue("members", out var membersValue) != true)
+                {
+                    anyModified = true;
+                    continue;
+                }
+
+                var members = Core.Utilities.StrategyConfigValueHelper.ParseStudentIds(membersValue);
+                var validIds = members.Where(validStudentIds.Contains).ToList();
+                if (validIds.Count < 2)
+                {
+                    anyModified = true;
+                    continue;
+                }
+
+                if (validIds.Count != members.Count)
+                {
+                    anyModified = true;
+                    row.Values["members"] = validIds;
+                }
+                cleanedRows.Add(row);
+            }
+
+            if (!anyModified && cleanedRows.Count == config.Rows.Count)
+                return false;
+
+            config.Rows = cleanedRows;
+            return true;
+        }
+
+        /// <summary>
         /// 保存清理后的数据集配置。保留现有的哈希值（数据本身未变，只是移除了失效行）。
         /// </summary>
         private async Task SaveDatasetConfigAsync(
@@ -1283,6 +1357,7 @@ namespace SeatFlow.Application.Services
                 {
                     ["PreferMixed"] = gd.Config.PreferMixed
                 },
+                NoDeskMateStrategy => [],
                 GenderRestrictedSeatStrategy => [],
                 _ => []
             };
@@ -1323,6 +1398,9 @@ namespace SeatFlow.Application.Services
                 case GenderDeskMateStrategy gd:
                     if (parameters.ContainsKey("PreferMixed"))
                         gd.Config.PreferMixed = GetParamBool(parameters, "PreferMixed");
+                    break;
+                case NoDeskMateStrategy:
+                    // 无策略级参数（搭配组来自配置块）
                     break;
                 case GenderRestrictedSeatStrategy:
                     // 无策略级参数
