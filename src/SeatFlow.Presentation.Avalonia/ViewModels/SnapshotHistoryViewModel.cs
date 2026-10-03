@@ -26,6 +26,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
     private readonly ILogger<SnapshotHistoryViewModel> _logger;
     private int _maxSnapshotsPerVenue = 30;
 
+    /// <summary>数据集 ID → 名称（用于快照详情显示「名称（id）」，数据集被删则回退 id）。</summary>
+    private readonly Dictionary<string, string> _datasetNames = [];
+
     // ── M4：生命周期 / 缓存 / 抽屉 ──
     private bool _venuesLoaded;
     private CancellationTokenSource? _enterCts;
@@ -122,6 +125,35 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
     public string PreviewSeatCountDisplay => SelectedSnapshot?.SeatAssignments?.Count > 0 ? string.Format(Resources.Snapshot_SeatCountFmt, SelectedSnapshot.SeatAssignments.Count) : "";
     public string SnapshotSeatCountDisplay => string.Format(Resources.Snapshot_SeatCountFmt, SelectedSnapshot?.SeatAssignments?.Count ?? 0);
     public string SnapshotQuotaDisplay => string.Format(Resources.Snapshot_QuotaFmt, Snapshots.Count, _maxSnapshotsPerVenue);
+
+    /// <summary>关联会场显示：会场名字（id）；会场已删则仅显示 id，无记录显示「—」。</summary>
+    public string SelectedSnapshotVenueDisplay
+    {
+        get
+        {
+            var id = SelectedSnapshot?.LayoutId;
+            var name = SelectedSnapshot is null
+                ? null
+                : Venues.FirstOrDefault(v => v.Id == SelectedSnapshot.LayoutId)?.Name;
+            return FormatSnapshotNameId(id, name);
+        }
+    }
+
+    /// <summary>人员数据集显示：数据集名字（id）；数据集已删则仅显示 id，旧快照无记录显示「—」。</summary>
+    public string SelectedSnapshotDatasetDisplay
+    {
+        get
+        {
+            var id = SelectedSnapshot?.DatasetId;
+            var name = id is not null && _datasetNames.TryGetValue(id, out var n) ? n : null;
+            return FormatSnapshotNameId(id, name);
+        }
+    }
+
+    internal static string FormatSnapshotNameId(string? id, string? name)
+        => string.IsNullOrEmpty(id)
+            ? "—"
+            : string.IsNullOrEmpty(name) ? id : string.Format(Resources.Snapshot_NameIdFmt, name, id);
 
     /// <summary>
     /// 本次进入页面加载完成的信号：OnLeave 换新、OnEnter 完成后置位，
@@ -279,6 +311,18 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
                     .ThenBy(v => v.Id, StringComparer.Ordinal));
             StatusMessage = string.Format(Resources.Snapshot_VenuesLoadedFmt, items.Count);
 
+            // 数据集摘要（快照详情显示「名称（id）」用；失败不影响会场列表）
+            try
+            {
+                var datasets = await _facade.ListStudentDatasetsAsync(ct);
+                _datasetNames.Clear();
+                foreach (var dataset in datasets)
+                    _datasetNames[dataset.Id] = dataset.Name;
+                OnPropertyChanged(nameof(SelectedSnapshotDatasetDisplay));
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { _logger?.LogWarning(ex, "加载数据集摘要失败"); }
+
             // 重新选中之前的会场
             if (previousVenueId != null)
                 SelectedVenue = Venues.FirstOrDefault(v => v.Id == previousVenueId);
@@ -329,6 +373,9 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
 
     partial void OnSelectedSnapshotChanged(SeatingSnapshot? value)
     {
+        OnPropertyChanged(nameof(SelectedSnapshotVenueDisplay));
+        OnPropertyChanged(nameof(SelectedSnapshotDatasetDisplay));
+
         if (value != null)
             _ = BuildPreviewAsync(value);
         else
@@ -382,6 +429,11 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
 
             // 收集当前所有数据集中的学生 ID 和对象（用于哈希和 ID 存在性双重检测）
             var datasets = await _facade.ListStudentDatasetsAsync();
+            _datasetNames.Clear();
+            foreach (var dataset in datasets)
+                _datasetNames[dataset.Id] = dataset.Name;
+            OnPropertyChanged(nameof(SelectedSnapshotDatasetDisplay));
+
             var foundIds = new HashSet<string>();
             var allCurrentStudents = new List<Student>();
             foreach (var ds in datasets)

@@ -218,4 +218,36 @@ public class ApplicationFacadeTests
         workspace!.FindSeats(s => s.Id == "seat1").First().OccupantId.Should().Be("s1");
         workspace.FindSeats(s => s.Id == "seat2").First().OccupantId.Should().Be("s2");
     }
+
+    [Fact]
+    public async Task CreateSnapshotAsync_ShouldRecordCurrentDatasetId()
+    {
+        var facade = CreateFacade(out _, out var snapRepo, out _, out var appRepo,
+            out var venueRepo, out var datasetRepo, out _, out _, out _, out _, out _);
+
+        venueRepo.LoadAsync("venue-1", Arg.Any<CancellationToken>()).Returns(new ClassroomLayoutDefinition
+        {
+            Id = "venue-1",
+            Name = "测试教室",
+            LayoutType = LayoutType.Grid,
+            Seats = [new GridSeat { Id = "seat1" }],
+        });
+        datasetRepo.LoadAsync("dataset-1", Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<List<Student>?>([new Student { Id = "s1", Name = "张三" }]));
+        appRepo.LoadAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AppSettings { MaxSnapshotsPerVenue = 0 }));
+        venueRepo.GetContentHashAsync("venue-1", Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<string?>(null));
+        venueRepo.GetRawVenueFileAsync("venue-1", Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<string?>(null));
+
+        await facade.CreateEmptyWorkspaceAsync("venue-1", "dataset-1", TestContext.Current.CancellationToken);
+        var snapshot = await facade.CreateSnapshotAsync("手动保存", TestContext.Current.CancellationToken);
+
+        snapshot.Should().NotBeNull();
+        snapshot!.DatasetId.Should().Be("dataset-1", "快照应记录创建时的人员数据集 ID");
+        await snapRepo.Received(1).SaveAsync(
+            Arg.Is<SeatingSnapshot>(s => s.DatasetId == "dataset-1"),
+            Arg.Any<CancellationToken>());
+    }
 }

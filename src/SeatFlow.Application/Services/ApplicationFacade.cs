@@ -63,6 +63,9 @@ namespace SeatFlow.Application.Services
         // 注意：以下字段假定单线程访问（桌面 UI 线程）。
         // 并发调用 GenerateSeatingAsync 等操作不受支持。
         private ClassroomLayoutDefinition? _currentLayout;
+
+        /// <summary>当前工作区使用的人员数据集 ID，创建快照时写入快照。</summary>
+        private string? _currentDatasetId;
         // 注意：以下缓存假设 DI 容器在应用生命周期内保持稳定。
         // 若运行时热加载了新策略/插件，需调用对应刷新方法重建缓存。
         private List<ISeatingStrategy>? _cachedStrategies;
@@ -211,6 +214,7 @@ namespace SeatFlow.Application.Services
             var workspace = new SeatingWorkspace(students, CloneSeatsForWorkspace(seats),
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
+            _currentDatasetId = request.DatasetId;
 
             // 3b. 清理已删除数据源的策略配置（避免无效配置残留磁盘）
             if (!string.IsNullOrEmpty(request.LayoutId))
@@ -482,6 +486,7 @@ namespace SeatFlow.Application.Services
         {
             _currentWorkspace = null;
             _currentLayout = null;
+            _currentDatasetId = null;
         }
 
         /// <inheritdoc />
@@ -511,6 +516,7 @@ namespace SeatFlow.Application.Services
             var workspace = new SeatingWorkspace(students, CloneSeatsForWorkspace(seats),
                 _serviceProvider.GetService<ILogger<SeatingWorkspace>>());
             _currentWorkspace = workspace;
+            _currentDatasetId = datasetId;
 
             logger.LogDebug("空白工作区已创建：{LayoutId}，{StudentCount} 学生，{SeatCount} 座位",
                 layoutId, students.Count, seats.Count);
@@ -598,6 +604,7 @@ namespace SeatFlow.Application.Services
             {
                 Description = description,
                 LayoutId = venueId ?? (plan.Assignments.Count > 0 ? "current" : "empty"),
+                DatasetId = _currentDatasetId ?? string.Empty,
                 SeatAssignments = plan.Assignments,
                 Metadata = snapshotMeta
             };
@@ -651,6 +658,7 @@ namespace SeatFlow.Application.Services
             // 因此工作区使用座位克隆，_currentLayout 保持原始可用性语义。
             _currentWorkspace = new SeatingWorkspace(students, CloneSeatsForWorkspace(seats));
             _currentWorkspace.ApplySnapshotAssignments(snapshot.SeatAssignments);
+            _currentDatasetId = string.IsNullOrEmpty(snapshot.DatasetId) ? null : snapshot.DatasetId;
             logger.LogInformation("快照回滚完成：{SnapshotId}，{StudentCount} 学生，{SeatCount} 座位",
                 snapshotId, students.Count, seats.Count);
         }

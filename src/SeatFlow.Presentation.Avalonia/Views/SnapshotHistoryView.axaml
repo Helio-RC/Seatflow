@@ -299,7 +299,7 @@
                     <DataTemplate x:DataType="core:SeatingSnapshot">
                       <StackPanel Spacing="8">
                         <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Snapshot_Detail}" />
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                           <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,12,0" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Snapshot_Id}" />
                           <TextBlock Grid.Row="0" Grid.Column="1" Classes="sf-sm" Text="{Binding Id}" TextWrapping="Wrap" />
                           <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,12,0" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Snapshot_CreatedAt}" />
@@ -307,7 +307,9 @@
                           <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,12,0" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Snapshot_Description}" />
                           <TextBlock Grid.Row="2" Grid.Column="1" Classes="sf-sm" Text="{Binding Description}" TextWrapping="Wrap" />
                           <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,12,0" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Snapshot_LinkedVenue}" />
-                          <TextBlock Grid.Row="3" Grid.Column="1" Classes="sf-sm" Text="{Binding LayoutId}" TextWrapping="Wrap" />
+                          <TextBlock Grid.Row="3" Grid.Column="1" Classes="sf-sm" Text="{Binding $parent[UserControl].DataContext.SelectedSnapshotVenueDisplay}" TextWrapping="Wrap" />
+                          <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,12,0" Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Snapshot_LinkedDataset}" />
+                          <TextBlock Grid.Row="4" Grid.Column="1" Classes="sf-sm" Text="{Binding $parent[UserControl].DataContext.SelectedSnapshotDatasetDisplay}" TextWrapping="Wrap" />
                         </Grid>
                       </StackPanel>
                     </DataTemplate>

@@ -21,6 +21,9 @@ namespace SeatFlow.Core.Models
         /// <summary>关联的教室布局 ID。</summary>
         public string LayoutId { get; set; } = string.Empty;
 
+        /// <summary>创建快照时使用的人员数据集 ID（旧快照可能为空）。</summary>
+        public string DatasetId { get; set; } = string.Empty;
+
         /// <summary>座位分配字典，Key 为座位 ID，Value 为学生 ID。</summary>
         public Dictionary<string, string> SeatAssignments { get; set; } = [];
 

@@ -456,10 +456,12 @@ public class Resources
     public static string Snapshot_Description => ResourceManager.GetString("Snapshot_Description", Culture)!;
     public static string Snapshot_Detail => ResourceManager.GetString("Snapshot_Detail", Culture)!;
     public static string Snapshot_Id => ResourceManager.GetString("Snapshot_Id", Culture)!;
+    public static string Snapshot_LinkedDataset => ResourceManager.GetString("Snapshot_LinkedDataset", Culture)!;
     public static string Snapshot_LinkedVenue => ResourceManager.GetString("Snapshot_LinkedVenue", Culture)!;
     public static string Snapshot_List => ResourceManager.GetString("Snapshot_List", Culture)!;
     public static string Snapshot_ListShort => ResourceManager.GetString("Snapshot_ListShort", Culture)!;
     public static string Snapshot_ManualSnapshotFmt => ResourceManager.GetString("Snapshot_ManualSnapshotFmt", Culture)!;
+    public static string Snapshot_NameIdFmt => ResourceManager.GetString("Snapshot_NameIdFmt", Culture)!;
     public static string Snapshot_NoSelection => ResourceManager.GetString("Snapshot_NoSelection", Culture)!;
     public static string Snapshot_NoSnapshotsFmt => ResourceManager.GetString("Snapshot_NoSnapshotsFmt", Culture)!;
     public static string Snapshot_NoWorkspace => ResourceManager.GetString("Snapshot_NoWorkspace", Culture)!;

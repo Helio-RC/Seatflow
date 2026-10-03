@@ -1357,6 +1357,9 @@
   <data name="Snapshot_Id" xml:space="preserve">
     <value>快照ID</value>
   </data>
+  <data name="Snapshot_LinkedDataset" xml:space="preserve">
+    <value>人员数据集</value>
+  </data>
   <data name="Snapshot_LinkedVenue" xml:space="preserve">
     <value>关联会场</value>
   </data>
@@ -1368,6 +1371,9 @@
   </data>
   <data name="Snapshot_ManualSnapshotFmt" xml:space="preserve">
     <value>手动快照 - {0}</value>
+  </data>
+  <data name="Snapshot_NameIdFmt" xml:space="preserve">
+    <value>{0}（{1}）</value>
   </data>
   <data name="Snapshot_NoSelection" xml:space="preserve">
     <value>未选中任何快照。</value>
