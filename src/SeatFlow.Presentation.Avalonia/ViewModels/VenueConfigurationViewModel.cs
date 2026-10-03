@@ -90,6 +90,16 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     partial void OnIsFreeformVenueChanged(bool value) => OnPropertyChanged(nameof(CanChangeLayoutType));
 
+    partial void OnSelectedLayoutTypeChanged(LayoutType value)
+    {
+        // 切换布局页签时把在途禁用选择落盘到编辑器状态，避免草稿丢失
+        if (IsPickingDisabledSeats)
+        {
+            CommitPendingDisabledToggles();
+            PreviewRevision++;
+        }
+    }
+
     // ── Grid 基础参数 ──
     [ObservableProperty]
     public partial int GridRows { get; set; } = 5;
@@ -157,6 +167,22 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     [ObservableProperty]
     public partial string GridEmptyPositionsSpec { get; set; } = "";
+
+    /// <summary>每列行数输入项（数量同步 <see cref="GridColumns"/>；留空 = 沿用「行数」）。</summary>
+    [ObservableProperty]
+    public partial ObservableCollection<ColumnRowCountOption> ColumnRowCountOptions { get; set; } = [];
+
+    /// <summary>禁用座位拾取模式（Grid/Polar 共用；选择草稿在预览点击中维护，保存时才写入 spec）。</summary>
+    [ObservableProperty]
+    public partial bool IsPickingDisabledSeats { get; set; }
+
+    /// <summary>「清除全部禁用座位」是否可用（当前布局存在已禁用座位或待选草稿）。</summary>
+    public bool CanClearDisabledSeats => SelectedLayoutType switch
+    {
+        LayoutType.Grid => !string.IsNullOrEmpty(GridEmptyPositionsSpec) || _pendingGridDisabledToggles.Count > 0,
+        LayoutType.Polar => !string.IsNullOrEmpty(PolarEmptyPositionsSpec) || _pendingPolarDisabledToggles.Count > 0,
+        _ => false,
+    };
 
     // ── 门配置（支持多门、自定义位置；Grid/Polar 使用） ──
     [ObservableProperty]
@@ -283,6 +309,11 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     /// <summary>Polar 会场的 (环号, 角度) → ID 映射。</summary>
     private Dictionary<(int Ring, double Angle), string>? _existingPolarSeatMap;
+
+    /// <summary>禁用座位拾取草稿：Grid (行,列) / Polar (环, 角度两位小数)；保存前不写 spec、不标脏。</summary>
+    private readonly HashSet<(int Row, int Column)> _pendingGridDisabledToggles = [];
+
+    private readonly HashSet<(int Ring, double Angle)> _pendingPolarDisabledToggles = [];
 
     /// <summary>自由点集合内容修订号（脏检查用；点属性/集合变化时自增）。</summary>
     private long _freeformPointsRevision;
@@ -524,6 +555,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         try
         {
             ct.ThrowIfCancellationRequested();
+            ResetDisabledSeatsPicking();
             var layout = await _facade.LoadVenueAsync(item.Id);
             if (ct.IsCancellationRequested) return;
             if (layout == null)
@@ -609,6 +641,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
         await SafeExecuteAsync(async () =>
         {
+            CommitPendingDisabledToggles();
             var layout = BuildLayoutDefinition();
             await _facade.SaveVenueAsync(item.Id, layout);
             DirtyTracker.MarkClean(BuildDirtySnapshot());
@@ -644,6 +677,155 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     private void RemoveDoor(DoorItem door)
     {
         DoorItems.Remove(door);
+    }
+
+    // ═══════════════════════════════════════════════
+    // 禁用座位拾取（Grid / Polar）
+    // ═══════════════════════════════════════════════
+
+    /// <summary>入口按钮：未拾取时进入选择模式，拾取中再次点击 = 保存并退出。</summary>
+    [RelayCommand]
+    private void ToggleDisabledSeatsPicking()
+    {
+        if (IsPickingDisabledSeats)
+        {
+            CommitPendingDisabledToggles();
+            PreviewRevision++;
+            return;
+        }
+
+        ClearPendingDisabledToggles();
+        IsPickingDisabledSeats = true;
+        OnPropertyChanged(nameof(CanClearDisabledSeats));
+    }
+
+    /// <summary>预览区保存按钮：应用草稿并退出选择模式。</summary>
+    [RelayCommand]
+    private void SaveDisabledSeatsPicking()
+    {
+        if (!IsPickingDisabledSeats) return;
+        CommitPendingDisabledToggles();
+        PreviewRevision++;
+    }
+
+    /// <summary>清除当前布局的全部禁用座位（含未保存草稿），不弹确认。</summary>
+    [RelayCommand]
+    private void ClearDisabledSeats()
+    {
+        switch (SelectedLayoutType)
+        {
+            case LayoutType.Grid:
+                GridEmptyPositionsSpec = "";
+                _pendingGridDisabledToggles.Clear();
+                break;
+            case LayoutType.Polar:
+                PolarEmptyPositionsSpec = "";
+                _pendingPolarDisabledToggles.Clear();
+                break;
+        }
+
+        OnPropertyChanged(nameof(CanClearDisabledSeats));
+        PreviewRevision++;
+    }
+
+    /// <summary>预览座位点击：拾取模式下 toggle 对应布局的禁用草稿。</summary>
+    public void OnPreviewSeatClicked(SeatVisual seat)
+    {
+        if (!IsPickingDisabledSeats) return;
+
+        switch (SelectedLayoutType)
+        {
+            case LayoutType.Grid when seat.Row is { } row && seat.Column is { } column:
+                TogglePending(_pendingGridDisabledToggles, (row, column));
+                break;
+            case LayoutType.Polar when seat.Ring is { } ring && seat.AngleDegrees is { } angle:
+                TogglePending(_pendingPolarDisabledToggles, (ring, Math.Round(angle, 2)));
+                break;
+            default:
+                return;
+        }
+
+        OnPropertyChanged(nameof(CanClearDisabledSeats));
+        PreviewRevision++;
+    }
+
+    private static void TogglePending<T>(HashSet<T> set, T key) where T : notnull
+    {
+        if (!set.Add(key)) set.Remove(key);
+    }
+
+    private void ClearPendingDisabledToggles()
+    {
+        _pendingGridDisabledToggles.Clear();
+        _pendingPolarDisabledToggles.Clear();
+    }
+
+    private void ResetDisabledSeatsPicking()
+    {
+        IsPickingDisabledSeats = false;
+        ClearPendingDisabledToggles();
+        OnPropertyChanged(nameof(CanClearDisabledSeats));
+    }
+
+    /// <summary>把草稿（已禁用 ⊕ 待选）写入 spec 并退出选择模式。</summary>
+    private void CommitPendingDisabledToggles()
+    {
+        if (_pendingGridDisabledToggles.Count > 0)
+        {
+            var effective = GetEffectiveGridEmptyPositions();
+            GridEmptyPositionsSpec = string.Join(";", effective.Select(p => $"{p.Row},{p.Column}"));
+        }
+
+        if (_pendingPolarDisabledToggles.Count > 0)
+        {
+            var effective = GetEffectivePolarEmptyPositions();
+            PolarEmptyPositionsSpec = string.Join(";", effective.Select(p => $"{p.Ring},{p.AngleDegrees:F2}"));
+        }
+
+        IsPickingDisabledSeats = false;
+        ClearPendingDisabledToggles();
+        OnPropertyChanged(nameof(CanClearDisabledSeats));
+    }
+
+    /// <summary>已禁用集合与草稿的对称差（预览渲染与保存共用）。</summary>
+    private List<GridPosition> GetEffectiveGridEmptyPositions()
+    {
+        var committed = FilterGridEmptyPositions(
+            ParseGridEmptyPositions(GridEmptyPositionsSpec), GridColumns, GridRows,
+            ParseIntList(GridColumnRowCountsSpec));
+        if (_pendingGridDisabledToggles.Count == 0) return committed;
+
+        var set = new HashSet<(int Row, int Column)>(committed.Select(p => (p.Row, p.Column)));
+        foreach (var key in _pendingGridDisabledToggles)
+        {
+            if (!set.Add(key)) set.Remove(key);
+        }
+
+        // 草稿键可能因拾取期间修改行列数而越界，提交前统一过滤
+        return FilterGridEmptyPositions(
+            [.. set.Select(k => new GridPosition { Row = k.Row, Column = k.Column })
+                .OrderBy(p => p.Row).ThenBy(p => p.Column)],
+            GridColumns, GridRows, ParseIntList(GridColumnRowCountsSpec));
+    }
+
+    private List<PolarRingAngle> GetEffectivePolarEmptyPositions()
+    {
+        var committed = FilterPolarEmptyPositions(
+            ParsePolarEmptyPositions(PolarEmptyPositionsSpec),
+            ParseIntList(PolarRingSeatCountsSpec), PolarRings);
+        if (_pendingPolarDisabledToggles.Count == 0) return committed;
+
+        var set = new HashSet<(int Ring, double Angle)>(
+            committed.Select(p => (p.Ring, Math.Round(p.AngleDegrees, 2))));
+        foreach (var key in _pendingPolarDisabledToggles)
+        {
+            if (!set.Add(key)) set.Remove(key);
+        }
+
+        // 草稿键可能因拾取期间修改环数而越界，提交前统一过滤
+        return FilterPolarEmptyPositions(
+            [.. set.Select(k => new PolarRingAngle { Ring = k.Ring, AngleDegrees = k.Angle })],
+            ParseIntList(PolarRingSeatCountsSpec), PolarRings);
     }
 
     // ═══════════════════════════════════════════════
@@ -979,7 +1161,10 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             // 行/列/每桌人数变化会改变过道选项集合；这里（去抖后）做增量同步，
             // 避免每次数值步进都重建整表 CheckBox 控件（WASM 下曾是数百 ms/键的瓶颈）。
             if (SelectedLayoutType == LayoutType.Grid)
+            {
                 RegenerateAisleOptions();
+                RegenerateColumnRowCountOptions();
+            }
 
             PreviewSnapshot = BuildPreviewSnapshot();
             PreviewSeatCount = PreviewSnapshot?.Seats.Count ?? 0;
@@ -1015,18 +1200,20 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     private void BuildGridPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
     {
-        var meta = BuildGridMetadata();
+        var meta = BuildGridMetadata(GetEffectiveGridEmptyPositions());
         // 与排座工作台共用同一视觉几何（0.8 同桌压缩 + 可读尺寸坐标放大），保证两处一致
         var geometry = GridVisualGeometryBuilder.Build(meta);
 
         foreach (var s in geometry.Seats)
         {
+            bool isPicked = _pendingGridDisabledToggles.Contains((s.Row, s.Column));
             if (s.IsDisabled)
             {
                 seats.Add(new SeatVisual(
                     s.SeatId, s.X, s.Y, s.Width, s.Height,
                     IsDisabled: true,
-                    SeatLabel: string.Format(Resources.Venue_GridDisabledFmt, s.Row, s.Column)));
+                    SeatLabel: string.Format(Resources.Venue_GridDisabledFmt, s.Row, s.Column),
+                    Row: s.Row, Column: s.Column, IsSelected: isPicked));
                 continue;
             }
 
@@ -1034,7 +1221,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             seats.Add(new SeatVisual(
                 s.SeatId, s.X, s.Y, s.Width, s.Height,
                 IsOccupied: true,
-                SeatLabel: string.Format(Resources.Venue_GridLabelFmt, s.Row, s.Column, deskNum)));
+                SeatLabel: string.Format(Resources.Venue_GridLabelFmt, s.Row, s.Column, deskNum),
+                Row: s.Row, Column: s.Column, IsSelected: isPicked));
         }
 
         // 讲台（水平居中于网格）
@@ -1057,7 +1245,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     private void BuildPolarPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
     {
-        var meta = BuildPolarMetadata();
+        var meta = BuildPolarMetadata(GetEffectivePolarEmptyPositions());
         var layout = PolarLayoutBuilder.BuildPolar(meta);
         int totalRings = meta.RingSeatCounts.Count > 0 ? meta.RingSeatCounts.Count : meta.Rings;
 
@@ -1068,7 +1256,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             seats.Add(new SeatVisual(
                 s.Id, cx - seatR, cy - seatR, seatR * 2, seatR * 2,
                 IsOccupied: true,
-                SeatLabel: $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})"));
+                SeatLabel: $"R{s.Ring} {s.AngleDegrees:F0}° ({s.LogicalGroup})",
+                Ring: s.Ring, AngleDegrees: s.AngleDegrees,
+                IsSelected: _pendingPolarDisabledToggles.Contains((s.Ring, Math.Round(s.AngleDegrees, 2)))));
         }
 
         // 讲台（圆心处）
@@ -1094,7 +1284,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
                 seats.Add(new SeatVisual(
                     $"disabled-r{empty.Ring}a{empty.AngleDegrees:F2}", cx - seatR, cy - seatR, seatR * 2, seatR * 2,
                     IsDisabled: true,
-                    SeatLabel: string.Format(Resources.Venue_PolarDisabledFmt, empty.Ring, empty.AngleDegrees)));
+                    SeatLabel: string.Format(Resources.Venue_PolarDisabledFmt, empty.Ring, empty.AngleDegrees),
+                    Ring: empty.Ring, AngleDegrees: empty.AngleDegrees,
+                    IsSelected: _pendingPolarDisabledToggles.Contains((empty.Ring, Math.Round(empty.AngleDegrees, 2)))));
             }
         }
 
@@ -1285,8 +1477,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         return layout;
     }
 
-    private GridLayoutMetadata BuildGridMetadata()
+    private GridLayoutMetadata BuildGridMetadata(List<GridPosition>? emptyPositionsOverride = null)
     {
+        var columnRowCounts = ParseIntList(GridColumnRowCountsSpec);
         return new GridLayoutMetadata
         {
             Rows = GridRows,
@@ -1305,16 +1498,17 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             HasPodium = GridHasPodium,
             PodiumWidth = GridPodiumWidth,
             PodiumHeight = GridPodiumHeight,
-            ColumnRowCounts = ParseIntList(GridColumnRowCountsSpec),
+            ColumnRowCounts = columnRowCounts,
             HasFrontDoor = GridHasFrontDoor,
-            EmptyPositions = FilterGridEmptyPositions(
-                ParseGridEmptyPositions(GridEmptyPositionsSpec), GridColumns, GridRows,
-                ParseIntList(GridColumnRowCountsSpec))
+            EmptyPositions = emptyPositionsOverride
+                ?? FilterGridEmptyPositions(
+                    ParseGridEmptyPositions(GridEmptyPositionsSpec), GridColumns, GridRows, columnRowCounts)
         };
     }
 
-    private PolarLayoutMetadata BuildPolarMetadata()
+    private PolarLayoutMetadata BuildPolarMetadata(List<PolarRingAngle>? emptyPositionsOverride = null)
     {
+        var ringSeatCounts = ParseIntList(PolarRingSeatCountsSpec);
         return new PolarLayoutMetadata
         {
             Rings = PolarRings,
@@ -1324,7 +1518,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             EndAngleDegrees = PolarEndAngle,
             OriginX = PolarOriginX,
             OriginY = PolarOriginY,
-            RingSeatCounts = ParseIntList(PolarRingSeatCountsSpec),
+            RingSeatCounts = ringSeatCounts,
             HasPodium = PolarHasPodium,
             PodiumRadius = PolarPodiumRadius,
             AisleRadialAngles = ParseDoubleList(PolarAisleRadialAngles),
@@ -1332,9 +1526,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             AisleCircularAfterRings = ParseIntList(PolarAisleCircularRings),
             AisleCircularWidth = PolarAisleCircularWidth,
             FrontRowCount = PolarFrontRowCount,
-            EmptyPositions = FilterPolarEmptyPositions(
-                ParsePolarEmptyPositions(PolarEmptyPositionsSpec),
-                ParseIntList(PolarRingSeatCountsSpec), PolarRings)
+            EmptyPositions = emptyPositionsOverride
+                ?? FilterPolarEmptyPositions(
+                    ParsePolarEmptyPositions(PolarEmptyPositionsSpec), ringSeatCounts, PolarRings)
         };
     }
 
@@ -1363,6 +1557,61 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         for (int r = 1; r < GridRows; r++)
             rowTargets.Add((string.Format(Resources.Venue_RowAisleFmt, r, r + 1), r));
         SyncAisleOptions(AisleRowOptions, rowTargets, prevRows, SyncAisleRowsFromOptions);
+    }
+
+    /// <summary>
+    /// 按当前列数增量同步「每列行数」输入项：新增列从 spec 回填/留空，超出列截断；
+    /// 末尾统一回写 spec（内部空位用当前行数补齐、末尾空位省略）。
+    /// </summary>
+    private void RegenerateColumnRowCountOptions()
+    {
+        int target = Math.Max(1, GridColumns);
+        var spec = ParseIntList(GridColumnRowCountsSpec);
+
+        while (ColumnRowCountOptions.Count > target)
+            ColumnRowCountOptions.RemoveAt(ColumnRowCountOptions.Count - 1);
+
+        while (ColumnRowCountOptions.Count < target)
+        {
+            int index = ColumnRowCountOptions.Count;
+            var option = new ColumnRowCountOption(index + 1)
+            {
+                Rows = index < spec.Count ? spec[index] : null
+            };
+            option.PropertyChanged += (_, _) => SyncColumnRowCountsFromOptions();
+            ColumnRowCountOptions.Add(option);
+        }
+
+        SyncColumnRowCountsFromOptions();
+    }
+
+    private void SyncColumnRowCountsFromOptions()
+    {
+        GridColumnRowCountsSpec = BuildColumnRowCountsSpec();
+    }
+
+    /// <summary>
+    /// 生成每列行数 spec：取最后一个有值列，其前空位用当前行数补齐，末尾空位省略；
+    /// 全空返回空串（全部沿用「行数」）。
+    /// </summary>
+    private string BuildColumnRowCountsSpec()
+    {
+        int last = -1;
+        for (int i = 0; i < ColumnRowCountOptions.Count; i++)
+        {
+            if (ColumnRowCountOptions[i].Rows is > 0) last = i;
+        }
+
+        if (last < 0) return "";
+
+        var parts = new string[last + 1];
+        for (int i = 0; i <= last; i++)
+        {
+            var rows = ColumnRowCountOptions[i].Rows;
+            parts[i] = (rows is > 0 ? rows.Value : Math.Max(1, GridRows)).ToString(CultureInfo.InvariantCulture);
+        }
+
+        return string.Join(",", parts);
     }
 
     /// <summary>
@@ -1453,6 +1702,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             : "";
 
         RegenerateAisleOptions();
+        // 选项值必须完全来自本次加载的 spec，避免沿用上一个会场的「每列行数」
+        ColumnRowCountOptions.Clear();
+        RegenerateColumnRowCountOptions();
     }
 
     private void PopulatePolarFromMetadata(PolarLayoutMetadata p)
@@ -1521,6 +1773,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         GridFrontRowCount = 1;
         GridHasPodium = true; GridPodiumWidth = 100; GridPodiumHeight = 40;
         GridColumnRowCountsSpec = ""; GridEmptyPositionsSpec = "";
+        ColumnRowCountOptions.Clear();
         DoorItems.Clear();
         PolarRings = 3; PolarSeatsPerRing = 12;
         PolarRadiusStep = 40; PolarStartAngle = 0; PolarEndAngle = 360;
@@ -1533,6 +1786,8 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         PolarEmptyPositionsSpec = "";
         // 规格清零后重建过道选项，避免勾选状态与规格不一致
         RegenerateAisleOptions();
+        RegenerateColumnRowCountOptions();
+        ResetDisabledSeatsPicking();
         Points.Clear();
         RefreshPointsState();
     }
@@ -1632,6 +1887,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
         var name = e.PropertyName;
         if (name is null) return;
+
+        if (name is nameof(GridEmptyPositionsSpec) or nameof(PolarEmptyPositionsSpec) or nameof(SelectedLayoutType))
+            OnPropertyChanged(nameof(CanClearDisabledSeats));
 
         if (name == nameof(LayoutName))
         {
@@ -1757,6 +2015,9 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     public override async Task<bool> CanLeaveAsync()
     {
+        // 拾取草稿先写入编辑器状态（未保存的禁用选择不因离开而丢失）
+        CommitPendingDisabledToggles();
+
         // 兜底刷新（覆盖个别不触发通知的编辑路径，如虚拟化单元格）
         DirtyTracker.Update(BuildDirtySnapshot());
 
@@ -1791,6 +2052,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     private void ClearVenueState()
     {
         _selectVenueCts?.Cancel();
+        ResetDisabledSeatsPicking();
         _suppressAutoLoad = true;
         _suppressEditorTracking = true;
         try
@@ -1800,6 +2062,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             _existingGridSeatMap = null;
             _existingPolarSeatMap = null;
             DoorItems.Clear();
+            ColumnRowCountOptions.Clear();
             Points.Clear();
             PreviewSnapshot = null;
             PreviewSeatCount = 0;
@@ -1844,6 +2107,17 @@ public partial class AisleOption(string label, int seatColumn, bool selected = f
 
     [ObservableProperty]
     public partial bool IsSelected { get; set; } = selected;
+}
+
+/// <summary>「每列行数」输入项：列号固定，行数留空 = 沿用全局「行数」。</summary>
+public partial class ColumnRowCountOption(int column) : ObservableObject
+{
+    public int Column { get; } = column;
+
+    public string Label => string.Format(Resources.Venue_ColumnRowsFmt, Column);
+
+    [ObservableProperty]
+    public partial int? Rows { get; set; }
 }
 
 /// <summary>自由点元素类型（与旧自由点页一致：0=座位, 1=讲台, 2=门）。</summary>

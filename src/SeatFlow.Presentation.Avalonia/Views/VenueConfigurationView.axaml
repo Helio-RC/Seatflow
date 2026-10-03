@@ -302,24 +302,71 @@
                 <Border Classes="sf-divider" />
 
                 <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Optional}" />
-                <WrapPanel>
-                  <StackPanel Classes="sf-field">
-                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" />
-                    <TextBox
-                      Classes="sf-input"
-                      PlaceholderText="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
-                      Text="{Binding GridColumnRowCountsSpec, Mode=TwoWay}"
-                      ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}" />
-                  </StackPanel>
-                  <StackPanel Classes="sf-field">
-                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
-                    <TextBox
-                      Classes="sf-input"
-                      PlaceholderText="{x:Static lang:Resources.Venue_DisabledSeatsPH}"
-                      Text="{Binding GridEmptyPositionsSpec, Mode=TwoWay}"
-                      ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsTooltip}" />
-                  </StackPanel>
-                </WrapPanel>
+
+                <StackPanel
+                  Margin="0,0,12,4"
+                  Spacing="4"
+                  ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}">
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" />
+                  <ItemsControl ItemsSource="{Binding ColumnRowCountOptions}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ColumnRowCountOption">
+                        <StackPanel Margin="0,0,10,4" Spacing="2">
+                          <TextBlock Classes="sf-xs sf-dim" Text="{Binding Label}" />
+                          <NumericUpDown
+                            Width="92"
+                            Classes="sf-input"
+                            Maximum="100"
+                            Minimum="1"
+                            PlaceholderText="—"
+                            ToolTip.Tip="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
+                            Value="{Binding Rows, Mode=TwoWay}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <StackPanel
+                  Margin="0,4,0,0"
+                  Orientation="Horizontal"
+                  Spacing="8">
+                  <Button
+                    Classes="sf-btn sf-sm"
+                    Command="{Binding ToggleDisabledSeatsPickingCommand}"
+                    IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsPickTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Prohibited}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
+                    </StackPanel>
+                  </Button>
+                  <Button
+                    Classes="sf-btn sf-sm sf-primary"
+                    Command="{Binding ToggleDisabledSeatsPickingCommand}"
+                    IsVisible="{Binding IsPickingDisabledSeats}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsSavePickTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Save}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsSavePick}" />
+                    </StackPanel>
+                  </Button>
+                  <Button
+                    Classes="sf-btn sf-sm"
+                    Command="{Binding ClearDisabledSeatsCommand}"
+                    IsEnabled="{Binding CanClearDisabledSeats}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsClearTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Delete}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsClear}" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
               </StackPanel>
             </Border>
 
@@ -549,13 +596,37 @@
                 <Border Classes="sf-divider" />
 
                 <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Optional}" />
-                <StackPanel Classes="sf-field">
-                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
-                  <TextBox
-                    Classes="sf-input"
-                    PlaceholderText="{x:Static lang:Resources.Venue_PolarDisabledPH}"
-                    Text="{Binding PolarEmptyPositionsSpec, Mode=TwoWay}"
-                    ToolTip.Tip="{x:Static lang:Resources.Venue_PolarDisabledTooltip}" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button
+                    Classes="sf-btn sf-sm"
+                    Command="{Binding ToggleDisabledSeatsPickingCommand}"
+                    IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsPickTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Prohibited}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeats}" />
+                    </StackPanel>
+                  </Button>
+                  <Button
+                    Classes="sf-btn sf-sm sf-primary"
+                    Command="{Binding ToggleDisabledSeatsPickingCommand}"
+                    IsVisible="{Binding IsPickingDisabledSeats}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsSavePickTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Save}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsSavePick}" />
+                    </StackPanel>
+                  </Button>
+                  <Button
+                    Classes="sf-btn sf-sm"
+                    Command="{Binding ClearDisabledSeatsCommand}"
+                    IsEnabled="{Binding CanClearDisabledSeats}"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsClearTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.Delete}" />
+                      <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsClear}" />
+                    </StackPanel>
+                  </Button>
                 </StackPanel>
               </StackPanel>
             </Border>
@@ -912,20 +983,44 @@
                     <TextBlock
                       VerticalAlignment="Center"
                       Classes="sf-hint"
+                      IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
                       Text="{x:Static lang:Resources.Venue_DragHint}" />
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      Classes="sf-hint"
+                      IsVisible="{Binding IsPickingDisabledSeats}"
+                      Text="{x:Static lang:Resources.Venue_DisabledSeatsPickingHint}" />
                   </StackPanel>
-                  <TextBlock
+                  <StackPanel
                     Grid.Column="1"
                     VerticalAlignment="Center"
-                    Classes="sf-xs sf-num sf-dim"
-                    Text="{Binding PreviewSeatCountDisplay}" />
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding SaveDisabledSeatsPickingCommand}"
+                      IsEnabled="{Binding IsPickingDisabledSeats}"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_DisabledSeatsSavePickTooltip}">
+                      <StackPanel Orientation="Horizontal" Spacing="4">
+                        <fic:FluentIcon FontSize="12" Icon="{x:Static ficEnum:Icon.CheckmarkCircle}" />
+                        <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Venue_DisabledSeatsSavePick}" />
+                      </StackPanel>
+                    </Button>
+                    <TextBlock
+                      VerticalAlignment="Center"
+                      Classes="sf-xs sf-num sf-dim"
+                      Text="{Binding PreviewSeatCountDisplay}" />
+                  </StackPanel>
                 </Grid>
                 <Border
                   Height="380"
                   Padding="0"
                   Classes="sf-inset"
                   ClipToBounds="True">
-                  <controls:SeatingCanvas Snapshot="{Binding PreviewSnapshot}" />
+                  <controls:SeatingCanvas
+                    IsSeatPicking="{Binding IsPickingDisabledSeats}"
+                    SeatClicked="OnPreviewSeatClicked"
+                    Snapshot="{Binding PreviewSnapshot}" />
                 </Border>
               </DockPanel>
             </Border>

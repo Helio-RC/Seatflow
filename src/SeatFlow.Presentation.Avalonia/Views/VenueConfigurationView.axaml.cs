@@ -1,6 +1,7 @@
 using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 
 namespace SeatFlow.Presentation.Avalonia.Views;
@@ -39,5 +40,11 @@ public partial class VenueConfigurationView : UserControl
 
         if (DataContext is VenueConfigurationViewModel vm)
             _ = vm.OnLeaveAsync();
+    }
+
+    private void OnPreviewSeatClicked(object? sender, SeatEventArgs e)
+    {
+        if (DataContext is VenueConfigurationViewModel vm && e.Seat is { } seat)
+            vm.OnPreviewSeatClicked(seat);
     }
 }

@@ -18,6 +18,11 @@ namespace SeatFlow.Presentation.Avalonia.Controls;
 /// <param name="IsSwapSource">是否为交换模式下的源座位（选中态）。</param>
 /// <param name="IsDropTarget">是否为拖拽悬停目标。</param>
 /// <param name="IsDataStale">数据已失效（快照回滚预览等场景高亮）。</param>
+/// <param name="Row">Grid 行号（1 起；非 Grid 为 null）。</param>
+/// <param name="Column">Grid 列号（1 起；非 Grid 为 null）。</param>
+/// <param name="Ring">Polar 环号（1 起；非 Polar 为 null）。</param>
+/// <param name="AngleDegrees">Polar 角度（度；非 Polar 为 null）。</param>
+/// <param name="IsSelected">是否为多选拾取下的选中项（会场配置禁用座位草稿）。</param>
 public sealed record SeatVisual(
     string Id,
     double X,
@@ -32,7 +37,12 @@ public sealed record SeatVisual(
     string? StudentId = null,
     bool IsSwapSource = false,
     bool IsDropTarget = false,
-    bool IsDataStale = false);
+    bool IsDataStale = false,
+    int? Row = null,
+    int? Column = null,
+    int? Ring = null,
+    double? AngleDegrees = null,
+    bool IsSelected = false);
 
 /// <summary>板面覆盖物（讲台 / 门 / 其他标记），坐标相对板面左上角。</summary>
 /// <param name="X">相对板面的 X 坐标。</param>

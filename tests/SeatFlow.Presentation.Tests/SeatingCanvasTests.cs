@@ -175,4 +175,113 @@ public class SeatingCanvasTests
 
         canvas.Zoom.Should().BeLessThan(1.0, "大板面应自动缩小适配视口");
     }
+
+    private static SeatLayoutSnapshot CreateDisabledSnapshot() => new(
+        [
+            new SeatVisual("disabled", 0, 0, 50, 30, IsDisabled: true, SeatLabel: "R1C1", Row: 1, Column: 1),
+            new SeatVisual("enabled", 100, 0, 50, 30, Row: 1, Column: 2),
+        ],
+        200,
+        120);
+
+    [AvaloniaFact]
+    public void 拾取模式_点击禁用座位_触发点击且不拖拽()
+    {
+        var (canvas, window) = CreateCanvasWindow(CreateDisabledSnapshot());
+        canvas.IsSeatPicking = true;
+
+        SeatEventArgs? clicked = null;
+        var dropped = false;
+        canvas.SeatClicked += (_, e) => clicked = e;
+        canvas.SeatDropped += (_, _) => dropped = true;
+
+        var point = ToScreen(canvas, new Point(10, 10));
+        window.MouseDown(point, MouseButton.Left);
+        window.MouseUp(point, MouseButton.Left);
+
+        clicked.Should().NotBeNull();
+        clicked!.SeatId.Should().Be("disabled");
+        clicked.Seat!.Row.Should().Be(1);
+        clicked.Seat!.Column.Should().Be(1);
+        dropped.Should().BeFalse("拾取模式不应进入拖拽");
+    }
+
+    [AvaloniaFact]
+    public void 拾取模式_按下后拖动超阈值_不触发点击也不拖拽()
+    {
+        var (canvas, window) = CreateCanvasWindow(CreateDisabledSnapshot());
+        canvas.IsSeatPicking = true;
+
+        SeatEventArgs? clicked = null;
+        var dropped = false;
+        canvas.SeatClicked += (_, e) => clicked = e;
+        canvas.SeatDropped += (_, _) => dropped = true;
+
+        var start = ToScreen(canvas, new Point(10, 10));
+        var end = ToScreen(canvas, new Point(40, 10));
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(end);
+        window.MouseUp(end, MouseButton.Left);
+
+        clicked.Should().BeNull("拾取模式下超阈值拖动视为误触");
+        dropped.Should().BeFalse("拾取模式不应进入拖拽");
+    }
+
+    [AvaloniaFact]
+    public void 非拾取模式_拖动普通座位_触发拖拽放下()
+    {
+        var (canvas, window) = CreateCanvasWindow(CreateDisabledSnapshot());
+
+        SeatDropEventArgs? dropped = null;
+        SeatEventArgs? clicked = null;
+        canvas.SeatDropped += (_, e) => dropped = e;
+        canvas.SeatClicked += (_, e) => clicked = e;
+
+        var start = ToScreen(canvas, new Point(110, 10));
+        var end = ToScreen(canvas, new Point(160, 10));
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(end);
+        window.MouseUp(end, MouseButton.Left);
+
+        dropped.Should().NotBeNull("非拾取模式仍应进入拖拽");
+        dropped!.SourceSeatId.Should().Be("enabled");
+        clicked.Should().BeNull();
+    }
+
+    [AvaloniaFact]
+    public void 非拾取模式_点击禁用座位_不触发点击()
+    {
+        var (canvas, window) = CreateCanvasWindow(CreateDisabledSnapshot());
+
+        SeatEventArgs? clicked = null;
+        canvas.SeatClicked += (_, e) => clicked = e;
+
+        var point = ToScreen(canvas, new Point(10, 10));
+        window.MouseDown(point, MouseButton.Left);
+        window.MouseUp(point, MouseButton.Left);
+
+        clicked.Should().BeNull("禁用座位仅在拾取模式下可点击");
+    }
+
+    [AvaloniaFact]
+    public void 拾取模式_普通座位_点击不触发拖拽()
+    {
+        var (canvas, window) = CreateCanvasWindow(CreateDisabledSnapshot());
+        canvas.IsSeatPicking = true;
+
+        SeatEventArgs? clicked = null;
+        var dropped = false;
+        canvas.SeatClicked += (_, e) => clicked = e;
+        canvas.SeatDropped += (_, _) => dropped = true;
+
+        var start = ToScreen(canvas, new Point(110, 10));
+        var end = ToScreen(canvas, new Point(112, 10));
+        window.MouseDown(start, MouseButton.Left);
+        window.MouseMove(end);
+        window.MouseUp(end, MouseButton.Left);
+
+        clicked.Should().NotBeNull();
+        clicked!.SeatId.Should().Be("enabled");
+        dropped.Should().BeFalse("拾取模式下普通座位也不进入拖拽");
+    }
 }

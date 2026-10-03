@@ -76,9 +76,14 @@ public sealed class SeatingCanvas : Control
     public static readonly StyledProperty<bool> AutoFitProperty =
         AvaloniaProperty.Register<SeatingCanvas, bool>(nameof(AutoFit), true);
 
+    /// <summary>禁用座位拾取模式：可点击禁用位且不触发拖拽（会场配置预览用）。</summary>
+    public static readonly StyledProperty<bool> IsSeatPickingProperty =
+        AvaloniaProperty.Register<SeatingCanvas, bool>(nameof(IsSeatPicking));
+
     static SeatingCanvas()
     {
-        AffectsRender<SeatingCanvas>(SnapshotProperty, SelectedSeatIdProperty, ZoomProperty, PanOffsetProperty);
+        AffectsRender<SeatingCanvas>(
+            SnapshotProperty, SelectedSeatIdProperty, IsSeatPickingProperty, ZoomProperty, PanOffsetProperty);
         FocusableProperty.OverrideDefaultValue<SeatingCanvas>(true);
     }
 
@@ -130,6 +135,13 @@ public sealed class SeatingCanvas : Control
     {
         get => GetValue(AutoFitProperty);
         set => SetValue(AutoFitProperty, value);
+    }
+
+    /// <summary>禁用座位拾取模式：可点击禁用位且不触发拖拽（会场配置预览用）。</summary>
+    public bool IsSeatPicking
+    {
+        get => GetValue(IsSeatPickingProperty);
+        set => SetValue(IsSeatPickingProperty, value);
     }
 
     /// <summary>
@@ -267,7 +279,8 @@ public sealed class SeatingCanvas : Control
                 || Math.Abs(oldSnapshot.BoardHeight - newSnapshot.BoardHeight) > 0.5)
             {
                 _autoFitPending = true;
-            }        }
+            }
+        }
     }
 
     public override void Render(DrawingContext context)
@@ -376,6 +389,7 @@ public sealed class SeatingCanvas : Control
         GeometryGroup? occupied = null;
         GeometryGroup? selected = null;
         GeometryGroup? disabled = null;
+        GeometryGroup? disabledSelected = null;
         GeometryGroup? fixedDots = null;
 
         foreach (var seat in snapshot.Seats)
@@ -384,7 +398,8 @@ public sealed class SeatingCanvas : Control
             if (!viewport.Intersects(rect))
                 continue;
 
-            var isSelected = seat.IsSwapSource || string.Equals(seat.Id, SelectedSeatId, StringComparison.Ordinal);
+            var isSelected = seat.IsSwapSource || seat.IsSelected
+                || (!IsSeatPicking && string.Equals(seat.Id, SelectedSeatId, StringComparison.Ordinal));
             var isDragSource = string.Equals(seat.Id, _dragSeatId, StringComparison.Ordinal);
             var isDropTarget = seat.IsDropTarget
                 || string.Equals(seat.Id, _externalDropTargetId, StringComparison.Ordinal)
@@ -396,6 +411,12 @@ public sealed class SeatingCanvas : Control
             else if (seat.IsOccupied) target = occupied ??= new GeometryGroup();
             else target = normal ??= new GeometryGroup();
             target.Children.Add(new RectangleGeometry(rect, 5, 5));
+
+            if (isSelected && seat.IsDisabled)
+            {
+                disabledSelected ??= new GeometryGroup();
+                disabledSelected.Children.Add(new RectangleGeometry(rect, 5, 5));
+            }
 
             if (seat.IsFixed)
             {
@@ -427,6 +448,7 @@ public sealed class SeatingCanvas : Control
         if (normal is not null) context.DrawGeometry(palette.SeatBg, lod ? null : palette.SeatPen, normal);
         if (occupied is not null) context.DrawGeometry(palette.SeatOccupiedBg, lod ? null : palette.SeatOccupiedPen, occupied);
         if (disabled is not null) context.DrawGeometry(palette.SeatDisabledBg, lod ? null : palette.SeatDisabledPen, disabled);
+        if (disabledSelected is not null) context.DrawGeometry(palette.AccentSoft, palette.AccentDashedPen, disabledSelected);
         if (selected is not null) context.DrawGeometry(palette.AccentSoft, palette.AccentPen, selected);
         if (fixedDots is not null) context.DrawGeometry(palette.FixedDot, null, fixedDots);
 
@@ -623,14 +645,15 @@ public sealed class SeatingCanvas : Control
         _pressPosition = _pointerPosition;
 
         var seat = HitTestSeat(_pointerPosition);
-        if (seat is not null && !seat.IsDisabled)
+        if (seat is not null && (IsSeatPicking || !seat.IsDisabled))
         {
             _dragSeatId = seat.Id;
             _dragTargetId = null;
             _isDragging = false;
             _dragBoardPosition = ToBoard(_pointerPosition);
             _dragGrabOffset = new Vector(_dragBoardPosition.X - seat.X, _dragBoardPosition.Y - seat.Y);
-            SelectedSeatId = seat.Id;
+            if (!IsSeatPicking)
+                SelectedSeatId = seat.Id;
             e.Pointer.Capture(this);
             e.Handled = true;
             return;
@@ -668,7 +691,7 @@ public sealed class SeatingCanvas : Control
             return;
         }
 
-        if (!_isDragging &&
+        if (!IsSeatPicking && !_isDragging &&
             (Math.Abs(_pointerPosition.X - _pressPosition.X) > DragThreshold ||
              Math.Abs(_pointerPosition.Y - _pressPosition.Y) > DragThreshold))
         {
@@ -723,7 +746,11 @@ public sealed class SeatingCanvas : Control
             }
             else
             {
-                SeatClicked?.Invoke(this, new SeatEventArgs(seatId, seat));
+                // 拾取模式下超过阈值的拖动视为误触，不切换禁用状态
+                var moved = Math.Abs(pointer.X - _pressPosition.X) > DragThreshold
+                    || Math.Abs(pointer.Y - _pressPosition.Y) > DragThreshold;
+                if (!IsSeatPicking || !moved)
+                    SeatClicked?.Invoke(this, new SeatEventArgs(seatId, seat));
             }
 
             _dragSeatId = null;
@@ -956,6 +983,7 @@ public sealed class SeatingCanvas : Control
         public IPen SeatOccupiedPen { get; } = new Pen(SeatOccupiedBorder, 1);
         public IPen SeatDisabledPen { get; } = new Pen(BoardBorder, 1, new DashStyle([3, 3], 0));
         public IPen AccentPen { get; } = new Pen(Accent, 1.5);
+        public IPen AccentDashedPen { get; } = new Pen(Accent, 1.5, new DashStyle([4, 3], 0));
         public IPen DropTargetPen { get; } = new Pen(Accent, 2, new DashStyle([4, 3], 0));
         public IPen StalePen { get; } = new Pen(Warn, 2);
         public IPen OverlayPen { get; } = new Pen(BoardBorder, 1, new DashStyle([4, 4], 0));

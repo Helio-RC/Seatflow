@@ -572,6 +572,7 @@ public class Resources
     public static string Venue_ColumnAisles => ResourceManager.GetString("Venue_ColumnAisles", Culture)!;
     public static string Venue_ColumnRowCounts => ResourceManager.GetString("Venue_ColumnRowCounts", Culture)!;
     public static string Venue_ColumnRowCountsTooltip => ResourceManager.GetString("Venue_ColumnRowCountsTooltip", Culture)!;
+    public static string Venue_ColumnRowsFmt => ResourceManager.GetString("Venue_ColumnRowsFmt", Culture)!;
     public static string Venue_Coordinates => ResourceManager.GetString("Venue_Coordinates", Culture)!;
     public static string Venue_DefaultColumnRowCounts => ResourceManager.GetString("Venue_DefaultColumnRowCounts", Culture)!;
     public static string Venue_DeleteConfirm => ResourceManager.GetString("Venue_DeleteConfirm", Culture)!;
@@ -587,7 +588,13 @@ public class Resources
     public static string Venue_DeskSpacing => ResourceManager.GetString("Venue_DeskSpacing", Culture)!;
     public static string Venue_DeskSpacingTooltip => ResourceManager.GetString("Venue_DeskSpacingTooltip", Culture)!;
     public static string Venue_DisabledSeats => ResourceManager.GetString("Venue_DisabledSeats", Culture)!;
+    public static string Venue_DisabledSeatsClear => ResourceManager.GetString("Venue_DisabledSeatsClear", Culture)!;
+    public static string Venue_DisabledSeatsClearTooltip => ResourceManager.GetString("Venue_DisabledSeatsClearTooltip", Culture)!;
     public static string Venue_DisabledSeatsPH => ResourceManager.GetString("Venue_DisabledSeatsPH", Culture)!;
+    public static string Venue_DisabledSeatsPickTooltip => ResourceManager.GetString("Venue_DisabledSeatsPickTooltip", Culture)!;
+    public static string Venue_DisabledSeatsPickingHint => ResourceManager.GetString("Venue_DisabledSeatsPickingHint", Culture)!;
+    public static string Venue_DisabledSeatsSavePick => ResourceManager.GetString("Venue_DisabledSeatsSavePick", Culture)!;
+    public static string Venue_DisabledSeatsSavePickTooltip => ResourceManager.GetString("Venue_DisabledSeatsSavePickTooltip", Culture)!;
     public static string Venue_DisabledSeatsTooltip => ResourceManager.GetString("Venue_DisabledSeatsTooltip", Culture)!;
     public static string Venue_DoorFmt => ResourceManager.GetString("Venue_DoorFmt", Culture)!;
     public static string Venue_DoorSection => ResourceManager.GetString("Venue_DoorSection", Culture)!;

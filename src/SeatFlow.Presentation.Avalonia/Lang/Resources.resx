@@ -1725,7 +1725,10 @@
     <value>每列行数</value>
   </data>
   <data name="Venue_ColumnRowCountsTooltip" xml:space="preserve">
-    <value>每列各自的行数（逗号分隔）。</value>
+    <value>每列各自的行数；留空沿用「行数」。</value>
+  </data>
+  <data name="Venue_ColumnRowsFmt" xml:space="preserve">
+    <value>列 {0}</value>
   </data>
   <data name="Venue_Coordinates" xml:space="preserve">
     <value>自由点坐标</value>
@@ -1772,8 +1775,26 @@
   <data name="Venue_DisabledSeats" xml:space="preserve">
     <value>禁用座位</value>
   </data>
+  <data name="Venue_DisabledSeatsClear" xml:space="preserve">
+    <value>清除全部禁用座位</value>
+  </data>
+  <data name="Venue_DisabledSeatsClearTooltip" xml:space="preserve">
+    <value>清除当前布局的全部禁用座位</value>
+  </data>
   <data name="Venue_DisabledSeatsPH" xml:space="preserve">
     <value>如 1,3;2,5;3,1</value>
+  </data>
+  <data name="Venue_DisabledSeatsPickTooltip" xml:space="preserve">
+    <value>进入预览选择模式：点击座位切换禁用状态</value>
+  </data>
+  <data name="Venue_DisabledSeatsPickingHint" xml:space="preserve">
+    <value>点击座位以禁用/恢复，完成后点「保存禁用选择」</value>
+  </data>
+  <data name="Venue_DisabledSeatsSavePick" xml:space="preserve">
+    <value>保存禁用选择</value>
+  </data>
+  <data name="Venue_DisabledSeatsSavePickTooltip" xml:space="preserve">
+    <value>保存当前禁用选择并退出选择模式</value>
   </data>
   <data name="Venue_DisabledSeatsTooltip" xml:space="preserve">
     <value>分号分隔的 (行,列) 对，指定不放置座位的网格位置。</value>

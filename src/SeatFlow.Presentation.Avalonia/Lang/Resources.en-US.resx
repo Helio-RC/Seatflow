@@ -1716,7 +1716,10 @@ You can disable telemetry at any time on the Settings page.</value>
     <value>Rows per column</value>
   </data>
   <data name="Venue_ColumnRowCountsTooltip" xml:space="preserve">
-    <value>Rows per column (comma separated).</value>
+    <value>Rows per column; empty uses the global row count.</value>
+  </data>
+  <data name="Venue_ColumnRowsFmt" xml:space="preserve">
+    <value>Col {0}</value>
   </data>
   <data name="Venue_Coordinates" xml:space="preserve">
     <value>Freeform Coordinates</value>
@@ -1763,8 +1766,26 @@ You can disable telemetry at any time on the Settings page.</value>
   <data name="Venue_DisabledSeats" xml:space="preserve">
     <value>Disabled seats</value>
   </data>
+  <data name="Venue_DisabledSeatsClear" xml:space="preserve">
+    <value>Clear all disabled seats</value>
+  </data>
+  <data name="Venue_DisabledSeatsClearTooltip" xml:space="preserve">
+    <value>Clear all disabled seats of the current layout</value>
+  </data>
   <data name="Venue_DisabledSeatsPH" xml:space="preserve">
     <value>e.g. 1,3;2,5;3,1</value>
+  </data>
+  <data name="Venue_DisabledSeatsPickTooltip" xml:space="preserve">
+    <value>Enter pick mode: click seats to toggle the disabled state</value>
+  </data>
+  <data name="Venue_DisabledSeatsPickingHint" xml:space="preserve">
+    <value>Click seats to disable or restore, then click Save disabled seats</value>
+  </data>
+  <data name="Venue_DisabledSeatsSavePick" xml:space="preserve">
+    <value>Save disabled seats</value>
+  </data>
+  <data name="Venue_DisabledSeatsSavePickTooltip" xml:space="preserve">
+    <value>Save the current pick and exit pick mode</value>
   </data>
   <data name="Venue_DisabledSeatsTooltip" xml:space="preserve">
     <value>Semicolon-separated (row,col) pairs to disable.</value>
