@@ -143,9 +143,11 @@ class TestReconcile(unittest.TestCase):
             missing = make_asset("SeatFlow-2.0.0-win-x64-full.nupkg", "2.0.0", "full", data=remote_payload)
             bucket = FakeBucket({missing.key: remote_payload})
 
-            downloaded, deleted = reconcile(bucket, {present.name: present, missing.name: missing}, out, dry_run=False)
+            downloaded, deleted, downloaded_bytes, deleted_bytes = reconcile(
+                bucket, {present.name: present, missing.name: missing}, out, dry_run=False)
 
             self.assertEqual((downloaded, deleted), (1, 1))
+            self.assertEqual((downloaded_bytes, deleted_bytes), (len(remote_payload), len(b"unpublished")))
             self.assertEqual((out / missing.name).read_bytes(), remote_payload)
             self.assertFalse((out / "SeatFlow-9.0.0-win-x64-full.nupkg").exists())
             self.assertEqual(bucket.downloads, [missing.key])
@@ -157,12 +159,28 @@ class TestReconcile(unittest.TestCase):
             asset = make_asset("SeatFlow-2.0.0-win-x64-full.nupkg", "2.0.0", "full", data=b"payload")
             bucket = FakeBucket({asset.key: b"payload"})
 
-            downloaded, deleted = reconcile(bucket, {asset.name: asset}, out, dry_run=True)
+            downloaded, deleted, downloaded_bytes, deleted_bytes = reconcile(
+                bucket, {asset.name: asset}, out, dry_run=True)
 
             self.assertEqual((downloaded, deleted), (1, 1))
+            self.assertEqual((downloaded_bytes, deleted_bytes), (len(b"payload"), len(b"unpublished")))
             self.assertEqual(bucket.downloads, [])
             self.assertFalse((out / asset.name).exists())
             self.assertTrue((out / "SeatFlow-9.0.0-win-x64-full.nupkg").exists())
+
+    def test_dry_run_does_not_create_output_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "history"
+            asset = make_asset("SeatFlow-2.0.0-win-x64-full.nupkg", "2.0.0", "full", data=b"payload")
+            bucket = FakeBucket({asset.key: b"payload"})
+
+            downloaded, deleted, downloaded_bytes, deleted_bytes = reconcile(
+                bucket, {asset.name: asset}, out, dry_run=True)
+
+            self.assertFalse(out.exists())
+            self.assertEqual(bucket.downloads, [])
+            self.assertEqual((downloaded, deleted), (1, 0))
+            self.assertEqual((downloaded_bytes, deleted_bytes), (len(b"payload"), 0))
 
     def test_existing_file_with_matching_size_is_kept(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -172,9 +190,11 @@ class TestReconcile(unittest.TestCase):
             asset = make_asset(local.name, "2.0.0", "full", data=b"REMOTE-CONTENT")
             bucket = FakeBucket({asset.key: b"REMOTE-CONTENT"})
 
-            downloaded, deleted = reconcile(bucket, {asset.name: asset}, out, dry_run=False)
+            downloaded, deleted, downloaded_bytes, deleted_bytes = reconcile(
+                bucket, {asset.name: asset}, out, dry_run=False)
 
             self.assertEqual((downloaded, deleted), (0, 0))
+            self.assertEqual((downloaded_bytes, deleted_bytes), (0, 0))
             self.assertEqual(bucket.downloads, [])
             self.assertEqual(local.read_bytes(), b"LOCAL-CONTENT!")
 
@@ -202,6 +222,9 @@ class TestReconcile(unittest.TestCase):
 
             with self.assertRaises(SyncError):
                 reconcile(bucket, {bad.name: bad}, out, dry_run=False)
+
+            self.assertFalse((out / bad.name).exists())
+            self.assertEqual(list(out.glob("*.incomplete")), [])
 
 
 class TestRunSync(unittest.TestCase):

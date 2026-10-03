@@ -108,6 +108,15 @@ def find_gaps(assets: Iterable[Asset]) -> list[str]:
     return [full.version_str for full in fulls[1:] if full.version not in delta_targets]
 
 
+def _format_bytes(size: int) -> str:
+    """把字节数格式化为可读字符串（B/KiB/MiB）。"""
+    if size < 1024:
+        return f"{size} B"
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f} KiB"
+    return f"{size / (1024 * 1024):.1f} MiB"
+
+
 def _md5_file(path: Path) -> str:
     digest = hashlib.md5()
     with open(path, "rb") as handle:
@@ -134,10 +143,15 @@ def _download_one(bucket, asset: Asset, output_dir: Path) -> None:
     tmp.replace(target)
 
 
-def reconcile(bucket, keep: dict[str, Asset], output_dir: Path, dry_run: bool) -> tuple[int, int]:
-    """双向对账：下载缺失/大小不符者，删除本地不在保留集的 nupkg。"""
-    output_dir.mkdir(parents=True, exist_ok=True)
+def reconcile(bucket, keep: dict[str, Asset], output_dir: Path, dry_run: bool) -> tuple[int, int, int, int]:
+    """双向对账：下载缺失/大小不符者，删除本地不在保留集的 nupkg。
+
+    返回 (下载数, 删除数, 下载字节数, 删除字节数)；dry-run 统计计划值。
+    """
+    if not dry_run:
+        output_dir.mkdir(parents=True, exist_ok=True)
     downloaded = 0
+    downloaded_bytes = 0
     for name in sorted(keep):
         asset = keep[name]
         local = output_dir / name
@@ -146,23 +160,28 @@ def reconcile(bucket, keep: dict[str, Asset], output_dir: Path, dry_run: bool) -
         if dry_run:
             print(f"  [dry-run] 下载 {name}")
             downloaded += 1
+            downloaded_bytes += asset.size
             continue
         _download_one(bucket, asset, output_dir)
         print(f"  ↓ {name}")
         downloaded += 1
+        downloaded_bytes += asset.size
 
     deleted = 0
+    deleted_bytes = 0
     keep_names = set(keep)
     for local in sorted(output_dir.glob("*.nupkg")):
         if local.name in keep_names:
             continue
+        size = local.stat().st_size
         if dry_run:
             print(f"  [dry-run] 删除 {local.name}")
         else:
             local.unlink()
             print(f"  ✗ 删除 {local.name}")
         deleted += 1
-    return downloaded, deleted
+        deleted_bytes += size
+    return downloaded, deleted, downloaded_bytes, deleted_bytes
 
 
 def run_sync(bucket, entries: Iterable[object], channel: str, output_dir: Path,
@@ -172,9 +191,13 @@ def run_sync(bucket, entries: Iterable[object], channel: str, output_dir: Path,
     assets = parse_remote_assets(entries, pack_id, channel)
     keep = select_keep_set(assets, full_keep)
     gaps = find_gaps(assets)
-    print(f"[sync] 远端 {channel}: {len(assets)} 个 nupkg（保留 {len(keep)}）")
-    downloaded, deleted = reconcile(bucket, keep, output_dir, dry_run)
-    print(f"[sync] 下载 {downloaded}，删除 {deleted}")
+    total_bytes = sum(asset.size for asset in assets)
+    keep_bytes = sum(asset.size for asset in keep.values())
+    print(f"[sync] 远端 {channel}: {len(assets)} 个 nupkg（{_format_bytes(total_bytes)}）"
+          f"，保留 {len(keep)} 个（{_format_bytes(keep_bytes)}）")
+    downloaded, deleted, downloaded_bytes, deleted_bytes = reconcile(bucket, keep, output_dir, dry_run)
+    print(f"[sync] 下载 {downloaded} 个（{_format_bytes(downloaded_bytes)}）"
+          f"，删除 {deleted} 个（{_format_bytes(deleted_bytes)}）")
     if gaps:
         print(f"[sync] ! 缺口（有 full 无 delta）: {', '.join(gaps)}")
     else:
