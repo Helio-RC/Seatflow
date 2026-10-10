@@ -258,12 +258,27 @@ public sealed class OnboardingService : IOnboardingService, IOnboardingStarter
             }
         }
 
-        // 2. 解析 Target 控件名 → 实际 Control
+        // 2. 引导自适应：先按目标展开对应 UI（窄屏侧栏 / 页面面板），再解析 Target 控件名 → 实际 Control。
         //    此时新页面 View 已在可视化树中（步骤 1 的同步导航确保），NameScope 可用。
+        var revealView = GetMainView();
+        if (revealView?.DataContext is MainShellViewModel guideShell)
+        {
+            guideShell.PrepareGuideTarget(stepDef.Target ?? string.Empty);
+            // 同步一次布局：展开动作的可见性立即生效，避免高亮框落在旧的折叠区域
+            revealView.UpdateLayout();
+        }
+
         if (!string.IsNullOrEmpty(stepDef.Target))
         {
             var ctrl = ResolveTarget(stepDef.Target);
+            // 目标仍不可见（如手机档的侧栏按钮）→ 置空，交由 Guide 的 MissingTargetBehavior=Center 回退
+            if (ctrl is not null && !ctrl.IsEffectivelyVisible)
+                ctrl = null;
             step.Target = ctrl;
+        }
+        else
+        {
+            step.Target = null;
         }
     }
 

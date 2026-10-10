@@ -84,7 +84,7 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 | M4 名单/策略/快照 | 名单行「显示/编辑」轻量切换 + 自适应虚拟化；策略页缓存与令牌化；快照 Transient→Singleton + 自绘预览；修复快照列表恒空、回滚后画布空白、`Snapshot` 变更不重绘 |
 | M5 设置/关于/引导/清理 | 设置分组卡片 + 全量令牌化；关于页令牌化；引导接口化（`IGuideSeedTarget`，5 页自实现，无静态状态）；WASM 运行时语言切换修复（卫星资源）；死键/死代码清理 |
 | M6 测试/性能/文档 | Headless UI 测试项目（65 例）；视觉基线（明/暗 × 4 视图）；M1–M6 性能复测；绑定诊断 0 警告；文档同步（AGENTS.md/INDEX/Design_Spec/WebDeployment/ONBOARDING_GUIDE） |
-| M7 响应式三档与手机档 | `LayoutTier` 三档断点（Desktop/Compact/Phone，ADR-015）替代 `IsCompact`；手机档底部 Tab 导航与无顶栏外壳；`SideDrawerState` 三态（内联/右抽屉/全屏覆盖 + 返回头部）；命令栏三档行为（全文字/图标化/标题+图标+⋯）；会场配置页列表抽屉化 + 字段流式 + 门行/工具行换行；对话框集中钳制（`DialogSizing`，桌面按 owner / Web 按视口）；桌面最小尺寸 360×480；引导卡片手机档 Bottom 定位；Headless 不变量测试 + 手机尺寸视觉基线（360×640 / 390×844）；TestAppBuilder 注册 Inter 字体 |
+| M7 响应式三档与手机档 | `LayoutTier` 三档断点（Desktop/Compact/Phone，ADR-015）替代 `IsCompact`；手机档底部 Tab 导航与无顶栏外壳；`SideDrawerState` 三态（内联/右抽屉/全屏覆盖 + 返回头部）；命令栏三档行为（全文字/图标化/标题+图标+⋯）；会场配置页列表抽屉化 + 字段流式 + 门行/工具行换行；对话框集中钳制（`DialogSizing`，桌面按 owner / Web 按视口）；桌面最小尺寸 360×480；引导卡片手机档 Bottom 定位 + 引导步骤自适应展开侧栏/面板（目标不可见回退居中）；Headless 不变量测试 + 手机尺寸视觉基线（360×640 / 390×844）；TestAppBuilder 注册 Inter 字体 |
 
 终验后的收尾提交还包括：主题色可调（默认 `#83B6DE`/跟随系统）与主按钮悬停前景修复、
 画布右下角缩放控制条、座位姓名两行换行、快照预览座位尺寸按坐标等比放大、关于页依赖清单更新。

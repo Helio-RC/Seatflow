@@ -17,8 +17,8 @@ namespace SeatFlow.Presentation.Tests;
 /// </summary>
 public class ShellLayoutTierTests
 {
-    private static MainShellViewModel CreateShell(ShellLayoutService layout) => new(
-        Substitute.For<INavigationService>(),
+    private static MainShellViewModel CreateShell(ShellLayoutService layout, INavigationService? navigation = null) => new(
+        navigation ?? Substitute.For<INavigationService>(),
         Substitute.For<IApplicationFacade>(),
         Substitute.For<IOnboardingService>(),
         layout,
@@ -219,6 +219,76 @@ public class ShellLayoutTierTests
         vm.InspectorPanelWidth.Should().Be(320);
         vm.PickerVisible.Should().BeTrue();
         vm.InspectorVisible.Should().BeTrue();
+    }
+
+    // ═══════════════ 引导步骤适配（引导时自动展开侧栏/面板，使目标可见） ═══════════════
+
+    [Fact]
+    public void 引导适配_桌面档_侧栏目标_强制展开侧栏()
+    {
+        var layout = new ShellLayoutService();
+        var shell = CreateShell(layout);
+        shell.ToggleSidebarCommand.Execute(null);
+        shell.IsSidebarExpanded.Should().BeFalse();
+
+        shell.PrepareGuideTarget("ToggleSidebarButton");
+
+        shell.IsSidebarExpanded.Should().BeTrue("引导步骤目标在侧栏时应强制展开");
+    }
+
+    [Fact]
+    public void 引导适配_紧凑档_侧栏目标_打开导航抽屉()
+    {
+        var layout = new ShellLayoutService { Tier = LayoutTier.Compact };
+        var shell = CreateShell(layout);
+
+        shell.PrepareGuideTarget("ToggleSidebarButton");
+
+        shell.IsNavDrawerOpen.Should().BeTrue("紧凑档侧栏在抽屉内，引导应打开抽屉让目标可见");
+    }
+
+    [Fact]
+    public void 引导适配_手机档_侧栏目标_不打开任何抽屉()
+    {
+        var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
+        var shell = CreateShell(layout);
+
+        shell.PrepareGuideTarget("ToggleSidebarButton");
+
+        shell.IsNavDrawerOpen.Should().BeFalse("手机档无侧栏，交由目标解析回退居中卡片");
+    }
+
+    [Fact]
+    public void 引导适配_排座列表目标_打开选择栏_下一步页面目标_收起()
+    {
+        var layout = new ShellLayoutService { Tier = LayoutTier.Compact };
+        var navigation = Substitute.For<INavigationService>();
+        var seating = CreateSeatingVm(layout);
+        navigation.CurrentViewModel.Returns(seating);
+        var shell = CreateShell(layout, navigation);
+
+        shell.PrepareGuideTarget("DatasetListBox");
+        seating.IsPickerDrawerOpen.Should().BeTrue("排座数据选择目标位于左选择栏（窄屏为抽屉）");
+
+        // 下一步目标在画布/命令栏 → 应收起已打开的面板与抽屉，避免遮挡
+        shell.PrepareGuideTarget("GenerateButton");
+        seating.IsPickerDrawerOpen.Should().BeFalse();
+        shell.IsNavDrawerOpen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void 引导适配_策略列表目标_打开列表面板()
+    {
+        var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
+        var navigation = Substitute.For<INavigationService>();
+        var strategy = new StrategyConfigurationViewModel(
+            Substitute.For<IApplicationFacade>(), layout, NullDialogService.Instance);
+        navigation.CurrentViewModel.Returns(strategy);
+        var shell = CreateShell(layout, navigation);
+
+        shell.PrepareGuideTarget("StrategyListBox");
+
+        strategy.ListPanel.IsOpen.Should().BeTrue("策略列表目标位于列表面板，手机档应打开全屏列表");
     }
 
     // ═══════════════ 外壳视图（Headless）三档可见性 ═══════════════

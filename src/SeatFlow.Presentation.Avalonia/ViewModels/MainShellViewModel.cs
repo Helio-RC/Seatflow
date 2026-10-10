@@ -299,6 +299,87 @@ public partial class MainShellViewModel : ViewModelBase
         IsSidebarExpanded = true;
     }
 
+    /// <summary>
+    /// 引导步骤适配（M7）：按当前步骤目标展开对应 UI，使目标控件可见。
+    /// 先收起所有窄屏浮层（导航抽屉 + 当前页侧面板），再按目标名按需展开：
+    /// 侧栏/导航目标 → 桌面展开侧栏、紧凑档打开导航抽屉（手机档无侧栏，交由目标解析回退）；
+    /// 页面列表面板目标 → 打开对应页面面板（排座选择栏 / 策略·快照·会场列表 / 成员数据集）。
+    /// </summary>
+    /// <param name="targetName">步骤目标控件名（空串表示无目标：仅收起浮层）。</param>
+    public void PrepareGuideTarget(string targetName)
+    {
+        // 1) 先收起：导航抽屉 + 当前页全部侧面板（避免遮罩/面板遮挡本步目标）
+        IsNavDrawerOpen = false;
+        CollapseCurrentPagePanels();
+
+        // 2) 再按目标名按需展开
+        switch (targetName)
+        {
+            case "ToggleSidebarButton":
+            case "SeatingButton":
+            case "MemberButton":
+            case "VenueButton":
+            case "StrategyButton":
+            case "SnapshotButton":
+                RevealRailForGuide();
+                break;
+
+            case "DatasetListBox":
+            case "VenueListBox":
+                if (_navigation.CurrentViewModel is SeatingArrangementViewModel seating)
+                    seating.IsPickerDrawerOpen = true;
+                break;
+
+            case "StrategyListBox":
+                if (_navigation.CurrentViewModel is StrategyConfigurationViewModel strategy)
+                    strategy.ListPanel.IsOpen = true;
+                break;
+
+            case "SnapshotListBox":
+                if (_navigation.CurrentViewModel is SnapshotHistoryViewModel snapshot)
+                    snapshot.ListPanel.IsOpen = true;
+                break;
+
+            case "NewVenueButton":
+                if (_navigation.CurrentViewModel is VenueConfigurationViewModel venue)
+                    venue.ListPanel.IsOpen = true;
+                break;
+        }
+    }
+
+    /// <summary>引导期间展开侧栏：桌面恢复展开态；紧凑档打开导航抽屉；手机档无侧栏（不动作）。</summary>
+    private void RevealRailForGuide()
+    {
+        if (_layout.Tier == LayoutTier.Compact)
+            IsNavDrawerOpen = true;
+        else if (_layout.Tier == LayoutTier.Desktop)
+            EnsureSidebarExpanded();
+    }
+
+    /// <summary>收起当前页面的侧面板（窄屏抽屉/手机全屏），避免引导步骤间残留浮层遮挡。</summary>
+    private void CollapseCurrentPagePanels()
+    {
+        switch (_navigation.CurrentViewModel)
+        {
+            case SeatingArrangementViewModel seating:
+                seating.IsPickerDrawerOpen = false;
+                seating.IsInspectorDrawerOpen = false;
+                break;
+            case MemberManagementViewModel member:
+                member.DatasetsPanel.IsOpen = false;
+                break;
+            case StrategyConfigurationViewModel strategy:
+                strategy.ListPanel.IsOpen = false;
+                break;
+            case SnapshotHistoryViewModel snapshot:
+                snapshot.ListPanel.IsOpen = false;
+                break;
+            case VenueConfigurationViewModel venue:
+                venue.ListPanel.IsOpen = false;
+                break;
+        }
+    }
+
     /// <summary>引导模式下的页面导航（同步，无动画）。</summary>
     /// <remarks>
     /// NavigateTo 触发 CurrentViewModelChanged → OnCurrentViewModelChanged 同步设置内容，

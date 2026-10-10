@@ -48,8 +48,11 @@ M0–M6 UI 重构（ADR-014）只引入了单一 900px 紧凑断点：侧栏与�
 7. **验证方式**：Headless 布局不变量测试（三档可见性、命令栏按钮不溢出视口、全屏面板贴合视口）、
    手机尺寸视觉基线（360×640、390×844）、手工矩阵（Chrome 移动仿真 360/390/430 + 真机）。
    `TestAppBuilder` 补注册 `WithInterFont()`（MainView 根级 Inter 字体在 headless 下缺失时崩溃）。
-8. **引导适配**：手机档引导卡片定位 `Right→Bottom`（`GuidePlacementMode`）；目标是侧栏按钮的
-   步骤在手机档沿用既有全局 `MissingTargetBehavior=Center` 配置回退（未新增机制）。
+8. **引导适配**：手机档引导卡片定位 `Right→Bottom`（`GuidePlacementMode`）；引导步骤打开时由
+   `MainShellViewModel.PrepareGuideTarget` 自动展开对应 UI 使目标可见——侧栏目标在桌面档强制展开侧栏、
+   紧凑档打开导航抽屉；页面列表面板目标（排座选择栏 / 策略·快照·会场列表）打开对应面板；
+   其余步骤先收起浮层避免遮挡；目标仍不可见时置空，走既有 `MissingTargetBehavior=Center` 回退
+   （手机档无侧栏或离屏目标）。
 
 ## 非目标 / 后续增强
 
