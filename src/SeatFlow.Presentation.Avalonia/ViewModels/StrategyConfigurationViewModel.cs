@@ -36,11 +36,11 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
     /// <summary>左侧策略列表面板状态（桌面内联 / 紧凑右抽屉）。</summary>
     public SideDrawerState ListPanel { get; }
 
-    /// <summary>外壳布局状态（紧凑断点）。</summary>
+    /// <summary>外壳布局状态（布局档位）。</summary>
     public IShellLayoutService Layout => _layout;
 
-    /// <summary>紧凑模式隐藏命令栏文字。</summary>
-    public bool CompactCommandTextVisible => !_layout.IsCompact;
+    /// <summary>命令栏按钮文字是否可见（仅桌面档显示）。</summary>
+    public bool CommandTextVisible => !_layout.IsNarrow;
 
     // ═══════════════ 侧栏列表 ═══════════════
 
@@ -160,8 +160,8 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
             desktopBorder: new global::Avalonia.Thickness(0, 0, 1, 0));
         _layout.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
-                OnPropertyChanged(nameof(CompactCommandTextVisible));
+            if (e.PropertyName == nameof(IShellLayoutService.Tier))
+                OnPropertyChanged(nameof(CommandTextVisible));
         };
     }
 

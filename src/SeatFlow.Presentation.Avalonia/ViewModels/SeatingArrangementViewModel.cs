@@ -146,9 +146,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     public bool HasMessages => MessageGroups.Count > 0;
 
-    // ── M3 工作台外壳：紧凑断点 / 抽屉 / 欢迎卡 ──
+    // ── M3/M7 工作台外壳：布局档位 / 抽屉三态 / 欢迎卡 ──
 
-    /// <summary>外壳布局状态（紧凑模式下左选择栏与右检查器转为右抽屉）。</summary>
+    /// <summary>外壳布局状态（窄屏下左选择栏与右检查器转为右抽屉，手机档全屏覆盖）。</summary>
     public IShellLayoutService Layout => _layout;
 
     /// <summary>空态欢迎卡（承接原 Home 的欢迎语 / 快捷链接 / RELEASE 更新说明）。</summary>
@@ -164,37 +164,74 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     [NotifyPropertyChangedFor(nameof(DrawerMaskVisible))]
     public partial bool IsInspectorDrawerOpen { get; set; }
 
-    /// <summary>桌面：左选择栏常驻；紧凑：仅抽屉展开时可见。</summary>
-    public bool PickerVisible => !_layout.IsCompact || IsPickerDrawerOpen;
+    /// <summary>桌面：左选择栏常驻；窄屏：仅抽屉/全屏展开时可见。</summary>
+    public bool PickerVisible => !_layout.IsNarrow || IsPickerDrawerOpen;
 
-    /// <summary>左选择栏宽度（桌面内联 248；紧凑抽屉 320）。</summary>
-    public double PickerPanelWidth => _layout.IsCompact ? 320 : 248;
+    /// <summary>左选择栏宽度（桌面内联 248；紧凑抽屉 320；手机档 NaN 全宽）。</summary>
+    public double PickerPanelWidth => _layout.Tier switch
+    {
+        Services.LayoutTier.Phone => double.NaN,
+        Services.LayoutTier.Compact => 320,
+        _ => 248
+    };
 
-    /// <summary>紧凑模式隐藏命令栏标题/副标题/按钮文字（避免溢出重叠）。</summary>
-    public bool CompactCommandTextVisible => !_layout.IsCompact;
+    /// <summary>右检查器宽度（桌面/紧凑 320；手机档 NaN 全宽）。</summary>
+    public double InspectorPanelWidth => _layout.Tier switch
+    {
+        Services.LayoutTier.Phone => double.NaN,
+        _ => 320
+    };
 
-    /// <summary>左选择栏所在列（桌面 0；紧凑切到画布列做右侧抽屉覆盖）。</summary>
-    public int PickerPanelColumn => _layout.IsCompact ? 1 : 0;
+    /// <summary>命令栏按钮文字是否可见（仅桌面档显示，窄屏图标化避免溢出）。</summary>
+    public bool CommandTextVisible => !_layout.IsNarrow;
 
-    /// <summary>右检查器所在列（桌面 2；紧凑切到画布列做右侧抽屉覆盖）。</summary>
-    public int InspectorPanelColumn => _layout.IsCompact ? 1 : 2;
+    /// <summary>命令栏标题是否可见（桌面与手机档；紧凑档外壳顶栏已有标题）。</summary>
+    public bool TitleVisible => _layout.Tier != Services.LayoutTier.Compact;
 
-    /// <summary>抽屉/内联面板的水平对齐（紧凑右对齐，桌面拉伸）。</summary>
+    /// <summary>左选择栏所在列（桌面 0；窄屏切到画布列覆盖）。</summary>
+    public int PickerPanelColumn => _layout.IsNarrow ? 1 : 0;
+
+    /// <summary>右检查器所在列（桌面 2；窄屏切到画布列覆盖）。</summary>
+    public int InspectorPanelColumn => _layout.IsNarrow ? 1 : 2;
+
+    /// <summary>抽屉/内联面板的水平对齐（紧凑右对齐；桌面与手机档拉伸）。</summary>
     public global::Avalonia.Layout.HorizontalAlignment PanelHorizontalAlignment =>
-        _layout.IsCompact ? global::Avalonia.Layout.HorizontalAlignment.Right : global::Avalonia.Layout.HorizontalAlignment.Stretch;
+        _layout.Tier == Services.LayoutTier.Compact
+            ? global::Avalonia.Layout.HorizontalAlignment.Right
+            : global::Avalonia.Layout.HorizontalAlignment.Stretch;
 
-    /// <summary>面板层级（紧凑抽屉需在遮罩之上）。</summary>
-    public int PanelZIndex => _layout.IsCompact ? 30 : 0;
+    /// <summary>面板层级（窄屏需在遮罩之上）。</summary>
+    public int PanelZIndex => _layout.Tier switch
+    {
+        Services.LayoutTier.Phone => 32,
+        Services.LayoutTier.Compact => 30,
+        _ => 0
+    };
 
-    /// <summary>左选择栏描边（桌面右边框；紧凑抽屉左边框）。</summary>
-    public global::Avalonia.Thickness PickerPanelBorderThickness =>
-        _layout.IsCompact ? new global::Avalonia.Thickness(1, 0, 0, 0) : new global::Avalonia.Thickness(0, 0, 1, 0);
+    /// <summary>左选择栏描边（桌面右边框；紧凑抽屉左边框；手机档无边）。</summary>
+    public global::Avalonia.Thickness PickerPanelBorderThickness => _layout.Tier switch
+    {
+        Services.LayoutTier.Phone => new global::Avalonia.Thickness(0),
+        Services.LayoutTier.Compact => new global::Avalonia.Thickness(1, 0, 0, 0),
+        _ => new global::Avalonia.Thickness(0, 0, 1, 0)
+    };
 
-    /// <summary>桌面：右检查器常驻；紧凑：仅抽屉展开时可见。</summary>
-    public bool InspectorVisible => !_layout.IsCompact || IsInspectorDrawerOpen;
+    /// <summary>右检查器描边（桌面/紧凑左边框；手机档无边）。</summary>
+    public global::Avalonia.Thickness InspectorPanelBorderThickness => _layout.Tier switch
+    {
+        Services.LayoutTier.Phone => new global::Avalonia.Thickness(0),
+        _ => new global::Avalonia.Thickness(1, 0, 0, 0)
+    };
 
-    /// <summary>紧凑模式下任一抽屉展开时显示遮罩。</summary>
-    public bool DrawerMaskVisible => _layout.IsCompact && (IsPickerDrawerOpen || IsInspectorDrawerOpen);
+    /// <summary>桌面：右检查器常驻；窄屏：仅抽屉/全屏展开时可见。</summary>
+    public bool InspectorVisible => !_layout.IsNarrow || IsInspectorDrawerOpen;
+
+    /// <summary>仅紧凑档且任一抽屉展开时显示遮罩（手机档全屏覆盖无遮罩）。</summary>
+    public bool DrawerMaskVisible =>
+        _layout.Tier == Services.LayoutTier.Compact && (IsPickerDrawerOpen || IsInspectorDrawerOpen);
+
+    /// <summary>是否手机档全屏覆盖（面板内容据此显示返回头部）。</summary>
+    public bool IsFullScreen => _layout.IsPhone;
 
     /// <summary>命令栏副标题：当前会场 · 当前名单。</summary>
     public string WorkbenchSubtitle =>
@@ -254,28 +291,32 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         Welcome = welcome;
         _services = services;
         _logger = logger ?? NullLogger<SeatingArrangementViewModel>.Instance;
-        // 紧凑断点变化：抽屉互斥/可见性联动
+        // 布局档位变化：抽屉互斥/可见性联动
         _layout.PropertyChanged += OnLayoutChanged;
     }
 
     private void OnLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(IShellLayoutService.IsCompact)) return;
-        if (!_layout.IsCompact)
+        if (e.PropertyName != nameof(IShellLayoutService.Tier)) return;
+        if (!_layout.IsNarrow)
         {
             IsPickerDrawerOpen = false;
             IsInspectorDrawerOpen = false;
         }
         OnPropertyChanged(nameof(PickerVisible));
         OnPropertyChanged(nameof(PickerPanelWidth));
+        OnPropertyChanged(nameof(InspectorPanelWidth));
         OnPropertyChanged(nameof(InspectorVisible));
         OnPropertyChanged(nameof(DrawerMaskVisible));
-        OnPropertyChanged(nameof(CompactCommandTextVisible));
+        OnPropertyChanged(nameof(CommandTextVisible));
+        OnPropertyChanged(nameof(TitleVisible));
         OnPropertyChanged(nameof(PickerPanelColumn));
         OnPropertyChanged(nameof(InspectorPanelColumn));
         OnPropertyChanged(nameof(PanelHorizontalAlignment));
         OnPropertyChanged(nameof(PanelZIndex));
         OnPropertyChanged(nameof(PickerPanelBorderThickness));
+        OnPropertyChanged(nameof(InspectorPanelBorderThickness));
+        OnPropertyChanged(nameof(IsFullScreen));
     }
 
     // ═══════════════════════════════════════════════

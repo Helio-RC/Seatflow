@@ -5,7 +5,8 @@
   xmlns:fic="using:FluentIcons.Avalonia"
   xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
   xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
-  Width="420"
+  MinWidth="280"
+  MaxWidth="420"
   MinHeight="160"
   x:CompileBindings="False"
   Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">

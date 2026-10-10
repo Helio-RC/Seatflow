@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using SeatFlow.Core.Models.SeatSets;
@@ -41,7 +43,7 @@ public sealed class WebDialogService : IDialogService
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            host.DialogOverlayContent.Content = content;
+            host.DialogOverlayContent.Content = WrapOverlay(content, host, 420, 480);
             host.DialogOverlayHost.IsVisible = true;
             content.OnContentAttached();
         });
@@ -84,7 +86,7 @@ public sealed class WebDialogService : IDialogService
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            host.DialogOverlayContent.Content = content;
+            host.DialogOverlayContent.Content = WrapOverlay(content, host, 400, 320);
             host.DialogOverlayHost.IsVisible = true;
             content.OnContentAttached();
         });
@@ -128,7 +130,7 @@ public sealed class WebDialogService : IDialogService
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            host.DialogOverlayContent.Content = panel;
+            host.DialogOverlayContent.Content = WrapOverlay(panel, host, 560, 640);
             host.DialogOverlayHost.IsVisible = true;
         });
 
@@ -152,5 +154,25 @@ public sealed class WebDialogService : IDialogService
         // 兜底：从 SetTopLevel 传入的 TopLevel 可视树中定位
         var resolved = _topLevel?.GetVisualDescendants().OfType<MainView>().FirstOrDefault();
         return Task.FromResult(resolved);
+    }
+
+    /// <summary>
+    /// 按视口钳制 overlay 内容尺寸（手机档窄视口不溢出），内容超出高度时可垂直滚动。
+    /// </summary>
+    private static Control WrapOverlay(Control content, MainView host, double designWidth, double designHeight)
+    {
+        var availableWidth = DialogSizing.ResolveMaxWidth(designWidth, host.Bounds.Width);
+        // 显式宽度（而非仅 MaxWidth）：短内容确认框也保持统一的设计宽度，与桌面对话框视觉一致
+        var targetWidth = Math.Min(designWidth, availableWidth);
+        content.Width = targetWidth;
+        content.MaxWidth = targetWidth;
+        return new ScrollViewer
+        {
+            Content = content,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            MaxWidth = targetWidth,
+            MaxHeight = DialogSizing.ResolveMaxHeight(designHeight, host.Bounds.Height)
+        };
     }
 }

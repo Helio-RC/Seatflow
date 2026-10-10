@@ -143,6 +143,7 @@
           <TextBlock
             VerticalAlignment="Bottom"
             Classes="sf-sm sf-faint"
+            IsVisible="{Binding !Layout.IsPhone}"
             Text="{Binding HeaderSubtitle}" />
           <Border Classes="sf-chip" IsVisible="{Binding HasData}">
             <Panel>
@@ -168,14 +169,19 @@
           Spacing="6">
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Member_DatasetShort}"
-            Classes="sf-btn sf-sm"
+            Classes="sf-btn sf-icon"
             Command="{Binding DatasetsPanel.ToggleCommand}"
-            IsVisible="{Binding Layout.IsCompact}">
-            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Member_DatasetShort}" />
+            IsVisible="{Binding Layout.IsNarrow}"
+            ToolTip.Tip="{x:Static lang:Resources.Member_DatasetShort}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Database}" />
           </Button>
-          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsCompact}" />
+          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsNarrow}" />
 
-          <Button AutomationProperties.Name="{x:Static lang:Resources.Data_Export}" Classes="sf-btn" IsEnabled="{Binding HasData}">
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Data_Export}"
+            Classes="sf-btn"
+            IsEnabled="{Binding HasData}"
+            IsVisible="{Binding !Layout.IsPhone}">
             <Button.Flyout>
               <MenuFlyout>
                 <MenuItem Command="{Binding ExportCsvCommand}" Header="{x:Static lang:Resources.Member_ExportCSV}" />
@@ -188,7 +194,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Data_Export}" />
               <fic:FluentIcon FontSize="10" Icon="{x:Static ficEnum:Icon.ChevronDown}" />
             </StackPanel>
@@ -198,13 +204,14 @@
             x:Name="ExportTemplateButton"
             AutomationProperties.Name="{x:Static lang:Resources.Data_ExportTemplate}"
             Classes="sf-btn"
-            Command="{Binding ExportTemplateCommand}">
+            Command="{Binding ExportTemplateCommand}"
+            IsVisible="{Binding !Layout.IsPhone}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Document}" />
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Member_GetTemplate}" />
             </StackPanel>
           </Button>
@@ -212,6 +219,7 @@
             x:Name="ImportButton"
             AutomationProperties.Name="{x:Static lang:Resources.Member_ImportData}"
             Classes="sf-btn sf-primary"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding ImportCommand}"
             IsEnabled="{Binding IsNotLoading}"
             IsVisible="{Binding IsImportMode}">
@@ -220,7 +228,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Member_ImportFromFile}" />
             </StackPanel>
           </Button>
@@ -228,6 +236,7 @@
             x:Name="UpdateFromFileButton"
             AutomationProperties.Name="{x:Static lang:Resources.Member_UpdateFromFile}"
             Classes="sf-btn sf-primary"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding UpdateFromFileCommand}"
             IsEnabled="{Binding IsNotLoading}"
             IsVisible="{Binding IsUpdateMode}">
@@ -236,7 +245,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Member_UpdateFromFile}" />
             </StackPanel>
           </Button>
@@ -244,6 +253,7 @@
             x:Name="SaveButton"
             AutomationProperties.Name="{x:Static lang:Resources.Member_SaveDataset}"
             Classes="sf-btn"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding SaveCommand}"
             IsEnabled="{Binding HasData}">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -251,7 +261,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Common_Save}" />
             </StackPanel>
           </Button>
@@ -260,6 +270,7 @@
             Classes="sf-btn sf-icon"
             Command="{Binding RenameSaveCommand}"
             IsEnabled="{Binding HasData}"
+            IsVisible="{Binding !Layout.IsPhone}"
             ToolTip.Tip="{x:Static lang:Resources.Common_SaveAs}">
             <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.SaveCopy}" />
           </Button>
@@ -268,8 +279,48 @@
             Classes="sf-btn sf-icon"
             Command="{Binding ClearDataCommand}"
             IsEnabled="{Binding HasData}"
+            IsVisible="{Binding !Layout.IsPhone}"
             ToolTip.Tip="{x:Static lang:Resources.Data_UnloadData}">
             <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Dismiss}" />
+          </Button>
+
+          <!--  手机档：低频操作收进 ⋯ 溢出菜单  -->
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Shell_More}"
+            Classes="sf-btn sf-icon"
+            IsVisible="{Binding Layout.IsPhone}"
+            ToolTip.Tip="{x:Static lang:Resources.Shell_More}">
+            <Button.Flyout>
+              <MenuFlyout Placement="Bottom">
+                <MenuItem
+                  Header="{x:Static lang:Resources.Data_Export}"
+                  IsEnabled="{Binding HasData}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUpload}" />
+                  </MenuItem.Icon>
+                  <MenuItem Command="{Binding ExportCsvCommand}" Header="{x:Static lang:Resources.Member_ExportCSV}" />
+                  <MenuItem Command="{Binding ExportExcelCommand}" Header="{x:Static lang:Resources.Member_ExportExcel}" />
+                  <MenuItem Command="{Binding ExportJsonCommand}" Header="{x:Static lang:Resources.Member_ExportJSON}" />
+                </MenuItem>
+                <Separator />
+                <MenuItem
+                  Command="{Binding ExportTemplateCommand}"
+                  Header="{x:Static lang:Resources.Data_ExportTemplate}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Document}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                  Command="{Binding RenameSaveCommand}"
+                  Header="{x:Static lang:Resources.Common_SaveAs}"
+                  IsEnabled="{Binding HasData}" />
+                <MenuItem
+                  Command="{Binding ClearDataCommand}"
+                  Header="{x:Static lang:Resources.Data_UnloadData}"
+                  IsEnabled="{Binding HasData}" />
+              </MenuFlyout>
+            </Button.Flyout>
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.MoreHorizontal}" />
           </Button>
         </StackPanel>
       </DockPanel>
@@ -307,6 +358,28 @@
         BorderThickness="{Binding DatasetsPanel.BorderThickness}"
         IsVisible="{Binding DatasetsPanel.Visible}">
         <DockPanel>
+          <!--  手机档全屏覆盖：返回头部  -->
+          <Border
+            Classes="sf-takeover-header"
+            DockPanel.Dock="Top"
+            IsVisible="{Binding DatasetsPanel.IsFullScreen}">
+            <DockPanel>
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Common_Back}"
+                Classes="sf-btn sf-ghost sf-sm"
+                Command="{Binding DatasetsPanel.CloseCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Back}" />
+                </StackPanel>
+              </Button>
+              <TextBlock
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                Classes="sf-h3"
+                Text="{x:Static lang:Resources.Member_SavedDatasets}" />
+            </DockPanel>
+          </Border>
           <DockPanel Margin="12,12,12,4" DockPanel.Dock="Top">
             <Button
               HorizontalAlignment="Right"
@@ -321,6 +394,7 @@
             <TextBlock
               VerticalAlignment="Center"
               Classes="sf-h3"
+              IsVisible="{Binding !DatasetsPanel.IsFullScreen}"
               Text="{x:Static lang:Resources.Member_SavedDatasets}" />
           </DockPanel>
 
@@ -396,9 +470,10 @@
             TextWrapping="Wrap" />
         </StackPanel>
 
-        <!--  表格  -->
+        <!--  表格（手机档：最小宽 + 横向滚动，保持各编辑列可用）  -->
         <Border Classes="sf-panel" IsVisible="{Binding HasData}">
-          <Grid RowDefinitions="Auto,*,Auto">
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+            <Grid MinWidth="480" RowDefinitions="Auto,*,Auto">
             <!--  表头  -->
             <Border
               Grid.Row="0"
@@ -500,6 +575,7 @@
               </Grid>
             </Border>
           </Grid>
+          </ScrollViewer>
         </Border>
 
         <!--  加载遮罩  -->
@@ -520,7 +596,7 @@
         </Border>
       </Grid>
 
-      <!--  紧凑模式抽屉遮罩  -->
+      <!--  窄屏抽屉遮罩  -->
       <Border
         Grid.ColumnSpan="3"
         ZIndex="25"

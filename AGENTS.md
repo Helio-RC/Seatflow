@@ -47,7 +47,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
 - **日志**：Serilog 4 + `ILogger<T>`，文件 sink，`AppSettings.CategoryOverrides` 支持分模块等级；详见 `docs/LOGGING.md`。
 - **双壳**：`SeatFlow.Desktop`（EXE，AssemblyName=`SeatFlow`）与 `SeatFlow.Browser`（WASM 静态站）。
   存储经 `ILocalDataStore`（桌面=文件系统 / WASM=IndexedDB）；PDF/图片导出、自动更新、Watchdog、单实例仅桌面；
-  Web 对话框为 overlay。浏览器外壳 `MainView : UserControl`（不能构造 `Window`），JSON 需反射序列化开关，
+  Web 对话框为 overlay。桌面主窗最小 360×480（可缩至手机比例，与浏览器共用同一响应式三档布局）。浏览器外壳 `MainView : UserControl`（不能构造 `Window`），JSON 需反射序列化开关，
   CJK 由嵌入 Noto Sans SC 回退，语言在 `Program.Main` 于 Avalonia 启动前异步预加载。
   **WASM 运行时语言切换**需 `UseSystemResourceKeys=false` + `main.js` 的 `loadAllSatelliteResources: true`（详见 `docs/WebDeployment.md`）。
 - **DI**：`AddSeatFlowApplication(snapshotBasePath)` 注册应用层服务；壳层再注册
@@ -56,6 +56,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
 - **导航**：7 页 `PageKey`（默认入口 `SeatingArrangement`；`Home` 已移除，`FreeformManagement` 并入 `VenueConfiguration`）：
   排座工作台 / 人员管理 / 会场与布局 / 策略配置 / 历史快照 / 设置 / 关于。
   `ViewLocator` 按命名约定解析 VM→View，并按 VM 实例弱引用缓存（切页不重建 XAML）。
+  手机档（≤600px）导航为底部 Tab 栏（排座/人员/会场/策略/更多），禁用页在 Tab 与「更多」中隐藏（ADR-015）。
 - **启动顺序**：`StartupGuard` 校验环境 → `App.Initialize()` 先设语言再加载 XAML →
   `OnFrameworkInitializationCompleted` 解析壳与首页 → `SetTopLevel` → Watchdog（仅桌面）→
   `ChineseInputNormalizer` → `SafeInitializeAsync()`（自动导入 → 首次启动 → 恢复设置）。
@@ -97,7 +98,9 @@ fill-in-order 模型：独立策略按 Priority 降序执行（先到先得，�
   数据加载成功标志仅在成功时置位（取消/失败下次进入自动重试）。
 - `DirtyTracker`：统一 JSON 快照脏检查，勿再手写。
 - `IDialogGate`：并发对话框门，替代 `_dialogLock + Task.Delay(150)`。
-- `IShellLayoutService`：≤900px 全局紧凑断点（内联面板 ↔ 抽屉，`SideDrawerState` 复用）。
+- `IShellLayoutService`：响应式三档断点 `LayoutTier`（`LayoutBreakpoints`：Desktop >900 / Compact 600–900 / Phone ≤600，ADR-015）。
+  桌面内联 ↔ 紧凑右抽屉 ↔ 手机全屏覆盖由 `SideDrawerState` 复用；命令栏文字仅桌面显示（`CommandTextVisible`），
+  紧凑档混合按钮收 `sf-icon`，手机档为「标题 + 图标 + `⋯` 溢出菜单」；对话框按宿主/视口钳制（`DialogSizing`）。
 - `IGuideSeedTarget`：引导演示数据注入契约（`SeedGuideData`/`ClearGuideData`，5 页自行实现）。
 - `WatchdogService`：45s UI 挂起检测（仅桌面），UI 线程须定期 `Ping()`（`App.axaml.cs` 的 DispatcherTimer）。
 - `SeatingCanvas`：自绘 `Control.Render` 画布（Grid/Polar/Freeform 统一几何命中；拖拽/交换/平移/缩放/方向键虚拟焦点内置）。

@@ -37,6 +37,7 @@ public class DialogService : IDialogService
             Kind = DialogKind.Confirm
         };
 
+        DialogSizing.ClampToOwner(dialog, window);
         return await dialog.ShowDialog<bool>(window) == true;
     }
 
@@ -59,6 +60,7 @@ public class DialogService : IDialogService
             Button3Text = cancelText ?? Resources.Common_Cancel
         };
 
+        DialogSizing.ClampToOwner(dialog, window);
         await dialog.ShowDialog<bool>(window);
         return dialog.DialogResult;
     }
@@ -78,6 +80,7 @@ public class DialogService : IDialogService
             Input = initialValue
         };
 
+        DialogSizing.ClampToOwner(dialog, window);
         var result = await dialog.ShowDialog<bool>(window);
         return (result, result ? dialog.Input : "");
     }
@@ -97,6 +100,7 @@ public class DialogService : IDialogService
             Kind = kind
         };
 
+        DialogSizing.ClampToOwner(dialog, window);
         await dialog.ShowDialog<bool>(window);
     }
 
@@ -117,6 +121,7 @@ public class DialogService : IDialogService
                 available.IncludeSnapshots, available.IncludeStrategyConfig);
         }
 
+        DialogSizing.ClampToOwner(dialog, window);
         var confirmed = await dialog.ShowDialog<bool>(window);
         return confirmed ? dialog.ViewModel.ToSelection() : null;
     }

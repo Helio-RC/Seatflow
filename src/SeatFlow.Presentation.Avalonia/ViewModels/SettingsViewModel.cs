@@ -194,12 +194,15 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
     /// <summary>当前运行平台是否为浏览器（WASM）。更新/存储卡片在网页版隐藏。</summary>
     public bool IsWebPlatform => OperatingSystem.IsBrowser();
 
-    /// <summary>设置卡片网格列数（桌面两列、紧凑单列，来源：外壳断点）。</summary>
-    public int CardColumns => _layout.IsCompact ? 1 : 2;
+    /// <summary>外壳布局状态（布局档位）。</summary>
+    public IShellLayoutService Layout => _layout;
+
+    /// <summary>设置卡片网格列数（桌面两列、窄屏单列，来源：外壳布局档位）。</summary>
+    public int CardColumns => _layout.IsNarrow ? 1 : 2;
 
     private void OnLayoutPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
+        if (e.PropertyName == nameof(IShellLayoutService.Tier))
             OnPropertyChanged(nameof(CardColumns));
     }
 
@@ -716,6 +719,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
             var dialog = await Views.UpdateDialogWindow.CreateAsync(
                 _serviceProvider, newVersion, allowDownload: true);
 
+            DialogSizing.ClampToOwner(dialog, mainWindow);
             await dialog.ShowDialog<bool>(mainWindow);
 
             if (dialog.Confirmed)

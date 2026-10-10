@@ -42,7 +42,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
                 _ = vm.OnLeaveAsync();
         }
 
-        /// <summary>紧凑模式快照列表抽屉遮罩点击：关闭抽屉。</summary>
+        /// <summary>紧凑档快照列表抽屉遮罩点击：关闭抽屉。</summary>
         private void OnDrawerMaskPressed(object? sender, PointerPressedEventArgs e)
         {
             if (DataContext is SnapshotHistoryViewModel vm)

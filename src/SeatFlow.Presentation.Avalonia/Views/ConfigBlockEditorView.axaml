@@ -14,7 +14,7 @@
         IsVisible="{Binding HasDescription}"
         Text="{Binding LocalizedDescription}" />
 
-      <StackPanel Orientation="Horizontal" Spacing="8">
+      <WrapPanel ItemSpacing="8" LineSpacing="8">
         <StackPanel
           IsVisible="{Binding ShowStudentPicker}"
           Orientation="Horizontal"
@@ -39,22 +39,19 @@
             ItemsSource="{Binding AvailableVenues}"
             SelectedItem="{Binding SelectedVenue}" />
         </StackPanel>
-      </StackPanel>
+      </WrapPanel>
 
       <ItemsControl ItemsSource="{Binding Rows}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:ConfigBlockRowViewModel">
-            <DockPanel Margin="0,2" LastChildFill="False">
+            <!--  窄屏自动换行（手机档单行容纳多组选择器会溢出）  -->
+            <WrapPanel Margin="0,2" ItemSpacing="4" LineSpacing="4">
               <TextBlock
                 Width="24"
                 VerticalAlignment="Center"
                 Classes="sf-sm sf-dim sf-num"
-                DockPanel.Dock="Left"
                 Text="{Binding Index}" />
-              <StackPanel
-                Margin="4,0"
-                DockPanel.Dock="Left"
-                IsVisible="{Binding ShowSingleStudentPickers}">
+              <StackPanel IsVisible="{Binding ShowSingleStudentPickers}">
                 <ItemsControl ItemsSource="{Binding StudentPickers}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -68,35 +65,26 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
-              <StackPanel
-                Margin="4,0"
-                DockPanel.Dock="Left"
-                IsVisible="{Binding IsMultiSelect}">
+              <StackPanel IsVisible="{Binding IsMultiSelect}">
                 <views:MultiStudentPickerView DataContext="{Binding MultiPicker}" />
               </StackPanel>
-              <StackPanel
-                Margin="4,0"
-                DockPanel.Dock="Left"
-                IsVisible="{Binding ShowSeatPosition}">
+              <StackPanel IsVisible="{Binding ShowSeatPosition}">
                 <views:SeatPositionPickerView DataContext="{Binding SeatPicker}" />
               </StackPanel>
               <ComboBox
                 MinWidth="100"
-                Margin="4,0"
+                VerticalAlignment="Center"
                 Classes="sf-input"
-                DockPanel.Dock="Left"
                 IsVisible="{Binding ShowGenderPicker}"
                 ItemsSource="{x:Static vm:ConfigBlockRowViewModel.GenderOptions}"
                 SelectedItem="{Binding GenderValue}" />
               <Button
-                Margin="4,0,0,0"
                 VerticalAlignment="Center"
                 Classes="sf-btn sf-icon sf-sm"
                 Command="{Binding $parent[UserControl].DataContext.RemoveRowCommand}"
                 CommandParameter="{Binding}"
-                Content="-"
-                DockPanel.Dock="Left" />
-            </DockPanel>
+                Content="-" />
+            </WrapPanel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

@@ -1,5 +1,6 @@
 using System.Threading;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.ViewModels;
@@ -46,5 +47,12 @@ public partial class VenueConfigurationView : UserControl
     {
         if (DataContext is VenueConfigurationViewModel vm && e.Seat is { } seat)
             vm.OnPreviewSeatClicked(seat);
+    }
+
+    /// <summary>窄屏列表抽屉遮罩点击：关闭列表抽屉。</summary>
+    private void OnDrawerMaskPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is VenueConfigurationViewModel vm)
+            vm.ListPanel.CloseCommand.Execute(null);
     }
 }

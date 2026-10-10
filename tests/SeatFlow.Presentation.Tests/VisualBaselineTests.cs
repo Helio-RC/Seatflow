@@ -48,11 +48,11 @@ public class VisualBaselineTests
         return dir;
     }
 
-    private static void Capture(string name, ThemeVariant variant, Control content)
+    private static void Capture(string name, ThemeVariant variant, Control content, int width = 1200, int height = 800)
     {
         AvaloniaApplication.Current!.RequestedThemeVariant = variant;
 
-        var window = new Window { Width = 1200, Height = 800, Content = content };
+        var window = new Window { Width = width, Height = height, Content = content };
         window.Show();
         window.UpdateLayout();
 
@@ -107,24 +107,24 @@ public class VisualBaselineTests
         };
     }
 
-    private static MemberManagementViewModel CreateMemberVm() => new(
+    private static MemberManagementViewModel CreateMemberVm(ShellLayoutService? layout = null) => new(
         Substitute.For<IApplicationFacade>(),
         Substitute.For<IFileService>(),
         NullDialogService.Instance,
         Substitute.For<IUrlOpener>(),
         new DialogGate(),
-        new ShellLayoutService());
+        layout ?? new ShellLayoutService());
 
-    private static SeatingArrangementViewModel CreateSeatingVm() => new(
+    private static SeatingArrangementViewModel CreateSeatingVm(ShellLayoutService? layout = null) => new(
         Substitute.For<IApplicationFacade>(),
         Substitute.For<IFileService>(),
         Substitute.For<IArrangementCounterService>(),
-        new ShellLayoutService(),
+        layout ?? new ShellLayoutService(),
         new WelcomeCardViewModel(NullDialogService.Instance),
         Substitute.For<IServiceProvider>(),
         NullDialogService.Instance);
 
-    private static SettingsViewModel CreateSettingsVm() => new(
+    private static SettingsViewModel CreateSettingsVm(ShellLayoutService? layout = null) => new(
         Substitute.For<IApplicationFacade>(),
         NullDialogService.Instance,
         Substitute.For<IOnboardingService>(),
@@ -135,7 +135,7 @@ public class VisualBaselineTests
         Substitute.For<IServiceProvider>(),
         new KeyboardShortcutHandler(),
         new DialogGate(),
-        new ShellLayoutService());
+        layout ?? new ShellLayoutService());
 
     [AvaloniaFact]
     public void 排座画布_明暗基线()
@@ -248,6 +248,43 @@ public class VisualBaselineTests
         {
             foreach (var variant in Variants)
                 Capture("about", variant, new AboutView { DataContext = new AboutViewModel(NullDialogService.Instance) });
+        }
+        finally
+        {
+            AvaloniaApplication.Current!.RequestedThemeVariant = ThemeVariant.Default;
+        }
+    }
+
+    /// <summary>手机档关键页基线（360×640 下限与 390×844 主流）：验证窄屏渲染不崩溃且内容为手机布局。</summary>
+    [AvaloniaFact]
+    public void 关键页_手机尺寸_明暗基线()
+    {
+        var sizes = new (int Width, int Height, string Suffix)[]
+        {
+            (360, 640, "360"),
+            (390, 844, "390")
+        };
+
+        try
+        {
+            foreach (var variant in Variants)
+            {
+                foreach (var (width, height, suffix) in sizes)
+                {
+                    var seatingLayout = new ShellLayoutService { Tier = LayoutTier.Phone };
+                    var seatingVm = CreateSeatingVm(seatingLayout);
+                    seatingVm.SeedGuideData();
+                    Capture($"workbench-phone{suffix}", variant, new SeatingArrangementView { DataContext = seatingVm }, width, height);
+
+                    var memberLayout = new ShellLayoutService { Tier = LayoutTier.Phone };
+                    var memberVm = CreateMemberVm(memberLayout);
+                    memberVm.SeedGuideData();
+                    Capture($"member-phone{suffix}", variant, new MemberManagementView { DataContext = memberVm }, width, height);
+
+                    var settingsLayout = new ShellLayoutService { Tier = LayoutTier.Phone };
+                    Capture($"settings-phone{suffix}", variant, new SettingsView { DataContext = CreateSettingsVm(settingsLayout) }, width, height);
+                }
+            }
         }
         finally
         {

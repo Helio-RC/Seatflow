@@ -39,7 +39,8 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │       ├── ADR-010-velopack-oss-distribution.md ← Velopack 自动更新与 OSS 分发架构
 │       ├── ADR-011-keyboard-shortcuts.md ← 全局键盘快捷键系统（Behavior + Tunnel + 设置开关）
 │       ├── ADR-013-remove-plugin-system.md ← 移除插件系统（2026-09）
-│       └── ADR-014-reactiveui-and-canvas-architecture.md ← UI 技术架构（ReactiveUI 共存 + 自绘 SeatingCanvas，部分取代 ADR-002）
+│       ├── ADR-014-reactiveui-and-canvas-architecture.md ← UI 技术架构（ReactiveUI 共存 + 自绘 SeatingCanvas，部分取代 ADR-002）
+│       └── ADR-015-responsive-layout-tiers.md ← 响应式三档布局与手机档导航（扩展 ADR-014 断点设计）
 └── docs/presentation/
     ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
     ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
@@ -127,9 +128,9 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 - **关联文档**: ARCHITECTURE.md（6.4 双壳架构）、AGENTS.md（Web/WASM 双壳）
 
 ### docs/UI_REFACTOR.md
-- **覆盖**: UI 重构（M0–M6）的完整记录：背景与 D1–D12 决策、诊断基线与根因 RC-1–RC-5、新 IA 与方向 B 视觉、技术架构决策（链 ADR-014）、里程碑交付、性能验收与复测结果、已知遗留与工具链
-- **何时更新**: 修改页面生命周期/横切服务/外壳 IA 时；性能指标复测后追加；遗留项收敛后更新
-- **关联文档**: ADR-014、ADR-002（部分取代）、Design_Spec.md、AGENTS.md（UI 模式节）、DragDrop.md、WebDeployment.md
+- **覆盖**: UI 重构（M0–M7）的完整记录：背景与 D1–D12 决策、诊断基线与根因 RC-1–RC-5、新 IA 与方向 B 视觉、技术架构决策（链 ADR-014）、里程碑交付、性能验收与复测结果、已知遗留与工具链
+- **何时更新**: 修改页面生命周期/横切服务/外壳 IA/响应式布局时；性能指标复测后追加；遗留项收敛后更新
+- **关联文档**: ADR-014、ADR-015、ADR-002（部分取代）、Design_Spec.md、AGENTS.md（UI 模式节）、DragDrop.md、WebDeployment.md
 
 ### scripts/ui-inspect/
 - **覆盖**: 无头环境下 Avalonia WASM 界面的查看/交互/性能采样工具链（CDP 可信输入、批量截图、trace 分析、像素定位、演示数据注入）
@@ -152,5 +153,6 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 修改构建/测试流程 | AGENTS.md、CONTRIBUTING.md、README.md |
 | 修改 Web/WASM 双壳、存储抽象或浏览器平台实现 | docs/WebDeployment.md、ARCHITECTURE.md（6.4 节）、AGENTS.md（Web/WASM 双壳）、README.md |
 | 修改页面生命周期/横切服务/外壳 IA（M0–M6 重构） | docs/UI_REFACTOR.md、ADR-014、AGENTS.md、Design_Spec.md |
+| 修改响应式断点/手机档布局/外壳导航（M7） | ADR-015、docs/UI_REFACTOR.md、docs/presentation/Design_Spec.md、AGENTS.md、docs/WebDeployment.md（Web 行为） |
 | 推进开发阶段 | README.md（状态表）、Phases.md |
 | 修改 CI/发布流水线（workflows / scripts/ci） | .github/docs/RELEASE_FLOW.md、scripts/ToolsCollection.md、AGENTS.md（脚本工具）、CHANGELOG.md |

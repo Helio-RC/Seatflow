@@ -41,11 +41,11 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
     /// <summary>左侧快照列表面板状态（桌面内联 / 紧凑右抽屉）。</summary>
     public SideDrawerState ListPanel { get; }
 
-    /// <summary>外壳布局状态（紧凑断点）。</summary>
+    /// <summary>外壳布局状态（布局档位）。</summary>
     public IShellLayoutService Layout => _layout;
 
-    /// <summary>紧凑模式隐藏命令栏文字。</summary>
-    public bool CompactCommandTextVisible => !_layout.IsCompact;
+    /// <summary>命令栏按钮文字是否可见（仅桌面档显示）。</summary>
+    public bool CommandTextVisible => !_layout.IsNarrow;
 
     public string Title { get; } = Resources.Snapshot_Title;
 
@@ -77,9 +77,20 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBatchMode))]
     [NotifyPropertyChangedFor(nameof(CanEnterBatchDelete))]
+    [NotifyPropertyChangedFor(nameof(BatchDeleteButtonVisible))]
+    [NotifyPropertyChangedFor(nameof(MoreButtonVisible))]
     public partial bool IsBatchDeleteMode { get; set; }
 
     public bool IsNotBatchMode => !IsBatchDeleteMode;
+
+    /// <summary>会场选择器宽度（桌面/紧凑 200；手机档 140 让出命令栏空间）。</summary>
+    public double VenueSelectorWidth => _layout.IsPhone ? 140 : 200;
+
+    /// <summary>批量删除按钮可见：非手机档且非批量模式（手机档收进 ⋯ 菜单）。</summary>
+    public bool BatchDeleteButtonVisible => !_layout.IsPhone && IsNotBatchMode;
+
+    /// <summary>⋯ 溢出菜单可见：手机档且非批量模式。</summary>
+    public bool MoreButtonVisible => _layout.IsPhone && IsNotBatchMode;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectAllDisplay))]
@@ -172,8 +183,13 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle, I
             desktopBorder: new global::Avalonia.Thickness(0, 0, 1, 0));
         _layout.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
-                OnPropertyChanged(nameof(CompactCommandTextVisible));
+            if (e.PropertyName == nameof(IShellLayoutService.Tier))
+            {
+                OnPropertyChanged(nameof(CommandTextVisible));
+                OnPropertyChanged(nameof(VenueSelectorWidth));
+                OnPropertyChanged(nameof(BatchDeleteButtonVisible));
+                OnPropertyChanged(nameof(MoreButtonVisible));
+            }
         };
     }
 

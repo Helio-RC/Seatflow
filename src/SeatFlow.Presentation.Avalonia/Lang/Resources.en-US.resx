@@ -104,6 +104,9 @@
   <data name="App_Title" xml:space="preserve">
     <value>SeatFlow — Seating</value>
   </data>
+  <data name="Common_Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
   <data name="Common_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -1274,6 +1277,9 @@ This cannot be undone.</value>
   </data>
   <data name="Shell_CompactNav" xml:space="preserve">
     <value>Menu</value>
+  </data>
+  <data name="Shell_More" xml:space="preserve">
+    <value>More</value>
   </data>
   <data name="Snapshot_BatchDelete" xml:space="preserve">
     <value>Batch delete</value>

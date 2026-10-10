@@ -49,6 +49,7 @@ public class VenueDisabledSeatTests
             facade,
             Substitute.For<IFileService>(),
             Substitute.For<IDialogGate>(),
+            new ShellLayoutService(),
             NullDialogService.Instance);
 
         vm.SelectedVenueItem = new VenueItem("v1", layout.Name);
@@ -203,6 +204,7 @@ public class VenueDisabledSeatTests
             facade,
             Substitute.For<IFileService>(),
             Substitute.For<IDialogGate>(),
+            new ShellLayoutService(),
             NullDialogService.Instance);
 
         vm.SelectedVenueItem = new VenueItem("v1", "会场A");

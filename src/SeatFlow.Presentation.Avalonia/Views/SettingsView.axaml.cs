@@ -10,7 +10,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
     /// <summary>
     /// 设置页视图（M5：分组卡片网格 + 全令牌化；Loaded/Unloaded 桥接 <c>IPageLifecycle</c>）。
     /// M6 后修复：卡片容器由 UniformGrid（全网格等高 → 短卡片大片空白）改为 WrapPanel，
-    /// 行高独立；卡片宽度按可用宽度 / 列数（桌面两列、≤900px 单列）在 code-behind 计算。
+    /// 行高独立；卡片宽度按可用宽度 / 列数（桌面两列、窄屏单列）在 code-behind 计算。
     /// </summary>
     public partial class SettingsView : UserControl
     {
@@ -40,7 +40,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
                 UpdateCardLayout();
         }
 
-        /// <summary>按可用宽度与列数（紧凑断点）更新卡片宽度。</summary>
+        /// <summary>按可用宽度与列数（布局档位）更新卡片宽度。</summary>
         private void UpdateCardLayout()
         {
             if (DataContext is not SettingsViewModel vm) return;

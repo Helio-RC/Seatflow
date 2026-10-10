@@ -28,7 +28,7 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// - 表格恢复 ListBox 虚拟化（去 ScrollViewer 包裹），行使用「显示/编辑」轻量模板；
 /// - 统一脏检查（<see cref="DirtyTracker"/>）与对话框门（<see cref="IDialogGate"/>，替代 _dialogLock + Task.Delay）；
 /// - 生命周期 <see cref="IPageLifecycle"/>（构造器不再 fire-and-forget），保留 InitializationTask 供引导等待；
-/// - 紧凑模式：数据集列表转为右侧抽屉（<see cref="SideDrawerState"/>）。
+/// - 窄屏：数据集列表转为右抽屉，手机档全屏覆盖（<see cref="SideDrawerState"/>）。
 /// </summary>
 public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
 {
@@ -106,11 +106,11 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     /// <summary>数据集列表面板状态（桌面内联 / 紧凑右抽屉）。</summary>
     public SideDrawerState DatasetsPanel { get; }
 
-    /// <summary>外壳布局状态（紧凑断点）。</summary>
+    /// <summary>外壳布局状态（布局档位）。</summary>
     public IShellLayoutService Layout => _layout;
 
-    /// <summary>紧凑模式隐藏命令栏文字（避免溢出）。</summary>
-    public bool CompactCommandTextVisible => !_layout.IsCompact;
+    /// <summary>命令栏按钮文字是否可见（仅桌面档显示，窄屏图标化避免溢出）。</summary>
+    public bool CommandTextVisible => !_layout.IsNarrow;
 
     // ── 脏状态追踪（统一 DirtyTracker） ──
     private static readonly JsonSerializerOptions _studentJsonOptions = new()
@@ -424,8 +424,8 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
             desktopBorder: new global::Avalonia.Thickness(0, 0, 1, 0));
         _layout.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(IShellLayoutService.IsCompact))
-                OnPropertyChanged(nameof(CompactCommandTextVisible));
+            if (e.PropertyName == nameof(IShellLayoutService.Tier))
+                OnPropertyChanged(nameof(CommandTextVisible));
         };
     }
 

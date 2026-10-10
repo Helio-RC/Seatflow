@@ -10,8 +10,8 @@ using NSubstitute;
 namespace SeatFlow.Presentation.Tests;
 
 /// <summary>
-/// 设置页 ViewModel 的紧凑断点测试（M6）：
-/// <see cref="SettingsViewModel.CardColumns"/> 随 <see cref="IShellLayoutService.IsCompact"/> 切换，
+/// 设置页 ViewModel 的布局档位测试（M6/M7）：
+/// <see cref="SettingsViewModel.CardColumns"/> 随 <see cref="IShellLayoutService.Tier"/> 切换，
 /// 并经属性变更通知驱动视图重排。
 /// </summary>
 public class SettingsViewModelTests
@@ -30,22 +30,25 @@ public class SettingsViewModelTests
         layout);
 
     [Fact]
-    public void CardColumns_桌面两列_紧凑单列_切回两列()
+    public void CardColumns_桌面两列_窄屏单列_切回两列()
     {
         var layout = new ShellLayoutService();
         var vm = CreateViewModel(layout);
 
         vm.CardColumns.Should().Be(2);
 
-        layout.IsCompact = true;
+        layout.Tier = LayoutTier.Compact;
         vm.CardColumns.Should().Be(1);
 
-        layout.IsCompact = false;
+        layout.Tier = LayoutTier.Phone;
+        vm.CardColumns.Should().Be(1);
+
+        layout.Tier = LayoutTier.Desktop;
         vm.CardColumns.Should().Be(2);
     }
 
     [Fact]
-    public void 断点变化触发_CardColumns_变更通知()
+    public void 档位变化触发_CardColumns_变更通知()
     {
         var layout = new ShellLayoutService();
         var vm = CreateViewModel(layout);
@@ -53,7 +56,7 @@ public class SettingsViewModelTests
         var changes = new List<string?>();
         vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
 
-        layout.IsCompact = true;
+        layout.Tier = LayoutTier.Compact;
 
         changes.Should().Contain(nameof(SettingsViewModel.CardColumns));
     }

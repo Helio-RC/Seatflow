@@ -42,7 +42,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
                 _ = vm.OnLeaveAsync();
         }
 
-        /// <summary>紧凑模式策略列表抽屉遮罩点击：关闭抽屉。</summary>
+        /// <summary>紧凑档策略列表抽屉遮罩点击：关闭抽屉。</summary>
         private void OnDrawerMaskPressed(object? sender, PointerPressedEventArgs e)
         {
             if (DataContext is StrategyConfigurationViewModel vm)

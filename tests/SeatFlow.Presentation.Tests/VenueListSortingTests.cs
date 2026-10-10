@@ -26,6 +26,7 @@ public class VenueListSortingTests
             facade,
             Substitute.For<IFileService>(),
             Substitute.For<IDialogGate>(),
+            new ShellLayoutService(),
             NullDialogService.Instance);
 
         await vm.OnEnterAsync(CancellationToken.None);

@@ -38,7 +38,7 @@ namespace SeatFlow.Presentation.Avalonia.Views
         private void OnGuideStepOpening(object? sender, GuideStepEventArgs e)
             => _onboarding.HandleStepOpening(e.Index, e.Step);
 
-        /// <summary>紧凑模式抽屉遮罩点击：关闭导航抽屉。</summary>
+        /// <summary>紧凑档抽屉遮罩点击：关闭导航抽屉。</summary>
         private void OnNavMaskPressed(object? sender, PointerPressedEventArgs e)
         {
             if (DataContext is MainShellViewModel vm)
@@ -50,7 +50,20 @@ namespace SeatFlow.Presentation.Avalonia.Views
             base.OnPropertyChanged(change);
 
             if (change.Property == BoundsProperty && DataContext is MainShellViewModel vm)
+            {
                 vm.OnWindowWidthChanged(Bounds.Width);
+                UpdateGuidePlacement(vm);
+            }
+        }
+
+        /// <summary>引导卡片定位：手机档改为底部（右侧定位在窄视口下易溢出）。</summary>
+        private void UpdateGuidePlacement(MainShellViewModel vm)
+        {
+            var placement = vm.Layout.Tier == Services.LayoutTier.Phone
+                ? GuidePlacementMode.Bottom
+                : GuidePlacementMode.Right;
+            if (OnboardingGuide.Placement != placement)
+                OnboardingGuide.Placement = placement;
         }
     }
 }

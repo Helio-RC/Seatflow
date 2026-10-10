@@ -24,12 +24,13 @@
           Spacing="8">
           <TextBlock
             Classes="sf-h1"
-            IsVisible="{Binding CompactCommandTextVisible}"
-            Text="{x:Static lang:Resources.Nav_Seating}" />
+            IsVisible="{Binding TitleVisible}"
+            Text="{x:Static lang:Resources.Nav_Seating}"
+            TextTrimming="CharacterEllipsis" />
           <TextBlock
             VerticalAlignment="Bottom"
             Classes="sf-sm sf-faint"
-            IsVisible="{Binding CompactCommandTextVisible}"
+            IsVisible="{Binding CommandTextVisible}"
             Text="{Binding WorkbenchSubtitle}" />
         </StackPanel>
 
@@ -39,28 +40,31 @@
           DockPanel.Dock="Right"
           Orientation="Horizontal"
           Spacing="6">
-          <!--  紧凑模式：数据 / 面板抽屉开关  -->
+          <!--  窄屏：数据 / 面板抽屉开关（图标化）  -->
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Seating_PickerShort}"
-            Classes="sf-btn sf-sm"
+            Classes="sf-btn sf-icon"
             Command="{Binding TogglePickerDrawerCommand}"
-            IsVisible="{Binding Layout.IsCompact}">
-            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_PickerShort}" />
+            IsVisible="{Binding Layout.IsNarrow}"
+            ToolTip.Tip="{x:Static lang:Resources.Seating_PickerShort}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Database}" />
           </Button>
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Seating_InspectorShort}"
-            Classes="sf-btn sf-sm"
+            Classes="sf-btn sf-icon"
             Command="{Binding ToggleInspectorDrawerCommand}"
-            IsVisible="{Binding Layout.IsCompact}">
-            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_InspectorShort}" />
+            IsVisible="{Binding Layout.IsNarrow}"
+            ToolTip.Tip="{x:Static lang:Resources.Seating_InspectorShort}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.PanelRightExpand}" />
           </Button>
-          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsCompact}" />
+          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsNarrow}" />
 
           <!--  撤销 / 重做  -->
           <Button
             x:Name="UndoButton"
             AutomationProperties.Name="{x:Static lang:Resources.Seating_UndoSwap}"
             Classes="sf-btn"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding UndoCommand}"
             IsEnabled="{Binding CanUndo}">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -68,13 +72,14 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Seating_Undo}" />
             </StackPanel>
           </Button>
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Seating_RedoSwap}"
             Classes="sf-btn"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding RedoCommand}"
             IsEnabled="{Binding CanRedo}">
             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -82,35 +87,38 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Seating_Redo}" />
             </StackPanel>
           </Button>
           <Border Classes="sf-sep-v" />
 
-          <!--  保存快照  -->
+          <!--  保存快照（手机档收进 ⋯ 菜单）  -->
           <Button
             x:Name="SaveSnapshotButton"
             AutomationProperties.Name="{x:Static lang:Resources.Seating_SaveSnapshot}"
             Classes="sf-btn"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding SaveToSnapshotCommand}"
-            IsEnabled="{Binding HasUnsavedChanges}">
+            IsEnabled="{Binding HasUnsavedChanges}"
+            IsVisible="{Binding !Layout.IsPhone}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Common_Save}" />
             </StackPanel>
           </Button>
 
-          <!--  导出菜单（学生/教师 × Excel/CSV/PDF/PNG；Web 隐藏 PDF/PNG）  -->
+          <!--  导出菜单（学生/教师 × Excel/CSV/PDF/PNG；Web 隐藏 PDF/PNG；手机档收进 ⋯ 菜单）  -->
           <Button
             x:Name="ExportButton"
             AutomationProperties.Name="{x:Static lang:Resources.Data_Export}"
             Classes="sf-btn"
-            IsEnabled="{Binding HasGenerated}">
+            IsEnabled="{Binding HasGenerated}"
+            IsVisible="{Binding !Layout.IsPhone}">
             <Button.Flyout>
               <MenuFlyout>
                 <MenuItem
@@ -195,7 +203,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Seating_Export}" />
               <fic:FluentIcon FontSize="10" Icon="{x:Static ficEnum:Icon.ChevronDown}" />
             </StackPanel>
@@ -206,11 +214,16 @@
             x:Name="GenerateButton"
             AutomationProperties.Name="{x:Static lang:Resources.Nav_Seating}"
             Classes="sf-btn sf-primary"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding GenerateSeatingCommand}"
             IsEnabled="{Binding CanGenerate}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-              <TextBlock VerticalAlignment="Center" Classes="sf-sm" Text="{x:Static lang:Resources.Seating_Generate}" />
+              <TextBlock
+                VerticalAlignment="Center"
+                Classes="sf-sm"
+                IsVisible="{Binding CommandTextVisible}"
+                Text="{x:Static lang:Resources.Seating_Generate}" />
             </StackPanel>
           </Button>
           <Button
@@ -218,8 +231,70 @@
             Classes="sf-btn sf-icon"
             Command="{Binding CreateEmptySeatingCommand}"
             IsEnabled="{Binding CanCreateEmpty}"
+            IsVisible="{Binding !Layout.IsPhone}"
             ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
             <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.TableAdd}" />
+          </Button>
+
+          <!--  手机档：低频操作收进 ⋯ 溢出菜单（导出 / 创建空白）  -->
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Shell_More}"
+            Classes="sf-btn sf-icon"
+            IsVisible="{Binding Layout.IsPhone}"
+            ToolTip.Tip="{x:Static lang:Resources.Shell_More}">
+            <Button.Flyout>
+              <MenuFlyout Placement="Bottom">
+                <MenuItem
+                  Command="{Binding SaveToSnapshotCommand}"
+                  Header="{x:Static lang:Resources.Seating_SaveSnapshot}"
+                  IsEnabled="{Binding HasUnsavedChanges}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                  Header="{x:Static lang:Resources.Seating_Export}"
+                  IsEnabled="{Binding HasGenerated}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.SaveArrowRight}" />
+                  </MenuItem.Icon>
+                  <MenuItem Header="{x:Static lang:Resources.Seating_StudentView}">
+                    <MenuItem Command="{Binding ExportExcelCommand}" Header="Excel (.xlsx)" />
+                    <MenuItem Command="{Binding ExportCsvCommand}" Header="CSV (.csv)" />
+                    <MenuItem
+                      Command="{Binding ExportPdfCommand}"
+                      Header="PDF (.pdf)"
+                      IsVisible="{Binding !IsWebPlatform}" />
+                    <MenuItem
+                      Command="{Binding ExportImageCommand}"
+                      Header="{x:Static lang:Resources.Seating_ExportPNG}"
+                      IsVisible="{Binding !IsWebPlatform}" />
+                  </MenuItem>
+                  <MenuItem Header="{x:Static lang:Resources.Seating_TeacherView}">
+                    <MenuItem Command="{Binding ExportTeacherExcelCommand}" Header="Excel (.xlsx)" />
+                    <MenuItem Command="{Binding ExportTeacherCsvCommand}" Header="CSV (.csv)" />
+                    <MenuItem
+                      Command="{Binding ExportTeacherPdfCommand}"
+                      Header="PDF (.pdf)"
+                      IsVisible="{Binding !IsWebPlatform}" />
+                    <MenuItem
+                      Command="{Binding ExportTeacherImageCommand}"
+                      Header="{x:Static lang:Resources.Seating_ExportPNG}"
+                      IsVisible="{Binding !IsWebPlatform}" />
+                  </MenuItem>
+                </MenuItem>
+                <Separator />
+                <MenuItem
+                  Command="{Binding CreateEmptySeatingCommand}"
+                  Header="{x:Static lang:Resources.Seating_CreateEmpty}"
+                  IsEnabled="{Binding CanCreateEmpty}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.TableAdd}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.MoreHorizontal}" />
           </Button>
         </StackPanel>
       </DockPanel>
@@ -291,6 +366,28 @@
         BorderThickness="{Binding PickerPanelBorderThickness}"
         IsVisible="{Binding PickerVisible}">
         <DockPanel>
+          <!--  手机档全屏覆盖：返回头部  -->
+          <Border
+            Classes="sf-takeover-header"
+            DockPanel.Dock="Top"
+            IsVisible="{Binding IsFullScreen}">
+            <DockPanel>
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Common_Back}"
+                Classes="sf-btn sf-ghost sf-sm"
+                Command="{Binding TogglePickerDrawerCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Back}" />
+                </StackPanel>
+              </Button>
+              <TextBlock
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                Classes="sf-h3"
+                Text="{x:Static lang:Resources.Seating_PickerTitle}" />
+            </DockPanel>
+          </Border>
           <DockPanel Margin="16,12,12,4" DockPanel.Dock="Top">
             <Button
               HorizontalAlignment="Right"
@@ -305,6 +402,7 @@
             <TextBlock
               VerticalAlignment="Center"
               Classes="sf-h3"
+              IsVisible="{Binding !IsFullScreen}"
               Text="{x:Static lang:Resources.Seating_PickerTitle}" />
           </DockPanel>
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -594,14 +692,37 @@
       <Border
         x:Name="InspectorPanel"
         Grid.Column="{Binding InspectorPanelColumn}"
-        Width="320"
+        Width="{Binding InspectorPanelWidth}"
         HorizontalAlignment="{Binding PanelHorizontalAlignment}"
         ZIndex="{Binding PanelZIndex}"
         Background="{DynamicResource SfSurfaceBrush}"
         BorderBrush="{DynamicResource SfBorderBrush}"
-        BorderThickness="1,0,0,0"
+        BorderThickness="{Binding InspectorPanelBorderThickness}"
         IsVisible="{Binding InspectorVisible}">
-        <TabControl Classes="sf-tabs">
+        <DockPanel>
+          <!--  手机档全屏覆盖：返回头部  -->
+          <Border
+            Classes="sf-takeover-header"
+            DockPanel.Dock="Top"
+            IsVisible="{Binding IsFullScreen}">
+            <DockPanel>
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Common_Back}"
+                Classes="sf-btn sf-ghost sf-sm"
+                Command="{Binding ToggleInspectorDrawerCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Back}" />
+                </StackPanel>
+              </Button>
+              <TextBlock
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                Classes="sf-h3"
+                Text="{x:Static lang:Resources.Seating_InspectorShort}" />
+            </DockPanel>
+          </Border>
+          <TabControl Classes="sf-tabs">
           <!--  ── 策略状态 ──  -->
           <TabItem>
             <TabItem.Header>
@@ -778,9 +899,10 @@
             </ScrollViewer>
           </TabItem>
         </TabControl>
+        </DockPanel>
       </Border>
 
-      <!--  紧凑模式抽屉遮罩：点击关闭  -->
+      <!--  窄屏抽屉遮罩：点击关闭  -->
       <Border
         x:Name="DrawerMask"
         Grid.ColumnSpan="3"

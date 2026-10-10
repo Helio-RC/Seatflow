@@ -35,6 +35,7 @@ public static class TestAppBuilder
         return AppBuilder
             .Configure(() => new SeatFlow.Presentation.Avalonia.App(provider))
             .UseSkia()
+            .WithInterFont()
             .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
             .LogToTrace();
     }

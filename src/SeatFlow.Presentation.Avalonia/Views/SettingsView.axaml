@@ -32,20 +32,28 @@
             x:Name="SaveSettingsButton"
             AutomationProperties.Name="{x:Static lang:Resources.Settings_Save}"
             Classes="sf-btn sf-primary"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding SaveSettingsCommand}"
             IsDefault="True">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
-              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Settings_Save}" />
+              <TextBlock
+                Classes="sf-sm"
+                IsVisible="{Binding !Layout.IsNarrow}"
+                Text="{x:Static lang:Resources.Settings_Save}" />
             </StackPanel>
           </Button>
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Settings_ResetDefaults}"
             Classes="sf-btn"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding ResetDefaultsCommand}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowUndo}" />
-              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Settings_ResetDefaults}" />
+              <TextBlock
+                Classes="sf-sm"
+                IsVisible="{Binding !Layout.IsNarrow}"
+                Text="{x:Static lang:Resources.Settings_ResetDefaults}" />
             </StackPanel>
           </Button>
         </StackPanel>
@@ -62,14 +70,14 @@
       </Grid>
     </Border>
 
-    <!--  ═══ 内容区：分组卡片网格（桌面两列 / 紧凑单列） ═══  -->
+    <!--  ═══ 内容区：分组卡片网格（桌面两列 / 窄屏单列） ═══  -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
       <StackPanel
         MaxWidth="1100"
         Margin="{StaticResource SfPagePadding}"
         HorizontalAlignment="Stretch">
         <!--  M6 后修复：WrapPanel 行高独立（原 UniformGrid 全网格等高导致短卡片出现大片空白）；
-              卡片宽度由 code-behind 按可用宽度/列数动态计算（桌面两列 / ≤900px 单列）。  -->
+              卡片宽度由 code-behind 按可用宽度/列数动态计算（桌面两列 / 窄屏单列）。  -->
         <WrapPanel
           x:Name="SettingsCards"
           ItemSpacing="{StaticResource SfSpace4}"

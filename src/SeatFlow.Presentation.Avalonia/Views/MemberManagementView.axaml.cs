@@ -79,7 +79,7 @@ public partial class MemberManagementView : UserControl
         }
     }
 
-    /// <summary>紧凑模式数据集抽屉遮罩点击：关闭抽屉。</summary>
+    /// <summary>紧凑档数据集抽屉遮罩点击：关闭抽屉。</summary>
     private void OnDrawerMaskPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is MemberManagementViewModel vm)

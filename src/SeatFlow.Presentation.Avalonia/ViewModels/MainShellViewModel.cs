@@ -14,10 +14,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
 /// <summary>
-/// 外壳 ViewModel（M3 新 IA）：
+/// 外壳 ViewModel（M3 新 IA，M7 响应式三档）：
 /// - 侧栏分组（工作流/资料/规则/记录 + 底部设置/关于），中部导航可滚动（修复 I-01）；
 /// - 页面切换即时化（删除 200ms 淡出 + 100ms 间隔；浏览器端原本就跳过）；
-/// - ≤900px 紧凑模式：侧栏收起为左抽屉（遮罩关闭），顶栏显示导航入口；
+/// - 紧凑档（600–900px）：侧栏收起为左抽屉（遮罩关闭），顶栏显示导航入口；
+/// - 手机档（≤600px）：底部 Tab 导航（排座/人员/会场/策略/更多），无外壳顶栏与侧栏；
 /// - Home 页移除后默认入口为排座工作台。
 /// </summary>
 public partial class MainShellViewModel : ViewModelBase
@@ -27,9 +28,6 @@ public partial class MainShellViewModel : ViewModelBase
     private readonly IOnboardingService _onboarding;
     private readonly IShellLayoutService _layout;
     private readonly ILogger<MainShellViewModel> _logger;
-
-    /// <summary>紧凑模式断点：窗口宽度 ≤ 900px 时侧栏转为抽屉。</summary>
-    public const double CompactBreakpoint = 900;
 
     [ObservableProperty]
     public partial ViewModelBase CurrentViewModel { get; set; } = default!;
@@ -52,23 +50,34 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsOnboardingActive { get; set; }
 
-    /// <summary>紧凑模式下导航左抽屉是否展开。</summary>
+    /// <summary>紧凑档下导航左抽屉是否展开（手机档无侧栏）。</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNavDrawerVisible))]
     [NotifyPropertyChangedFor(nameof(IsMaskVisible))]
     public partial bool IsNavDrawerOpen { get; set; }
 
-    /// <summary>外壳布局状态（页面读取紧凑断点用）。</summary>
+    /// <summary>外壳布局状态（页面读取布局档位用）。</summary>
     public IShellLayoutService Layout => _layout;
 
-    /// <summary>侧栏是否可见：桌面常驻；紧凑模式下仅在抽屉展开时显示。</summary>
-    public bool IsNavDrawerVisible => !_layout.IsCompact || IsNavDrawerOpen;
+    /// <summary>侧栏是否可见：桌面常驻；仅紧凑档在抽屉展开时显示（手机档由底部 Tab 代替）。</summary>
+    public bool IsNavDrawerVisible =>
+        _layout.Tier == LayoutTier.Desktop
+        || (_layout.Tier == LayoutTier.Compact && IsNavDrawerOpen);
 
-    /// <summary>遮罩是否可见（仅紧凑模式 + 抽屉展开）。</summary>
-    public bool IsMaskVisible => _layout.IsCompact && IsNavDrawerOpen;
+    /// <summary>遮罩是否可见（仅紧凑档 + 抽屉展开）。</summary>
+    public bool IsMaskVisible => _layout.Tier == LayoutTier.Compact && IsNavDrawerOpen;
 
     /// <summary>侧栏实际宽度：紧凑抽屉固定 280，桌面沿用折叠/展开宽度。</summary>
-    public double RailDisplayWidth => _layout.IsCompact ? 280 : SidebarWidth;
+    public double RailDisplayWidth => _layout.Tier == LayoutTier.Compact ? 280 : SidebarWidth;
+
+    /// <summary>紧凑档外壳顶栏是否可见（手机档无外壳顶栏，页面命令栏自带标题）。</summary>
+    public bool IsCompactTopBarVisible => _layout.Tier == LayoutTier.Compact;
+
+    /// <summary>手机档底部 Tab 栏是否可见（档位为手机档且至少一个 Tab/「更多」启用，避免空白栏）。</summary>
+    public bool IsPhoneTabBarVisible =>
+        _layout.Tier == LayoutTier.Phone
+        && (IsSeatingNavEnabled || IsMembersNavEnabled || IsVenuesNavEnabled
+            || IsStrategiesNavEnabled || IsMoreTabVisible);
 
     /// <summary>是否显示导航文字标签（折叠态隐藏）。</summary>
     public bool NavLabelVisible => IsSidebarExpanded;
@@ -82,18 +91,18 @@ public partial class MainShellViewModel : ViewModelBase
         IsSidebarExpanded ? new global::Avalonia.Thickness(8, 0, 0, 0) : new global::Avalonia.Thickness(0);
 
     /// <summary>侧栏所在列（桌面 0；紧凑切到内容列做抽屉覆盖）。</summary>
-    public int RailGridColumn => _layout.IsCompact ? 1 : 0;
+    public int RailGridColumn => _layout.Tier == LayoutTier.Compact ? 1 : 0;
 
     /// <summary>侧栏水平对齐（紧凑抽屉靠左覆盖）。</summary>
     public global::Avalonia.Layout.HorizontalAlignment RailHorizontalAlignment =>
-        _layout.IsCompact ? global::Avalonia.Layout.HorizontalAlignment.Left : global::Avalonia.Layout.HorizontalAlignment.Stretch;
+        _layout.Tier == LayoutTier.Compact ? global::Avalonia.Layout.HorizontalAlignment.Left : global::Avalonia.Layout.HorizontalAlignment.Stretch;
 
     /// <summary>侧栏层级（紧凑抽屉需在遮罩之上）。</summary>
-    public int RailZIndex => _layout.IsCompact ? 40 : 0;
+    public int RailZIndex => _layout.Tier == LayoutTier.Compact ? 40 : 0;
 
     /// <summary>侧栏描边（紧凑抽屉右边线）。</summary>
     public global::Avalonia.Thickness RailBorderThickness =>
-        _layout.IsCompact ? new global::Avalonia.Thickness(0, 0, 1, 0) : new global::Avalonia.Thickness(0);
+        _layout.Tier == LayoutTier.Compact ? new global::Avalonia.Thickness(0, 0, 1, 0) : new global::Avalonia.Thickness(0);
 
     // ── 导航激活态（供 sf-active 类绑定） ──
     public bool IsSeatingPage => CurrentPage == PageKey.SeatingArrangement;
@@ -103,6 +112,21 @@ public partial class MainShellViewModel : ViewModelBase
     public bool IsSnapshotsPage => CurrentPage == PageKey.SnapshotHistory;
     public bool IsSettingsPage => CurrentPage == PageKey.Settings;
     public bool IsAboutPage => CurrentPage == PageKey.About;
+
+    // ── 页面开关（page_navigation.json；手机档 Tab / 「更多」菜单据此过滤） ──
+    public bool IsSeatingNavEnabled => IsPageEnabled(nameof(PageKey.SeatingArrangement));
+    public bool IsMembersNavEnabled => IsPageEnabled(nameof(PageKey.MemberManagement));
+    public bool IsVenuesNavEnabled => IsPageEnabled(nameof(PageKey.VenueConfiguration));
+    public bool IsStrategiesNavEnabled => IsPageEnabled(nameof(PageKey.StrategyConfiguration));
+    public bool IsSnapshotsNavEnabled => IsPageEnabled(nameof(PageKey.SnapshotHistory));
+    public bool IsSettingsNavEnabled => IsPageEnabled(nameof(PageKey.Settings));
+    public bool IsAboutNavEnabled => IsPageEnabled(nameof(PageKey.About));
+
+    /// <summary>「更多」Tab 是否可见（历史快照/设置/关于至少一个启用）。</summary>
+    public bool IsMoreTabVisible => IsSnapshotsNavEnabled || IsSettingsNavEnabled || IsAboutNavEnabled;
+
+    /// <summary>「更多」Tab 激活态（当前页位于其菜单内）。</summary>
+    public bool IsMoreActive => IsSnapshotsPage || IsSettingsPage || IsAboutPage;
 
     /// <summary>紧凑顶栏标题。</summary>
     public string CurrentPageTitle => CurrentPage switch
@@ -163,8 +187,8 @@ public partial class MainShellViewModel : ViewModelBase
 
     private void OnLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(IShellLayoutService.IsCompact)) return;
-        if (!_layout.IsCompact) IsNavDrawerOpen = false;
+        if (e.PropertyName != nameof(IShellLayoutService.Tier)) return;
+        if (_layout.Tier != LayoutTier.Compact) IsNavDrawerOpen = false;
         OnPropertyChanged(nameof(IsNavDrawerVisible));
         OnPropertyChanged(nameof(IsMaskVisible));
         OnPropertyChanged(nameof(RailDisplayWidth));
@@ -172,6 +196,8 @@ public partial class MainShellViewModel : ViewModelBase
         OnPropertyChanged(nameof(RailHorizontalAlignment));
         OnPropertyChanged(nameof(RailZIndex));
         OnPropertyChanged(nameof(RailBorderThickness));
+        OnPropertyChanged(nameof(IsCompactTopBarVisible));
+        OnPropertyChanged(nameof(IsPhoneTabBarVisible));
     }
 
     /// <summary>切页即时化：同步替换内容（无强制淡出/间隔），随后检查页面引导。</summary>
@@ -194,13 +220,16 @@ public partial class MainShellViewModel : ViewModelBase
 
     public void OnWindowWidthChanged(double windowWidth)
     {
-        _layout.IsCompact = windowWidth <= CompactBreakpoint;
+        // 初始布局 Bounds 为 0：忽略，等待首次真实尺寸（避免误判为手机档）
+        if (windowWidth <= 0) return;
+
+        _layout.Tier = LayoutBreakpoints.Resolve(windowWidth);
 
         // 引导期间不自动折叠侧边栏
         if (IsOnboardingActive)
             return;
 
-        if (_layout.IsCompact)
+        if (_layout.IsNarrow)
         {
             IsNavDrawerOpen = false;
             // 紧凑抽屉始终显示完整导航文字（280px），不受桌面折叠偏好影响

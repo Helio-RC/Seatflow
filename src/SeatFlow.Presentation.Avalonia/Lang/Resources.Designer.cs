@@ -41,6 +41,7 @@ public class Resources
     public static string App_AlreadyRunningMessage => ResourceManager.GetString("App_AlreadyRunningMessage", Culture)!;
     public static string App_EnvironmentWarning => ResourceManager.GetString("App_EnvironmentWarning", Culture)!;
     public static string App_Title => ResourceManager.GetString("App_Title", Culture)!;
+    public static string Common_Back => ResourceManager.GetString("Common_Back", Culture)!;
     public static string Common_Cancel => ResourceManager.GetString("Common_Cancel", Culture)!;
     public static string Common_Close => ResourceManager.GetString("Common_Close", Culture)!;
     public static string Common_Delete => ResourceManager.GetString("Common_Delete", Culture)!;
@@ -430,6 +431,7 @@ public class Resources
     public static string Settings_UpdateRestartConfirm => ResourceManager.GetString("Settings_UpdateRestartConfirm", Culture)!;
     public static string Shell_CloseOverlay => ResourceManager.GetString("Shell_CloseOverlay", Culture)!;
     public static string Shell_CompactNav => ResourceManager.GetString("Shell_CompactNav", Culture)!;
+    public static string Shell_More => ResourceManager.GetString("Shell_More", Culture)!;
     public static string Snapshot_BatchDelete => ResourceManager.GetString("Snapshot_BatchDelete", Culture)!;
     public static string Snapshot_BatchDeleteFailed => ResourceManager.GetString("Snapshot_BatchDeleteFailed", Culture)!;
     public static string Snapshot_BatchDeleteMsg => ResourceManager.GetString("Snapshot_BatchDeleteMsg", Culture)!;

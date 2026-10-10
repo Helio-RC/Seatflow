@@ -581,8 +581,61 @@
     <Setter Property="CornerRadius" Value="{StaticResource SfRadiusLg}" />
     <Setter Property="BoxShadow" Value="{DynamicResource SfShadowPop}" />
     <Setter Property="Padding" Value="{StaticResource SfCardPadding}" />
-    <Setter Property="MinWidth" Value="420" />
+    <Setter Property="MinWidth" Value="280" />
     <Setter Property="MaxWidth" Value="560" />
+  </Style>
+
+  <!--  ═══════════════ 手机档：底部 Tab 导航 ═══════════════  -->
+
+  <Style Selector="Border.sf-tabbar">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Height" Value="{StaticResource SfTabBarHeight}" />
+  </Style>
+
+  <Style Selector="Button.sf-tab">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+    <Setter Property="Padding" Value="4,6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.sf-tab:pointerover">
+    <Setter Property="Background" Value="{DynamicResource SfHoverBrush}" />
+  </Style>
+  <Style Selector="Button.sf-tab TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+  </Style>
+  <Style Selector="Button.sf-tab fic|FluentIcon">
+    <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+  </Style>
+  <Style Selector="Button.sf-tab:pointerover TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="Button.sf-tab:pointerover fic|FluentIcon">
+    <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+  </Style>
+  <Style Selector="Button.sf-tab.sf-active TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentStrongBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.sf-tab.sf-active fic|FluentIcon">
+    <Setter Property="Foreground" Value="{DynamicResource SfAccentStrongBrush}" />
+  </Style>
+
+  <!--  ═══════════════ 手机档：全屏面板返回头部 ═══════════════  -->
+
+  <Style Selector="Border.sf-takeover-header">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="MinHeight" Value="44" />
   </Style>
 
 </Styles>

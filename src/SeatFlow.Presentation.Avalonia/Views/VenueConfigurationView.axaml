@@ -13,21 +13,23 @@
   <DockPanel>
     <!--  ═══════════════ 顶部命令栏  ═══════════════  -->
     <Border Classes="sf-toolbar" DockPanel.Dock="Top">
-      <DockPanel>
+      <Grid ColumnDefinitions="*,Auto">
         <StackPanel
           VerticalAlignment="Center"
-          DockPanel.Dock="Left"
+          ClipToBounds="True"
           Orientation="Horizontal"
           Spacing="8">
           <TextBlock
             VerticalAlignment="Center"
             Classes="sf-h1"
-            Text="{x:Static lang:Resources.Venue_Title}" />
+            Text="{x:Static lang:Resources.Venue_Title}"
+            TextTrimming="CharacterEllipsis" />
           <TextBlock
             VerticalAlignment="Center"
             Classes="sf-sm sf-dim"
-            IsVisible="{Binding HasSelectedVenue}"
-            Text="{Binding LayoutName}" />
+            IsVisible="{Binding VenueNameVisible}"
+            Text="{Binding LayoutName}"
+            TextTrimming="CharacterEllipsis" />
           <StackPanel
             VerticalAlignment="Center"
             IsVisible="{Binding HasSelectedVenue}"
@@ -48,43 +50,65 @@
           </StackPanel>
         </StackPanel>
         <StackPanel
-          DockPanel.Dock="Right"
+          Grid.Column="1"
           HorizontalAlignment="Right"
           Orientation="Horizontal"
           Spacing="8">
+          <!--  窄屏：会场列表抽屉/全屏入口  -->
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Venue_List}"
+            Classes="sf-btn sf-icon"
+            Command="{Binding ListPanel.ToggleCommand}"
+            IsVisible="{Binding Layout.IsNarrow}"
+            ToolTip.Tip="{x:Static lang:Resources.Venue_List}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.List}" />
+          </Button>
+          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsNarrow}" />
           <Button
             Classes="sf-btn"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding RenameVenueCommand}"
             IsEnabled="{Binding HasSelectedVenue}"
             ToolTip.Tip="{x:Static lang:Resources.Common_Rename}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Edit}" />
-              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Rename}" />
+              <TextBlock
+                Classes="sf-sm"
+                IsVisible="{Binding CommandTextVisible}"
+                Text="{x:Static lang:Resources.Common_Rename}" />
             </StackPanel>
           </Button>
           <Button
             Classes="sf-btn sf-danger"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding DeleteVenueCommand}"
             IsEnabled="{Binding HasSelectedVenue}"
             ToolTip.Tip="{x:Static lang:Resources.Venue_DeleteVenue}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
-              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Delete}" />
+              <TextBlock
+                Classes="sf-sm"
+                IsVisible="{Binding CommandTextVisible}"
+                Text="{x:Static lang:Resources.Common_Delete}" />
             </StackPanel>
           </Button>
           <Button
             x:Name="SaveVenueButton"
             Classes="sf-btn sf-primary"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding SaveVenueCommand}"
             IsEnabled="{Binding CanSaveVenue}"
             ToolTip.Tip="{x:Static lang:Resources.Venue_SaveVenue}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Save}" />
-              <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Save}" />
+              <TextBlock
+                Classes="sf-sm"
+                IsVisible="{Binding CommandTextVisible}"
+                Text="{x:Static lang:Resources.Common_Save}" />
             </StackPanel>
           </Button>
         </StackPanel>
-      </DockPanel>
+      </Grid>
     </Border>
 
     <!--  ═══════════════ 底部状态栏  ═══════════════  -->
@@ -113,18 +137,48 @@
       </Grid>
     </Border>
 
-    <!--  ═══════════════ 主体：会场列表 + 编辑器  ═══════════════  -->
-    <Grid ColumnDefinitions="240,*">
-      <!--  左侧：会场列表  -->
+    <!--  ═══════════════ 主体：会场列表 + 编辑器（窄屏列表转右抽屉/全屏）  ═══════════════  -->
+    <Grid ColumnDefinitions="Auto,*">
+      <!--  左侧：会场列表（桌面内联 / 紧凑右抽屉 / 手机全屏覆盖）  -->
       <Border
-        Grid.Column="0"
-        Margin="16,12,8,12"
-        Classes="sf-panel">
+        x:Name="VenueListPanel"
+        Grid.Column="{Binding ListPanel.Column}"
+        Width="{Binding ListPanel.Width}"
+        HorizontalAlignment="{Binding ListPanel.Alignment}"
+        ZIndex="{Binding ListPanel.ZIndex}"
+        Margin="{Binding ListPanelMargin}"
+        Classes="sf-panel"
+        CornerRadius="{Binding ListPanelCornerRadius}"
+        BorderThickness="{Binding ListPanel.BorderThickness}"
+        IsVisible="{Binding ListPanel.Visible}">
         <DockPanel>
+          <!--  手机档全屏覆盖：返回头部  -->
+          <Border
+            Classes="sf-takeover-header"
+            DockPanel.Dock="Top"
+            IsVisible="{Binding ListPanel.IsFullScreen}">
+            <DockPanel>
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Common_Back}"
+                Classes="sf-btn sf-ghost sf-sm"
+                Command="{Binding ListPanel.CloseCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Back}" />
+                </StackPanel>
+              </Button>
+              <TextBlock
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                Classes="sf-h3"
+                Text="{x:Static lang:Resources.Venue_List}" />
+            </DockPanel>
+          </Border>
           <TextBlock
             Margin="12,10,12,8"
             Classes="sf-h3"
             DockPanel.Dock="Top"
+            IsVisible="{Binding !ListPanel.IsFullScreen}"
             Text="{x:Static lang:Resources.Venue_List}" />
           <StackPanel
             Margin="12,8,12,12"
@@ -198,7 +252,7 @@
             <Border x:Name="LayoutTypePanel" Classes="sf-card">
               <StackPanel Spacing="8">
                 <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_LayoutType}" />
-                <StackPanel Orientation="Horizontal" Spacing="16">
+                <WrapPanel ItemSpacing="16" LineSpacing="8" Orientation="Horizontal">
                   <RadioButton
                     Classes="sf-check"
                     Command="{Binding SelectLayoutTypeCommand}"
@@ -223,7 +277,7 @@
                     GroupName="LayoutType"
                     IsChecked="{Binding IsFreeformSelected, Mode=OneWay}"
                     IsEnabled="{Binding CanChangeLayoutType}" />
-                </StackPanel>
+                </WrapPanel>
                 <TextBlock
                   Classes="sf-hint"
                   IsVisible="{Binding IsFreeformSelected}"
@@ -335,10 +389,11 @@
 
                 <Border Classes="sf-divider" />
 
-                <StackPanel
+                <WrapPanel
                   Margin="0,4,0,0"
-                  Orientation="Horizontal"
-                  Spacing="8">
+                  ItemSpacing="8"
+                  LineSpacing="6"
+                  Orientation="Horizontal">
                   <Button
                     Classes="sf-btn sf-sm"
                     Command="{Binding ToggleDisabledSeatsPickingCommand}"
@@ -374,7 +429,7 @@
                     Classes="sf-xs sf-dim"
                     IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
                     Text="{x:Static lang:Resources.Venue_DisabledSeatsPickHint}" />
-                </StackPanel>
+                </WrapPanel>
               </StackPanel>
             </Border>
 
@@ -609,7 +664,7 @@
                 <Border Classes="sf-divider" />
 
                 <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Optional}" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
+                <WrapPanel ItemSpacing="8" LineSpacing="6" Orientation="Horizontal">
                   <Button
                     Classes="sf-btn sf-sm"
                     Command="{Binding ToggleDisabledSeatsPickingCommand}"
@@ -645,7 +700,7 @@
                     Classes="sf-xs sf-dim"
                     IsVisible="{Binding IsPickingDisabledSeats, Converter={x:Static conv:BoolConverters.Negate}}"
                     Text="{x:Static lang:Resources.Venue_DisabledSeatsPickHint}" />
-                </StackPanel>
+                </WrapPanel>
               </StackPanel>
             </Border>
 
@@ -754,18 +809,18 @@
                             VerticalAlignment="Center"
                             Classes="sf-xs sf-dim"
                             Text="{Binding Label}" />
-                          <StackPanel
+                          <WrapPanel
                             Grid.Column="1"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Orientation="Horizontal"
-                            Spacing="6">
+                            ItemSpacing="6"
+                            LineSpacing="4">
                             <TextBlock
                               VerticalAlignment="Center"
                               Classes="sf-xs sf-dim"
                               Text="X :" />
                             <NumericUpDown
-                              Width="120"
+                              Width="110"
                               Classes="sf-input"
                               Maximum="2000"
                               Minimum="0"
@@ -776,13 +831,13 @@
                               Classes="sf-xs sf-dim"
                               Text="Y :" />
                             <NumericUpDown
-                              Width="120"
+                              Width="110"
                               Classes="sf-input"
                               Maximum="2000"
                               Minimum="0"
                               ToolTip.Tip="{x:Static lang:Resources.Venue_DoorYTooltip}"
                               Value="{Binding Y, Mode=TwoWay}" />
-                          </StackPanel>
+                          </WrapPanel>
                           <Button
                             Grid.Column="2"
                             Classes="sf-btn sf-sm sf-icon"
@@ -802,10 +857,11 @@
             <!--  ═══ Freeform：坐标表  ═══  -->
             <Border Classes="sf-card" IsVisible="{Binding IsFreeformSelected}">
               <DockPanel>
-                <Grid
+                <WrapPanel
                   Margin="0,0,0,8"
-                  ColumnDefinitions="*,Auto"
-                  DockPanel.Dock="Top">
+                  DockPanel.Dock="Top"
+                  ItemSpacing="8"
+                  LineSpacing="8">
                   <StackPanel
                     VerticalAlignment="Center"
                     Orientation="Horizontal"
@@ -816,10 +872,7 @@
                       Classes="sf-xs sf-num sf-dim"
                       Text="{Binding ElementCountDisplay}" />
                   </StackPanel>
-                  <StackPanel
-                    Grid.Column="1"
-                    Orientation="Horizontal"
-                    Spacing="6">
+                  <WrapPanel ItemSpacing="6" LineSpacing="6">
                     <Button
                       Classes="sf-btn sf-sm"
                       Command="{Binding ExportTemplateCommand}"
@@ -876,8 +929,8 @@
                         <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Freeform_Unload}" />
                       </StackPanel>
                     </Button>
-                  </StackPanel>
-                </Grid>
+                  </WrapPanel>
+                </WrapPanel>
 
                 <TextBlock
                   Margin="0,0,0,8"
@@ -1046,6 +1099,15 @@
           </StackPanel>
         </ScrollViewer>
       </Grid>
+
+      <!--  窄屏抽屉遮罩：点击关闭  -->
+      <Border
+        Grid.ColumnSpan="2"
+        ZIndex="25"
+        AutomationProperties.Name="{x:Static lang:Resources.Shell_CloseOverlay}"
+        Background="{DynamicResource SfModalMaskBrush}"
+        IsVisible="{Binding ListPanel.MaskVisible}"
+        PointerPressed="OnDrawerMaskPressed" />
     </Grid>
   </DockPanel>
 </UserControl>

@@ -47,7 +47,7 @@ public partial class SeatingArrangementView : UserControl
             _ = vm.OnLeaveAsync();
     }
 
-    /// <summary>紧凑模式抽屉遮罩点击：关闭抽屉。</summary>
+    /// <summary>紧凑档抽屉遮罩点击：关闭抽屉。</summary>
     private void DrawerMask_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is SeatingArrangementViewModel vm)

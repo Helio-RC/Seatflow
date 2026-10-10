@@ -73,7 +73,7 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 单次采样）、2 × IL2026（`ReactiveUserControl<T>` 反射激活，采用「普通 UserControl」组合规避）；
 300 座画布优化后稳态单帧 3.6–8.7ms、最长长任务 84.3ms。
 
-## 5. 实施里程碑（M0–M6）
+## 5. 实施里程碑（M0–M7）
 
 | 里程碑 | 交付摘要 |
 |---|---|
@@ -83,7 +83,8 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 | M3 工作台与新外壳 | 三栏工作台 + 右栏页签；Home 移除、默认入口=排座工作台；侧栏分组/矮视口修复；≤900px 双抽屉；切页即时化；`ViewLocator` 视图弱引用缓存；`.seatsets` 拖放职责迁入工作台 |
 | M4 名单/策略/快照 | 名单行「显示/编辑」轻量切换 + 自适应虚拟化；策略页缓存与令牌化；快照 Transient→Singleton + 自绘预览；修复快照列表恒空、回滚后画布空白、`Snapshot` 变更不重绘 |
 | M5 设置/关于/引导/清理 | 设置分组卡片 + 全量令牌化；关于页令牌化；引导接口化（`IGuideSeedTarget`，5 页自实现，无静态状态）；WASM 运行时语言切换修复（卫星资源）；死键/死代码清理 |
-| M6 测试/性能/文档 | Headless UI 测试项目（65 例，全量 448 通过）；视觉基线（明/暗 × 4 视图）；M1–M6 性能复测；绑定诊断 0 警告；文档同步（AGENTS.md/INDEX/Design_Spec/WebDeployment/ONBOARDING_GUIDE） |
+| M6 测试/性能/文档 | Headless UI 测试项目（65 例）；视觉基线（明/暗 × 4 视图）；M1–M6 性能复测；绑定诊断 0 警告；文档同步（AGENTS.md/INDEX/Design_Spec/WebDeployment/ONBOARDING_GUIDE） |
+| M7 响应式三档与手机档 | `LayoutTier` 三档断点（Desktop/Compact/Phone，ADR-015）替代 `IsCompact`；手机档底部 Tab 导航与无顶栏外壳；`SideDrawerState` 三态（内联/右抽屉/全屏覆盖 + 返回头部）；命令栏三档行为（全文字/图标化/标题+图标+⋯）；会场配置页列表抽屉化 + 字段流式 + 门行/工具行换行；对话框集中钳制（`DialogSizing`，桌面按 owner / Web 按视口）；桌面最小尺寸 360×480；引导卡片手机档 Bottom 定位；Headless 不变量测试 + 手机尺寸视觉基线（360×640 / 390×844）；TestAppBuilder 注册 Inter 字体 |
 
 终验后的收尾提交还包括：主题色可调（默认 `#83B6DE`/跟随系统）与主按钮悬停前景修复、
 画布右下角缩放控制条、座位姓名两行换行、快照预览座位尺寸按坐标等比放大、关于页依赖清单更新。
@@ -116,12 +117,15 @@ Presentation.Avalonia 经多轮功能迭代后出现典型技术债：全项目�
 - **会场首屏名称占位**：首屏只列 ID、选中/恢复时加载布局并回填名称；
   多会场场景建议后续新增 `ListVenueSummariesAsync` 轻量摘要接口（仅用 `JsonDocument` 读名称）。
 - 引导步骤重映射到新 IA 后语义与覆盖范围不变；页面引导机制保留（配置中当前为空）。
+- **M7 手机档后续增强**：系统返回键/浏览器 history 集成（全屏面板返回）、SeatingCanvas 双指缩放、
+  引导步骤在手机档的目标解析、Freeform 坐标表卡片化视图（当前维持 760px 横向滚动）。
 
 ## 8. 验证与工具链
 
-- **测试**：`dotnet test` 全量 **448 通过 / 0 失败**（Core/Application/Infrastructure + Headless UI）。
+- **测试**：`dotnet test` 全量 **587 通过 / 0 失败**（Core/Application/Infrastructure + Headless UI）。
   Headless 项目用 `Avalonia.Skia` 真实绘制，视觉基线与像素回归见
-  `tests/SeatFlow.Presentation.Tests/VisualBaselineTests.cs`（基线 PNG 不入库）。
+  `tests/SeatFlow.Presentation.Tests/VisualBaselineTests.cs`（基线 PNG 不入库）；
+  响应式三档行为与手机档不变量见 `tests/SeatFlow.Presentation.Tests/ShellLayoutTierTests.cs`。
 - **无头 WASM 工具链**：`scripts/ui-inspect/`（见其 README）——
   CDP 可信输入（`cdp.mjs`）、批量截图（`capture-baseline.mjs`）、trace 分析（`analyze-trace.mjs`）、
   像素定位（`png_analyze.py`）、序列回放（`seq.mjs`）、演示数据注入（`seed-demo-data.*`）。

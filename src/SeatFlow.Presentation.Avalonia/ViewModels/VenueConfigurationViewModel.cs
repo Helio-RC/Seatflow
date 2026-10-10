@@ -40,9 +40,29 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
     private readonly IDialogGate _dialogGate;
+    private readonly IShellLayoutService _layout;
     private readonly ILogger<VenueConfigurationViewModel> _logger;
 
     public string Title { get; } = Resources.Venue_Title;
+
+    // ── 响应式：会场列表面板（桌面内联 / 紧凑右抽屉 / 手机全屏覆盖） ──
+
+    /// <summary>会场列表面板状态（M7）。</summary>
+    public SideDrawerState ListPanel { get; }
+
+    /// <summary>外壳布局状态（布局档位）。</summary>
+    public IShellLayoutService Layout => _layout;
+
+    /// <summary>命令栏按钮文字是否可见（仅桌面档显示，窄屏图标化避免溢出）。</summary>
+    public bool CommandTextVisible => !_layout.IsNarrow;
+
+    /// <summary>列表面板外边距（桌面卡片留白；窄屏抽屉/全屏无留白）。</summary>
+    public global::Avalonia.Thickness ListPanelMargin =>
+        _layout.IsNarrow ? new global::Avalonia.Thickness(0) : new global::Avalonia.Thickness(16, 12, 8, 12);
+
+    /// <summary>列表面板圆角（桌面卡片 8；窄屏抽屉/全屏无圆角，避免全屏时四角透出下层）。</summary>
+    public global::Avalonia.CornerRadius ListPanelCornerRadius =>
+        _layout.IsNarrow ? new global::Avalonia.CornerRadius(0) : new global::Avalonia.CornerRadius(8);
 
     /// <summary>统一脏检查（载入/保存后 MarkClean，编辑时 Update）。</summary>
     public DirtyTracker DirtyTracker { get; } = new();
@@ -60,10 +80,14 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(SelectedVenueId))]
     [NotifyPropertyChangedFor(nameof(CanSaveVenue))]
+    [NotifyPropertyChangedFor(nameof(VenueNameVisible))]
     public partial VenueItem? SelectedVenueItem { get; set; }
 
     public string? SelectedVenueId => SelectedVenueItem?.Id;
     public bool HasSelectedVenue => SelectedVenueItem != null;
+
+    /// <summary>命令栏布局名是否可见（桌面/紧凑显示；手机档空间留给操作按钮）。</summary>
+    public bool VenueNameVisible => HasSelectedVenue && !_layout.IsPhone;
 
     [ObservableProperty]
     public partial string LayoutName { get; set; } = string.Empty;
@@ -348,13 +372,27 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         IApplicationFacade facade,
         IFileService fileService,
         IDialogGate dialogGate,
+        IShellLayoutService layout,
         IDialogService dialog,
         ILogger<VenueConfigurationViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _fileService = fileService;
         _dialogGate = dialogGate;
+        _layout = layout;
         _logger = logger ?? NullLogger<VenueConfigurationViewModel>.Instance;
+        ListPanel = new SideDrawerState(layout, 0, 240,
+            desktopBorder: new global::Avalonia.Thickness(1));
+        _layout.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(IShellLayoutService.Tier))
+            {
+                OnPropertyChanged(nameof(CommandTextVisible));
+                OnPropertyChanged(nameof(ListPanelMargin));
+                OnPropertyChanged(nameof(ListPanelCornerRadius));
+                OnPropertyChanged(nameof(VenueNameVisible));
+            }
+        };
 
         // 构造器只做纯内存初始化（不再 fire-and-forget 加载；加载由 OnEnterAsync 驱动）
         RegenerateAisleOptions();
@@ -1891,6 +1929,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     partial void OnSelectedVenueItemChanged(VenueItem? value)
     {
+        ListPanel.IsOpen = false;
         if (!_suppressAutoLoad && value != null)
         {
             _selectVenueCts?.Cancel();

@@ -14,11 +14,11 @@
 
   <Grid>
     <DockPanel>
-      <!--  紧凑模式顶栏：导航抽屉入口 + 当前页标题  -->
+      <!--  紧凑档顶栏：导航抽屉入口 + 当前页标题（手机档无外壳顶栏，页面命令栏自带标题）  -->
       <Border
         DockPanel.Dock="Top"
         Classes="sf-toolbar"
-        IsVisible="{Binding Layout.IsCompact}">
+        IsVisible="{Binding IsCompactTopBarVisible}">
         <Grid ColumnDefinitions="Auto,*,Auto">
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Shell_CompactNav}"
@@ -41,8 +41,122 @@
         </Grid>
       </Border>
 
+      <!--  手机档底部 Tab 导航（排座 / 人员 / 会场 / 策略 / 更多；禁用页隐藏）  -->
+      <Border
+        DockPanel.Dock="Bottom"
+        Classes="sf-tabbar"
+        IsVisible="{Binding IsPhoneTabBarVisible}">
+        <UniformGrid Rows="1">
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Nav_Seating}"
+            Classes="sf-tab"
+            Classes.sf-active="{Binding IsSeatingPage}"
+            Command="{Binding NavigateCommand}"
+            CommandParameter="SeatingArrangement"
+            IsVisible="{Binding IsSeatingNavEnabled}">
+            <StackPanel HorizontalAlignment="Center" Spacing="2">
+              <fic:FluentIcon
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Icon="{x:Static ficEnum:Icon.Grid}" />
+              <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Nav_Seating}" />
+            </StackPanel>
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Nav_MemberManagement}"
+            Classes="sf-tab"
+            Classes.sf-active="{Binding IsMembersPage}"
+            Command="{Binding NavigateCommand}"
+            CommandParameter="MemberManagement"
+            IsVisible="{Binding IsMembersNavEnabled}">
+            <StackPanel HorizontalAlignment="Center" Spacing="2">
+              <fic:FluentIcon
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Icon="{x:Static ficEnum:Icon.DataUsage}" />
+              <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Nav_MemberManagement}" />
+            </StackPanel>
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Nav_VenueConfig}"
+            Classes="sf-tab"
+            Classes.sf-active="{Binding IsVenuesPage}"
+            Command="{Binding NavigateCommand}"
+            CommandParameter="VenueConfiguration"
+            IsVisible="{Binding IsVenuesNavEnabled}">
+            <StackPanel HorizontalAlignment="Center" Spacing="2">
+              <fic:FluentIcon
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Icon="{x:Static ficEnum:Icon.Building}" />
+              <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Nav_VenueConfig}" />
+            </StackPanel>
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Nav_StrategyConfig}"
+            Classes="sf-tab"
+            Classes.sf-active="{Binding IsStrategiesPage}"
+            Command="{Binding NavigateCommand}"
+            CommandParameter="StrategyConfiguration"
+            IsVisible="{Binding IsStrategiesNavEnabled}">
+            <StackPanel HorizontalAlignment="Center" Spacing="2">
+              <fic:FluentIcon
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Icon="{x:Static ficEnum:Icon.Options}" />
+              <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Nav_StrategyConfig}" />
+            </StackPanel>
+          </Button>
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Shell_More}"
+            Classes="sf-tab"
+            Classes.sf-active="{Binding IsMoreActive}"
+            IsVisible="{Binding IsMoreTabVisible}"
+            ToolTip.Tip="{x:Static lang:Resources.Shell_More}">
+            <Button.Flyout>
+              <MenuFlyout Placement="Top">
+                <MenuItem
+                  Command="{Binding NavigateCommand}"
+                  CommandParameter="SnapshotHistory"
+                  Header="{x:Static lang:Resources.Nav_SnapshotHistory}"
+                  IsVisible="{Binding IsSnapshotsNavEnabled}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.History}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                  Command="{Binding NavigateCommand}"
+                  CommandParameter="Settings"
+                  Header="{x:Static lang:Resources.Nav_Settings}"
+                  IsVisible="{Binding IsSettingsNavEnabled}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Settings}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                  Command="{Binding NavigateCommand}"
+                  CommandParameter="About"
+                  Header="{x:Static lang:Resources.Nav_About}"
+                  IsVisible="{Binding IsAboutNavEnabled}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="16" Icon="{x:Static ficEnum:Icon.Info}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+            <StackPanel HorizontalAlignment="Center" Spacing="2">
+              <fic:FluentIcon
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Icon="{x:Static ficEnum:Icon.MoreHorizontal}" />
+              <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Shell_More}" />
+            </StackPanel>
+          </Button>
+        </UniformGrid>
+      </Border>
+
       <Grid ColumnDefinitions="Auto,*">
-        <!--  ═══ 侧栏（桌面常驻 / 紧凑模式左抽屉） ═══  -->
+        <!--  ═══ 侧栏（桌面常驻 / 紧凑档左抽屉；手机档由底部 Tab 代替） ═══  -->
         <Border
           x:Name="RailPanel"
           Grid.Column="{Binding RailGridColumn}"
@@ -274,7 +388,7 @@
           </DockPanel>
         </Border>
 
-        <!--  紧凑模式抽屉遮罩：点击关闭  -->
+        <!--  紧凑档抽屉遮罩：点击关闭  -->
         <Border
           x:Name="RailMask"
           Grid.ColumnSpan="2"

@@ -13,16 +13,18 @@
   <DockPanel>
     <!--  ═══ 命令栏 ═══  -->
     <Border DockPanel.Dock="Top" Classes="sf-toolbar">
-      <DockPanel>
+      <Grid ColumnDefinitions="*,Auto">
         <StackPanel
           VerticalAlignment="Center"
-          DockPanel.Dock="Left"
           Orientation="Horizontal"
           Spacing="8">
-          <TextBlock Classes="sf-h1" Text="{x:Static lang:Resources.Snapshot_Title}" />
+          <TextBlock
+            Classes="sf-h1"
+            Text="{x:Static lang:Resources.Snapshot_Title}"
+            TextTrimming="CharacterEllipsis" />
           <ComboBox
             x:Name="VenueComboBox"
-            Width="200"
+            Width="{Binding VenueSelectorWidth}"
             VerticalAlignment="Center"
             Classes="sf-input"
             ItemsSource="{Binding Venues}"
@@ -38,28 +40,31 @@
             AutomationProperties.Name="{x:Static lang:Resources.Common_Refresh}"
             Classes="sf-btn sf-icon"
             Command="{Binding LoadVenuesCommand}"
+            IsVisible="{Binding !Layout.IsPhone}"
             ToolTip.Tip="{x:Static lang:Resources.Common_Refresh}">
             <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
           </Button>
         </StackPanel>
 
         <StackPanel
+          Grid.Column="1"
           HorizontalAlignment="Right"
           VerticalAlignment="Center"
-          DockPanel.Dock="Right"
           Orientation="Horizontal"
           Spacing="6">
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Snapshot_ListShort}"
-            Classes="sf-btn sf-sm"
+            Classes="sf-btn sf-icon"
             Command="{Binding ListPanel.ToggleCommand}"
-            IsVisible="{Binding Layout.IsCompact}">
-            <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Snapshot_ListShort}" />
+            IsVisible="{Binding Layout.IsNarrow}"
+            ToolTip.Tip="{x:Static lang:Resources.Snapshot_ListShort}">
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.History}" />
           </Button>
-          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsCompact}" />
+          <Border Classes="sf-sep-v" IsVisible="{Binding Layout.IsNarrow}" />
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Snapshot_Create}"
             Classes="sf-btn sf-primary"
+            Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding CreateSnapshotCommand}"
             IsEnabled="{Binding CanCreateSnapshot}"
             IsVisible="{Binding IsNotBatchMode}">
@@ -68,7 +73,7 @@
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Snapshot_Create}" />
             </StackPanel>
           </Button>
@@ -77,13 +82,13 @@
             Classes="sf-btn"
             Command="{Binding EnterBatchDeleteModeCommand}"
             IsEnabled="{Binding CanEnterBatchDelete}"
-            IsVisible="{Binding IsNotBatchMode}">
+            IsVisible="{Binding BatchDeleteButtonVisible}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
               <TextBlock
                 VerticalAlignment="Center"
                 Classes="sf-sm"
-                IsVisible="{Binding CompactCommandTextVisible}"
+                IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Snapshot_BatchDelete}" />
             </StackPanel>
           </Button>
@@ -104,8 +109,35 @@
             IsVisible="{Binding IsBatchDeleteMode}">
             <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Cancel}" />
           </Button>
+
+          <!--  手机档：低频操作收进 ⋯ 溢出菜单（刷新 / 批量删除）  -->
+          <Button
+            AutomationProperties.Name="{x:Static lang:Resources.Shell_More}"
+            Classes="sf-btn sf-icon"
+            IsVisible="{Binding MoreButtonVisible}"
+            ToolTip.Tip="{x:Static lang:Resources.Shell_More}">
+            <Button.Flyout>
+              <MenuFlyout Placement="Bottom">
+                <MenuItem Command="{Binding LoadVenuesCommand}" Header="{x:Static lang:Resources.Common_Refresh}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem
+                  Command="{Binding EnterBatchDeleteModeCommand}"
+                  Header="{x:Static lang:Resources.Snapshot_BatchDelete}"
+                  IsEnabled="{Binding CanEnterBatchDelete}">
+                  <MenuItem.Icon>
+                    <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Delete}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.MoreHorizontal}" />
+          </Button>
         </StackPanel>
-      </DockPanel>
+      </Grid>
     </Border>
 
     <!--  ═══ 状态栏 ═══  -->
@@ -137,12 +169,36 @@
         BorderBrush="{DynamicResource SfBorderBrush}"
         BorderThickness="{Binding ListPanel.BorderThickness}"
         IsVisible="{Binding ListPanel.Visible}">
-        <Grid Margin="12" RowDefinitions="Auto,*">
-          <TextBlock
-            Grid.Row="0"
-            Margin="0,0,0,8"
-            Classes="sf-h3"
-            Text="{x:Static lang:Resources.Snapshot_List}" />
+        <DockPanel>
+          <!--  手机档全屏覆盖：返回头部  -->
+          <Border
+            Classes="sf-takeover-header"
+            DockPanel.Dock="Top"
+            IsVisible="{Binding ListPanel.IsFullScreen}">
+            <DockPanel>
+              <Button
+                AutomationProperties.Name="{x:Static lang:Resources.Common_Back}"
+                Classes="sf-btn sf-ghost sf-sm"
+                Command="{Binding ListPanel.CloseCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Back}" />
+                </StackPanel>
+              </Button>
+              <TextBlock
+                Margin="8,0,0,0"
+                VerticalAlignment="Center"
+                Classes="sf-h3"
+                Text="{x:Static lang:Resources.Snapshot_List}" />
+            </DockPanel>
+          </Border>
+          <Grid Margin="12" RowDefinitions="Auto,*">
+            <TextBlock
+              Grid.Row="0"
+              Margin="0,0,0,8"
+              Classes="sf-h3"
+              IsVisible="{Binding !ListPanel.IsFullScreen}"
+              Text="{x:Static lang:Resources.Snapshot_List}" />
 
           <!--  加载遮罩  -->
           <Border
@@ -238,7 +294,8 @@
               </ListBox.ItemTemplate>
             </ListBox>
           </StackPanel>
-        </Grid>
+          </Grid>
+        </DockPanel>
       </Border>
 
       <!--  ─── 右：详情 + 预览 ───  -->
@@ -374,7 +431,7 @@
         </Border>
       </Grid>
 
-      <!--  紧凑模式抽屉遮罩  -->
+      <!--  窄屏抽屉遮罩  -->
       <Border
         Grid.ColumnSpan="3"
         ZIndex="25"
