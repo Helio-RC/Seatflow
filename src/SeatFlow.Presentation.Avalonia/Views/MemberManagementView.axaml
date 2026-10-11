@@ -468,6 +468,13 @@
             Classes="sf-sm sf-faint"
             Text="{x:Static lang:Resources.Member_EmptyHint}"
             TextWrapping="Wrap" />
+          <TextBlock
+            HorizontalAlignment="Center"
+            MaxWidth="360"
+            Classes="sf-xs sf-faint"
+            Text="{x:Static lang:Resources.Member_EmptyTips}"
+            TextAlignment="Center"
+            TextWrapping="Wrap" />
         </StackPanel>
 
         <!--  表格（手机档：最小宽 + 横向滚动，保持各编辑列可用）  -->

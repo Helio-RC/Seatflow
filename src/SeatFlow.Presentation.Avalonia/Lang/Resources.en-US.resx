@@ -303,6 +303,9 @@ This cannot be undone.</value>
   <data name="Data_Export" xml:space="preserve">
     <value>Export</value>
   </data>
+  <data name="Member_EmptyTips" xml:space="preserve">
+    <value>Just import your existing roster file — SeatFlow will try to extract the roster from it. If the import fails or the data looks wrong, download and fill in the import template.</value>
+  </data>
   <data name="Member_ExportCSV" xml:space="preserve">
     <value>Export CSV</value>
   </data>

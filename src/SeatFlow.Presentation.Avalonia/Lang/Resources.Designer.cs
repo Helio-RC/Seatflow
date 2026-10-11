@@ -107,6 +107,7 @@ public class Resources
     public static string Member_EmptyHint => ResourceManager.GetString("Member_EmptyHint", Culture)!;
     public static string Data_ExcelFile => ResourceManager.GetString("Data_ExcelFile", Culture)!;
     public static string Data_Export => ResourceManager.GetString("Data_Export", Culture)!;
+    public static string Member_EmptyTips => ResourceManager.GetString("Member_EmptyTips", Culture)!;
     public static string Member_ExportCSV => ResourceManager.GetString("Member_ExportCSV", Culture)!;
     public static string Member_ExportDone => ResourceManager.GetString("Member_ExportDone", Culture)!;
     public static string Member_ExportErrorFmt => ResourceManager.GetString("Member_ExportErrorFmt", Culture)!;

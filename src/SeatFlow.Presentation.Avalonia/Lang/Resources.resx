@@ -303,6 +303,9 @@
   <data name="Data_Export" xml:space="preserve">
     <value>导出</value>
   </data>
+  <data name="Member_EmptyTips" xml:space="preserve">
+    <value>直接导入您现有的名单表即可，软件会尝试从中提取名单。若发现无法导入或导入数据有问题，请获取并填写导入模板。</value>
+  </data>
   <data name="Member_ExportCSV" xml:space="preserve">
     <value>导出 CSV</value>
   </data>
