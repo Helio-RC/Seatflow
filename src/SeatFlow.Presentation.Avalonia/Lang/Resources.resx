@@ -876,6 +876,12 @@
   <data name="Seating_ResetZoom" xml:space="preserve">
     <value>重置为默认缩放</value>
   </data>
+  <data name="Seating_SelectDatasetPH" xml:space="preserve">
+    <value>选择名单</value>
+  </data>
+  <data name="Seating_SelectVenuePH" xml:space="preserve">
+    <value>选择会场</value>
+  </data>
   <data name="Seating_StudentView" xml:space="preserve">
     <value>学生视角</value>
     <comment>导出子菜单标题：学生视角导出格式</comment>

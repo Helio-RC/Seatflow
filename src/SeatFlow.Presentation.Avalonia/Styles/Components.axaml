@@ -638,4 +638,13 @@
     <Setter Property="MinHeight" Value="44" />
   </Style>
 
+  <!--  ═══════════════ 窄屏：命令栏下方筛选/选择条 ═══════════════  -->
+
+  <Style Selector="Border.sf-filterbar">
+    <Setter Property="Background" Value="{DynamicResource SfSurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="16,6" />
+  </Style>
+
 </Styles>

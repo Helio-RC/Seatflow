@@ -221,6 +221,64 @@ public class ShellLayoutTierTests
         vm.InspectorVisible.Should().BeTrue();
     }
 
+    // ═══════════════ 窄屏显性选择器（会场/数据集，替代藏进图标按钮） ═══════════════
+
+    [Fact]
+    public void 排座工作台_窄屏_显性选择器随状态切换()
+    {
+        var layout = new ShellLayoutService();
+        var vm = CreateSeatingVm(layout);
+
+        // 桌面：不使用内联下拉（左选择栏常显）
+        vm.ShowWelcomeSelectors.Should().BeFalse();
+        vm.ShowGeneratedSelectorBar.Should().BeFalse();
+
+        // 紧凑/手机空态：欢迎卡内下拉显示
+        layout.Tier = LayoutTier.Compact;
+        vm.ShowWelcomeSelectors.Should().BeTrue();
+        vm.ShowGeneratedSelectorBar.Should().BeFalse();
+
+        // 生成后：改为命令栏下方选择条
+        vm.SeedGuideData();
+        vm.ShowGeneratedSelectorBar.Should().BeTrue();
+    }
+
+    [AvaloniaFact]
+    public void 排座工作台视图_手机宽度_显性选择器可见且不溢出()
+    {
+        var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
+        var vm = CreateSeatingVm(layout);
+        var view = new SeatingArrangementView { DataContext = vm };
+        var window = new Window
+        {
+            Width = 360,
+            Height = 640,
+            Content = view
+        };
+        window.Show();
+        window.UpdateLayout();
+
+        // 空态：欢迎卡内下拉可见、选择条隐藏
+        var welcome = view.FindControl<StackPanel>("WelcomeSelectors");
+        welcome.Should().NotBeNull();
+        welcome!.IsEffectivelyVisible.Should().BeTrue("手机档空态应在欢迎卡内显示显性下拉");
+        welcome.Bounds.Width.Should().BeGreaterThan(0);
+        view.FindControl<Border>("GeneratedSelectorBar")!.IsEffectivelyVisible.Should().BeFalse();
+
+        // 生成后：选择条可见且两个下拉各占约半宽
+        vm.SeedGuideData();
+        window.UpdateLayout();
+        var bar = view.FindControl<Border>("GeneratedSelectorBar")!;
+        bar.IsEffectivelyVisible.Should().BeTrue("手机档生成态应在命令栏下方显示选择条");
+        bar.Bounds.Width.Should().BeLessThanOrEqualTo(360.5);
+        var combos = bar.GetVisualDescendants().OfType<ComboBox>().ToList();
+        combos.Should().HaveCount(2);
+        combos.Should().OnlyContain(c => c.Bounds.Width > 100, "两个下拉应各占约半宽");
+        welcome.IsEffectivelyVisible.Should().BeFalse("生成后欢迎卡隐藏");
+
+        window.Close();
+    }
+
     // ═══════════════ 引导步骤适配（引导时自动展开侧栏/面板，使目标可见） ═══════════════
 
     [Fact]

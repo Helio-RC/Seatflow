@@ -134,6 +134,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     public partial bool IsContinuousGenerating { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowGeneratedSelectorBar))]
     public partial bool HasGenerated { get; set; }
 
 
@@ -204,6 +205,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     /// <summary>命令栏标题是否可见（桌面与手机档；紧凑档外壳顶栏已有标题）。</summary>
     public bool TitleVisible => _layout.Tier != Services.LayoutTier.Compact;
+
+    /// <summary>窄屏空态：欢迎卡内联会场/数据集下拉（显性选择，优于「数据」图标抽屉入口）。</summary>
+    public bool ShowWelcomeSelectors => _layout.IsNarrow;
+
+    /// <summary>窄屏生成态：命令栏下方会场/数据集选择条（显性切换，避免选择器藏进图标按钮）。</summary>
+    public bool ShowGeneratedSelectorBar => _layout.IsNarrow && HasGenerated;
 
     /// <summary>左选择栏所在列（桌面 0；窄屏切到画布列覆盖）。</summary>
     public int PickerPanelColumn => _layout.IsNarrow ? 1 : 0;
@@ -327,6 +334,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         OnPropertyChanged(nameof(DrawerMaskVisible));
         OnPropertyChanged(nameof(CommandTextVisible));
         OnPropertyChanged(nameof(TitleVisible));
+        OnPropertyChanged(nameof(ShowWelcomeSelectors));
+        OnPropertyChanged(nameof(ShowGeneratedSelectorBar));
         OnPropertyChanged(nameof(PickerPanelColumn));
         OnPropertyChanged(nameof(InspectorPanelColumn));
         OnPropertyChanged(nameof(PanelHorizontalAlignment));

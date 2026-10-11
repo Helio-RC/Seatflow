@@ -297,6 +297,8 @@ public class Resources
     public static string Seating_PickerTitle => ResourceManager.GetString("Seating_PickerTitle", Culture)!;
     public static string Seating_ReleaseNotes => ResourceManager.GetString("Seating_ReleaseNotes", Culture)!;
     public static string Seating_ResetZoom => ResourceManager.GetString("Seating_ResetZoom", Culture)!;
+    public static string Seating_SelectDatasetPH => ResourceManager.GetString("Seating_SelectDatasetPH", Culture)!;
+    public static string Seating_SelectVenuePH => ResourceManager.GetString("Seating_SelectVenuePH", Culture)!;
     public static string Seating_StudentView => ResourceManager.GetString("Seating_StudentView", Culture)!;
     public static string Seating_TabHistory => ResourceManager.GetString("Seating_TabHistory", Culture)!;
     public static string Seating_TabMessages => ResourceManager.GetString("Seating_TabMessages", Culture)!;

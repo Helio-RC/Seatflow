@@ -303,6 +303,43 @@
       </DockPanel>
     </Border>
 
+    <!--  ═══ 窄屏生成态：会场/数据集显性选择条（避免选择器藏进「数据」图标按钮）  ═══  -->
+    <Border
+      x:Name="GeneratedSelectorBar"
+      Classes="sf-filterbar"
+      DockPanel.Dock="Top"
+      IsVisible="{Binding ShowGeneratedSelectorBar}">
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+        <ComboBox
+          AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectVenuePH}"
+          HorizontalAlignment="Stretch"
+          Classes="sf-input"
+          ItemsSource="{Binding VenueItems}"
+          PlaceholderText="{x:Static lang:Resources.Seating_SelectVenuePH}"
+          SelectedItem="{Binding SelectedVenue, Mode=TwoWay}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:VenueItem">
+              <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <ComboBox
+          Grid.Column="1"
+          AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectDatasetPH}"
+          HorizontalAlignment="Stretch"
+          Classes="sf-input"
+          ItemsSource="{Binding DatasetItems}"
+          PlaceholderText="{x:Static lang:Resources.Seating_SelectDatasetPH}"
+          SelectedItem="{Binding SelectedDataset, Mode=TwoWay}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="core:StudentDatasetInfo">
+              <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </Grid>
+    </Border>
+
     <!--  ═══ 交换提示栏 ═══  -->
     <Border
       Classes="sf-statusbar"
@@ -577,20 +614,57 @@
                   </StackPanel>
                 </Border>
 
+                <!--  窄屏空态：显性会场/数据集选择（下拉选择，优于图标抽屉里的列表）  -->
+                <StackPanel
+                  x:Name="WelcomeSelectors"
+                  IsVisible="{Binding ShowWelcomeSelectors}"
+                  Spacing="8">
+                  <ComboBox
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectVenuePH}"
+                    HorizontalAlignment="Stretch"
+                    Classes="sf-input"
+                    ItemsSource="{Binding VenueItems}"
+                    PlaceholderText="{x:Static lang:Resources.Seating_SelectVenuePH}"
+                    SelectedItem="{Binding SelectedVenue, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:VenueItem">
+                        <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <ComboBox
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectDatasetPH}"
+                    HorizontalAlignment="Stretch"
+                    Classes="sf-input"
+                    ItemsSource="{Binding DatasetItems}"
+                    PlaceholderText="{x:Static lang:Resources.Seating_SelectDatasetPH}"
+                    SelectedItem="{Binding SelectedDataset, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="core:StudentDatasetInfo">
+                        <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+
                 <WrapPanel
                   HorizontalAlignment="Center"
                   ItemSpacing="8"
                   LineSpacing="8"
                   Orientation="Horizontal">
-                  <Button
+                  <controls:HoldRepeatButton
+                    x:Name="WelcomeGenerateButton"
                     Classes="sf-btn sf-primary"
                     Command="{Binding GenerateSeatingCommand}"
-                    IsEnabled="{Binding CanGenerate}">
+                    HoldEnded="GenerateButton_HoldEnded"
+                    HoldStarted="GenerateButton_HoldStarted"
+                    IsEnabled="{Binding CanPressGenerate}"
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_GenerateHoldTip}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
                       <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_Generate}" />
                     </StackPanel>
-                  </Button>
+                  </controls:HoldRepeatButton>
                   <Button
                     Classes="sf-btn"
                     Command="{Binding CreateEmptySeatingCommand}"

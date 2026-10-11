@@ -876,6 +876,12 @@ This cannot be undone.</value>
   <data name="Seating_ResetZoom" xml:space="preserve">
     <value>Reset to default zoom</value>
   </data>
+  <data name="Seating_SelectDatasetPH" xml:space="preserve">
+    <value>Select roster</value>
+  </data>
+  <data name="Seating_SelectVenuePH" xml:space="preserve">
+    <value>Select venue</value>
+  </data>
   <data name="Seating_StudentView" xml:space="preserve">
     <value>Student View</value>
   </data>
