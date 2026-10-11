@@ -54,6 +54,20 @@ public partial class SeatingArrangementView : UserControl
             vm.CloseDrawersCommand.Execute(null);
     }
 
+    /// <summary>长按生成按钮（按住达到阈值）：进入连续生成会话。</summary>
+    private void GenerateButton_HoldStarted(object? sender, EventArgs e)
+    {
+        if (DataContext is SeatingArrangementViewModel vm)
+            _ = vm.StartContinuousGenerateAsync();
+    }
+
+    /// <summary>松开 / 指针捕获丢失：结束连续生成会话（在途生成跑完即停）。</summary>
+    private void GenerateButton_HoldEnded(object? sender, EventArgs e)
+    {
+        if (DataContext is SeatingArrangementViewModel vm)
+            vm.StopContinuousGenerate();
+    }
+
     // ── 拖放数据格式（自绘座位的内部拖拽不再走系统 DnD；此处用于「未分配学生 → 画布」） ──
 
     internal static class DragFormats

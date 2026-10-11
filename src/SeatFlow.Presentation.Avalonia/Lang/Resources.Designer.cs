@@ -276,6 +276,8 @@ public class Resources
     public static string Seating_Cancel => ResourceManager.GetString("Seating_Cancel", Culture)!;
     public static string Seating_CancelSwap => ResourceManager.GetString("Seating_CancelSwap", Culture)!;
     public static string Seating_CanvasHint => ResourceManager.GetString("Seating_CanvasHint", Culture)!;
+    public static string Seating_ContinuousHint => ResourceManager.GetString("Seating_ContinuousHint", Culture)!;
+    public static string Seating_ContinuousProgressFmt => ResourceManager.GetString("Seating_ContinuousProgressFmt", Culture)!;
     public static string Seating_DiscardAndLeave => ResourceManager.GetString("Seating_DiscardAndLeave", Culture)!;
     public static string Seating_EmptySeatFmt => ResourceManager.GetString("Seating_EmptySeatFmt", Culture)!;
     public static string Seating_Export => ResourceManager.GetString("Seating_Export", Culture)!;
@@ -289,6 +291,7 @@ public class Resources
     public static string Seating_ExportTimeout => ResourceManager.GetString("Seating_ExportTimeout", Culture)!;
     public static string Seating_ExportTitle => ResourceManager.GetString("Seating_ExportTitle", Culture)!;
     public static string Seating_ExportedFmt => ResourceManager.GetString("Seating_ExportedFmt", Culture)!;
+    public static string Seating_GenerateHoldTip => ResourceManager.GetString("Seating_GenerateHoldTip", Culture)!;
     public static string Seating_InspectorShort => ResourceManager.GetString("Seating_InspectorShort", Culture)!;
     public static string Seating_PickerShort => ResourceManager.GetString("Seating_PickerShort", Culture)!;
     public static string Seating_PickerTitle => ResourceManager.GetString("Seating_PickerTitle", Culture)!;

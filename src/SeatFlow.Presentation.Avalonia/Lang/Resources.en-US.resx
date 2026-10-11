@@ -813,6 +813,12 @@ This cannot be undone.</value>
   <data name="Seating_CanvasHint" xml:space="preserve">
     <value>Drag to pan, scroll to zoom; Drag a menber to switch his seating.</value>
   </data>
+  <data name="Seating_ContinuousHint" xml:space="preserve">
+    <value>Generating continuously… (release to stop)</value>
+  </data>
+  <data name="Seating_ContinuousProgressFmt" xml:space="preserve">
+    <value>Generating continuously: #{0} (release to stop)</value>
+  </data>
   <data name="Seating_DiscardAndLeave" xml:space="preserve">
     <value>Discard and leave</value>
   </data>
@@ -851,6 +857,9 @@ This cannot be undone.</value>
   </data>
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>Exported to {0}</value>
+  </data>
+  <data name="Seating_GenerateHoldTip" xml:space="preserve">
+    <value>Press and hold to keep generating; release to stop</value>
   </data>
   <data name="Seating_InspectorShort" xml:space="preserve">
     <value>Panel</value>

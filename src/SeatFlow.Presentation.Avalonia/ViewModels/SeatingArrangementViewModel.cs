@@ -46,6 +46,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     private SeatDisplayItem? _swapSourceSeat;
     private CancellationTokenSource? _generateCts;
     private CancellationTokenSource? _enterCts;
+    /// <summary>连续生成会话的取消源：仅用于取消会话「间隔等待」，不取消在途生成。</summary>
+    private CancellationTokenSource? _continuousCts;
+    /// <summary>连续生成会话内是否已计入统计（一次会话只计一次）。</summary>
+    private bool _continuousSessionCounted;
+    /// <summary>连续生成会话内已成功生成的次数（状态栏「第 N 次」）。</summary>
+    private int _continuousGenerationCount;
 
     // ── 操作历史 ──
     private readonly ObservableCollection<HistoryEntry> _historyEntries = [];
@@ -64,6 +70,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     [NotifyPropertyChangedFor(nameof(HasSelectedVenue))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
     [NotifyPropertyChangedFor(nameof(CanCreateEmpty))]
+    [NotifyPropertyChangedFor(nameof(CanPressGenerate))]
     public partial VenueItem? SelectedVenue { get; set; }
 
     [ObservableProperty]
@@ -74,6 +81,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     [NotifyPropertyChangedFor(nameof(HasSelectedDataset))]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
     [NotifyPropertyChangedFor(nameof(CanCreateEmpty))]
+    [NotifyPropertyChangedFor(nameof(CanPressGenerate))]
     public partial StudentDatasetInfo? SelectedDataset { get; set; }
 
     public bool HasSelectedVenue => SelectedVenue != null;
@@ -117,7 +125,13 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanGenerate))]
     [NotifyPropertyChangedFor(nameof(CanCreateEmpty))]
+    [NotifyPropertyChangedFor(nameof(CanPressGenerate))]
     public partial bool IsGenerating { get; set; }
+
+    /// <summary>是否处于长按连续生成会话（松手停止）。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPressGenerate))]
+    public partial bool IsContinuousGenerating { get; set; }
 
     [ObservableProperty]
     public partial bool HasGenerated { get; set; }
@@ -125,6 +139,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     public bool CanGenerate => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
     public bool CanCreateEmpty => HasSelectedVenue && HasSelectedDataset && !IsGenerating;
+
+    /// <summary>生成按钮可按下：连续会话期间保持可用（避免按住时被禁用而丢失指针事件）。</summary>
+    public bool CanPressGenerate => HasSelectedVenue && HasSelectedDataset && (!IsGenerating || IsContinuousGenerating);
     public bool CanUndo => _currentHistoryIndex > 0;
     public bool CanRedo => _currentHistoryIndex < _historyEntries.Count - 1;
 
@@ -356,6 +373,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     {
         _enterCts?.Cancel();
         _generateCts?.Cancel();
+        StopContinuousGenerate();
         IsPickerDrawerOpen = false;
         IsInspectorDrawerOpen = false;
         // 为下一次进入准备新的完成信号，保证引导读到的是「下一次加载」而非旧任务
@@ -704,75 +722,172 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     // ── 生成座位 ──
 
+    /// <summary>连续生成会话中两次生成之间的间隔（毫秒）。</summary>
+    private const int ContinuousIntervalMs = 250;
+
     [RelayCommand]
-    private async Task GenerateSeatingAsync()
+    private Task GenerateSeatingAsync() => GenerateOnceAsync(Resources.Seating_GenerateFailed);
+
+    /// <summary>
+    /// 进入连续生成会话（长按触发）：执行一次 → 间隔 <see cref="ContinuousIntervalMs"/> → 再执行，
+    /// 直到 <see cref="StopContinuousGenerate"/> 停止；松开时在途的那次跑完并应用结果后退出。
+    /// </summary>
+    /// <remarks>
+    /// 连续会话直接复用 <see cref="GenerateOnceAsync(string)"/>，**不经过** <c>GenerateSeatingCommand</c>：
+    /// 该命令是 <c>AllowConcurrentExecutions=false</c> 的 IAsyncRelayCommand，执行期间 CanExecute=false
+    /// 会让按钮 <c>IsEffectivelyEnabled</c> 变 false，从而打断长按会话（HoldEnded）——连续生成路径必须绕开命令，
+    /// 短按仍走命令。
+    /// </remarks>
+    public async Task StartContinuousGenerateAsync()
     {
-        if (!CanGenerate || _currentLayout == null) return;
+        if (IsContinuousGenerating || !CanPressGenerate || _currentLayout == null) return;
+
+        _continuousSessionCounted = false;
+        _continuousGenerationCount = 0;
+        _continuousCts?.Cancel();
+        _continuousCts = new CancellationTokenSource();
+        var sessionToken = _continuousCts.Token;
+        IsContinuousGenerating = true;
+        StatusMessage = Resources.Seating_ContinuousHint;
+
+        var applied = false;
+        try
+        {
+            while (IsContinuousGenerating)
+            {
+                applied = await GenerateOnceAsync(Resources.Seating_GenerateFailed);
+                if (!applied || !IsContinuousGenerating) break;
+
+                // 间隔等待可被停止立即打断（避免松手后最长 250ms 的尾部窗口）
+                try
+                {
+                    await Task.Delay(ContinuousIntervalMs, sessionToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            IsContinuousGenerating = false;
+            // 只要有结果就恢复标准文案：即使某次失败中止，画布内容仍是最后一次成功结果
+            if (HasGenerated)
+                StatusMessage = string.Format(Resources.Seating_GeneratedFmt, AssignedSeats, TotalSeats);
+        }
+    }
+
+    /// <summary>结束连续生成会话（松手 / 捕获丢失 / 离开页面）；不取消在途生成，让其跑完。</summary>
+    public void StopContinuousGenerate()
+    {
+        IsContinuousGenerating = false;
+        _continuousCts?.Cancel();
+    }
+
+    /// <summary>
+    /// 执行一次生成（短按命令与连续会话共用）。
+    /// 返回是否成功应用了结果：取消 / 异常 / 无学生等未应用的情况返回 false（连续会话据此中止循环）。
+    /// </summary>
+    private async Task<bool> GenerateOnceAsync(string errorTitle)
+    {
+        if (!CanGenerate || _currentLayout == null) return false;
 
         _generateCts?.Cancel();
         _generateCts = new CancellationTokenSource();
         var ct = _generateCts.Token;
 
+        // 本次运行是否属于连续会话：运行开始即固定，松开后仍在途的那次按会话语义收尾
+        // （计数不再增加、状态消息仍按第 N 次），且迟到的进度回调不会覆盖状态栏
+        var isContinuousRun = IsContinuousGenerating;
+
         IsGenerating = true;
-        HasGenerated = false;
-        StatusMessage = Resources.Seating_Generating;
+        // 已有结果时保持画布可见：重新生成 / 连续生成不闪现欢迎卡
+        if (_currentPlan == null) HasGenerated = false;
+        if (!isContinuousRun) StatusMessage = Resources.Seating_Generating;
 
-        await SafeCancelableAsync(async () =>
+        var applied = false;
+        try
         {
-            // 1. 加载学生
-            var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
-            if (students == null || students.Count == 0)
+            await SafeCancelableAsync(async () =>
             {
-                StatusMessage = Resources.Seating_NoMembers;
-                return;
-            }
-
-            // 2. 写入临时 JSON 文件（RosterFile 格式）
-            var roster = new RosterFile { Version = "1.0", Students = students };
-            var jsonOptions = JsonOptions.WriteIndentedCamelCase;
-            var tempPath = Path.Combine(Path.GetTempPath(), $"a_pair_gen_{Guid.NewGuid():N}.json");
-            await File.WriteAllTextAsync(tempPath, JsonSerializer.Serialize(roster, jsonOptions), ct);
-
-            try
-            {
-                // 3. 调用生成
-                var progress = new Progress<SeatingProgress>(p =>
+                // 1. 加载学生
+                var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
+                if (students == null || students.Count == 0)
                 {
-                    global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    StatusMessage = Resources.Seating_NoMembers;
+                    return;
+                }
+
+                // 2. 写入临时 JSON 文件（RosterFile 格式）
+                var roster = new RosterFile { Version = "1.0", Students = students };
+                var jsonOptions = JsonOptions.WriteIndentedCamelCase;
+                var tempPath = Path.Combine(Path.GetTempPath(), $"a_pair_gen_{Guid.NewGuid():N}.json");
+                await File.WriteAllTextAsync(tempPath, JsonSerializer.Serialize(roster, jsonOptions), ct);
+
+                try
+                {
+                    // 3. 调用生成（连续会话期间抑制逐策略进度消息，避免状态栏高频闪烁；
+                    //    进度回调可能迟到，故按运行开始时的会话状态抑制）
+                    var progress = new Progress<SeatingProgress>(p =>
                     {
-                        StatusMessage = p.StatusMessage;
+                        global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (isContinuousRun) return;
+                            StatusMessage = p.StatusMessage;
+                        });
                     });
-                });
 
-                var request = new SeatingRequest
+                    var request = new SeatingRequest
+                    {
+                        LayoutId = SelectedVenue!.Id,
+                        DatasetId = SelectedDataset!.Id,
+                        StudentDataSource = tempPath,
+                        Description = string.Format(Resources.Seating_VenueDatasetDesc, SelectedVenue.Name, SelectedDataset.Name)
+                    };
+
+                    _workspace = await _facade.GenerateSeatingAsync(request, progress, ct);
+                    _currentPlan = _workspace.BuildSeatingPlan();
+
+                    // 4. 构建显示 + 初始化历史
+                    BuildSeatDisplayItems();
+                    await UpdateRightPanelAsync();
+                    UpdateStats();
+                    InitHistory(Resources.Seating_GenerateDesc);
+
+                    HasGenerated = true;
+                    applied = true;
+
+                    // 5. 计数与状态消息：连续会话内只计一次（首次成功），短按每次计一次
+                    if (isContinuousRun)
+                    {
+                        _continuousGenerationCount++;
+                        if (!_continuousSessionCounted)
+                        {
+                            _counterService.Increment();
+                            _continuousSessionCounted = true;
+                        }
+                        StatusMessage = string.Format(Resources.Seating_ContinuousProgressFmt, _continuousGenerationCount);
+                    }
+                    else
+                    {
+                        _counterService.Increment();
+                        StatusMessage = string.Format(Resources.Seating_GeneratedFmt, AssignedSeats, TotalSeats);
+                    }
+                }
+                finally
                 {
-                    LayoutId = SelectedVenue!.Id,
-                    DatasetId = SelectedDataset!.Id,
-                    StudentDataSource = tempPath,
-                    Description = string.Format(Resources.Seating_VenueDatasetDesc, SelectedVenue.Name, SelectedDataset.Name)
-                };
+                    // 6. 清理临时文件
+                    try { File.Delete(tempPath); } catch { /* 忽略 */ }
+                }
+            }, errorTitle);
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
 
-                _workspace = await _facade.GenerateSeatingAsync(request, progress, ct);
-                _currentPlan = _workspace.BuildSeatingPlan();
-
-                // 4. 构建显示 + 初始化历史
-                BuildSeatDisplayItems();
-                await UpdateRightPanelAsync();
-                UpdateStats();
-                InitHistory(Resources.Seating_GenerateDesc);
-
-                HasGenerated = true;
-                _counterService.Increment();
-                StatusMessage = string.Format(Resources.Seating_GeneratedFmt, AssignedSeats, TotalSeats);
-            }
-            finally
-            {
-                // 5. 清理临时文件
-                try { File.Delete(tempPath); } catch { /* 忽略 */ }
-            }
-        }, Resources.Seating_GenerateFailed);
-
-        IsGenerating = false;
+        return applied;
     }
 
     /// <summary>
@@ -789,7 +904,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         var ct = _generateCts.Token;
 
         IsGenerating = true;
-        HasGenerated = false;
+        // 已有结果时保持画布可见：不闪现欢迎卡
+        if (_currentPlan == null) HasGenerated = false;
         StatusMessage = Resources.Seating_CreateEmptyHint;
 
         await SafeCancelableAsync(async () =>

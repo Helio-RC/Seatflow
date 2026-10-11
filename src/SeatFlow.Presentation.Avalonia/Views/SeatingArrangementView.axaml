@@ -209,14 +209,17 @@
             </StackPanel>
           </Button>
 
-          <!--  生成 / 创建空白  -->
-          <Button
+          <!--  生成 / 创建空白（生成按钮：长按连续生成，松开停止）  -->
+          <controls:HoldRepeatButton
             x:Name="GenerateButton"
             AutomationProperties.Name="{x:Static lang:Resources.Nav_Seating}"
             Classes="sf-btn sf-primary"
             Classes.sf-icon="{Binding Layout.IsNarrow}"
             Command="{Binding GenerateSeatingCommand}"
-            IsEnabled="{Binding CanGenerate}">
+            HoldEnded="GenerateButton_HoldEnded"
+            HoldStarted="GenerateButton_HoldStarted"
+            IsEnabled="{Binding CanPressGenerate}"
+            ToolTip.Tip="{x:Static lang:Resources.Seating_GenerateHoldTip}">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
               <TextBlock
@@ -225,7 +228,7 @@
                 IsVisible="{Binding CommandTextVisible}"
                 Text="{x:Static lang:Resources.Seating_Generate}" />
             </StackPanel>
-          </Button>
+          </controls:HoldRepeatButton>
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
             Classes="sf-btn sf-icon"

@@ -813,6 +813,12 @@
   <data name="Seating_CanvasHint" xml:space="preserve">
     <value>左键拖动，滚轮缩放；拖动或点击人员以调换位置</value>
   </data>
+  <data name="Seating_ContinuousHint" xml:space="preserve">
+    <value>连续生成中…（松开停止）</value>
+  </data>
+  <data name="Seating_ContinuousProgressFmt" xml:space="preserve">
+    <value>连续生成中：第 {0} 次（松开停止）</value>
+  </data>
   <data name="Seating_DiscardAndLeave" xml:space="preserve">
     <value>不保存直接离开</value>
   </data>
@@ -851,6 +857,9 @@
   </data>
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>已导出至 {0}</value>
+  </data>
+  <data name="Seating_GenerateHoldTip" xml:space="preserve">
+    <value>长按可连续生成，松开停止</value>
   </data>
   <data name="Seating_InspectorShort" xml:space="preserve">
     <value>面板</value>
