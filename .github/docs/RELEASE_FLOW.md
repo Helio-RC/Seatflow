@@ -51,7 +51,8 @@
 仅正式版：`version.json`（不含 `-`）变更触发 `release.yml`，其成功后的 `publish.yml`
 再成功后，`publish-web.yml` 自动接力：
 
-1. 构建 `src/SeatFlow.Browser`（必须 `wasm-tools`，否则原生库不链接、部署白屏）
+1. 构建 `src/SeatFlow.Browser`（必须 `wasm-tools`，否则原生库不链接、部署白屏；
+   产物校验同时拦截 `.br` 预压缩缺失——线上首屏体积依赖 `<key>.br` 协商回源）
 2. 上传 `online_worktable/<version>/`（原文件 + `.br`，跳过 `.gz`/`.map`）并做 key/大小全量校验
 3. 校验通过后写 KV `current=<version>`（原子切换）；预发布与手动 publish 不进入本流程
 4. 清理旧版本（保留最近 5 个，current 永不删除）。

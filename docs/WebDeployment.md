@@ -40,8 +40,22 @@ cd scripts/build
 - **MIME 类型**：`.wasm` → `application/wasm`（大部分现代服务器默认正确）
 - **CSP**：若启用 Content-Security-Policy，需允许 `wasm-eval`（或 `unsafe-eval`）
 - **压缩**：发布产物自带 `.br/.gz` 副本（参考 `wwwroot/*.br|*.gz`），CDN/服务器启用
-  Brotli 压缩可使初始下载减 60-70%（未优化基线 ≈ 91MB 原始 / ~30MB 压缩）
+  Brotli 压缩可使初始下载减 60-70%（当前产物 ≈ 47MB 原始 / ≈ 18MB `.br`）；
+  发布流水线校验 `.br` 产物存在（`publish-web.yml`），缺失即失败
 - **路径**：默认相对路径部署；若部署在子路径，保持 `wwwroot` 目录结构整体上传
+
+## 启动加载页
+
+`wwwroot/index.html` 在 `#out` 内提供 SeatFlow 启动加载页（`.avalonia-splash`）：
+显示「正在下载应用资源 x/y」进度条、首次加载体积提示与启动/失败状态。进度来自
+.NET WASM 运行时的 `onDownloadResourceProgress`（`main.js` 经 `withModuleConfig` 注册，
+按已完成资源数计数）；进度条取高水位单调推进（运行时按已发起下载数动态扩充分母，直接
+相除会在批次边界回跳），满格去抖 500ms 后切换为「正在启动应用…」，启动异常时提示刷新重试。
+
+- 文案跟随 `navigator.language`（中/英），配色跟随 `prefers-color-scheme`（应用「方格纸」令牌）
+- Avalonia 接管渲染时会寻找 `.avalonia-splash` 并添加 `splash-close` 类淡出（`AvaloniaView`
+  约定）——**类名与 `splash-close` 样式不可删改**，否则加载页不会消失
+- 图标 `wwwroot/icon.png` 复制自 `SeatFlow.Presentation.Avalonia/Assets/icon_with_background.png`
 
 ## 在线版托管（online.seatflow.work）
 

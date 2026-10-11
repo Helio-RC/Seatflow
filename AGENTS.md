@@ -49,6 +49,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
   存储经 `ILocalDataStore`（桌面=文件系统 / WASM=IndexedDB）；PDF/图片导出、自动更新、Watchdog、单实例仅桌面；
   Web 对话框为 overlay。桌面主窗最小 360×480（可缩至手机比例，与浏览器共用同一响应式三档布局）。浏览器外壳 `MainView : UserControl`（不能构造 `Window`），JSON 需反射序列化开关，
   CJK 由嵌入 Noto Sans SC 回退，语言在 `Program.Main` 于 Avalonia 启动前异步预加载。
+  启动加载页以 `wwwroot/index.html` 的 `.avalonia-splash` 为契约（运行时按类名添加 `splash-close` 隐藏，类名与样式不可删改），进度经 `withModuleConfig({ onDownloadResourceProgress })` 上报。
   **WASM 运行时语言切换**需 `UseSystemResourceKeys=false` + `main.js` 的 `loadAllSatelliteResources: true`（详见 `docs/WebDeployment.md`）。
 - **DI**：`AddSeatFlowApplication(snapshotBasePath)` 注册应用层服务；壳层再注册
   `INavigationService`/`IFileService`/`IDialogService`/`IDialogGate`/`IShellLayoutService`/`MainWindow`/`MainShellViewModel`/全部页面 VM；

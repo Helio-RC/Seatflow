@@ -1,58 +1,202 @@
-﻿/* HTML styles for the splash screen */
-.avalonia-splash {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    background: white;
-    font-family: 'Outfit', sans-serif;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    pointer-events: none;
-}
+﻿/* ============================================================
+   SeatFlow 启动加载页（HTML splash）
+   色值取自应用「方格纸」令牌（Resources/Tokens/Colors.axaml），
+   明暗跟随 prefers-color-scheme；Avalonia 接管 #out 后由运行时
+   添加 .splash-close 类隐藏（见 AvaloniaView）。
+   ============================================================ */
 
-/* Light theme styles */
-@media (prefers-color-scheme: light) {
-    .avalonia-splash {
-        background: white;
-    }
-
-    .avalonia-splash h2 {
-        color: #1b2a4e;
-    }
-
-    .avalonia-splash a {
-        color: #0D6EFD;
-    }
+:root {
+    --sf-bg: #f2f4f6;
+    --sf-grid: #e3e9f0;
+    --sf-surface: #ffffff;
+    --sf-border: #d9e0e7;
+    --sf-text: #16202b;
+    --sf-text-dim: #46586b;
+    --sf-text-faint: #7b8a9c;
+    --sf-accent: #3b5bdb;
+    --sf-danger: #d92d20;
+    --sf-shadow: 0 8px 24px rgba(22, 32, 43, 0.10);
 }
 
 @media (prefers-color-scheme: dark) {
-    .avalonia-splash {
-        background: #1b2a4e;
-    }
-
-    .avalonia-splash h2 {
-        color: white;
-    }
-
-    .avalonia-splash a {
-        color: white;
+    :root {
+        --sf-bg: #0b1020;
+        --sf-grid: #1a2438;
+        --sf-surface: #121a2e;
+        --sf-border: #22304a;
+        --sf-text: #e7ecf5;
+        --sf-text-dim: #9aa8c0;
+        --sf-text-faint: #6c7a94;
+        --sf-accent: #7c93ff;
+        --sf-danger: #f87171;
+        --sf-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
     }
 }
 
-.avalonia-splash h2 {
-    font-weight: 400;
-    font-size: 1.5rem;
+html,
+body {
+    height: 100%;
 }
 
-.avalonia-splash a {
-    text-decoration: none;
-    font-size: 2.5rem;
-    display: block;   
+body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--sf-bg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
+/* ── 加载页外壳：方格纸底纹 ── */
+.avalonia-splash {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    justify-content: safe center;
+    align-items: center;
+    align-items: safe center;
+    padding: 24px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background-color: var(--sf-bg);
+    background-image:
+        linear-gradient(var(--sf-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--sf-grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: center;
+}
+
+/* AvaloniaView 启动完成后添加；淡出后从视觉层移除 */
 .avalonia-splash.splash-close {
-    transition: opacity 200ms, display 200ms;
-    display: none;
     opacity: 0;
+    visibility: hidden;
+    transition: opacity 220ms ease, visibility 0s linear 220ms;
+}
+
+/* ── 卡片 ── */
+.sf-splash-card {
+    width: min(360px, 100%);
+    padding: 32px 28px 20px;
+    box-sizing: border-box;
+    background: var(--sf-surface);
+    border: 1px solid var(--sf-border);
+    border-radius: 16px;
+    box-shadow: var(--sf-shadow);
+    text-align: center;
+}
+
+.sf-splash-logo {
+    display: block;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    border-radius: 18px;
+}
+
+.sf-splash-title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--sf-text);
+}
+
+.sf-splash-cn {
+    margin-left: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--sf-text-dim);
+}
+
+.sf-splash-status {
+    margin: 0 0 16px;
+    min-height: 20px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--sf-text-dim);
+}
+
+/* ── 进度条 ── */
+.sf-splash-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--sf-grid);
+    overflow: hidden;
+}
+
+.sf-splash-bar {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--sf-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+}
+
+/* 尚未收到进度回调：不确定态来回滑动 */
+.avalonia-splash[data-state="loading"] .sf-splash-bar {
+    animation: sf-splash-indeterminate 1.4s ease-in-out infinite;
+}
+
+/* 已收到进度回调：按已完成资源数推进 */
+.avalonia-splash[data-state="progress"] .sf-splash-bar,
+.avalonia-splash[data-state="ready"] .sf-splash-bar {
+    animation: none;
+    transition: transform 250ms ease;
+}
+
+.avalonia-splash[data-state="error"] .sf-splash-bar {
+    animation: none;
+    background: var(--sf-danger);
+    transform: scaleX(1);
+}
+
+.avalonia-splash[data-state="error"] .sf-splash-status {
+    color: var(--sf-danger);
+}
+
+@keyframes sf-splash-indeterminate {
+    0% {
+        transform: translateX(-100%) scaleX(0.4);
+    }
+    100% {
+        transform: translateX(250%) scaleX(0.4);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .avalonia-splash[data-state="loading"] .sf-splash-bar {
+        animation: none;
+        transform: scaleX(0.4);
+    }
+
+    .avalonia-splash[data-state="progress"] .sf-splash-bar,
+    .avalonia-splash[data-state="ready"] .sf-splash-bar {
+        transition: none;
+    }
+
+    .avalonia-splash.splash-close {
+        transition: none;
+    }
+}
+
+/* ── 页脚 ── */
+.sf-splash-hint {
+    margin: 12px 0 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--sf-text-faint);
+}
+
+.sf-splash-credit {
+    margin: 18px 0 0;
+    font-size: 11px;
+    color: var(--sf-text-faint);
+}
+
+.sf-splash-credit a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
 }

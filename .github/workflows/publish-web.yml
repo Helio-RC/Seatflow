@@ -109,6 +109,11 @@ jobs:
           SIZE=$(stat -c%s "$NATIVE")
           echo "dotnet.native wasm: $SIZE bytes"
           [ "$SIZE" -gt 5000000 ] || { echo "✗ 原生库未链接（dotnet.native < 5MB）"; exit 1; }
+          # .br 预压缩产物决定线上首屏体积（≈47MB → ≈18MB，Worker 依赖 <key>.br 协商回源），缺失即失败
+          test -f web-out/wwwroot/index.html.br || { echo "✗ index.html.br 缺失（静态资源压缩未启用？）"; exit 1; }
+          NATIVE_BR=$(find web-out/wwwroot/_framework -maxdepth 1 -name 'dotnet.native.*.wasm.br' -print -quit)
+          test -n "$NATIVE_BR" || { echo "✗ dotnet.native.*.wasm.br 缺失（静态资源压缩未启用？）"; exit 1; }
+          echo "dotnet.native wasm.br: $(stat -c%s "$NATIVE_BR") bytes"
 
       - name: Install oss2
         run: pip install oss2 packaging
