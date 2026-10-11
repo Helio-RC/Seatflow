@@ -858,6 +858,9 @@
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>已导出至 {0}</value>
   </data>
+  <data name="Seating_GenerateHoldInlineTip" xml:space="preserve">
+    <value>提示：长按「生成座位安排」可连续生成，松开停止</value>
+  </data>
   <data name="Seating_GenerateHoldTip" xml:space="preserve">
     <value>长按可连续生成，松开停止</value>
   </data>

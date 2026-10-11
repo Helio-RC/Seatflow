@@ -291,6 +291,7 @@ public class Resources
     public static string Seating_ExportTimeout => ResourceManager.GetString("Seating_ExportTimeout", Culture)!;
     public static string Seating_ExportTitle => ResourceManager.GetString("Seating_ExportTitle", Culture)!;
     public static string Seating_ExportedFmt => ResourceManager.GetString("Seating_ExportedFmt", Culture)!;
+    public static string Seating_GenerateHoldInlineTip => ResourceManager.GetString("Seating_GenerateHoldInlineTip", Culture)!;
     public static string Seating_GenerateHoldTip => ResourceManager.GetString("Seating_GenerateHoldTip", Culture)!;
     public static string Seating_InspectorShort => ResourceManager.GetString("Seating_InspectorShort", Culture)!;
     public static string Seating_PickerShort => ResourceManager.GetString("Seating_PickerShort", Culture)!;

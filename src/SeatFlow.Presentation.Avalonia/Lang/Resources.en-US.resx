@@ -858,6 +858,9 @@ This cannot be undone.</value>
   <data name="Seating_ExportedFmt" xml:space="preserve">
     <value>Exported to {0}</value>
   </data>
+  <data name="Seating_GenerateHoldInlineTip" xml:space="preserve">
+    <value>Tip: press and hold &quot;Generate seating&quot; to keep generating; release to stop</value>
+  </data>
   <data name="Seating_GenerateHoldTip" xml:space="preserve">
     <value>Press and hold to keep generating; release to stop</value>
   </data>

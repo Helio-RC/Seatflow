@@ -672,6 +672,14 @@
                     <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_CreateEmpty}" />
                   </Button>
                 </WrapPanel>
+
+                <!--  长按连续生成提示（欢迎卡空态）  -->
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  Classes="sf-xs sf-faint"
+                  Text="{x:Static lang:Resources.Seating_GenerateHoldInlineTip}"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
               </StackPanel>
             </ScrollViewer>
           </Border>
