@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using FluentAssertions;
@@ -5,8 +6,10 @@ using NSubstitute;
 using SeatFlow.Application.Interfaces;
 using SeatFlow.Core.Models;
 using SeatFlow.Core.Workspace;
+using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.ViewModels;
+using SeatFlow.Presentation.Avalonia.Views;
 
 namespace SeatFlow.Presentation.Tests;
 
@@ -267,5 +270,40 @@ public class SeatingContinuousGenerateTests
         await session;
 
         vm.HasGenerated.Should().BeTrue();
+    }
+
+    [AvaloniaFact]
+    public void 欢迎卡生成按钮_为长按控件_会话期间保持可用()
+    {
+        var (vm, facade, _) = CreateVm();
+        facade.ListVenueSummariesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<VenueSummary>>([]));
+        facade.ListStudentDatasetsAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<StudentDatasetInfo>>([]));
+        facade.LoadAppSettingsAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AppSettings()));
+
+        var view = new SeatingArrangementView { DataContext = vm };
+        var window = new Window { Width = 800, Height = 600, Content = view };
+        window.Show();
+        window.UpdateLayout();
+
+        var welcome = view.FindControl<HoldRepeatButton>("WelcomeGenerateButton");
+        welcome.Should().NotBeNull("欢迎卡生成按钮应为长按控件");
+        welcome!.IsEffectivelyVisible.Should().BeTrue("未生成时欢迎卡可见");
+
+        vm.SelectedVenue = new VenueItem(VenueId, "测试会场");
+        vm.SelectedDataset = new StudentDatasetInfo { Id = DatasetId, Name = "测试名单" };
+
+        vm.IsGenerating = true;
+        vm.IsContinuousGenerating = true;
+        window.UpdateLayout();
+        welcome.IsEnabled.Should().BeTrue("连续会话期间欢迎卡按钮保持可用（绑定 CanPressGenerate）");
+
+        vm.IsContinuousGenerating = false;
+        window.UpdateLayout();
+        welcome.IsEnabled.Should().BeFalse("非会话的生成中保持禁用");
+
+        window.Close();
     }
 }

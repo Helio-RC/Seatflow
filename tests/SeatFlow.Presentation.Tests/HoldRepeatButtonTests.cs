@@ -151,6 +151,38 @@ public class HoldRepeatButtonTests
     }
 
     [AvaloniaFact]
+    public async Task 按住期间隐藏容器_松开仍结束会话且不点击()
+    {
+        // 覆盖欢迎卡场景：会话首次生成成功后卡片被隐藏（HasGenerated），
+        // 但指针捕获必须保留、松开仍要送达按钮并结束会话
+        var button = new HoldRepeatButton { HoldDelay = HoldDelayMs, Width = 120, Height = 40 };
+        var card = new Border { Child = button };
+        var window = new Window { Width = 200, Height = 100, Content = card };
+        window.Show();
+        window.UpdateLayout();
+
+        var clicks = 0;
+        var startedCount = 0;
+        var endedCount = 0;
+        button.Click += (_, _) => clicks++;
+        button.HoldStarted += (_, _) => startedCount++;
+        button.HoldEnded += (_, _) => endedCount++;
+
+        var point = Center(window, button);
+        window.MouseDown(point, MouseButton.Left);
+        await WaitUntilAsync(() => startedCount == 1);
+
+        card.IsVisible = false;
+        await Task.Delay(50);
+        endedCount.Should().Be(0, "隐藏容器不应丢失指针捕获、不应提前结束会话");
+
+        window.MouseUp(point, MouseButton.Left);
+
+        endedCount.Should().Be(1, "隐藏后松开仍应结束长按会话");
+        clicks.Should().Be(0, "长按后的松开不得再触发 Click");
+    }
+
+    [AvaloniaFact]
     public async Task 绑定异步命令_长按期间命令不执行_且按钮不被命令自禁用()
     {
         var button = new HoldRepeatButton { HoldDelay = HoldDelayMs, Width = 120, Height = 40 };
