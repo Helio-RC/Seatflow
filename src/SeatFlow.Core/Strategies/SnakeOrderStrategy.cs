@@ -109,12 +109,12 @@ namespace SeatFlow.Core.Strategies
             switch (_config.SortBy)
             {
                 case SnakeSortBy.Name:
-                {
-                    var query = desc
-                        ? list.OrderByDescending(s => s.Name, NaturalStringComparer.Instance)
-                        : list.OrderBy(s => s.Name, NaturalStringComparer.Instance);
-                    return [.. query.ThenBy(s => s.Id, StringComparer.Ordinal)];
-                }
+                    {
+                        var query = desc
+                            ? list.OrderByDescending(s => s.Name, NaturalStringComparer.Instance)
+                            : list.OrderBy(s => s.Name, NaturalStringComparer.Instance);
+                        return [.. query.ThenBy(s => s.Id, StringComparer.Ordinal)];
+                    }
                 case SnakeSortBy.Height:
                     return [.. list
                         .OrderBy(s => s.Height.HasValue ? 0 : 1)
