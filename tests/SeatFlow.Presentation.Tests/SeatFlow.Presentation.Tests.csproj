@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Headless" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Headless" Version="12.1.4" />
     <PackageReference Include="Avalonia.Headless.XUnit" Version="12.1.3" />
     <PackageReference Include="Avalonia.Skia" Version="12.1.3" />
     <!-- SkiaSharp 本地资产显式对齐 4.153.1：托管 SkiaSharp 由 Infrastructure 引用 4.153.1，
