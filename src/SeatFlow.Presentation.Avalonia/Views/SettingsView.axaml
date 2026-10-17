@@ -335,7 +335,10 @@
           </Border>
 
           <!--  ─── 存储（浏览器无文件系统路径，隐藏） ───  -->
-          <Border Classes="sf-card" IsVisible="{Binding !IsWebPlatform}">
+          <Border
+            x:Name="StorageCard"
+            Classes="sf-card"
+            IsVisible="{Binding !IsWebPlatform}">
             <StackPanel Spacing="{StaticResource SfSpace3}">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon
@@ -485,7 +488,10 @@
           </Border>
 
           <!--  ─── 更新（浏览器无自动更新，隐藏） ───  -->
-          <Border Classes="sf-card" IsVisible="{Binding !IsWebPlatform}">
+          <Border
+            x:Name="UpdateCard"
+            Classes="sf-card"
+            IsVisible="{Binding !IsWebPlatform}">
             <StackPanel Spacing="{StaticResource SfSpace3}">
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <fic:FluentIcon
