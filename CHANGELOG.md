@@ -12,6 +12,7 @@
 - 遥测 `ApplyEnabled`：OOBE 单次写盘后同步内存状态，避免 `SetEnabled` 二次落盘竞态
 
 ### Fixed
+- **快照预览与工作台/会场页一致**：快照 Grid 预览改用 `GridVisualGeometryBuilder` 的统一视觉几何（同桌 0.8 压缩、坐标放大、40px 内边距），讲台居中且圆形渲染、门保持固定尺寸；会场页加载缺失/零值间距时回退到 `VenueLayoutDefaults`（64/56、40/32、讲台 100×40），避免与会场页/OOBE 预设漂移
 - **Web 端文件拖放导入**：浏览器外壳此前未挂载 `FileDropHandler`，且拖入文件只有浏览器句柄；现挂载全局拖放并把文件写入 MEMFS 临时路径，人员/会场/设置/排座页的 `.xlsx`/`.csv`/`.json`/`.seatsets` 拖入导入恢复可用
 - **Web 端关闭未保存提示**：新增 `sf.lifecycle` 与 `WebUnsavedChangesGuard`，关闭/刷新标签页时按当前页面 `IsDirty` 触发浏览器确认
 

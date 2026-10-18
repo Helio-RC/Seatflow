@@ -1629,22 +1629,23 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     private void PopulateGridFromMetadata(GridLayoutMetadata g)
     {
-        GridRows = g.Rows > 0 ? g.Rows : 5;
-        GridColumns = g.Columns > 0 ? g.Columns : 8;
-        GridHorizontalSpacing = g.HorizontalSpacing > 0 ? g.HorizontalSpacing : 40;
-        GridVerticalSpacing = g.VerticalSpacing > 0 ? g.VerticalSpacing : 36;
-        GridOriginX = g.OriginX > 0 ? g.OriginX : 200;
-        GridOriginY = g.OriginY > 0 ? g.OriginY : 200;
-        GridSeatsPerDesk = g.SeatsPerDesk > 0 ? g.SeatsPerDesk : 2;
-        GridIntraDeskSpacing = g.IntraDeskSpacing > 0 ? g.IntraDeskSpacing : 12;
-        GridInterDeskSpacing = g.InterDeskSpacing > 0 ? g.InterDeskSpacing : 32;
+        // 缺省值统一取 VenueLayoutDefaults，避免与会场页/OOBE 新建会场预设漂移
+        GridRows = g.Rows > 0 ? g.Rows : VenueLayoutDefaults.GridRows;
+        GridColumns = g.Columns > 0 ? g.Columns : VenueLayoutDefaults.GridColumns;
+        GridHorizontalSpacing = g.HorizontalSpacing > 0 ? g.HorizontalSpacing : VenueLayoutDefaults.GridHorizontalSpacing;
+        GridVerticalSpacing = g.VerticalSpacing > 0 ? g.VerticalSpacing : VenueLayoutDefaults.GridVerticalSpacing;
+        GridOriginX = g.OriginX > 0 ? g.OriginX : VenueLayoutDefaults.GridOriginX;
+        GridOriginY = g.OriginY > 0 ? g.OriginY : VenueLayoutDefaults.GridOriginY;
+        GridSeatsPerDesk = g.SeatsPerDesk > 0 ? g.SeatsPerDesk : VenueLayoutDefaults.GridSeatsPerDesk;
+        GridIntraDeskSpacing = g.IntraDeskSpacing > 0 ? g.IntraDeskSpacing : VenueLayoutDefaults.GridIntraDeskSpacing;
+        GridInterDeskSpacing = g.InterDeskSpacing > 0 ? g.InterDeskSpacing : VenueLayoutDefaults.GridInterDeskSpacing;
         GridAisleAfterColumns = string.Join(",", g.AisleAfterColumns ?? []);
         GridAisleAfterRows = string.Join(",", g.AisleAfterRows ?? []);
-        GridAisleWidth = g.AisleWidth > 0 ? g.AisleWidth : 60;
-        GridFrontRowCount = g.FrontRowCount > 0 ? g.FrontRowCount : 1;
+        GridAisleWidth = g.AisleWidth > 0 ? g.AisleWidth : VenueLayoutDefaults.GridAisleWidth;
+        GridFrontRowCount = g.FrontRowCount > 0 ? g.FrontRowCount : VenueLayoutDefaults.GridFrontRowCount;
         GridHasPodium = g.HasPodium;
-        GridPodiumWidth = g.PodiumWidth > 0 ? g.PodiumWidth : 60;
-        GridPodiumHeight = g.PodiumHeight > 0 ? g.PodiumHeight : 40;
+        GridPodiumWidth = g.PodiumWidth > 0 ? g.PodiumWidth : VenueLayoutDefaults.GridPodiumWidth;
+        GridPodiumHeight = g.PodiumHeight > 0 ? g.PodiumHeight : VenueLayoutDefaults.GridPodiumHeight;
         GridColumnRowCountsSpec = g.ColumnRowCounts is { Count: > 0 } ? string.Join(",", g.ColumnRowCounts) : "";
         GridEmptyPositionsSpec = g.EmptyPositions is { Count: > 0 }
             ? string.Join(";", g.EmptyPositions.Select(p => $"{p.Row},{p.Column}"))

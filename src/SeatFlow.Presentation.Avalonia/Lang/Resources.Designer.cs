@@ -549,7 +549,6 @@ public class Resources
     public static string Snapshot_NoSelection => ResourceManager.GetString("Snapshot_NoSelection", Culture)!;
     public static string Snapshot_NoSnapshotsFmt => ResourceManager.GetString("Snapshot_NoSnapshotsFmt", Culture)!;
     public static string Snapshot_NoWorkspace => ResourceManager.GetString("Snapshot_NoWorkspace", Culture)!;
-    public static string Snapshot_PolarLabelFmt => ResourceManager.GetString("Snapshot_PolarLabelFmt", Culture)!;
     public static string Snapshot_Preview => ResourceManager.GetString("Snapshot_Preview", Culture)!;
     public static string Snapshot_Rollback => ResourceManager.GetString("Snapshot_Rollback", Culture)!;
     public static string Snapshot_RollbackDone => ResourceManager.GetString("Snapshot_RollbackDone", Culture)!;

@@ -1636,9 +1636,6 @@
   <data name="Snapshot_NoWorkspace" xml:space="preserve">
     <value>当前没有活动的工作区，请先生成座位安排。</value>
   </data>
-  <data name="Snapshot_PolarLabelFmt" xml:space="preserve">
-    <value>环{0}</value>
-  </data>
   <data name="Snapshot_Preview" xml:space="preserve">
     <value>会场预览</value>
   </data>

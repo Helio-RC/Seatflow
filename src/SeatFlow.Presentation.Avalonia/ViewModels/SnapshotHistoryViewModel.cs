@@ -465,36 +465,64 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
 
             var (baseW, baseH) = ComputeSeatSize(metadata);
 
-            // Grid：坐标按预览因子放大，使步进与可读座位尺寸匹配（避免重叠且姓名可读）
+            // Grid：与会场页/工作台共用 GridVisualGeometryBuilder 的视觉几何
+            // （同桌间距 0.8 压缩 + 坐标放大到可读尺寸），避免同一会场三处预览不一致。
             double factorX = 1, factorY = 1;
+            Dictionary<(int Row, int Column), GridVisualSeat>? gridSeatsByPosition = null;
+            GridLayoutMetadata? gridVisualMeta = null;
             if (metadata is GridLayoutMetadata gridMeta)
             {
-                var metrics = Services.PreviewSeatSize.ForGrid(gridMeta);
-                factorX = metrics.FactorX;
-                factorY = metrics.FactorY;
+                var geometry = GridVisualGeometryBuilder.Build(gridMeta);
+                gridVisualMeta = GridVisualGeometryBuilder.Clone(gridMeta);
+                gridVisualMeta.IntraDeskSpacing *= 0.8;
+                gridSeatsByPosition = geometry.Seats
+                    .Where(s => !s.IsDisabled)
+                    .ToDictionary(s => (s.Row, s.Column));
+                factorX = geometry.FactorX;
+                factorY = geometry.FactorY;
+                baseW = geometry.SeatWidth;
+                baseH = geometry.SeatHeight;
             }
 
-            // 第一遍：收集原始坐标（按预览因子缩放）
+            // 第一遍：收集原始坐标（Grid 使用统一视觉几何，其他布局按预览因子缩放）
             double minX = double.MaxValue, minY = double.MaxValue, maxX = 0, maxY = 0;
-            var raw = new List<(double cx, double cy, Seat seat)>();
+            var raw = new List<(double cx, double cy, double w, double h, Seat seat)>();
             foreach (var seat in layout.Seats)
             {
                 if (!seat.IsAvailable) continue;
-                var pos = SeatGeometryHelper.GetPosition(seat, metadata);
-                var (cx, cy) = (pos.X * factorX, pos.Y * factorY);
-                raw.Add((cx, cy, seat));
+
+                double cx, cy, w = baseW, h = baseH;
+                if (gridSeatsByPosition is not null
+                    && seat is GridSeat gridSeat
+                    && gridSeatsByPosition.TryGetValue((gridSeat.Row, gridSeat.Column), out var visual))
+                {
+                    (cx, cy) = (visual.X, visual.Y);
+                    w = visual.Width;
+                    h = visual.Height;
+                }
+                else
+                {
+                    var pos = SeatGeometryHelper.GetPosition(seat, gridVisualMeta ?? metadata);
+                    (cx, cy) = (pos.X * factorX, pos.Y * factorY);
+                    if (seat is PolarSeat) { cx -= w / 2; cy -= h / 2; }
+                }
+
+                raw.Add((cx, cy, w, h, seat));
                 minX = Math.Min(minX, cx);
                 minY = Math.Min(minY, cy);
-                maxX = Math.Max(maxX, cx + baseW);
-                maxY = Math.Max(maxY, cy + baseH);
+                maxX = Math.Max(maxX, cx + w);
+                maxY = Math.Max(maxY, cy + h);
             }
 
-            double canvasW = Math.Max(maxX - minX + 40, 200);
-            double canvasH = Math.Max(maxY - minY + 40, 150);
-            double offsetX = 20 - minX;
-            double offsetY = 20 - minY;
+            // 与工作台保持同一内边距与最小画布尺寸
+            const double localMargin = 40;
+            double canvasW = Math.Max(maxX - minX + (localMargin * 2), 160);
+            double canvasH = Math.Max(maxY - minY + (localMargin * 2), 160);
+            double offsetX = localMargin - minX;
+            double offsetY = localMargin - minY;
 
-            foreach (var (cx, cy, seat) in raw)
+            int seatCounter = 0;
+            foreach (var (cx, cy, w, h, seat) in raw)
             {
                 bool occupied = assignments.TryGetValue(seat.Id, out var sid) && !string.IsNullOrEmpty(sid);
                 studentNames.TryGetValue(sid ?? "", out var sname);
@@ -506,24 +534,48 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
                     seat.Id,
                     cx + offsetX,
                     cy + offsetY,
-                    baseW,
-                    baseH,
+                    w,
+                    h,
                     IsOccupied: occupied,
                     Label: occupied ? (sname ?? sid) : null,
-                    SeatLabel: BuildSeatLabel(seat),
+                    SeatLabel: BuildSeatLabel(seat, ++seatCounter),
                     StudentId: occupied ? sid : null,
                     IsDataStale: isDataStale));
             }
 
-            // 障碍物（画布作为覆盖层单独渲染）
+            // 障碍物：与工作台一致（门保持固定尺寸，讲台按压缩后的座位范围居中并圆形渲染）
+            double seatMinX = raw.Count > 0 ? raw.Min(r => r.cx) : 0;
+            double seatMaxX = raw.Count > 0 ? raw.Max(r => r.cx + r.w) : 0;
+            double defaultPodiumW = baseW * 2.5;
+            double defaultPodiumH = baseH * 1.6;
+            double defaultDoorW = baseW * 1.2;
+            double defaultDoorH = baseH * 0.9;
+
             foreach (var obs in layout.Obstacles)
             {
+                bool isDoor = string.Equals(obs.Type, "Door", StringComparison.OrdinalIgnoreCase);
+                bool isPodium = string.Equals(obs.Type, "Podium", StringComparison.OrdinalIgnoreCase);
+                double ow = obs.Width > 0 ? obs.Width : (isPodium ? defaultPodiumW : defaultDoorW);
+                double oh = obs.Height > 0 ? obs.Height : (isPodium ? defaultPodiumH : defaultDoorH);
+                if (!isDoor)
+                {
+                    ow *= factorX;
+                    oh *= factorY;
+                }
+
+                double ox = obs.X * factorX;
+                double oy = obs.Y * factorY;
+                if (metadata is GridLayoutMetadata && isPodium && seatMinX < seatMaxX)
+                    ox = ((seatMinX + seatMaxX) / 2) - (ow / 2);
+
                 overlays.Add(new BoardOverlay(
-                    (obs.X * factorX) + offsetX,
-                    (obs.Y * factorY) + offsetY,
-                    (obs.Width > 0 ? obs.Width : 40) * factorX,
-                    (obs.Height > 0 ? obs.Height : 30) * factorY,
-                    obs.Type));
+                    ox + offsetX,
+                    oy + offsetY,
+                    ow,
+                    oh,
+                    obs.Type,
+                    IsRound: isPodium,
+                    IsDoor: isDoor));
             }
 
             PreviewSnapshot = new SeatLayoutSnapshot(
@@ -541,7 +593,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
         {
             // Grid：使用可读尺寸（坐标间距在构建时同步放大，见 PreviewSeatSize）
             GridLayoutMetadata => (Services.PreviewSeatSize.SeatWidth, Services.PreviewSeatSize.SeatHeight),
-            PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.75, 28, 48), Math.Clamp(p.RadiusStep * 0.75, 28, 48)),
+            PolarLayoutMetadata p => (Math.Clamp(p.RadiusStep * 0.85, 28, 48), Math.Clamp(p.RadiusStep * 0.85, 28, 48)),
             _ => (42, 26)
         };
     }
@@ -565,12 +617,12 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
         return System.Text.Json.JsonSerializer.Deserialize<ClassroomLayoutDefinition>(json, LayoutDeserializeOptions);
     }
 
-    private static string BuildSeatLabel(Seat seat) => seat switch
+    private static string BuildSeatLabel(Seat seat, int index) => seat switch
     {
         GridSeat g => $"R{g.Row}C{g.Column}",
-        PolarSeat p => string.Format(Resources.Snapshot_PolarLabelFmt, p.Ring),
-        FreeformSeat => $"#{seat.Id[..Math.Min(4, seat.Id.Length)]}",
-        _ => seat.Id
+        PolarSeat p => string.Format(Resources.Seating_PolarLabelFmt, p.Ring, p.AngleDegrees),
+        FreeformSeat => $"#{index}",
+        _ => $"#{index}"
     };
 
     private static string? GetMetaString(Dictionary<string, object> meta, string key)

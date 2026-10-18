@@ -1634,9 +1634,6 @@ This cannot be undone.</value>
   <data name="Snapshot_NoWorkspace" xml:space="preserve">
     <value>No active workspace. Generate seating first.</value>
   </data>
-  <data name="Snapshot_PolarLabelFmt" xml:space="preserve">
-    <value>Ring {0}</value>
-  </data>
   <data name="Snapshot_Preview" xml:space="preserve">
     <value>Venue preview</value>
   </data>
