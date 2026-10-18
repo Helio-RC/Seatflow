@@ -6,6 +6,7 @@ using Avalonia.Styling;
 using FluentAssertions;
 using NSubstitute;
 using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
 using SeatFlow.Core.Telemetry;
 using SeatFlow.Presentation.Avalonia.Behaviors;
 using SeatFlow.Presentation.Avalonia.Controls;
@@ -124,6 +125,24 @@ public class VisualBaselineTests
         Substitute.For<IServiceProvider>(),
         NullDialogService.Instance);
 
+    private static VenueConfigurationViewModel CreateVenueVm(ShellLayoutService? layout = null)
+    {
+        var facade = Substitute.For<IApplicationFacade>();
+        facade.ListVenueSummariesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<VenueSummary>>(
+            [
+                new VenueSummary("v1", "一号教室") { LayoutType = LayoutType.Grid, SeatCount = 40 },
+                new VenueSummary("v2", "环形场地") { LayoutType = LayoutType.Polar, SeatCount = 60 },
+                new VenueSummary("v3", "自由布局示例") { LayoutType = LayoutType.Freeform, SeatCount = 24 },
+            ]));
+        return new VenueConfigurationViewModel(
+            facade,
+            Substitute.For<IFileService>(),
+            new DialogGate(),
+            layout ?? new ShellLayoutService(),
+            NullDialogService.Instance);
+    }
+
     private static SettingsViewModel CreateSettingsVm(ShellLayoutService? layout = null) => new(
         Substitute.For<IApplicationFacade>(),
         NullDialogService.Instance,
@@ -220,6 +239,24 @@ public class VisualBaselineTests
         {
             foreach (var variant in Variants)
                 Capture("seat-long-label", variant, CreateLongLabelCanvas());
+        }
+        finally
+        {
+            AvaloniaApplication.Current!.RequestedThemeVariant = ThemeVariant.Default;
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task 会场配置页_明暗基线()
+    {
+        try
+        {
+            foreach (var variant in Variants)
+            {
+                var vm = CreateVenueVm();
+                await vm.OnEnterAsync(CancellationToken.None);
+                Capture("venue-management", variant, new VenueConfigurationView { DataContext = vm });
+            }
         }
         finally
         {

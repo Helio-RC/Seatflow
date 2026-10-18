@@ -17,6 +17,7 @@ using SeatFlow.Core.Utilities;
 using SeatFlow.Presentation.Avalonia.Helpers;
 using SeatFlow.Presentation.Avalonia.Lang;
 using SeatFlow.Presentation.Avalonia.Services;
+using LayoutKind = SeatFlow.Core.Models.LayoutType;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -55,14 +56,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     /// <summary>命令栏按钮文字是否可见（仅桌面档显示，窄屏图标化避免溢出）。</summary>
     public bool CommandTextVisible => !_layout.IsNarrow;
-
-    /// <summary>列表面板外边距（桌面卡片留白；窄屏抽屉/全屏无留白）。</summary>
-    public global::Avalonia.Thickness ListPanelMargin =>
-        _layout.IsNarrow ? new global::Avalonia.Thickness(0) : new global::Avalonia.Thickness(16, 12, 8, 12);
-
-    /// <summary>列表面板圆角（桌面卡片 8；窄屏抽屉/全屏无圆角，避免全屏时四角透出下层）。</summary>
-    public global::Avalonia.CornerRadius ListPanelCornerRadius =>
-        _layout.IsNarrow ? new global::Avalonia.CornerRadius(0) : new global::Avalonia.CornerRadius(8);
 
     /// <summary>统一脏检查（载入/保存后 MarkClean，编辑时 Update）。</summary>
     public DirtyTracker DirtyTracker { get; } = new();
@@ -381,14 +374,12 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         _layout = layout;
         _logger = logger ?? NullLogger<VenueConfigurationViewModel>.Instance;
         ListPanel = new SideDrawerState(layout, 0, 240,
-            desktopBorder: new global::Avalonia.Thickness(1));
+            desktopBorder: new global::Avalonia.Thickness(0, 0, 1, 0));
         _layout.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(IShellLayoutService.Tier))
             {
                 OnPropertyChanged(nameof(CommandTextVisible));
-                OnPropertyChanged(nameof(ListPanelMargin));
-                OnPropertyChanged(nameof(ListPanelCornerRadius));
                 OnPropertyChanged(nameof(VenueNameVisible));
             }
         };
@@ -466,7 +457,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
             var items = summaries
                 .OrderBy(s => s.Name, NaturalStringComparer.Instance)
                 .ThenBy(s => s.Id, StringComparer.Ordinal)
-                .Select(s => new VenueItem(s.Id, s.Name))
+                .Select(s => new VenueItem(s.Id, s.Name, s.LayoutType, s.SeatCount))
                 .ToList();
 
             var selectedId = SelectedVenueItem?.Id;
@@ -2043,7 +2034,25 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     }
 }
 
-public record VenueItem(string Id, string Name);
+public record VenueItem(
+    string Id,
+    string Name,
+    LayoutKind LayoutType = LayoutKind.Grid,
+    int SeatCount = 0)
+{
+    /// <summary>布局类型的本地化名称（网格 / 极坐标 / 自由点）。</summary>
+    public string LayoutLabel => LayoutType switch
+    {
+        LayoutKind.Polar => Resources.Venue_PolarType,
+        LayoutKind.Freeform => Resources.Venue_FreeformType,
+        _ => Resources.Venue_GridType,
+    };
+
+    /// <summary>座位数显示（未知时为空白）。</summary>
+    public string SeatCountDisplay => SeatCount > 0
+        ? string.Format(Resources.Venue_SeatCountFmt, SeatCount)
+        : string.Empty;
+}
 
 public partial class DoorItem : ObservableObject
 {

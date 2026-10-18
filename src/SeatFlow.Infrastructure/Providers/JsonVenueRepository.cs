@@ -151,7 +151,7 @@ namespace SeatFlow.Infrastructure.Providers
                 cancellationToken.ThrowIfCancellationRequested();
                 var name = file[(file.LastIndexOf('/') + 1)..];
                 var id = Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(name));
-                summaries.Add(new VenueSummary(id, await ReadDisplayNameAsync(file, id, cancellationToken)));
+                summaries.Add(await ReadSummaryAsync(file, id, cancellationToken));
             }
 
             _logger.LogDebug("列出 {Count} 个会场摘要", summaries.Count);
@@ -159,34 +159,63 @@ namespace SeatFlow.Infrastructure.Providers
         }
 
         /// <summary>
-        /// 轻量读取会场显示名称（仅解析 JSON，不反序列化座位）；失败或缺失时回退为 ID。
+        /// 轻量读取会场摘要（名称 / 布局类型 / 座位数，仅解析 JSON，不反序列化座位）；
+        /// 失败或缺失时回退为 ID + 网格布局 + 0 座。
         /// </summary>
-        private async Task<string> ReadDisplayNameAsync(string relativePath, string fallbackId, CancellationToken ct)
+        private async Task<VenueSummary> ReadSummaryAsync(string relativePath, string fallbackId, CancellationToken ct)
         {
+            var displayName = fallbackId;
+            var layoutType = LayoutType.Grid;
+            var seatCount = 0;
+
             try
             {
                 var json = await _store.ReadTextAsync(relativePath, ct);
                 if (json is null)
-                    return fallbackId;
+                    return new VenueSummary(fallbackId, displayName);
 
                 using var doc = JsonDocument.Parse(json);
-                if (doc.RootElement.TryGetProperty("layout", out var layout)
-                    && layout.TryGetProperty("name", out var layoutName)
-                    && !string.IsNullOrWhiteSpace(layoutName.GetString()))
+                var root = doc.RootElement;
+                if (root.TryGetProperty("layout", out var layout) && layout.ValueKind == JsonValueKind.Object)
                 {
-                    return layoutName.GetString()!;
+                    if (layout.TryGetProperty("name", out var layoutName)
+                        && !string.IsNullOrWhiteSpace(layoutName.GetString()))
+                    {
+                        displayName = layoutName.GetString()!;
+                    }
+
+                    if (layout.TryGetProperty("layoutTypeString", out var layoutTypeString)
+                        && layoutTypeString.ValueKind == JsonValueKind.String
+                        && Enum.TryParse<LayoutType>(layoutTypeString.GetString(), ignoreCase: true, out var parsed))
+                    {
+                        layoutType = parsed;
+                    }
+                    else if (layout.TryGetProperty("layoutType", out var layoutTypeNumber)
+                        && layoutTypeNumber.TryGetInt32(out var typeNumber)
+                        && Enum.IsDefined(typeof(LayoutType), typeNumber))
+                    {
+                        layoutType = (LayoutType)typeNumber;
+                    }
+
+                    if (layout.TryGetProperty("seats", out var seats) && seats.ValueKind == JsonValueKind.Array)
+                        seatCount = seats.GetArrayLength();
                 }
-                if (doc.RootElement.TryGetProperty("name", out var name)
+                else if (root.TryGetProperty("name", out var name)
                     && !string.IsNullOrWhiteSpace(name.GetString()))
                 {
-                    return name.GetString()!;
+                    displayName = name.GetString()!;
                 }
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning(ex, "读取会场名称失败，回退为 ID：{VenueId}", fallbackId);
+                _logger.LogWarning(ex, "读取会场摘要失败，回退为 ID：{VenueId}", fallbackId);
             }
-            return fallbackId;
+
+            return new VenueSummary(fallbackId, displayName)
+            {
+                LayoutType = layoutType,
+                SeatCount = seatCount,
+            };
         }
 
         /// <summary>

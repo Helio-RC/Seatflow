@@ -256,6 +256,14 @@ namespace SeatFlow.Presentation.Avalonia
                     _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(topLevel);
                 }
 
+                // 浏览器端：HTML5 文件拖放（先落 MEMFS 临时路径，复用按路径导入管线）
+                _serviceProvider.GetRequiredService<Behaviors.FileDropHandler>().Attach(mainView);
+
+#if BROWSER
+                // 浏览器关闭/刷新前的未保存提示（调度器已就绪）
+                _serviceProvider.GetRequiredService<Services.Web.WebUnsavedChangesGuard>().Start();
+#endif
+
                 // 浏览器无独立窗口：全角输入转换等附加行为在浏览器模式不需要
                 _ = SafeInitializeAsync();
             }

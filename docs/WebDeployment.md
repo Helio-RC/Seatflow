@@ -100,6 +100,8 @@ cd scripts/build
 | 图片导出 | SkiaSharp | ❌（WASM 下 SkiaSharp 不可用） |
 | 自动更新 / Watchdog / 单实例 | Velopack 等 | 不适用（已移除） |
 | 数据目录设置 | 路径选择 | 隐藏（无文件系统） |
+| 文件拖放导入 | OS 文件拖放 | 浏览器文件拖放（先落 MEMFS 临时路径，复用按路径导入管线） |
+| 关闭/刷新未保存提示 | `Window.OnClosing` + `CanLeaveAsync` | `beforeunload` + `WebUnsavedChangesGuard` 脏状态镜像 |
 | 对话框 | 模态 Window | 窗口内 overlay |
 | 换页动画 | 淡出/淡入（`MainShellViewModel.RunTransitionAsync`） | 直接切换（禁用动画，降低 WASM 渲染开销） |
 
@@ -124,6 +126,7 @@ Web 版在设置页隐藏"更新卡片"与"存储卡片"（路径概念不适用
 - `interop.js`（`sf.idb`）— IndexedDB：相对路径即 key（`Venues/…`、`Rosters/…`、
   `Assignments/…`、`StrategyConfig/…`、`AppSettings.json`），内容以 base64 桥接
 - `files.js`（`sf.files`）— 文件选择（`<input type=file>`）与 Blob 下载
+- `lifecycle.js`（`sf.lifecycle`）— `beforeunload` 未保存提示（C# 定时镜像当前页 `IsDirty`）
 
 ## 运行验证
 

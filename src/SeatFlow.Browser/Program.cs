@@ -31,6 +31,8 @@ internal sealed class Program
         await JSHost.ImportAsync("sf.idb", "/js/interop.js");
         // 加载文件互操作模块（打开/保存）
         await JSHost.ImportAsync("sf.files", "/js/files.js");
+        // 加载生命周期模块（关闭/刷新前的未保存提示）
+        await JSHost.ImportAsync("sf.lifecycle", "/js/lifecycle.js");
 
         var services = new ServiceCollection();
 
@@ -59,6 +61,8 @@ internal sealed class Program
         services.AddSingleton<IUpdateService, WebNoopUpdateService>();
         services.AddSingleton<IArrangementCounterService, ArrangementCounterService>();
         services.AddSingleton<ITelemetryService, NullTelemetryService>();
+        // 浏览器关闭/刷新前的未保存提示（由 App 在调度器就绪后启动）
+        services.AddSingleton<WebUnsavedChangesGuard>();
 
         // 启动恢复状态（.seatsets 自动导入结果，OOBE 读取）
         services.AddSingleton<StartupRestoreState>();

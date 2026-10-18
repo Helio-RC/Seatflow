@@ -40,15 +40,7 @@
           DockPanel.Dock="Right"
           Orientation="Horizontal"
           Spacing="6">
-          <!--  窄屏：数据 / 面板抽屉开关（图标化）  -->
-          <Button
-            AutomationProperties.Name="{x:Static lang:Resources.Seating_PickerShort}"
-            Classes="sf-btn sf-icon"
-            Command="{Binding TogglePickerDrawerCommand}"
-            IsVisible="{Binding Layout.IsNarrow}"
-            ToolTip.Tip="{x:Static lang:Resources.Seating_PickerShort}">
-            <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.Database}" />
-          </Button>
+          <!--  窄屏：检查器抽屉开关（图标化）  -->
           <Button
             AutomationProperties.Name="{x:Static lang:Resources.Seating_InspectorShort}"
             Classes="sf-btn sf-icon"
@@ -303,14 +295,19 @@
       </DockPanel>
     </Border>
 
-    <!--  ═══ 窄屏生成态：会场/数据集显性选择条（避免选择器藏进「数据」图标按钮）  ═══  -->
+    <!--  ═══ 数据选择条：折叠下拉，三档常驻，释放左侧栏空间  ═══  -->
     <Border
-      x:Name="GeneratedSelectorBar"
+      x:Name="DataSelectorBar"
       Classes="sf-filterbar"
-      DockPanel.Dock="Top"
-      IsVisible="{Binding ShowGeneratedSelectorBar}">
-      <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+      DockPanel.Dock="Top">
+      <Grid ColumnDefinitions="Auto,*,Auto,*,Auto" ColumnSpacing="8">
+        <TextBlock
+          VerticalAlignment="Center"
+          Classes="sf-xs sf-faint"
+          IsVisible="{Binding !Layout.IsNarrow}"
+          Text="{x:Static lang:Resources.Seating_Venue}" />
         <ComboBox
+          Grid.Column="1"
           AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectVenuePH}"
           HorizontalAlignment="Stretch"
           Classes="sf-input"
@@ -323,8 +320,14 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
+        <TextBlock
+          Grid.Column="2"
+          VerticalAlignment="Center"
+          Classes="sf-xs sf-faint"
+          IsVisible="{Binding !Layout.IsNarrow}"
+          Text="{x:Static lang:Resources.Seating_MemberData}" />
         <ComboBox
-          Grid.Column="1"
+          Grid.Column="3"
           AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectDatasetPH}"
           HorizontalAlignment="Stretch"
           Classes="sf-input"
@@ -337,6 +340,14 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
+        <Button
+          Grid.Column="4"
+          AutomationProperties.Name="{x:Static lang:Resources.Common_Refresh}"
+          Classes="sf-btn sf-icon sf-ghost"
+          Command="{Binding ReloadDataCommand}"
+          ToolTip.Tip="{x:Static lang:Resources.Common_Refresh}">
+          <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
+        </Button>
       </Grid>
     </Border>
 
@@ -392,99 +403,11 @@
       </Grid>
     </Border>
 
-    <!--  ═══ 三栏内容区 ═══  -->
-    <Grid ColumnDefinitions="Auto,*,Auto">
-      <!--  ─── 左：数据选择（桌面内联 / 紧凑抽屉） ───  -->
+    <!--  ═══ 内容区：座位画布 + 右侧检查器 ═══  -->
+    <Grid ColumnDefinitions="*,Auto">
+      <!--  ─── 座位画布 ───  -->
       <Border
-        x:Name="PickerPanel"
-        Grid.Column="{Binding PickerPanelColumn}"
-        Width="{Binding PickerPanelWidth}"
-        HorizontalAlignment="{Binding PanelHorizontalAlignment}"
-        ZIndex="{Binding PanelZIndex}"
-        Background="{DynamicResource SfSurface2Brush}"
-        BorderBrush="{DynamicResource SfBorderBrush}"
-        BorderThickness="{Binding PickerPanelBorderThickness}"
-        IsVisible="{Binding PickerVisible}">
-        <DockPanel>
-          <!--  手机档全屏覆盖：返回头部  -->
-          <Border
-            Classes="sf-takeover-header"
-            DockPanel.Dock="Top"
-            IsVisible="{Binding IsFullScreen}">
-            <DockPanel>
-              <Button
-                AutomationProperties.Name="{x:Static lang:Resources.Common_Back}"
-                Classes="sf-btn sf-ghost sf-sm"
-                Command="{Binding TogglePickerDrawerCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                  <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
-                  <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Common_Back}" />
-                </StackPanel>
-              </Button>
-              <TextBlock
-                Margin="8,0,0,0"
-                VerticalAlignment="Center"
-                Classes="sf-h3"
-                Text="{x:Static lang:Resources.Seating_PickerTitle}" />
-            </DockPanel>
-          </Border>
-          <DockPanel Margin="16,12,12,4" DockPanel.Dock="Top">
-            <Button
-              HorizontalAlignment="Right"
-              VerticalAlignment="Center"
-              AutomationProperties.Name="{x:Static lang:Resources.Common_Refresh}"
-              Classes="sf-btn sf-icon sf-ghost"
-              Command="{Binding ReloadDataCommand}"
-              DockPanel.Dock="Right"
-              ToolTip.Tip="{x:Static lang:Resources.Common_Refresh}">
-              <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowSync}" />
-            </Button>
-            <TextBlock
-              VerticalAlignment="Center"
-              Classes="sf-h3"
-              IsVisible="{Binding !IsFullScreen}"
-              Text="{x:Static lang:Resources.Seating_PickerTitle}" />
-          </DockPanel>
-          <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="12,0,12,12" Spacing="6">
-              <TextBlock Classes="sf-xs sf-faint" Text="{x:Static lang:Resources.Seating_Venue}" />
-              <ListBox
-                x:Name="VenueListBox"
-                AutomationProperties.Name="{x:Static lang:Resources.Venue_List}"
-                Classes="sf-select"
-                ItemsSource="{Binding VenueItems}"
-                SelectedItem="{Binding SelectedVenue, Mode=TwoWay}">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:VenueItem">
-                    <TextBlock Classes="sf-sm" Text="{Binding Name}" />
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
-
-              <TextBlock
-                Margin="0,8,0,0"
-                Classes="sf-xs sf-faint"
-                Text="{x:Static lang:Resources.Seating_MemberData}" />
-              <ListBox
-                x:Name="DatasetListBox"
-                AutomationProperties.Name="{x:Static lang:Resources.Seating_MemberDatasetList}"
-                Classes="sf-select"
-                ItemsSource="{Binding DatasetItems}"
-                SelectedItem="{Binding SelectedDataset, Mode=TwoWay}">
-                <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="core:StudentDatasetInfo">
-                    <TextBlock Classes="sf-sm" Text="{Binding Name}" />
-                  </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
-            </StackPanel>
-          </ScrollViewer>
-        </DockPanel>
-      </Border>
-
-      <!--  ─── 中：座位画布 ───  -->
-      <Border
-        Grid.Column="1"
+        Grid.Column="0"
         Background="{DynamicResource SfCanvasBgBrush}"
         ClipToBounds="True">
         <Panel>
@@ -614,11 +537,13 @@
                   </StackPanel>
                 </Border>
 
-                <!--  窄屏空态：显性会场/数据集选择（下拉选择，优于图标抽屉里的列表）  -->
-                <StackPanel
+                <!--  空态中部：会场 / 名单下拉，与顶部数据条并存  -->
+                <Grid
                   x:Name="WelcomeSelectors"
-                  IsVisible="{Binding ShowWelcomeSelectors}"
-                  Spacing="8">
+                  MaxWidth="560"
+                  HorizontalAlignment="Stretch"
+                  ColumnDefinitions="*,*"
+                  ColumnSpacing="8">
                   <ComboBox
                     AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectVenuePH}"
                     HorizontalAlignment="Stretch"
@@ -633,6 +558,7 @@
                     </ComboBox.ItemTemplate>
                   </ComboBox>
                   <ComboBox
+                    Grid.Column="1"
                     AutomationProperties.Name="{x:Static lang:Resources.Seating_SelectDatasetPH}"
                     HorizontalAlignment="Stretch"
                     Classes="sf-input"
@@ -645,7 +571,7 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                </StackPanel>
+                </Grid>
 
                 <WrapPanel
                   HorizontalAlignment="Center"
@@ -990,7 +916,7 @@
       <!--  窄屏抽屉遮罩：点击关闭  -->
       <Border
         x:Name="DrawerMask"
-        Grid.ColumnSpan="3"
+        Grid.ColumnSpan="2"
         ZIndex="25"
         AutomationProperties.Name="{x:Static lang:Resources.Shell_CloseOverlay}"
         Background="{DynamicResource SfModalMaskBrush}"

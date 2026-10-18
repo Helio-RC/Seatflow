@@ -22,7 +22,13 @@ public class JsonVenueRepositoryTests : IDisposable
         var repo = CreateRepo();
         await repo.SaveAsync(
             "v1",
-            new ClassroomLayoutDefinition { Id = "v1", Name = "一号教室" },
+            new ClassroomLayoutDefinition
+            {
+                Id = "v1",
+                Name = "一号教室",
+                LayoutType = LayoutType.Polar,
+                Seats = [new GridSeat { Row = 1, Column = 1 }, new GridSeat { Row = 1, Column = 2 }],
+            },
             TestContext.Current.CancellationToken);
 
         var summaries = await repo.ListVenueSummariesAsync(TestContext.Current.CancellationToken);
@@ -30,6 +36,8 @@ public class JsonVenueRepositoryTests : IDisposable
         summaries.Should().ContainSingle();
         summaries[0].Id.Should().Be("v1");
         summaries[0].Name.Should().Be("一号教室");
+        summaries[0].LayoutType.Should().Be(LayoutType.Polar, "摘要应携带布局类型");
+        summaries[0].SeatCount.Should().Be(2, "摘要应携带座位数");
     }
 
     [Fact]

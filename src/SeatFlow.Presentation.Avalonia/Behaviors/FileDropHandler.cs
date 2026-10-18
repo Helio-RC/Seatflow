@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,7 @@ using SeatFlow.Presentation.Avalonia.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using FluentIcons.Common;
 using AvaloniaApp = Avalonia.Application;
 
@@ -45,17 +47,17 @@ public sealed class FileDropHandler
 
     private ViewModelBase? ResolveCurrentViewModel() => _navigation.CurrentViewModel;
 
-    private static string[]? GetDroppedFilePaths(DragEventArgs e)
+    private static IStorageItem[]? GetDroppedFiles(DragEventArgs e)
     {
         if (!e.DataTransfer.Formats.Contains(DataFormat.File))
             return null;
 
         var files = e.DataTransfer.TryGetFiles();
-        if (files is null)
-            return null;
-
-        return files.Select(f => f.Path.LocalPath).ToArray();
+        return files is { Length: > 0 } ? files : null;
     }
+
+    private static string? GetExtension(IStorageItem item)
+        => Path.GetExtension(item.Name)?.ToLowerInvariant();
 
     /// <summary>判断当前拖入的文件是否被当前页面接受。</summary>
     private bool IsAcceptedByCurrentPage(DragEventArgs e)
@@ -66,15 +68,49 @@ public sealed class FileDropHandler
         if (vm is not IFileDropHandler handler)
             return false;
 
-        if (!e.DataTransfer.Formats.Contains(DataFormat.File))
+        var files = GetDroppedFiles(e);
+        if (files is null || files.Length > 1)
             return false;
 
-        var filePaths = GetDroppedFilePaths(e);
-        if (filePaths is null || filePaths.Length == 0 || filePaths.Length > 1)
-            return false;
-
-        var ext = Path.GetExtension(filePaths[0])?.ToLowerInvariant();
+        var ext = GetExtension(files[0]);
         return ext is not null && handler.AcceptedFileExtensions.Contains(ext);
+    }
+
+    /// <summary>
+    /// 把拖入的浏览器文件落成内存文件系统临时路径，复用现有按路径导入的管线；
+    /// 桌面端直接返回真实路径，避免无谓复制。
+    /// </summary>
+    private static async Task<IReadOnlyList<string>> ResolveFilePathsAsync(
+        IReadOnlyList<IStorageItem> files,
+        CancellationToken ct)
+    {
+        if (!OperatingSystem.IsBrowser())
+            return files.Select(f => f.Path.LocalPath).ToArray();
+
+        var dir = Path.Combine(
+            Path.GetTempPath(), "seatflow-uploads", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+
+        var paths = new List<string>(files.Count);
+        foreach (var item in files)
+        {
+            if (item is not IStorageFile file) continue;
+
+            var fileName = Path.GetFileName(item.Name);
+            if (string.IsNullOrWhiteSpace(fileName))
+                fileName = "upload.bin";
+
+            var path = Path.Combine(dir, fileName);
+            await using (var source = await file.OpenReadAsync())
+            await using (var target = File.Create(path))
+            {
+                await source.CopyToAsync(target, ct);
+            }
+
+            paths.Add(path);
+        }
+
+        return paths;
     }
 
     /// <summary>显示遮罩覆盖层并根据页面对文件的接受情况设置图标、文字和边框颜色。</summary>
@@ -147,17 +183,17 @@ public sealed class FileDropHandler
             return;
         }
 
-        var filePaths = GetDroppedFilePaths(e);
-        if (filePaths is null || filePaths.Length == 0)
+        var files = GetDroppedFiles(e);
+        if (files is null)
             return;
 
-        if (filePaths.Length > 1)
+        if (files.Length > 1)
         {
             e.DragEffects = DragDropEffects.None;
             return;
         }
 
-        var ext = Path.GetExtension(filePaths[0])?.ToLowerInvariant();
+        var ext = GetExtension(files[0]);
         if (ext is not null && handler.AcceptedFileExtensions.Contains(ext))
         {
             e.DragEffects = DragDropEffects.Copy;
@@ -176,19 +212,24 @@ public sealed class FileDropHandler
 
         try
         {
-            var filePaths = GetDroppedFilePaths(e);
-            if (filePaths is null || filePaths.Length == 0)
+            var files = GetDroppedFiles(e);
+            if (files is null)
                 return;
 
             var vm = ResolveCurrentViewModel();
 
-            if (filePaths.Length > 1)
+            if (files.Length > 1)
             {
                 var confirmed = await _dialog.ShowConfirmAsync(
                     Resources.DragDrop_MultipleFilesTitle,
-                    string.Format(Resources.DragDrop_MultipleFilesMsg, filePaths.Length));
+                    string.Format(Resources.DragDrop_MultipleFilesMsg, files.Length));
                 if (!confirmed) return;
             }
+
+            // 页面导入只消费第一个文件；多文件确认后也只落盘第一个，避免无谓复制。
+            var filePaths = await ResolveFilePathsAsync([files[0]], CancellationToken.None);
+            if (filePaths.Count == 0)
+                return;
 
             var filePath = filePaths[0];
             var ext = Path.GetExtension(filePath)?.ToLowerInvariant();

@@ -47,7 +47,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
 - **日志**：Serilog 4 + `ILogger<T>`，文件 sink，`AppSettings.CategoryOverrides` 支持分模块等级；详见 `docs/LOGGING.md`。
 - **双壳**：`SeatFlow.Desktop`（EXE，AssemblyName=`SeatFlow`）与 `SeatFlow.Browser`（WASM 静态站）。
   存储经 `ILocalDataStore`（桌面=文件系统 / WASM=IndexedDB）；PDF/图片导出、自动更新、Watchdog、单实例仅桌面；
-  Web 对话框为 overlay。桌面主窗最小 360×480（可缩至手机比例，与浏览器共用同一响应式三档布局）。浏览器外壳 `MainView : UserControl`（不能构造 `Window`），JSON 需反射序列化开关，
+  Web 对话框为 overlay；文件拖放两端均可用（WASM 先把浏览器文件写入 MEMFS 临时路径），关闭/刷新未保存提示在 Web 走 `beforeunload`。桌面主窗最小 360×480（可缩至手机比例，与浏览器共用同一响应式三档布局）。浏览器外壳 `MainView : UserControl`（不能构造 `Window`），JSON 需反射序列化开关，
   CJK 由嵌入 Noto Sans SC 回退，语言在 `Program.Main` 于 Avalonia 启动前异步预加载。
   启动加载页以 `wwwroot/index.html` 的 `.avalonia-splash` 为契约（运行时按类名添加 `splash-close` 隐藏，类名与样式不可删改），进度经 `withModuleConfig({ onDownloadResourceProgress })` 上报。
   **WASM 运行时语言切换**需 `UseSystemResourceKeys=false` + `main.js` 的 `loadAllSatelliteResources: true`（详见 `docs/WebDeployment.md`）。
@@ -189,7 +189,7 @@ Grid 座位按**行主序**生成（RandomFill 逐行填充的前提）。
 `venueHash` 对比现行会场做完整性提示（会场删除=红、布局变更=黄、数据变更=黄并高亮）；回滚前按完整性弹窗恢复/导入会场。
 `AppSettings.MaxSnapshotsPerVenue`（默认 30，0=不限）超限自动删最旧。
 
-**会场**：编辑保存时按位置复用座位 ID（`(Row,Column)` / `(Ring,Angle)` 映射），避免快照 `SeatAssignments` 失效。新建会场统一由 `VenueLayoutDefaults` 提供 Grid 默认参数（OOBE 与会场页一致），ID 为 8 位、名称为 `新会场_<id>`。
+**会场**：编辑保存时按位置复用座位 ID（`(Row,Column)` / `(Ring,Angle)` 映射），避免快照 `SeatAssignments` 失效。新建会场统一由 `VenueLayoutDefaults` 提供 Grid 默认参数（OOBE 与会场页一致），ID 为 8 位、名称为 `新会场_<id>`。列表摘要轻量解析名称/布局类型/座位数（`VenueSummary`），不反序列化座位。
 
 **名单数据集**：点选即加载（无 Load 按钮）；脏检查 = `DirtyTracker` + `IsNewStudentDirty`；
 切换数据集走三键对话框（保存/放弃/取消），取消经 `_suppressDatasetLoad` 回退；导入数据无 ID 时保存走另存（`RenameSaveAsync`）。

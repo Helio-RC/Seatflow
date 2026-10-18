@@ -1104,12 +1104,6 @@ This cannot be undone.</value>
   <data name="Seating_InspectorShort" xml:space="preserve">
     <value>Panel</value>
   </data>
-  <data name="Seating_PickerShort" xml:space="preserve">
-    <value>Data</value>
-  </data>
-  <data name="Seating_PickerTitle" xml:space="preserve">
-    <value>Data</value>
-  </data>
   <data name="Seating_ReleaseNotes" xml:space="preserve">
     <value>Release notes</value>
   </data>
@@ -1168,7 +1162,7 @@ This cannot be undone.</value>
     <value>No seating generated yet</value>
   </data>
   <data name="Seating_NotGeneratedHint" xml:space="preserve">
-    <value>Select a venue and member set from the left panel, then click Generate</value>
+    <value>Choose a venue and roster, then click Generate seating</value>
   </data>
   <data name="Seating_Obstacle" xml:space="preserve">
     <value>Obstacle</value>
@@ -1241,9 +1235,6 @@ This cannot be undone.</value>
   </data>
   <data name="Seating_MemberData" xml:space="preserve">
     <value>Roster</value>
-  </data>
-  <data name="Seating_MemberDatasetList" xml:space="preserve">
-    <value>Member dataset list</value>
   </data>
   <data name="Seating_MessagesGroupError" xml:space="preserve">
     <value>Error</value>
@@ -2290,6 +2281,9 @@ Current seating will be overwritten.</value>
   </data>
   <data name="Venue_SavedFmt" xml:space="preserve">
     <value>Venue &quot;{0}&quot; saved, {1} seats</value>
+  </data>
+  <data name="Venue_SeatCountFmt" xml:space="preserve">
+    <value>{0} seats</value>
   </data>
   <data name="Venue_SeatsPerRing" xml:space="preserve">
     <value>Seats per ring</value>

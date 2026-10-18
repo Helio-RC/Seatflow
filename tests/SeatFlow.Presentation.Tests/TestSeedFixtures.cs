@@ -12,7 +12,7 @@ internal static class TestSeedFixtures
     public static void SeedSeating(SeatingArrangementViewModel vm)
     {
         vm.VenueItems.Clear();
-        vm.VenueItems.Add(new VenueItem("demo-v", "演示教室"));
+        vm.VenueItems.Add(new VenueItem("demo-v", "演示教室", LayoutType.Grid, 12));
         vm.DatasetItems.Clear();
         vm.DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
         vm.SelectedVenue = vm.VenueItems[0];

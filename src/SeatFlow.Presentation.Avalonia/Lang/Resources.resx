@@ -1104,12 +1104,6 @@
   <data name="Seating_InspectorShort" xml:space="preserve">
     <value>面板</value>
   </data>
-  <data name="Seating_PickerShort" xml:space="preserve">
-    <value>数据</value>
-  </data>
-  <data name="Seating_PickerTitle" xml:space="preserve">
-    <value>数据选择</value>
-  </data>
   <data name="Seating_ReleaseNotes" xml:space="preserve">
     <value>更新说明</value>
   </data>
@@ -1170,7 +1164,7 @@
     <value>尚未生成座位安排</value>
   </data>
   <data name="Seating_NotGeneratedHint" xml:space="preserve">
-    <value>请从左侧选择一个会场和数据集，然后点击「生成座位安排」</value>
+    <value>请选择会场和名单，然后点击「生成座位安排」</value>
   </data>
   <data name="Seating_Obstacle" xml:space="preserve">
     <value>障碍物</value>
@@ -1243,9 +1237,6 @@
   </data>
   <data name="Seating_MemberData" xml:space="preserve">
     <value>名单</value>
-  </data>
-  <data name="Seating_MemberDatasetList" xml:space="preserve">
-    <value>数据集列表</value>
   </data>
   <data name="Seating_MessagesGroupError" xml:space="preserve">
     <value>错误</value>
@@ -2299,6 +2290,9 @@
   </data>
   <data name="Venue_SavedFmt" xml:space="preserve">
     <value>会场「{0}」已保存，共 {1} 个座位</value>
+  </data>
+  <data name="Venue_SeatCountFmt" xml:space="preserve">
+    <value>{0} 座</value>
   </data>
   <data name="Venue_SeatsPerRing" xml:space="preserve">
     <value>每环座位数</value>

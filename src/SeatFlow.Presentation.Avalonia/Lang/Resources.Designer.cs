@@ -373,8 +373,6 @@ public class Resources
     public static string Seating_GenerateHoldInlineTip => ResourceManager.GetString("Seating_GenerateHoldInlineTip", Culture)!;
     public static string Seating_GenerateHoldTip => ResourceManager.GetString("Seating_GenerateHoldTip", Culture)!;
     public static string Seating_InspectorShort => ResourceManager.GetString("Seating_InspectorShort", Culture)!;
-    public static string Seating_PickerShort => ResourceManager.GetString("Seating_PickerShort", Culture)!;
-    public static string Seating_PickerTitle => ResourceManager.GetString("Seating_PickerTitle", Culture)!;
     public static string Seating_ReleaseNotes => ResourceManager.GetString("Seating_ReleaseNotes", Culture)!;
     public static string Seating_ResetZoom => ResourceManager.GetString("Seating_ResetZoom", Culture)!;
     public static string Seating_SelectDatasetPH => ResourceManager.GetString("Seating_SelectDatasetPH", Culture)!;
@@ -419,7 +417,6 @@ public class Resources
     public static string Seating_SnapshotFailed => ResourceManager.GetString("Seating_SnapshotFailed", Culture)!;
     public static string Seating_SnapshotSaved => ResourceManager.GetString("Seating_SnapshotSaved", Culture)!;
     public static string Seating_MemberData => ResourceManager.GetString("Seating_MemberData", Culture)!;
-    public static string Seating_MemberDatasetList => ResourceManager.GetString("Seating_MemberDatasetList", Culture)!;
     public static string Seating_MessagesGroupError => ResourceManager.GetString("Seating_MessagesGroupError", Culture)!;
     public static string Seating_MessagesGroupWarning => ResourceManager.GetString("Seating_MessagesGroupWarning", Culture)!;
     public static string Seating_SwapDescFmt => ResourceManager.GetString("Seating_SwapDescFmt", Culture)!;
@@ -766,6 +763,7 @@ public class Resources
     public static string Venue_SaveFailed => ResourceManager.GetString("Venue_SaveFailed", Culture)!;
     public static string Venue_SaveVenue => ResourceManager.GetString("Venue_SaveVenue", Culture)!;
     public static string Venue_SavedFmt => ResourceManager.GetString("Venue_SavedFmt", Culture)!;
+    public static string Venue_SeatCountFmt => ResourceManager.GetString("Venue_SeatCountFmt", Culture)!;
     public static string Venue_SeatsPerRing => ResourceManager.GetString("Venue_SeatsPerRing", Culture)!;
     public static string Venue_SeatsPerRingTooltip => ResourceManager.GetString("Venue_SeatsPerRingTooltip", Culture)!;
     public static string Venue_SelectHint => ResourceManager.GetString("Venue_SelectHint", Culture)!;

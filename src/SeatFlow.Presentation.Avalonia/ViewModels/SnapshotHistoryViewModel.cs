@@ -277,7 +277,7 @@ public partial class SnapshotHistoryViewModel : ViewModelBase, IPageLifecycle
                 {
                     // 快照以 layout.Id 为键存储（而非会场文件 ID，两者可能不同）→ 用 layout.Id 查询
                     // 前提：UI（VenueConfiguration）保存时会令 layout.Id == 会场文件 ID；老数据若不一致则会误报“会场已删除”
-                    items.Add(new VenueItem(layout.Id, layout.Name));
+                    items.Add(new VenueItem(layout.Id, layout.Name, layout.LayoutType, layout.Seats.Count));
                 }
             }
 

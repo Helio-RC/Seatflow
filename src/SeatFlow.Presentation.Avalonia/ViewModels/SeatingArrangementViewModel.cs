@@ -137,7 +137,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     public partial bool IsContinuousGenerating { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowGeneratedSelectorBar))]
     public partial bool HasGenerated { get; set; }
 
 
@@ -169,32 +168,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     // ── M3/M7 工作台外壳：布局档位 / 抽屉三态 / 欢迎卡 ──
 
-    /// <summary>外壳布局状态（窄屏下左选择栏与右检查器转为右抽屉，手机档全屏覆盖）。</summary>
+    /// <summary>外壳布局状态（窄屏下检查器转为右抽屉，手机档全屏覆盖；数据选择固定在顶部下拉条）。</summary>
     public IShellLayoutService Layout => _layout;
 
     /// <summary>空态欢迎卡（承接原 Home 的欢迎语 / 快捷链接 / RELEASE 更新说明）。</summary>
     public WelcomeCardViewModel Welcome { get; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PickerVisible))]
-    [NotifyPropertyChangedFor(nameof(DrawerMaskVisible))]
-    public partial bool IsPickerDrawerOpen { get; set; }
-
-    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(InspectorVisible))]
     [NotifyPropertyChangedFor(nameof(DrawerMaskVisible))]
     public partial bool IsInspectorDrawerOpen { get; set; }
-
-    /// <summary>桌面：左选择栏常驻；窄屏：仅抽屉/全屏展开时可见。</summary>
-    public bool PickerVisible => !_layout.IsNarrow || IsPickerDrawerOpen;
-
-    /// <summary>左选择栏宽度（桌面内联 248；紧凑抽屉 320；手机档 NaN 全宽）。</summary>
-    public double PickerPanelWidth => _layout.Tier switch
-    {
-        Services.LayoutTier.Phone => double.NaN,
-        Services.LayoutTier.Compact => 320,
-        _ => 248
-    };
 
     /// <summary>右检查器宽度（桌面/紧凑 320；手机档 NaN 全宽）。</summary>
     public double InspectorPanelWidth => _layout.Tier switch
@@ -209,17 +192,8 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// <summary>命令栏标题是否可见（桌面与手机档；紧凑档外壳顶栏已有标题）。</summary>
     public bool TitleVisible => _layout.Tier != Services.LayoutTier.Compact;
 
-    /// <summary>窄屏空态：欢迎卡内联会场/数据集下拉（显性选择，优于「数据」图标抽屉入口）。</summary>
-    public bool ShowWelcomeSelectors => _layout.IsNarrow;
-
-    /// <summary>窄屏生成态：命令栏下方会场/数据集选择条（显性切换，避免选择器藏进图标按钮）。</summary>
-    public bool ShowGeneratedSelectorBar => _layout.IsNarrow && HasGenerated;
-
-    /// <summary>左选择栏所在列（桌面 0；窄屏切到画布列覆盖）。</summary>
-    public int PickerPanelColumn => _layout.IsNarrow ? 1 : 0;
-
-    /// <summary>右检查器所在列（桌面 2；窄屏切到画布列覆盖）。</summary>
-    public int InspectorPanelColumn => _layout.IsNarrow ? 1 : 2;
+    /// <summary>右检查器所在列（桌面 1；窄屏切到唯一内容列覆盖）。</summary>
+    public int InspectorPanelColumn => _layout.IsNarrow ? 0 : 1;
 
     /// <summary>抽屉/内联面板的水平对齐（紧凑右对齐；桌面与手机档拉伸）。</summary>
     public global::Avalonia.Layout.HorizontalAlignment PanelHorizontalAlignment =>
@@ -235,14 +209,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         _ => 0
     };
 
-    /// <summary>左选择栏描边（桌面右边框；紧凑抽屉左边框；手机档无边）。</summary>
-    public global::Avalonia.Thickness PickerPanelBorderThickness => _layout.Tier switch
-    {
-        Services.LayoutTier.Phone => new global::Avalonia.Thickness(0),
-        Services.LayoutTier.Compact => new global::Avalonia.Thickness(1, 0, 0, 0),
-        _ => new global::Avalonia.Thickness(0, 0, 1, 0)
-    };
-
     /// <summary>右检查器描边（桌面/紧凑左边框；手机档无边）。</summary>
     public global::Avalonia.Thickness InspectorPanelBorderThickness => _layout.Tier switch
     {
@@ -253,9 +219,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// <summary>桌面：右检查器常驻；窄屏：仅抽屉/全屏展开时可见。</summary>
     public bool InspectorVisible => !_layout.IsNarrow || IsInspectorDrawerOpen;
 
-    /// <summary>仅紧凑档且任一抽屉展开时显示遮罩（手机档全屏覆盖无遮罩）。</summary>
+    /// <summary>仅紧凑档且检查器抽屉展开时显示遮罩（手机档全屏覆盖无遮罩）。</summary>
     public bool DrawerMaskVisible =>
-        _layout.Tier == Services.LayoutTier.Compact && (IsPickerDrawerOpen || IsInspectorDrawerOpen);
+        _layout.Tier == Services.LayoutTier.Compact && IsInspectorDrawerOpen;
 
     /// <summary>是否手机档全屏覆盖（面板内容据此显示返回头部）。</summary>
     public bool IsFullScreen => _layout.IsPhone;
@@ -325,24 +291,16 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     {
         if (e.PropertyName != nameof(IShellLayoutService.Tier)) return;
         if (!_layout.IsNarrow)
-        {
-            IsPickerDrawerOpen = false;
             IsInspectorDrawerOpen = false;
-        }
-        OnPropertyChanged(nameof(PickerVisible));
-        OnPropertyChanged(nameof(PickerPanelWidth));
+
         OnPropertyChanged(nameof(InspectorPanelWidth));
         OnPropertyChanged(nameof(InspectorVisible));
         OnPropertyChanged(nameof(DrawerMaskVisible));
         OnPropertyChanged(nameof(CommandTextVisible));
         OnPropertyChanged(nameof(TitleVisible));
-        OnPropertyChanged(nameof(ShowWelcomeSelectors));
-        OnPropertyChanged(nameof(ShowGeneratedSelectorBar));
-        OnPropertyChanged(nameof(PickerPanelColumn));
         OnPropertyChanged(nameof(InspectorPanelColumn));
         OnPropertyChanged(nameof(PanelHorizontalAlignment));
         OnPropertyChanged(nameof(PanelZIndex));
-        OnPropertyChanged(nameof(PickerPanelBorderThickness));
         OnPropertyChanged(nameof(InspectorPanelBorderThickness));
         OnPropertyChanged(nameof(IsFullScreen));
     }
@@ -361,7 +319,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         _enterCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
         // 切换页面自动收起抽屉
-        IsPickerDrawerOpen = false;
         IsInspectorDrawerOpen = false;
 
         var token = _enterCts.Token;
@@ -386,7 +343,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         _enterCts?.Cancel();
         _generateCts?.Cancel();
         StopContinuousGenerate();
-        IsPickerDrawerOpen = false;
         IsInspectorDrawerOpen = false;
         // 为下一次进入准备新的完成信号，保证首次设置交接读到的是「下一次加载」而非旧任务
         _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -396,25 +352,10 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     // ── 抽屉命令 ──
 
     [RelayCommand]
-    private void TogglePickerDrawer()
-    {
-        IsPickerDrawerOpen = !IsPickerDrawerOpen;
-        if (IsPickerDrawerOpen) IsInspectorDrawerOpen = false;
-    }
+    private void ToggleInspectorDrawer() => IsInspectorDrawerOpen = !IsInspectorDrawerOpen;
 
     [RelayCommand]
-    private void ToggleInspectorDrawer()
-    {
-        IsInspectorDrawerOpen = !IsInspectorDrawerOpen;
-        if (IsInspectorDrawerOpen) IsPickerDrawerOpen = false;
-    }
-
-    [RelayCommand]
-    private void CloseDrawers()
-    {
-        IsPickerDrawerOpen = false;
-        IsInspectorDrawerOpen = false;
-    }
+    private void CloseDrawers() => IsInspectorDrawerOpen = false;
 
     // ═══════════════════════════════════════════════
     // IFileDropHandler：.seatsets 数据包导入（原 Home 页职责，M3 迁移到默认入口页）
@@ -459,34 +400,45 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         }
     }
 
-    /// <summary>会场/名单列表是否已加载（页面缓存策略：进入不重复加载，显式刷新）。</summary>
+    /// <summary>
+    /// 首次进入是否已完成（仅控制默认缩放/就绪提示只初始化一次）。
+    /// 会场与名单列表每次进入页面都自动刷新，不缓存。
+    /// </summary>
     private bool _dataLoaded;
 
-    /// <summary>标记列表数据失效（下次进入或刷新时重新加载）。</summary>
+    /// <summary>标记首次进入状态失效（下次刷新时重新应用默认缩放与就绪提示）。</summary>
     public void InvalidateData() => _dataLoaded = false;
 
-    /// <summary>显式刷新会场/名单列表（页面缓存策略的手动入口）。</summary>
+    /// <summary>显式刷新会场/名单列表（数据选择条的手动刷新入口）。</summary>
     [RelayCommand]
-    private async Task ReloadDataAsync()
-    {
-        _dataLoaded = false;
-        await RefreshDataAsync();
-    }
+    private Task ReloadDataAsync() => RefreshDataAsync();
 
     public async Task RefreshDataAsync(CancellationToken ct = default)
     {
+        // 自动刷新：会场/名单可在其他页面被重命名、增删或导入，进入本页时始终拉取最新摘要。
+        try
+        {
+            await RefreshVenueSummariesAsync(ct);
+            await RefreshDatasetItemsAsync(ct);
+            ct.ThrowIfCancellationRequested();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "刷新排座工作台会场/名单列表失败");
+            await Dialog.ShowErrorAsync(Resources.Common_OperationFailed, ex.Message);
+        }
+
         if (!_dataLoaded)
         {
-            await Task.WhenAll(LoadVenuesAsync(), LoadDatasetsAsync(), LoadDefaultZoomAsync());
-            ct.ThrowIfCancellationRequested();
+            await LoadDefaultZoomAsync();
             _dataLoaded = true;
             StatusMessage = Resources.Seating_ReadyHint;
         }
-        else
-        {
-            // 重新进入页面时轻量刷新会场名称（会场可在「会场与布局」页被重命名/增删）
-            await RefreshVenueSummariesAsync(ct);
-        }
+
         await TryRestoreWorkspaceAsync();
     }
 
@@ -519,7 +471,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
                 venues
                     .OrderBy(v => v.Name, NaturalStringComparer.Instance)
                     .ThenBy(v => v.Id, StringComparer.Ordinal)
-                    .Select(v => new VenueItem(v.Id, v.Name)));
+                    .Select(v => new VenueItem(v.Id, v.Name, v.LayoutType, v.SeatCount)));
             var datasets = await _facade.ListStudentDatasetsAsync(ct);
             DatasetItems = new ObservableCollection<StudentDatasetInfo>(datasets);
             _dataLoaded = true;
@@ -610,20 +562,6 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         }
     }
 
-    [RelayCommand]
-    private async Task LoadVenuesAsync()
-    {
-        await SafeExecuteAsync(async () =>
-        {
-            var summaries = await _facade.ListVenueSummariesAsync();
-            VenueItems = new ObservableCollection<VenueItem>(
-                summaries
-                    .OrderBy(s => s.Name, NaturalStringComparer.Instance)
-                    .ThenBy(s => s.Id, StringComparer.Ordinal)
-                    .Select(s => new VenueItem(s.Id, s.Name)));
-        });
-    }
-
     /// <summary>
     /// 轻量刷新会场列表（摘要读取，不反序列化布局）：按 Id 保留选中项，
     /// 名称变化时原位替换，增删会场时同步集合。
@@ -657,12 +595,18 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
                 if (index >= 0)
                 {
-                    if (VenueItems[index].Name != summary.Name)
-                        VenueItems[index] = new VenueItem(summary.Id, summary.Name);
+                    if (VenueItems[index].Name != summary.Name
+                        || VenueItems[index].LayoutType != summary.LayoutType
+                        || VenueItems[index].SeatCount != summary.SeatCount)
+                    {
+                        VenueItems[index] = new VenueItem(
+                            summary.Id, summary.Name, summary.LayoutType, summary.SeatCount);
+                    }
                 }
                 else
                 {
-                    VenueItems.Add(new VenueItem(summary.Id, summary.Name));
+                    VenueItems.Add(new VenueItem(
+                        summary.Id, summary.Name, summary.LayoutType, summary.SeatCount));
                 }
             }
 
@@ -681,7 +625,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
             }
 
             if (!string.IsNullOrEmpty(selectedId))
-                SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == selectedId) ?? SelectedVenue;
+                SelectedVenue = VenueItems.FirstOrDefault(v => v.Id == selectedId);
         }
         finally
         {
@@ -689,14 +633,66 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         }
     }
 
-    [RelayCommand]
-    private async Task LoadDatasetsAsync()
+    /// <summary>
+    /// 自动刷新名单列表：按 Id 保留选中项，名称/人数变化时原位替换，增删时同步集合。
+    /// </summary>
+    private async Task RefreshDatasetItemsAsync(CancellationToken ct)
     {
-        await SafeExecuteAsync(async () =>
+        var datasets = (await _facade.ListStudentDatasetsAsync(ct))
+            .OrderBy(d => d.Name, NaturalStringComparer.Instance)
+            .ThenBy(d => d.Id, StringComparer.Ordinal)
+            .ToList();
+        ct.ThrowIfCancellationRequested();
+
+        var selectedId = SelectedDataset?.Id;
+        var byId = datasets.ToDictionary(d => d.Id);
+        for (var i = DatasetItems.Count - 1; i >= 0; i--)
         {
-            var datasets = await _facade.ListStudentDatasetsAsync();
-            DatasetItems = new ObservableCollection<StudentDatasetInfo>(datasets);
-        });
+            if (!byId.ContainsKey(DatasetItems[i].Id))
+                DatasetItems.RemoveAt(i);
+        }
+
+        foreach (var dataset in datasets)
+        {
+            var index = -1;
+            for (var i = 0; i < DatasetItems.Count; i++)
+            {
+                if (DatasetItems[i].Id == dataset.Id) { index = i; break; }
+            }
+
+            if (index >= 0)
+            {
+                var current = DatasetItems[index];
+                if (current.Name != dataset.Name
+                    || current.StudentCount != dataset.StudentCount
+                    || current.OriginalFileName != dataset.OriginalFileName
+                    || current.CreatedAt != dataset.CreatedAt)
+                {
+                    DatasetItems[index] = dataset;
+                }
+            }
+            else
+            {
+                DatasetItems.Add(dataset);
+            }
+        }
+
+        // 名称自然排序：把现有项移动到有序位置（新增项已按 datasets 顺序追加）
+        for (var target = 0; target < datasets.Count; target++)
+        {
+            var targetId = datasets[target].Id;
+            var current = -1;
+            for (var i = target; i < DatasetItems.Count; i++)
+            {
+                if (DatasetItems[i].Id == targetId) { current = i; break; }
+            }
+
+            if (current > target)
+                DatasetItems.Move(current, target);
+        }
+
+        if (!string.IsNullOrEmpty(selectedId))
+            SelectedDataset = DatasetItems.FirstOrDefault(d => d.Id == selectedId);
     }
 
     /// <summary>如果有活跃工作区（如快照回滚后），恢复座位图显示。</summary>

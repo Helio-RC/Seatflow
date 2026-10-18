@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using FluentAssertions;
 using NSubstitute;
 using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
 using SeatFlow.Core.Telemetry;
 using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.ViewModels;
@@ -198,25 +199,28 @@ public class ShellLayoutTierTests
     // ═══════════════ 排座工作台面板属性 ═══════════════
 
     [Fact]
-    public void 排座工作台_手机档_面板全屏无遮罩_标题保留()
+    public void 排座工作台_手机档_检查器全屏无遮罩_标题保留()
     {
         var layout = new ShellLayoutService();
         var vm = CreateSeatingVm(layout);
 
         layout.Tier = LayoutTier.Phone;
 
-        double.IsNaN(vm.PickerPanelWidth).Should().BeTrue();
         double.IsNaN(vm.InspectorPanelWidth).Should().BeTrue();
         vm.DrawerMaskVisible.Should().BeFalse();
         vm.IsFullScreen.Should().BeTrue();
         vm.TitleVisible.Should().BeTrue("手机档无外壳顶栏，页面标题需显示");
         vm.CommandTextVisible.Should().BeFalse();
+        vm.InspectorPanelColumn.Should().Be(0, "窄屏检查器覆盖唯一内容列");
 
         layout.Tier = LayoutTier.Compact;
 
-        vm.PickerPanelWidth.Should().Be(320);
+        vm.InspectorPanelWidth.Should().Be(320);
         vm.TitleVisible.Should().BeFalse("紧凑档外壳顶栏已有标题");
         vm.DrawerMaskVisible.Should().BeFalse();
+
+        vm.IsInspectorDrawerOpen = true;
+        vm.DrawerMaskVisible.Should().BeTrue("紧凑档展开检查器时显示遮罩");
     }
 
     [Fact]
@@ -227,36 +231,49 @@ public class ShellLayoutTierTests
 
         vm.TitleVisible.Should().BeTrue();
         vm.CommandTextVisible.Should().BeTrue();
-        vm.PickerPanelWidth.Should().Be(248);
         vm.InspectorPanelWidth.Should().Be(320);
-        vm.PickerVisible.Should().BeTrue();
+        vm.InspectorPanelColumn.Should().Be(1, "数据选择改为顶部下拉后画布占第 0 列、检查器第 1 列");
         vm.InspectorVisible.Should().BeTrue();
+        vm.IsFullScreen.Should().BeFalse();
+        vm.DrawerMaskVisible.Should().BeFalse();
     }
 
-    // ═══════════════ 窄屏显性选择器（会场/数据集，替代藏进图标按钮） ═══════════════
+    // ═══════════════ 数据选择条（会场/数据集折叠下拉，三档常驻） ═══════════════
 
-    [Fact]
-    public void 排座工作台_窄屏_显性选择器随状态切换()
+    [AvaloniaFact]
+    public void 排座工作台_三档_数据选择条常驻且释放左侧栏()
     {
-        var layout = new ShellLayoutService();
-        var vm = CreateSeatingVm(layout);
+        foreach (var tier in new[] { LayoutTier.Desktop, LayoutTier.Compact, LayoutTier.Phone })
+        {
+            var layout = new ShellLayoutService { Tier = tier };
+            var vm = CreateSeatingVm(layout);
+            var view = new SeatingArrangementView { DataContext = vm };
+            var window = new Window { Width = 900, Height = 700, Content = view };
+            window.Show();
+            window.UpdateLayout();
 
-        // 桌面：不使用内联下拉（左选择栏常显）
-        vm.ShowWelcomeSelectors.Should().BeFalse();
-        vm.ShowGeneratedSelectorBar.Should().BeFalse();
+            var bar = view.FindControl<Border>("DataSelectorBar");
+            bar.Should().NotBeNull();
+            bar!.IsEffectivelyVisible.Should().BeTrue($"{tier} 档应常驻数据选择条");
+            bar.GetVisualDescendants().OfType<ComboBox>().Should().HaveCount(2);
 
-        // 紧凑/手机空态：欢迎卡内下拉显示
-        layout.Tier = LayoutTier.Compact;
-        vm.ShowWelcomeSelectors.Should().BeTrue();
-        vm.ShowGeneratedSelectorBar.Should().BeFalse();
+            var welcome = view.FindControl<Grid>("WelcomeSelectors");
+            welcome.Should().NotBeNull();
+            welcome!.IsEffectivelyVisible.Should().BeTrue($"{tier} 档空态应在页面中部保留选择器");
+            welcome.GetVisualDescendants().OfType<ComboBox>().Should().HaveCount(2);
+            view.FindControl<Border>("PickerPanel").Should().BeNull("左侧列表栏应移除");
 
-        // 生成后：改为命令栏下方选择条
-        TestSeedFixtures.SeedSeating(vm);
-        vm.ShowGeneratedSelectorBar.Should().BeTrue();
+            TestSeedFixtures.SeedSeating(vm);
+            window.UpdateLayout();
+            welcome.IsEffectivelyVisible.Should().BeFalse("生成后欢迎卡隐藏，顶部数据条仍保留");
+            bar.IsEffectivelyVisible.Should().BeTrue();
+
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
-    public void 排座工作台视图_手机宽度_显性选择器可见且不溢出()
+    public void 排座工作台视图_手机宽度_数据选择条可见且不溢出()
     {
         var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
         var vm = CreateSeatingVm(layout);
@@ -270,23 +287,51 @@ public class ShellLayoutTierTests
         window.Show();
         window.UpdateLayout();
 
-        // 空态：欢迎卡内下拉可见、选择条隐藏
-        var welcome = view.FindControl<StackPanel>("WelcomeSelectors");
-        welcome.Should().NotBeNull();
-        welcome!.IsEffectivelyVisible.Should().BeTrue("手机档空态应在欢迎卡内显示显性下拉");
-        welcome.Bounds.Width.Should().BeGreaterThan(0);
-        view.FindControl<Border>("GeneratedSelectorBar")!.IsEffectivelyVisible.Should().BeFalse();
-
-        // 生成后：选择条可见且两个下拉各占约半宽
-        TestSeedFixtures.SeedSeating(vm);
-        window.UpdateLayout();
-        var bar = view.FindControl<Border>("GeneratedSelectorBar")!;
-        bar.IsEffectivelyVisible.Should().BeTrue("手机档生成态应在命令栏下方显示选择条");
+        var bar = view.FindControl<Border>("DataSelectorBar")!;
+        bar.IsEffectivelyVisible.Should().BeTrue("手机档也使用顶部下拉选择数据");
         bar.Bounds.Width.Should().BeLessThanOrEqualTo(360.5);
         var combos = bar.GetVisualDescendants().OfType<ComboBox>().ToList();
         combos.Should().HaveCount(2);
         combos.Should().OnlyContain(c => c.Bounds.Width > 100, "两个下拉应各占约半宽");
-        welcome.IsEffectivelyVisible.Should().BeFalse("生成后欢迎卡隐藏");
+
+        var welcome = view.FindControl<Grid>("WelcomeSelectors")!;
+        welcome.IsEffectivelyVisible.Should().BeTrue("手机档空态中部也应显示选择器");
+        welcome.GetVisualDescendants().OfType<ComboBox>().Should().HaveCount(2);
+        welcome.Bounds.Width.Should().BeLessThanOrEqualTo(360.5);
+
+        TestSeedFixtures.SeedSeating(vm);
+        window.UpdateLayout();
+        bar.IsEffectivelyVisible.Should().BeTrue("生成后选择条仍常驻");
+        welcome.IsEffectivelyVisible.Should().BeFalse("生成后中部选择器随欢迎卡隐藏");
+
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void 会场页_桌面_左侧列表为平铺侧栏_非悬浮卡片()
+    {
+        var layout = new ShellLayoutService { Tier = LayoutTier.Desktop };
+        var facade = Substitute.For<IApplicationFacade>();
+        facade.ListVenueSummariesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<VenueSummary>>([]));
+        var vm = new VenueConfigurationViewModel(
+            facade,
+            Substitute.For<IFileService>(),
+            Substitute.For<IDialogGate>(),
+            layout,
+            NullDialogService.Instance);
+        var view = new VenueConfigurationView { DataContext = vm };
+        var window = new Window { Width = 1200, Height = 800, Content = view };
+        window.Show();
+        window.UpdateLayout();
+
+        var panel = view.FindControl<Border>("VenueListPanel");
+        panel.Should().NotBeNull();
+        panel!.Classes.Should().NotContain("sf-panel", "会场侧栏应与人员/策略页一致，不使用悬浮卡片");
+        panel.CornerRadius.Should().Be(default(CornerRadius));
+        panel.BorderThickness.Should().Be(new Thickness(0, 0, 1, 0), "桌面内联为右侧分隔线");
+        panel.Width.Should().Be(240);
+        panel.IsEffectivelyVisible.Should().BeTrue();
 
         window.Close();
     }

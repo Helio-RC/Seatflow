@@ -146,9 +146,8 @@
         Width="{Binding ListPanel.Width}"
         HorizontalAlignment="{Binding ListPanel.Alignment}"
         ZIndex="{Binding ListPanel.ZIndex}"
-        Margin="{Binding ListPanelMargin}"
-        Classes="sf-panel"
-        CornerRadius="{Binding ListPanelCornerRadius}"
+        Background="{DynamicResource SfSurface2Brush}"
+        BorderBrush="{DynamicResource SfBorderBrush}"
         BorderThickness="{Binding ListPanel.BorderThickness}"
         IsVisible="{Binding ListPanel.Visible}">
         <DockPanel>
@@ -175,15 +174,16 @@
             </DockPanel>
           </Border>
           <TextBlock
-            Margin="12,10,12,8"
+            Margin="12,12,12,6"
             Classes="sf-h3"
             DockPanel.Dock="Top"
             IsVisible="{Binding !ListPanel.IsFullScreen}"
             Text="{x:Static lang:Resources.Venue_List}" />
           <StackPanel
-            Margin="12,8,12,12"
+            Margin="12,6,12,12"
             DockPanel.Dock="Bottom"
             Spacing="6">
+            <Border Classes="sf-divider" />
             <Button
               x:Name="NewVenueButton"
               Classes="sf-btn sf-primary sf-block"
@@ -205,16 +205,23 @@
             </Button>
           </StackPanel>
           <ListBox
-            Background="Transparent"
-            BorderThickness="0"
+            AutomationProperties.Name="{x:Static lang:Resources.Venue_List}"
+            Classes="sf-select"
             ItemsSource="{Binding VenueItems}"
             SelectedItem="{Binding SelectedVenueItem, Mode=TwoWay}">
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:VenueItem">
-                <TextBlock
-                  Margin="4,6"
-                  Classes="sf-sm"
-                  Text="{Binding Name}" />
+                <StackPanel Spacing="2">
+                  <TextBlock
+                    Classes="sf-sm"
+                    FontWeight="SemiBold"
+                    Text="{Binding Name}"
+                    TextTrimming="CharacterEllipsis" />
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Classes="sf-xs sf-faint" Text="{Binding SeatCountDisplay}" />
+                    <TextBlock Classes="sf-xs sf-faint" Text="{Binding LayoutLabel}" />
+                  </StackPanel>
+                </StackPanel>
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
