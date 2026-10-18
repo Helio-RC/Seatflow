@@ -8,8 +8,8 @@ public static class VenueLayoutDefaults
 {
     public const int GridRows = 5;
     public const int GridColumns = 8;
-    public const double GridHorizontalSpacing = 64;
-    public const double GridVerticalSpacing = 56;
+    public const double GridHorizontalSpacing = 60;
+    public const double GridVerticalSpacing = 45;
     public const double GridOriginX = 200;
     public const double GridOriginY = 200;
     public const int GridSeatsPerDesk = 2;

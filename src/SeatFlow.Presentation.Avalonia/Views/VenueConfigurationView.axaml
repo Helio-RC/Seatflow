@@ -338,26 +338,6 @@
                       ToolTip.Tip="{x:Static lang:Resources.Venue_VSpacingTooltip}"
                       Value="{Binding GridVerticalSpacing, Mode=TwoWay}" />
                   </StackPanel>
-                  <StackPanel Classes="sf-field">
-                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_OriginX}" />
-                    <NumericUpDown
-                      Classes="sf-input"
-                      Maximum="2000"
-                      Minimum="0"
-                      PlaceholderText="{x:Static lang:Resources.Venue_OriginXPH}"
-                      ToolTip.Tip="{x:Static lang:Resources.Venue_OriginXTooltip}"
-                      Value="{Binding GridOriginX, Mode=TwoWay}" />
-                  </StackPanel>
-                  <StackPanel Classes="sf-field">
-                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_OriginY}" />
-                    <NumericUpDown
-                      Classes="sf-input"
-                      Maximum="2000"
-                      Minimum="0"
-                      PlaceholderText="{x:Static lang:Resources.Venue_OriginYPH}"
-                      ToolTip.Tip="{x:Static lang:Resources.Venue_OriginYTooltip}"
-                      Value="{Binding GridOriginY, Mode=TwoWay}" />
-                  </StackPanel>
                 </WrapPanel>
 
                 <Border Classes="sf-divider" />

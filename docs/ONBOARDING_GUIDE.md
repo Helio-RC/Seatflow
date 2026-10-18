@@ -56,7 +56,7 @@ App.InitializeAsync
 ## 数据与保存
 
 - **名单**：上传仅 `.xlsx`；首次保存用 `SaveStudentDatasetAsync`，回退再改走 `UpdateStudentDatasetAsync`，避免重复数据集。已有数据集可编辑：继续时仅有改动才按原 ID 原地更新；`OOBE` 保留导入顺序，不按姓名重排，空白名单从 0 行开始并用底部新增行输入。
-- **会场**：新建写 `GridLayoutBuilder.BuildGrid` + `SaveVenueAsync`；默认参数统一由 `VenueLayoutDefaults` 提供（横/纵间距 64/56、桌内/桌间 40/32、过道 60、讲台 100×40），与会场页「新建会场」完全一致；新建 ID 为 8 位、名称为 `新会场_<id>`；进入会场步骤默认新建，不自动选中上次会场，已有会场需在列表中手动载入。已有网格会场只改四项，其余元数据保留，并按 `(Row,Column)` 复用座位 ID；非网格会场只读沿用。会场控件与会场页共用 `sf-chip` 过道、`sf-field`/`sf-hint` 标签与同一组范围/tooltip；预览为编辑区下方的全宽卡片，支持左键拖空白平移、滚轮缩放。
+- **会场**：新建写 `GridLayoutBuilder.BuildGrid` + `SaveVenueAsync`；默认参数统一由 `VenueLayoutDefaults` 提供（横/纵间距 60/45、桌内/桌间 40/32、过道 60、讲台 100×40），与会场页「新建会场」完全一致；新建 ID 为 8 位、名称为 `新会场_<id>`；进入会场步骤默认新建，不自动选中上次会场，已有会场需在列表中手动载入。已有网格会场只改四项，其余元数据保留，并按 `(Row,Column)` 复用座位 ID；非网格会场只读沿用。会场控件与会场页共用 `sf-chip` 过道、`sf-field`/`sf-hint` 标签与同一组范围/tooltip；预览为编辑区下方的全宽卡片，支持左键拖空白平移、滚轮缩放。
 - **完成标记**：`CompleteAsync` 写 `IsFirstLaunch=false`；首次生成成功也会立即写 false。
 - **保存期间锁定**：`IsBusy` 时步骤内容 `IsEnabled=false`，避免慢盘保存期间继续编辑导致未保存修改被交接丢弃；会场保存后若编辑版本变化，停留会场并提示重新保存。
 - **交接**：`SeatingArrangementViewModel.PrepareOobeHandoffAsync` 等待 `InitializationTask`（10s 超时）、绕过 `_dataLoaded` 重新加载列表、显式 `LoadVenueAsync`，再设置选中项。交接准备结束后按初始化任务状态解除覆盖保护，后续导入 `.seatsets` 仍会恢复工作区。生成缺数据结果携带 `SeatingMissingData`（会场/名单/两者），交接卡据此精确提示并跳转到对应步骤；空名单也归入缺名单而不是失败卡。
