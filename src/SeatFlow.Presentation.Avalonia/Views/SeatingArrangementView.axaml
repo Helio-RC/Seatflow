@@ -592,10 +592,15 @@
                     </StackPanel>
                   </controls:HoldRepeatButton>
                   <Button
+                    AutomationProperties.Name="{x:Static lang:Resources.Seating_CreateEmpty}"
                     Classes="sf-btn"
                     Command="{Binding CreateEmptySeatingCommand}"
-                    IsEnabled="{Binding CanCreateEmpty}">
-                    <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_CreateEmpty}" />
+                    IsEnabled="{Binding CanCreateEmpty}"
+                    ToolTip.Tip="{x:Static lang:Resources.Seating_CreateEmpty}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.TableAdd}" />
+                      <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Seating_CreateEmpty}" />
+                    </StackPanel>
                   </Button>
                 </WrapPanel>
 
