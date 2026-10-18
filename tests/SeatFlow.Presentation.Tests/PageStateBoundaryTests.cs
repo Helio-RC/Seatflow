@@ -34,7 +34,7 @@ public class PageStateBoundaryTests
         vm.HasData.Should().BeFalse();
 
         // 注入内容 → Content
-        vm.SeedGuideData();
+        TestSeedFixtures.SeedMember(vm);
 
         vm.IsEmpty.Should().BeFalse();
         vm.HasData.Should().BeTrue();

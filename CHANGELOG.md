@@ -4,6 +4,25 @@
 
 ## [Unreleased]
 
+### Added
+- **OOBE 首次设置重写（ADR-016）**：移除 CodeWF Guide 与 JSON Tour，改为 `MainView` 内全屏覆盖层；欢迎/遥测 → 启动偏好 → 名单 → 会场 → 生成交接，真实写入数据集与会场
+- 首启判定 `FirstLaunchPolicy` + `StartupRestoreState`：真实首启、设置重跑、`.seatsets` 自动导入均进入 OOBE；`IsFirstLaunch` 在首启落盘、完成/跳过/首次生成成功才置 false
+- 自绘 `CoachMarkOverlay`：高亮生成按钮，成功/失败/缺数据卡片；全屏 OOBE 与交接阶段统一 `IOobeService.IsActive`
+- `VenueGridPreviewBuilder` / `SeatLayoutSnapshotNormalizer`：OOBE 与会场页共用网格预览几何
+- 遥测 `ApplyEnabled`：OOBE 单次写盘后同步内存状态，避免 `SetEnabled` 二次落盘竞态
+
+### Changed
+- **OOBE 界面统一**：欢迎屏改为「第一排」三步课桌布局（中间过道），移除右侧装饰预览卡、重复的「跳过设置」与左上角占位 S 徽标；名单表格抽为共享 `StudentRosterTable`，与人员管理页共用行内编辑/新增行，已有数据集可编辑并原地更新（保留导入顺序）；会场步骤复用会场页的 `sf-chip` 过道、`sf-field`/`sf-hint` 标签与范围/tooltip，会场预览改为编辑区下方的全宽卡片，支持拖空白平移与滚轮缩放
+- **OOBE 新建会场与会场页统一**：默认参数收敛到 `VenueLayoutDefaults`（64/56、40/32、过道 60、讲台 100×40），新建 ID 改为 8 位并使用 `新会场_<id>` 命名，修复同行列/过道下布局不一致与长 ID 不符合规范的问题；会场步骤不再自动选中上次会场，默认创建新会场
+- 首次启动不再弹独立遥测同意对话框；遥测实际启用条件为 `Enabled && ConsentShown`
+- 自动更新检查延后到 OOBE 完成后；OOBE 活跃期间快捷键与文件拖放短路
+- 已有网格会场在 OOBE 中只改四项并保留其他元数据/座位 ID；非网格会场只读沿用
+- OOBE 健壮性：跳过设置按关闭处理遥测；保存期间锁定步骤表单并校验会场编辑版本；首启判定在环境警告写盘前采样；生成缺数据精确区分会场/名单并支持空名单返回补全
+- `version.py` 移除 onboarding 配置版本跟踪；移除 HTML 样机与截图基准，视觉规范统一到 `Design_Spec.md`
+
+### Removed
+- `CodeWF.AvaloniaControls`、`Guide` 控件/主题、`PhaseGuideIndicator`、`onboarding_config.json`、`OnboardingService`、`IGuideSeedTarget` 及旧引导资源/测试
+
 ## [2.2.0] — 2026-10-11
 
 ### Added

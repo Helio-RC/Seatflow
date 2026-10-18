@@ -104,7 +104,7 @@ ServiceCollectionExtensions.AddSeatFlowApplication()
 | `Pipeline` | `Application.Services` | ApplicationFacade、StrategyExecutionPipeline、CommandHistory 等 |
 | `ViewModels` | `Presentation.Avalonia.ViewModels` | 所有页面 ViewModel |
 | `Navigation` | `Presentation.Avalonia.Services` | NavigationService、DialogService、FileService 等 |
-| `Onboarding` | `Presentation.Avalonia.Services.OnboardingService` | 引导系统 |
+| `Oobe` | `Presentation.Avalonia.ViewModels.OobeViewModel` | 首次设置（OOBE） |
 | `Watchdog` | `Presentation.Avalonia.Services.WatchdogService` | UI 线程看门狗 |
 
 ### 覆盖规则

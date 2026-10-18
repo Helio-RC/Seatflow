@@ -34,7 +34,7 @@
           <!--  Loading Overlay  -->
           <Color x:Key="LoadingOverlayColor">#40FFFFFF</Color>
 
-          <!--  Overlay Mask (文件拖放 / 引导遮罩 — 50% 黑)  -->
+          <!--  Overlay Mask (文件拖放 / 对话框遮罩 — 50% 黑)  -->
           <Color x:Key="OverlayMaskColor">#80000000</Color>
 
           <!--  Preview Background  -->
@@ -73,7 +73,7 @@
           <!--  Loading Overlay  -->
           <Color x:Key="LoadingOverlayColor">#40FFFFFF</Color>
 
-          <!--  Overlay Mask (文件拖放 / 引导遮罩 — 50% 黑)  -->
+          <!--  Overlay Mask (文件拖放 / 对话框遮罩 — 50% 黑)  -->
           <Color x:Key="OverlayMaskColor">#80000000</Color>
 
           <!--  Preview Background  -->
@@ -124,7 +124,6 @@
         <ResourceInclude Source="/Resources/Tokens/Colors.axaml" />
         <ResourceInclude Source="/Resources/Tokens/Spacing.axaml" />
         <ResourceInclude Source="/Resources/Tokens/Typography.axaml" />
-        <ResourceInclude Source="/Styles/Guide.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

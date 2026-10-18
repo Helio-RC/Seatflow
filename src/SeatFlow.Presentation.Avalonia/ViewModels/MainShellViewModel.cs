@@ -24,10 +24,14 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 public partial class MainShellViewModel : ViewModelBase
 {
     private readonly INavigationService _navigation;
-    private readonly IApplicationFacade _facade;
-    private readonly IOnboardingService _onboarding;
     private readonly IShellLayoutService _layout;
     private readonly ILogger<MainShellViewModel> _logger;
+
+    /// <summary>首次设置状态机（MainView 覆盖层）。</summary>
+    public OobeViewModel Oobe { get; }
+
+    /// <summary>全屏 OOBE 或交接卡是否活跃（快捷键/拖放/更新检查统一守卫）。</summary>
+    public bool IsOobeActive => Oobe.IsVisible || Oobe.IsHandoffVisible;
 
     [ObservableProperty]
     public partial ViewModelBase CurrentViewModel { get; set; } = default!;
@@ -45,10 +49,6 @@ public partial class MainShellViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RailDisplayWidth))]
     public partial double SidebarWidth { get; set; } = 172;
-
-    /// <summary>是否处于首次启动引导模式。</summary>
-    [ObservableProperty]
-    public partial bool IsOnboardingActive { get; set; }
 
     /// <summary>紧凑档下导航左抽屉是否展开（手机档无侧栏）。</summary>
     [ObservableProperty]
@@ -170,19 +170,29 @@ public partial class MainShellViewModel : ViewModelBase
     private bool IsPageEnabled(string key) =>
         !_pageNav.TryGetValue(key, out var enabled) || enabled;
 
-    public MainShellViewModel(INavigationService navigation, IApplicationFacade facade, IOnboardingService onboarding, IShellLayoutService layout, IDialogService dialog, ILogger<MainShellViewModel>? logger = null) : base(dialog, logger)
+    public MainShellViewModel(
+        INavigationService navigation,
+        OobeViewModel oobe,
+        IShellLayoutService layout,
+        IDialogService dialog,
+        ILogger<MainShellViewModel>? logger = null) : base(dialog, logger)
     {
         _navigation = navigation;
-        _facade = facade;
-        _onboarding = onboarding;
+        Oobe = oobe;
         _layout = layout;
         _logger = logger ?? NullLogger<MainShellViewModel>.Instance;
         _pageNav = LoadPageNav();
         _layout.PropertyChanged += OnLayoutChanged;
         _navigation.CurrentViewModelChanged += OnCurrentViewModelChanged;
+        Oobe.PropertyChanged += OnOobePropertyChanged;
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
-        // 不在此触发页面引导：初始页无对应 pageGuide；页面引导的触发统一在切页后处理。
+    }
+
+    private void OnOobePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(OobeViewModel.IsVisible) or nameof(OobeViewModel.IsHandoffVisible))
+            OnPropertyChanged(nameof(IsOobeActive));
     }
 
     private void OnLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -200,22 +210,12 @@ public partial class MainShellViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsPhoneTabBarVisible));
     }
 
-    /// <summary>切页即时化：同步替换内容（无强制淡出/间隔），随后检查页面引导。</summary>
+    /// <summary>切页即时化：同步替换内容（无强制淡出/间隔）。</summary>
     private void OnCurrentViewModelChanged()
     {
         CurrentViewModel = _navigation.CurrentViewModel;
         CurrentPage = _navigation.CurrentPage;
         IsNavDrawerOpen = false;
-        SchedulePageGuideCheck();
-    }
-
-    /// <summary>延迟触发页面引导检查（等页面渲染完成）。</summary>
-    private void SchedulePageGuideCheck()
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            _onboarding.TryShowPageGuide(CurrentPage);
-        }, DispatcherPriority.Background);
     }
 
     public void OnWindowWidthChanged(double windowWidth)
@@ -225,8 +225,8 @@ public partial class MainShellViewModel : ViewModelBase
 
         _layout.Tier = LayoutBreakpoints.Resolve(windowWidth);
 
-        // 引导期间不自动折叠侧边栏
-        if (IsOnboardingActive)
+        // 全屏 OOBE 期间不自动折叠侧边栏
+        if (Oobe.IsVisible)
             return;
 
         if (_layout.IsNarrow)
@@ -292,126 +292,4 @@ public partial class MainShellViewModel : ViewModelBase
         }
     }
 
-    /// <summary>强制展开侧边栏（引导期间使用）。</summary>
-    public void EnsureSidebarExpanded()
-    {
-        _userWantsExpanded = true;
-        IsSidebarExpanded = true;
-    }
-
-    /// <summary>
-    /// 引导步骤适配（M7）：按当前步骤目标展开对应 UI，使目标控件可见。
-    /// 先收起所有窄屏浮层（导航抽屉 + 当前页侧面板），再按目标名按需展开：
-    /// 侧栏/导航目标 → 桌面展开侧栏、紧凑档打开导航抽屉（手机档无侧栏，交由目标解析回退）；
-    /// 页面列表面板目标 → 打开对应页面面板（排座选择栏 / 策略·快照·会场列表 / 成员数据集）。
-    /// </summary>
-    /// <param name="targetName">步骤目标控件名（空串表示无目标：仅收起浮层）。</param>
-    public void PrepareGuideTarget(string targetName)
-    {
-        // 1) 先收起：导航抽屉 + 当前页全部侧面板（避免遮罩/面板遮挡本步目标）
-        IsNavDrawerOpen = false;
-        CollapseCurrentPagePanels();
-
-        // 2) 再按目标名按需展开
-        switch (targetName)
-        {
-            case "ToggleSidebarButton":
-            case "SeatingButton":
-            case "MemberButton":
-            case "VenueButton":
-            case "StrategyButton":
-            case "SnapshotButton":
-                RevealRailForGuide();
-                break;
-
-            case "DatasetListBox":
-            case "VenueListBox":
-                if (_navigation.CurrentViewModel is SeatingArrangementViewModel seating)
-                    seating.IsPickerDrawerOpen = true;
-                break;
-
-            case "StrategyListBox":
-                if (_navigation.CurrentViewModel is StrategyConfigurationViewModel strategy)
-                    strategy.ListPanel.IsOpen = true;
-                break;
-
-            case "SnapshotListBox":
-                if (_navigation.CurrentViewModel is SnapshotHistoryViewModel snapshot)
-                    snapshot.ListPanel.IsOpen = true;
-                break;
-
-            case "NewVenueButton":
-                if (_navigation.CurrentViewModel is VenueConfigurationViewModel venue)
-                    venue.ListPanel.IsOpen = true;
-                break;
-        }
-    }
-
-    /// <summary>引导期间展开侧栏：桌面恢复展开态；紧凑档打开导航抽屉；手机档无侧栏（不动作）。</summary>
-    private void RevealRailForGuide()
-    {
-        if (_layout.Tier == LayoutTier.Compact)
-            IsNavDrawerOpen = true;
-        else if (_layout.Tier == LayoutTier.Desktop)
-            EnsureSidebarExpanded();
-    }
-
-    /// <summary>收起当前页面的侧面板（窄屏抽屉/手机全屏），避免引导步骤间残留浮层遮挡。</summary>
-    private void CollapseCurrentPagePanels()
-    {
-        switch (_navigation.CurrentViewModel)
-        {
-            case SeatingArrangementViewModel seating:
-                seating.IsPickerDrawerOpen = false;
-                seating.IsInspectorDrawerOpen = false;
-                break;
-            case MemberManagementViewModel member:
-                member.DatasetsPanel.IsOpen = false;
-                break;
-            case StrategyConfigurationViewModel strategy:
-                strategy.ListPanel.IsOpen = false;
-                break;
-            case SnapshotHistoryViewModel snapshot:
-                snapshot.ListPanel.IsOpen = false;
-                break;
-            case VenueConfigurationViewModel venue:
-                venue.ListPanel.IsOpen = false;
-                break;
-        }
-    }
-
-    /// <summary>引导模式下的页面导航（同步，无动画）。</summary>
-    /// <remarks>
-    /// NavigateTo 触发 CurrentViewModelChanged → OnCurrentViewModelChanged 同步设置内容，
-    /// 确保目标解析时 NameScope 已可用。
-    /// </remarks>
-    public void OnboardingNavigateTo(PageKey page)
-    {
-        IsNavDrawerOpen = false;
-        _navigation.NavigateTo(page);
-        CurrentViewModel = _navigation.CurrentViewModel;
-        CurrentPage = page;
-    }
-
-    /// <summary>完成引导：关闭引导模式，持久化标记，导航到指定页面。</summary>
-    public async Task CompleteOnboardingAsync(PageKey navigateTo = PageKey.SeatingArrangement)
-    {
-        IsOnboardingActive = false;
-
-        try
-        {
-            var settings = await _facade.LoadAppSettingsAsync();
-            if (settings.IsFirstLaunch)
-            {
-                settings.IsFirstLaunch = false;
-                await _facade.SaveAppSettingsAsync(settings);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "无法持久化引导完成标记");
-        }
-
-        _navigation.NavigateTo(navigateTo);
-    }
 }

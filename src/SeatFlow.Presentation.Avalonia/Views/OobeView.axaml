@@ -1,0 +1,786 @@
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Views.OobeView"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:avaloniaConv="using:Avalonia.Data.Converters"
+  xmlns:controls="using:SeatFlow.Presentation.Avalonia.Controls"
+  xmlns:core="using:SeatFlow.Core.Models"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:OobeViewModel"
+  Background="{DynamicResource SfBgBrush}"
+  IsVisible="{Binding IsFullScreenVisible}">
+
+  <UserControl.Resources>
+    <!--  第一排：三步各是一张课桌，编号是座位  -->
+    <DataTemplate x:Key="WelcomeStepCardTemplate" x:DataType="vm:WelcomeStepItem">
+      <Border
+        MinHeight="132"
+        Padding="18"
+        Classes="sf-card welcome-step"
+        Classes.is-active="{Binding IsActive}">
+        <StackPanel Spacing="10">
+          <Border
+            Width="26"
+            Height="26"
+            HorizontalAlignment="Left"
+            Classes="welcome-number"
+            CornerRadius="13">
+            <TextBlock
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Classes="sf-xs"
+              FontWeight="SemiBold"
+              Text="{Binding Number}" />
+          </Border>
+          <StackPanel Spacing="4">
+            <TextBlock Classes="sf-h3" Text="{Binding Title}" TextWrapping="Wrap" />
+            <TextBlock Classes="sf-sm" Text="{Binding Description}" TextWrapping="Wrap" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.oobe-step">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="{StaticResource SfRadiusSm}" />
+      <Setter Property="Padding" Value="10,8" />
+    </Style>
+    <Style Selector="Border.oobe-step.is-active">
+      <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+    </Style>
+    <Style Selector="Border.oobe-step TextBlock.oobe-step-title">
+      <Setter Property="Foreground" Value="{DynamicResource SfTextBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Border.oobe-step.is-active TextBlock.oobe-step-title">
+      <Setter Property="Foreground" Value="{DynamicResource SfAccentStrongBrush}" />
+    </Style>
+    <Style Selector="Border.welcome-number">
+      <Setter Property="Background" Value="{DynamicResource SfSurface2Brush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SfBorderBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.welcome-number TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource SfTextDimBrush}" />
+    </Style>
+    <Style Selector="Border.welcome-step.is-active">
+      <Setter Property="Background" Value="{DynamicResource SfAccentSoftBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    </Style>
+    <Style Selector="Border.welcome-step.is-active Border.welcome-number">
+      <Setter Property="Background" Value="{DynamicResource SfAccentBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SfAccentBrush}" />
+    </Style>
+    <Style Selector="Border.welcome-step.is-active Border.welcome-number TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource SfAccentFgBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="Auto,*">
+    <!--  ═══ 左侧设置清单  ═══  -->
+    <Border
+      x:Name="OobeRail"
+      Grid.Column="0"
+      Width="300"
+      Background="{DynamicResource SfRailBgBrush}"
+      BorderBrush="{DynamicResource SfBorderBrush}"
+      BorderThickness="0,0,1,0"
+      IsVisible="{Binding !Layout.IsPhone}">
+      <DockPanel Margin="24,24,24,20">
+        <StackPanel DockPanel.Dock="Top" Spacing="10">
+          <TextBlock
+            VerticalAlignment="Center"
+            Classes="sf-h3"
+            Text="SeatFlow" />
+          <TextBlock
+            Classes="sf-xs"
+            Foreground="{DynamicResource SfAccentStrongBrush}"
+            Text="{x:Static lang:Resources.Oobe_Eyebrow}" />
+          <TextBlock
+            Classes="sf-h2"
+            Text="{x:Static lang:Resources.Oobe_RailTitle}"
+            TextWrapping="Wrap" />
+          <TextBlock
+            Classes="sf-hint"
+            Text="{x:Static lang:Resources.Oobe_RailSub}"
+            TextWrapping="Wrap" />
+        </StackPanel>
+
+        <TextBlock
+          DockPanel.Dock="Bottom"
+          Classes="sf-xs"
+          Foreground="{DynamicResource SfTextFaintBrush}"
+          Text="{x:Static lang:Resources.Oobe_RailNote}"
+          TextWrapping="Wrap" />
+
+        <StackPanel Margin="0,28,0,0" Spacing="4">
+          <Border Classes="oobe-step" Classes.is-active="{Binding IsRosterStep}">
+            <Grid ColumnDefinitions="26,*">
+              <Border
+                Width="20"
+                Height="20"
+                VerticalAlignment="Top"
+                Background="{DynamicResource SfBorderBrush}"
+                CornerRadius="10">
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Classes="sf-xs"
+                  Text="1" />
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="1">
+                <TextBlock Classes="oobe-step-title" Text="{x:Static lang:Resources.Oobe_StepRoster}" />
+                <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Oobe_StepRosterDesc}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border Classes="oobe-step" Classes.is-active="{Binding IsVenueStep}">
+            <Grid ColumnDefinitions="26,*">
+              <Border
+                Width="20"
+                Height="20"
+                VerticalAlignment="Top"
+                Background="{DynamicResource SfBorderBrush}"
+                CornerRadius="10">
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Classes="sf-xs"
+                  Text="2" />
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="1">
+                <TextBlock Classes="oobe-step-title" Text="{x:Static lang:Resources.Oobe_StepVenue}" />
+                <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Oobe_StepVenueDesc}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border Classes="oobe-step" Classes.is-active="{Binding IsHandoffVisible}">
+            <Grid ColumnDefinitions="26,*">
+              <Border
+                Width="20"
+                Height="20"
+                VerticalAlignment="Top"
+                Background="{DynamicResource SfBorderBrush}"
+                CornerRadius="10">
+                <TextBlock
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Classes="sf-xs"
+                  Text="3" />
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="1">
+                <TextBlock Classes="oobe-step-title" Text="{x:Static lang:Resources.Oobe_StepGenerate}" />
+                <TextBlock Classes="sf-xs" Text="{x:Static lang:Resources.Oobe_StepGenerateDesc}" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!--  ═══ 右侧内容  ═══  -->
+    <ScrollViewer
+      Grid.Column="1"
+      HorizontalScrollBarVisibility="Disabled"
+      VerticalScrollBarVisibility="Auto">
+      <StackPanel
+        x:Name="OobeContent"
+        MaxWidth="1040"
+        Margin="32,28,32,36"
+        HorizontalAlignment="Stretch"
+        IsEnabled="{Binding !IsBusy}"
+        Spacing="20">
+        <Border
+          Padding="12,10"
+          Background="{DynamicResource SfDangerSoftBrush}"
+          CornerRadius="{StaticResource SfRadiusSm}"
+          IsVisible="{Binding ErrorMessage, Converter={x:Static avaloniaConv:ObjectConverters.IsNotNull}}">
+          <TextBlock
+            Classes="sf-sm"
+            Foreground="{DynamicResource SfDangerBrush}"
+            Text="{Binding ErrorMessage}"
+            TextWrapping="Wrap" />
+        </Border>
+
+        <ProgressBar
+          Height="2"
+          IsIndeterminate="True"
+          IsVisible="{Binding IsBusy}" />
+
+        <!--  ═══ 欢迎 + 遥测  ═══  -->
+        <StackPanel
+          MaxWidth="760"
+          HorizontalAlignment="Center"
+          IsVisible="{Binding IsWelcomeStep}"
+          Spacing="28">
+          <StackPanel
+            MaxWidth="560"
+            HorizontalAlignment="Center"
+            Spacing="8">
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="sf-xs"
+              Foreground="{DynamicResource SfAccentStrongBrush}"
+              Text="{x:Static lang:Resources.Oobe_Eyebrow}"
+              TextAlignment="Center" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="sf-h1"
+              Text="{x:Static lang:Resources.Oobe_WelcomeTitle}"
+              TextAlignment="Center" />
+            <TextBlock
+              HorizontalAlignment="Center"
+              Classes="sf-hint"
+              Text="{x:Static lang:Resources.Oobe_WelcomeLede}"
+              TextAlignment="Center"
+              TextWrapping="Wrap" />
+          </StackPanel>
+
+          <!--  第一排：三步各是一张课桌，中间留过道  -->
+          <Grid ColumnDefinitions="*,16,*,16,*" IsVisible="{Binding !Layout.IsNarrow}">
+            <ContentControl
+              Grid.Column="0"
+              Content="{Binding WelcomeStep1}"
+              ContentTemplate="{StaticResource WelcomeStepCardTemplate}" />
+            <Border
+              Grid.Column="1"
+              Width="1"
+              Margin="0,10"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Stretch"
+              Background="{DynamicResource SfBorderStrongBrush}"
+              Opacity="0.55" />
+            <ContentControl
+              Grid.Column="2"
+              Content="{Binding WelcomeStep2}"
+              ContentTemplate="{StaticResource WelcomeStepCardTemplate}" />
+            <Border
+              Grid.Column="3"
+              Width="1"
+              Margin="0,10"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Stretch"
+              Background="{DynamicResource SfBorderStrongBrush}"
+              Opacity="0.55" />
+            <ContentControl
+              Grid.Column="4"
+              Content="{Binding WelcomeStep3}"
+              ContentTemplate="{StaticResource WelcomeStepCardTemplate}" />
+          </Grid>
+
+          <StackPanel IsVisible="{Binding Layout.IsNarrow}" Spacing="12">
+            <ContentControl Content="{Binding WelcomeStep1}" ContentTemplate="{StaticResource WelcomeStepCardTemplate}" />
+            <Border
+              Height="1"
+              Margin="28,0"
+              Background="{DynamicResource SfBorderStrongBrush}"
+              Opacity="0.55" />
+            <ContentControl Content="{Binding WelcomeStep2}" ContentTemplate="{StaticResource WelcomeStepCardTemplate}" />
+            <Border
+              Height="1"
+              Margin="28,0"
+              Background="{DynamicResource SfBorderStrongBrush}"
+              Opacity="0.55" />
+            <ContentControl Content="{Binding WelcomeStep3}" ContentTemplate="{StaticResource WelcomeStepCardTemplate}" />
+          </StackPanel>
+
+          <StackPanel
+            MaxWidth="560"
+            HorizontalAlignment="Stretch"
+            Spacing="18">
+            <Border Classes="sf-divider" />
+            <CheckBox
+              HorizontalAlignment="Left"
+              IsChecked="{Binding TelemetryEnabled, Mode=TwoWay}"
+              IsVisible="{Binding ShowTelemetryQuestion}">
+              <StackPanel Spacing="3">
+                <TextBlock Classes="sf-sm" FontWeight="SemiBold" Text="{x:Static lang:Resources.Oobe_TelemetryTitle}" />
+                <TextBlock
+                  Classes="sf-xs"
+                  Foreground="{DynamicResource SfTextDimBrush}"
+                  Text="{x:Static lang:Resources.Oobe_TelemetryHint}"
+                  TextWrapping="Wrap" />
+              </StackPanel>
+            </CheckBox>
+          </StackPanel>
+
+          <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+            <Button
+              x:Name="WelcomeStartButton"
+              Classes="sf-btn sf-primary"
+              Command="{Binding NextCommand}"
+              IsEnabled="{Binding CanProceed}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Oobe_Start}" />
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowRight}" />
+              </StackPanel>
+            </Button>
+            <Button
+              Classes="sf-btn sf-ghost"
+              Command="{Binding SkipAllCommand}"
+              Content="{x:Static lang:Resources.Oobe_SkipAll}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!--  ═══ 启动偏好  ═══  -->
+        <StackPanel IsVisible="{Binding IsPreferencesStep}" Spacing="24">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="sf-h1" Text="{x:Static lang:Resources.Oobe_PreferencesTitle}" />
+              <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Oobe_PreferencesLede}" />
+            </StackPanel>
+            <Button
+              Grid.Column="1"
+              VerticalAlignment="Top"
+              Classes="sf-btn sf-ghost sf-sm"
+              Command="{Binding SkipAllCommand}"
+              Content="{x:Static lang:Resources.Oobe_SkipAll}" />
+          </Grid>
+
+          <Border MaxWidth="720" Classes="sf-card" HorizontalAlignment="Left">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Settings_AutoUpdate}" />
+              <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Settings_AutoUpdateHint}" TextWrapping="Wrap" />
+              <ListBox
+                ItemsSource="{Binding AutoUpdateOptions}"
+                SelectedIndex="{Binding AutoUpdateIndex, Mode=TwoWay}" />
+            </StackPanel>
+          </Border>
+
+          <StackPanel
+            MaxWidth="720"
+            HorizontalAlignment="Left"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+              Classes="sf-btn sf-ghost"
+              Command="{Binding BackCommand}"
+              IsVisible="{Binding CanGoBack}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Oobe_Back}" />
+              </StackPanel>
+            </Button>
+            <Button
+              x:Name="PreferencesNextButton"
+              Classes="sf-btn sf-primary"
+              Command="{Binding NextCommand}"
+              IsEnabled="{Binding CanProceed}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Oobe_Continue}" />
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowRight}" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+
+        <!--  ═══ 名单  ═══  -->
+        <StackPanel IsVisible="{Binding IsRosterStep}" Spacing="16">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="sf-h1" Text="{x:Static lang:Resources.Oobe_RosterTitle}" />
+            <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Oobe_RosterLede}" />
+            <TextBlock
+              Classes="sf-xs"
+              Foreground="{DynamicResource SfTextDimBrush}"
+              Text="{x:Static lang:Resources.Oobe_RosterAutoExtractHint}"
+              TextWrapping="Wrap" />
+            <TextBlock
+              Classes="sf-xs"
+              Foreground="{DynamicResource SfOkBrush}"
+              IsVisible="{Binding RestoredHint, Converter={x:Static avaloniaConv:StringConverters.IsNotNullOrEmpty}}"
+              Text="{Binding RestoredHint}" />
+          </StackPanel>
+
+          <controls:ResponsiveSplitPanel
+            x:Name="RosterSplitPanel"
+            FixedWidth="338"
+            IsNarrow="{Binding Layout.IsNarrow}"
+            Spacing="16">
+            <StackPanel Spacing="12">
+              <Border Classes="sf-card">
+                <StackPanel Spacing="10">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_RosterImportTitle}" />
+                  <Border
+                    Padding="18,20"
+                    Background="{DynamicResource SfSurface2Brush}"
+                    BorderBrush="{DynamicResource SfBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource SfRadiusSm}">
+                    <StackPanel HorizontalAlignment="Center" Spacing="8">
+                      <fic:FluentIcon
+                        HorizontalAlignment="Center"
+                        FontSize="26"
+                        Foreground="{DynamicResource SfAccentBrush}"
+                        Icon="{x:Static ficEnum:Icon.ArrowUpload}" />
+                      <TextBlock
+                        HorizontalAlignment="Center"
+                        Classes="sf-sm"
+                        FontWeight="SemiBold"
+                        Text="{x:Static lang:Resources.Oobe_RosterDropTitle}" />
+                      <TextBlock
+                        HorizontalAlignment="Center"
+                        Classes="sf-xs"
+                        Foreground="{DynamicResource SfTextDimBrush}"
+                        Text="{x:Static lang:Resources.Oobe_RosterEmptyHint}"
+                        TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                      Classes="sf-btn sf-primary sf-sm"
+                      Command="{Binding ImportRosterCommand}"
+                      Content="{x:Static lang:Resources.Oobe_RosterChooseFile}" />
+                    <Button
+                      Classes="sf-btn sf-ghost sf-sm"
+                      Command="{Binding StartBlankRosterCommand}"
+                      Content="{x:Static lang:Resources.Oobe_RosterStartBlank}" />
+                  </StackPanel>
+                  <ProgressBar
+                    Height="2"
+                    IsIndeterminate="True"
+                    IsVisible="{Binding IsRosterLoading}" />
+                  <TextBlock
+                    Classes="sf-xs"
+                    Foreground="{DynamicResource SfDangerBrush}"
+                    IsVisible="{Binding RosterError, Converter={x:Static avaloniaConv:ObjectConverters.IsNotNull}}"
+                    Text="{Binding RosterError}"
+                    TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <Border Classes="sf-card">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_RosterExistingTitle}" />
+                  <ListBox
+                    MaxHeight="220"
+                    ItemsSource="{Binding ExistingDatasets}"
+                    SelectedItem="{Binding SelectedExistingDataset, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="core:StudentDatasetInfo">
+                        <StackPanel Spacing="1">
+                          <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                          <TextBlock Classes="sf-xs" Foreground="{DynamicResource SfTextFaintBrush}" Text="{Binding StudentCount}" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <Button
+                    Classes="sf-btn sf-sm"
+                    Command="{Binding UseExistingRosterCommand}"
+                    CommandParameter="{Binding SelectedExistingDataset}"
+                    Content="{x:Static lang:Resources.Oobe_LoadRoster}"
+                    IsEnabled="{Binding SelectedExistingDataset, Converter={x:Static avaloniaConv:ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <Border Classes="sf-card">
+              <DockPanel>
+                <StackPanel
+                  Margin="0,0,0,10"
+                  DockPanel.Dock="Top"
+                  Spacing="4">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_RosterName}" />
+                  <TextBox
+                    Classes="sf-input"
+                    MaxWidth="360"
+                    HorizontalAlignment="Left"
+                    PlaceholderText="{x:Static lang:Resources.Oobe_RosterNamePlaceholder}"
+                    Text="{Binding DatasetName, Mode=TwoWay}" />
+                </StackPanel>
+
+                <controls:StudentRosterTable Editor="{Binding}" ListMaxHeight="420" />
+              </DockPanel>
+            </Border>
+          </controls:ResponsiveSplitPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="sf-btn sf-ghost" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Oobe_Back}" />
+              </StackPanel>
+            </Button>
+            <Button
+              Classes="sf-btn sf-ghost"
+              Command="{Binding SkipStepCommand}"
+              Content="{x:Static lang:Resources.Oobe_SkipStep}" />
+            <Button
+              x:Name="RosterNextButton"
+              Classes="sf-btn sf-primary"
+              Command="{Binding NextCommand}"
+              IsEnabled="{Binding CanProceed}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="sf-sm" Text="{Binding RosterPrimaryText}" />
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowRight}" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+
+        <!--  ═══ 会场  ═══  -->
+        <StackPanel IsVisible="{Binding IsVenueStep}" Spacing="16">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="sf-h1" Text="{x:Static lang:Resources.Oobe_VenueTitle}" />
+            <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Oobe_VenueLede}" />
+            <TextBlock
+              Classes="sf-xs"
+              Foreground="{DynamicResource SfOkBrush}"
+              IsVisible="{Binding RestoredHint, Converter={x:Static avaloniaConv:StringConverters.IsNotNullOrEmpty}}"
+              Text="{Binding RestoredHint}" />
+          </StackPanel>
+
+          <StackPanel x:Name="VenueEditorPanel" Spacing="12">
+              <Border Classes="sf-card">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_VenueExistingTitle}" />
+                  <ListBox
+                    MaxHeight="150"
+                    ItemsSource="{Binding ExistingVenues}"
+                    SelectedItem="{Binding SelectedExistingVenue, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="core:VenueSummary">
+                        <TextBlock Classes="sf-sm" Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                      Classes="sf-btn sf-sm"
+                      Command="{Binding SelectExistingVenueCommand}"
+                      CommandParameter="{Binding SelectedExistingVenue}"
+                      Content="{x:Static lang:Resources.Oobe_LoadVenue}"
+                      IsEnabled="{Binding SelectedExistingVenue, Converter={x:Static avaloniaConv:ObjectConverters.IsNotNull}}" />
+                    <Button
+                      Classes="sf-btn sf-sm sf-ghost"
+                      Command="{Binding NewVenueCommand}"
+                      Content="{x:Static lang:Resources.Oobe_NewVenue}" />
+                  </StackPanel>
+                  <TextBlock
+                    Classes="sf-xs"
+                    Foreground="{DynamicResource SfTextDimBrush}"
+                    IsVisible="{Binding IsExistingVenueReadOnly}"
+                    Text="{x:Static lang:Resources.Oobe_VenueReadOnlyHint}"
+                    TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <Border Classes="sf-card" IsVisible="{Binding !IsExistingVenueReadOnly}">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_BasicParams}" />
+                  <WrapPanel>
+                    <StackPanel Classes="sf-field">
+                      <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Rows}" />
+                      <NumericUpDown
+                        Classes="sf-input"
+                        Maximum="100"
+                        Minimum="1"
+                        PlaceholderText="{x:Static lang:Resources.Venue_RowsPH}"
+                        ToolTip.Tip="{x:Static lang:Resources.Venue_RowsTooltip}"
+                        Value="{Binding Rows, Mode=TwoWay}" />
+                    </StackPanel>
+                    <StackPanel Classes="sf-field">
+                      <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Cols}" />
+                      <NumericUpDown
+                        Classes="sf-input"
+                        Maximum="100"
+                        Minimum="1"
+                        PlaceholderText="{x:Static lang:Resources.Venue_ColsPH}"
+                        ToolTip.Tip="{x:Static lang:Resources.Venue_ColsTooltip}"
+                        Value="{Binding Columns, Mode=TwoWay}" />
+                    </StackPanel>
+                  </WrapPanel>
+
+                  <Border Classes="sf-divider" />
+
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_Optional}" />
+                  <StackPanel
+                    Margin="0,0,12,4"
+                    Spacing="4"
+                    ToolTip.Tip="{x:Static lang:Resources.Venue_ColumnRowCountsTooltip}">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnRowCounts}" />
+                    <ItemsControl ItemsSource="{Binding ColumnRowCountOptions}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ColumnRowCountOption">
+                          <StackPanel Margin="0,0,10,4" Spacing="2">
+                            <TextBlock Classes="sf-xs sf-dim" Text="{Binding Label}" />
+                            <NumericUpDown
+                              Width="72"
+                              Classes="sf-input"
+                              Maximum="100"
+                              Minimum="1"
+                              PlaceholderText="—"
+                              ShowButtonSpinner="False"
+                              ToolTip.Tip="{x:Static lang:Resources.Venue_DefaultColumnRowCounts}"
+                              Value="{Binding Rows, Mode=TwoWay}" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="sf-card" IsVisible="{Binding !IsExistingVenueReadOnly}">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Venue_AisleConfig}" />
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_AisleHint}" />
+
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_ColumnAisles}" />
+                    <ItemsControl ItemsSource="{Binding AisleColumnOptions}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AisleOption">
+                          <ToggleButton
+                            Margin="0,0,6,4"
+                            Classes="sf-chip"
+                            Content="{Binding Label}"
+                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                            ToolTip.Tip="{Binding ToolTip}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+
+                  <Border Classes="sf-divider" />
+
+                  <StackPanel Spacing="4">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_RowAisles}" />
+                    <ItemsControl ItemsSource="{Binding AisleRowOptions}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AisleOption">
+                          <ToggleButton
+                            Margin="0,0,6,4"
+                            Classes="sf-chip"
+                            Content="{Binding Label}"
+                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                            ToolTip.Tip="{Binding ToolTip}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+
+                  <StackPanel
+                    Margin="0,4,0,0"
+                    HorizontalAlignment="Left"
+                    Classes="sf-field">
+                    <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_AisleWidth}" />
+                    <NumericUpDown
+                      Classes="sf-input"
+                      Maximum="300"
+                      Minimum="12"
+                      PlaceholderText="60 px"
+                      ToolTip.Tip="{x:Static lang:Resources.Venue_AisleWidthTooltip}"
+                      Value="{Binding AisleWidth, Mode=TwoWay}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="sf-card" IsVisible="{Binding !IsExistingVenueReadOnly}">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_VenueName}" />
+                  <TextBox
+                    Classes="sf-input"
+                    PlaceholderText="{x:Static lang:Resources.Oobe_VenueNamePlaceholder}"
+                    Text="{Binding VenueName, Mode=TwoWay}" />
+                </StackPanel>
+              </Border>
+
+              <TextBlock
+                Classes="sf-xs"
+                Foreground="{DynamicResource SfDangerBrush}"
+                IsVisible="{Binding VenueError, Converter={x:Static avaloniaConv:ObjectConverters.IsNotNull}}"
+                Text="{Binding VenueError}"
+                TextWrapping="Wrap" />
+            </StackPanel>
+
+          <Border
+            x:Name="VenuePreviewCard"
+            Classes="sf-card"
+            IsVisible="{Binding IsVenuePreviewVisible}">
+            <DockPanel>
+              <Grid
+                Margin="0,0,0,8"
+                ColumnDefinitions="*,Auto"
+                DockPanel.Dock="Top">
+                <StackPanel
+                  VerticalAlignment="Center"
+                  Orientation="Horizontal"
+                  Spacing="8">
+                  <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_VenuePreview}" />
+                  <TextBlock Classes="sf-hint" Text="{x:Static lang:Resources.Venue_DragHint}" />
+                </StackPanel>
+                <TextBlock
+                  Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Classes="sf-xs"
+                  Foreground="{DynamicResource SfTextDimBrush}"
+                  Text="{Binding PreviewSeatCountText}" />
+              </Grid>
+              <Border
+                Height="380"
+                Padding="0"
+                Classes="sf-inset"
+                ClipToBounds="True">
+                <controls:SeatingCanvas Snapshot="{Binding PreviewSnapshot}" />
+              </Border>
+            </DockPanel>
+          </Border>
+
+          <Border Classes="sf-card" IsVisible="{Binding IsExistingVenueReadOnly}">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="sf-h3" Text="{x:Static lang:Resources.Oobe_VenuePreview}" />
+              <TextBlock
+                Classes="sf-sm"
+                Foreground="{DynamicResource SfTextDimBrush}"
+                Text="{x:Static lang:Resources.Oobe_VenueReadOnlyHint}"
+                TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="sf-btn sf-ghost" Command="{Binding BackCommand}" IsVisible="{Binding CanGoBack}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ChevronLeft}" />
+                <TextBlock Classes="sf-sm" Text="{x:Static lang:Resources.Oobe_Back}" />
+              </StackPanel>
+            </Button>
+            <Button
+              Classes="sf-btn sf-ghost"
+              Command="{Binding SkipStepCommand}"
+              Content="{x:Static lang:Resources.Oobe_SkipStep}" />
+            <Button
+              x:Name="VenueNextButton"
+              Classes="sf-btn sf-primary"
+              Command="{Binding NextCommand}"
+              IsEnabled="{Binding CanProceed}">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Classes="sf-sm" Text="{Binding VenuePrimaryText}" />
+                <fic:FluentIcon FontSize="14" Icon="{x:Static ficEnum:Icon.ArrowRight}" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

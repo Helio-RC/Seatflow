@@ -36,7 +36,14 @@ namespace SeatFlow.Presentation.Avalonia
     {
         private readonly IServiceProvider _serviceProvider = serviceProvider;
         private readonly bool _isFirstInstance = isFirstInstance;
-        private bool _needsOnboarding;
+        private bool _isFirstLaunch;
+        private bool _isFirstLaunchPending;
+        /// <summary>启动检查前记录的 AppSettings 是否存在（“不再提醒”写盘会创建文件，不能据此判定首启）。</summary>
+        private bool? _settingsExistedAtStartup;
+        private bool _appStartRecorded;
+        private bool _oobeCompleted;
+        private readonly TaskCompletionSource _startupCompletion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         /// <summary>命令行传入的 .seatsets 文件路径（双击打开或命令行导入）；管道转发时会更新。</summary>
         private string? _pendingSeatSetsFilePath = pendingSeatSetsFilePath;
@@ -89,6 +96,9 @@ namespace SeatFlow.Presentation.Avalonia
                 var repo = _serviceProvider.GetRequiredService<Core.Providers.IAppSettingsRepository>();
                 if (!await repo.ExistsAsync())
                 {
+                    // 首启检测落盘失败时，至少保证默认设置里保留首启标记，崩溃后仍能重新进入 OOBE。
+                    if (_isFirstLaunchPending)
+                        settings.IsFirstLaunch = true;
                     await facade.SaveAppSettingsAsync(settings);
                 }
 
@@ -172,9 +182,6 @@ namespace SeatFlow.Presentation.Avalonia
                 _serviceProvider.GetRequiredService<IFileService>().SetTopLevel(mainWindow);
                 _serviceProvider.GetRequiredService<IDialogService>().SetTopLevel(mainWindow);
 
-                // 启动检查
-                _ = RunStartupChecksAsync(desktop);
-
                 // 启动看门狗，防止 UI 卡死无法退出
                 // 启动看门狗，防止 UI 卡死无法退出（对话框服务由 DI 注入）
                 var watchdog = _serviceProvider.GetRequiredService<WatchdogService>();
@@ -222,8 +229,8 @@ namespace SeatFlow.Presentation.Avalonia
                 // 启动命名管道服务器：接收第二个进程转发的 .seatsets 文件路径
                 StartSeatSetsPipeServer();
 
-                // 按序执行：先检查自动导入 → 引导 → 恢复设置
-                _ = SafeInitializeAsync();
+                // 按序执行：环境检查 → 自动导入 → 首启检测 → 恢复设置
+                _ = SafeInitializeAsync(desktop);
 
                 // 处理双击 .seatsets 文件（延迟到 UI 就绪后执行）
                 HandlePendingSeatSetsFile();
@@ -317,7 +324,7 @@ namespace SeatFlow.Presentation.Avalonia
             }, DispatcherPriority.Background);
         }
 
-        private async Task RunStartupChecksAsync(IClassicDesktopStyleApplicationLifetime desktop)
+        private async Task<bool> RunStartupChecksAsync(IClassicDesktopStyleApplicationLifetime desktop)
         {
             var dialog = _serviceProvider.GetRequiredService<IDialogService>();
 
@@ -328,7 +335,7 @@ namespace SeatFlow.Presentation.Avalonia
                     Lang.Resources.App_AlreadyRunning,
                     Lang.Resources.App_AlreadyRunningMessage);
                 desktop.Shutdown();
-                return;
+                return false;
             }
 
             // 运行环境检查
@@ -351,10 +358,9 @@ namespace SeatFlow.Presentation.Avalonia
                     var result = await DialogServiceShim.ShowEnvironmentWarningAsync(dialog, envMessage);
                     if (result is 1) // "不再提醒" / "Don't remind again" 按钮
                     {
-                        settings.SuppressEnvironmentWarning = true;
                         try
                         {
-                            await settingsRepo.SaveAsync(settings);
+                            await SuppressEnvironmentWarningAsync(settingsRepo);
                         }
                         catch
                         {
@@ -363,60 +369,122 @@ namespace SeatFlow.Presentation.Avalonia
                     }
                 }
             }
+
+            return true;
         }
 
-        private async Task<bool> DetectAndMarkFirstLaunchAsync()
+        /// <summary>
+        /// 只更新 <see cref="AppSettings.SuppressEnvironmentWarning"/>：
+        /// 重新读取最新设置再保存，避免覆盖首启标记 / .seatsets 导入的其他字段。
+        /// </summary>
+        internal static async Task SuppressEnvironmentWarningAsync(IAppSettingsRepository settingsRepo)
+        {
+            var latest = await settingsRepo.LoadAsync();
+            if (latest.SuppressEnvironmentWarning) return;
+
+            latest.SuppressEnvironmentWarning = true;
+            await settingsRepo.SaveAsync(latest);
+        }
+
+        /// <summary>
+        /// 检测是否进入 OOBE。真实首启/重跑标记/本次 .seatsets 自动导入任一成立即首启；
+        /// 判定为首启时把 <see cref="AppSettings.IsFirstLaunch"/> 落盘为 true（不写 false）。
+        /// </summary>
+        private async Task<bool> DetectFirstLaunchAsync()
         {
             try
             {
                 var repo = _serviceProvider.GetRequiredService<IAppSettingsRepository>();
-                // 走存储抽象（WASM 端 File.Exists 对相对路径恒为 false，会导致每次启动都当作首次启动）
-                var isTrueFirstLaunch = !await repo.ExistsAsync();
+                // 优先使用启动检查前的采样：环境警告“不再提醒”可能在检测前创建 AppSettings.json。
+                // 走存储抽象（WASM 端 File.Exists 对相对路径恒为 false，会导致每次启动都当作首次启动）。
+                var isTrueFirstLaunch = _settingsExistedAtStartup is { } existed
+                    ? !existed
+                    : !await repo.ExistsAsync();
 
                 var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
                 var settings = await facade.LoadAppSettingsAsync();
+                var restoreState = _serviceProvider.GetRequiredService<StartupRestoreState>();
 
-                if (isTrueFirstLaunch || settings.IsFirstLaunch)
+                var shouldEnter = FirstLaunchPolicy.ShouldEnterOobe(
+                    isTrueFirstLaunch,
+                    settings.IsFirstLaunch,
+                    restoreState.SeatSetsImported);
+
+                if (shouldEnter && !settings.IsFirstLaunch)
                 {
-                    // 立即标记完成，防止崩溃导致反复触发
-                    settings.IsFirstLaunch = false;
-                    await facade.SaveAppSettingsAsync(settings);
-                    return true;
+                    settings.IsFirstLaunch = true;
+                    try
+                    {
+                        await facade.SaveAppSettingsAsync(settings);
+                    }
+                    catch (Exception saveEx)
+                    {
+                        // 本次仍显示 OOBE；RestoreSettingsAsync 创建默认设置时再补写 true。
+                        _isFirstLaunchPending = true;
+                        var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                        logger.LogWarning(saveEx, "[OOBE] 首启标记落盘失败，稍后重试");
+                    }
                 }
 
-                return false;
+                return shouldEnter;
             }
             catch (Exception ex)
             {
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
-                logger.LogError(ex, "[Onboarding] DetectAndMarkFirstLaunchAsync 异常");
+                logger.LogError(ex, "[OOBE] DetectFirstLaunchAsync 异常");
                 return false;
             }
         }
 
-        private void StartOnboardingDeferred()
+        private void StartOobeDeferred()
         {
             try
             {
-                var onboarding = _serviceProvider.GetRequiredService<IOnboardingService>();
-                Dispatcher.UIThread.Post(() =>
+                var oobe = _serviceProvider.GetRequiredService<IOobeService>();
+                oobe.Completed -= OnOobeCompleted;
+                oobe.Completed += OnOobeCompleted;
+
+                Dispatcher.UIThread.Post(async () =>
                 {
-                    onboarding.StartOnboarding();
+                    try
+                    {
+                        await oobe.StartAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+                        logger.LogError(ex, "[OOBE] StartAsync 异常");
+                    }
                 }, DispatcherPriority.Background);
             }
             catch (Exception ex)
             {
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
-                logger.LogError(ex, "[Onboarding] StartOnboardingDeferred 异常");
+                logger.LogError(ex, "[OOBE] StartOobeDeferred 异常");
             }
         }
 
+        private void OnOobeCompleted(object? sender, EventArgs e)
+        {
+            _oobeCompleted = true;
+            RecordAppStartTelemetryOnce();
+            ScheduleAutoUpdateCheck();
+        }
+
+        /// <summary>每次启动只记录一次启动遥测；未同意遥测时服务内部 no-op。</summary>
+        private void RecordAppStartTelemetryOnce()
+        {
+            if (_appStartRecorded) return;
+            _appStartRecorded = true;
+            RecordAppStartTelemetry();
+        }
+
         /// <summary>启动初始化（fire-and-forget）的异常兜底：避免未观察异常导致运行时被拆毁。</summary>
-        private async Task SafeInitializeAsync()
+        private async Task SafeInitializeAsync(IClassicDesktopStyleApplicationLifetime? desktop = null)
         {
             try
             {
-                await InitializeAsync();
+                await InitializeAsync(desktop);
             }
             catch (Exception ex)
             {
@@ -426,29 +494,40 @@ namespace SeatFlow.Presentation.Avalonia
                 }
                 catch { /* 日志服务不可用时静默 */ }
             }
+            finally
+            {
+                _startupCompletion.TrySetResult();
+            }
         }
 
-        private async Task InitializeAsync()
+        private async Task InitializeAsync(IClassicDesktopStyleApplicationLifetime? desktop)
         {
+            // 首启判定必须在环境检查之前采样：环境警告的“不再提醒”会创建 AppSettings.json，
+            // 否则真实首启会被误判为非首启而跳过 OOBE。
+            var settingsRepo = _serviceProvider.GetRequiredService<IAppSettingsRepository>();
+            _settingsExistedAtStartup = await settingsRepo.ExistsAsync();
+
+            // 环境检查与首启检测串行：环境警告的“不再提醒”写盘不会覆盖首启标记/导入设置。
+            if (desktop is not null && !await RunStartupChecksAsync(desktop))
+                return;
+
             // 在 AppData 创建前先检查自动导入 .seatsets（仅在 AppData 不存在时生效）
             await CheckSeatSetsAutoImportAsync();
 
-            // 1. 检测首次启动（必须在 RestoreSettings 之前，因为后者会创建 AppSettings.json）
-            _needsOnboarding = await DetectAndMarkFirstLaunchAsync();
+            // 1. 检测首启并落盘（必须在 RestoreSettings 之前，因为后者会创建 AppSettings.json）
+            _isFirstLaunch = await DetectFirstLaunchAsync();
 
             await RestoreSettingsAsync();
 
-            // 2. 遥测同意弹窗
-            await ShowTelemetryConsentIfNeededAsync();
+            // 2. 首启：进入 OOBE；遥测/更新都等 OOBE 完成后再启用。
+            if (_isFirstLaunch)
+            {
+                StartOobeDeferred();
+                return;
+            }
 
-            // 3. 启动引导（在遥测弹窗之后，避免 Popup 覆盖）
-            if (_needsOnboarding)
-                StartOnboardingDeferred();
-
-            // 记录应用启动遥测
-            RecordAppStartTelemetry();
-
-            // 4. 自动更新检查（延迟到 Background 优先级，确保 UI 完全就绪）
+            // 3. 非首启：正常记录启动遥测并调度更新检查。
+            RecordAppStartTelemetryOnce();
             ScheduleAutoUpdateCheck();
         }
 
@@ -492,6 +571,12 @@ namespace SeatFlow.Presentation.Avalonia
                 var result = await facade.ImportSeatSetsAsync(seatsetsPath, selection,
                     progress: null, CancellationToken.None);
 
+                var restoreState = _serviceProvider.GetRequiredService<StartupRestoreState>();
+                restoreState.SeatSetsImported = result.Restored > 0;
+                restoreState.RestoredFiles = result.Restored;
+                restoreState.FailedFiles = result.Failed;
+                restoreState.Errors = result.Errors;
+
                 if (result.Success)
                 {
                     logger.LogInformation("[SeatSets] 自动导入成功: {Restored} 个文件", result.Restored);
@@ -509,49 +594,12 @@ namespace SeatFlow.Presentation.Avalonia
             {
                 var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
                 logger.LogError(ex, "[SeatSets] 自动导入异常");
-            }
-        }
-
-        /// <summary>
-        /// 首次启动时弹出遥测同意弹窗。仅在 ConsentShown==false 时触发。
-        /// </summary>
-        private async Task ShowTelemetryConsentIfNeededAsync()
-        {
-            try
-            {
-                var facade = _serviceProvider.GetRequiredService<IApplicationFacade>();
-                var settings = await facade.LoadAppSettingsAsync();
-
-                // 已经展示过同意弹窗，跳过
-                if (settings.Telemetry.ConsentShown)
-                    return;
-
-                var dialog = _serviceProvider.GetRequiredService<IDialogService>();
-                var telemetry = _serviceProvider.GetRequiredService<ITelemetryService>();
-
-                var result = await dialog.ShowMultiOptionAsync(
-                    Lang.Resources.Telemetry_ConsentTitle,
-                    Lang.Resources.Telemetry_ConsentMessage,
-                    Lang.Resources.Telemetry_ConsentEnable,
-                    Lang.Resources.Telemetry_ConsentLater,
-                    cancelText: "");
-
-                // 用户做出选择后再持久化
-                settings.Telemetry.ConsentShown = true;
-
-                if (result == 0) // "开启"
+                try
                 {
-                    settings.Telemetry.Enabled = true;
-                    telemetry.SetEnabled(true);
+                    var restoreState = _serviceProvider.GetRequiredService<StartupRestoreState>();
+                    restoreState.Errors = [ex.Message];
                 }
-
-                // 保存 ConsetShown + 可能 TelemetryEnabled
-                await facade.SaveAppSettingsAsync(settings);
-            }
-            catch (Exception ex)
-            {
-                var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
-                logger.LogDebug(ex, "遥测同意弹窗异常");
+                catch { /* 状态服务不可用时静默 */ }
             }
         }
 
@@ -576,8 +624,8 @@ namespace SeatFlow.Presentation.Avalonia
         /// </summary>
         private async Task CheckAutoUpdateAsync()
         {
-            // 引导进行中时跳过（避免弹窗冲突）
-            if (_needsOnboarding)
+            // OOBE 活跃（含交接）时跳过，避免弹窗冲突
+            if (_serviceProvider.GetService<IOobeService>()?.IsActive == true)
                 return;
 
             try
@@ -686,6 +734,21 @@ namespace SeatFlow.Presentation.Avalonia
         {
             var dialog = _serviceProvider.GetRequiredService<IDialogService>();
             var logger = _serviceProvider.GetRequiredService<ILogger<App>>();
+
+            // 等待启动流程完成，避免与自动导入 / 首启检测并发。
+            await _startupCompletion.Task;
+
+            // OOBE 活跃（含交接）或首启尚未完成时，显式导入会打断首启状态，直接拒绝并提示。
+            var oobe = _serviceProvider.GetService<IOobeService>();
+            if (oobe?.IsActive == true || (_isFirstLaunch && !_oobeCompleted))
+            {
+                logger.LogInformation("[SeatSets] OOBE 活跃，忽略显式导入: {Path}", filePath);
+                await DialogServiceShim.ShowWarningAsync(
+                    dialog,
+                    Lang.Resources.Oobe_SeatSetsBlockedTitle,
+                    Lang.Resources.Oobe_SeatSetsBlockedMessage);
+                return;
+            }
 
             await Services.SeatSetsImportHelper.ImportAsync(
                 filePath, _serviceProvider, dialog, logger, CancellationToken.None);

@@ -75,13 +75,6 @@
         "url": "https://github.com/xoofx/markdig"
       },
       {
-        "name": "CodeWF.AvaloniaControls",
-        "packageId": "CodeWF.AvaloniaControls",
-        "purpose": "引导控件",
-        "license": "MIT",
-        "url": "https://github.com/dotnet9/CodeWF.AvaloniaControls"
-      },
-      {
         "name": "OpenTelemetry",
         "packageId": "OpenTelemetry",
         "purpose": "可观测性（追踪与指标）",
@@ -171,13 +164,6 @@
         "purpose": "Markdown rendering",
         "license": "BSD-2-Clause",
         "url": "https://github.com/xoofx/markdig"
-      },
-      {
-        "name": "CodeWF.AvaloniaControls",
-        "packageId": "CodeWF.AvaloniaControls",
-        "purpose": "Onboarding controls",
-        "license": "MIT",
-        "url": "https://github.com/dotnet9/CodeWF.AvaloniaControls"
       },
       {
         "name": "OpenTelemetry",

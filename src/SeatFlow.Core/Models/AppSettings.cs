@@ -49,9 +49,6 @@ namespace SeatFlow.Core.Models
         /// <summary>是否为首次启动（控制首次引导的显示）。</summary>
         public bool IsFirstLaunch { get; set; }
 
-        /// <summary>已展示过引导的页面（PageKey 名称 → true，或 true 表示该页面的独立引导已展示）。</summary>
-        public Dictionary<string, bool> CompletedPageGuides { get; set; } = [];
-
         /// <summary>日志配置（不暴露到设置 UI）。</summary>
         public LogSettings Logging { get; set; } = new();
 
@@ -71,8 +68,8 @@ namespace SeatFlow.Core.Models
     /// </summary>
     public sealed class TelemetryConfig
     {
-        /// <summary>是否启用遥测上报（opt-in，默认关闭）。</summary>
-        public bool Enabled { get; set; } = false;
+        /// <summary>是否启用遥测上报（默认开启，但实际生效还要求 <see cref="ConsentShown"/> 为 true）。</summary>
+        public bool Enabled { get; set; } = true;
 
         /// <summary>是否已展示过同意弹窗。</summary>
         public bool ConsentShown { get; set; } = false;

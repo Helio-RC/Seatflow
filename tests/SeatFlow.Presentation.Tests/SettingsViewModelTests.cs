@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Models;
 using SeatFlow.Core.Telemetry;
 using SeatFlow.Presentation.Avalonia.Behaviors;
 using SeatFlow.Presentation.Avalonia.Services;
@@ -16,10 +17,12 @@ namespace SeatFlow.Presentation.Tests;
 /// </summary>
 public class SettingsViewModelTests
 {
-    private static SettingsViewModel CreateViewModel(ShellLayoutService layout) => new(
-        Substitute.For<IApplicationFacade>(),
+    private static SettingsViewModel CreateViewModel(
+        ShellLayoutService layout,
+        IApplicationFacade? facade = null) => new(
+        facade ?? Substitute.For<IApplicationFacade>(),
         NullDialogService.Instance,
-        Substitute.For<IOnboardingService>(),
+        Substitute.For<IOobeService>(),
         Substitute.For<IFileService>(),
         Substitute.For<ITelemetryService>(),
         Substitute.For<IUpdateService>(),
@@ -59,6 +62,28 @@ public class SettingsViewModelTests
         layout.Tier = LayoutTier.Compact;
 
         changes.Should().Contain(nameof(SettingsViewModel.CardColumns));
+    }
+
+
+    [Fact]
+    public async Task 保存设置_启用遥测时_补齐ConsentShown()
+    {
+        var settings = new AppSettings
+        {
+            Telemetry = new TelemetryConfig { Enabled = false, ConsentShown = false },
+        };
+        var facade = Substitute.For<IApplicationFacade>();
+        facade.LoadAppSettingsAsync(Arg.Any<CancellationToken>())
+            .Returns(_ => Task.FromResult(settings));
+
+        var vm = CreateViewModel(new ShellLayoutService(), facade);
+        await vm.OnEnterAsync(CancellationToken.None);
+        vm.TelemetryEnabled = true;
+
+        await vm.SaveSettingsCommand.ExecuteAsync(null);
+
+        settings.Telemetry.Enabled.Should().BeTrue();
+        settings.Telemetry.ConsentShown.Should().BeTrue("启用遥测必须同时满足 ConsentShown");
     }
 
     [Fact]

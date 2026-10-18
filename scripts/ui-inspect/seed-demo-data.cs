@@ -213,7 +213,6 @@ var settings = new AppSettings
     Language = "zh-CN",
     LastVenueId = "demo-venue-01",
     IsFirstLaunch = false,
-    CompletedPageGuides = new Dictionary<string, bool> { ["FreeformManagement"] = true },
     Telemetry = new TelemetryConfig { Enabled = false, ConsentShown = true },
     KeyboardShortcuts = new KeyboardShortcutConfig()
 };

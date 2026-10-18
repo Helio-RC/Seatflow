@@ -1,0 +1,68 @@
+<UserControl
+  x:Class="SeatFlow.Presentation.Avalonia.Controls.CoachMarkOverlay"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:avaloniaConv="using:Avalonia.Data.Converters"
+  xmlns:fic="using:FluentIcons.Avalonia"
+  xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
+  xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:local="using:SeatFlow.Presentation.Avalonia.Controls"
+  xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
+  x:DataType="vm:MainShellViewModel"
+  Background="{x:Null}"
+  IsVisible="{Binding Oobe.IsHandoffVisible}">
+
+  <Panel Background="{x:Null}">
+    <local:CoachMask
+      x:Name="Mask"
+      AccentBrush="{DynamicResource SfAccentBrush}"
+      IsHitTestVisible="False"
+      MaskBrush="{DynamicResource SfModalMaskBrush}" />
+
+    <Canvas Background="{x:Null}">
+    <Border
+      x:Name="Card"
+      Width="356"
+      Padding="16"
+      Background="{DynamicResource SfSurfaceBrush}"
+      BorderBrush="{DynamicResource SfBorderStrongBrush}"
+      BorderThickness="1"
+      BoxShadow="{DynamicResource SfShadowPop}"
+      CornerRadius="{StaticResource SfRadiusLg}">
+      <StackPanel Spacing="9">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <fic:FluentIcon
+            x:Name="CardIcon"
+            VerticalAlignment="Center"
+            FontSize="16"
+            Foreground="{DynamicResource SfAccentBrush}"
+            Icon="{x:Static ficEnum:Icon.Info}" />
+          <TextBlock
+            Classes="sf-h3"
+            Text="{Binding Oobe.HandoffTitle}"
+            TextWrapping="Wrap" />
+        </StackPanel>
+        <TextBlock
+          Classes="sf-sm"
+          Foreground="{DynamicResource SfTextDimBrush}"
+          Text="{Binding Oobe.HandoffMessage}"
+          TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button
+            x:Name="PrimaryButton"
+            Classes="sf-btn sf-primary sf-sm"
+            Command="{Binding Oobe.HandoffPrimaryCommand}"
+            Content="{Binding Oobe.HandoffPrimaryText}"
+            IsVisible="{Binding Oobe.HandoffPrimaryText, Converter={x:Static avaloniaConv:StringConverters.IsNotNullOrEmpty}}" />
+          <Button
+            x:Name="SecondaryButton"
+            Classes="sf-btn sf-ghost sf-sm"
+            Command="{Binding Oobe.HandoffSecondaryCommand}"
+            Content="{Binding Oobe.HandoffSecondaryText}"
+            IsVisible="{Binding Oobe.HandoffSecondaryText, Converter={x:Static avaloniaConv:StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    </Canvas>
+  </Panel>
+</UserControl>

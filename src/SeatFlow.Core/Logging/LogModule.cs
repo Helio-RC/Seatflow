@@ -33,8 +33,8 @@ public static class LogModule
     /// <summary>导航与 UI 服务模块</summary>
     public const string Navigation = "Presentation.Avalonia.Services";
 
-    /// <summary>引导系统模块</summary>
-    public const string Onboarding = "Presentation.Avalonia.Services.OnboardingService";
+    /// <summary>OOBE 首次设置模块</summary>
+    public const string Oobe = "Presentation.Avalonia.ViewModels.OobeViewModel";
 
     /// <summary>看门狗服务模块</summary>
     public const string Watchdog = "Presentation.Avalonia.Services.WatchdogService";

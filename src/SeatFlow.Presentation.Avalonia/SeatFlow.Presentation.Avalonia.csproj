@@ -30,7 +30,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Data\about.json" />
     <EmbeddedResource Include="Data\page_navigation.json" />
-    <EmbeddedResource Include="Data\onboarding_config.json" />
     <EmbeddedResource Include="..\..\RELEASE.md" LogicalName="SeatFlow.Presentation.Avalonia.Data.release.md" />
   </ItemGroup>
 
@@ -62,7 +61,6 @@
     <PackageReference Include="Markdig" Version="1.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.12" />
-    <PackageReference Include="CodeWF.AvaloniaControls" Version="12.2.0.6" />
     <PackageReference Include="OpenTelemetry" Version="1.19.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
   </ItemGroup>

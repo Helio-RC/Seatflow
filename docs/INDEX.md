@@ -22,7 +22,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │   ├── INDEX.md               ← 本文件
 │   ├── LOGGING.md              ← 日志系统设计文档（等级规范、分模块覆盖、输出格式、最佳实践）
 │   ├── Phases.md              ← 实现阶段、任务分解、工时估算
-│   ├── ONBOARDING_GUIDE.md    ← 引导系统设计文档（JSON 驱动，启动引导 + 页面引导）
+│   ├── ONBOARDING_GUIDE.md    ← OOBE 首次设置设计文档（覆盖层、真实数据、交接卡）
 │   ├── UI_REFACTOR.md         ← UI 重构记录（M0–M6：诊断基线、IA/技术决策、性能复测、遗留）
 │   ├── SEATSETS_FORMAT.md     ← .seatsets 数据包格式规范（导出/导入/校验）
 │   ├── StrategyDataResilience.md ← 策略数据持久化与容错分析
@@ -34,13 +34,14 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 │       ├── ADR-004-strategy-pattern-for-seating.md ← 策略模式座位安排决策
 │       ├── ADR-005-command-pattern-for-undo-redo.md ← 命令模式撤销/重做决策
 │       ├── ADR-006-strategy-pipeline-fill-in-order.md ← 策略管道 Fill-in-Order + 依赖策略三态
-│       ├── ADR-008-onboarding-demo-data-injection.md ← 引导系统纯内存示例数据注入
+│       ├── ADR-008-onboarding-demo-data-injection.md ← 引导系统纯内存示例数据注入（被 ADR-016 取代）
 │       ├── ADR-009-arrangement-counter.md ← 排座次数计数器客户端实现
 │       ├── ADR-010-velopack-oss-distribution.md ← Velopack 自动更新与 OSS 分发架构
 │       ├── ADR-011-keyboard-shortcuts.md ← 全局键盘快捷键系统（Behavior + Tunnel + 设置开关）
 │       ├── ADR-013-remove-plugin-system.md ← 移除插件系统（2026-09）
 │       ├── ADR-014-reactiveui-and-canvas-architecture.md ← UI 技术架构（ReactiveUI 共存 + 自绘 SeatingCanvas，部分取代 ADR-002）
-│       └── ADR-015-responsive-layout-tiers.md ← 响应式三档布局与手机档导航（扩展 ADR-014 断点设计）
+│       ├── ADR-015-responsive-layout-tiers.md ← 响应式三档布局与手机档导航（扩展 ADR-014 断点设计）
+│       └── ADR-016-oobe-replaces-codewf-guide.md ← OOBE 覆盖层取代 CodeWF Guide（取代 ADR-008）
 └── docs/presentation/
     ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
     ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录

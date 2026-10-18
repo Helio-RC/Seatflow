@@ -6,7 +6,6 @@ version — SeatFlow 版本号统一管理。
   - App 版本（version.json）
   - 文件格式版本（file_versions.json + Model 类默认值）
   - 策略清单版本（Manifests/*.json）
-  - 引导配置版本（onboarding_config.json）
 
 用法:
   python3 version.py show
@@ -14,7 +13,6 @@ version — SeatFlow 版本号统一管理。
   python3 version.py bump-app [major|minor|patch|--set X.Y.Z] [--dry-run] [--force]
   python3 version.py bump-file TYPE --set X.Y [--dry-run] [--force]
   python3 version.py bump-strategy ID --set X.Y.Z [--dry-run] [--force]
-  python3 version.py bump-onboarding --set X.Y [--dry-run] [--force]
   python3 version.py sync [--dry-run] [--force]
 """
 
@@ -37,7 +35,6 @@ APP_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 FILE_VERSION_RE = re.compile(r"^\d+\.\d+$")
 STRATEGY_VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 MANIFEST_VERSION_RE = re.compile(r"^\d+\.\d+$")
-ONBOARDING_VERSION_RE = re.compile(r"^\d+\.\d+$")
 
 # Model 类中 Version 默认值的匹配模式
 MODEL_VERSION_RE = re.compile(
@@ -132,7 +129,6 @@ class VersionManager:
         self.version_json_path = root / "version.json"
         self.about_path = root / "src/SeatFlow.Presentation.Avalonia/Data/about.json"
         self.file_versions_path = root / "src/SeatFlow.Infrastructure/Migration/file_versions.json"
-        self.onboarding_path = root / "src/SeatFlow.Presentation.Avalonia/Data/onboarding_config.json"
         self.manifests_dir = root / "src/SeatFlow.Core/Strategies/Manifests"
         self.models_dir = root / "src/SeatFlow.Core/Models"
         self.json_student_writer_path = root / "src/SeatFlow.Infrastructure/Providers/JsonStudentWriter.cs"
@@ -148,7 +144,6 @@ class VersionManager:
         files_to_backup.add(self.version_json_path)
         files_to_backup.add(self.about_path)
         files_to_backup.add(self.file_versions_path)
-        files_to_backup.add(self.onboarding_path)
         for mf in self.manifests_dir.glob("*.json"):
             files_to_backup.add(mf)
         for model_file in FILE_TYPE_TO_MODEL.values():
@@ -183,11 +178,6 @@ class VersionManager:
             }
         return result
 
-    def get_onboarding_version(self) -> str:
-        """读取引导配置版本。"""
-        data = read_json(self.onboarding_path)
-        return data.get("version", "")
-
     def get_model_versions(self) -> dict[str, str]:
         """从 Model C# 文件中提取 Version 默认值。"""
         result = {}
@@ -208,7 +198,6 @@ class VersionManager:
         file_vers = self.get_file_versions()
         model_vers = self.get_model_versions()
         strategy_vers = self.get_strategy_versions()
-        onboarding = self.get_onboarding_version()
 
         # App
         print("═══════════════════════════════════════")
@@ -238,13 +227,6 @@ class VersionManager:
         print(f"  {'─' * 25} {'─' * 10} {'─' * 15}")
         for sid, sv in strategy_vers.items():
             print(f"  {sid:<25} {sv['version']:<10} {sv['manifestVersion']:<15}")
-
-        # Onboarding
-        print()
-        print("═══════════════════════════════════════")
-        print("  引导配置版本")
-        print("═══════════════════════════════════════")
-        print(f"  onboarding_config.json     {onboarding}")
 
         print()
 
@@ -312,12 +294,6 @@ class VersionManager:
                             "level": "WARNING",
                             "msg": f"{mf.name}: manifestVersion({mv}) > MaxManifestVersion({max_ver})",
                         })
-
-        # 引导配置版本
-        if self.onboarding_path.exists():
-            ov = self.get_onboarding_version()
-            if ov and not ONBOARDING_VERSION_RE.match(ov):
-                issues.append({"level": "ERROR", "msg": f"onboarding_config.json: version '{ov}' 格式不正确 (应为 X.Y)"})
 
         return issues
 
@@ -426,21 +402,6 @@ class VersionManager:
 
         return changes
 
-    # ── Bump Onboarding ───────────────────────
-
-    def bump_onboarding(self, set_to: str):
-        """调整引导配置版本。"""
-        if not ONBOARDING_VERSION_RE.match(set_to):
-            raise ValueError(f"引导配置版本格式错误: {set_to} (应为 X.Y)")
-
-        data = read_json(self.onboarding_path)
-        current = data.get("version", "?")
-        data["version"] = set_to
-        return {
-            str(self.onboarding_path.relative_to(self.root)): {"from": current, "to": set_to},
-            "_onboarding_data": data,
-        }
-
     # ── Sync ──────────────────────────────────
 
     def sync_models(self) -> dict[str, dict[str, str]]:
@@ -499,10 +460,6 @@ class VersionManager:
         # 写入 version.json
         if "_version_data" in changes:
             write_json(self.version_json_path, changes.pop("_version_data"))
-
-        # 写入 onboarding_config.json
-        if "_onboarding_data" in changes:
-            write_json(self.onboarding_path, changes.pop("_onboarding_data"))
 
         # 写入 file_versions.json
         if "_file_versions_data" in changes:
@@ -583,12 +540,6 @@ def main():
     p_strat.add_argument("--dry-run", action="store_true", help="预览不写入")
     p_strat.add_argument("--force", "-f", action="store_true", help="跳过确认")
 
-    # bump-onboarding
-    p_onb = sub.add_parser("bump-onboarding", help="调整引导配置版本")
-    p_onb.add_argument("--set", dest="set_to", required=True, help="目标版本 (X.Y)")
-    p_onb.add_argument("--dry-run", action="store_true", help="预览不写入")
-    p_onb.add_argument("--force", "-f", action="store_true", help="跳过确认")
-
     # sync
     p_sync = sub.add_parser("sync", help="从 file_versions.json 同步所有 Model 类默认值")
     p_sync.add_argument("--dry-run", action="store_true", help="预览不写入")
@@ -634,8 +585,6 @@ def main():
             changes = mgr.bump_file(args.type, set_to=args.set_to)
         elif args.command == "bump-strategy":
             changes = mgr.bump_strategy(args.id, set_to=args.set_to)
-        elif args.command == "bump-onboarding":
-            changes = mgr.bump_onboarding(set_to=args.set_to)
         elif args.command == "sync":
             changes = mgr.sync_models()
         else:

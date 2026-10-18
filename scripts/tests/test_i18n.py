@@ -194,7 +194,7 @@ class TestValidateKeyName(unittest.TestCase):
     """Key 命名校验测试。"""
 
     def test_valid_keys(self):
-        for key in ["Common_OK", "Settings_Title", "Member_MemberCountFmt", "Guide_Phase0_Step0_Title"]:
+        for key in ["Common_OK", "Settings_Title", "Member_MemberCountFmt", "Oobe_Phase0_Step0_Title"]:
             with self.subTest(key=key):
                 self.assertEqual(validate_key_name(key), [])
 

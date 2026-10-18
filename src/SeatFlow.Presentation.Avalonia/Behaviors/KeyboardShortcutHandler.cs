@@ -40,6 +40,9 @@ public sealed class KeyboardShortcutHandler
         if (sender is not Window window) return;
         if (window.DataContext is not MainShellViewModel shell) return;
 
+        // OOBE 全屏/交接期间屏蔽全局快捷键，避免作用到下层页面。
+        if (shell.IsOobeActive) return;
+
         var cfg = Config;
         var currentVm = shell.CurrentViewModel;
         var modifiers = e.KeyModifiers;
@@ -83,7 +86,7 @@ public sealed class KeyboardShortcutHandler
 
             // ── Esc: 取消选择 / 关闭弹窗 ──
             case Key.Escape:
-                e.Handled = cfg.EscapeEnabled && HandleEscape(shell, currentVm);
+                e.Handled = cfg.EscapeEnabled && HandleEscape(currentVm);
                 break;
         }
     }
@@ -113,12 +116,8 @@ public sealed class KeyboardShortcutHandler
     }
 
     /// <summary>处理 Esc 键：取消交换模式、取消选择。返回 <c>true</c> 表示事件已消费。</summary>
-    private static bool HandleEscape(MainShellViewModel shell, ViewModelBase? currentVm)
+    private static bool HandleEscape(ViewModelBase? currentVm)
     {
-        // 引导弹窗激活时，让 Guide 控件自行处理 Esc 关闭
-        if (shell.IsOnboardingActive)
-            return false;
-
         if (currentVm is SeatingArrangementViewModel saVm)
         {
             // 优先取消交换模式

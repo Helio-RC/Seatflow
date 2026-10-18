@@ -15,6 +15,8 @@ internal sealed class NullTelemetryService : ITelemetryService
 
     public void SetEnabled(bool enabled) { }
 
+    public void ApplyEnabled(bool enabled) { }
+
     public Activity? StartActivity(string name, ActivityKind kind = ActivityKind.Internal) => null;
 
     public void RecordEvent(string eventType, Dictionary<string, object?>? attributes = null) { }

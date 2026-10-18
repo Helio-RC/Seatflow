@@ -2,18 +2,18 @@
   x:Class="SeatFlow.Presentation.Avalonia.Views.MainView"
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:codewf="using:CodeWF.AvaloniaControls.Controls"
   xmlns:controls="using:SeatFlow.Presentation.Avalonia.Controls"
   xmlns:fic="using:FluentIcons.Avalonia"
   xmlns:ficEnum="clr-namespace:FluentIcons.Common;assembly=FluentIcons.Common"
   xmlns:lang="using:SeatFlow.Presentation.Avalonia.Lang"
+  xmlns:views="using:SeatFlow.Presentation.Avalonia.Views"
   xmlns:vm="using:SeatFlow.Presentation.Avalonia.ViewModels"
   x:DataType="vm:MainShellViewModel"
   DragDrop.AllowDrop="True"
   FontFamily="fonts:Inter#Inter">
 
   <Grid>
-    <DockPanel>
+    <DockPanel IsEnabled="{Binding !Oobe.IsVisible}">
       <!--  紧凑档顶栏：导航抽屉入口 + 当前页标题（手机档无外壳顶栏，页面命令栏自带标题）  -->
       <Border
         DockPanel.Dock="Top"
@@ -446,44 +446,20 @@
       </Border>
     </Border>
 
-    <!--  首次启动引导覆盖层  -->
-    <codewf:Guide
-      x:Name="OnboardingGuide"
-      CloseText="{x:Static lang:Resources.Guide_Close}"
-      Closed="OnGuideClosed"
-      Completed="OnGuideCompleted"
-      FinishText="{x:Static lang:Resources.Guide_Finish}"
-      GapOffsetX="4"
-      GapOffsetY="4"
-      GapRadius="6"
-      IsPointAtCenter="True"
-      IsScrollIntoView="True"
-      IsShowMask="False"
-      IsVisible="False"
-      MaskColor="{DynamicResource OverlayMaskColor}"
-      MissingTargetBehavior="Center"
-      NextText="{x:Static lang:Resources.Guide_Next}"
-      Placement="Right"
-      PopupOffset="14"
-      PreviousText="{x:Static lang:Resources.Guide_Previous}"
-      StepOpening="OnGuideStepOpening"
-      TargetBorderBrush="{DynamicResource SystemAccentColor}"
-      TargetBorderThickness="3"
-      TargetResolveDelay="0:0:0">
-      <!--
-        引导有 24 步但语义是 9 个阶段：默认圆点会显示 24 个点，宽度超出卡片 MaxWidth（420），
-        把"下一步"按钮挤出卡片被裁切。使用阶段指示器确定性显示 "阶段 / 总数"（如 "3 / 9"）。
-      -->
-      <codewf:Guide.Indicator>
-        <controls:PhaseGuideIndicator />
-      </codewf:Guide.Indicator>
-    </codewf:Guide>
+    <!--  OOBE 全屏覆盖层（位于外壳之上、对话框之下）  -->
+    <views:OobeView
+      DataContext="{Binding Oobe}"
+      ZIndex="200" />
+
+    <!--  OOBE 交接卡：高亮生成按钮，非模态  -->
+    <controls:CoachMarkOverlay x:Name="OobeCoachMark" ZIndex="210" />
 
     <!--  浏览器版（WASM）对话框叠加层：无独立 Window 时以遮罩 + 居中面板呈现  -->
     <Grid
       x:Name="DialogOverlayHost"
       Background="#66000000"
-      IsVisible="False">
+      IsVisible="False"
+      ZIndex="300">
       <ContentControl
         x:Name="DialogOverlayContent"
         HorizontalAlignment="Center"

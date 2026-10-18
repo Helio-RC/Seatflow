@@ -52,7 +52,10 @@ public abstract class ViewModelBase : ObservableObject
     /// 其他异常仍按 <see cref="SafeExecuteAsync(Func{Task}, string?)"/> 语义记录并弹窗。
     /// 适用场景：长任务在页面离开时被取消（如生成座位安排）。
     /// </summary>
-    protected async Task<bool> SafeCancelableAsync(Func<Task> action, string? errorTitle = null)
+    protected async Task<bool> SafeCancelableAsync(
+        Func<Task> action,
+        string? errorTitle = null,
+        bool showErrorDialog = true)
     {
         errorTitle ??= Resources.Common_OperationFailed;
         try
@@ -68,7 +71,8 @@ public abstract class ViewModelBase : ObservableObject
         catch (Exception ex)
         {
             Logger?.LogError(ex, "ViewModel 操作失败：{Title}", errorTitle);
-            await Dialog.ShowErrorAsync(errorTitle, ex.Message);
+            if (showErrorDialog)
+                await Dialog.ShowErrorAsync(errorTitle, ex.Message);
             return false;
         }
     }

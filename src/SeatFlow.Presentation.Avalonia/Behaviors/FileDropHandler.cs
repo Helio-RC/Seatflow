@@ -24,12 +24,14 @@ public sealed class FileDropHandler
 {
     private readonly INavigationService _navigation;
     private readonly IDialogService _dialog;
+    private readonly IOobeService _oobe;
     private Control? _host;
 
-    public FileDropHandler(INavigationService navigation, IDialogService dialog)
+    public FileDropHandler(INavigationService navigation, IDialogService dialog, IOobeService oobe)
     {
         _navigation = navigation;
         _dialog = dialog;
+        _oobe = oobe;
     }
 
     public void Attach(Control host)
@@ -58,6 +60,8 @@ public sealed class FileDropHandler
     /// <summary>判断当前拖入的文件是否被当前页面接受。</summary>
     private bool IsAcceptedByCurrentPage(DragEventArgs e)
     {
+        if (_oobe.IsActive) return false;
+
         var vm = ResolveCurrentViewModel();
         if (vm is not IFileDropHandler handler)
             return false;
@@ -115,7 +119,7 @@ public sealed class FileDropHandler
 
     private void OnDragEnter(object? sender, DragEventArgs e)
     {
-        if (!e.DataTransfer.Formats.Contains(DataFormat.File))
+        if (_oobe.IsActive || !e.DataTransfer.Formats.Contains(DataFormat.File))
             return;
 
         SetOverlayState(IsAcceptedByCurrentPage(e));
@@ -128,6 +132,13 @@ public sealed class FileDropHandler
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
+        if (_oobe.IsActive)
+        {
+            e.DragEffects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
         var vm = ResolveCurrentViewModel();
         if (vm is not IFileDropHandler handler)
         {
@@ -161,6 +172,7 @@ public sealed class FileDropHandler
     private async void OnDrop(object? sender, DragEventArgs e)
     {
         HideOverlay();
+        if (_oobe.IsActive) return;
 
         try
         {

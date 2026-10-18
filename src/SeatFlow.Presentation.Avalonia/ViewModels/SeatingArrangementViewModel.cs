@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
+public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
@@ -86,6 +86,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     public bool HasSelectedVenue => SelectedVenue != null;
     public bool HasSelectedDataset => SelectedDataset != null;
+
+    /// <summary>是否已加载可用于生成的会场布局（OOBE 交接缺数据判定用）。</summary>
+    public bool HasLayoutForGeneration => _currentLayout != null;
 
     // ── Canvas ──
     [ObservableProperty]
@@ -283,8 +286,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// <summary>
     /// 本次进入页面的加载完成信号：<see cref="OnLeaveAsync"/> 时替换为新的未完成任务，
     /// <see cref="OnEnterAsync"/> 内部的刷新结束后置位。
-    /// 引导示例数据注入（OnboardingService.SeedSeatingArrangementData）需等待它，
-    /// 否则随后加载会整体替换 VenueItems/DatasetItems、覆盖演示数据。
+    /// OOBE 交接准备需等待它，避免随后加载整体替换 VenueItems/DatasetItems。
     /// 初始为已完成，兼容「构造后从未进入过页面」的读取场景。
     /// </summary>
     public Task InitializationTask => _enterCompletion.Task;
@@ -380,76 +382,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
 
     public Task OnLeaveAsync()
     {
+        _oobeHandoffPreparationActive = false;
         _enterCts?.Cancel();
         _generateCts?.Cancel();
         StopContinuousGenerate();
         IsPickerDrawerOpen = false;
         IsInspectorDrawerOpen = false;
-        // 为下一次进入准备新的完成信号，保证引导读到的是「下一次加载」而非旧任务
+        // 为下一次进入准备新的完成信号，保证首次设置交接读到的是「下一次加载」而非旧任务
         _enterCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         return Task.CompletedTask;
-    }
-
-    // ═══════════════════════════════════════════════
-    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
-    // ═══════════════════════════════════════════════
-
-    /// <summary>注入 3×4 演示座位与演示名单（纯内存，不落盘）。</summary>
-    public void SeedGuideData()
-    {
-        // 已等待 OnEnterAsync 内的 RefreshDataAsync 完成，注入不会被后续加载覆盖
-        VenueItems.Clear();
-        VenueItems.Add(new("demo-v", "演示教室"));
-        DatasetItems.Clear();
-        DatasetItems.Add(new StudentDatasetInfo { Id = "demo-ds", Name = "演示班级", StudentCount = 6 });
-        SelectedVenue = VenueItems.FirstOrDefault();
-        SelectedDataset = DatasetItems.FirstOrDefault();
-
-        var names = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank" };
-        var seats = new ObservableCollection<SeatDisplayItem>();
-        for (int r = 0; r < 4; r++)
-            for (int c = 0; c < 3; c++)
-            {
-                var idx = (r * 3) + c;
-                seats.Add(new SeatDisplayItem
-                {
-                    SeatId = $"R{r}C{c}",
-                    SeatLabel = $"R{r}C{c}",
-                    X = 200 + (c * 80),
-                    Y = 200 + (r * 60),
-                    Width = 50,
-                    Height = 30,
-                    IsOccupied = idx < 6,
-                    StudentName = idx < 6 ? names[idx] : null,
-                    OccupancyStatus = idx < 6 ? SeatOccupancyStatus.Occupied : SeatOccupancyStatus.Empty
-                });
-            }
-
-        SeatItems = seats;
-        OverlayItems = new ObservableCollection<SeatDisplayItem>();
-        TotalSeats = 12;
-        AssignedSeats = 6;
-        HasGenerated = true;
-        IsGenerating = false;
-        StatusMessage = "已分配 6/12 个座位（演示数据）";
-        // 让演示座位真正渲染到自绘画布（SeatItems 变化不会自动重建快照）
-        UpdateCanvasSnapshot();
-    }
-
-    /// <summary>清空演示工作区（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
-    public void ClearGuideData()
-    {
-        HasGenerated = false;
-        SeatItems.Clear();
-        OverlayItems.Clear();
-        TotalSeats = 0;
-        AssignedSeats = 0;
-        VenueItems.Clear();
-        DatasetItems.Clear();
-        SelectedVenue = null;
-        SelectedDataset = null;
-        // 列表已清空 → 下次进入重新加载（页面缓存策略失效化）
-        InvalidateData();
     }
 
     // ── 抽屉命令 ──
@@ -496,6 +437,12 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// <summary>用于抑制 <see cref="OnSelectedVenueChanged"/> 覆盖已恢复的布局。</summary>
     private bool _isRestoringWorkspace;
 
+    /// <summary>OOBE 交接准备已接管选择：页面初始化迟到完成时不得覆盖。</summary>
+    private bool _oobeHandoffPreparationActive;
+
+    /// <summary>交接准备启动时捕获的页面初始化任务；完成后解除保护。</summary>
+    private Task? _oobeHandoffInitialization;
+
     // ── 初始化 ──
 
     private async Task LoadDefaultZoomAsync()
@@ -541,6 +488,126 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
             await RefreshVenueSummariesAsync(ct);
         }
         await TryRestoreWorkspaceAsync();
+    }
+
+    /// <summary>
+    /// OOBE 交接准备：等待页面初始化、重新加载会场/名单列表，按 id 选中并显式加载会场布局。
+    /// 不依赖 <c>_dataLoaded</c> 缓存（OOBE 期间页面可能已加载过旧列表），失败返回结果而不是抛给 OOBE。
+    /// </summary>
+    public async Task<OobeHandoffPreparation> PrepareOobeHandoffAsync(
+        string? venueId,
+        string? datasetId,
+        CancellationToken ct = default)
+    {
+        _oobeHandoffPreparationActive = true;
+        _oobeHandoffInitialization = InitializationTask;
+        try
+        {
+            try
+            {
+                await _oobeHandoffInitialization.WaitAsync(TimeSpan.FromSeconds(10), ct);
+            }
+            catch (TimeoutException)
+            {
+                _logger?.LogWarning("OOBE 交接等待页面初始化超时，继续重新加载列表");
+            }
+
+            ct.ThrowIfCancellationRequested();
+
+            var venues = await _facade.ListVenueSummariesAsync(ct);
+            VenueItems = new ObservableCollection<VenueItem>(
+                venues
+                    .OrderBy(v => v.Name, NaturalStringComparer.Instance)
+                    .ThenBy(v => v.Id, StringComparer.Ordinal)
+                    .Select(v => new VenueItem(v.Id, v.Name)));
+            var datasets = await _facade.ListStudentDatasetsAsync(ct);
+            DatasetItems = new ObservableCollection<StudentDatasetInfo>(datasets);
+            _dataLoaded = true;
+
+            var venueReady = false;
+            if (!string.IsNullOrEmpty(venueId))
+            {
+                var item = VenueItems.FirstOrDefault(v => v.Id == venueId);
+                if (item is not null)
+                {
+                    var layout = await _facade.LoadVenueAsync(venueId, ct);
+                    if (layout is not null)
+                    {
+                        _isRestoringWorkspace = true;
+                        try
+                        {
+                            SelectedVenue = item;
+                            _currentLayout = layout;
+                            ObstacleProcessor.ApplyObstacles(layout);
+                            StatusMessage = string.Format(
+                                Resources.Seating_VenueLoadedFmt, layout.Name, layout.Seats.Count);
+                        }
+                        finally
+                        {
+                            _isRestoringWorkspace = false;
+                        }
+
+                        venueReady = true;
+                    }
+                }
+            }
+
+            if (!venueReady)
+                ClearVenueForIncompleteHandoff();
+
+            var datasetReady = false;
+            if (!string.IsNullOrEmpty(datasetId))
+            {
+                var dataset = DatasetItems.FirstOrDefault(d => d.Id == datasetId);
+                if (dataset is not null)
+                {
+                    SelectedDataset = dataset;
+                    datasetReady = true;
+                }
+            }
+
+            if (!datasetReady)
+                SelectedDataset = null;
+
+            return new OobeHandoffPreparation(venueReady, datasetReady, null);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "OOBE 交接准备失败");
+            ClearVenueForIncompleteHandoff();
+            SelectedDataset = null;
+            return new OobeHandoffPreparation(false, false, ex.Message);
+        }
+        finally
+        {
+            // 初始化已完成（未超时）时立即解除保护；超时则保留到初始化真正结束，
+            // 由 TryRestoreWorkspaceAsync 在下次刷新时按任务状态解除，避免阻止后续导入恢复。
+            if (_oobeHandoffInitialization.IsCompleted)
+                _oobeHandoffPreparationActive = false;
+        }
+    }
+
+    /// <summary>交接缺会场时清空旧选择，避免用上一次工作区误生成。</summary>
+    private void ClearVenueForIncompleteHandoff()
+    {
+        _isRestoringWorkspace = true;
+        try
+        {
+            SelectedVenue = null;
+            _currentLayout = null;
+            _currentPlan = null;
+            _workspace = null;
+            HasGenerated = false;
+            StatusMessage = string.Empty;
+        }
+        finally
+        {
+            _isRestoringWorkspace = false;
+        }
     }
 
     [RelayCommand]
@@ -635,6 +702,14 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// <summary>如果有活跃工作区（如快照回滚后），恢复座位图显示。</summary>
     private async Task TryRestoreWorkspaceAsync()
     {
+        // OOBE 交接已显式选择会场/名单；页面初始化若超时后迟到完成，不得覆盖。
+        // 初始化一旦结束（正常或取消）即解除保护，允许后续导入/刷新恢复工作区。
+        if (_oobeHandoffPreparationActive)
+        {
+            if (_oobeHandoffInitialization is not { IsCompleted: true }) return;
+            _oobeHandoffPreparationActive = false;
+        }
+
         _workspace = await _facade.GetCurrentWorkspaceAsync();
         if (_workspace == null) return;
 
@@ -734,6 +809,15 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
     /// <summary>连续生成会话中两次生成之间的间隔（毫秒）。</summary>
     private const int ContinuousIntervalMs = 250;
 
+    /// <summary>一次生成结束（成功/失败/取消/缺数据）时触发，供 OOBE 交接卡消费。</summary>
+    public event EventHandler<SeatingGenerationResult>? SeatingGenerationCompleted;
+
+    /// <summary>最近一次生成的错误信息（失败时供 OOBE 展示）。</summary>
+    public string? LastGenerationError { get; private set; }
+
+    /// <summary>OOBE 交接期间抑制错误对话框，由失败卡展示原因。</summary>
+    public bool SuppressGenerationErrorDialog { get; set; }
+
     [RelayCommand]
     private Task GenerateSeatingAsync() => GenerateOnceAsync(Resources.Seating_GenerateFailed);
 
@@ -794,13 +878,39 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         _continuousCts?.Cancel();
     }
 
+    /// <summary>判定生成所需输入中缺失的部分（会场布局 / 名单）。</summary>
+    private SeatingMissingData MissingGenerationData()
+    {
+        var venueMissing = !HasSelectedVenue || _currentLayout == null;
+        var datasetMissing = !HasSelectedDataset;
+        return (venueMissing, datasetMissing) switch
+        {
+            (true, true) => SeatingMissingData.Both,
+            (true, false) => SeatingMissingData.Venue,
+            (false, true) => SeatingMissingData.Dataset,
+            _ => SeatingMissingData.None,
+        };
+    }
+
     /// <summary>
     /// 执行一次生成（短按命令与连续会话共用）。
     /// 返回是否成功应用了结果：取消 / 异常 / 无学生等未应用的情况返回 false（连续会话据此中止循环）。
     /// </summary>
     private async Task<bool> GenerateOnceAsync(string errorTitle)
     {
-        if (!CanGenerate || _currentLayout == null) return false;
+        LastGenerationError = null;
+
+        if (!CanGenerate || _currentLayout == null)
+        {
+            var missing = MissingGenerationData();
+            RaiseGenerationCompleted(new SeatingGenerationResult(
+                missing == SeatingMissingData.None
+                    ? SeatingGenerationStatus.Failed
+                    : SeatingGenerationStatus.MissingData,
+                Resources.Seating_NoMembers,
+                missing));
+            return false;
+        }
 
         _generateCts?.Cancel();
         _generateCts = new CancellationTokenSource();
@@ -816,6 +926,7 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
         if (!isContinuousRun) StatusMessage = Resources.Seating_Generating;
 
         var applied = false;
+        var datasetEmpty = false;
         try
         {
             await SafeCancelableAsync(async () =>
@@ -824,7 +935,9 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
                 var students = await _facade.LoadStudentDatasetAsync(SelectedDataset!.Id, ct);
                 if (students == null || students.Count == 0)
                 {
+                    datasetEmpty = true;
                     StatusMessage = Resources.Seating_NoMembers;
+                    LastGenerationError = Resources.Seating_NoMembers;
                     return;
                 }
 
@@ -889,14 +1002,40 @@ public partial class SeatingArrangementViewModel : ViewModelBase, IPageLifecycle
                     // 6. 清理临时文件
                     try { File.Delete(tempPath); } catch { /* 忽略 */ }
                 }
-            }, errorTitle);
+            }, errorTitle, showErrorDialog: !SuppressGenerationErrorDialog);
         }
         finally
         {
             IsGenerating = false;
         }
 
+        if (!applied && LastGenerationError is null && !ct.IsCancellationRequested)
+            LastGenerationError = Resources.Seating_GenerateFailed;
+
+        RaiseGenerationCompleted(new SeatingGenerationResult(
+            applied
+                ? SeatingGenerationStatus.Success
+                : datasetEmpty
+                    ? SeatingGenerationStatus.MissingData
+                    : ct.IsCancellationRequested
+                        ? SeatingGenerationStatus.Canceled
+                        : SeatingGenerationStatus.Failed,
+            LastGenerationError,
+            datasetEmpty ? SeatingMissingData.Dataset : SeatingMissingData.None));
+
         return applied;
+    }
+
+    private void RaiseGenerationCompleted(SeatingGenerationResult result)
+    {
+        try
+        {
+            SeatingGenerationCompleted?.Invoke(this, result);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "排座生成完成事件处理失败");
+        }
     }
 
     /// <summary>

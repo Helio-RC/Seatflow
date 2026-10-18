@@ -1,305 +1,93 @@
-# 引导系统设计文档
+# OOBE 首次设置设计文档
 
-> 版本 3.2 — 启动引导 + 页面引导，JSON 声明式 seedData，中间过渡阶段。
-> 最后更新: 2026-06-27
+> 版本 4.0 — MainView 覆盖层 + 真实数据 + 生成交接。决策见 [ADR-016](adr/ADR-016-oobe-replaces-codewf-guide.md)。
 
-## 概述
+## 概览
 
-SeatFlow 的引导系统帮助新用户快速上手核心功能的操作。引导分为两类：
+SeatFlow 首次启动不再使用 CodeWF `Guide` 与 JSON Tour，而是打开 `MainView` 内的**全屏 OOBE 覆盖层**：
 
-1. **启动引导** (`startupPhases`) — 首次启动时触发，逐步引导用户完成完整的排座工作流（导入→会场→策略→生成→导出）
-2. **页面引导** (`pageGuides`) — 用户首次进入某个页面时触发，仅展示该页面的关键操作
+1. **欢迎 + 遥测**：三步课桌式导览（中间留过道）、匿名使用数据复选框（默认勾选）。
+2. **启动偏好**（仅桌面）：自动更新模式三选一。
+3. **名单**：导入 xlsx / 从空白表格开始 / 沿用已有数据集；表格与人员管理页共用 `StudentRosterTable`，支持行内编辑，已有数据集可改并原地更新。
+4. **会场**：行列、过道、每列行数、名称；控件与会场管理页一致，预览改为编辑区下方的全宽卡片，支持平移/缩放。
+5. **生成交接**：关闭全屏层，导航排座工作台并预选会场/数据集；`CoachMarkOverlay` 高亮生成按钮。
 
-两类引导共享同一个 `OnboardingService` 和 `Guide` 控件，但在触发时机、步骤范围和完成行为上有所不同。
+OOBE 不是 `PageKey`，不进入 `NavigationService` 的页面缓存，也不参与侧栏导航。
 
-## 架构
+## 关键文件
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    Guide 控件 (CodeWF)                         │
-│  步骤列表 + 高亮定位 + 前进/后退 + 完成/关闭                     │
-└──────────────────────────┬───────────────────────────────────┘
-                           │ StepsSource, Show(), Close()
-                           │ StepOpening 事件 → 解析 Target
-┌──────────────────────────▼───────────────────────────────────┐
-│                   OnboardingService                           │
-│  • StartOnboarding() — 启动引导                                │
-│  • TryShowPageGuide(page) — 页面引导（首次访问触发）              │
-│  • BuildStepsFromDefs() — JSON → GuideStepOption 纯机械转换     │
-└──────────────────────────┬───────────────────────────────────┘
-                           │
-┌──────────────────────────▼───────────────────────────────────┐
-│               onboarding_config.json (嵌入资源)                │
-│  { startupPhases: [...], pageGuides: {...} }                  │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### 关键文件
-
-| 文件 | 作用 |
-|------|------|
-| `Data/onboarding_config.json` | **唯一的数据源**——所有阶段、步骤、资源键引用 |
-| `Services/IOnboardingService.cs` | 接口：`StartOnboarding`, `TryShowPageGuide`, `MarkPageGuideShownAsync` |
-| `Services/OnboardingService.cs` | 核心实现——加载 JSON、构建 GuideStepOption、处理事件 |
-| `Services/OnboardingPhaseDefinition.cs` | 数据模型：`OnboardingConfig`, `OnboardingPhaseDefinition`, `OnboardingStepDefinition` |
-| `Views/MainWindow.axaml` | Guide 控件声明（`<codewf:Guide x:Name="OnboardingGuide" .../>`） |
-| `Views/MainWindow.axaml.cs` | Thin wrapper：3 个事件处理器转发到 `IOnboardingService` |
-| `App.axaml.cs` | 启动时调用 `CheckAndStartOnboardingAsync()` |
-| `ViewModels/MainShellViewModel.cs` | 导航完成后触发 `TryShowPageGuide` |
-| `ViewModels/SettingsViewModel.cs` | "重新开始引导"按钮 |
-| `Core/Models/AppSettings.cs` | `IsFirstLaunch` + `CompletedPageGuides` 字典 |
-| `Styles/Guide.axaml` | Guide 控件的 ControlTheme（遮罩、卡片、按钮样式） |
-| `Lang/Resources.resx` / `.en-US.resx` / `Designer.cs` | 引导文本的 i18n 资源 |
-
-### DI 注册链
-
-```
-Program.cs:
-  services.AddSingleton<IOnboardingService, OnboardingService>()
-  services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>())
-  services.AddSingleton<MainWindow>()            // 依赖 IOnboardingService
-  services.AddSingleton<MainShellViewModel>()     // 依赖 IOnboardingService
-  services.AddSingleton<SettingsViewModel>()      // 依赖 IOnboardingService（通过 IOnboardingStarter 桥接）
-```
-
-## JSON Schema
-
-### 顶层结构
-
-```json
-{
-  "version": "3.4",
-  "startupPhases": [ OnboardingPhaseDefinition, ... ],
-  "pageGuides": {}
-}
-```
-
-### OnboardingPhaseDefinition
-
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `page` | string? | 否 | 要导航到的页面（PageKey 枚举名称）。`null` = 留在当前页（欢迎/结尾阶段，默认入口为排座工作台） |
-| `seedData` | bool | 否 | 跨阶段导航时是否注入演示数据。默认 `false`。用于 MemberManagement Phase 2 及后续需演示数据的阶段 |
-| `steps` | array | 是 | `OnboardingStepDefinition` 数组 |
-
-### OnboardingStepDefinition
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `titleKey` | string | (必填) | `Resources.resx` 中标题文本的键名 |
-| `descKey` | string | (必填) | `Resources.resx` 中描述文本的键名 |
-| `target` | string | `""` | 高亮目标控件的 `x:Name`。支持分号分隔的候选项（取第一个找到的）。空字符串 = 居中模态 |
-| `placement` | string | `"Right"` | 弹窗方向：`Top`, `Bottom`, `Left`, `Right`, `Center`（大小写不敏感） |
-| `showMask` | bool | `true` | 是否显示深色遮罩。居中纯文本步骤可设为 `false` |
-| `showArrow` | bool | `true` | 是否显示指向箭头。居中纯文本步骤可设为 `false` |
-
-### 当前引导内容概览
-
-**启动引导 (startupPhases)** — 9 阶段 24 步（v3.4，新 IA；默认入口=排座工作台）：
-
-| 阶段 | 页面 | seedData | 步骤数 | 目标控件 |
-|------|------|----------|--------|---------|
-| 欢迎 | （留在当前页，默认排座工作台） | — | 2 | (centered), ToggleSidebarButton |
-| 成员管理（导入） | MemberManagement | — | 2 | ExportTemplateButton, ImportButton |
-| 成员管理（更新） | MemberManagement | `true` | 3 | UpdateFromFileButton, StudentListBox, NewStudentRow |
-| 会场配置 | VenueConfiguration | `true` | 3 | NewVenueButton, LayoutTypePanel, SaveVenueButton |
-| 策略配置 | StrategyConfiguration | `true` | 4 | StrategyListBox, EditEnabledSwitch, (centered), SaveAllButton |
-| 排座生成 | SeatingArrangement | `true` | 4 | VenueListBox, DatasetListBox, GenerateButton, ExportButton |
-| 快照历史 | SnapshotHistory | `true` | 2 | VenueComboBox, SnapshotListBox |
-| 设置 | Settings | `false` | 3 | KeyboardShortcutsSection, UndoShortcutSwitch, SaveSettingsButton |
-| 结束 | （留在当前页） | — | 1 | (centered) |
-
-**页面引导 (pageGuides)** — 首次访问触发（当前 v3.4 配置为空，机制保留）。
-
-## 触发流程
-
-### 启动引导
-
-```
-App.axaml.cs → CheckAndStartOnboardingAsync()
-  ├── 检测 IsFirstLaunch == true 或设置文件不存在
-  ├── 立即持久化 IsFirstLaunch = false（崩溃安全）
-  └── Dispatcher.UIThread.Post(Background) → onboarding.StartOnboarding()
-       ├── 加载 JSON 配置 + 平铺步骤列表
-       ├── 设置 MainShellViewModel.IsOnboardingActive = true
-       ├── 展开侧边栏（默认入口=排座工作台）
-       ├── 订阅 Guide.StepOpening 事件
-       └── Dispatcher.UIThread.Post(Loaded) → Guide.Show()
-```
-
-### 页面引导
-
-```
-MainShellViewModel.SchedulePageGuideCheck()  ← 导航完成后触发
-  └── Dispatcher.UIThread.Post(Background) → onboarding.TryShowPageGuide(page)
-       ├── 守卫：IsActive == false → 启动引导或已有页面引导活跃则跳过
-       ├── 守卫：该 page 在 pageGuides 中有定义 → 无定义则跳过
-       ├── 守卫：CompletedPageGuides 中不存在 → 已展示过则跳过
-       ├── 延迟加载 config（如尚未加载）
-       ├── 设置 IsActive = true, _currentPageGuide = pageKey
-       ├── 构建该页面的步骤列表
-       └── Guide.Show()
-```
-
-### 关闭确认
-
-用户点击 × 或按 Esc：
-- 若已正常完成（`_isCompleting == true`）→ 直接关闭
-- 否则弹出 `ShowConfirmAsync` 确认对话框
-- 用户确认 → 执行 `CompleteOnboardingAsync()`
-- 用户取消 → 调用 `Guide.Show()` 恢复显示
-
-### 完成流程
-
-```
-OnboardingService.CompleteOnboardingAsync()
-  ├── 取消订阅 StepOpening 事件
-  ├── 捕获 wasPageGuide（在 await 前保存，防竞态）
-  ├── 立即设置 IsActive = false, _currentPageGuide = null（在 await 前，防竞态）
-  ├── 若是页面引导 → 持久化到 AppSettings.CompletedPageGuides
-  ├── 若是启动引导 → 调用 vm.CompleteOnboardingAsync() 恢复 UI
-  └── 关闭 Guide 控件，清空 StepsSource
-```
-
-## 添加/修改引导步骤
-
-### 添加新步骤
-
-**只需编辑 2 个文件，不改 C# 代码：**
-
-1. 在 `onboarding_config.json` 中添加步骤定义
-2. 在 `Resources.resx` 和 `Resources.en-US.resx` 中添加对应文本
-3. 在 `Resources.Designer.cs` 中添加强类型访问器属性
-
-**如果新步骤需要高亮某个控件**，先给控件添加 `x:Name`（在对应的 `.axaml` 文件中）。
-
-示例——在启动引导的 MemberManagement 阶段添加一步"保存数据集"：
-
-```json
-// 在 Members 阶段的 steps 数组末尾添加
-{ "titleKey": "Guide_Members_Save_Title",
-  "descKey": "Guide_Members_Save_Desc",
-  "target": "SaveButton",
-  "placement": "Bottom" }
-```
-
-然后在 resx 中添加对应的 `<data>` 条目。
-
-### 添加新页面的页面引导
-
-在 `pageGuides` 字典中添加新条目：
-
-```json
-"SnapshotHistory": {
-  "page": "SnapshotHistory",
-  "steps": [
-    { "titleKey": "Guide_Snapshot_XXX_Title", "descKey": "Guide_Snapshot_XXX_Desc", "target": "..." }
-  ]
-}
-```
-
-键名必须与 `PageKey` 枚举值完全匹配（区分大小写）。
-
-### 修改现有步骤
-
-只需编辑 JSON 中的 `titleKey`, `descKey`, `target`, `placement` 等字段，或修改 resx 中的文本内容。无需改 C# 代码。
-
-### 删除步骤
-
-从 JSON 中移除步骤定义即可。旧的 resx 键可以保留（无害），或后续统一清理。
-
-## 资源键命名约定
-
-引导文本的命名模式：`Guide_{Page}_{Action}_{Type}`
-
-例如：
-- `Guide_Members_Import_Title` — 成员管理页面，导入操作，标题
-- `Guide_Venue_Layout_Desc` — 会场配置页面，布局操作，描述
-
-**不需要遵循代码约定**——资源键完全由 JSON 中声明的 `titleKey`/`descKey` 值决定。代码不做任何键名拼接或推断，只做 `ResourceManager.GetString(jsonKey)`。
-
-## 目标控件清单
-
-### 在 MainWindow 中（可跨页面访问）
-
-| x:Name | 控件 | 用途 |
-|--------|------|------|
-| `ToggleSidebarButton` | Button | 侧边栏折叠/展开 |
-
-### 在各页面中
-
-| x:Name | 所在视图 | 控件 | 用途 |
-|--------|---------|------|------|
-| `ExportTemplateButton` | MemberManagementView | Button | 导出导入模板 |
-| `ImportButton` | MemberManagementView | Button | 导入学生数据 |
-| `StudentListBox` | MemberManagementView | ListBox | 学生列表 |
-| `NewStudentRow` | MemberManagementView | Border | 新增学生行 |
-| `SaveButton` | MemberManagementView | Button | 保存数据集 |
-| `NewVenueButton` | VenueConfigurationView | Button | 新建会场 |
-| `LayoutTypePanel` | VenueConfigurationView | StackPanel | 布局类型选择 |
-| `SaveVenueButton` | VenueConfigurationView | Button | 保存会场 |
-| `StrategyListBox` | StrategyConfigurationView | ListBox | 策略列表 |
-| `EditEnabledSwitch` | StrategyConfigurationView | ToggleSwitch | 启用/禁用策略 |
-| `SaveAllButton` | StrategyConfigurationView | Button | 保存全部策略 |
-| `VenueListBox` | SeatingArrangementView | ListBox | 会场选择 |
-| `DatasetListBox` | SeatingArrangementView | ListBox | 数据集选择 |
-| `GenerateButton` | SeatingArrangementView | Button | 生成座位 |
-| `ExportButton` | SeatingArrangementView | Button | 导出结果 |
-| `SaveSnapshotButton` | SeatingArrangementView | Button | 保存为快照 |
-| `UndoButton` | SeatingArrangementView | Button | 撤销操作 |
-| `VenueComboBox` | SnapshotHistoryView | ComboBox | 选择会场 |
-| `SnapshotListBox` | SnapshotHistoryView | ListBox | 快照列表 |
-| `RollbackButton` | SnapshotHistoryView | Button | 回滚快照 |
-| `KeyboardShortcutsSection` | SettingsView | 区块 | 键盘快捷键设置区 |
-| `UndoShortcutSwitch` | SettingsView | ToggleSwitch | Ctrl+Z 撤销开关 |
-| `SaveSettingsButton` | SettingsView | Button | 保存设置 |
-
-## 文本风格指南
-
-引导步骤的文本应遵循**指令式**风格——直接告诉用户要做什么：
-
-| ✅ 推荐（指令式） | ❌ 避免（描述式） |
+| 文件 | 职责 |
 |---|---|
-| "点击此按钮从文件导入学生名单" | "首先需要导入学生数据。点击「导入」按钮..." |
-| "在此下拉框选择会场" | "在此页面可以查看历史记录、预览座位表..." |
-| "点击此开关启用策略" | "使用开关启用/禁用策略" |
+| `Services/IOobeService.cs` | 启动/完成/激活态契约 |
+| `ViewModels/OobeViewModel.cs` | 唯一状态机、真实数据写入、交接准备 |
+| `ViewModels/IStudentRosterEditor.cs` | 名单表格编辑契约（人员管理页与 OOBE 共用） |
+| `Controls/StudentRosterTable.axaml(.cs)` | 共享名单表格：表头 / 虚拟化列表 / 行内编辑 / 新增行 |
+| `Views/OobeView.axaml(.cs)` | 欢迎/偏好/名单/会场四屏 |
+| `Controls/CoachMarkOverlay.axaml(.cs)` | 自绘遮罩 + 目标描边 + 非模态卡片 |
+| `Services/StartupRestoreState.cs` | `.seatsets` 自动导入结果 |
+| `Services/FirstLaunchPolicy.cs` | 首启判定纯函数 |
+| `Services/VenueGridPreviewBuilder.cs` | 与会场页一致的网格预览几何 |
+| `Services/VenueLayoutDefaults.cs` | OOBE 与会场页共用「新建会场」默认参数（间距/桌面/讲台） |
+| `App.axaml.cs` | 首启检测/落盘、OOBE 启动、更新顺序 |
+| `Behaviors/KeyboardShortcutHandler.cs` / `FileDropHandler.cs` | OOBE 活跃时短路 |
 
-每一步的 `title` 应该提示**要执行的操作**，`description` 应该提供**简短的上下文说明**。
+## 首启与重跑
 
-## 示例数据注入（v3.1 新增，v3.2 声明式，M5 接口化）
+```text
+App.InitializeAsync
+  ├── 采样 AppSettings 是否存在（环境警告写盘前）
+  ├── RunStartupChecksAsync()（单实例 / 环境警告）
+  ├── CheckSeatSetsAutoImportAsync() → StartupRestoreState
+  ├── DetectFirstLaunchAsync()
+  │     ├── 启动前采样的 settings 是否存在 / IsFirstLaunch / SeatSetsImported
+  │     ├── 命中 → IsFirstLaunch=true 落盘
+  │     └── 未命中 → false
+  ├── RestoreSettingsAsync()
+  └── 首启 → Oobe.StartAsync()
+        非首启 → 记录启动遥测 + ScheduleAutoUpdateCheck()
+```
 
-引导启动时，各页面 ViewModel 通过 `IGuideSeedTarget.SeedGuideData()` 注入纯内存示例数据，使条件可见的目标控件（如 `LayoutTypePanel`、`StudentListBox`）在引导期间正常显示。引导完成/关闭时调用各页 `ClearGuideData()` 清除注入数据（各页自行判断是否实际注入过，幂等），不留磁盘痕迹。
+- 首启判定使用环境检查**之前**采样的文件存在性；环境警告“不再提醒”会创建 `AppSettings.json`，不能据此把真实首启误判为非首启。
 
-**注入由 `OnboardingPhaseDefinition.SeedData`（JSON 声明式 bool，默认 `false`）控制**。`OnboardingService` 在阶段过渡时按接口等待并调用：先等待目标页 `IPageLifecycle.InitializationTask`（10s 兜底超时；该信号由 OnEnter 完成后置位、OnLeave 换新未完成实例），再调用 `SeedGuideData()`；MemberManagement 的 Phase 2（第二次进入）通过中间工作台中转阶段自动离开-重入页面，无需特殊代码。
+- 崩溃/关窗在 OOBE 中途：`IsFirstLaunch` 仍为 true，下次重新进入。
+- 设置页「重新开始首次设置」：写 `IsFirstLaunch=true` 后 `StartAsync(isRestart:true)`，从名单步骤开始，不重复询问遥测。
+- 首次安装自动导入 `.seatsets`：即使数据包包含 AppSettings，也进入 OOBE，并显示恢复结果。
 
-| 页面 | SeedData | 注入数据 |
-|------|----------|---------|
-| MemberManagement（第二次进入） | `true` | 6 名示例学生 → `Students` + 演示数据集（仅在无用户数据时；已有数据则跳过覆盖） |
-| VenueConfiguration | `true` | 执行 `NewVenueCommand` 创建演示会场 |
-| StrategyConfiguration | `true` | 选中 `Strategies[0]`（首个策略） |
-| SeatingArrangement | `true` | 演示会场+数据集 + 4×3 座位；注入后调用公开 `UpdateCanvasSnapshot()` 让画布渲染 |
-| SnapshotHistory | `true` | 1 个演示快照 → `Snapshots`（Singleton 下不误清用户浏览状态） |
+## 数据与保存
 
-**M5 接口化**：注入/清理实现下沉到页面自身（`IGuideSeedTarget`），`OnboardingService` 不再持有任何演示注入静态字段，也不再通过构造器 fire-and-forget 猜测加载时机。详见 [ADR-008](adr/ADR-008-onboarding-demo-data-injection.md)。
+- **名单**：上传仅 `.xlsx`；首次保存用 `SaveStudentDatasetAsync`，回退再改走 `UpdateStudentDatasetAsync`，避免重复数据集。已有数据集可编辑：继续时仅有改动才按原 ID 原地更新；`OOBE` 保留导入顺序，不按姓名重排，空白名单从 0 行开始并用底部新增行输入。
+- **会场**：新建写 `GridLayoutBuilder.BuildGrid` + `SaveVenueAsync`；默认参数统一由 `VenueLayoutDefaults` 提供（横/纵间距 64/56、桌内/桌间 40/32、过道 60、讲台 100×40），与会场页「新建会场」完全一致；新建 ID 为 8 位、名称为 `新会场_<id>`；进入会场步骤默认新建，不自动选中上次会场，已有会场需在列表中手动载入。已有网格会场只改四项，其余元数据保留，并按 `(Row,Column)` 复用座位 ID；非网格会场只读沿用。会场控件与会场页共用 `sf-chip` 过道、`sf-field`/`sf-hint` 标签与同一组范围/tooltip；预览为编辑区下方的全宽卡片，支持左键拖空白平移、滚轮缩放。
+- **完成标记**：`CompleteAsync` 写 `IsFirstLaunch=false`；首次生成成功也会立即写 false。
+- **保存期间锁定**：`IsBusy` 时步骤内容 `IsEnabled=false`，避免慢盘保存期间继续编辑导致未保存修改被交接丢弃；会场保存后若编辑版本变化，停留会场并提示重新保存。
+- **交接**：`SeatingArrangementViewModel.PrepareOobeHandoffAsync` 等待 `InitializationTask`（10s 超时）、绕过 `_dataLoaded` 重新加载列表、显式 `LoadVenueAsync`，再设置选中项。交接准备结束后按初始化任务状态解除覆盖保护，后续导入 `.seatsets` 仍会恢复工作区。生成缺数据结果携带 `SeatingMissingData`（会场/名单/两者），交接卡据此精确提示并跳转到对应步骤；空名单也归入缺名单而不是失败卡。
 
-## 窗口状态同步（v3.1 新增）
+## 遥测与更新
 
-MainWindow 订阅 `Activated` / `Deactivated` 事件，转发到 `OnboardingService`：
+- `TelemetryConfig.Enabled` 默认 true；实际启用 `Enabled && ConsentShown`。
+- 欢迎屏默认勾选；点“继续”按当前勾选写入。点“跳过设置”按关闭处理（`ConsentShown=true`、`Enabled=false`），不会因默认勾选而静默启用遥测。
+- OOBE 保存设置后调用 `ITelemetryService.ApplyEnabled`（不二次落盘）；设置页仍用 `SetEnabled`。
+- OOBE 活跃（含交接）期间不弹更新；`Oobe.Completed` 后 `ScheduleAutoUpdateCheck`。
 
-- **失活（最小化/Alt+Tab）**：`HandleWindowDeactivated()` 设 `_isWindowObscured=true`，调用 `Guide.Close()` 静默关闭 Popup。`HandleGuideClosedAsync()` 检测到此标志后跳过确认对话框，不结束引导。
-- **激活（恢复/切回）**：`HandleWindowActivated()` 重置标志，调用 `Guide.Show()` 从保留的 `CurrentIndex` 恢复。
+## 层叠与命中
 
-这解决了 Guide 的 3 个 Popup（`ShouldUseOverlayLayer=False`，原生 OS 窗口）在窗口最小化时可能残留为孤儿窗口的问题。
+| 层 | ZIndex |
+|---|---|
+| `FileDropOverlay` | 100 |
+| `OobeView` | 200 |
+| `CoachMarkOverlay` | 210 |
+| `DialogOverlayHost` | 300 |
 
-## 测试验证
+全屏 OOBE 时 `MainView` 的 `DockPanel IsEnabled=false`；交接时恢复。Coach mark 根容器无背景、遮罩 `IsHitTestVisible=false`，只有卡片可命中，目标按钮保持可点击。
 
-由于引导系统依赖 UI 交互，主要通过以下方式验证：
+## 测试
 
-1. **完整性校验**：交叉验证 JSON 中的资源键、目标控件名、页面引用是否全部有效
-2. **构建验证**：`dotnet build` 确保编译通过
-3. **测试回归**：`dotnet test` 确保 428 个测试无回归（含 `IGuideSeedTarget` seed/clear 与 `InitializationTask` 契约单测）
-4. **手动验证**（在桌面 / WASM 实机）：
-   - 删除 `AppSettings.json` → 启动 → 验证 24 步启动引导逐一正确（M5 已实测 24/24）
-   - 页面引导：当前配置为空；如新增 `pageGuides` 条目，进入对应页验证触发与去重
-   - 设置页 → "重新开始引导" → 验证完整重启
-   - 英文语言 → 验证英文引导文本
+- `OobeViewModelTests`：步骤推进、遥测单次落盘与“跳过设置”关闭遥测、名单保存/沿用、会场保存期间修改拦截、完成标记。
+- `FirstLaunchPolicyTests` / `StartupRestoreStateTests` / `StartupSettingsTests`：首启判定、`.seatsets` 恢复状态、环境警告写盘不回滚首启字段。
+- `OobeHandoffPreparationTests` / `VenueGridPreviewBuilderTests`：交接准备与会场页几何一致。
+- `OobeViewLayoutTests`：三档布局、保存期间步骤内容禁用。
+- Presentation Headless 测试覆盖 MainView 三档布局与共享控件。
+- 手工：临时 `DataDirectory` 走首启/重跑/崩溃恢复/`.seatsets`/非网格会场/失败重试；桌面、WASM、360×480、明暗、中英文。
+
+## 视觉规范
+
+沿用方向 B「方格纸」令牌（`Resources/Tokens/`）与 [Design_Spec](presentation/Design_Spec.md)；不提交截图或独立样机。

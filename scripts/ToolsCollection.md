@@ -207,7 +207,7 @@ JSON 格式要求：
 | `Data_` | 数据加载/保存 |
 | `Freeform_` | 自由布局管理 |
 | `Gender_` | 性别标签 |
-| `Guide_` | 引导系统 |
+| `Oobe_` | 首次设置（OOBE） |
 | `Home_` | 首页 |
 | `Lang_` | 语言名称 |
 | `Member_` | 成员管理 |
@@ -297,7 +297,7 @@ src/SeatFlow.Presentation.Avalonia/Lang/
 
 # version — 版本号统一管理
 
-管理项目中的 4 类版本号：App 版本、文件格式版本、策略清单版本、引导配置版本。
+管理项目中的 3 类版本号：App 版本、文件格式版本、策略清单版本。
 
 ## 快速开始
 
@@ -330,12 +330,11 @@ python3 version.py sync --force
 
 | 命令 | 功能 |
 |------|------|
-| `show` | 显示全部版本号概览（App / 文件格式 / 策略 / 引导配置） |
+| `show` | 显示全部版本号概览（App / 文件格式 / 策略） |
 | `check` | 校验 15+ 处版本定义的一致性 |
 | `bump-app [major\|minor\|patch\|--set X.Y.Z]` | 调整 App 版本 |
 | `bump-file TYPE --set X.Y` | 调整文件格式版本（自动同步 Model 类 + JsonStudentWriter） |
 | `bump-strategy ID --set X.Y.Z` | 调整策略清单版本（ID 或 ALL） |
-| `bump-onboarding --set X.Y` | 调整引导配置版本 |
 | `sync` | 从 file_versions.json 同步所有 Model 类默认值 |
 
 ## 受管文件
@@ -345,7 +344,6 @@ python3 version.py sync --force
 | App 版本 | `src/SeatFlow.Presentation.Avalonia/Data/about.json` (zh-CN + en-US) |
 | 文件格式版本 | `file_versions.json` + 7 个 Model C# 类 + `JsonStudentWriter.cs` |
 | 策略清单版本 | 11 个 `Manifests/*.json` |
-| 引导配置版本 | `onboarding_config.json` |
 
 ## 安全机制
 

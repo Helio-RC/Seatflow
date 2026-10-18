@@ -27,7 +27,7 @@ public class SettingsViewLayoutTests
         var vm = new SettingsViewModel(
             Substitute.For<IApplicationFacade>(),
             NullDialogService.Instance,
-            Substitute.For<IOnboardingService>(),
+            Substitute.For<IOobeService>(),
             Substitute.For<IFileService>(),
             Substitute.For<ITelemetryService>(),
             Substitute.For<IUpdateService>(),

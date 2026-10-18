@@ -11,8 +11,14 @@ public interface ITelemetryService
     /// <summary>遥测是否已启用。</summary>
     bool IsEnabled { get; }
 
-    /// <summary>在运行时切换遥测启用状态。</summary>
+    /// <summary>在运行时切换遥测启用状态（设置页使用，会持久化）。</summary>
     void SetEnabled(bool enabled);
+
+    /// <summary>
+    /// 仅同步内存启用状态，不持久化。供 OOBE 在已自行保存 AppSettings 后调用，
+    /// 避免与 <see cref="SetEnabled"/> 的异步写盘产生竞态。
+    /// </summary>
+    void ApplyEnabled(bool enabled);
 
     // ── 跟踪（Tracing） ──
 

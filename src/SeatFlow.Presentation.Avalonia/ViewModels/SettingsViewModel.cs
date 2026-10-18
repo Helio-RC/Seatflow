@@ -27,7 +27,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
 {
     private readonly IApplicationFacade _facade;
     private readonly IDialogService _dialog;
-    private readonly IOnboardingService _onboarding;
+    private readonly IOobeService _oobe;
     private readonly IFileService _fileService;
     private readonly ITelemetryService _telemetry;
     private readonly IUpdateService _updateService;
@@ -174,11 +174,11 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
     [ObservableProperty]
     public partial bool HasPendingUpdate { get; set; }
 
-    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOnboardingService onboarding, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, Behaviors.KeyboardShortcutHandler shortcutHandler, IDialogGate dialogGate, IShellLayoutService layout, ILogger<SettingsViewModel>? logger = null) : base(dialog, logger)
+    public SettingsViewModel(IApplicationFacade facade, IDialogService dialog, IOobeService oobe, IFileService fileService, ITelemetryService telemetry, IUpdateService updateService, IUrlOpener urlOpener, IServiceProvider serviceProvider, Behaviors.KeyboardShortcutHandler shortcutHandler, IDialogGate dialogGate, IShellLayoutService layout, ILogger<SettingsViewModel>? logger = null) : base(dialog, logger)
     {
         _facade = facade;
         _dialog = dialog;
-        _onboarding = onboarding;
+        _oobe = oobe;
         _fileService = fileService;
         _telemetry = telemetry;
         _updateService = updateService;
@@ -389,7 +389,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
 
             var settings = await _facade.LoadAppSettingsAsync(ct);
 
-            // 直接在现有对象上修改，保留所有其他字段（CompletedPageGuides、Logging、Telemetry 等）
+            // 直接在现有对象上修改，保留所有其他字段（Logging、Telemetry 等）
             settings.Theme = Theme;
             settings.AccentColor = AccentColorIndex == 1 ? AccentColorMode.System : AccentColorMode.Default;
             settings.Language = Language;
@@ -398,6 +398,9 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
             settings.DefaultZoomLevel = _defaultZoomLevel;
             settings.MaxSnapshotsPerVenue = MaxSnapshotsPerVenue;
             settings.Telemetry.Enabled = TelemetryEnabled;
+            // 遥测实际生效要求 Enabled && ConsentShown：设置页显式启用即视为已同意。
+            if (TelemetryEnabled)
+                settings.Telemetry.ConsentShown = true;
             settings.SuppressEnvironmentWarning = SuppressEnvironmentWarning;
 
             settings.KeyboardShortcuts.UndoEnabled = UndoShortcutEnabled;
@@ -513,11 +516,11 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
             settings.IsFirstLaunch = true;
             await _facade.SaveAppSettingsAsync(settings);
 
-            _onboarding.StartOnboarding();
+            await _oobe.StartAsync(isRestart: true);
         }
         catch (Exception ex)
         {
-            _logger?.LogWarning(ex, "重新启动引导失败");
+            _logger?.LogWarning(ex, "重新启动首次设置失败");
         }
     }
 

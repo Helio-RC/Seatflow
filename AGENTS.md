@@ -52,15 +52,15 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
   启动加载页以 `wwwroot/index.html` 的 `.avalonia-splash` 为契约（运行时按类名添加 `splash-close` 隐藏，类名与样式不可删改），进度经 `withModuleConfig({ onDownloadResourceProgress })` 上报。
   **WASM 运行时语言切换**需 `UseSystemResourceKeys=false` + `main.js` 的 `loadAllSatelliteResources: true`（详见 `docs/WebDeployment.md`）。
 - **DI**：`AddSeatFlowApplication(snapshotBasePath)` 注册应用层服务；壳层再注册
-  `INavigationService`/`IFileService`/`IDialogService`/`IDialogGate`/`IShellLayoutService`/`MainWindow`/`MainShellViewModel`/全部页面 VM；
-  `services.AddGuideSeedTargets()` 注册 5 个 `IGuideSeedTarget`。`App` 构造参数化（DI + 桌面启动参数），无静态握手。
+  `INavigationService`/`IFileService`/`IDialogService`/`IDialogGate`/`IShellLayoutService`/`StartupRestoreState`/`MainWindow`/`MainShellViewModel`/`OobeViewModel`（并映射 `IOobeService`）/全部页面 VM。
+  `App` 构造参数化（DI + 桌面启动参数），无静态握手。
 - **导航**：7 页 `PageKey`（默认入口 `SeatingArrangement`；`Home` 已移除，`FreeformManagement` 并入 `VenueConfiguration`）：
   排座工作台 / 人员管理 / 会场与布局 / 策略配置 / 历史快照 / 设置 / 关于。
   `ViewLocator` 按命名约定解析 VM→View，并按 VM 实例弱引用缓存（切页不重建 XAML）。
   手机档（≤600px）导航为底部 Tab 栏（排座/人员/会场/策略/更多），禁用页在 Tab 与「更多」中隐藏（ADR-015）。
 - **启动顺序**：`StartupGuard` 校验环境 → `App.Initialize()` 先设语言再加载 XAML →
   `OnFrameworkInitializationCompleted` 解析壳与首页 → `SetTopLevel` → Watchdog（仅桌面）→
-  `ChineseInputNormalizer` → `SafeInitializeAsync()`（自动导入 → 首次启动 → 恢复设置）。
+  `ChineseInputNormalizer` → `SafeInitializeAsync()`（启动检查 → 自动导入 → 首启检测/落盘 → 恢复设置 → OOBE 或更新检查）。
   对话框与日志自 M0 起全部构造注入（无 `ViewModelBase.Dialog` 静态状态）。
 
 ### 策略管道
@@ -102,7 +102,7 @@ fill-in-order 模型：独立策略按 Priority 降序执行（先到先得，�
 - `IShellLayoutService`：响应式三档断点 `LayoutTier`（`LayoutBreakpoints`：Desktop >900 / Compact 600–900 / Phone ≤600，ADR-015）。
   桌面内联 ↔ 紧凑右抽屉 ↔ 手机全屏覆盖由 `SideDrawerState` 复用；命令栏文字仅桌面显示（`CommandTextVisible`），
   紧凑档混合按钮收 `sf-icon`，手机档为「标题 + 图标 + `⋯` 溢出菜单」；对话框按宿主/视口钳制（`DialogSizing`）。
-- `IGuideSeedTarget`：引导演示数据注入契约（`SeedGuideData`/`ClearGuideData`，5 页自行实现）。
+- `IOobeService` / `OobeViewModel`：首次设置（OOBE）状态机，覆盖在 `MainView` 内，不新增 `PageKey`；`IsActive = IsVisible || IsHandoffVisible`。
 - `WatchdogService`：45s UI 挂起检测（仅桌面），UI 线程须定期 `Ping()`（`App.axaml.cs` 的 DispatcherTimer）。
 - `SeatingCanvas`：自绘 `Control.Render` 画布（Grid/Polar/Freeform 统一几何命中；拖拽/交换/平移/缩放/方向键虚拟焦点内置）。
 
@@ -149,7 +149,7 @@ python3 scripts/i18n.py export -o t.csv | import t.csv --dry-run|--force
 ### 脚本工具
 
 完整参考 `scripts/ToolsCollection.md`。`scripts/version.py` 管理 15+ 处版本一致性
-（`show`/`check`/`bump-app`/`bump-file`/`bump-strategy`/`bump-onboarding`/`sync`；`bump-file` 自动同步 Model 类）。
+（`show`/`check`/`bump-app`/`bump-file`/`bump-strategy`/`sync`；`bump-file` 自动同步 Model 类）。
 `scripts/build/publish.*` 多平台发布，`scripts/build/clean.*` 清理，`scripts/release/release.py` 发布编排
 （读根目录 `RELEASE.md` 作为 Release body）；`scripts/ci/` 发布流水线辅助（`fetch_previous.sh` 预发布
 delta 基础、`sync_velopack_history.py` 稳定版从 OSS 同步打包历史、`stage_velopack_artifacts.sh` 暂存
@@ -189,14 +189,15 @@ Grid 座位按**行主序**生成（RandomFill 逐行填充的前提）。
 `venueHash` 对比现行会场做完整性提示（会场删除=红、布局变更=黄、数据变更=黄并高亮）；回滚前按完整性弹窗恢复/导入会场。
 `AppSettings.MaxSnapshotsPerVenue`（默认 30，0=不限）超限自动删最旧。
 
-**会场**：编辑保存时按位置复用座位 ID（`(Row,Column)` / `(Ring,Angle)` 映射），避免快照 `SeatAssignments` 失效。
+**会场**：编辑保存时按位置复用座位 ID（`(Row,Column)` / `(Ring,Angle)` 映射），避免快照 `SeatAssignments` 失效。新建会场统一由 `VenueLayoutDefaults` 提供 Grid 默认参数（OOBE 与会场页一致），ID 为 8 位、名称为 `新会场_<id>`。
 
 **名单数据集**：点选即加载（无 Load 按钮）；脏检查 = `DirtyTracker` + `IsNewStudentDirty`；
 切换数据集走三键对话框（保存/放弃/取消），取消经 `_suppressDatasetLoad` 回退；导入数据无 ID 时保存走另存（`RenameSaveAsync`）。
 
-**引导系统**：`Data/onboarding_config.json`（v3.4，24 步启动引导 + 页面引导机制）；
-`OnboardingService` 只经 `IGuideSeedTarget` / `IPageLifecycle` 接口交互，改步骤只需改 JSON + resx。
-详见 `docs/ONBOARDING_GUIDE.md`、`docs/adr/ADR-008`。
+**OOBE**：`OobeView`（MainView 覆盖层）+ `CoachMarkOverlay`（交接卡）；
+首启/`.seatsets` 自动导入/设置页重跑均走 `OobeViewModel`，真实写入数据集与会场；
+`IsFirstLaunch` 在首启时落盘 true，完成/跳过/首次生成成功才置 false。
+详见 `docs/ONBOARDING_GUIDE.md`、`docs/adr/ADR-016`。
 
 **页面开关**：`Data/page_navigation.json` 控制页面启用；禁用页在 `MainShellViewModel` 加属性，
 侧栏用 `Opacity`（非 `IsEnabled`，否则 ToolTip 失效）+ `ToolTip.Tip` 绑定，提示键 `Nav_{Page}Disabled`。
@@ -213,4 +214,4 @@ Grid 座位按**行主序**生成（RandomFill 逐行填充的前提）。
 - 其他关键文档：`ARCHITECTURE.md`、`docs/Phases.md`、`CONTRIBUTING.md`、`CHANGELOG.md`、
   `docs/UI_REFACTOR.md`（UI 重构记录）、`docs/presentation/Design_Spec.md`、`docs/presentation/DragDrop.md`、
   `docs/presentation/Fluent_Icons.md`、`docs/WebDeployment.md`、`docs/ONBOARDING_GUIDE.md`、
-  `docs/StrategyDataResilience.md`、`docs/adr/`（ADR-001 ~ ADR-014）。
+  `docs/StrategyDataResilience.md`、`docs/adr/`（ADR-001 ~ ADR-016）。

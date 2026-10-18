@@ -1,7 +1,7 @@
 # ADR-008：引导系统纯内存示例数据注入
 
 ## Status
-Accepted
+Superseded by [ADR-016](ADR-016-oobe-replaces-codewf-guide.md)（2026-10-17）
 
 ## Date
 2026-06-19

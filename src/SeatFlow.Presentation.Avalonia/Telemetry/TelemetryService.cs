@@ -24,6 +24,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     private readonly TelemetryHttpClient _httpClient;
     private readonly ILogger<TelemetryService> _logger;
     private bool _enabled;
+    private bool _explicitStateSet;
 
     // ── OpenTelemetry 仪器 ──
     private static readonly Meter Meter = new("SeatFlow.App.Metrics");
@@ -75,24 +76,34 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
         {
             var settings = await _settingsRepo.LoadAsync();
             var cfg = settings.Telemetry;
-            _enabled = cfg.Enabled;
+            // 实际启用 = 用户允许 + 已展示过同意；显式设置（OOBE/设置页）优先，避免加载竞态覆盖。
+            if (!_explicitStateSet)
+                _enabled = cfg.Enabled && cfg.ConsentShown;
             _pageViewSampleRate = cfg.PageViewSampleRate;
             _pageViewCoalesceSeconds = cfg.PageViewCoalesceSeconds;
         }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "加载遥测配置失败，使用默认值");
-            _enabled = false;
+            if (!_explicitStateSet)
+                _enabled = false;
         }
     }
 
     public void SetEnabled(bool enabled)
     {
+        _explicitStateSet = true;
         if (_enabled == enabled) return;
         _enabled = enabled;
 
         // 异步持久化到 AppSettings（fire-and-forget，避免阻塞调用方）
         _ = PersistEnabledAsync(enabled);
+    }
+
+    public void ApplyEnabled(bool enabled)
+    {
+        _explicitStateSet = true;
+        _enabled = enabled;
     }
 
     private async Task PersistEnabledAsync(bool enabled)

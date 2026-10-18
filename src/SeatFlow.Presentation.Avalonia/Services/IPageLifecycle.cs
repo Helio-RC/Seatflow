@@ -15,7 +15,7 @@ public interface IPageLifecycle
 
     /// <summary>
     /// 本次进入页面的初始化完成信号：OnEnterAsync 完成后置位、离开时换新未完成实例。
-    /// 供引导系统等待「页面异步加载完成后再注入演示数据」，避免注入被后续加载覆盖。
+    /// 供首次设置交接等待「页面异步加载完成后再选择数据」，避免选择被后续加载覆盖。
     /// </summary>
     Task InitializationTask { get; }
 

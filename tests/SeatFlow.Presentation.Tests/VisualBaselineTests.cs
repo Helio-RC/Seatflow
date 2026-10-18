@@ -127,7 +127,7 @@ public class VisualBaselineTests
     private static SettingsViewModel CreateSettingsVm(ShellLayoutService? layout = null) => new(
         Substitute.For<IApplicationFacade>(),
         NullDialogService.Instance,
-        Substitute.For<IOnboardingService>(),
+        Substitute.For<IOobeService>(),
         Substitute.For<IFileService>(),
         Substitute.For<ITelemetryService>(),
         Substitute.For<IUpdateService>(),
@@ -159,7 +159,7 @@ public class VisualBaselineTests
             foreach (var variant in Variants)
             {
                 var vm = CreateMemberVm();
-                vm.SeedGuideData();
+                TestSeedFixtures.SeedMember(vm);
                 Capture("member-management", variant, new MemberManagementView { DataContext = vm });
             }
         }
@@ -191,7 +191,7 @@ public class VisualBaselineTests
             foreach (var variant in Variants)
             {
                 var vm = CreateSeatingVm();
-                vm.SeedGuideData();
+                TestSeedFixtures.SeedSeating(vm);
                 Capture("workbench-generated", variant, new SeatingArrangementView { DataContext = vm });
             }
         }
@@ -273,12 +273,12 @@ public class VisualBaselineTests
                 {
                     var seatingLayout = new ShellLayoutService { Tier = LayoutTier.Phone };
                     var seatingVm = CreateSeatingVm(seatingLayout);
-                    seatingVm.SeedGuideData();
+                    TestSeedFixtures.SeedSeating(seatingVm);
                     Capture($"workbench-phone{suffix}", variant, new SeatingArrangementView { DataContext = seatingVm }, width, height);
 
                     var memberLayout = new ShellLayoutService { Tier = LayoutTier.Phone };
                     var memberVm = CreateMemberVm(memberLayout);
-                    memberVm.SeedGuideData();
+                    TestSeedFixtures.SeedMember(memberVm);
                     Capture($"member-phone{suffix}", variant, new MemberManagementView { DataContext = memberVm }, width, height);
 
                     var settingsLayout = new ShellLayoutService { Tier = LayoutTier.Phone };

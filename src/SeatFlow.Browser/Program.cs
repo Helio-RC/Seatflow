@@ -60,11 +60,14 @@ internal sealed class Program
         services.AddSingleton<IArrangementCounterService, ArrangementCounterService>();
         services.AddSingleton<ITelemetryService, NullTelemetryService>();
 
+        // 启动恢复状态（.seatsets 自动导入结果，OOBE 读取）
+        services.AddSingleton<StartupRestoreState>();
+
         // 注册 ViewModels（与桌面端 Program 保持一致）
         // 浏览器端不能构造 Window，外壳使用 MainView（UserControl）
         services.AddSingleton<MainView>();
-        services.AddSingleton<IOnboardingService, OnboardingService>();
-        services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
+        services.AddSingleton<OobeViewModel>();
+        services.AddSingleton<IOobeService>(sp => sp.GetRequiredService<OobeViewModel>());
         services.AddSingleton<MainShellViewModel>();
         services.AddSingleton<MemberManagementViewModel>();
         services.AddSingleton<VenueConfigurationViewModel>();
@@ -77,8 +80,6 @@ internal sealed class Program
         services.AddTransient<ConfigBlockEditorViewModel>();
         services.AddTransient<UpdateDialogViewModel>();
 
-        // M5：引导演示数据注入契约（OnboardingService 只按接口调用各页实现；双壳共用注册）
-        services.AddGuideSeedTargets();
 
         var serviceProvider = services.BuildServiceProvider();
 

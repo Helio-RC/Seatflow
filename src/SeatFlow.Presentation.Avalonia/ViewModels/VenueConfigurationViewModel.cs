@@ -35,7 +35,7 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// - 脏检查统一走 <see cref="Services.DirtyTracker"/>；
 /// - 预览由编辑参数构建 <see cref="SeatLayoutSnapshot"/>，交给 M1 自绘 <see cref="SeatingCanvas"/> 渲染（不再用 ItemsControl+Canvas）。
 /// </summary>
-public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
+public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
@@ -128,32 +128,32 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     // ── Grid 基础参数 ──
     [ObservableProperty]
-    public partial int GridRows { get; set; } = 5;
+    public partial int GridRows { get; set; } = VenueLayoutDefaults.GridRows;
 
     [ObservableProperty]
-    public partial int GridColumns { get; set; } = 8;
+    public partial int GridColumns { get; set; } = VenueLayoutDefaults.GridColumns;
 
     [ObservableProperty]
-    public partial double GridHorizontalSpacing { get; set; } = 40;
+    public partial double GridHorizontalSpacing { get; set; } = VenueLayoutDefaults.GridHorizontalSpacing;
 
     [ObservableProperty]
-    public partial double GridVerticalSpacing { get; set; } = 36;
+    public partial double GridVerticalSpacing { get; set; } = VenueLayoutDefaults.GridVerticalSpacing;
 
     [ObservableProperty]
-    public partial double GridOriginX { get; set; } = 200;
+    public partial double GridOriginX { get; set; } = VenueLayoutDefaults.GridOriginX;
 
     [ObservableProperty]
-    public partial double GridOriginY { get; set; } = 200;
+    public partial double GridOriginY { get; set; } = VenueLayoutDefaults.GridOriginY;
 
     // ── Grid 桌面配置 ──
     [ObservableProperty]
-    public partial int GridSeatsPerDesk { get; set; } = 2;
+    public partial int GridSeatsPerDesk { get; set; } = VenueLayoutDefaults.GridSeatsPerDesk;
 
     [ObservableProperty]
-    public partial double GridIntraDeskSpacing { get; set; } = 12;
+    public partial double GridIntraDeskSpacing { get; set; } = VenueLayoutDefaults.GridIntraDeskSpacing;
 
     [ObservableProperty]
-    public partial double GridInterDeskSpacing { get; set; } = 32;
+    public partial double GridInterDeskSpacing { get; set; } = VenueLayoutDefaults.GridInterDeskSpacing;
 
     // ── Grid 过道配置 ──
     [ObservableProperty]
@@ -163,7 +163,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     public partial string GridAisleAfterRows { get; set; } = "";
 
     [ObservableProperty]
-    public partial double GridAisleWidth { get; set; } = 60;
+    public partial double GridAisleWidth { get; set; } = VenueLayoutDefaults.GridAisleWidth;
 
     [ObservableProperty]
     public partial ObservableCollection<AisleOption> AisleColumnOptions { get; set; } = [];
@@ -173,19 +173,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     // ── Grid 教室特征 ──
     [ObservableProperty]
-    public partial int GridFrontRowCount { get; set; } = 1;
+    public partial int GridFrontRowCount { get; set; } = VenueLayoutDefaults.GridFrontRowCount;
 
     [ObservableProperty]
-    public partial bool GridHasPodium { get; set; } = true;
+    public partial bool GridHasPodium { get; set; } = VenueLayoutDefaults.GridHasPodium;
 
     [ObservableProperty]
     public partial bool GridHasFrontDoor { get; set; }
 
     [ObservableProperty]
-    public partial double GridPodiumWidth { get; set; } = 60;
+    public partial double GridPodiumWidth { get; set; } = VenueLayoutDefaults.GridPodiumWidth;
 
     [ObservableProperty]
-    public partial double GridPodiumHeight { get; set; } = 40;
+    public partial double GridPodiumHeight { get; set; } = VenueLayoutDefaults.GridPodiumHeight;
 
     // ── Grid 每列行数 & 禁用座位 ──
     [ObservableProperty]
@@ -308,8 +308,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
     public bool CanSaveVenue => HasSelectedVenue && (!IsFreeformSelected || Points.Count > 0);
 
     /// <summary>
-    /// 首次加载完成信号。引导示例数据注入需等待它，避免随后加载覆盖演示会场
-    /// （见 <c>OnboardingService.SeedPageDataAsync</c>）。
+    /// 首次加载完成信号；交接/等待场景可据此避免加载竞态。
     /// </summary>
     public Task InitializationTask => _firstLoadTcs.Task;
 
@@ -438,29 +437,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
         _selectVenueCts?.Cancel();
         _refreshCts?.Cancel();
         return Task.CompletedTask;
-    }
-
-    // ═══════════════════════════════════════════════
-    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
-    // ═══════════════════════════════════════════════
-
-    /// <summary>新建一个演示会场（不落盘），供引导展示布局编辑区。</summary>
-    public void SeedGuideData()
-    {
-        // 已等待首次加载完成，此处创建的会场不会被异步加载覆盖
-        NewVenueCommand.Execute(null);
-        LayoutName = "演示教室";
-        StatusMessage = "已创建演示会场（演示数据）";
-    }
-
-    /// <summary>清空演示会场状态（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
-    public void ClearGuideData()
-    {
-        VenueItems.Clear();
-        SelectedVenueItem = null;
-        // M2：预览改为 SeatingCanvas 快照，清空快照即可
-        PreviewSnapshot = null;
-        StatusMessage = string.Empty;
     }
 
     // ═══════════════════════════════════════════════
@@ -1223,14 +1199,19 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     private SeatLayoutSnapshot BuildPreviewSnapshot()
     {
+        if (SelectedLayoutType == LayoutType.Grid)
+        {
+            return VenueGridPreviewBuilder.Build(
+                BuildGridMetadata(GetEffectiveGridEmptyPositions()),
+                _pendingGridDisabledToggles,
+                DoorItems.Select(d => new BoardOverlay(d.X, d.Y, 36, 24, d.Label, IsDoor: true)).ToList());
+        }
+
         var seats = new List<SeatVisual>();
         var overlays = new List<BoardOverlay>();
 
         switch (SelectedLayoutType)
         {
-            case LayoutType.Grid:
-                BuildGridPreview(seats, overlays);
-                break;
             case LayoutType.Polar:
                 BuildPolarPreview(seats, overlays);
                 break;
@@ -1239,52 +1220,7 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
                 break;
         }
 
-        return NormalizeSnapshot(seats, overlays);
-    }
-
-    private void BuildGridPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
-    {
-        var meta = BuildGridMetadata(GetEffectiveGridEmptyPositions());
-        // 与排座工作台共用同一视觉几何（0.8 同桌压缩 + 可读尺寸坐标放大），保证两处一致
-        var geometry = GridVisualGeometryBuilder.Build(meta);
-
-        foreach (var s in geometry.Seats)
-        {
-            bool isPicked = _pendingGridDisabledToggles.Contains((s.Row, s.Column));
-            if (s.IsDisabled)
-            {
-                seats.Add(new SeatVisual(
-                    s.SeatId, s.X, s.Y, s.Width, s.Height,
-                    IsDisabled: true,
-                    SeatLabel: string.Format(Resources.Venue_GridDisabledFmt, s.Row, s.Column),
-                    Row: s.Row, Column: s.Column, IsSelected: isPicked));
-                continue;
-            }
-
-            int deskNum = ((s.Column - 1) / Math.Max(1, meta.SeatsPerDesk)) + 1;
-            seats.Add(new SeatVisual(
-                s.SeatId, s.X, s.Y, s.Width, s.Height,
-                IsOccupied: true,
-                SeatLabel: string.Format(Resources.Venue_GridLabelFmt, s.Row, s.Column, deskNum),
-                Row: s.Row, Column: s.Column, IsSelected: isPicked));
-        }
-
-        // 讲台（水平居中于网格）
-        if (meta.HasPodium && meta.PodiumWidth > 0 && meta.PodiumHeight > 0 && seats.Count > 0)
-        {
-            double gridLeft = seats.Min(s => s.X);
-            double gridRight = seats.Max(s => s.X + s.Width);
-            double podiumW = meta.PodiumWidth * geometry.FactorX;
-            double podiumX = ((gridLeft + gridRight) / 2) - (podiumW / 2);
-            double podiumH = meta.PodiumHeight * geometry.FactorY;
-            double podiumY = (meta.OriginY - meta.PodiumHeight - meta.VerticalSpacing) * geometry.FactorY;
-            overlays.Add(new BoardOverlay(
-                podiumX, podiumY, podiumW, podiumH, Resources.Freeform_Podium));
-        }
-
-        foreach (var door in DoorItems)
-            overlays.Add(new BoardOverlay(
-                door.X * geometry.FactorX, door.Y * geometry.FactorY, 36, 24, door.Label, IsDoor: true));
+        return SeatLayoutSnapshotNormalizer.Normalize(seats, overlays);
     }
 
     private void BuildPolarPreview(List<SeatVisual> seats, List<BoardOverlay> overlays)
@@ -1368,43 +1304,6 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
                     break;
             }
         }
-    }
-
-    /// <summary>将内容平移至正坐标并计算板面尺寸（SeatingCanvas 会自动适配视口）。</summary>
-    private static SeatLayoutSnapshot NormalizeSnapshot(List<SeatVisual> seats, List<BoardOverlay> overlays)
-    {
-        if (seats.Count == 0 && overlays.Count == 0)
-            return SeatLayoutSnapshot.Empty;
-
-        double minX = double.MaxValue, minY = double.MaxValue;
-        double maxX = double.MinValue, maxY = double.MinValue;
-
-        void Acc(double x, double y, double w, double h)
-        {
-            minX = Math.Min(minX, x);
-            minY = Math.Min(minY, y);
-            maxX = Math.Max(maxX, x + w);
-            maxY = Math.Max(maxY, y + h);
-        }
-
-        foreach (var s in seats)
-            Acc(s.X, s.Y, s.Width, s.Height);
-        foreach (var o in overlays)
-            Acc(o.X, o.Y, o.Width, o.Height);
-
-        const double padding = 24;
-        double dx = padding - minX;
-        double dy = padding - minY;
-
-        var movedSeats = seats.Select(s => s with { X = s.X + dx, Y = s.Y + dy }).ToList();
-        var movedOverlays = overlays.Select(o => o with { X = o.X + dx, Y = o.Y + dy }).ToList();
-
-        return new SeatLayoutSnapshot(
-            movedSeats,
-            Math.Max(320, maxX + dx + padding),
-            Math.Max(240, maxY + dy + padding),
-            0,
-            movedOverlays);
     }
 
     // ═══════════════════════════════════════════════
@@ -1822,15 +1721,21 @@ public partial class VenueConfigurationViewModel : ViewModelBase, IPageLifecycle
 
     private void ResetParameters()
     {
-        GridRows = 5; GridColumns = 8;
-        GridHorizontalSpacing = 64; GridVerticalSpacing = 56;
-        GridOriginX = 200; GridOriginY = 200;
-        GridSeatsPerDesk = 2;
-        GridIntraDeskSpacing = 40; GridInterDeskSpacing = 32;
+        GridRows = VenueLayoutDefaults.GridRows;
+        GridColumns = VenueLayoutDefaults.GridColumns;
+        GridHorizontalSpacing = VenueLayoutDefaults.GridHorizontalSpacing;
+        GridVerticalSpacing = VenueLayoutDefaults.GridVerticalSpacing;
+        GridOriginX = VenueLayoutDefaults.GridOriginX;
+        GridOriginY = VenueLayoutDefaults.GridOriginY;
+        GridSeatsPerDesk = VenueLayoutDefaults.GridSeatsPerDesk;
+        GridIntraDeskSpacing = VenueLayoutDefaults.GridIntraDeskSpacing;
+        GridInterDeskSpacing = VenueLayoutDefaults.GridInterDeskSpacing;
         GridAisleAfterColumns = ""; GridAisleAfterRows = "";
-        GridAisleWidth = 60;
-        GridFrontRowCount = 1;
-        GridHasPodium = true; GridPodiumWidth = 100; GridPodiumHeight = 40;
+        GridAisleWidth = VenueLayoutDefaults.GridAisleWidth;
+        GridFrontRowCount = VenueLayoutDefaults.GridFrontRowCount;
+        GridHasPodium = VenueLayoutDefaults.GridHasPodium;
+        GridPodiumWidth = VenueLayoutDefaults.GridPodiumWidth;
+        GridPodiumHeight = VenueLayoutDefaults.GridPodiumHeight;
         GridColumnRowCountsSpec = ""; GridEmptyPositionsSpec = "";
         ColumnRowCountOptions.Clear();
         DoorItems.Clear();
@@ -2158,27 +2063,6 @@ public partial class DoorItem : ObservableObject
         Y = y;
         Label = label ?? Resources.Freeform_Door;
     }
-}
-
-public partial class AisleOption(string label, int seatColumn, string toolTip, bool selected = false) : ObservableObject
-{
-    public string Label { get; set; } = label;
-    public int SeatColumn { get; set; } = seatColumn;
-    public string ToolTip { get; set; } = toolTip;
-
-    [ObservableProperty]
-    public partial bool IsSelected { get; set; } = selected;
-}
-
-/// <summary>「每列行数」输入项：列号固定，行数留空 = 沿用全局「行数」。</summary>
-public partial class ColumnRowCountOption(int column) : ObservableObject
-{
-    public int Column { get; } = column;
-
-    public string Label => string.Format(Resources.Venue_ColumnRowsFmt, Column);
-
-    [ObservableProperty]
-    public partial int? Rows { get; set; }
 }
 
 /// <summary>自由点元素类型（与旧自由点页一致：0=座位, 1=讲台, 2=门）。</summary>

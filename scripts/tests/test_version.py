@@ -84,14 +84,6 @@ def make_manifest_json(path: Path, version: str, manifest_version: str = "1.0"):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def make_onboarding_json(path: Path, version: str):
-    """创建 onboarding_config.json。"""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    data = {"version": version, "startupPhases": []}
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
 class TestBumpVersion(unittest.TestCase):
     """语义化版本号递增测试。"""
 
@@ -196,9 +188,6 @@ public class StrategyManifestProvider
 '''
         (service_dir / "StrategyManifestProvider.cs").write_text(provider_code, encoding="utf-8")
 
-        # onboarding_config.json
-        make_onboarding_json(about_dir / "onboarding_config.json", "3.0")
-
         self.mgr = VersionManager(self.root)
 
     def tearDown(self):
@@ -288,13 +277,6 @@ public class StrategyManifestProvider
     def test_bump_strategy_nonexistent(self):
         with self.assertRaises(ValueError):
             self.mgr.bump_strategy("NonExistent", set_to="1.0.0")
-
-    # ── bump-onboarding ──
-
-    def test_bump_onboarding_apply(self):
-        changes = self.mgr.bump_onboarding(set_to="4.0")
-        self.mgr.apply_changes(changes)
-        self.assertEqual(self.mgr.get_onboarding_version(), "4.0")
 
     # ── sync ──
 

@@ -27,10 +27,10 @@ namespace SeatFlow.Presentation.Avalonia.ViewModels;
 /// 人员名单页（M4）：
 /// - 表格恢复 ListBox 虚拟化（去 ScrollViewer 包裹），行使用「显示/编辑」轻量模板；
 /// - 统一脏检查（<see cref="DirtyTracker"/>）与对话框门（<see cref="IDialogGate"/>，替代 _dialogLock + Task.Delay）；
-/// - 生命周期 <see cref="IPageLifecycle"/>（构造器不再 fire-and-forget），保留 InitializationTask 供引导等待；
+/// - 生命周期 <see cref="IPageLifecycle"/>（构造器不再 fire-and-forget），保留 InitializationTask 供首次设置交接等待；
 /// - 窄屏：数据集列表转为右抽屉，手机档全屏覆盖（<see cref="SideDrawerState"/>）。
 /// </summary>
-public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler, IGuideSeedTarget
+public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, IFileDropHandler
 {
     private readonly IApplicationFacade _facade;
     private readonly IFileService _fileService;
@@ -123,21 +123,13 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     private bool _suppressDatasetLoad;
     private bool _datasetsLoaded;
 
-    // ── M5 引导演示数据（下沉自 OnboardingService） ──
-    /// <summary>演示数据集的固定 ID，用于注入和清理时识别。</summary>
-    private const string GuideDemoDatasetId = "guide-demo-ds";
-    private bool _guideDemoInjected;
-    /// <summary>引导注入前的用户状态（null 表示首次使用无需恢复）。</summary>
-    private List<Student>? _guideSavedStudents;
-    private List<StudentDatasetInfo>? _guideSavedDatasets;
-    private bool _guideSavedIsEmpty;
     private CancellationTokenSource? _enterCts;
     /// <summary>本次进入页面加载完成的信号：OnEnter 完成置位；OnLeave 换新的未完成实例。</summary>
     private TaskCompletionSource _enterCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     /// <summary>
     /// 本次进入页面初始化（数据集列表加载）的完成信号：
-    /// OnLeave 换新、OnEnter 完成后置位，引导示例数据注入等待它。
+    /// OnLeave 换新、OnEnter 完成后置位，首次设置交接准备等待它。
     /// </summary>
     public Task InitializationTask => _enterCompletion.Task;
 
@@ -251,102 +243,9 @@ public partial class MemberManagementViewModel : ViewModelBase, IPageLifecycle, 
     /// <summary>标记数据集列表失效（下次进入或显式刷新时重新加载）。供 .seatsets 导入等场景调用。</summary>
     public void InvalidateData() => _datasetsLoaded = false;
 
-    // ═══════════════════════════════════════════════
-    // IGuideSeedTarget（M5：引导演示注入/清理下沉到页面）
-    // ═══════════════════════════════════════════════
-
     /// <summary>获取底层学生列表（不含编辑态包装）。</summary>
     private List<Student> GetStudents() => Students.Select(r => r.Student).ToList();
 
-    /// <summary>注入演示班级：保存用户原状态；用户已有数据时不覆盖，仅补演示数据集。</summary>
-    public void SeedGuideData()
-    {
-        // 保存用户原有状态，引导结束后恢复（始终执行，即使跳过注入）
-        _guideSavedStudents = [.. GetStudents()];
-        _guideSavedDatasets = [.. SavedDatasets];
-        _guideSavedIsEmpty = IsEmpty;
-
-        // 若用户已在 Phase 1 导入数据，不覆盖
-        if (GetStudents().Count > 0) return;
-
-        ReplaceStudents(
-        [
-            new() { Name = "Alice", Height = 165, Gender = Gender.Female },
-            new() { Name = "Bob", Height = 175, Gender = Gender.Male, NeedsFrontRow = true },
-            new() { Name = "Charlie", Height = 180, Gender = Gender.Male },
-            new() { Name = "Diana", Height = 160, Gender = Gender.Female },
-            new() { Name = "Eve", Height = 170, Gender = Gender.Female },
-            new() { Name = "Frank", Height = 178, Gender = Gender.Male },
-        ]);
-        RefreshDirty();
-        IsLoading = false;
-        StatusMessage = string.Format(Resources.Member_LoadedFmt, StudentCount);
-
-        // 追加演示数据集到现有列表（而非替换），避免覆盖用户真实数据集
-        var demoDataset = new StudentDatasetInfo
-        {
-            Id = GuideDemoDatasetId,
-            Name = "演示班级",
-            StudentCount = 6,
-            CreatedAt = DateTime.Now
-        };
-        // 仅在演示数据集不存在时才追加，防止重复
-        if (!SavedDatasets.Any(d => d.Id == GuideDemoDatasetId))
-            SavedDatasets.Add(demoDataset);
-        CurrentDatasetId = GuideDemoDatasetId;
-        CurrentDatasetName = "演示班级";
-
-        // 安全选中演示数据集，不触发磁盘加载
-        _suppressDatasetLoad = true;
-        SelectedDataset = demoDataset;
-        _suppressDatasetLoad = false;
-
-        _guideDemoInjected = true;
-    }
-
-    /// <summary>清理演示数据：仅在实际注入过时恢复注入前状态，避免触碰用户当前编辑内容。</summary>
-    public void ClearGuideData()
-    {
-        if (_guideDemoInjected)
-        {
-            // 使用 _suppressDatasetLoad 阻断 SelectedDataset 变化时的副作用，
-            // 防止 SavedDatasets 替换触发 OnSelectedDatasetChanged → ClearDataInternalAsync 弹窗。
-            _suppressDatasetLoad = true;
-            try
-            {
-                if (_guideSavedStudents is not null)
-                {
-                    // 引导前有用户数据 → 恢复到原始状态（显式过滤残留的演示数据集）
-                    ReplaceStudents(_guideSavedStudents);
-                    IsEmpty = _guideSavedIsEmpty;
-                    SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
-                        (_guideSavedDatasets ?? []).Where(d => d.Id != GuideDemoDatasetId));
-                }
-                else
-                {
-                    // 首次使用（引导前无数据）→ 清空演示数据（显式过滤残留的演示数据集）
-                    ReplaceStudents([]);
-                    SavedDatasets = new ObservableCollection<StudentDatasetInfo>(
-                        SavedDatasets.Where(d => d.Id != GuideDemoDatasetId));
-                }
-                SelectedDataset = null;
-                CurrentDatasetId = null;
-                CurrentDatasetName = null;
-                FilePath = string.Empty;
-                _dirty.Reset(); // 重置 DirtyTracker 基线，防止后续 IsDirty 误判
-            }
-            finally
-            {
-                _suppressDatasetLoad = false;
-            }
-        }
-
-        _guideDemoInjected = false;
-        _guideSavedStudents = null;
-        _guideSavedDatasets = null;
-    }
-
-    /// <summary>
     /// 人员表格显示排序：姓名自然序（汉字按拼音、数字按大小），同名回退 Id 保证稳定。
     /// 落盘顺序仍由仓储按 Id 规范化为哈希用，二者互不影响。
     /// </summary>

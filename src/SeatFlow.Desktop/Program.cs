@@ -100,11 +100,14 @@ namespace SeatFlow.Presentation.Avalonia
             // 注册排座次数计数器
             services.AddSingleton<IArrangementCounterService, ArrangementCounterService>();
 
+            // 启动恢复状态（.seatsets 自动导入结果，OOBE 读取）
+            services.AddSingleton<StartupRestoreState>();
+
             // 注册 ViewModels
             services.AddSingleton<MainView>();
             services.AddSingleton<MainWindow>();
-            services.AddSingleton<IOnboardingService, OnboardingService>();
-            services.AddSingleton<IOnboardingStarter>(sp => (IOnboardingStarter)sp.GetRequiredService<IOnboardingService>());
+            services.AddSingleton<OobeViewModel>();
+            services.AddSingleton<IOobeService>(sp => sp.GetRequiredService<OobeViewModel>());
             services.AddSingleton<MainShellViewModel>();
             services.AddSingleton<MemberManagementViewModel>();
             services.AddSingleton<VenueConfigurationViewModel>();
@@ -121,8 +124,6 @@ namespace SeatFlow.Presentation.Avalonia
             // 更新对话框（每次手动创建，通过 ActivatorUtilities 动态解析）
             services.AddTransient<UpdateDialogViewModel>();
 
-            // M5：引导演示数据注入契约（OnboardingService 只按接口调用各页实现；双壳共用注册）
-            services.AddGuideSeedTargets();
 
             var serviceProvider = services.BuildServiceProvider();
 

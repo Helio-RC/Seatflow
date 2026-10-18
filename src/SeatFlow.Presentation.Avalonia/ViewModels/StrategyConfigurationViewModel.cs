@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SeatFlow.Presentation.Avalonia.ViewModels;
 
-public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecycle, IGuideSeedTarget
+public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecycle
 {
     private readonly IApplicationFacade _facade;
     private readonly IShellLayoutService _layout;
@@ -146,7 +146,7 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
 
     /// <summary>
     /// 本次进入页面加载完成的信号：OnLeave 换新、OnEnter 完成后置位，
-    /// 引导示例数据注入需等待它完成（否则随后加载会覆盖注入状态）。
+    /// 首次设置交接准备需等待它完成（否则随后加载会覆盖已选状态）。
     /// </summary>
     public Task InitializationTask => _enterCompletion.Task;
 
@@ -296,21 +296,6 @@ public partial class StrategyConfigurationViewModel : ViewModelBase, IPageLifecy
 
         return false;
     }
-
-    // ═══════════════ IGuideSeedTarget（M5：引导演示注入/清理下沉到页面） ═══════════════
-
-    /// <summary>
-    /// 选中第一个策略，触发 OnSelectedStrategyChanged → LoadDetailAsync → SelectedDetail 非空
-    /// → HasDetail=true → 引导目标（EditEnabledSwitch）可见。
-    /// </summary>
-    public void SeedGuideData()
-    {
-        if (Strategies.Count == 0) return;
-        SelectedStrategy = Strategies[0];
-    }
-
-    /// <summary>清空选中策略（与旧 OnboardingService.ClearPageData 行为一致）。</summary>
-    public void ClearGuideData() => SelectedStrategy = null;
 
     // ═══════════════ 导航离开拦截 ═══════════════
 

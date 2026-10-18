@@ -11,24 +11,17 @@ namespace SeatFlow.Presentation.Avalonia.Views
 {
     public partial class MainWindow : Window
     {
-        private readonly IOnboardingService _onboarding;
         private readonly INavigationService _navigation;
         private bool _isClosingConfirmed;
 
-        public MainWindow(IOnboardingService onboarding, INavigationService navigation, MainView shellView)
+        public MainWindow(INavigationService navigation, MainView shellView)
         {
-            _onboarding = onboarding;
             _navigation = navigation;
             InitializeComponent();
 
             ShellView = shellView;
             ShellHost.Content = shellView;
 
-            // 引导期间窗口最小化/Alt+Tab 时，Guide 的 Popup
-            // (ShouldUseOverlayLayer=False) 可能残留为孤儿 OS 窗口。
-            // 订阅窗口激活/失活事件以同步隐藏/恢复。
-            Activated += (_, _) => _onboarding.HandleWindowActivated();
-            Deactivated += (_, _) => _onboarding.HandleWindowDeactivated();
         }
 
         /// <summary>共享外壳视图。桌面端由本窗口承载，浏览器端直接作为单视图内容。</summary>

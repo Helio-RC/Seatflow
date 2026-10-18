@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using FluentAssertions;
 using NSubstitute;
 using SeatFlow.Application.Interfaces;
+using SeatFlow.Core.Telemetry;
 using SeatFlow.Presentation.Avalonia.Services;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 using SeatFlow.Presentation.Avalonia.Views;
@@ -17,12 +18,23 @@ namespace SeatFlow.Presentation.Tests;
 /// </summary>
 public class ShellLayoutTierTests
 {
-    private static MainShellViewModel CreateShell(ShellLayoutService layout, INavigationService? navigation = null) => new(
-        navigation ?? Substitute.For<INavigationService>(),
-        Substitute.For<IApplicationFacade>(),
-        Substitute.For<IOnboardingService>(),
-        layout,
-        NullDialogService.Instance);
+    private static MainShellViewModel CreateShell(ShellLayoutService layout, INavigationService? navigation = null)
+    {
+        var nav = navigation ?? Substitute.For<INavigationService>();
+        var oobe = new OobeViewModel(
+            Substitute.For<IApplicationFacade>(),
+            Substitute.For<IFileService>(),
+            Substitute.For<ITelemetryService>(),
+            nav,
+            layout,
+            new StartupRestoreState(),
+            NullDialogService.Instance);
+        return new MainShellViewModel(
+            nav,
+            oobe,
+            layout,
+            NullDialogService.Instance);
+    }
 
     private static SeatingArrangementViewModel CreateSeatingVm(ShellLayoutService layout) => new(
         Substitute.For<IApplicationFacade>(),
@@ -239,7 +251,7 @@ public class ShellLayoutTierTests
         vm.ShowGeneratedSelectorBar.Should().BeFalse();
 
         // 生成后：改为命令栏下方选择条
-        vm.SeedGuideData();
+        TestSeedFixtures.SeedSeating(vm);
         vm.ShowGeneratedSelectorBar.Should().BeTrue();
     }
 
@@ -266,7 +278,7 @@ public class ShellLayoutTierTests
         view.FindControl<Border>("GeneratedSelectorBar")!.IsEffectivelyVisible.Should().BeFalse();
 
         // 生成后：选择条可见且两个下拉各占约半宽
-        vm.SeedGuideData();
+        TestSeedFixtures.SeedSeating(vm);
         window.UpdateLayout();
         var bar = view.FindControl<Border>("GeneratedSelectorBar")!;
         bar.IsEffectivelyVisible.Should().BeTrue("手机档生成态应在命令栏下方显示选择条");
@@ -279,76 +291,6 @@ public class ShellLayoutTierTests
         window.Close();
     }
 
-    // ═══════════════ 引导步骤适配（引导时自动展开侧栏/面板，使目标可见） ═══════════════
-
-    [Fact]
-    public void 引导适配_桌面档_侧栏目标_强制展开侧栏()
-    {
-        var layout = new ShellLayoutService();
-        var shell = CreateShell(layout);
-        shell.ToggleSidebarCommand.Execute(null);
-        shell.IsSidebarExpanded.Should().BeFalse();
-
-        shell.PrepareGuideTarget("ToggleSidebarButton");
-
-        shell.IsSidebarExpanded.Should().BeTrue("引导步骤目标在侧栏时应强制展开");
-    }
-
-    [Fact]
-    public void 引导适配_紧凑档_侧栏目标_打开导航抽屉()
-    {
-        var layout = new ShellLayoutService { Tier = LayoutTier.Compact };
-        var shell = CreateShell(layout);
-
-        shell.PrepareGuideTarget("ToggleSidebarButton");
-
-        shell.IsNavDrawerOpen.Should().BeTrue("紧凑档侧栏在抽屉内，引导应打开抽屉让目标可见");
-    }
-
-    [Fact]
-    public void 引导适配_手机档_侧栏目标_不打开任何抽屉()
-    {
-        var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
-        var shell = CreateShell(layout);
-
-        shell.PrepareGuideTarget("ToggleSidebarButton");
-
-        shell.IsNavDrawerOpen.Should().BeFalse("手机档无侧栏，交由目标解析回退居中卡片");
-    }
-
-    [Fact]
-    public void 引导适配_排座列表目标_打开选择栏_下一步页面目标_收起()
-    {
-        var layout = new ShellLayoutService { Tier = LayoutTier.Compact };
-        var navigation = Substitute.For<INavigationService>();
-        var seating = CreateSeatingVm(layout);
-        navigation.CurrentViewModel.Returns(seating);
-        var shell = CreateShell(layout, navigation);
-
-        shell.PrepareGuideTarget("DatasetListBox");
-        seating.IsPickerDrawerOpen.Should().BeTrue("排座数据选择目标位于左选择栏（窄屏为抽屉）");
-
-        // 下一步目标在画布/命令栏 → 应收起已打开的面板与抽屉，避免遮挡
-        shell.PrepareGuideTarget("GenerateButton");
-        seating.IsPickerDrawerOpen.Should().BeFalse();
-        shell.IsNavDrawerOpen.Should().BeFalse();
-    }
-
-    [Fact]
-    public void 引导适配_策略列表目标_打开列表面板()
-    {
-        var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
-        var navigation = Substitute.For<INavigationService>();
-        var strategy = new StrategyConfigurationViewModel(
-            Substitute.For<IApplicationFacade>(), layout, NullDialogService.Instance);
-        navigation.CurrentViewModel.Returns(strategy);
-        var shell = CreateShell(layout, navigation);
-
-        shell.PrepareGuideTarget("StrategyListBox");
-
-        strategy.ListPanel.IsOpen.Should().BeTrue("策略列表目标位于列表面板，手机档应打开全屏列表");
-    }
-
     // ═══════════════ 外壳视图（Headless）三档可见性 ═══════════════
 
     [AvaloniaFact]
@@ -358,7 +300,7 @@ public class ShellLayoutTierTests
         {
             var layout = new ShellLayoutService();
             var vm = CreateShell(layout);
-            var view = new MainView(Substitute.For<IOnboardingService>()) { DataContext = vm };
+            var view = new MainView { DataContext = vm };
             var window = new Window { Width = width, Height = 800, Content = view };
             window.Show();
             window.UpdateLayout();
@@ -399,7 +341,7 @@ public class ShellLayoutTierTests
     {
         var layout = new ShellLayoutService { Tier = LayoutTier.Phone };
         var vm = CreateSeatingVm(layout);
-        vm.SeedGuideData();
+        TestSeedFixtures.SeedSeating(vm);
         var view = new SeatingArrangementView { DataContext = vm };
         var window = new Window
         {

@@ -36,10 +36,10 @@ from typing import Optional
 
 KNOWN_CATEGORIES = [
     "About", "App", "Common", "ConfigBlock", "Data",
-    "Freeform", "Gender", "Guide", "Home", "Lang",
-    "Member", "Nav", "Seating", "Settings",
-    "Snapshot", "Startup", "Strategy", "Theme", "Venue",
-    "Watchdog", "Zoom",
+    "DragDrop", "Freeform", "Gender", "Home", "Lang", "Oobe",
+    "Member", "Nav", "Seating", "SeatPosition", "SeatSets",
+    "Settings", "Shell", "Snapshot", "Startup", "Strategy",
+    "StudentPicker", "Theme", "Update", "Venue", "Watchdog", "Zoom",
 ]
 
 KEY_NAME_RE = re.compile(r"^[A-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)+$")
