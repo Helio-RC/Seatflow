@@ -111,7 +111,7 @@ def main() -> int:
         print(f"✗ 以下 Worker 轮换失败: {', '.join(failures)}")
         return 1
 
-    print(f"✓ 已同步 {SECRET_ID_NAME}, {SECRET_KEY_NAME} → {', '.join(scripts)}")
+    print(f"✓ Worker secrets 已同步 → {', '.join(scripts)}")
     return 0
 
 
