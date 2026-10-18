@@ -35,7 +35,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
 
 ## 架构
 
-- **技术栈**：.NET 10 + Avalonia **12.1.3** + CommunityToolkit.Mvvm 8.4 + **ReactiveUI.Avalonia 12.1.5**
+- **技术栈**：.NET 10 + Avalonia **12.1.3** + CommunityToolkit.Mvvm 8.4 + **ReactiveUI.Avalonia 12.1.6**
   双范式共存：视图层保持普通 `UserControl`；新 VM 可用 `ReactiveObject`/`[Reactive]`/`ReactiveCommand`/`WhenAnyValue`，
   存量 VM 仍以 CTK 源生成器为主。决策见 `docs/adr/ADR-014`。解决方案文件为 `SeatFlow.slnx`（XML 格式）。
 - **分层（自底向上）**：

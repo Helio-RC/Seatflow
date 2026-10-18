@@ -54,7 +54,7 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <!-- B 路线 MVVM：ReactiveUI.Avalonia 12.1.5（依赖 ReactiveUI 25.1.1）。
+    <!-- B 路线 MVVM：ReactiveUI.Avalonia 12.1.6（依赖 ReactiveUI 25.1.1）。
          视图层保持普通 UserControl（trim 安全），VM 层使用 ReactiveObject/[Reactive]/ReactiveCommand。 -->
     <PackageReference Include="ReactiveUI.Avalonia" Version="12.1.6" />
     <PackageReference Include="FluentIcons.Avalonia" Version="2.1.343" />
