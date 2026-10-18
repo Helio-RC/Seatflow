@@ -150,7 +150,7 @@
 
 ## Dependencies
 
-- **UI**：Avalonia **12.1.3**（FluentTheme 基座 + 方向 B 令牌覆盖）
+- **UI**：Avalonia **12.1.4**（FluentTheme 基座 + 方向 B 令牌覆盖）
 - **MVVM**：CommunityToolkit.Mvvm 8.4 + **ReactiveUI.Avalonia 12.1.5**（B 路线，视图层普通 `UserControl`）
 - **Icons**：`FluentIcons.Avalonia` 2.1.341（清单见 [Fluent_Icons.md](Fluent_Icons.md)）
 - **字体**：Inter（`Avalonia.Fonts.Inter` / WASM 嵌入）

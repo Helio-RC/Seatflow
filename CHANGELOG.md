@@ -24,6 +24,7 @@
 - OOBE 健壮性：跳过设置按关闭处理遥测；保存期间锁定步骤表单并校验会场编辑版本；首启判定在环境警告写盘前采样；生成缺数据精确区分会场/名单并支持空名单返回补全
 - **排座工作台数据选择与会场侧栏统一**：左侧数据列表改为顶部常驻的「会场 / 名单」折叠下拉（含手动刷新），空态欢迎卡中部同时保留同一组下拉；每次进入页面自动刷新两个列表并保留选中项，释放画布空间。会场与布局页左侧列表改为与人员/策略页一致的平铺侧栏（`SfSurface2Brush` + 分隔线 + `ListBox.sf-select`），列表项展示名称、座位数与布局类型，不再使用悬浮卡片
 - `version.py` 移除 onboarding 配置版本跟踪；移除 HTML 样机与截图基准，视觉规范统一到 `Design_Spec.md`
+- 依赖升级：Avalonia 12.1.4、Microsoft.Extensions 10.0.13、EPPlus 8.7.2、OpenTelemetry 1.20.0、Markdig 1.4.1、FluentIcons.Avalonia 2.1.344、Microsoft.NET.Test.Sdk 18.11.0；除 `Presentation.Tests` 继续锁定 xunit.v3 3.2.2 外，其余测试项目升至 4.0.2
 
 ### Removed
 - `CodeWF.AvaloniaControls`、`Guide` 控件/主题、`PhaseGuideIndicator`、`onboarding_config.json`、`OnboardingService`、`IGuideSeedTarget` 及旧引导资源/测试
