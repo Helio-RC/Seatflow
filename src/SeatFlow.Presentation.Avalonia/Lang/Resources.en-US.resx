@@ -1923,7 +1923,7 @@ Current seating will be overwritten.</value>
     <value>Aisle configuration</value>
   </data>
   <data name="Venue_AisleHint" xml:space="preserve">
-    <value>Click a chip to insert an aisle at that position; click again to remove.</value>
+    <value>Click a button to insert an aisle at that position; click again to remove.</value>
   </data>
   <data name="Venue_AisleWidth" xml:space="preserve">
     <value>Aisle width</value>

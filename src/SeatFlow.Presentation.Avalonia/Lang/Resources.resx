@@ -1932,7 +1932,7 @@
     <value>过道配置</value>
   </data>
   <data name="Venue_AisleHint" xml:space="preserve">
-    <value>点击芯片在对应位置插入过道，再次点击取消。</value>
+    <value>点击按钮在对应位置插入过道，再次点击取消。</value>
   </data>
   <data name="Venue_AisleWidth" xml:space="preserve">
     <value>过道宽度</value>
