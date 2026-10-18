@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-10-18
+
 ### Added
 - **OOBE 首次设置重写（ADR-016）**：移除 CodeWF Guide 与 JSON Tour，改为 `MainView` 内全屏覆盖层；欢迎/遥测 → 启动偏好 → 名单 → 会场 → 生成交接，真实写入数据集与会场
 - 首启判定 `FirstLaunchPolicy` + `StartupRestoreState`：真实首启、设置重跑、`.seatsets` 自动导入均进入 OOBE；`IsFirstLaunch` 在首启落盘、完成/跳过/首次生成成功才置 false
