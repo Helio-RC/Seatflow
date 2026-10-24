@@ -55,7 +55,7 @@ cd scripts/build
 - 文案跟随 `navigator.language`（中/英），配色跟随 `prefers-color-scheme`（应用「方格纸」令牌）
 - Avalonia 接管渲染时会寻找 `.avalonia-splash` 并添加 `splash-close` 类淡出（`AvaloniaView`
   约定）——**类名与 `splash-close` 样式不可删改**，否则加载页不会消失
-- 图标 `wwwroot/icon.png` 复制自 `SeatFlow.Presentation.Avalonia/Assets/icon_with_background.png`
+- 图标 `wwwroot/icon.webp`（144×144，由 `SeatFlow.Presentation.Avalonia/Assets/icon_with_background.png` 转码压缩）
 
 ## 在线版托管（online.seatflow.work）
 
