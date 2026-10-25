@@ -53,6 +53,9 @@ cd scripts/build
 相除会在批次边界回跳），满格去抖 500ms 后切换为「正在启动应用…」，启动异常时提示刷新重试。
 
 - 文案跟随 `navigator.language`（中/英），配色跟随 `prefers-color-scheme`（应用「方格纸」令牌）
+- 运行时资源加载成功后，`main.js` 向 `https://seatflow.work/api/app/online/launch` 上报一次
+  下载计数（`downloads` 计数器 +1，与官网下载页共用统计）；`no-cors` fire-and-forget，
+  失败不影响启动。`localhost` / `127.0.0.1` 等 loopback 环境不上报，避免本地开发污染线上数据
 - Avalonia 接管渲染时会寻找 `.avalonia-splash` 并添加 `splash-close` 类淡出（`AvaloniaView`
   约定）——**类名与 `splash-close` 样式不可删改**，否则加载页不会消失
 - 图标 `wwwroot/icon.webp`（144×144，由 `SeatFlow.Presentation.Avalonia/Assets/icon_with_background.png` 转码压缩）

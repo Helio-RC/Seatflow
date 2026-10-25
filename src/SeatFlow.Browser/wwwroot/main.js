@@ -12,6 +12,26 @@ const hintEl = document.getElementById('sfHint');
 const trackEl = document.getElementById('sfTrack');
 const barEl = document.getElementById('sfBar');
 
+// 在线版启动计数 API：运行时资源加载成功后上报一次 downloads 计数。
+// 与排座计数一样直接指向官网 API；本地开发/UI 测试（loopback）不上报，避免污染线上统计。
+const ONLINE_LAUNCH_API = 'https://seatflow.work/api/app/online/launch';
+
+function reportOnlineLaunch() {
+    const host = globalThis.location?.hostname;
+    if (!host || host === 'localhost' || host === '127.0.0.1' || host === '::1') return;
+    if (typeof fetch !== 'function') return;
+
+    // no-cors + 无请求体：只关心服务端计数，不读取响应，避免被 CORS 预检阻塞。
+    fetch(ONLINE_LAUNCH_API, {
+        method: 'POST',
+        mode: 'no-cors',
+        credentials: 'omit',
+        keepalive: true,
+    }).catch(() => {
+        // 统计上报失败不影响启动
+    });
+}
+
 const isZh = (navigator.language || '').toLowerCase().startsWith('zh');
 if (document.documentElement) document.documentElement.lang = isZh ? 'zh-CN' : 'en';
 
@@ -105,6 +125,9 @@ try {
     }
 
     const dotnetRuntime = await builder.create();
+
+    // 运行时资源已加载完成 —— 本次启动计为一次下载（fire-and-forget，不阻塞启动）。
+    reportOnlineLaunch();
 
     const config = dotnetRuntime.getConfig();
 
