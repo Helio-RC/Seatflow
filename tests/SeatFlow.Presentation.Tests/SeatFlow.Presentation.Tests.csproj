@@ -14,7 +14,7 @@
     <!-- SkiaSharp 本地资产显式对齐 4.153.1：托管 SkiaSharp 由 Infrastructure 引用 4.153.1，
          缺省时 Linux native 可能解析到不匹配版本，SkiaSharpVersion.CheckNativeLibraryCompatible
          会崩溃；显式引用补齐匹配的本地资产。 -->
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.153.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.154.0" />
     <PackageReference Include="FluentAssertions" Version="8.11.0" />
     <PackageReference Include="NSubstitute" Version="6.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
