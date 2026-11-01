@@ -28,7 +28,7 @@ dotnet r build -- -c Release                   # `--` 之后的参数透传给�
 
 **测试栈**：4 个项目 —— `*.Core.Tests` / `*.Application.Tests` / `*.Infrastructure.Tests`（xunit.v3 4.0.2）
 + `SeatFlow.Presentation.Tests`（Headless UI，**锁定 xunit.v3 3.2.2**，4.0.x 会 `MissingMethodException`；
-用 `Avalonia.Skia` 真实绘制，**锁定 `SkiaSharp.NativeAssets.Linux 4.153.1`**，否则 Linux 上崩溃）。
+用 `Avalonia.Skia` 真实绘制，**锁定 `SkiaSharp.NativeAssets.Linux 4.154.0`**，否则 Linux 上崩溃）。
 其余项目 `<ImplicitUsings>enable</ImplicitUsings>`，项目级 using 在 `Usings.cs`（Application.Tests 为 `Using.cs`）。
 **没有** `Directory.Build.props` / `Directory.Packages.props` —— 包版本直接写在各自 `.csproj`。
 根 `dotnet-tools.json` 含 avdt / vpk / run-script。
