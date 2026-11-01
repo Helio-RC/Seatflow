@@ -42,9 +42,17 @@ namespace SeatFlow.Infrastructure.Exporters
 
             using var ms = new MemoryStream();
             await using (var writer = new StreamWriter(ms, new System.Text.UTF8Encoding(true), leaveOpen: true))
-            await using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            await using (var csv = CsvWriter.Create(writer, new CsvWriterOptions { FormatProvider = CultureInfo.InvariantCulture }, leaveOpen: true))
             {
-                await csv.WriteRecordsAsync(records, ct);
+                csv.WriteField("SeatId");
+                csv.WriteField("StudentId");
+                await csv.EndRecordAsync(ct);
+                foreach (var record in records)
+                {
+                    csv.WriteField(record.SeatId);
+                    csv.WriteField(record.StudentId);
+                    await csv.EndRecordAsync(ct);
+                }
             }
             return ms.ToArray();
         }

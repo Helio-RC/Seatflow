@@ -3,7 +3,6 @@ using SeatFlow.Core.Models;
 using SeatFlow.Core.Providers;
 using SeatFlow.Core.Storage;
 using CsvHelper;
-using CsvHelper.Configuration;
 
 namespace SeatFlow.Infrastructure.Providers;
 
@@ -22,15 +21,11 @@ public class CsvStudentProvider : IStudentProvider
         _store = store;
     }
 
-    private static readonly CsvConfiguration FullReadConfig = new(CultureInfo.InvariantCulture)
+    private static readonly CsvReaderOptions FullReadConfig = new()
     {
-        // 不跳过任何行——全部读入网格供模糊匹配分析
-        IgnoreBlankLines = false   // 保留空行以维持行号对齐（兼容标准模板的行 2=注释行）
-    };
-
-    private static readonly CsvConfiguration StandardConfig = new(CultureInfo.InvariantCulture)
-    {
-        ShouldSkipRecord = args => args.Row?.Context?.Parser?.Row == 2 // 跳过第 2 行（注释行）
+        FormatProvider = CultureInfo.InvariantCulture,
+        HasHeader = false,       // 表头也作为普通行读入网格，保持行号与旧版一致
+        SkipEmptyLines = false   // 保留空行以维持行号对齐（兼容标准模板的行 2=注释行）
     };
 
     // ═══════════════════════════════════════════════
@@ -88,11 +83,11 @@ public class CsvStudentProvider : IStudentProvider
         int maxCols = 0;
 
         using var reader = new StreamReader(new MemoryStream(bytes));
-        using var csv = new CsvReader(reader, FullReadConfig);
+        using var csv = CsvReader.Create(reader, FullReadConfig, leaveOpen: true);
 
         while (csv.Read())
         {
-            maxCols = Math.Max(maxCols, csv.ColumnCount);
+            maxCols = Math.Max(maxCols, csv.FieldCount);
             rowCount++;
         }
 
@@ -112,17 +107,16 @@ public class CsvStudentProvider : IStudentProvider
         int colLimit = maxCols > 0 ? maxCols : int.MaxValue;
 
         using var reader = new StreamReader(new MemoryStream(bytes));
-        using var csv = new CsvReader(reader, FullReadConfig);
+        using var csv = CsvReader.Create(reader, FullReadConfig, leaveOpen: true);
 
         while (csv.Read() && rows.Count < rowLimit)
         {
             ct.ThrowIfCancellationRequested();
-            int cols = Math.Min(csv.ColumnCount, colLimit);
+            int cols = Math.Min(csv.FieldCount, colLimit);
             var row = new string?[cols];
             for (int i = 0; i < cols; i++)
             {
-                csv.TryGetField(i, out string? value);
-                row[i] = value;
+                row[i] = csv.GetString(i);
             }
 
             rows.Add(row);
