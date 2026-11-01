@@ -14,21 +14,21 @@ namespace SeatFlow.Infrastructure.Providers
         public async Task WriteAsync(string path, IEnumerable<Student> students, CancellationToken cancellationToken = default)
         {
             await using var writer = new StreamWriter(path, false, new System.Text.UTF8Encoding(true));
-            await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            await using var csv = CsvWriter.Create(writer, new CsvWriterOptions { FormatProvider = CultureInfo.InvariantCulture }, leaveOpen: true);
 
             // 第 1 行：列名
             csv.WriteField("Name");
             csv.WriteField("Height");
             csv.WriteField("Gender");
             csv.WriteField("NeedsFrontRow");
-            await csv.NextRecordAsync();
+            await csv.EndRecordAsync(cancellationToken);
 
             // 第 2 行：注释
             csv.WriteField("必填");
             csv.WriteField("身高（厘米），如 170.5");
             csv.WriteField("男 / 女 / 其他");
             csv.WriteField("是 / 否（或 true/false）");
-            await csv.NextRecordAsync();
+            await csv.EndRecordAsync(cancellationToken);
 
             // 第 3 行起：数据（仅写 4 个匹配表头的字段）
             foreach (var s in students)
@@ -38,7 +38,7 @@ namespace SeatFlow.Infrastructure.Providers
                 csv.WriteField(s.Height);
                 csv.WriteField(s.Gender?.ToString() ?? "");
                 csv.WriteField(s.NeedsFrontRow ? "true" : "false");
-                await csv.NextRecordAsync();
+                await csv.EndRecordAsync(cancellationToken);
             }
         }
     }
