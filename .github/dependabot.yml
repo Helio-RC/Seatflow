@@ -9,6 +9,12 @@ updates:
       time: "09:00"
       timezone: Asia/Shanghai
     open-pull-requests-limit: 10
+    ignore:
+      # Avalonia.Headless.XUnit 12.1.4 仍按 xunit.v3.extensibility.core 3.2.2 编译，
+      # xunit.v3 4.x 会在用例发现阶段抛 MissingMethodException；
+      # Presentation.Tests 锁定 3.2.2，故忽略 xunit.v3 的主版本升级，待 Avalonia 适配后移除。
+      - dependency-name: "xunit.v3"
+        update-types: ["version-update:semver-major"]
     groups:
       # Avalonia 系列版本必须同步，放一组
       avalonia:

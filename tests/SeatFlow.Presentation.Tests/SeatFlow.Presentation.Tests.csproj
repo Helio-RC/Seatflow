@@ -25,7 +25,9 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <!-- 注意：Avalonia.Headless.XUnit 12.1.4 按 xunit.v3.extensibility.core 3.2.2 编译，
          与 xunit.v3 4.x 存在 MissingMethodException（TestIntrospectionHelper.GetTestCaseDetails 签名变更）。
-         故本测试项目锁定 xunit.v3 3.2.2（其余三个测试项目为 4.0.2；各 csproj 独立管理版本）。 -->
+         故本测试项目锁定 xunit.v3 3.2.2（其余三个测试项目为 4.0.2；各 csproj 独立管理版本）。
+         2026-11 以 4.0.2 复验：202 个用例中 112 个在发现阶段失败，仍不可升级。
+         dependabot.yml 已忽略 xunit.v3 主版本升级。 -->
     <PackageReference Include="xunit.v3" Version="3.2.2" />
   </ItemGroup>
 
