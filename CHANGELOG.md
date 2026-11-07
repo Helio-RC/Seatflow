@@ -6,6 +6,11 @@
 
 ### Added
 - **在线版启动计数**：WASM 运行时资源加载成功后向官网 API 上报一次下载计数（`downloads` 计数器），与官网下载页共用统计；本地 loopback 环境不上报
+- **CodeQL advanced setup**：新增 `.github/workflows/codeql.yml` 取代 GitHub 托管 default setup——仅扫描 C#（`build-mode: manual` 构建桌面壳，避开 wasm-tools）、`trap-caching: false`，只在改动 `src/**` 等的 PR 与每周一 03:00 UTC 运行
+
+### Fixed
+- **CI 改用不依赖缓存的流水线**：移除 `release.yml` 的 `publish/history`（Velopack 打包历史）与 `publish-web.yml` 的 `~/.nuget/packages` 缓存——前者保留全部历史 delta + 最新 2 个 full 的 nupkg × 4 RID（估算 0.8–1.6GB）且 key 含 `github.run_id`，`actions/cache` 对已存在的 key 不覆盖，条目只增不减；后者单条目即数百 MB～1GB。现稳定版打包历史每次由 `sync_velopack_history.py` 从 OSS 全量回填，WASM 发布直接 restore，依赖与产物均在运行时重新获取
+- **CodeQL 缓存按提交累积**：default setup 每次 push/PR 为每个语言（csharp/javascript/python）新建一条 `codeql-overlay-base-database-*` 缓存（key 含 commit sha，永不覆盖，约 43.7MB/次），条目随提交线性累积；改用 advanced setup（仅 C#、`build-mode: manual`、`trap-caching: false`）后不再写入该类缓存——`manual` 下 action 会回退 full database，overlay 与 TRAP 缓存均不写入；已清理存量 15 条（218MB）
 
 ## [2.3.0] — 2026-10-18
 

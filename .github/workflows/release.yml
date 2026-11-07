@@ -163,15 +163,6 @@ jobs:
       - name: Install vpk
         run: dotnet tool install -g vpk --version 1.2.161 && echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
 
-      - name: Restore Velopack history cache
-        if: needs.preflight.outputs.is_pre != 'true'
-        uses: actions/cache/restore@v6
-        with:
-          path: publish/history
-          key: vpk-history-${{ matrix.rid }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            vpk-history-${{ matrix.rid }}-
-
       - name: Install oss2
         if: needs.preflight.outputs.is_pre != 'true'
         run: pip install oss2 packaging
@@ -257,14 +248,6 @@ jobs:
             "${{ needs.preflight.outputs.version }}" \
             "${{ matrix.rid }}" \
             "${{ needs.preflight.outputs.is_pre }}"
-
-      - name: Save Velopack history cache
-        if: needs.preflight.outputs.is_pre != 'true'
-        continue-on-error: true
-        uses: actions/cache/save@v6
-        with:
-          path: publish/history
-          key: vpk-history-${{ matrix.rid }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# 暂存本次发布产物到 dist 目录，并从历史目录清理不进入缓存的安装包。
+# 暂存本次发布产物到 dist 目录，并从历史目录清理不需要长期保留的安装包。
 #
 # 用法: stage_velopack_artifacts.sh <src-dir> <dist-dir> <version> <channel> <is-pre>
 #   src-dir : vpk pack 输出目录（稳定版 publish/history；预发布 publish/out）
 #   dist-dir: 暂存目录（publish/dist），供 upload-artifact 使用
-#   is-pre  : 'true' 时保留 src 中的安装包（预发布不缓存历史目录）
+#   is-pre  : 'true' 时保留 src 中的安装包（预发布不需裁剪历史目录）
 set -euo pipefail
 shopt -s nullglob
 

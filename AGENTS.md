@@ -154,6 +154,11 @@ python3 scripts/i18n.py export -o t.csv | import t.csv --dry-run|--force
 （读根目录 `RELEASE.md` 作为 Release body）；`scripts/ci/` 发布流水线辅助（`fetch_previous.sh` 预发布
 delta 基础、`sync_velopack_history.py` 稳定版从 OSS 同步打包历史、`stage_velopack_artifacts.sh` 暂存
 本次产物），详见 `.github/docs/RELEASE_FLOW.md`；`scripts/ui-inspect/` 无头 UI 查看/交互/性能采样工具链。
+**CI 不依赖 Actions 缓存**：禁止缓存 `~/.nuget/packages` 与发布产物目录，依赖与打包历史每次
+重新获取；key 不得含 `github.run_id`（key 已存在不覆盖，滚动 key 只会让条目净增）。理由与
+约束见 `.github/docs/RELEASE_FLOW.md` 第七节。CodeQL 走仓库内 `.github/workflows/codeql.yml`
+（advanced setup，仅 C#、`build-mode: manual` + `trap-caching: false`、PR + 每周定时），
+**禁止改回 default setup**（每 push 每语言新建一条 overlay 缓存）。
 脚本测试：`cd scripts && python3 -m pytest tests/ -v`。
 App 版本唯一来源是根目录 `version.json`（`commitId`/`buildDate` 由构建脚本生成，勿手改）。
 

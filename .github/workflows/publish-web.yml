@@ -76,14 +76,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-web-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
       # 缺 wasm-tools 时 publish 仍会"成功"，但原生库不链接 → 部署白屏
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools

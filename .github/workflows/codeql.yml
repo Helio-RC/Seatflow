@@ -1,0 +1,74 @@
+name: CodeQL
+
+# CodeQL advanced setup，取代 GitHub 托管的 default setup。
+#
+# 动因：default setup 每次 push / PR 都会为**每个**语言新建一条
+# `codeql-overlay-base-database-*` 缓存（key 内含 commit sha + run_id，永不覆盖）：
+# csharp ≈ 22.8MB + javascript ≈ 15.6MB + python ≈ 5.3MB ≈ 每次 43.7MB，
+# 条目随提交线性累积；且该缓存不受仓库文件控制。本工作流四条收敛措施：
+#
+#   1. 只扫 C# —— javascript / python 的约 21MB/次 直接消失；
+#   2. build-mode: manual —— C# 是 traced language，codeql-action 在
+#      build-mode != none 时会显式回退 full database（config-utils.ts 的
+#      validateOverlayDatabaseMode），因此**不产生 overlay base database 缓存**；
+#   3. trap-caching: false —— manual 下 overlay 为 None，TRAP 缓存默认会启用，
+#      且只在默认分支上传（本工作流的 schedule 正是默认分支），
+#      每次最多留下一条 >=10MB 的 codeql-trap-* 条目；
+#   4. 触发收敛为「改动 src/ 的 PR + 每周定时」，不再随每次 push 新建条目。
+#
+# 结果：本工作流**不依赖 Actions 缓存**，CodeQL 侧不再写入任何缓存条目。
+# 代价（显式取舍）：每次全量分析（无增量加速），
+# 且 src/SeatFlow.Browser 的 C#、wwwroot 下的 JS、scripts/ 下的 Python 不再被扫描。
+#
+# 启用前提：必须在 Settings → Code security → CodeQL analysis 关闭 default setup，
+# 否则二者冲突、本工作流不会生效。
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - '**/*.csproj'
+      - '**/*.slnx'
+      - 'global.json'
+      - '.github/workflows/codeql.yml'
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: 'CodeQL (C#)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # manual 模式：仓库只有 SeatFlow.slnx（无 .sln），autobuild 定位不到项目。
+      # 只构建桌面壳，连带 Core / Application / Infrastructure / Presentation.Avalonia，
+      # 避开 SeatFlow.Browser 的 net10.0-browser 目标（需 wasm-tools workload）。
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: csharp
+          build-mode: manual
+          # manual 模式下 overlay 为 None，TRAP 缓存默认启用；显式关闭以硬保证零缓存增量
+          trap-caching: false
+
+      - name: Build (manual)
+        run: dotnet build src/SeatFlow.Desktop/SeatFlow.Desktop.csproj
+
+      - uses: github/codeql-action/analyze@v4

@@ -7,11 +7,12 @@
 
 | 工作流 | 触发 | 职责 |
 |--------|------|------|
-| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行。稳定版：restore 历史缓存 → OSS 同步 → vpk 打包（delta）、预发布：拉最新 full；暂存 artifacts |
+| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行。稳定版：OSS 同步打包历史 → vpk 打包（delta），预发布：拉最新 full；暂存 artifacts |
 | `publish.yml` | workflow_run（release.yml 成功且 push 触发，自动）/ workflow_dispatch（手动） | **仅发布**：下载 artifacts → 版本校验 → OSS 上传（仅自动）→ GitHub Release（自动 latest / 手动永远 pre-release） |
 | `publish-web.yml` | workflow_run（publish.yml 成功且为 push 自动链路） | **在线版发布（仅正式版）**：WASM 构建 → OSS `online_worktable/<version>/` 上传 + 完整性校验 → KV `current` 切换 → 清理旧版本 |
 | `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（无缓存，直接 restore） |
 | `actionlint.yml` | push/pull_request（`.github/workflows/**` 变更） | 校验工作流 YAML（钉版 actionlint 1.7.7 + SHA256） |
+| `codeql.yml` | pull_request（改动 `src/**`、`*.csproj`、`*.slnx`、`global.json`）/ 每周一 03:00 UTC / 手动 | CodeQL **advanced setup**：仅 C#，`build-mode: manual` 构建桌面壳后分析（取代 GitHub 托管 default setup，见第七节） |
 | `worker-secret-sync.yml` | 每周一 03:00 UTC / 手动 | 将 OSS 密钥同步到 Cloudflare Worker（secrets-bulk） |
 
 > 构建与发布完全解耦：构建失败不会产生任何 Release；发布可独立重跑（手动指定
@@ -75,10 +76,11 @@ python3 scripts/ci/upload_web_oss.py --version <旧版本号> --switch-only
 据此生成 `SeatFlow-{version}-{rid}-delta.nupkg`，并让 `releases.{rid}.json` 携带完整
 delta 链（客户端按版本顺序串联，超过 10 跳或 delta 总大小超过 full 时退回全量下载）。
 
-`publish/history` 通过 `actions/cache` 跨运行缓存（仅加速）；缓存失效时自动从 OSS
-全量回填。同步失败硬失败（不发版）；缓存保存失败不影响发布（`continue-on-error`）。
+`publish/history` **不使用 `actions/cache`**，每次稳定版构建都由 OSS 全量回填
+（见第七节）。同步失败硬失败（不发版）；无缓存不影响正确性，代价是每次多一次
+full/delta 下载。
 
-预发布（workflow_dispatch）不参与同步与缓存，仍由 `scripts/ci/fetch_previous.sh`
+预发布（workflow_dispatch）不参与历史同步，仍由 `scripts/ci/fetch_previous.sh`
 （封装 `vpk download http`）拉取最新 full 作为 delta 基础，失败容错跳过。
 
 > 历史注意：2026-09 之前 Worker 对 nupkg 直链返回 403，`fetch_previous` 一直静默失败，
@@ -142,11 +144,56 @@ if [ -n "$VPK_KEY_PASSWORD" ]; then ARGS+=(--keyPassword "$VPK_KEY_PASSWORD"); f
 
 ## 七、缓存策略
 
-- `unit-tests.yml` 不再使用 NuGet 缓存（避免 2.5 GB 级条目反复堆积挤占仓库缓存配额）
-- `release.yml`（稳定版 build job）缓存 `publish/history`（Velopack 打包历史）：
-  key `vpk-history-{rid}-{run_id}-{run_attempt}`，restore-keys 前缀 `vpk-history-{rid}-`；
-  每次运行保存新 key（滚动）；保存失败（超限等）不阻塞发布，由 OSS 同步兜底
-- 历史目录只保留 nupkg 与 channel 文件；安装包、Portable.zip、`assets.*.json` 在暂存后即被清理
+**本仓库所有工作流均不使用 `actions/cache`**（2026-11 起）：依赖与打包历史都在每次运行时
+重新获取，CI **不依赖缓存命中**，也不把任何运行状态外置到 Actions 缓存。
+
+移除前存在的两类缓存都具有「条目只增不减」的结构性问题，且缓存内容是随版本累积的二进制产物：
+
+| 已移除 | 体积量级 | 移除后替代 |
+|--------|----------|------------|
+| `release.yml` 的 `publish/history` 缓存 | 全部历史 delta + 最新 2 个 full 的 nupkg × 4 RID，估算 0.8–1.6 GB；key 含 `github.run_id` → 每次发版新建 4 个条目，旧条目滞留至 TTL | 每次由 `sync_velopack_history.py` 从 OSS 全量回填（OSS 是唯一真源，仅多一次下载） |
+| `publish-web.yml` 的 `~/.nuget/packages` 缓存 | WASM 发布需 Avalonia 全 RID natives + wasm runtime pack，单条目数百 MB～1 GB 级 | 每次直接 restore；该 job 仅在正式版发布时运行，restore 开销可控 |
+
+**约束**（新增缓存前必须核对）：
+
+- 不缓存 `~/.nuget/packages` 与任何发布产物目录（`publish/history`、`publish/dist`、`web-out`）。
+- key **不得包含 `github.run_id` / `run_attempt`**——`actions/cache` 对已存在的 key 不覆盖，
+  滚动 key 只会让条目净增而不被替换。
+- 缓存必须只是加速：未命中时流水线仍能正确完成，且不会因为缓存缺失而改变行为。
+
+历史目录本身只保留 nupkg 与 channel 文件；安装包、Portable.zip、`assets.*.json` 在暂存后即被清理
+（`stage_velopack_artifacts.sh`），这部分与缓存无关。
+
+### CodeQL（default setup → advanced setup）
+
+2026-11 起改用仓库内的 `codeql.yml`（advanced setup），**必须在 Settings → Code security →
+CodeQL analysis 关闭 default setup**，否则二者冲突、工作流不生效。
+
+原因是 CodeQL 的 overlay 分析缓存（`codeql-overlay-base-database-*`）**不受仓库 YAML 控制**
+（default setup 的工作流由 GitHub 动态生成），且 key 内含 commit sha + run_id，永不覆盖：
+
+| 维度 | default setup（旧） | advanced setup（现） |
+|---|---|---|
+| 语言 | csharp + javascript + python | 仅 csharp |
+| 构建模式 | autobuild | `manual`（`dotnet build` 桌面壳，避开 wasm-tools） |
+| 触发 | 每次 push / PR 无条件 | 仅改动 `src/**` 等的 PR + 每周一 03:00 UTC + 手动 |
+| 单次缓存增量 | ≈ 43.7MB（22.8 + 15.6 + 5.3） | **≈ 0**，见下 |
+| 归零方式 | 只能手动删条目 | 结构性归零；改 `codeql.yml` 的 `on` 可再降频 |
+
+**为什么 advanced setup 是零增量**（依据 `github/codeql-action@v4` 源码，非推测）：
+
+- `src/config-utils.ts` 的 `validateOverlayDatabaseMode`：`buildMode !== BuildMode.None`
+  且语言是 traced language（C# 是）时打印 "Falling back to creating a normal full database"
+  并返回 `IncompatibleBuildMode` —— 不做 overlay 分析，自然没有 overlay base database。
+- `src/overlay/caching.ts`：`cleanupAndUploadOverlayBaseDatabaseToCache` /
+  `downloadOverlayBaseDatabaseFromCache` 在 `overlayDatabaseMode` 不匹配时直接 return。
+- `src/config-utils.ts` 的 `isTrapCachingEnabled`：overlay 为 `None` 时在 hosted runner 上
+  **默认开启** TRAP 缓存；`src/trap-caching.ts` 只在默认分支上传（≥10MB），
+  而 weekly `schedule` 正在默认分支 —— 故 `codeql.yml` 显式传 `trap-caching: false`。
+
+**显式取舍**：只扫 C# 且只构建桌面壳，所以 `src/SeatFlow.Browser` 的 C#、`wwwroot` 下的 JS、
+`scripts/` 下的 Python 都不再被扫描；`manual` 模式每次全量分析，无增量加速。恢复全覆盖 =
+重新引入随提交累积的缓存条目与更长的分析时间。若需恢复某语言，改 `languages` 前先评估这一代价。
 
 ## 八、脚本约定（scripts/ci/）
 
