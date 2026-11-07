@@ -254,4 +254,7 @@ jobs:
         with:
           name: release-${{ matrix.rid }}
           path: publish/dist/*
+          # 产物只服务于「构建 → publish.yml 下载发版」这段窗口（分钟级）；
+          # 默认 90 天会让 4 RID × ~150MB 的安装包长期堆积在 Actions storage 里
+          retention-days: 3
           if-no-files-found: error

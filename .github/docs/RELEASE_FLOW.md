@@ -7,7 +7,7 @@
 
 | 工作流 | 触发 | 职责 |
 |--------|------|------|
-| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行。稳定版：OSS 同步打包历史 → vpk 打包（delta），预发布：拉最新 full；暂存 artifacts |
+| `release.yml` | push `version.json`（自动）/ workflow_dispatch（手动） | **仅构建**：预检 → 4 RID（win-x64 / linux-x64 / osx-x64 / osx-arm64）并行。稳定版：OSS 同步打包历史 → vpk 打包（delta），预发布：拉最新 full；暂存 artifacts（`retention-days: 3`） |
 | `publish.yml` | workflow_run（release.yml 成功且 push 触发，自动）/ workflow_dispatch（手动） | **仅发布**：下载 artifacts → 版本校验 → OSS 上传（仅自动）→ GitHub Release（自动 latest / 手动永远 pre-release） |
 | `publish-web.yml` | workflow_run（publish.yml 成功且为 push 自动链路） | **在线版发布（仅正式版）**：WASM 构建 → OSS `online_worktable/<version>/` 上传 + 完整性校验 → KV `current` 切换 → 清理旧版本 |
 | `unit-tests.yml` | push/pull_request（代码变更） | 构建 + 分层单元测试（无缓存，直接 restore） |
@@ -142,7 +142,7 @@ if [ -n "$VPK_KEY_PASSWORD" ]; then ARGS+=(--keyPassword "$VPK_KEY_PASSWORD"); f
 矩阵 `fail-fast: false`：单个平台失败不阻塞其余平台，
 但 `release` job 仍会整体失败（需全部成功后才发版）。
 
-## 七、缓存策略
+## 七、缓存与产物存储策略
 
 **本仓库所有工作流均不使用 `actions/cache`**（2026-11 起）：依赖与打包历史都在每次运行时
 重新获取，CI **不依赖缓存命中**，也不把任何运行状态外置到 Actions 缓存。
@@ -163,6 +163,26 @@ if [ -n "$VPK_KEY_PASSWORD" ]; then ARGS+=(--keyPassword "$VPK_KEY_PASSWORD"); f
 
 历史目录本身只保留 nupkg 与 channel 文件；安装包、Portable.zip、`assets.*.json` 在暂存后即被清理
 （`stage_velopack_artifacts.sh`），这部分与缓存无关。
+
+### 构建产物（artifacts）
+
+Actions storage 同时统计 artifacts 与 caches，而 artifacts 才是长期占用的大头：
+`release.yml` 每次发布为 4 个 RID 各上传一份 `publish/dist/*`（自包含安装包 + nupkg，
+单个 130–190MB），默认保留 **90 天**。这些产物唯一的用途是被 `publish.yml`
+下载后生成 GitHub Release，发布完成后即为死数据（安装包已在 Release 与 OSS 上）。
+
+因此 `upload-artifact` 显式设 `retention-days: 3`（构建 → 发版窗口只有分钟级，
+3 天留作重试缓冲）。**新增 `upload-artifact` 必须显式设置 `retention-days`**，
+不要让默认 90 天生效。历史堆积可通过 API 清理（按 id 逐个删，不支持前缀）：
+
+```bash
+REPO=<owner>/<repo>
+gh api --paginate "repos/$REPO/actions/artifacts?per_page=100" \
+  -q '.artifacts[] | select(.name | startswith("release-")) | .id' \
+  | while read -r id; do gh api -X DELETE "repos/$REPO/actions/artifacts/$id"; done
+```
+
+> 注意：删除后若想用手动 `publish.yml` 重发旧版本，其 artifacts 已过期，需重跑构建。
 
 ### CodeQL（default setup → advanced setup）
 
