@@ -46,6 +46,9 @@ README.md                     ← 项目入口，功能概览 + 开发状态
     ├── Design_Spec.md        ← UI 设计规范（色板、字体、间距）
     ├── DragDrop.md           ← Avalonia 12 拖放实现模式与踩坑记录
     └── Fluent_Icons.md       ← 已使用的 FluentUI 图标清单
+└── docs/superpowers/
+    ├── specs/                ← 设计文档（YYYY-MM-DD-<topic>-design.md，头脑风暴产出，先于实现）
+    └── plans/                ← 实施计划（YYYY-MM-DD-<topic>.md，spec 之后、编码之前）
 ```
 
 ## 文档职责与联动规则
@@ -150,6 +153,7 @@ README.md                     ← 项目入口，功能概览 + 开发状态
 | 新增页面 | AGENTS.md（导航枚举值 + Patterns）、Design_Spec.md（如有新图标） |
 | 修改数据模型 | ARCHITECTURE.md（3.x 节）、Phases.md |
 | 修改 JSON 序列化格式 | AGENTS.md（JSON 约定）、CONTRIBUTING.md（字段约定） |
+| 修改后端 API 地址/端点 | AGENTS.md（关键模式与约定「后端地址」）、docs/adr/ADR-009（计数器 BaseAddress）、docs/WebDeployment.md（在线版启动计数）、CHANGELOG.md |
 | 修改快照/完整性检测逻辑 | AGENTS.md（快照完整性检测/轮转/嵌入）、ARCHITECTURE.md（5.3 节） |
 | 修改构建/测试流程 | AGENTS.md、CONTRIBUTING.md、README.md |
 | 修改 Web/WASM 双壳、存储抽象或浏览器平台实现 | docs/WebDeployment.md、ARCHITECTURE.md（6.4 节）、AGENTS.md（Web/WASM 双壳）、README.md |

@@ -36,6 +36,10 @@
    于是：迁移器键名必须兼容 `Telemetry`/`ServerUrl`；`JsonAppSettingsRepository.LoadAsync` 读版本必须
    `node["version"] ?? node["Version"]`——原来大小写敏感，读成 null 后退化成 1.0，迁移链一直是断的。
 2. 为让 1.0 时代的文件也能串到 1.2，新增 `Step_1_0_to_1_1`（仅补版本戳，无结构变更）。
+3. 代码评审发现**第二条读取路径**：`TelemetryServiceCollectionExtensions.LoadTelemetryConfigSafe` 在
+   ServiceProvider 建好前手读 `AppSettings.json`（决定遥测端点 URL），原来用 `new FileMigrationService([])`，
+   迁移完全不生效。两条路径现统一走新增的 `AppSettingsJsonMigration.MigrateToCurrent`
+   （版本号/键名大小写兼容 + 迁移器清单唯一来源）。
 
 ---
 

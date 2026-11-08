@@ -138,8 +138,14 @@ public static class AppSettingsMigrators
 
 - 新增 `Step_1_0_to_1_1`（**无结构变更，仅补版本戳**）：1.0 时代的文件没有版本戳，
   不补这一步迁移链会停在 1.0，2 号规则就永远跑不到。
-- `src/SeatFlow.Infrastructure/Providers/JsonAppSettingsRepository.cs`：版本读取必须
-  `node["version"] ?? node["Version"]`（原来大小写敏感，读到 null 就退化成 1.0，迁移链一直是断的）。
+- 新增 `AppSettingsJsonMigration`（修一个真问题）：`JsonAppSettingsRepository` 之外还有**第二条读取路径**——
+  遥测管线的早期配置读取（`TelemetryServiceCollectionExtensions.LoadTelemetryConfigSafe`，ServiceProvider
+  未建好时手读文件），它决定遥测端点 URL，且原来用的是 `new FileMigrationService([])`（空迁移器）。
+  两条路径统一走 `AppSettingsJsonMigration.MigrateToCurrent`：版本号/键名兼容大小写 + 迁移器清单唯一来源。
+  漏掉这条路径，存量用户升级后遥测**仍会打到旧域名**（要等某次保存才纠正）。
+- `src/SeatFlow.Infrastructure/Providers/JsonAppSettingsRepository.cs` 与
+  `src/SeatFlow.Presentation.Avalonia/Telemetry/TelemetryServiceCollectionExtensions.cs`：统一改调
+  `AppSettingsJsonMigration.MigrateToCurrent`（版本号大小写兼容 + 迁移器清单唯一来源）。
 - `src/SeatFlow.Infrastructure/Migration/file_versions.json`：`"appSettings": "1.2"`。
 - `src/SeatFlow.Core/Models/AppSettings.cs:11`：`Version` 默认值 `"1.1"` → `"1.2"`。
 - `src/SeatFlow.Application/Services/ServiceCollectionExtensions.cs:154-155` 旁注册两个迁移器

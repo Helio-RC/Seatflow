@@ -130,6 +130,10 @@ public virtual Task<bool> CanLeaveAsync()   // NavigationService 离开页面前
   详见 `docs/presentation/DragDrop.md`。
 - **新增页面**：`PageKey` 加枚举 → 建 `XxxViewModel` / `XxxView.axaml`（设 `x:DataType`）→ `Program.cs` 注册 →
   `MainView.axaml` 侧栏加入口（桌面 `MainWindow` 复用同一外壳）。
+- **后端地址**：客户端所有后端 API 调用的**唯一来源**是 `SeatFlow.Core.SeatFlowEndpoints`
+  （`ApiBase` = `https://api.seatflow.work/api/` + `TelemetryUrl`/`ReleaseNotesUrl`/`OnlineLaunchUrl`）。
+  **禁止**在别处硬编码域名；apex `seatflow.work/api/*` 只是过渡期 Worker 反代，不是客户端入口。
+  例外：`src/SeatFlow.Browser/wwwroot/main.js` 是静态资产，无法共享 C# 常量，保留一处字面量并注释互指。
 - **对话框窗口**：`DialogWindow` / `InputWindow` 按钮用 `Content="{x:Static}"` 属性语法；
   `Window` 子类中 `Resources` 指 `Window.Resources`，须用 `Lang.Resources.Xxx` 全名。
 
@@ -178,7 +182,7 @@ Windows `%APPDATA%\SeatFlow\` / Linux `~/.local/share/SeatFlow/` / macOS `~/Libr
 | Roster | 1.1 | `RosterFile` |
 | Snapshot | 1.0 | `SeatingSnapshot` |
 | VenueInfo | 1.0 | `VenueSnapshotInfo` |
-| AppSettings | 1.1 | `AppSettings` |
+| AppSettings | 1.2 | `AppSettings` |
 | StrategyConfig / StrategyDatasetConfig | 1.0 | 同名 |
 
 **迁移规则**：加载时读 `JsonNode` → `FileMigrationService.Migrate`（仅向前）→ 反序列化。
@@ -186,7 +190,9 @@ Windows `%APPDATA%\SeatFlow\` / Linux `~/.local/share/SeatFlow/` / macOS `~/Libr
 新增迁移器：`Migration/Migrators/{FileType}Migrators.cs` 内嵌 `IFileMigrator` 类 → `ServiceCollectionExtensions` 注册 →
 `file_versions.json` 升版 → 同步 Model 默认值 → 加测试（可用 `scripts/version.py bump-file` 自动同步）。
 
-**JSON 约定**：camelCase；`ClassroomLayoutDefinition` 同时写 `layoutType`（数字）与 `layoutTypeString`（迁移器读字符串）；
+**JSON 约定**：camelCase；**例外 `AppSettings.json` 用 PascalCase**（`SaveAsync` 走 `JsonOptions.WriteIndented`，
+未设命名策略），故读写/迁移该类文件的键名查找必须同时兼容 `Version`/`version`、`Telemetry`/`telemetry`；
+`ClassroomLayoutDefinition` 同时写 `layoutType`（数字）与 `layoutTypeString`（迁移器读字符串）；
 座位多态用 `SeatJsonConverter` 的 `Type` 判别字段；`VenueFile`/`RosterFile.ContentHash` 保存时计算 SHA256
 （学生数据哈希排除 `importedAt`/`originalFileName`；**Roster 落盘保留导入顺序**，`StudentsHash` 仍按 Id 排序计算以保证顺序无关）。
 Grid 座位按**行主序**生成（RandomFill 逐行填充的前提）。
