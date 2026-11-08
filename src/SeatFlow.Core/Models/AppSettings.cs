@@ -74,8 +74,8 @@ namespace SeatFlow.Core.Models
         /// <summary>是否已展示过同意弹窗。</summary>
         public bool ConsentShown { get; set; } = false;
 
-        /// <summary>Web API 遥测端点 URL。</summary>
-        public string ServerUrl { get; set; } = "https://seatflow.work/api/app/telemetry";
+        /// <summary>Web API 遥测端点 URL（默认值来自 <see cref="SeatFlowEndpoints.TelemetryUrl"/>）。</summary>
+        public string ServerUrl { get; set; } = SeatFlowEndpoints.TelemetryUrl;
 
         /// <summary>正常批量发送间隔（秒）。</summary>
         public int FlushIntervalSeconds { get; set; } = 60;

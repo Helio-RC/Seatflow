@@ -13,8 +13,10 @@ const trackEl = document.getElementById('sfTrack');
 const barEl = document.getElementById('sfBar');
 
 // 在线版启动计数 API：运行时资源加载成功后上报一次 downloads 计数。
-// 与排座计数一样直接指向官网 API；本地开发/UI 测试（loopback）不上报，避免污染线上统计。
-const ONLINE_LAUNCH_API = 'https://seatflow.work/api/app/online/launch';
+// 本地开发/UI 测试（loopback）不上报，避免污染线上统计。
+// 地址唯一来源是 src/SeatFlow.Core/SeatFlowEndpoints.cs 的 OnlineLaunchUrl；
+// 静态资产无法共享 C# 常量，改地址时两处必须同步。
+const ONLINE_LAUNCH_API = 'https://api.seatflow.work/api/app/online/launch';
 
 function reportOnlineLaunch() {
     const host = globalThis.location?.hostname;

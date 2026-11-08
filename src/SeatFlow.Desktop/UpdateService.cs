@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SeatFlow.Core;
 using Velopack;
 using Velopack.Locators;
 using Velopack.Sources;
@@ -25,7 +26,7 @@ internal sealed class UpdateService : IUpdateService, IDisposable
 
     private const string UpdateApiBase = "https://download.seatflow.work/";
     private const string GitHubRepoUrl = "https://github.com/SeatFlow/SeatFlow";
-    private const string ReleaseNotesApiBase = "https://seatflow.work/api/app/note/";
+    private const string ReleaseNotesApiBase = SeatFlowEndpoints.ReleaseNotesUrl;
 
     private UpdateInfo? _lastUpdateInfo;
     private UpdateManager? _currentManager;

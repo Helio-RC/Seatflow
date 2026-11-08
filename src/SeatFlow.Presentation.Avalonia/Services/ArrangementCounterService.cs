@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using SeatFlow.Core;
 
 namespace SeatFlow.Presentation.Avalonia.Services;
 
@@ -28,17 +29,15 @@ public sealed class ArrangementCounterService : IArrangementCounterService, IDis
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    /// <summary>
-    /// 计数器 API 基址。
-    /// </summary>
-    internal const string BaseUrl = "https://seatflow.work/api/";
+    /// <summary>计数器 API 基址（测试用；唯一来源是 <see cref="SeatFlowEndpoints.ApiBase"/>）。</summary>
+    internal Uri BaseAddress => _httpClient.BaseAddress!;
 
     public ArrangementCounterService(ILogger<ArrangementCounterService>? logger = null)
     {
         _logger = logger ?? NullLogger<ArrangementCounterService>.Instance;
         _httpClient = new HttpClient
         {
-            BaseAddress = new Uri(BaseUrl),
+            BaseAddress = new Uri(SeatFlowEndpoints.ApiBase),
             Timeout = TimeSpan.FromSeconds(10)
         };
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
