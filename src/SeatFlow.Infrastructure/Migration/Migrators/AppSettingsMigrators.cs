@@ -6,7 +6,7 @@ namespace SeatFlow.Infrastructure.Migration.Migrators;
 /// <summary>
 /// AppSettings.json 各版本迁移器。<br/>
 /// 注意：磁盘上的 <c>AppSettings.json</c> 用 PascalCase 序列化（<c>JsonOptions.WriteIndented</c> 未设命名策略），
-/// 而仓储层按 <c>version</c> 字段判断版本，故本文件里所有键名查找都同时兼容两种大小写。
+/// 而仓储层按 <c>version</c> 字段判断版本，故键名查找统一走 <see cref="JsonKeyCase"/>。
 /// </summary>
 public static class AppSettingsMigrators
 {
@@ -47,10 +47,10 @@ public static class AppSettingsMigrators
             if (root is not JsonObject rootObject)
                 return root;
 
-            var telemetryKey = FindChild(rootObject, "telemetry");
+            var telemetryKey = JsonKeyCase.FindKey(rootObject, "telemetry");
             if (telemetryKey is not null && rootObject[telemetryKey] is JsonObject telemetry)
             {
-                if (FindChild(telemetry, "serverUrl") is { } key
+                if (JsonKeyCase.FindKey(telemetry, "serverUrl") is { } key
                     && telemetry[key] is JsonValue value
                     && value.TryGetValue<string>(out var url)
                     && IsLegacyDefault(url))
@@ -71,18 +71,9 @@ public static class AppSettingsMigrators
             => (url ?? string.Empty).Trim().TrimEnd('/').ToUpperInvariant();
     }
 
-    /// <summary>按 camelCase / PascalCase 两种键名查找子节点，返回命中的键名；都没有则返回 <c>null</c>。</summary>
-    internal static string? FindChild(JsonObject parent, string camelCaseKey)
-    {
-        var pascalCaseKey = char.ToUpperInvariant(camelCaseKey[0]) + camelCaseKey[1..];
-        if (parent.ContainsKey(camelCaseKey)) return camelCaseKey;
-        if (parent.ContainsKey(pascalCaseKey)) return pascalCaseKey;
-        return null;
-    }
-
     /// <summary>改写既有版本键（保留原来的大小写）；不存在时按 camelCase 新建。</summary>
     private static void SetVersion(JsonObject root, string version)
     {
-        root[FindChild(root, "version") ?? "version"] = version;
+        root[JsonKeyCase.FindKey(root, "version") ?? "version"] = version;
     }
 }

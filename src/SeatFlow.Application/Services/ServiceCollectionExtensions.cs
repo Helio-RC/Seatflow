@@ -153,8 +153,9 @@ namespace SeatFlow.Application.Services
             services.AddSingleton<FileMigrationService>();
             services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>();
             services.AddSingleton<IFileMigrator, SeatSetsMigrators.Step_1_0_to_1_1>();
-            services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_0_to_1_1>();
-            services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_1_to_1_2>();
+            // appSettings 的迁移链在 Infrastructure 里集中定义，避免无 DI 的早期读取路径漏接
+            foreach (var migrator in AppSettingsJsonMigration.CreateMigrators())
+                services.AddSingleton<IFileMigrator>(migrator);
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
                 new SeatingSnapshotRepository(store, "Assignments",
                     sp.GetRequiredService<FileMigrationService>(),

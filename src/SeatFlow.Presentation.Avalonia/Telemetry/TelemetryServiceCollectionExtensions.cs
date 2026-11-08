@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
@@ -102,7 +101,9 @@ public static class TelemetryServiceCollectionExtensions
 
     /// <summary>
     /// 安全加载遥测配置。直接读取 AppSettings.json 并运行文件迁移器（不使用 DI，避免提前构建 ServiceProvider）。
-    /// 路径使用 AppEnvironment.DefaultDataDirectory，与 JsonAppSettingsRepository 保持一致。
+    /// 路径使用 AppEnvironment.DefaultDataDirectory，与 JsonAppSettingsRepository 保持一致。<br/>
+    /// ⚠️ 这条路径决定遥测端点 URL，必须与仓储走同一套迁移（<see cref="AppSettingsJsonMigration"/>），
+    /// 否则存量用户升级后仍会把遥测打到旧域名，直到某次保存才纠正。
     /// </summary>
     private static TelemetryConfig LoadTelemetryConfigSafe(IServiceCollection services)
     {
@@ -112,16 +113,7 @@ public static class TelemetryServiceCollectionExtensions
             if (!System.IO.File.Exists(settingsPath))
                 return new TelemetryConfig();
 
-            var json = System.IO.File.ReadAllText(settingsPath);
-            var node = JsonNode.Parse(json);
-            if (node is not null)
-            {
-                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
-                var migration = new FileMigrationService([]); // 目前无 AppSettings 专用迁移器；预留扩展点
-                node = migration.Migrate("appSettings", node, fileVersion,
-                    SeatFlow.Infrastructure.Migration.FileVersionInfo.GetCurrentVersion("appSettings"));
-                json = node.ToJsonString();
-            }
+            var json = AppSettingsJsonMigration.MigrateToCurrent(System.IO.File.ReadAllText(settingsPath));
 
             var settings = System.Text.Json.JsonSerializer.Deserialize<AppSettings>(json,
                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });

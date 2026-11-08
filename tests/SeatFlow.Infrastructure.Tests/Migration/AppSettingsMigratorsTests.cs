@@ -71,6 +71,22 @@ public class AppSettingsMigratorsTests
     }
 
     [Fact]
+    public void Migrate_MissingServerUrl_ShouldOnlyBumpVersion()
+    {
+        var root = new JsonObject
+        {
+            ["Version"] = "1.1",
+            ["Telemetry"] = new JsonObject { ["Enabled"] = true }
+        };
+
+        var result = new AppSettingsMigrators.Step_1_1_to_1_2().Migrate(root);
+
+        result["Telemetry"]!["ServerUrl"].Should().BeNull();
+        result["Telemetry"]!["Enabled"]!.GetValue<bool>().Should().BeTrue();
+        result["Version"]!.GetValue<string>().Should().Be("1.2");
+    }
+
+    [Fact]
     public void Migrate_NonStringServerUrl_ShouldBePreserved()
     {
         var root = new JsonObject
