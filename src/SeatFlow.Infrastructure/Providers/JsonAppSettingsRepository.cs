@@ -72,7 +72,9 @@ namespace SeatFlow.Infrastructure.Providers
             var node = JsonNode.Parse(json);
             if (node is not null)
             {
-                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+                // 磁盘上的 AppSettings.json 是 PascalCase（SaveAsync 用 JsonOptions.WriteIndented），
+                // 故这里必须两种大小写都认，否则永远读成 1.0、迁移链断裂。
+                var fileVersion = (node["version"] ?? node["Version"])?.GetValue<string>() ?? "1.0";
                 node = _migration.Migrate("appSettings", node, fileVersion, FileVersionInfo.GetCurrentVersion("appSettings"));
                 json = node.ToJsonString();
             }

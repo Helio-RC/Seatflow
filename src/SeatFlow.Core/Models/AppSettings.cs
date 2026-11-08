@@ -8,7 +8,7 @@ namespace SeatFlow.Core.Models
     public class AppSettings
     {
         /// <summary>文件格式版本号。</summary>
-        public string Version { get; set; } = "1.1";
+        public string Version { get; set; } = "1.2";
 
         /// <summary>窗口位置与大小设置。</summary>
         public WindowStateSettings WindowState { get; set; } = new();

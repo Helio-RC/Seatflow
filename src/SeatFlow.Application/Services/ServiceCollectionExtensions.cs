@@ -153,6 +153,8 @@ namespace SeatFlow.Application.Services
             services.AddSingleton<FileMigrationService>();
             services.AddSingleton<IFileMigrator, VenueMigrators.Step_1_0_to_1_1>();
             services.AddSingleton<IFileMigrator, SeatSetsMigrators.Step_1_0_to_1_1>();
+            services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_0_to_1_1>();
+            services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_1_to_1_2>();
             services.AddSingleton<ISeatingSnapshotRepository>(sp =>
                 new SeatingSnapshotRepository(store, "Assignments",
                     sp.GetRequiredService<FileMigrationService>(),
