@@ -128,17 +128,22 @@ public static class AppSettingsMigrators
 
 规则：
 
-1. 定位 `root["telemetry"]`（`JsonObject`），键不存在则不动；键名容错：先 `serverUrl`，再回落 `ServerUrl`（手改文件）。
-2. 取字符串值，`Trim().TrimEnd('/')` 后与 `LegacyTelemetryUrl` 做 `OrdinalIgnoreCase` 比较，**相等才改写**
-   为新默认 `SeatFlowEndpoints.TelemetryUrl`。
-3. 不改写任何其它字段、不新增字段；返回原 `JsonNode`。
+1. 定位 `telemetry` / `Telemetry` 节点（**磁盘上的 `AppSettings.json` 是 PascalCase**——`SaveAsync` 用
+   `JsonOptions.WriteIndented`，未设命名策略；camelCase 形态仅出现在手改或 `.seatsets` 归档里），键不存在则不动。
+2. 取 `serverUrl` / `ServerUrl` 字符串值，`Trim().TrimEnd('/')` 后与 `LegacyTelemetryUrl` 做 `OrdinalIgnoreCase`
+   比较，**相等才改写**为新默认 `SeatFlowEndpoints.TelemetryUrl`。
+3. 不改写任何其它字段、不新增字段；版本键写回原有大小写（`Version` 存在则写 `Version`）。
 
 配套：
 
+- 新增 `Step_1_0_to_1_1`（**无结构变更，仅补版本戳**）：1.0 时代的文件没有版本戳，
+  不补这一步迁移链会停在 1.0，2 号规则就永远跑不到。
+- `src/SeatFlow.Infrastructure/Providers/JsonAppSettingsRepository.cs`：版本读取必须
+  `node["version"] ?? node["Version"]`（原来大小写敏感，读到 null 就退化成 1.0，迁移链一直是断的）。
 - `src/SeatFlow.Infrastructure/Migration/file_versions.json`：`"appSettings": "1.2"`。
 - `src/SeatFlow.Core/Models/AppSettings.cs:11`：`Version` 默认值 `"1.1"` → `"1.2"`。
-- `src/SeatFlow.Application/Services/ServiceCollectionExtensions.cs:154-155` 旁新增
-  `services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_1_to_1_2>();`。
+- `src/SeatFlow.Application/Services/ServiceCollectionExtensions.cs:154-155` 旁注册两个迁移器
+  （`Step_1_0_to_1_1`、`Step_1_1_to_1_2`）。
 - 保存路径 `JsonAppSettingsRepository.SaveAsync` 已按 `FileVersionInfo.GetCurrentVersion("appSettings")`
   打戳，无需改动。
 
@@ -171,10 +176,11 @@ public static class AppSettingsMigrators
 ## 5. 测试与验收
 
 1. **迁移器单测**（`tests/SeatFlow.Infrastructure.Tests/Migration/AppSettingsMigratorsTests.cs`）：
-   - 旧默认值 → 改写成新默认；
+   - 旧默认值 → 改写成新默认（PascalCase 文档为主，camelCase 文档另测）；
    - 旧默认的等价变体（尾随斜杠、大小写不同、首尾空白）→ 同样改写为新默认；
    - 用户自定义地址（含指向 apex 的其它路径）→ 原样保留；
-   - `telemetry` 缺失 / `serverUrl` 缺失 / 非字符串 / 已是新值 → 原样返回。
+   - `Telemetry` 缺失 / `ServerUrl` 缺失 / 非字符串 / 已是新值 → 不改写；
+   - 1.0 文件走完整链（1.0 → 1.1 → 1.2）后地址为新默认。
 2. **仓储集成**（扩充 `tests/SeatFlow.Infrastructure.Tests/Repositories/JsonAppSettingsRepositoryTests.cs`）：
    1.1 文件加载后 `Telemetry.ServerUrl` 为新地址；自定义值保持；老版本读 1.2 文件不抛错。
 3. **构建/回归**：`dotnet build`；`dotnet test --filter "FullyQualifiedName~Migration|FullyQualifiedName~AppSettings|FullyQualifiedName~Counter"`。

@@ -19,6 +19,24 @@
 - 构建：`dotnet build`；测试：`dotnet test --project <测试工程> --filter "FullyQualifiedName~<类名>"`（SDK 10 原生 MTP 模式，此写法已实测可用；不要加 `--`）。
 - 每个任务一次提交；提交信息沿用仓库的 conventional commits 风格（`feat(scope): …` / `docs: …`）。
 
+### 执行环境备注（沙箱内实测）
+
+- Avalonia 的 MSBuild 统计任务会写 `~/.local/share/AvaloniaUI/...`，在受限沙箱里直接让构建失败；
+  本地跑构建/测试前加 `export AVALONIA_TELEMETRY_OPTOUT=1`。
+- 环境里若存在空的 `GIT_CONFIG_KEY_0` 等变量，Avalonia 构建任务执行 `git` 会失败；先
+  `unset GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GIT_CONFIG_COUNT`。
+- 过滤语法按测试工程区分：`SeatFlow.Core.Tests` / `SeatFlow.Infrastructure.Tests`（xunit.v3 4.0.2）用
+  `--filter "FullyQualifiedName~X"`；`SeatFlow.Presentation.Tests`（锁定 xunit.v3 3.2.2）**不认 `--filter`**，
+  用 `--filter-class "*XxxTests*"`。
+- 不要并行跑多个 `dotnet build/test`：NuGet/NuGet-Migrations 互斥量在沙箱里会崩。
+
+### 实施偏差记录（执行时产生，已回写 spec）
+
+1. 磁盘上的 `AppSettings.json` 是 **PascalCase**（`SaveAsync` 用 `JsonOptions.WriteIndented`，未设命名策略）。
+   于是：迁移器键名必须兼容 `Telemetry`/`ServerUrl`；`JsonAppSettingsRepository.LoadAsync` 读版本必须
+   `node["version"] ?? node["Version"]`——原来大小写敏感，读成 null 后退化成 1.0，迁移链一直是断的。
+2. 为让 1.0 时代的文件也能串到 1.2，新增 `Step_1_0_to_1_1`（仅补版本戳，无结构变更）。
+
 ---
 
 ### Task 1: 新增 `SeatFlowEndpoints` 单一地址来源
@@ -189,7 +207,7 @@ public class ArrangementCounterServiceEndpointTests
 Run: `dotnet test --project tests/SeatFlow.Core.Tests/SeatFlow.Core.Tests.csproj --filter "FullyQualifiedName~AppSettingsTelemetryDefaultsTests"`
 Expected: FAIL，断言实际值为 `"https://seatflow.work/api/app/telemetry"`
 
-Run: `dotnet test --project tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj --filter "FullyQualifiedName~ArrangementCounterServiceEndpointTests"`
+Run: `dotnet test --project tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj --filter-class "*ArrangementCounterServiceEndpointTests*"`
 Expected: 编译失败，报 `CS0117: "ArrangementCounterService"未包含"BaseAddress"的定义`
 
 - [ ] **Step 4: 改 `AppSettings` 默认值**
@@ -277,7 +295,7 @@ const ONLINE_LAUNCH_API = 'https://api.seatflow.work/api/app/online/launch';
 Run: `dotnet test --project tests/SeatFlow.Core.Tests/SeatFlow.Core.Tests.csproj --filter "FullyQualifiedName~AppSettingsTelemetryDefaultsTests"`
 Expected: `total: 1, failed: 0, succeeded: 1`
 
-Run: `dotnet test --project tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj --filter "FullyQualifiedName~ArrangementCounterServiceEndpointTests"`
+Run: `dotnet test --project tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj --filter-class "*ArrangementCounterServiceEndpointTests*"`
 Expected: `total: 2, failed: 0, succeeded: 2`
 
 - [ ] **Step 9: 全解编译（Desktop 与 Browser 两个壳）**
@@ -486,7 +504,8 @@ Expected: 编译失败，报 `CS0246: 未能找到类型或命名空间名"AppSe
 
 - [ ] **Step 4: 写迁移器实现**
 
-创建 `src/SeatFlow.Infrastructure/Migration/Migrators/AppSettingsMigrators.cs`：
+创建 `src/SeatFlow.Infrastructure/Migration/Migrators/AppSettingsMigrators.cs`（键名同时兼容 PascalCase / camelCase，
+因为磁盘上的 `AppSettings.json` 是 PascalCase）：
 
 ```csharp
 using System.Text.Json.Nodes;
@@ -495,10 +514,30 @@ using SeatFlow.Core;
 namespace SeatFlow.Infrastructure.Migration.Migrators;
 
 /// <summary>
-/// AppSettings.json 各版本迁移器。
+/// AppSettings.json 各版本迁移器。<br/>
+/// 注意：磁盘上的 <c>AppSettings.json</c> 用 PascalCase 序列化（<c>JsonOptions.WriteIndented</c> 未设命名策略），
+/// 而仓储层按 <c>version</c> 字段判断版本，故本文件里所有键名查找都同时兼容两种大小写。
 /// </summary>
 public static class AppSettingsMigrators
 {
+    /// <summary>
+    /// 1.0 → 1.1：无结构变更，仅补版本戳，使更早的文件也能串到后续步骤。
+    /// </summary>
+    public sealed class Step_1_0_to_1_1 : IFileMigrator
+    {
+        public string FileType => "appSettings";
+        public string FromVersion => "1.0";
+        public string ToVersion => "1.1";
+
+        public JsonNode Migrate(JsonNode root)
+        {
+            if (root is JsonObject rootObject)
+                SetVersion(rootObject, "1.1");
+
+            return root;
+        }
+    }
+
     /// <summary>
     /// 1.1 → 1.2：把「仍是旧默认值」的遥测地址改写为新后端域名。<br/>
     /// 只认字面量默认值——<see cref="SeatFlow.Core.Models.TelemetryConfig.ServerUrl"/> 是用户可编辑字段，
@@ -518,13 +557,10 @@ public static class AppSettingsMigrators
             if (root is not JsonObject rootObject)
                 return root;
 
-            if (rootObject["telemetry"] is JsonObject telemetry)
+            var telemetryKey = FindChild(rootObject, "telemetry");
+            if (telemetryKey is not null && rootObject[telemetryKey] is JsonObject telemetry)
             {
-                var key = telemetry.ContainsKey("serverUrl") ? "serverUrl"
-                    : telemetry.ContainsKey("ServerUrl") ? "ServerUrl"
-                    : null;
-
-                if (key is not null
+                if (FindChild(telemetry, "serverUrl") is { } key
                     && telemetry[key] is JsonValue value
                     && value.TryGetValue<string>(out var url)
                     && IsLegacyDefault(url))
@@ -533,7 +569,7 @@ public static class AppSettingsMigrators
                 }
             }
 
-            rootObject["version"] = "1.2";
+            SetVersion(rootObject, "1.2");
             return rootObject;
         }
 
@@ -544,7 +580,38 @@ public static class AppSettingsMigrators
         private static string Normalize(string? url)
             => (url ?? string.Empty).Trim().TrimEnd('/').ToUpperInvariant();
     }
+
+    /// <summary>按 camelCase / PascalCase 两种键名查找子节点，返回命中的键名；都没有则返回 <c>null</c>。</summary>
+    internal static string? FindChild(JsonObject parent, string camelCaseKey)
+    {
+        var pascalCaseKey = char.ToUpperInvariant(camelCaseKey[0]) + camelCaseKey[1..];
+        if (parent.ContainsKey(camelCaseKey)) return camelCaseKey;
+        if (parent.ContainsKey(pascalCaseKey)) return pascalCaseKey;
+        return null;
+    }
+
+    /// <summary>改写既有版本键（保留原来的大小写）；不存在时按 camelCase 新建。</summary>
+    private static void SetVersion(JsonObject root, string version)
+    {
+        root[FindChild(root, "version") ?? "version"] = version;
+    }
 }
+```
+
+- [ ] **Step 4b: 修版本读取的大小写敏感（迁移链的前置条件）**
+
+`src/SeatFlow.Infrastructure/Providers/JsonAppSettingsRepository.cs` 的 `LoadAsync` 中，把
+
+```csharp
+                var fileVersion = node["version"]?.GetValue<string>() ?? "1.0";
+```
+
+替换为：
+
+```csharp
+                // 磁盘上的 AppSettings.json 是 PascalCase（SaveAsync 用 JsonOptions.WriteIndented），
+                // 故这里必须两种大小写都认，否则永远读成 1.0、迁移链断裂。
+                var fileVersion = (node["version"] ?? node["Version"])?.GetValue<string>() ?? "1.0";
 ```
 
 - [ ] **Step 5: 升版本戳（脚本自动同步 Model 默认值）**
@@ -559,9 +626,10 @@ Expected: 两处都显示 `1.2`
 
 - [ ] **Step 6: 注册迁移器**
 
-`src/SeatFlow.Application/Services/ServiceCollectionExtensions.cs` 第 154-155 行之后新增一行：
+`src/SeatFlow.Application/Services/ServiceCollectionExtensions.cs` 第 154-155 行之后新增两行：
 
 ```csharp
+            services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_0_to_1_1>();
             services.AddSingleton<IFileMigrator, AppSettingsMigrators.Step_1_1_to_1_2>();
 ```
 
@@ -570,7 +638,7 @@ Expected: 两处都显示 `1.2`
 - [ ] **Step 7: 跑测试确认通过**
 
 Run: `dotnet test --project tests/SeatFlow.Infrastructure.Tests/SeatFlow.Infrastructure.Tests.csproj --filter "FullyQualifiedName~AppSettingsMigratorsTests"`
-Expected: `total: 9, failed: 0, succeeded: 9`（两个 Theory 各 3 个 InlineData + 3 个 Fact）
+Expected: `total: 11, failed: 0, succeeded: 11`（两个 Theory 各 3 个 InlineData + 4 个 Fact + 1 个链路 Fact）
 
 Run: `dotnet test --project tests/SeatFlow.Infrastructure.Tests/SeatFlow.Infrastructure.Tests.csproj --filter "FullyQualifiedName~JsonAppSettingsRepositoryTests"`
 Expected: `total: 6, failed: 0, succeeded: 6`（原 3 个 + 新增 3 个）
@@ -581,6 +649,7 @@ Expected: `total: 6, failed: 0, succeeded: 6`（原 3 个 + 新增 3 个）
 git add src/SeatFlow.Infrastructure/Migration/Migrators/AppSettingsMigrators.cs \
         src/SeatFlow.Infrastructure/Migration/file_versions.json \
         src/SeatFlow.Core/Models/AppSettings.cs \
+        src/SeatFlow.Infrastructure/Providers/JsonAppSettingsRepository.cs \
         src/SeatFlow.Application/Services/ServiceCollectionExtensions.cs \
         tests/SeatFlow.Infrastructure.Tests/Migration/AppSettingsMigratorsTests.cs \
         tests/SeatFlow.Infrastructure.Tests/Repositories/JsonAppSettingsRepositoryTests.cs
@@ -680,7 +749,7 @@ Expected: `failed: 0`
 
 （若该 `|` 组合过滤不被支持，改为分两条命令各跑一次。）
 
-Run: `dotnet test --project tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj --filter "FullyQualifiedName~ArrangementCounterServiceEndpointTests"`
+Run: `dotnet test --project tests/SeatFlow.Presentation.Tests/SeatFlow.Presentation.Tests.csproj --filter-class "*ArrangementCounterServiceEndpointTests*"`
 Expected: `failed: 0`
 
 Run: `dotnet test --project tests/SeatFlow.Infrastructure.Tests/SeatFlow.Infrastructure.Tests.csproj --filter "FullyQualifiedName~AppSettingsMigratorsTests"`

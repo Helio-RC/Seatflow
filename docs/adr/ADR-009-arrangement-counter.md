@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-SeatFlow 官网首页展示一个公开的"排座次数"统计卡片，由后端 API（`seatflow.work/api/counters`）维护累加计数器。API 使用 token+nonce 防滥用机制：
+SeatFlow 官网首页展示一个公开的"排座次数"统计卡片，由后端 API（`api.seatflow.work/api/counters`）维护累加计数器。API 使用 token+nonce 防滥用机制：
 
 ```
 GET  /api/counters/token?name=arrangements  → { token, nonce, expiresAt }
@@ -59,7 +59,7 @@ CanLeaveAsync() 返回 true
 ### HTTP 设计
 
 - `HttpClient` 在构造函数中创建一次（单例字段复用），匹配 `TelemetryHttpClient` 模式
-- `BaseAddress` 带尾部斜杠：`"https://seatflow.work/api/"`
+- `BaseAddress` 带尾部斜杠：`"https://api.seatflow.work/api/"`（唯一来源 `SeatFlow.Core.SeatFlowEndpoints.ApiBase`）
 - 超时 10 秒，`Accept: application/json`
 - Token 过期检查：`ExpiresAt <= DateTimeOffset.UtcNow` 时跳过 POST
 - 计数为 0 时零 HTTP 调用（提前返回）
