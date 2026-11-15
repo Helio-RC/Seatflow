@@ -7,6 +7,9 @@ on:
     workflows: ['Publish SeatFlow']
     types: [completed]
     branches: [main]
+  # 手动补发/重试：workflow_run 触发无法重跑历史版本，运维在确认桌面版已发布后
+  # 可直接 dispatch，部署 main 当前 version.json 指向的正式版本。
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,8 +28,10 @@ jobs:
   # ──────────────────────────────────────────────
   gate:
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'workflow_run'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'workflow_run')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -35,7 +40,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          # dispatch 无上游运行时，落到当前分支 HEAD
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Resolve version
         id: meta
@@ -66,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: actions/setup-python@v7
         with:
