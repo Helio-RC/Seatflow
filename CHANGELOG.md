@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [2.3.1] — 2026-11-15
+
 ### Added
 - **更新检查失败可「不再提醒」**：启动自动检查发现更新服务不可达时，弹窗新增「不再提醒」按钮，选择后写入 `AppSettings.SuppressUpdateFailedNotice`，后续启动不再提示前往 GitHub Releases 手动下载；检查本身照旧执行。设置页「更新」卡片新增同名开关可随时恢复，设置页手动检查失败仍会提示
 - **在线版启动计数**：WASM 运行时资源加载成功后向官网 API 上报一次下载计数（`downloads` 计数器），与官网下载页共用统计；本地 loopback 环境不上报
@@ -12,6 +14,7 @@
 ### Changed
 - **客户端 API 基址迁到 `api.seatflow.work`**：遥测、排座计数、版本更新说明与在线版启动计数统一由 `SeatFlow.Core.SeatFlowEndpoints` 提供，不再依赖 apex 的 `/api/*` Worker 反代（该反代保留到旧版本用户减少）；新增 `AppSettings` 1.0 → 1.1 → 1.2 迁移链，只把仍是旧默认值的 `Telemetry.ServerUrl` 改写为新域名，用户自定义地址保留
 - **AppSettings 迁移链修复**：磁盘上的 `AppSettings.json` 是 PascalCase，而版本读取是大小写敏感的，导致迁移一直在 1.0 处断裂；现版本号/键名查找兼容两种大小写，并把迁移器清单收敛到 `AppSettingsJsonMigration`——遥测管线的早期配置读取（ServiceProvider 建好之前那条路）也走同一套迁移，否则升级后仍会把遥测打到旧域名
+- 开发工具：avdt（Avalonia DevTools）2.2.1 → 2.2.3，与 Avalonia 12.1.4 配套
 
 ### Fixed
 - **CI 改用不依赖缓存的流水线**：移除 `release.yml` 的 `publish/history`（Velopack 打包历史）与 `publish-web.yml` 的 `~/.nuget/packages` 缓存——前者保留全部历史 delta + 最新 2 个 full 的 nupkg × 4 RID（估算 0.8–1.6GB）且 key 含 `github.run_id`，`actions/cache` 对已存在的 key 不覆盖，条目只增不减；后者单条目即数百 MB～1GB。现稳定版打包历史每次由 `sync_velopack_history.py` 从 OSS 全量回填，WASM 发布直接 restore，依赖与产物均在运行时重新获取
