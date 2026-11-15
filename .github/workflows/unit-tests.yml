@@ -2,7 +2,8 @@ name: UnitTests
 
 on:
   push:
-    paths: ['**.cs', '**.csproj', '**.slnx', '**.axaml']
+    # global.json 决定 SDK 与 test.runner，改动会影响构建/测试，故一并触发
+    paths: ['**.cs', '**.csproj', '**.slnx', '**.axaml', 'global.json']
   pull_request:
   workflow_call:
 
