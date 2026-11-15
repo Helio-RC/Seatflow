@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Changed
+- **依赖升级**：Avalonia 12.1.4 → 12.1.6（含 Desktop / Browser / Themes.Fluent / Fonts.Inter / Headless / Headless.XUnit / Skia）、SkiaSharp 与 `SkiaSharp.NativeAssets.Linux` 4.154.0 → 4.156.1、Microsoft.Extensions 10.0.14 → 11.0.0（含 `System.Security.Cryptography.Xml`）、OpenTelemetry 1.20.1 → 1.21.0、Markdig 1.5.1 → 1.6.0、QuestPDF 2026.9.1 → 2026.9.2、Microsoft.NET.Test.Sdk 18.11.0 → 18.12.0、xunit.v3 4.0.2 → 4.0.3（`Presentation.Tests` 继续锁定 3.2.2）；`vpk` / `Velopack` 1.2.161 已是最新稳定版，`avdt` 2.2.3 与 `run-script` 0.6.0 同为最新
+
 ## [2.3.1] — 2026-11-15
 
 ### Added
