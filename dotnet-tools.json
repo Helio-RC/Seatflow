@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "avaloniaui.developertools": {
-      "version": "2.2.1",
+      "version": "2.2.3",
       "commands": [
         "avdt"
       ],
