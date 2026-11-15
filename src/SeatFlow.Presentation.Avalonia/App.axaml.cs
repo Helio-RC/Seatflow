@@ -385,12 +385,30 @@ namespace SeatFlow.Presentation.Avalonia
         /// 只更新 <see cref="AppSettings.SuppressEnvironmentWarning"/>：
         /// 重新读取最新设置再保存，避免覆盖首启标记 / .seatsets 导入的其他字段。
         /// </summary>
-        internal static async Task SuppressEnvironmentWarningAsync(IAppSettingsRepository settingsRepo)
+        internal static Task SuppressEnvironmentWarningAsync(IAppSettingsRepository settingsRepo)
+            => UpdateSingleSettingAsync(settingsRepo,
+                static s => s.SuppressEnvironmentWarning,
+                static s => s.SuppressEnvironmentWarning = true);
+
+        /// <summary>
+        /// 只更新 <see cref="AppSettings.SuppressUpdateFailedNotice"/>（“更新检查失败”弹窗的“不再提示”）。
+        /// 与 <see cref="SuppressEnvironmentWarningAsync"/> 一致：重读最新设置再写单字段。
+        /// </summary>
+        internal static Task SuppressUpdateFailedNoticeAsync(IAppSettingsRepository settingsRepo)
+            => UpdateSingleSettingAsync(settingsRepo,
+                static s => s.SuppressUpdateFailedNotice,
+                static s => s.SuppressUpdateFailedNotice = true);
+
+        /// <summary>重读最新设置 → 若未置位则只改这一个字段并写盘（保留其他并发写入的字段）。</summary>
+        private static async Task UpdateSingleSettingAsync(
+            IAppSettingsRepository settingsRepo,
+            Func<AppSettings, bool> alreadySet,
+            Action<AppSettings> apply)
         {
             var latest = await settingsRepo.LoadAsync();
-            if (latest.SuppressEnvironmentWarning) return;
+            if (alreadySet(latest)) return;
 
-            latest.SuppressEnvironmentWarning = true;
+            apply(latest);
             await settingsRepo.SaveAsync(latest);
         }
 
@@ -659,7 +677,9 @@ namespace SeatFlow.Presentation.Avalonia
                 if (result.ServiceStatus == UpdateServiceStatus.Unavailable)
                 {
                     logger.LogWarning("启动检查：更新服务不可达");
-                    await ShowGitHubFallbackInStartupAsync(updateService);
+                    // 仅抑制提示：检查行为不变，用户选择“不再提示”后不再弹窗。
+                    if (!settings.SuppressUpdateFailedNotice)
+                        await ShowGitHubFallbackInStartupAsync(updateService);
                     return;
                 }
 
@@ -696,17 +716,32 @@ namespace SeatFlow.Presentation.Avalonia
         }
 
         /// <summary>
-        /// 记录应用启动遥测事件（仅在遥测启用时）。
+        /// 更新源不可达时弹窗，询问是否前往 GitHub Releases 页面手动下载；
+        /// “不再提示”只在启动检查的这条路径上出现，选择后写盘静默后续启动提示。
         /// </summary>
         private async Task ShowGitHubFallbackInStartupAsync(IUpdateService updateService)
         {
             try
             {
                 var dialog = _serviceProvider.GetRequiredService<IDialogService>();
-                var goToGitHub = await dialog.ShowConfirmAsync(
-                    Lang.Resources.Update_CheckFailed,
-                    Lang.Resources.Update_GoToGitHub);
-                if (!goToGitHub) return;
+                var choice = await DialogServiceShim.ShowGitHubFallbackAsync(
+                    dialog, Lang.Resources.Update_GoToGitHub);
+
+                if (choice is 1) //“不再提示”
+                {
+                    try
+                    {
+                        await SuppressUpdateFailedNoticeAsync(
+                            _serviceProvider.GetRequiredService<IAppSettingsRepository>());
+                    }
+                    catch
+                    {
+                        // 保存失败忽略（下次启动仍会提示）
+                    }
+                    return;
+                }
+
+                if (choice is not 0) return;
 
                 var url = updateService.GetGitHubReleasesUrl(VersionInfo.Version);
                 _serviceProvider.GetRequiredService<IUrlOpener>().OpenUrl(url);
@@ -851,6 +886,25 @@ namespace SeatFlow.Presentation.Avalonia
                     message,
                     Lang.Resources.Common_OK,
                     Lang.Resources.Common_DontRemind);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>更新检查失败兜底弹窗（启动自动检查专用）。</summary>
+        /// <returns>0=前往 GitHub, 1=不再提示, 2/null=取消或关闭窗口</returns>
+        public static async Task<int?> ShowGitHubFallbackAsync(IDialogService dialog, string message)
+        {
+            try
+            {
+                return await dialog.ShowMultiOptionAsync(
+                    Lang.Resources.Update_CheckFailed,
+                    message,
+                    Lang.Resources.Common_OK,
+                    Lang.Resources.Common_DontRemind,
+                    Lang.Resources.Common_Cancel);
             }
             catch
             {

@@ -42,4 +42,37 @@ public class StartupSettingsTests
 
         await repo.DidNotReceive().SaveAsync(Arg.Any<AppSettings>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task 更新失败不再提示_只写该字段()
+    {
+        var settings = new AppSettings
+        {
+            IsFirstLaunch = true,
+            SuppressUpdateFailedNotice = false,
+            AutoUpdate = AutoUpdateMode.CheckOnly,
+        };
+        var repo = Substitute.For<IAppSettingsRepository>();
+        repo.LoadAsync(Arg.Any<CancellationToken>()).Returns(_ => Task.FromResult(settings));
+
+        await SeatFlow.Presentation.Avalonia.App.SuppressUpdateFailedNoticeAsync(repo);
+
+        settings.SuppressUpdateFailedNotice.Should().BeTrue();
+        settings.SuppressEnvironmentWarning.Should().BeFalse("不得顺带改掉环境警告的抑制标记");
+        settings.AutoUpdate.Should().Be(AutoUpdateMode.CheckOnly, "只抑制提示，不改变检查行为");
+        settings.IsFirstLaunch.Should().BeTrue();
+        await repo.Received(1).SaveAsync(settings, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task 已抑制更新失败提示_不重复写盘()
+    {
+        var settings = new AppSettings { SuppressUpdateFailedNotice = true };
+        var repo = Substitute.For<IAppSettingsRepository>();
+        repo.LoadAsync(Arg.Any<CancellationToken>()).Returns(_ => Task.FromResult(settings));
+
+        await SeatFlow.Presentation.Avalonia.App.SuppressUpdateFailedNoticeAsync(repo);
+
+        await repo.DidNotReceive().SaveAsync(Arg.Any<AppSettings>(), Arg.Any<CancellationToken>());
+    }
 }

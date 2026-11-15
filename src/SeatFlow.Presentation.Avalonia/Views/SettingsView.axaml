@@ -521,6 +521,23 @@
                 </DockPanel>
               </Border>
 
+              <Border Classes="sf-setting-row">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Left" Spacing="2">
+                    <TextBlock Classes="sf-text" Text="{x:Static lang:Resources.Settings_SuppressUpdateFailedNotice}" />
+                    <TextBlock
+                      MaxWidth="300"
+                      Classes="sf-hint"
+                      Text="{x:Static lang:Resources.Settings_SuppressUpdateFailedNoticeHint}"
+                      TextWrapping="Wrap" />
+                  </StackPanel>
+                  <ToggleSwitch
+                    HorizontalAlignment="Right"
+                    AutomationProperties.Name="{x:Static lang:Resources.Settings_SuppressUpdateFailedNotice}"
+                    IsChecked="{Binding SuppressUpdateFailedNotice, Mode=TwoWay}" />
+                </DockPanel>
+              </Border>
+
               <Border Classes="sf-setting-row" IsVisible="{Binding !HasPendingUpdate}">
                 <DockPanel>
                   <StackPanel DockPanel.Dock="Left" Spacing="2">

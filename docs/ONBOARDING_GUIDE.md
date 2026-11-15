@@ -67,6 +67,7 @@ App.InitializeAsync
 - 欢迎屏默认勾选；点“继续”按当前勾选写入。点“跳过设置”按关闭处理（`ConsentShown=true`、`Enabled=false`），不会因默认勾选而静默启用遥测。
 - OOBE 保存设置后调用 `ITelemetryService.ApplyEnabled`（不二次落盘）；设置页仍用 `SetEnabled`。
 - OOBE 活跃（含交接）期间不弹更新；`Oobe.Completed` 后 `ScheduleAutoUpdateCheck`。
+- 启动自动检查发现更新服务不可达时弹「更新检查失败」三按钮框（确定 = 前往 GitHub Releases / 不再提醒 / 取消）；「不再提醒」只写 `AppSettings.SuppressUpdateFailedNotice`，检查照旧执行，后续启动不再弹该提示。设置页「更新」卡片的同名开关可随时恢复；设置页手动检查失败仍提示。
 
 ## 层叠与命中
 

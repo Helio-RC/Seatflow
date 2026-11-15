@@ -494,6 +494,8 @@ public class Resources
     public static string Settings_Storage => ResourceManager.GetString("Settings_Storage", Culture)!;
     public static string Settings_SuppressEnvWarning => ResourceManager.GetString("Settings_SuppressEnvWarning", Culture)!;
     public static string Settings_SuppressEnvWarningHint => ResourceManager.GetString("Settings_SuppressEnvWarningHint", Culture)!;
+    public static string Settings_SuppressUpdateFailedNotice => ResourceManager.GetString("Settings_SuppressUpdateFailedNotice", Culture)!;
+    public static string Settings_SuppressUpdateFailedNoticeHint => ResourceManager.GetString("Settings_SuppressUpdateFailedNoticeHint", Culture)!;
     public static string Settings_Telemetry => ResourceManager.GetString("Settings_Telemetry", Culture)!;
     public static string Settings_TelemetryHint => ResourceManager.GetString("Settings_TelemetryHint", Culture)!;
     public static string Settings_TelemetryToggle => ResourceManager.GetString("Settings_TelemetryToggle", Culture)!;

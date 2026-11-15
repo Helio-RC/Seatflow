@@ -46,6 +46,12 @@ namespace SeatFlow.Core.Models
         /// <summary>是否已抑制运行环境警告（用户选择"不再提醒"）。</summary>
         public bool SuppressEnvironmentWarning { get; set; }
 
+        /// <summary>
+        /// 启动时更新检查失败（服务不可达）是否不再提示前往 GitHub Releases 手动下载。
+        /// 只影响启动自动检查的提示，检查本身照旧执行，设置页手动检查失败仍会提示。
+        /// </summary>
+        public bool SuppressUpdateFailedNotice { get; set; }
+
         /// <summary>是否为首次启动（控制首次引导的显示）。</summary>
         public bool IsFirstLaunch { get; set; }
 

@@ -106,6 +106,10 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
     [ObservableProperty]
     public partial bool SuppressEnvironmentWarning { get; set; }
 
+    /// <summary>启动更新检查失败时不再提示前往 GitHub 下载（只影响启动检查的提示）。</summary>
+    [ObservableProperty]
+    public partial bool SuppressUpdateFailedNotice { get; set; }
+
     // ── 键盘快捷键开关 ──
     [ObservableProperty]
     public partial bool UndoShortcutEnabled { get; set; } = true;
@@ -275,6 +279,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
             TelemetryEnabled = settings.Telemetry.Enabled;
 
             SuppressEnvironmentWarning = settings.SuppressEnvironmentWarning;
+            SuppressUpdateFailedNotice = settings.SuppressUpdateFailedNotice;
 
             UndoShortcutEnabled = settings.KeyboardShortcuts.UndoEnabled;
             RedoShortcutEnabled = settings.KeyboardShortcuts.RedoEnabled;
@@ -402,6 +407,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
             if (TelemetryEnabled)
                 settings.Telemetry.ConsentShown = true;
             settings.SuppressEnvironmentWarning = SuppressEnvironmentWarning;
+            settings.SuppressUpdateFailedNotice = SuppressUpdateFailedNotice;
 
             settings.KeyboardShortcuts.UndoEnabled = UndoShortcutEnabled;
             settings.KeyboardShortcuts.RedoEnabled = RedoShortcutEnabled;
@@ -466,6 +472,7 @@ public partial class SettingsViewModel : ViewModelBase, IFileDropHandler, IPageL
         ConfirmBeforeClear = true;
         ZoomIndex = 1;
         SuppressEnvironmentWarning = false;
+        SuppressUpdateFailedNotice = false;
         UndoShortcutEnabled = true;
         RedoShortcutEnabled = true;
         SaveShortcutEnabled = true;

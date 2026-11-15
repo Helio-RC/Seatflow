@@ -5,6 +5,7 @@
 ## [Unreleased]
 
 ### Added
+- **更新检查失败可「不再提醒」**：启动自动检查发现更新服务不可达时，弹窗新增「不再提醒」按钮，选择后写入 `AppSettings.SuppressUpdateFailedNotice`，后续启动不再提示前往 GitHub Releases 手动下载；检查本身照旧执行。设置页「更新」卡片新增同名开关可随时恢复，设置页手动检查失败仍会提示
 - **在线版启动计数**：WASM 运行时资源加载成功后向官网 API 上报一次下载计数（`downloads` 计数器），与官网下载页共用统计；本地 loopback 环境不上报
 - **CodeQL advanced setup**：新增 `.github/workflows/codeql.yml` 取代 GitHub 托管 default setup——仅扫描 C#（`build-mode: manual` 构建桌面壳，避开 wasm-tools）、`trap-caching: false`，只在改动 `src/**` 等的 PR 与每周一 03:00 UTC 运行
 
