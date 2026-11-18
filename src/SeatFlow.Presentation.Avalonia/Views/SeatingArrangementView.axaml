@@ -626,6 +626,7 @@
             DragDrop.DragLeave="SeatCanvas_DragLeave"
             DragDrop.DragOver="SeatCanvas_DragOver"
             DragDrop.Drop="SeatCanvas_Drop"
+            Holding="SeatCanvas_Holding"
             SeatActivated="SeatCanvas_SeatActivated"
             SeatClicked="SeatCanvas_SeatClicked"
             SeatDropped="SeatCanvas_SeatDropped" />
