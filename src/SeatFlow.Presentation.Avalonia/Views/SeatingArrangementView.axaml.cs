@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using SeatFlow.Presentation.Avalonia.Controls;
 using SeatFlow.Presentation.Avalonia.ViewModels;
 
@@ -103,11 +104,11 @@ public partial class SeatingArrangementView : UserControl
         SeatCanvas.ZoomAt(factor, center);
     }
 
-    /// <summary>点击百分比：重置为设置中的默认缩放（关联「座位图默认缩放」）。</summary>
+    /// <summary>点击百分比：重置为设置中的默认缩放，并清掉平移量（回到初始视图）。</summary>
     private void ResetZoom_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is SeatingArrangementViewModel vm)
-            SeatCanvas.Zoom = vm.DefaultZoomLevel;
+            SeatCanvas.ResetView(vm.DefaultZoomLevel);
     }
 
     // ── 座位点击 / 键盘激活 ──
@@ -152,7 +153,7 @@ public partial class SeatingArrangementView : UserControl
         return new Rect(tl, TrashZone.Bounds.Size).Contains(p);
     }
 
-    // ── 未分配列表拖动（系统 DnD → 画布命中） ──
+    // ── 未分配列表拖动（鼠标走系统 DnD；触摸/手写笔走按下捕获 + 指针跟踪的「自己去拖」） ──
 
     private async void UnassignedStudent_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -160,12 +161,53 @@ public partial class SeatingArrangementView : UserControl
             || border.DataContext is not Core.Models.Student student)
             return;
 
+        // 触摸/手写笔没有「左键」概念：若在此 await DoDragDropAsync，
+        // 触摸指针仍被列表捕获、DragOver/Drop 不会触发、await 永不返回 → 界面假死。
+        // 因此触摸改为：选中该学生 + 由列表自己跟踪手指，拖到画布上再落座。
+        if (e.Pointer.Type is PointerType.Touch or PointerType.Pen)
+        {
+            if (DataContext is SeatingArrangementViewModel touchVm)
+                touchVm.SelectedUnassignedStudent = student;
+
+            _touchDragStudent = student;
+            _touchDragStarted = false;
+            _touchDragPointer = e.Pointer;
+            _touchDragBorder = border;
+            _touchDragStart = e.GetPosition(border);
+            TouchDragEventCountForTest = 0;
+
+            // 指针事件一律挂在画布所在的层上（父级捕获，能收到子元素事件）：
+            // 未分配列表在另一个子树上、滚出画布区域后指针事件不会回到被捕获的 Border，
+            // 所以监听必须放在两棵树共同的祖先上，才能跨栏跟踪到座位。
+            this.RemoveHandler(PointerMovedEvent, (EventHandler<PointerEventArgs>)OnTouchDragPointerMoved);
+            this.RemoveHandler(PointerReleasedEvent, (EventHandler<PointerReleasedEventArgs>)OnTouchDragPointerReleased);
+            this.RemoveHandler(PointerCaptureLostEvent, (EventHandler<PointerCaptureLostEventArgs>)OnTouchDragPointerCaptureLost);
+            this.AddHandler(PointerMovedEvent, (EventHandler<PointerEventArgs>)OnTouchDragPointerMoved);
+            this.AddHandler(PointerReleasedEvent, (EventHandler<PointerReleasedEventArgs>)OnTouchDragPointerReleased);
+            this.AddHandler(PointerCaptureLostEvent, (EventHandler<PointerCaptureLostEventArgs>)OnTouchDragPointerCaptureLost);
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            return;
+        }
+
+        if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed)
+            return;
+
         var data = new DataTransfer();
         var studentItem = new DataTransferItem();
         studentItem.Set(DragFormats.StudentDrag, student.Id);
         data.Add(studentItem);
 
-        var result = await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        DragDropEffects result;
+        try
+        {
+            result = await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        }
+        catch (Exception)
+        {
+            // 捕获被抢占等异常不应让列表停在拖拽状态
+            result = DragDropEffects.None;
+        }
 
         // 如果没有发生拖放，手动设置选中项（因为 DoDragDropAsync 阻止了 ListBox 的默认选择行为）
         if (result == DragDropEffects.None
@@ -173,6 +215,146 @@ public partial class SeatingArrangementView : UserControl
         {
             vm.SelectedUnassignedStudent = student;
         }
+    }
+
+    // ── 触摸拖名字：列表捕获指针，移到画布上时由画布报告目标座位 ──
+
+    private Core.Models.Student? _touchDragStudent;
+    private bool _touchDragStarted;
+    private IPointer? _touchDragPointer;
+    private Point _touchDragStart;
+    private Visual? _touchDragBorder;
+
+
+
+
+    private void OnTouchDragPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_touchDragStudent is null || !ReferenceEquals(e.Pointer, _touchDragPointer))
+            return;
+
+        // 指针已被本视图捕获：坐标按本视图（与画布同一坐标系）计算，
+        // 指针移出列表后仍能准确落到底下的座位上。
+        var position = e.GetPosition(this);
+        TouchDragEventCountForTest++;
+        if (!_touchDragStarted)
+        {
+            if (Math.Abs(position.X - _touchDragStart.X) <= TouchDragThreshold
+                && Math.Abs(position.Y - _touchDragStart.Y) <= TouchDragThreshold)
+            {
+                return;
+            }
+
+            _touchDragStarted = true;
+        }
+
+        UpdateTouchDragTarget(position, null);
+    }
+
+
+    private void OnTouchDragPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!ReferenceEquals(e.Pointer, _touchDragPointer)) return;
+
+        var dropped = _touchDragStarted;
+        var student = _touchDragStudent;
+        var position = e.GetPosition(this);
+        var seat = dropped ? HitTestSeatOnCanvas(position, null) : null;
+        TouchDragEventCountForTest++;
+
+        EndTouchDrag(e.Pointer);
+
+        // 松开在可放置的座位上 → 落座；否则回到点选（用户随后点座位即可放置）
+        if (dropped && student is not null && seat is not null
+            && DataContext is SeatingArrangementViewModel vm)
+        {
+            _ = vm.ExecuteDropAsync(student.Id, null, seat.Id);
+        }
+    }
+
+
+    private void OnTouchDragPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        if (ReferenceEquals(e.Pointer, _touchDragPointer))
+            EndTouchDrag(null);
+    }
+
+    /// <summary>指针位于画布上方时上报目标座位并画幽灵名字；离开画布则清除高亮。</summary>
+    private void UpdateTouchDragTarget(Point position, Visual? coordinateSource)
+    {
+        var seat = HitTestSeatOnCanvas(position, coordinateSource);
+        var canvasPoint = TranslateToCanvas(position, coordinateSource);
+        SeatCanvas.SetDragGhost(_touchDragStudent?.Name, canvasPoint);
+        SeatCanvas.SetDropTarget(seat is { IsDisabled: false, IsFixed: false } ? seat.Id : null);
+    }
+
+    private Point? TranslateToCanvas(Point position, Visual? coordinateSource)
+    {
+        // 指针由本视图捕获时 position 是「视图坐标」；画布是视图里的子控件，
+        // 必须再减去画布相对视图的偏移才是画布坐标。鼠标 DnD 传入的元素坐标也走同一条路。
+        var inThis = coordinateSource is null || ReferenceEquals(coordinateSource, this)
+            ? position
+            : TranslateFrom(coordinateSource, position, this);
+        var offset = SeatCanvas.TranslatePoint(default, this);
+        return offset is { } origin
+            ? new Point(inThis.X - origin.X, inThis.Y - origin.Y)
+            : inThis;
+    }
+
+    private SeatVisual? HitTestSeatOnCanvas(Point position, Visual? coordinateSource)
+    {
+        var canvasPoint = TranslateToCanvas(position, coordinateSource);
+        if (canvasPoint is not { } point)
+            return null;
+        if (!new Rect(SeatCanvas.Bounds.Size).Contains(point))
+            return null;
+        return SeatCanvas.HitTestSeat(point);
+    }
+
+    /// <summary>把 <paramref name="from"/> 坐标系中的点换算到 <paramref name="to"/> 坐标系。</summary>
+    private static Point TranslateFrom(Visual from, Point point, Visual to)
+        => from.TranslatePoint(point, to) ?? point;
+
+    private void EndTouchDrag(IPointer? pointer)
+    {
+        _touchDragStudent = null;
+        _touchDragStarted = false;
+        _touchDragPointer = null;
+        _touchDragBorder = null;
+        SeatCanvas.SetDragGhost(null, null);
+        SeatCanvas.SetDropTarget(null);
+        pointer?.Capture(null);
+    }
+
+    /// <summary>触摸拖名字的启动阈值（页坐标像素）。</summary>
+    private const double TouchDragThreshold = 8;
+
+    /// <summary>当前正在触摸拖拽的学生姓名（测试/诊断用）。</summary>
+    internal string? TouchDragStudentNameForTest => _touchDragStudent?.Name;
+
+    /// <summary>触摸拖拽是否已越过启动阈值（测试/诊断用）。</summary>
+    internal bool TouchDragActiveForTest => _touchDragStarted;
+
+    /// <summary>触摸拖拽收到指针事件的次数（测试用）。</summary>
+    internal int TouchDragEventCountForTest { get; private set; }
+
+    /// <summary>
+    /// 画布长按（触摸拖起的替代路径）：把当前选中的未分配学生放入长按命中的座位。
+    /// 触摸设备上系统 DnD 不可靠，长按是最稳的「拖过去」手势。
+    /// </summary>
+    private async void SeatCanvas_Holding(object? sender, HoldingRoutedEventArgs e)
+    {
+        if (e.HoldingState != HoldingState.Started) return;
+        if (DataContext is not SeatingArrangementViewModel vm) return;
+
+        var student = vm.SelectedUnassignedStudent;
+        if (student is null) return;
+
+        var seat = SeatCanvas.HitTestSeat(e.Position);
+        if (seat is null || seat.IsDisabled || seat.IsFixed || seat.IsOccupied) return;
+
+        e.Handled = true;
+        await vm.ExecuteDropAsync(student.Id, null, seat.Id);
     }
 
     // ── 画布作为外部拖放目标 ──
